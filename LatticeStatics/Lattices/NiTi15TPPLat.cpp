@@ -273,22 +273,22 @@ inline int NiTi15TPPLat::INDUU(int k,int l,int m,int n)
    {
       if (m==n)
       {
-	 return 15*k+m;
+	 return DOFS*k+m;
       }
       else
       {
-	 return 15*k + 2+m+n;
+	 return DOFS*k + 2+m+n;
       }
    }
    else
    {
       if (m==n)
       {
-	 return 15*(2+k+l) + m;
+	 return DOFS*(2+k+l) + m;
       }
       else
       {
-	 return 15*(2+k+l) + 2+m+n;
+	 return DOFS*(2+k+l) + 2+m+n;
       }
    }
 }
@@ -312,8 +312,8 @@ inline int NiTi15TPPLat::INDVV(int k,int l,int m,int n)
       exit(-1);
    }
 
-   return 96
-      + 15*( (k-1)*3 + l )
+   return 6*DOFS + 6
+      + DOFS*( (k-1)*3 + l )
       + ( (m-1)*3 + n );
 }
 
@@ -327,11 +327,11 @@ inline int NiTi15TPPLat::INDUV(int i,int j,int m,int n)
 
    if (i==j)
    {
-      return 15*i + 6 + (m-1)*3+n;
+      return DOFS*i + 6 + (m-1)*3+n;
    }
    else
    {
-      return 15*(2+i+j) + 6 + (m-1)*3+n;
+      return DOFS*(2+i+j) + 6 + (m-1)*3+n;
    }
 }
 
@@ -345,11 +345,11 @@ inline int NiTi15TPPLat::INDVU(int m,int n,int i,int j)
 
    if (i==j)
    {
-      return 6*15 + 15*( (m-1)*3+n ) + i;
+      return 6*DOFS + DOFS*( (m-1)*3+n ) + i;
    }
    else
    {
-      return 6*15 + 15*( (m-1)*3+n ) + 2+i+j;
+      return 6*DOFS + DOFS*( (m-1)*3+n ) + 2+i+j;
    }
 }
 
@@ -364,8 +364,9 @@ Matrix NiTi15TPPLat::Phi(unsigned moduliflag,PairPotentials::YDeriv dy,
    static Vector Direction(DIM3);
    static double ForceNorm;
    static double J;
-   static int i,j,k,l,p,q,m,n,s,z;
-   static double r2,phi,phi1,phi2,Influancedist[DIM3],tmp;
+   static int p,q;
+   static int i,j,k,l,m,n,s,t;
+   static double r2,phi,phi1,phi2,phi3,Influancedist[DIM3],tmp;
    static int Top[DIM3],Bottom[DIM3],CurrentInfluanceDist;
    static interaction Inter;
    static Matrix Phi;
@@ -439,9 +440,9 @@ Matrix NiTi15TPPLat::Phi(unsigned moduliflag,PairPotentials::YDeriv dy,
       Bottom[p] = -CurrentInfluanceDist;
 
       // misc initialization
-      for (z=0;z<INTERNAL_ATOMS;z++)
+      for (t=0;t<INTERNAL_ATOMS;t++)
       {
-	 BodyForce_[z][p] = 0.0;
+	 BodyForce_[t][p] = 0.0;
       }
    }
    // misc initialization
@@ -518,7 +519,7 @@ Matrix NiTi15TPPLat::Phi(unsigned moduliflag,PairPotentials::YDeriv dy,
 			      Phi[0][INDU(i,j)] += phi*PI(Dx,DX,i,j);
 			   }
 			}
-			for (i=1;i<4;i++)
+			for (i=1;i<INTERNAL_ATOMS;i++)
 			{
 			   for (j=0;j<DIM3;j++)
 			   {
@@ -529,7 +530,7 @@ Matrix NiTi15TPPLat::Phi(unsigned moduliflag,PairPotentials::YDeriv dy,
 		     case PairPotentials::D2Y:
 			phi1=Potential_[Inter].PairPotential(NTemp_,r2,PairPotentials::DY,
 							     dt);
-
+			
 			//Upper Diag Block (6,6)
 			for (i=0;i<DIM3;i++)
 			{
@@ -551,7 +552,7 @@ Matrix NiTi15TPPLat::Phi(unsigned moduliflag,PairPotentials::YDeriv dy,
 			{
 			   for (j=0;j<DIM3;j++)
 			   {
-			      for (k=1;k<4;k++)
+			      for (k=1;k<INTERNAL_ATOMS;k++)
 			      {
 				 for (l=0;l<DIM3;l++)
 				 {
@@ -567,7 +568,7 @@ Matrix NiTi15TPPLat::Phi(unsigned moduliflag,PairPotentials::YDeriv dy,
 			{
 			   for (j=0;j<DIM3;j++)
 			   {
-			      for (k=1;k<4;k++)
+			      for (k=1;k<INTERNAL_ATOMS;k++)
 			      {
 				 for (l=0;l<DIM3;l++)
 				 {
@@ -581,66 +582,238 @@ Matrix NiTi15TPPLat::Phi(unsigned moduliflag,PairPotentials::YDeriv dy,
 			}		
 			break;
 		     case PairPotentials::D3Y:
-			// phi1=PairPotential(Inter,r2,D2Y,dt);
-			// 
-			// for (i=0;i<DIM3;i++)
-			//    for (j=0;j<DIM3;j++)
-			// 	 for (k=0;k<DIM3;k++)
-			// 	    for (l=0;l<DIM3;l++)
-			// 	       for (m=0;m<DIM3;m++)
-			// 		  for (n=0;n<DIM3;n++)
-			// 		  {
-			// 		     Phi[INDU(i,j,k,l)][INDU(m,n)] +=
-			// 			phi*PI(Dx,DX,i,j)*PI(Dx,DX,k,l)*PI(Dx,DX,m,n)
-			// 			+0.5*phi1*(PI(Dx,DX,i,j)*PSI(DX,k,l,m,n) +
-			// 				   PI(Dx,DX,k,l)*PSI(DX,i,j,m,n) +
-			// 				   PI(Dx,DX,m,n)*PSI(DX,i,j,k,l));
-			// 		  }
-			cerr << "D3Y not programmed !" << endl;
-			exit(1);
+			phi1=Potential_[Inter].PairPotential(NTemp_,r2,PairPotentials::D2Y,dt);
+			phi2=Potential_[Inter].PairPotential(NTemp_,r2,PairPotentials::DY,dt);
+
+			// DU^3 block
+			for (i=0;i<DIM3;i++)
+			   for (j=0;j<DIM3;j++)
+			      for (k=0;k<DIM3;k++)
+				 for (l=0;l<DIM3;l++)
+				    for (m=0;m<DIM3;m++)
+				       for (n=0;n<DIM3;n++)
+				       {
+					  Phi[INDUU(i,j,k,l)][INDU(m,n)] +=
+					     phi*PI(Dx,DX,i,j)*PI(Dx,DX,k,l)*PI(Dx,DX,m,n)
+					     +0.5*phi1*(PI(Dx,DX,i,j)*PSI(DX,k,l,m,n) +
+							PI(Dx,DX,k,l)*PSI(DX,i,j,m,n) +
+							PI(Dx,DX,m,n)*PSI(DX,i,j,k,l));
+				       }
+			// DV^3 block
+			for (i=1;i<INTERNAL_ATOMS;i++)
+			   for (j=0;j<DIM3;j++)
+			      for (k=1;k<INTERNAL_ATOMS;k++)
+				 for (l=0;l<DIM3;l++)
+				    for (m=1;m<INTERNAL_ATOMS;m++)
+				       for (n=0;n<DIM3;n++)
+				       {
+					  Phi[INDVV(i,j,k,l)][INDV(m,n)] +=
+					     phi*OMEGA(Dx,p,q,i,j)*OMEGA(Dx,p,q,k,l)*OMEGA(Dx,p,q,m,n)
+					     +phi1*(OMEGA(Dx,p,q,k,l)*SIGMA(p,q,i,j,m,n)
+						    + OMEGA(Dx,p,q,i,j)*SIGMA(p,q,k,l,m,n)
+						    + OMEGA(Dx,p,q,m,n)*SIGMA(p,q,i,j,k,l));
+				       }
+			// DU^2DV blocks
+			for (i=0;i<DIM3;i++)
+			   for (j=0;j<DIM3;j++)
+			      for (k=0;k<DIM3;k++)
+				 for (l=0;l<DIM3;l++)
+				    for (m=1;m<INTERNAL_ATOMS;m++)
+				       for (n=0;n<DIM3;n++)
+				       {
+					  Phi[INDUU(i,j,k,l)][INDV(m,n)] =
+					     Phi[INDUV(i,j,m,n)][INDU(k,l)] =
+					     Phi[INDVU(m,n,i,j)][INDU(k,l)] += (
+						phi*PI(Dx,DX,i,j)*PI(Dx,DX,k,l)*OMEGA(Dx,p,q,m,n)
+						+phi1*(PI(Dx,DX,k,l)*GAMMA(Dx,DX,p,q,i,j,m,n)
+						       + PI(Dx,DX,i,j)*GAMMA(Dx,DX,p,q,k,l,m,n)
+						       + 0.5*OMEGA(Dx,p,q,m,n)*PSI(DX,i,j,k,l))
+						+phi2*THETA(DX,p,q,i,j,k,l,m,n));
+				       }
+			// DV^2DU blocks
+			for (i=1;i<INTERNAL_ATOMS;i++)
+			   for (j=0;j<DIM3;j++)
+			      for (k=1;k<INTERNAL_ATOMS;k++)
+				 for (l=0;l<DIM3;l++)
+				    for (m=0;m<DIM3;m++)
+				       for (n=0;n<DIM3;n++)
+				       {
+					  Phi[INDVV(i,j,k,l)][INDU(m,n)] =
+					     Phi[INDVU(i,j,m,n)][INDV(k,l)] =
+					     Phi[INDUV(m,n,i,j)][INDV(k,l)] += (
+						phi*OMEGA(Dx,p,q,i,j)*OMEGA(Dx,p,q,k,l)*PI(Dx,DX,m,n)
+						+phi1*(OMEGA(Dx,p,q,k,l)*GAMMA(Dx,DX,p,q,m,n,i,j)
+						       + OMEGA(Dx,p,q,i,j)*GAMMA(Dx,DX,p,q,m,n,k,l)
+						       + PI(Dx,DX,m,n)*SIGMA(p,q,i,j,k,l))
+						+phi2*XI(p,q,i,j,k,l,m,n));
+				       }
 			break;
 		     case PairPotentials::D4Y:
-			// phi1=PairPotential(Inter,r2,D3Y,dt);
-			// phi2=PairPotential(Inter,r2,D2Y,dt);
-			// 
-			// for (i=0;i<DIM3;i++)
-			//    for (j=0;j<DIM3;j++)
-			// 	 for (k=0;k<DIM3;k++)
-			// 	    for (l=0;l<DIM3;l++)
-			// 	       for (m=0;m<DIM3;m++)
-			// 		  for (n=0;n<DIM3;n++)
-			// 		     for (p=0;p<DIM3;p++)
-			// 			for (q=0;q<DIM3;q++)
-			// 			{
-			// 			   Phi[INDU(i,j,k,l)][INDU(m,n,p,q)]+=
-			// 			      phi*(PI(Dx,DX,i,j)*PI(Dx,DX,k,l)*
-			// 				   PI(Dx,DX,m,n)*PI(Dx,DX,p,q)) +
-			// 			      0.5*phi1*(0.5*(
-			// 				 PI(Dx,DX,p,q)*(
-			// 				    PI(Dx,DX,i,j)*PSI(DX,k,l,m,n) +
-			// 				    PI(Dx,DX,k,l)*PSI(DX,i,j,m,n) +
-			// 				    PI(Dx,DX,m,n)*PSI(DX,i,j,k,l)) +
-			// 				 PI(Dx,DX,m,n)*(
-			// 				    PI(Dx,DX,i,j)*PSI(DX,k,l,p,q) +
-			// 				    PI(Dx,DX,k,l)*PSI(DX,i,j,p,q) +
-			// 				    PI(Dx,DX,p,q)*PSI(DX,i,j,k,l)) +
-			// 				 PI(Dx,DX,k,l)*(
-			// 				    PI(Dx,DX,i,j)*PSI(DX,p,q,m,n) +
-			// 				    PI(Dx,DX,p,q)*PSI(DX,i,j,m,n) +
-			// 				    PI(Dx,DX,m,n)*PSI(DX,i,j,p,q)) +
-			// 				 PI(Dx,DX,i,j)*(
-			// 				    PI(Dx,DX,p,q)*PSI(DX,k,l,m,n) +
-			// 				    PI(Dx,DX,k,l)*PSI(DX,p,q,m,n) +
-			// 				    PI(Dx,DX,m,n)*PSI(DX,p,q,k,l))
-			// 				 )) +
-			// 			      0.25*phi2*(
-			// 				 PSI(DX,i,j,m,n)*PSI(DX,k,l,p,q) +
-			// 				 PSI(DX,k,l,m,n)*PSI(DX,i,j,p,q) +
-			// 				 PSI(DX,i,j,k,l)*PSI(DX,m,n,p,q));
-			// 			}
-			cerr << "D4Y not programmed !" << endl;
-			exit(1);
-			break;
+			 phi1=Potential_[Inter].PairPotential(NTemp_,r2,PairPotentials::D3Y,dt);
+			 phi2=Potential_[Inter].PairPotential(NTemp_,r2,PairPotentials::D2Y,dt);
+			 phi3=Potential_[Inter].PairPotential(NTemp_,r2,PairPotentials::DY,dt);
+
+			 // DU^4 block 
+			 for (i=0;i<DIM3;i++)
+			    for (j=0;j<DIM3;j++)
+			       for (k=0;k<DIM3;k++)
+				  for (l=0;l<DIM3;l++)
+				     for (m=0;m<DIM3;m++)
+					for (n=0;n<DIM3;n++)
+					   for (s=0;s<DIM3;s++)
+					      for (t=0;t<DIM3;t++)
+					      {
+						 Phi[INDUU(i,j,k,l)][INDUU(m,n,s,t)]+=
+						    phi*(PI(Dx,DX,i,j)*PI(Dx,DX,k,l)*
+							 PI(Dx,DX,m,n)*PI(Dx,DX,s,t)) +
+						    0.5*phi1*(
+						       PI(Dx,DX,k,l)*PI(Dx,DX,m,n)*PSI(DX,i,j,s,t)
+						       + PI(Dx,DX,i,j)*PI(Dx,DX,m,n)*PSI(DX,k,l,s,t)
+						       + PI(Dx,DX,i,j)*PI(Dx,DX,k,l)*PSI(DX,m,n,s,t)
+						       + PI(Dx,DX,k,l)*PI(Dx,DX,s,t)*PSI(DX,i,j,m,n)
+						       + PI(Dx,DX,i,j)*PI(Dx,DX,s,t)*PSI(DX,k,l,m,n)
+						       + PI(Dx,DX,m,n)*PI(Dx,DX,s,t)*PSI(DX,i,j,k,l))
+						    +0.25*phi2*(
+						       PSI(DX,i,j,m,n)*PSI(DX,k,l,s,t)
+						       + PSI(DX,i,j,s,t)*PSI(DX,k,l,m,n)
+						       + PSI(DX,i,j,k,l)*PSI(DX,m,n,s,t));
+					      }
+			 // DV^4 block
+			 for (i=1;i<INTERNAL_ATOMS;i++)
+			    for (j=0;j<DIM3;j++)
+			       for (k=1;k<INTERNAL_ATOMS;k++)
+				  for (l=0;l<DIM3;l++)
+				     for (m=1;m<INTERNAL_ATOMS;m++)
+					for (n=0;n<DIM3;n++)
+					   for (s=1;s<INTERNAL_ATOMS;s++)
+					      for (t=0;t<DIM3;t++)
+					      {
+						 Phi[INDVV(i,j,k,l)][INDVV(m,n,s,t)] +=
+						    phi*(OMEGA(Dx,p,q,i,j)
+							 *OMEGA(Dx,p,q,k,l)
+							 *OMEGA(Dx,p,q,m,n)
+							 *OMEGA(Dx,p,q,s,t))
+						    +phi1*(
+						       OMEGA(Dx,p,q,k,l)*OMEGA(Dx,p,q,m,n)*SIGMA(p,q,i,j,s,t)
+						       + OMEGA(Dx,p,q,i,j)*OMEGA(Dx,p,q,m,n)*SIGMA(p,q,k,l,s,t)
+						       + OMEGA(Dx,p,q,i,j)*OMEGA(Dx,p,q,k,l)*SIGMA(p,q,m,n,s,t)
+						       + OMEGA(Dx,p,q,k,l)*OMEGA(Dx,p,q,s,t)*SIGMA(p,q,i,j,m,n)
+						       + OMEGA(Dx,p,q,i,j)*OMEGA(Dx,p,q,s,t)*SIGMA(p,q,k,l,m,n)
+						       + OMEGA(Dx,p,q,m,n)*OMEGA(Dx,p,q,s,t)*SIGMA(p,q,i,j,k,l))
+						    +phi2*(
+						       SIGMA(p,q,i,j,m,n)*SIGMA(p,q,k,l,s,t)
+						       + SIGMA(p,q,i,j,s,t)*SIGMA(p,q,k,l,m,n)
+						       + SIGMA(p,q,i,j,k,l)*SIGMA(p,q,m,n,s,t));
+					      }
+			 // DU^3DV blocks
+			 for (i=0;i<DIM3;i++)
+			    for (j=0;j<DIM3;j++)
+			       for (k=0;k<DIM3;k++)
+				  for (l=0;l<DIM3;l++)
+				     for (m=0;m<DIM3;m++)
+					for (n=0;n<DIM3;n++)
+					   for (s=1;s<INTERNAL_ATOMS;s++)
+					      for (t=0;t<DIM3;t++)
+					      {
+						 Phi[INDUU(i,j,k,l)][INDUV(m,n,s,t)] =
+						    Phi[INDUU(i,j,k,l)][INDVU(s,t,m,n)] =
+						    Phi[INDUV(i,j,s,t)][INDUU(k,l,m,n)] =
+						    Phi[INDVU(s,t,i,j)][INDUU(k,l,m,n)] += (
+						       phi*(
+							  PI(Dx,DX,i,j)
+							  *PI(Dx,DX,k,l)
+							  *PI(Dx,DX,m,n)
+							  *OMEGA(Dx,p,q,s,t))
+						       +phi1*(
+							  PI(Dx,DX,k,l)*PI(Dx,DX,m,n)*GAMMA(Dx,DX,p,q,i,j,s,t)
+							  + PI(Dx,DX,i,j)*PI(Dx,DX,m,n)*GAMMA(Dx,DX,p,q,k,l,s,t)
+							  + PI(Dx,DX,i,j)*PI(Dx,DX,k,l)*GAMMA(Dx,DX,p,q,m,n,s,t)
+							  +0.5*(
+							     PI(Dx,DX,k,l)*OMEGA(Dx,p,q,s,t)*PSI(DX,i,j,m,n)
+							     + PI(Dx,DX,i,j)*OMEGA(Dx,p,q,s,t)*PSI(DX,k,l,m,n)
+							     + PI(Dx,DX,m,n)*OMEGA(Dx,p,q,s,t)*PSI(DX,i,j,k,l)))
+						       +phi2*(
+							  PI(Dx,DX,k,l)*THETA(DX,p,q,i,j,m,n,s,t)
+							  + PI(Dx,DX,i,j)*THETA(DX,p,q,k,l,m,n,s,t)
+							  + PI(Dx,DX,m,n)*THETA(DX,p,q,i,j,k,l,s,t)
+							  +0.5*(
+							     GAMMA(Dx,DX,p,q,k,l,s,t)*PSI(DX,i,j,m,n)
+							     + GAMMA(Dx,DX,p,q,i,j,s,t)*PSI(DX,k,l,m,n)
+							     + GAMMA(Dx,DX,p,q,m,n,s,t)*PSI(DX,i,j,k,l))));
+					      }
+			 // DV^3DU blocks
+			 for (i=1;i<INTERNAL_ATOMS;i++)
+			    for (j=0;j<DIM3;j++)
+			       for (k=1;k<INTERNAL_ATOMS;k++)
+				  for (l=0;l<DIM3;l++)
+				     for (m=1;m<INTERNAL_ATOMS;m++)
+					for (n=0;n<DIM3;n++)
+					   for (s=0;s<DIM3;s++)
+					      for (t=0;t<DIM3;t++)
+					      {
+						 Phi[INDVV(i,j,k,l)][INDVU(m,n,s,t)] =
+						    Phi[INDVV(i,j,k,l)][INDUV(s,t,m,n)] =
+						    Phi[INDVU(i,j,s,t)][INDVV(k,l,m,n)] =
+						    Phi[INDUV(s,t,i,j)][INDVV(k,l,m,n)] += (
+						       phi*(
+							  OMEGA(Dx,p,q,i,j)
+							  *OMEGA(Dx,p,q,k,l)
+							  *OMEGA(Dx,p,q,m,n)
+							  *PI(Dx,DX,s,t))
+						       +phi1*(
+							  OMEGA(Dx,p,q,k,l)*OMEGA(Dx,p,q,m,n)*GAMMA(Dx,DX,p,q,s,t,i,j)
+							  + OMEGA(Dx,p,q,i,j)*OMEGA(Dx,p,q,m,n)*GAMMA(Dx,DX,p,q,s,t,k,l)
+							  + OMEGA(Dx,p,q,i,j)*OMEGA(Dx,p,q,k,l)*GAMMA(Dx,DX,p,q,s,t,m,n)
+							  + OMEGA(Dx,p,q,k,l)*PI(Dx,DX,s,t)*SIGMA(p,q,i,j,m,n)
+							  + OMEGA(Dx,p,q,i,j)*PI(Dx,DX,s,t)*SIGMA(p,q,k,l,m,n)
+							  + OMEGA(Dx,p,q,m,n)*PI(Dx,DX,s,t)*SIGMA(p,q,i,j,k,l))
+						       +phi2*(
+							  OMEGA(Dx,p,q,k,l)*XI(p,q,i,j,m,n,s,t)
+							  + OMEGA(Dx,p,q,i,j)*XI(p,q,k,l,m,n,s,t)
+							  + OMEGA(Dx,p,q,m,n)*XI(p,q,i,j,k,l,s,t)
+							  + SIGMA(p,q,i,j,m,n)*GAMMA(Dx,DX,p,q,s,t,k,l)
+							  + SIGMA(p,q,k,l,m,n)*GAMMA(Dx,DX,p,q,s,t,i,j)
+							  + SIGMA(p,q,i,j,k,l)*GAMMA(Dx,DX,p,q,s,t,m,n)));
+					      }
+			 // DU^2DV^2 blocks
+			 for (i=0;i<DIM3;i++)
+			    for (j=0;j<DIM3;j++)
+			       for (k=0;k<DIM3;k++)
+				  for (l=0;l<DIM3;l++)
+				     for (m=1;m<INTERNAL_ATOMS;m++)
+					for (n=0;n<DIM3;n++)
+					   for (s=1;s<INTERNAL_ATOMS;s++)
+					      for (t=0;t<DIM3;t++)
+					      {
+						 Phi[INDUU(i,j,k,l)][INDVV(m,n,s,t)] =
+						    Phi[INDUV(i,j,m,n)][INDUV(k,l,s,t)] =
+						    Phi[INDUV(i,j,m,n)][INDVU(s,t,k,l)] =
+						    Phi[INDVU(m,n,i,j)][INDUV(k,l,s,t)] =
+						    Phi[INDVU(m,n,i,j)][INDVU(s,t,k,l)] =
+						    Phi[INDVV(m,n,s,t)][INDUU(i,j,k,l)] += (
+						       phi*(
+							  PI(Dx,DX,i,j)
+							  *PI(Dx,DX,k,l)
+							  *OMEGA(Dx,p,q,m,n)
+							  *OMEGA(Dx,p,q,s,t))
+						       +phi1*(
+							  PI(Dx,DX,i,j)*PI(Dx,DX,k,l)*SIGMA(p,q,m,n,s,t)
+							  + PI(Dx,DX,k,l)*OMEGA(Dx,p,q,m,n)*GAMMA(Dx,DX,p,q,i,j,s,t)
+							  + PI(Dx,DX,i,j)*OMEGA(Dx,p,q,m,n)*GAMMA(Dx,DX,p,q,k,l,s,t)
+							  + PI(Dx,DX,k,l)*OMEGA(Dx,p,q,s,t)*GAMMA(Dx,DX,p,q,i,j,m,n)
+							  + PI(Dx,DX,i,j)*OMEGA(Dx,p,q,s,t)*GAMMA(Dx,DX,p,q,k,l,m,n)
+							  + OMEGA(Dx,p,q,m,n)*OMEGA(Dx,p,q,s,t)*0.5*PSI(DX,i,j,k,l))
+						       +phi2*(
+							  PI(Dx,DX,k,l)*XI(p,q,m,n,s,t,i,j)
+							  + PI(Dx,DX,i,j)*XI(p,q,m,n,s,t,k,l)
+							  + OMEGA(Dx,p,q,m,n)*THETA(DX,p,q,i,j,k,l,s,t)
+							  + OMEGA(Dx,p,q,s,t)*THETA(DX,p,q,i,j,k,l,m,n)
+							  + GAMMA(Dx,DX,p,q,i,j,m,n)*GAMMA(Dx,DX,p,q,k,l,s,t)
+							  + GAMMA(Dx,DX,p,q,i,j,s,t)*GAMMA(Dx,DX,p,q,k,l,m,n)
+							  + SIGMA(p,q,m,n,s,t)*0.5*PSI(DX,i,j,k,l))
+						       +phi3*LAMDA(p,q,i,j,k,l,m,n,s,t));
+					      }
+			 break;
 		  }
 	       }
 	    }
