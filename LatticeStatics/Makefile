@@ -25,8 +25,8 @@ CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS) $(SOLVE)
 
 # File Locations ##########################################################
 BIN_LOC    = ${HOME}/bin
-INCL_LOC   = ${HOME}/include
-LIB_LOC    = ${HOME}/lib
+INCL_LOC   = -I ${HOME}/include
+LIB_LOC    = -L${HOME}/lib
 LIBS       = -lLinearAlgebra -lMyMath -lm
 LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(DATE_DEF)
 #
@@ -58,7 +58,7 @@ OBJECTS  = $(STRIPEDSOURCES:$(SRC_EXT)=$(OBJ_EXT))
 # Defines the Program Target (linking command) ############################
 $(EXE):  $(OBJECTS)
 	 $(PURE) $(CC) $(LFLAGS) Utility/builddate.cpp \
-		 -L$(LIB_LOC) -o ./bin/$(EXE) \
+		 $(LIB_LOC) -o ./bin/$(EXE) \
 		 $(addprefix lib/,$(OBJECTS)) $(LIBS) 
 
 # include the dependicies
@@ -66,7 +66,7 @@ include $(addprefix depend/,$(OBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 
 # Define object file dependicies and make rule
 $(OBJECTS): Makefile
-	$(CC) $(CCFLAGS) -I. $(addprefix -I ,$(SUBDIRS)) -I $(INCL_LOC)/ \
+	$(CC) $(CCFLAGS) -I. $(addprefix -I ,$(SUBDIRS)) $(INCL_LOC)/ \
         -o ./lib/$(notdir $@) \
         -c $(filter %$(*),$(basename $(SOURCES)))$(SRC_EXT)
 
@@ -100,7 +100,7 @@ clean:
 # Define rule for dependicy files
 depend/$(notdir %).d: %$(SRC_EXT)
 	@$(SHELL) -ec '$(CC) -MM $(CCFLAGS) -I. $(addprefix -I ,$(SUBDIRS)) \
-	      -I $(INCL_LOC)/ $< \
+	      $(INCL_LOC)/ $< \
 	      | sed '\''s/\($*\)\.o[ :]*/\1.o $*.d : /g'\'' \
 	      > $@; [ -s $@ ] || rm -f $@'
 	@echo "Building $@"
