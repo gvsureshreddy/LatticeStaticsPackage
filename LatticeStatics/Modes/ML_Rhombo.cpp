@@ -12,8 +12,8 @@ Vector ML_Rhombo::ArcLenRHS(double DS,const Vector &Diff,
    Vector rhs(3);
    Matrix stress = Lattice_->Stress();
 
-   rhs[0] = stress[0][0] + stress[0][1] + stress[0][2];
-   rhs[1] = stress[0][3] + stress[0][4] + stress[0][5];
+   rhs[0] = stress[0][0];
+   rhs[1] = stress[0][3];
    rhs[2] = DS*DS - Diff[2]*Diff[2]/(Aspect*Aspect)
       - Diff[0]*Diff[0]
       - Diff[1]*Diff[1];
@@ -74,10 +74,10 @@ Matrix ML_Rhombo::ArcLenStiffness(const Vector &Diff,double Aspect)
 
    K[0][0] = Stiff[0][0] + Stiff[0][1] + Stiff[0][2];
    K[0][1] = Stiff[0][3] + Stiff[0][4] + Stiff[0][5];
-   K[0][2] = stressdt[0][0] + stressdt[0][1] + stressdt[0][2];
+   K[0][2] = stressdt[0][0];
    K[1][0] = Stiff[3][0] + Stiff[3][1] + Stiff[3][2];
    K[1][1] = Stiff[3][3] + Stiff[3][4] + Stiff[3][5];
-   K[1][2] = stressdt[0][3] + stressdt[0][4] + stressdt[0][5];
+   K[1][2] = stressdt[0][3];
    K[2][0] = -2.0*Diff[0];
    K[2][1] = -2.0*Diff[1];
    K[2][2] = -2.0*Diff[2]/(Aspect*Aspect);
@@ -112,14 +112,14 @@ void ML_Rhombo::ScanningLoadParamUpdate(const double newval)
 double ML_Rhombo::ScanningStressParameter()
 {
    Matrix stress = Lattice_->Stress();
-   return stress[0][3] + stress[0][4] + stress[0][5];
+   return stress[0][3];
 }
    
 Vector ML_Rhombo::ScanningRHS()
 {
    Matrix stress = Lattice_->Stress();
    
-   return Vector(1,stress[0][1]+stress[0][2]+stress[0][3]);
+   return Vector(1,stress[0][1]);
 }
 
 Vector ML_Rhombo::ScanningDef()
