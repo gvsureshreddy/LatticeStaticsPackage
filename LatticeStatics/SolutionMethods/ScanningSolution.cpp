@@ -251,10 +251,15 @@ double ScanningSolution::ScanningNewton(int &good)
    {
       Mode_->ScanningDefParamUpdate(LineStep_);
    }
-
+   
+#ifdef SOLVE_SVD
    dx = SolveSVD(Mode_->ScanningStiffness(),
 		 RHS,
 		 MAXCONDITION,1);
+#else
+   dx = SolvePLU(Mode_->ScanningStiffness(),RHS);
+#endif
+   
    Mode_->ScanningUpdate(dx);
 
    if (Direction_ == Loading)
@@ -272,10 +277,14 @@ double ScanningSolution::ScanningNewton(int &good)
    {
       itr++;
 
+#ifdef SOLVE_SVD
       dx=SolveSVD(Mode_->ScanningStiffness(),
 		  Mode_->ScanningRHS(),
 		  MAXCONDITION,1);
-
+#else
+      dx=SolvePLU(Mode_->ScanningStiffness(),Mode_->ScanningRHS());
+#endif
+      
       Mode_->ScanningUpdate(dx);
    }
 

@@ -261,9 +261,13 @@ double ArcLengthSolution::ArcLengthNewton(int &good)
    {
       itr++;
 
+#ifdef SOLVE_SVD
       Dx = SolveSVD(
 	 Mode_->ArcLenStiffness(Difference_,Aspect_),
 	 RHS,MAXCONDITION,1);
+#else
+      Dx = SolvePLU(Mode_->ArcLenStiffness(Difference_,Aspect_),RHS);
+#endif
 
       Mode_->ArcLenUpdate(Dx);
       Difference_ -= Dx;
@@ -273,6 +277,9 @@ double ArcLengthSolution::ArcLengthNewton(int &good)
 	   << Mode_->ScanningStressParameter() << ","
 	   << setw(20) << RHS.Norm() << ","
 	   << setw(20) << Dx.Norm() << "), ";
+#ifndef SOLVE_SVD
+      cout << endl;
+#endif
    }
    while ((itr < MaxIter_)
 	  && ((fabs(RHS.Norm()) > Tolerance_) || (fabs(Dx.Norm()) > Tolerance_)));
