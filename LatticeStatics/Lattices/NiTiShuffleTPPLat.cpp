@@ -555,7 +555,7 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
    static Vector DXPrimeS(DIM3),DxPrimeS(DIM3),DXPrimeD(DIM3),DxPrimeD(DIM3),
       DXPrimeA(DIM3),DxPrimeA(DIM3);
    static Vector Direction(DIM3);
-   static double ForceNorm[INTERNAL_ATOMS];
+   static double ForceNorm;
    static double J;
    static int i,j,k,l,p,q,m,n,s,z;
    static double r2,phi,phi1,phi2,Influancedist[DIM3],tmp;
@@ -619,12 +619,13 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
       Bottom[p] = -CurrentInfluanceDist;
 
       // misc initialization
-      ForceNorm[p] = 0.0;
       for (z=0;z<INTERNAL_ATOMS;z++)
       {
 	 BodyForce_[z][p] = 0.0;
       }
    }
+   // misc initialization
+   ForceNorm = 0.0;
 
    for (p=0;p<INTERNAL_ATOMS;p++)
    {
@@ -678,9 +679,9 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 
 		  // Calculate bodyforce
 		  phi1 = PairPotential(Inter,r2,DY,T0);
-		  if (ForceNorm[p] < fabs(-phi1/(2.0*sqrt(r2))))
+		  if (ForceNorm < fabs(-phi1/(2.0*sqrt(r2))))
 		  {
-		     ForceNorm[p] = fabs(-phi1/(2.0*sqrt(r2)));
+		     ForceNorm = fabs(-phi1/(2.0*sqrt(r2)));
 		  }
 		  for (i=0;i<DIM3;i++)
 		  {
@@ -820,12 +821,12 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
       }
    }
 
-   // BodyForce[i] = BodyForce[i] / ForceNorm[i]
+   // BodyForce[i] = BodyForce[i] / ForceNorm
    for (i=0;i<INTERNAL_ATOMS;i++)
    {
       for (j=0;j<DIM3;j++)
       {
-	 BodyForce_[i][j] /= ForceNorm[i];
+	 BodyForce_[i][j] /= ForceNorm;
       }
    }
    
