@@ -164,9 +164,14 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,char *startf
       start.close();
    }
    
-   cout << setiosflags(ios::fixed) << setprecision(Precision) << setw(Width);
-   out  << setiosflags(ios::fixed) << setprecision(Precision) << setw(Width);
+   cout << setiosflags(ios::fixed) << setprecision(Precision);
+   out  << setiosflags(ios::fixed) << setprecision(Precision);
 
+#ifdef BUILD_DATE
+   cout << "Built on: " << BUILD_DATE << endl << setw(Width);
+   out << "Built on: " << BUILD_DATE << endl << setw(Width);
+#endif
+   
    Lat->Print(cout,Lattice::PrintLong);
    Lat->Print(out,Lattice::PrintLong);
 }
