@@ -71,10 +71,9 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile)
 	 
    // Get Lattice parameters
    
-   // all 3 components of RefLen could be set by the input file
-   // but for now just take 1
-   GetParameter("^RefLen",datafile,"%lf",&(RefLen_[0]));
-   RefLen_[2] = RefLen_[1] = RefLen_[0];
+   GetParameter("^RefLen_0",datafile,"%lf",&(RefLen_[0]));
+   GetParameter("^RefLen_1",datafile,"%lf",&(RefLen_[1]));
+   GetParameter("^RefLen_2",datafile,"%lf",&(RefLen_[2]));
    
    GetParameter("^InfluanceDist",datafile,"%u",&InfluanceDist_);
    GetParameter("^NTemp",datafile,"%lf",&NTemp_);
@@ -109,7 +108,7 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile)
    
 }
 
-// This routing assumes Cubic symm, i.e., RefLen_[0--2] are equal
+// This routing assumes the lattice has fixed angles
 int MultiLatticeTPP::FindLatticeSpacing(int iter,double dx)
 {
    double oldPressure=Pressure_,
@@ -125,64 +124,106 @@ int MultiLatticeTPP::FindLatticeSpacing(int iter,double dx)
    }
 
    LatSum_.Recalc();
-   double s=Stress()[0][0];
 
-   cout << setw(20) << Stress() << endl;
+   Vector RHS(DIM3,0.0);
+   Matrix Stiff(DIM3,DIM3,0.0);
+   Vector De(DIM3,0.0);
+   Matrix stress=Stress();
+   Matrix stiff=stiffness();
+   Vector LatBasisNorm[3];
 
-   double
-      val     = fabs(s),
-      sign    = s/val,
-      newsign = 0;
-
-   int i=0;
-
-   if (!(val < 1.0e-14))
+   for (int i=0;i<DIM3;++i)
    {
-      while ((sign*newsign >= 0) && (i < iter))
-      {
-	 cout << setw(20) << RefLen_[0] << setw(20) << s << endl;
-	 RefLen_[0] -= dx*sign;
-	 // Update RefLattice_
-	 for (int p=0;p<DIM3;++p)
-	    for (int q=0;q<DIM3;++q)
-	       RefLattice_[p][q] = LatticeBasis[p][q]*RefLen_[0];
-	 
-	 LatSum_.Recalc();
-	 s = Stress()[0][0];
-	 
-	 newsign = s/fabs(s);
-	 i++;
-      }
-      
-      if (i >= iter)
-	 return 1;
-      else
-      {
-	 i=0;
-	 while ((fabs(s) > 1.0e-13) && (i < iter))
+      LatBasisNorm[i].Resize(DIM3);
+      LatBasisNorm[i] = LatticeBasis[i]/LatticeBasis[i].Norm();
+   }
+   
+   for (int i=0;i<DIM3;++i)
+   {
+      for (int j=0;j<DIM3;++j)
+	 for (int k=0;k<DIM3;k++)
 	 {
-	    cout << setw(20) << RefLen_[0] << setw(20) << s << endl;
-	    i++;
-	    RefLen_[0] -= dx*newsign/(pow(2,i));
-	    // Update RefLattice_
-	    for (int p=0;p<DIM3;++p)
-	       for (int q=0;q<DIM3;++q)
-		  RefLattice_[p][q] = LatticeBasis[p][q]*RefLen_[0];
-
-	    LatSum_.Recalc();
-	    s = Stress()[0][0];
-	    newsign=s/fabs(s);
+	    RHS[i] += LatBasisNorm[i][j]*stress[0][INDU(j,k)]*LatBasisNorm[i][k];
 	 }
-	 if (i > iter)
-	    return 1;
-      }
    }
 
-   RefLen_[2]=RefLen_[1] = RefLen_[0];
+   for (int i=0;i<DIM3;++i)
+      for (int j=0;j<DIM3;++j)
+      {
+	 for (int k=0;k<DIM3;++k)
+	    for (int l=0;l<DIM3;++l)
+	       for (int m=0;m<DIM3;++m)
+		  for (int n=0;n<DIM3;++n)
+		  {
+		     Stiff[i][j] +=
+			LatBasisNorm[i][k]*LatBasisNorm[i][l]
+			*stiff[INDU(k,l)][INDU(m,n)]
+			*LatBasisNorm[j][m]*LatBasisNorm[j][n];
+		  }
+      }
+
+   int itr=0;
+   do
+   {
+      itr++;
+
+#ifdef SOLVE_SVD
+      De = SolveSVD(Stiff,RHS,MAXCONDITION,1);
+#else
+      De = SolvePLU(Stiff,RHS);
+#endif
+
+      for (int i=0;i<DIM3;++i)
+	 RefLen_[i] -= De[i];
+   
+      // Update RefLattice_
+      for (int p=0;p<DIM3;++p)
+	 for (int q=0;q<DIM3;++q)
+	    RefLattice_[p][q] = LatticeBasis[p][q]*RefLen_[p];
+
+      LatSum_.Recalc();
+      stress = Stress();
+      stiff = Stiffness();
+      
+      for (int i=0;i<DIM3;++i)
+      {
+	 RHS[i] = 0.0;
+	 for (int j=0;j<DIM3;++j)
+	    for (int k=0;k<DIM3;k++)
+	    {
+	       RHS[i] += LatBasisNorm[i][j]*stress[0][INDU(j,k)]*LatBasisNorm[i][k];
+	    }
+      }
+      
+      for (int i=0;i<DIM3;++i)
+	 for (int j=0;j<DIM3;++j)
+	 {
+	    Stiff[i][j] = 0.0;
+	    for (int k=0;k<DIM3;++k)
+	       for (int l=0;l<DIM3;++l)
+		  for (int m=0;m<DIM3;++m)
+		     for (int n=0;n<DIM3;++n)
+		     {
+			Stiff[i][j] +=
+			   LatBasisNorm[i][k]*LatBasisNorm[i][l]
+			   *stiff[INDU(k,l)][INDU(m,n)]
+			   *LatBasisNorm[j][m]*LatBasisNorm[j][n];
+		     }
+	 }
+
+      cout << setw(10) << itr << endl
+	   << "    RHS=" << setw(20) << RHS << setw(20) << RHS.Norm() << endl
+	   << "     De=" << setw(20) << De  << setw(20) << De.Norm() << endl
+	   << "RefLen_=" << setw(20) << RefLen_[0] << setw(20) << RefLen_[1]
+	   << setw(20) << RefLen_[2] << endl;
+   }
+   while ((itr < iter)
+	  && ((RHS.Norm() > 1.0e-13) || (De.Norm() > 1.0e-14)));
+
    ShearMod_ = 0.25*fabs(Stiffness()[5][5]);
    NTemp_=oldTemp;
    Pressure_=oldPressure;
-
+   
    return 0;
 }
 
