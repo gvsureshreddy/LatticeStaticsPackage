@@ -50,7 +50,7 @@ install: all
 	$(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/MyMathBuildDate.o -c MyMathBuildDate.cpp
 	ar -r $(LIB_LOC)/libMyMath.a $(addprefix ./lib/,$(OBJECTS)) ./lib/MyMathBuildDate.o
 	/bin/rm -f ./lib/MyMathBuildDate.o
-	/usr/bin/ranlib $(LIB_LOC)/libMyMath.a
+	ranlib $(LIB_LOC)/libMyMath.a
 	/bin/cp MyMath.h $(INCL_LOC)
 
 # Define uninstall
