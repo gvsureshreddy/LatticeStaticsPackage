@@ -5,7 +5,7 @@
 #include <math.h>
 
 // Global IDString
-char VectorID[]="$Id: Vector.cpp,v 1.5 2001/01/03 16:46:30 elliottr Exp $";
+char VectorID[]="$Id: Vector.cpp,v 1.6 2001/01/03 18:19:17 elliottr Exp $";
 
 // Private Functions...
 
@@ -377,7 +377,7 @@ Matrix::Elm Vector::Norm()
    return sqrt(*this*(*this));
 }
 
-Vector Solve(const Matrix& A,const Vector& B)
+Vector SolvePLU(const Matrix& A,const Vector& B)
 {
    Matrix C(B.Cols_,1);
 
@@ -386,7 +386,20 @@ Vector Solve(const Matrix& A,const Vector& B)
       C[i][0]=B.Elements_[i];
    }
 
-      return Solve(A,C);
+      return SolvePLU(A,C);
+}
+
+Vector SolveSVD(const Matrix& A,const Vector& B,const Vector::Elm MaxCond,
+		const int PrintFlag)
+{
+   Matrix C(B.Cols_,1);
+
+   for(register int i=0;i<B.Cols_;i++)
+   {
+      C[i][0]=B.Elements_[i];
+   }
+
+      return SolveSVD(A,C,MaxCond,PrintFlag);
 }
 
 ostream& operator<<(ostream& out,const Vector& A)

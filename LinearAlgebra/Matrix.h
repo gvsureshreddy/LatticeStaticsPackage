@@ -143,7 +143,7 @@ public:
    // -- W[i][i] == 0.0 has inverse component 0.0
    friend Matrix SolveSVD(const Matrix& A,const Matrix& B,
 			  const Elm MaxCond=MAXCONDITION,
-			  const int PrintFlag=0);   
+			  const int PrintFlag=0);
    
    // Output/Input Functions
    friend ostream& operator<<(ostream& out,const Matrix& A);

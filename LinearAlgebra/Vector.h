@@ -74,7 +74,10 @@ public:
    // Operations & Etc...
 
    // Uses PLU decomposition with Forward and Backwards substitution
-   friend Vector Solve(const Matrix& A,const Vector& B);
+   friend Vector SolvePLU(const Matrix& A,const Vector& B);
+   // Uses SVD decomposition.
+   friend Vector SolveSVD(const Matrix& A,const Vector& B,const Elm MaxCond=MAXCONDITION,
+			  const int PrintFlag=0);
 
    // Output/Input Function
    friend ostream& operator<<(ostream& out,const Vector& A);
