@@ -58,10 +58,14 @@ $(OBJECTS): Makefile
 # Define install
 install: $(EXE)
 	/bin/cp bin/$(EXE) $(BIN_LOC)/
+	/bin/cp Utility/UniDef_Symm_Solution $(BIN_LOC)/
+	/bin/cp gpl_scripts/NiTi2gpl $(BIN_LOC)/
 
 # Define uninstall
 uninstall:
 	/bin/rm -f $(BIN_LOC)/$(EXE)
+	/bin/rm -f $(BIN_LOC)/UniDef_Symm_Solution
+	/bin/rm -f $(BIN_LOC)/NiTi2gpl
 
 
 
