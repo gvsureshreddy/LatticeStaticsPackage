@@ -53,7 +53,7 @@ while (<DATA>)
     }
   }
 
-  if (/^BlochWave/)
+  if (/^Success/)
   {
     if ($count == 0)
     {
