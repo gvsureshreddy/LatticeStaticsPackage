@@ -16,8 +16,9 @@ ANSI       = -pedantic
 #PROFILE    = -pg
 #DEBUG      = -g
 #BOUNDS     = -DCHECK_BOUNDS
+#SOLVE      = -DSOLVE_SVD
 OPTIMIZE   = -O
-CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS)
+CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS) $(SOLVE)
 
 # File Locations ##########################################################
 BIN_LOC    = ${HOME}/bin
