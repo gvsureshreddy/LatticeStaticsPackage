@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
 
    
    int success;
-   int Nulity=Lat->StiffnessNulity(),
+   int Nulity=-1,
       OldNulity=Nulity;
 
    
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 	 // Check for Critical Point Crossing
 	 OldNulity = Nulity;
 	 Nulity = Lat->StiffnessNulity();
-	 if ((OldNulity != Nulity) && (BisectCP == Yes))
+	 if ((OldNulity != Nulity) && (BisectCP == Yes) && (OldNulity != -1))
 	    SolveMe->BisectAlert(Lat,Width,out);
 	 
 	 // Send Output
