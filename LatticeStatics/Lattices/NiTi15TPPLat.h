@@ -4,13 +4,13 @@
 #include "GenericLat.h"
 #include "RadiiMorse.h"
 
-#define DIM3 3
-#define INTERNAL_ATOMS 4
-#define DOFS 15
-
 class NiTi15TPPLat : public GenericLat
 {
 private:
+   const static int DIM3 = 3;
+   const static int INTERNAL_ATOMS = 4;
+   const static int DOFS = 15;
+
    double RefLen_;
    unsigned InfluanceDist_;
    double NTemp_;
@@ -32,21 +32,24 @@ private:
    static const interaction INTER[INTERNAL_ATOMS][INTERNAL_ATOMS];
 
 public:
-   Vector DOF() {return DOF_;}
-   Matrix StressDT();
-   void SetDOF(const Vector &dof) { DOF_ = dof;}
-   double Temp() {return NTemp_;}
-   void SetTemp(const double &Ntemp) {NTemp_ = Ntemp;}
    double RefLen() {return RefLen_;}
 
+   // Virtual Functions required by GenericLat
+   Vector DOF() {return DOF_;}
+   void SetDOF(const Vector &dof) { DOF_ = dof;}
+   Matrix StressDT() {return Phi(0,PairPotentials::DY,PairPotentials::DT);}
+   Matrix StiffnessDT() {return Phi(0,PairPotentials::D2Y,PairPotentials::DT);}
+   double Temp() {return NTemp_;}
+   void SetTemp(const double &Ntemp) {NTemp_ = Ntemp;}
+
    // Virtual Functions required by Lattice
-   virtual double Energy();
-   virtual Matrix Stress();
-   virtual Matrix Stiffness();
-   virtual Matrix Moduli();
-   virtual int StiffnessNulity(double *Min=NULL);
+   virtual double Energy() {return Phi()[0][0];}
+   virtual Matrix Stress() {return Phi(0,PairPotentials::DY);}
+   virtual Matrix Stiffness() {return Phi(0,PairPotentials::D2Y);}
+   virtual Matrix Moduli() {return Phi(1,PairPotentials::D2Y);}
+   virtual Matrix E3() {return Phi(0,PairPotentials::D3Y);}
+   virtual Matrix E4() {return Phi(0,PairPotentials::D4Y);}
    virtual void Print(ostream &out,PrintDetail flag);
-   virtual void CriticalPointInfo(double Tolerance,int Width,ostream &out);
    
    // Functions provided by NiTi15TPPLat
    NiTi15TPPLat(char *datafile);
@@ -57,17 +60,18 @@ public:
    double SetPressure(double &p) { Pressure_ = p;}
    double ShearMod() const { return ShearMod_;}
    friend ostream &operator<<(ostream &out,NiTi15TPPLat &A);
+
 private:
-   inline double PI(const Vector &Dx,const Vector &DX,int r,int s);
-   inline double PSI(const Vector &DX,int r,int s,int t,int u);
-   inline double OMEGA(const Vector &Dx,int p,int q,int i, int j);
-   inline double SIGMA(int p,int q,int i,int j,int k,int l);
-   inline double GAMMA(const Vector &Dx,const Vector &DX,int p,int q,
+   double PI(const Vector &Dx,const Vector &DX,int r,int s);
+   double PSI(const Vector &DX,int r,int s,int t,int u);
+   double OMEGA(const Vector &Dx,int p,int q,int i, int j);
+   double SIGMA(int p,int q,int i,int j,int k,int l);
+   double GAMMA(const Vector &Dx,const Vector &DX,int p,int q,
 		       int i,int j,int k,int l);
-   inline double THETA(const Vector &DX,int p,int q,int i,int j,int k,int l,
+   double THETA(const Vector &DX,int p,int q,int i,int j,int k,int l,
 		       int m, int n);
-   inline double XI(int p,int q,int i,int j,int k,int l,int m,int n);
-   inline double LAMDA(int p,int q,int i,int j,int k,int l,int m,int n,int a,int b);
+   double XI(int p,int q,int i,int j,int k,int l,int m,int n);
+   double LAMDA(int p,int q,int i,int j,int k,int l,int m,int n,int a,int b);
    
    double pwr(const double &x,const unsigned y);
    inline int INDU(int i,int j);

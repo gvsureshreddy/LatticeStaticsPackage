@@ -510,32 +510,6 @@ Matrix TrianglePressTempPairPotLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
    return Phi;
 }
 
-
-double TrianglePressTempPairPotLat::Energy()
-{
-   return Phi()[0][0];
-}
-
-Matrix TrianglePressTempPairPotLat::Stress()
-{
-   return Phi(0,DY);
-}
-
-Matrix TrianglePressTempPairPotLat::StressDT()
-{
-   return Phi(0,DY,DT);
-}
-
-Matrix TrianglePressTempPairPotLat::Stiffness()
-{
-   return Phi(0,D2Y);
-}
-
-Matrix TrianglePressTempPairPotLat::Moduli()
-{
-   return Phi(1,D2Y);
-}
-
 int TrianglePressTempPairPotLat::StiffnessNulity(double *Min)
 {
    int NoNegEigVal = 0;

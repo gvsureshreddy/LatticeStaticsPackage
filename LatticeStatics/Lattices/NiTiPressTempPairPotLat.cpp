@@ -661,57 +661,8 @@ Matrix NiTiPressTempPairPotLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
    return Phi;
 }
 
-
-double NiTiPressTempPairPotLat::Energy()
-{
-   return Phi()[0][0];
-}
-
-Matrix NiTiPressTempPairPotLat::Stress()
-{
-   return Phi(0,DY);
-}
-
-Matrix NiTiPressTempPairPotLat::StressDT()
-{
-   return Phi(0,DY,DT);
-}
-
-Matrix NiTiPressTempPairPotLat::Stiffness()
-{
-   return Phi(0,D2Y);
-}
-
-Matrix NiTiPressTempPairPotLat::Moduli()
-{
-   return Phi(1,D2Y);
-}
-
-int NiTiPressTempPairPotLat::StiffnessNulity(double *Min)
-{
-   int NoNegEigVal = 0;
-   int index = 0;
-
-   Matrix EigenValues(1,6);
-
-   EigenValues=SymEigVal(Stiffness());
-   if (Min != NULL) *Min = fabs(EigenValues[0][0]);
-   for (int i=0;i<6;i++)
-   {
-      if (EigenValues[0][i] < 0.0) NoNegEigVal++;
-      if ((Min != NULL)
-	  && (fabs(EigenValues[0][i]) < *Min))
-      {
-	 *Min = fabs(EigenValues[0][i]);
-	 index = i;
-      }
-   }
-
-   if (Min != NULL) *Min = EigenValues[0][index];
-   return NoNegEigVal;
-}
-
-void NiTiPressTempPairPotLat::CriticalPointInfo(double Tolerance,int Width,ostream &out)
+void NiTiPressTempPairPotLat::CriticalPointInfo(const Vector &DrDt,double Tolerance,
+						char *datafile,int Width,ostream &out)
 {
    Matrix L4 = Phi(0,D4Y,T0),
       L3 = Phi(0,D3Y,T0),

@@ -504,32 +504,6 @@ Matrix SquarePressTempPairPotLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
    return Phi;
 }
 
-
-double SquarePressTempPairPotLat::Energy()
-{
-   return Phi()[0][0];
-}
-
-Matrix SquarePressTempPairPotLat::Stress()
-{
-   return Phi(0,DY);
-}
-
-Matrix SquarePressTempPairPotLat::StressDT()
-{
-   return Phi(0,DY,DT);
-}
-
-Matrix SquarePressTempPairPotLat::Stiffness()
-{
-   return Phi(0,D2Y);
-}
-
-Matrix SquarePressTempPairPotLat::Moduli()
-{
-   return Phi(1,D2Y);
-}
-
 int SquarePressTempPairPotLat::StiffnessNulity(double *Min)
 {
    int NoNegEigVal = 0;

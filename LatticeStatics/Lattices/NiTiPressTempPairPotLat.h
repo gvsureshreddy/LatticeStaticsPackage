@@ -3,11 +3,11 @@
 
 #include "UniDefTempLat.h"
 
-#define DIM3 3
-
 class NiTiPressTempPairPotLat : public UniDefTempLat
 {
 private:
+   const static int DIM3 = 3;
+
    double RefLen_;
    unsigned InfluanceDist_;
    double Temp_;
@@ -29,20 +29,22 @@ private:
 public:
    // Virtual Functions required by UniDefLat
    virtual Matrix DefGrad() { return DefGrad_;}
-   virtual Matrix StressDT();
+   virtual Matrix StressDT() {return Phi(0,DY,DT);}
    virtual void SetDefGrad(const Matrix &defgrad) { DefGrad_ = defgrad;}
    virtual double Temp() {return Temp_;}
    virtual void SetTemp(const double &temp) {Temp_ = temp;}
    double RefLen() {return RefLen_;}
 
    // Virtual Functions required by Lattice
-   virtual double Energy();
-   virtual Matrix Stress();
-   virtual Matrix Stiffness();
-   virtual Matrix Moduli();
-   virtual int StiffnessNulity(double *Min=NULL);
+   virtual double Energy() {return Phi()[0][0];}
+   virtual Matrix Stress() {return Phi(0,DY);}
+   virtual Matrix Stiffness() {return Phi(0,D2Y);}
+   virtual Matrix Moduli() {return Phi(1,D2Y);}
+   virtual Matrix E3() {return Phi(0,D3Y);}
+   virtual Matrix E4() {return Phi(0,D4Y);}
    virtual void Print(ostream &out,PrintDetail flag);
-   virtual void CriticalPointInfo(double Tolerance,int Width,ostream &out);
+   virtual void CriticalPointInfo(const Vector &DrDt,double Tolerance,
+				  char *datafile,int Width,ostream &out);
    
    // Functions provided by NiTiPressTempPairPotLat
    NiTiPressTempPairPotLat(char *datafile);
@@ -52,6 +54,7 @@ public:
    double SetPressure(double &p) { Pressure_ = p;}
    double ShearMod() const { return ShearMod_;}
    friend ostream &operator<<(ostream &out,NiTiPressTempPairPotLat &A);
+
 private:
    double PairPotential(interaction inter,double r2,YDeriv dy=Y0,TDeriv dt=T0);
    inline double Beta(interaction inter,TDeriv dt=T0);

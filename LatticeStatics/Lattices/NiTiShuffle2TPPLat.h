@@ -4,12 +4,12 @@
 #include "GenericLat.h"
 #include "RadiiMorse.h"
 
-#define DIM3 3
-#define INTERNAL_ATOMS 4
-
 class NiTiShuffle2TPPLat : public GenericLat
 {
 private:
+   const static int DIM3 = 3;
+   const static int INTERNAL_ATOMS = 4;
+
    double RefLen_;
    unsigned InfluanceDist_;
    double NTemp_;
@@ -29,21 +29,24 @@ private:
    static const double Alt[DIM3][DIM3][DIM3];
    
 public:
+   double RefLen() {return RefLen_;}
+
+   // Virtual Functions required by GenericLat
    Vector DOF() {return DOF_;}
-   Matrix StressDT();
+   Matrix StressDT() {return Phi(0,PairPotentials::DY,PairPotentials::DT);}
+   Matrix StiffnessDT() {return Phi(0,PairPotentials::D2Y,PairPotentials::DT);}
    void SetDOF(const Vector &dof) { DOF_ = dof;}
    double Temp() {return NTemp_;}
    void SetTemp(const double &Ntemp) {NTemp_ = Ntemp;}
-   double RefLen() {return RefLen_;}
-
+   
    // Virtual Functions required by Lattice
-   virtual double Energy();
-   virtual Matrix Stress();
-   virtual Matrix Stiffness();
-   virtual Matrix Moduli();
-   virtual int StiffnessNulity(double *Min=NULL);
+   virtual double Energy() {return Phi()[0][0];}
+   virtual Matrix Stress() {return Phi(0,PairPotentials::DY);}
+   virtual Matrix Stiffness() {return Phi(0,PairPotentials::D2Y);}
+   virtual Matrix Moduli() {return Phi(1,PairPotentials::D2Y);}
+   virtual Matrix E3() {return Phi(0,PairPotentials::D3Y);}
+   virtual Matrix E4() {return Phi(0,PairPotentials::D4Y);}
    virtual void Print(ostream &out,PrintDetail flag);
-   virtual void CriticalPointInfo(double Tolerance,int Width,ostream &out);
    
    // Functions provided by NiTiShuffle2TPPLat
    NiTiShuffle2TPPLat(char *datafile);

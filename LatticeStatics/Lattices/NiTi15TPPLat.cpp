@@ -134,14 +134,14 @@ int NiTi15TPPLat::FindLatticeSpacing(int iter,double dx)
 
 // Lattice Routines
 
-inline double NiTi15TPPLat::PI(const Vector &Dx,const Vector &DX,
-			       int r, int s)
+double NiTi15TPPLat::PI(const Vector &Dx,const Vector &DX,
+			int r, int s)
 {
    return (Dx[r]*DX[s] + DX[r]*Dx[s]);
 }
 
-inline double NiTi15TPPLat::PSI(const Vector &DX,
-				int r, int s, int t, int u)
+double NiTi15TPPLat::PSI(const Vector &DX,
+			 int r, int s, int t, int u)
 {
    return (Del(r,t)*DX[s]*DX[u] +
 	   Del(r,u)*DX[s]*DX[t] +
@@ -149,7 +149,7 @@ inline double NiTi15TPPLat::PSI(const Vector &DX,
 	   Del(s,u)*DX[r]*DX[t]);
 }
 
-inline double NiTi15TPPLat::OMEGA(const Vector &Dx,int p,int q,int i, int j)
+double NiTi15TPPLat::OMEGA(const Vector &Dx,int p,int q,int i, int j)
 {
    double ret=0;
    
@@ -167,7 +167,7 @@ inline double NiTi15TPPLat::OMEGA(const Vector &Dx,int p,int q,int i, int j)
    return ret;
 }
 
-inline double NiTi15TPPLat::SIGMA(int p,int q,int i,int j,int k,int l)
+double NiTi15TPPLat::SIGMA(int p,int q,int i,int j,int k,int l)
 {
    double tmp=0;
    for (int s=0;s<DIM3;s++)
@@ -185,8 +185,8 @@ inline double NiTi15TPPLat::SIGMA(int p,int q,int i,int j,int k,int l)
    return DELTA(i,p,q)*DELTA(k,p,q)*tmp;
 }
 
-inline double NiTi15TPPLat::GAMMA(const Vector &Dx,const Vector &DX,
-				  int p,int q,int i,int j,int k,int l)
+double NiTi15TPPLat::GAMMA(const Vector &Dx,const Vector &DX,
+			   int p,int q,int i,int j,int k,int l)
 {
    double tmp=0;
    
@@ -202,8 +202,8 @@ inline double NiTi15TPPLat::GAMMA(const Vector &Dx,const Vector &DX,
    return (0.5*DELTA(k,p,q)*(LatticeVec_[l][i]*Dx[j] + LatticeVec_[l][j]*Dx[i] + tmp));
 }
 
-inline double NiTi15TPPLat::THETA(const Vector &DX,int p,int q,int i,int j,int k,int l,
-				  int m, int n)
+double NiTi15TPPLat::THETA(const Vector &DX,int p,int q,int i,int j,int k,int l,
+			   int m, int n)
 {
    return (0.5*DELTA(m,p,q)*(Del(i,k)*LatticeVec_[n][j]*DX[l]
 			     + Del(i,k)*DX[j]*LatticeVec_[n][l]
@@ -215,7 +215,7 @@ inline double NiTi15TPPLat::THETA(const Vector &DX,int p,int q,int i,int j,int k
 			     + Del(j,l)*DX[i]*LatticeVec_[n][k]));
 }
 
-inline double NiTi15TPPLat::XI(int p,int q,int i,int j,int k,int l,int m,int n)
+double NiTi15TPPLat::XI(int p,int q,int i,int j,int k,int l,int m,int n)
 {
    double tmp=0;
 
@@ -234,8 +234,8 @@ inline double NiTi15TPPLat::XI(int p,int q,int i,int j,int k,int l,int m,int n)
    return (0.5*DELTA(i,p,q)*DELTA(k,p,q)*tmp);
 }
 
-inline double NiTi15TPPLat::LAMDA(int p,int q,int i,int j,int k,int l,int m,int n,int a,
-				  int b)
+double NiTi15TPPLat::LAMDA(int p,int q,int i,int j,int k,int l,int m,int n,int a,
+			   int b)
 {
    return (0.5*DELTA(m,p,q)*DELTA(a,p,q)*(Del(i,k)*LatticeVec_[n][j]*LatticeVec_[b][l]
 					  + Del(i,k)*LatticeVec_[b][j]*LatticeVec_[n][l]
@@ -905,173 +905,6 @@ Matrix NiTi15TPPLat::Phi(unsigned moduliflag,PairPotentials::YDeriv dy,
    }
 
    return Phi;
-}
-
-
-double NiTi15TPPLat::Energy()
-{
-   return Phi()[0][0];
-}
-
-Matrix NiTi15TPPLat::Stress()
-{
-   return Phi(0,PairPotentials::DY);
-}
-
-Matrix NiTi15TPPLat::StressDT()
-{
-   return Phi(0,PairPotentials::DY,PairPotentials::DT);
-}
-
-Matrix NiTi15TPPLat::Stiffness()
-{
-   return Phi(0,PairPotentials::D2Y);
-}
-
-Matrix NiTi15TPPLat::Moduli()
-{
-   return Phi(1,PairPotentials::D2Y);
-}
-
-int NiTi15TPPLat::StiffnessNulity(double *Min)
-{
-   int NoNegEigVal = 0;
-   int index = 0;
-
-   Matrix EigenValues(1,DOFS);
-
-   EigenValues=SymEigVal(Stiffness());
-   if (Min != NULL) *Min = fabs(EigenValues[0][0]);
-   for (int i=0;i<DOFS;i++)
-   {
-      if (EigenValues[0][i] < 0.0) NoNegEigVal++;
-      if ((Min != NULL)
-	  && (fabs(EigenValues[0][i]) < *Min))
-      {
-	 *Min = fabs(EigenValues[0][i]);
-	 index = i;
-      }
-   }
-
-   if (Min != NULL) *Min = EigenValues[0][index];
-   return NoNegEigVal;
-}
-
-void NiTi15TPPLat::CriticalPointInfo(double Tolerance,int Width,ostream &out)
-{
-   Matrix E3=Phi(0,PairPotentials::D3Y),
-      E2=Stiffness(),
-      E2T=Phi(0,PairPotentials::D2Y,PairPotentials::DT),
-      EigVec,
-      EigVal=SymEigVal(E2,&EigVec);
-   
-   // Matrix E4=Phi(0,PairPotential::D4Y);
-
-   Matrix Mode;
-   double Eijk[DOFS][DOFS][DOFS],
-      EijT[DOFS][DOFS];
-
-   // Find the modes
-   int count = 0,
-      Ind[DOFS];
-
-   for (int i=0;i<DOFS;i++)
-      if (fabs(EigVal[0][i]) < Tolerance)
-      {
-	 Ind[count++]=i;
-      }
-   
-   Mode.Resize(count,DOFS);
-
-   for (int i=0;i<count;i++)
-   {
-      for (int j=0;j<DOFS;j++)
-      {
-	 Mode[i][j] = EigVec[j][Ind[i]];
-      }
-   }
-
-   // Eijk
-   for (int i=0;i<count;i++)
-      for (int j=0;j<count;j++)
-	 for (int k=0;k<count;k++)
-	 {
-	    Eijk[i][j][k] = 0.0;
-	    for (int a=0;a<DOFS;a++)
-	       for (int b=0;b<DOFS;b++)
-		  for (int c=0;c<DOFS;c++)
-		  {
-		     Eijk[i][j][k] += E3[a*DOFS + b][c]*Mode[i][a]*Mode[j][b]*Mode[k][c];
-		  }
-	 }
-
-   //EijT
-   for (int i=0;i<count;i++)
-      for (int j=0;j<count;j++)
-      {
-	 EijT[i][j] = 0.0;
-	 for (int a=0;a<DOFS;a++)
-	    for (int b=0;b<DOFS;b++)
-	    {
-	       EijT[i][j] += E2T[a][b]*Mode[i][a]*Mode[j][b];
-	    }
-      }
-   
-   // Print out results
-   for (int i=0;i<70;i++)
-   {
-      cout << "-";
-      out << "-";
-   }
-   cout << endl << endl << "Bifurcation Equations:" << endl;
-   out << endl << endl << "Bifurcation Equations:" << endl;
-
-   for (int i=0;i<count;i++)
-   {
-      for (int j=0;j<count;j++)
-	 for (int k=0;k<count;k++)
-	 {
-	    cout << "("
-		 << Eijk[i][j][k]
-		 << ")a_" << j
-		 << "a_"  << k
-		 << " + ";
-	    out << "("
-		<< Eijk[i][j][k]
-		<< ")a_" << j
-		<< "a_"  << k
-		<< " + ";
-	 }
-
-      cout << "2T_1( ";
-      out << "2T_1( ";
-      
-      for (int j=0;j<count-1;j++)
-      {
-	 cout << "("
-	      << EijT[i][j]
-	      << ")a_" << j
-	      << " + ";
-	 out << "("
-	     << EijT[i][j]
-	     << ")a_" << j
-	     << " + ";
-      }
-      cout << "(" << EijT[i][count-1] << ")a_" << count-1
-	   << ") = 0" << endl;
-      out << "(" << EijT[i][count-1] << ")a_" << count-1
-	  << ") = 0" << endl;
-   }
-
-   for (int i=0;i<70;i++)
-   {
-      cout << "-";
-      out << "-";
-   }
-   cout << endl;
-   out << endl;
-   
-   return;
 }
 
 void NiTi15TPPLat::Print(ostream &out,PrintDetail flag)

@@ -3,10 +3,11 @@
 
 Lattice *InitializeLattice(char *datafile)
 {
-   const int NoLats = 7;
+   const int NoLats = 8;
    const char *Lattices[]={"SquarePressTempPairPotLat",
 		           "TrianglePressTempPairPotLat",
-		           "NiTiPressTempPairPotLat",
+			   "NiTiPressTempPairPotLat",
+		           "NiTi6TPPLat",
 		           "NiTiShuffle1TPPLat",
 		           "NiTiShuffle2TPPLat",
 		           "NiTiShuffle3TPPLat",
@@ -31,20 +32,25 @@ Lattice *InitializeLattice(char *datafile)
       break;
       case 3:
       {
-	 return new NiTiShuffle1TPPLat(datafile);
+	 return new NiTi6TPPLat(datafile);
       }
       break;
       case 4:
       {
-	 return new NiTiShuffle2TPPLat(datafile);
+	 return new NiTiShuffle1TPPLat(datafile);
       }
       break;
       case 5:
       {
-	 return new NiTiShuffle3TPPLat(datafile);
+	 return new NiTiShuffle2TPPLat(datafile);
       }
       break;
       case 6:
+      {
+	 return new NiTiShuffle3TPPLat(datafile);
+      }
+      break;
+      case 7:
       {
 	 return new NiTi15TPPLat(datafile);
       }
