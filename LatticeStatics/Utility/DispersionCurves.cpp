@@ -162,7 +162,7 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,const char *
       while (!input.eof())
       {
 	 input.getline(dataline,LINELENGTH-1);
-	 out << "#Input File:" << dataline << endl;
+	 out << "# Input File:" << dataline << endl;
       }
    }
    else
@@ -171,7 +171,7 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,const char *
       while ((strstr(dataline,"Input File:") != NULL) ||
 	     (strstr(dataline,"Start File:") != NULL))
       {
-	 out << "#" << dataline << endl;
+	 out << "# " << dataline << endl;
 	 input.getline(dataline,LINELENGTH-1);
       }
    }
@@ -184,9 +184,9 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,const char *
    cout << "Built on:               " << builddate() << endl
 	<< "LinearAlgebra Build on: " << LinearAlgebraBuildDate() << endl
 	<< "MyMath Built on:        " << MyMathBuildDate() << endl;
-   out << "#Built on:               " << builddate() << endl
-       << "#LinearAlgebra Build on: " << LinearAlgebraBuildDate() << endl
-       << "#MyMath Built on:        " << MyMathBuildDate() << endl;
+   out << "# Built on:               " << builddate() << endl
+       << "# LinearAlgebra Build on: " << LinearAlgebraBuildDate() << endl
+       << "# MyMath Built on:        " << MyMathBuildDate() << endl;
 
    devnull << setw(Width);
    Lat->Print(devnull,Lattice::PrintLong);
