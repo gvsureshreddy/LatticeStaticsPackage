@@ -1,6 +1,12 @@
 #ifndef __CVector
 #define __CVector
 
+#ifndef __LinearAlgebraBuildDate
+#define __LinearAlgebraBuildDate
+char *LinearAlgebraBuildDate();
+#endif
+
+
 #include "CMatrix.h"
 
 // Sentinal Value to allow conditional initialization of data

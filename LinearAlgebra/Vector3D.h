@@ -1,6 +1,12 @@
 #ifndef __Vector3D
 #define __Vector3D
 
+#ifndef __LinearAlgebraBuildDate
+#define __LinearAlgebraBuildDate
+char *LinearAlgebraBuildDate();
+#endif
+
+
 #include <math.h>
 
 #define V3DLEN 3

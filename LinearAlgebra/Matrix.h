@@ -1,6 +1,12 @@
 #ifndef __Matrix
 #define __Matrix
 
+#ifndef __LinearAlgebraBuildDate
+#define __LinearAlgebraBuildDate
+char *LinearAlgebraBuildDate();
+#endif
+
+
 #include <iostream.h>
 
 // Sentinal to allow for no initialization of data

@@ -1,6 +1,11 @@
 #ifndef __Vector
 #define __Vector
 
+#ifndef __LinearAlgebraBuildDate
+#define __LinearAlgebraBuildDate
+char *LinearAlgebraBuildDate();
+#endif
+
 #include "Matrix.h"
 #include "Vector3D.h"
 

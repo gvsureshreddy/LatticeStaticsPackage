@@ -7,6 +7,7 @@ SRC_EXT    = .cpp
 OBJ_EXT    = .o
 DEP_EXT    = .d
 HDR_EXT    = .h
+BUILD_DATE = \"`date +%c`\"
 
 # Compiling options, etc. #################################################
 #
@@ -16,6 +17,7 @@ ANSI       = -ansi -pedantic
 #PROFILE    = -pg
 #DEBUG      = -g
 BOUNDS     = -DCHECK_BOUNDS
+DATE_DEF   = -DBUILD_DATE="$(BUILD_DATE)"
 OPTIMIZE   = -O
 CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS)
 
@@ -23,7 +25,7 @@ CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS)
 BIN_LOC    = ${HOME}/bin
 INCL_LOC   = ${HOME}/include
 LIB_LOC    = ${HOME}/lib
-LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE)
+LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(DATE_DEF)
 #
 # the below lines are for OS X -- a bug in the libraries...
 #
@@ -59,14 +61,17 @@ $(OBJECTS): Makefile
 
 .PHONY: install uninstall
 # Define install
-install: $(EXE)
-	ar -r $(LIB_LOC)/libLinearAlgebra.a $(addprefix ./lib/,$(OBJECTS)); ranlib $(LIB_LOC)/libLinearAlgebra.a 
+install: all 
+	$(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/LinearAlgebraBuildDate.o -c LinearAlgebraBuildDate.cpp
+	/usr/bin/ar -r $(LIB_LOC)/libLinearAlgebra.a $(addprefix ./lib/,$(OBJECTS)) ./lib/LinearAlgebraBuildDate.o
+	/bin/rm -f ./lib/LinearAlgebraBuildDate.o
+	/usr/bin/ranlib $(LIB_LOC)/libLinearAlgebra.a 
 	/bin/cp $(SOURCES:$(SRC_EXT)=$(HDR_EXT)) $(INCL_LOC)
 	/bin/cp bin/EigenSys $(BIN_LOC)
 
 # Define uninstall
 uninstall:
-	ar -d $(LIB_LOC)/libLinearAlgebra.a $(OBJECTS); ranlib $(LIB_LOC)/libLinearAlgebra.a
+	/bin/rm -f $(LIB_LOC)/libLinearAlgebra.a
 	/bin/rm -f $(addprefix $(INCL_LOC)/, $(SOURCES:$(SRC_EXT)=$(HDR_EXT)))
 	/bin/rm -f $(BIN_LOC)/EigenSys
 

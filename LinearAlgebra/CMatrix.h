@@ -1,6 +1,12 @@
 #ifndef __CMatrix
 #define __CMatrix
 
+#ifndef __LinearAlgebraBuildDate
+#define __LinearAlgebraBuildDate
+char *LinearAlgebraBuildDate();
+#endif
+
+
 #include <iostream.h>
 #include <complex.h>
 
