@@ -16,7 +16,7 @@ private:
    double NTemp_;
    // DOF[i] = [U11 U22 U33 U12 U13 U12 V11 V12 V13 V21 V22 V23 V31 V32 V33]
    Vector DOF_;
-   Vector LatticeVec_[DIM3];
+   Matrix LatticeVec_;
    double ShearMod_;
    double Pressure_;
    Vector BodyForce_[INTERNAL_ATOMS];
@@ -29,6 +29,7 @@ private:
    double ConvexityDX_;
    static const double Alt[DIM3][DIM3][DIM3];
    static const double A[INTERNAL_ATOMS][DIM3];
+   static const interaction INTER[INTERNAL_ATOMS][INTERNAL_ATOMS];
 
 public:
    Vector DOF() {return DOF_;}
@@ -69,7 +70,6 @@ private:
    inline int INDV(int i,int j);
    inline int INDV(int k,int l,int m,int n);
    inline double DELTA(int s,int p,int q) {return Del(s,q) - Del(s,p);}
-   inline interaction INTER(int p, int q);
    Matrix Phi(unsigned moduliflag=0,RadiiMorse::YDeriv dy=RadiiMorse::Y0,
 	      RadiiMorse::TDeriv dt=RadiiMorse::T0);
    int FindLatticeSpacing(int iter,double dx);

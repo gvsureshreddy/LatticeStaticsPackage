@@ -8,9 +8,7 @@ NiTi15TPPLat::NiTi15TPPLat(char *datafile)
    // First Size DOF
    DOF_.Resize(DOFS);
    // Set LatticeVec_
-   LatticeVec_[0].Resize(DIM3,0.0);
-   LatticeVec_[1].Resize(DIM3,0.0);
-   LatticeVec_[2].Resize(DIM3,0.0);
+   LatticeVec_.Resize(DIM3,DIM3,0.0);
    LatticeVec_[0][0] = 1.0;
    LatticeVec_[0][1] = -1.0;
    
@@ -18,6 +16,7 @@ NiTi15TPPLat::NiTi15TPPLat(char *datafile)
    LatticeVec_[1][1] = 1.0;
 
    LatticeVec_[2][2] = 1.0;
+   
    // Setup Bodyforce_
    BodyForce_[0].Resize(DIM3,0.0);
    BodyForce_[1].Resize(DIM3,0.0);
@@ -136,13 +135,13 @@ int NiTi15TPPLat::FindLatticeSpacing(int iter,double dx)
 // Lattice Routines
 
 inline double NiTi15TPPLat::PI(const Vector &Dx,const Vector &DX,
-			    int r, int s)
+			       int r, int s)
 {
    return (Dx[r]*DX[s] + DX[r]*Dx[s]);
 }
 
 inline double NiTi15TPPLat::PSI(const Vector &DX,
-			     int r, int s, int t, int u)
+				int r, int s, int t, int u)
 {
    return (Del(r,t)*DX[s]*DX[u] +
 	   Del(r,u)*DX[s]*DX[t] +
@@ -152,38 +151,55 @@ inline double NiTi15TPPLat::PSI(const Vector &DX,
 
 inline double NiTi15TPPLat::OMEGA(const Vector &Dx,int p,int q,int i, int j)
 {
-   double ret;
+   double ret=0;
    
-   if (DELTA(i,p,q))
+   ret=0;
+   for (int s=0;s<DIM3;s++)
    {
-      ret=0;
-      for (int s=0;s<DIM3;s++)
+      for (int t=0;t<DIM3;t++)
       {
-	 ret += DOF_[INDU(j,s)]*Dx[s] + Dx[s]*DOF_[INDU(s,j)];
+	 ret += (LatticeVec_[j][s]*DOF_[INDU(s,t)]*Dx[t] +
+		 Dx[t]*DOF_[INDU(t,s)]*LatticeVec_[j][s]);
       }
    }
-   else
-   {
-      ret=0;
-   }
-   
+   ret *= DELTA(i,p,q);
+
    return ret;
 }
 
 inline double NiTi15TPPLat::SIGMA(int p,int q,int i,int j,int k,int l)
 {
-   double U2=0;
+   double tmp=0;
    for (int s=0;s<DIM3;s++)
-      U2 += DOF_[INDU(j,s)]*DOF_[INDU(s,l)];
+   {
+      for (int t=0;t<DIM3;t++)
+      {
+	 for (int r=0;r<DIM3;r++)
+	 {
+	    tmp += (LatticeVec_[j][s]*DOF_[INDU(s,t)]*DOF_[INDU(t,r)]*LatticeVec_[l][r] +
+		    LatticeVec_[l][s]*DOF_[INDU(s,t)]*DOF_[INDU(t,r)]*LatticeVec_[j][r]);
+	 }
+      }
+   }
    
-   return 2.0*DELTA(i,p,q)*DELTA(k,p,q)*U2;
+   return DELTA(i,p,q)*DELTA(k,p,q)*tmp;
 }
 
 inline double NiTi15TPPLat::GAMMA(const Vector &Dx,const Vector &DX,
 				  int p,int q,int i,int j,int k,int l)
 {
-   return DELTA(k,p,q)*(Del(j,l)*Dx[i] + Del(i,l)*Dx[j] +
-			DOF_[INDU(l,i)]*DX[j] + DOF_[INDU(l,j)]*DX[i]);
+   double tmp=0;
+   
+   for (int s=0;s<DIM3;s++)
+   {
+      tmp += (LatticeVec_[l][s]*DOF_[INDU(s,i)]*DX[j] +
+	      LatticeVec_[l][s]*DOF_[INDU(s,j)]*DX[i] +
+	      DX[i]*DOF_[INDU(j,s)]*LatticeVec_[l][s] +
+	      DX[j]*DOF_[INDU(i,s)]*LatticeVec_[l][s]);
+   }
+   
+   
+   return (0.5*DELTA(k,p,q)*(LatticeVec_[l][i]*Dx[j] + LatticeVec_[l][j]*Dx[i] + tmp));
 }
 
 double NiTi15TPPLat::pwr(const double &x,const unsigned y)
@@ -247,44 +263,6 @@ inline int NiTi15TPPLat::INDV(int k,int l,int m,int n)
 {
    cerr << "ERROR : INDV(k,l,m,n) Not known!!!!!!" << endl;
    exit(-1);
-}
-
-inline NiTi15TPPLat::interaction NiTi15TPPLat::INTER(int p,int q)
-{
-   interaction ans;
-   switch (p)
-   {
-      case 0:
-      case 1:
-	 switch (q)
-	 {
-	    case 0:
-	    case 1:
-	       ans = aa;
-	       break;
-	    case 2:
-	    case 3:
-	       ans = ab;
-	       break;
-	 }
-	 break;
-      case 2:
-      case 3:
-	 switch (q)
-	 {
-	    case 0:
-	    case 1:
-	       ans = ab;
-	       break;
-	    case 2:
-	    case 3:
-	       ans = bb;
-	       break;
-	 }
-	 break;
-   }
-
-   return ans;
 }
 
 Matrix NiTi15TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,
@@ -385,7 +363,7 @@ Matrix NiTi15TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,
    {
       for (q=0;q<INTERNAL_ATOMS;q++)
       {
-	 Inter = INTER(p,q);
+	 Inter = INTER[p][q];
 	 
 	 for (X[0] = Bottom[0];X[0] <= Top[0];X[0]++)
 	 {
@@ -399,8 +377,9 @@ Matrix NiTi15TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,
 				     
 		     for (j=0;j<DIM3;j++)
 		     {
-			DX[i] += (X[j] + A[q][j] - A[p][j] + V[q][j] - V[p][j])
-			   *LatticeVec_[j][i]*RefLen_;
+			DX[i] += (X[j] + A[q][j] - A[p][j] + V[q][j] - V[p][j])*
+			   LatticeVec_[j][i]*RefLen_;
+
 		     }
 		  }
 
@@ -424,9 +403,9 @@ Matrix NiTi15TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,
 		  // Calculate bodyforce
 		  phi1 = Potential_[Inter].PairPotential(NTemp_,r2,RadiiMorse::DY,
 							 RadiiMorse::T0);
-		  if (ForceNorm < fabs(-phi1/(2.0*sqrt(r2))))
+		  if (ForceNorm < fabs(-phi1/2.0))
 		  {
-		     ForceNorm = fabs(-phi1/(2.0*sqrt(r2)));
+		     ForceNorm = fabs(-phi1/2.0);
 		  }
 		  for (i=0;i<DIM3;i++)
 		  {
@@ -495,7 +474,7 @@ Matrix NiTi15TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,
 			//Off Diag Blocks
 			for (i=0;i<DIM3;i++)
 			{
-			   for (j=0;j<DIM3;j++)
+			   for (j=i;j<DIM3;j++)
 			   {
 			      for (k=1;k<4;k++)
 			      {
@@ -588,10 +567,7 @@ Matrix NiTi15TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,
    }
    
    // Phi = Phi/(2*Vr*ShearMod)
-   Phi *= 1.0/(2.0*
-	       (2.0*RefLen_*RefLen_*RefLen_*
-		(LatticeVec_[0]%LatticeVec_[1])*LatticeVec_[2])
-	       *ShearMod_);
+   Phi *= 1.0/(2.0*(RefLen_*RefLen_*RefLen_*LatticeVec_.Det()*ShearMod_));
 
    if (moduliflag)
    {
@@ -860,3 +836,9 @@ const double NiTi15TPPLat::A[INTERNAL_ATOMS][DIM3] = {0.0, 0.0, 0.0,
 						      0.5, 0.5, 0.0,
 						      0.5, 0.0, 0.5,
 						      0.0, 0.5, 0.5};
+
+const NiTi15TPPLat::interaction NiTi15TPPLat::INTER[INTERNAL_ATOMS][INTERNAL_ATOMS] = {
+   aa, aa, ab, ab,
+   aa, aa, ab, ab,
+   ab, ab, bb, bb,
+   ab, ab, bb, bb};
