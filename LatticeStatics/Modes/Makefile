@@ -1,4 +1,5 @@
 MODES = KnownModes.cpp\
+	MultiMode.cpp\
 	ML_Expand.cpp\
 	ML_NaCl.cpp\
 	ML_Rhombo.cpp\
