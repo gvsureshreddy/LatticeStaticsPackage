@@ -1,21 +1,30 @@
 #!/usr/um/bin/perl
 #
-# Usage: BlochWaveRecalc inputfile gridsize <outputfile>
+# Usage: BlochWaveRecalc inputfile gridsize skip <outputfile>
 #
 use IPC::Open2;
+use IO::Handle;
+
+if (scalar(@ARGV) < 3)
+{
+  die "Usage: BlochWaveRecalc inputfile gridsize skip <outputfile>";
+}
 
 $pid = open2(PIPout,PIPin,"BlochWave $ARGV[0] $ARGV[1]");
+autoflush PIPin 1;
 
 open(DATA,"<$ARGV[0]") 
     || die "Unable to open $ARGV[0] for read: $!";
-if (scalar(@ARGV) == 3)
+if (scalar(@ARGV) == 4)
 {
-  open(OUTPUT,">$ARGV[2]") || die "Unable to open $ARGV[2] for write: $!";
+  open(OUTPUT,">$ARGV[3]") || die "Unable to open $ARGV[3] for write: $!";
 }
 else
 {
   open(OUTPUT,">-") || die "Unable to open standard out for write: $!";
 }
+
+$skip = $ARGV[2];
 
 $_ = <DATA>;
 print OUTPUT $_;
@@ -26,8 +35,23 @@ while (! m/^Mode:/)
   print OUTPUT $_;
 }
 
+$record = "";
+$count = 0;
+
 while (<DATA>)
 {
+  if (/^========/)
+  {
+    if ($count ==0)
+    {
+      $count = 1;
+    }
+    else
+    {
+      $count = 0;
+    }
+  }
+
   if (/^Temperature/)
   {
     @fields=split(/:/,$_);
@@ -47,9 +71,25 @@ while (<DATA>)
     @fields=split(/,/,$fields[1]);
     if ($fields[0] != -1)
     {
-      print PIPin $Temp,"\n",@DOF,"\n";
-      $newline = <PIPout>;
-      print OUTPUT $newline;
+      if ($count == 0)
+      {
+	print PIPin $Temp;
+	for ($i=0;$i<scalar(@DOF);$i+=1)
+	{
+	  printf PIPin "%25.12f",$DOF[$i];
+	}
+	print PIPin "\n";
+
+	$newline = <PIPout>;
+	print OUTPUT $newline;
+	$count += 1;
+      }
+      else
+      {
+	print OUTPUT $_;
+	$count += 1;
+	$count %= $skip;
+      }
     }
     else
     {
@@ -62,6 +102,9 @@ while (<DATA>)
   }
 }
 
+close(PIPin);
+close(PIPout);
+waitpid($pid,0);
+
 close(OUTPUT);
 close(DATA);
-
