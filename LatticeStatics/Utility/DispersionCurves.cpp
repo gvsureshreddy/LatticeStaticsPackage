@@ -12,7 +12,7 @@ int main(int argc,char *argv[])
    if (argc < 3)
    {
       cerr << "Usage: " << argv[0]
-	   << " ParamFile OutputFile" << endl;
+	   << " ParamFile OutputFile <PathFile>" << endl;
       cerr << "Built on:               " << builddate() << endl
 	   << "LinearAlgebra Built on: " << LinearAlgebraBuildDate() << endl
 	   << "MyMath Built on:        " << MyMathBuildDate() << endl;
@@ -21,25 +21,67 @@ int main(int argc,char *argv[])
 
    char *datafile = argv[1],
       *outputfile = argv[2],
-      prefix[LINELENGTH]="^";
+      prefix[]="^";
 
-   Lattice *Lat;
+   GenericLat *Lat;
 
    int Width,Precision;
 
    GetMainSettings(Width,Precision,datafile,prefix);
 
-   Lat = InitializeLattice(datafile,prefix);
+   Lat = (GenericLat*) InitializeLattice(datafile,prefix);
 
    fstream out;
    InitializeOutputFile(out,outputfile,datafile,prefix,Lat,Precision,Width);
 
-   Lat->DispersionCurves(datafile,prefix,out);
+   if (argc<4)
+   {
+      Lat->DispersionCurves(datafile,prefix,out);
+   }
+   else
+   {
+      FILE *pipe;
+      char format[]=
+      {"perl -e '$_=<>;while(! m/^Mode:/){$_=<>;}while(<>){if(/^Temperature/){"\
+       "@fld=split(/:/,$_);print $fld[1];}if(/^DOF/){$_=<>;print $_;}}print"\
+       "\"DONE\\n\";' %s"};
+      
+      char strng[LINELENGTH];
+      sprintf(strng,format,argv[3]);
+      pipe = popen(strng,"r");
+
+      double temp;
+      Vector DOF((Lat->DOF()).Dim());
+      fscanf(pipe,"%s",strng);
+      while (strcmp("DONE",strng))
+      {
+	 temp = atof(strng);
+	 for (int i=0;i<DOF.Dim();++i)
+	 {
+	    fscanf(pipe,"%lf",&(DOF[i]));
+	 }
+
+	 Lat->SetTemp(temp);
+	 Lat->SetDOF(DOF);
+
+	 out << setw(0);
+	 out << "#" << setw(Width) << temp << endl
+	     << "#" << setw(Width) << DOF << endl << setw(Width);
+	 cout << setw(0);
+	 cout << "#" << setw(Width) << temp << endl
+	      << "#" << setw(Width) << DOF << endl;;
+	 
+	 Lat->DispersionCurves(datafile,prefix,out);
+
+	 fscanf(pipe,"%s",strng);
+      }
+      pclose(pipe);
+   }
 
    out.close();
    return 1;
 }
-   
+
 
 
 
@@ -81,7 +123,12 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,const char *
    }
    else
    {
-
+      input.getline(dataline,LINELENGTH-1);
+      while ((strstr(dataline,"Input File:") != NULL) ||
+	     (strstr(dataline,"Start File:") != NULL))
+      {
+	 out << "#" << dataline << endl;
+      }
    }
 
    input.close();

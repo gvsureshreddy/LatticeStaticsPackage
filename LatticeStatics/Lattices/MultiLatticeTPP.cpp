@@ -1290,8 +1290,8 @@ void MultiLatticeTPP::DispersionCurves(char *datafile,const char *prefix,ostream
    
    for (int dir=0;dir<NoDirs;++dir)
    {
-      out << "# " << setw(w) << Direction[dir] << endl;
-      cout << "# " << setw(w) << Direction[dir] << endl;
+      out << "#" << setw(w) << Direction[dir] << endl;
+      cout << "#" << setw(w) << Direction[dir] << endl;
       Direction[dir] = InverseLat*Direction[dir];
       for (int k=0;k<2;++k)
       {
@@ -1328,8 +1328,8 @@ void MultiLatticeTPP::DispersionCurves(char *datafile,const char *prefix,ostream
 	 cout << endl;
 	 zero = (++zero)%3; one = (zero+1)%3; two = (one+1)%3;
       }
-      out << endl << endl;
-      cout << endl << endl;
+      out << endl;
+      cout << endl;
    }
 
    delete [] Direction;

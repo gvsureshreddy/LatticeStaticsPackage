@@ -73,7 +73,7 @@ int GetStringParameter(const char *prefix,const char *tag,const char *datafile,
 {
    int i;
    char strng[LINELENGTH];
-   GetParameter(tag,datafile,"%s",prefix,strng);
+   GetParameter(prefix,tag,datafile,"%s",strng);
    
    for (i=numb-1;i>=0;i--)
    {
