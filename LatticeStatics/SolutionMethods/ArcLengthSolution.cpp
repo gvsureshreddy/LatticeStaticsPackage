@@ -228,7 +228,10 @@ double ArcLengthSolution::FindNextSolution(int &good)
    }
    while (((AngleTest >= AngleCutoff_) || !good)
 	  && (CurrentDS_ >= DSMin_)
-	  && (Mode_->ArcLenUpdate(Difference_), CurrentDS_=CurrentDS_/2.0, good=1));
+	  && (Mode_->ArcLenUpdate(Difference_),
+	      Difference_ = OldDiff,
+	      CurrentDS_=CurrentDS_/2.0,
+	      good=1));
 
    if ((AngleTest <= AngleIncrease_) && (CurrentDS_ < DSMax_))
    {
