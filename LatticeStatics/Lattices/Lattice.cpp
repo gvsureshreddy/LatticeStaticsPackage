@@ -40,7 +40,7 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
       D3=E3(),
       D2=Stiffness(),
       D2T(D2.Rows(),D2.Cols()),
-      D1T(1,D2.Rows()),
+      D1T(1,D2.Cols()),
       EigVec,
       EigVal=SymEigVal(D2,&EigVec);
    if (LoadParameter_ == Temperature)
@@ -102,7 +102,7 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
       {
 	 z+= Mode[i][j]*D1T[0][j];
       }
-      cout << "StressDT*Mode[i] = " << setw(Width) << z << endl;
+      cout << "StressDT*Mode[" << i << "] = " << setw(Width) << z << endl;
    }
 
    // Eijk
