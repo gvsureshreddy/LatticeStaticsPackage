@@ -72,6 +72,22 @@ Vector MultiMode::ArcLenDef()
    return def;
 }
 
+void MultiMode::ArcLenSet(const Vector &val)
+{
+   Vector DOF((Lattice_->DOF()).Dim(),0.0);
+   
+   for (int i=0;i<DOFS;++i)
+   {
+      for (int j=0;j<DOFindlen[i];++j)
+      {
+	 DOF[DOFindex[i][j]] += DOFMult[i][j]*val[i];
+      }
+   }
+
+   Lattice_->SetDOF(DOF);
+   Lattice_->SetTemp(val[DOFS]);
+}
+   
 void MultiMode::ArcLenUpdate(const Vector &newval)
 {
    static Vector DOF((Lattice_->DOF()).Dim());
@@ -156,6 +172,18 @@ double MultiMode::ScanningDefParameter()
    return DOF[DOFindex[ScnDefParam][0]]/DOFMult[ScnDefParam][0];
 }
 
+void MultiMode::ScanningDefParamSet(const double val)
+{
+   Vector DOF=Lattice_->DOF();
+
+   for (int i=0;i<DOFindlen[ScnDefParam];++i)
+   {
+      DOF[DOFindex[ScnDefParam][i]] += DOFMult[ScnDefParam][i]*val;
+   }
+
+   Lattice_->SetDOF(DOF);
+}
+
 void MultiMode::ScanningDefParamUpdate(const double newval)
 {
    Vector DOF=Lattice_->DOF();
@@ -171,6 +199,11 @@ void MultiMode::ScanningDefParamUpdate(const double newval)
 double MultiMode::ScanningLoadParameter()
 {
    return Lattice_->Temp();
+}
+
+void MultiMode::ScanningLoadParamSet(const double val)
+{
+   Lattice_->SetTemp(val);
 }
 
 void MultiMode::ScanningLoadParamUpdate(const double newval)
@@ -238,6 +271,24 @@ Vector MultiMode::ScanningDef()
    }
    else
       return Vector(1,0.0);
+}
+
+void MultiMode::ScanningSet(const Vector &val)
+{
+   Vector DOF((Lattice_->DOF()).Dim(),0.0);
+   
+   for (int i=0;i<DOFS;++i)
+   {
+      if (i != ScnDefParam)
+      {
+	 for (int j=0;j<DOFindlen[i];++j)
+	 {
+	    DOF[DOFindex[i][j]] += DOFMult[i][j]*val[i];
+	 }
+      }
+   }
+
+   Lattice_->SetDOF(DOF);
 }
 
 void MultiMode::ScanningUpdate(const Vector &newval)

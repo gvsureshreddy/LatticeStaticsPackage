@@ -70,22 +70,22 @@ void ScanningSolution::InitializeLine()
       Mode_->ScanningLoadParamUpdate(
 	 Mode_->ScanningLoadParameter() - LineStart_);
       
+      Mode_->ScanningSet(InitialDef_);
+
       Mode_->ScanningDefParamUpdate(
 	 Mode_->ScanningDefParameter() - CurrentScanLine_);
 
-      Mode_->ScanningUpdate(
-	 Mode_->ScanningDef() - InitialDef_);
    }
    else
    {
       Mode_->ScanningLoadParamUpdate(
 	 Mode_->ScanningLoadParameter() - CurrentScanLine_);
 
+      Mode_->ScanningSet(InitialDef_);
+
       Mode_->ScanningDefParamUpdate(
 	 Mode_->ScanningDefParameter() - LineStart_);
 
-      Mode_->ScanningUpdate(
-	 Mode_->ScanningDef() - InitialDef_);
    }
 }
    

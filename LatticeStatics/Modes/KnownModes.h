@@ -2,12 +2,8 @@
 #define __KnownModes
 
 #include "MultiMode.h"
-#include "ML_Expand.h"
-#include "ML_NaCl.h"
-#include "ML_Rhombo.h"
-#include "ML_B19.h"
 
-#define KNOWNMODES 5
+#define KNOWNMODES 1
 
 LatticeMode *InitializeMode(Lattice *Lat,const char *datafile,const char *prefix);
 

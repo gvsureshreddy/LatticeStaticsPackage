@@ -77,7 +77,7 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char
 	 }
 	 if (pclose(pipe)) Errfun(bifpt);
 	 // Set Lattice state to the bifurcation point
-	 Mode_->ArcLenUpdate(Mode_->ArcLenDef() - stat);
+	 Mode_->ArcLenSet(stat);
 
 	 break;
       }
@@ -96,7 +96,7 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char
 	 if (pclose(pipe)) Errfun(sol2);
 	 
          // Set Lattice state to Solution2
-	 Mode_->ArcLenUpdate(Mode_->ArcLenDef() - Difference_);
+	 Mode_->ArcLenSet(Difference_);
 	 
 	 // Get solution1 and set Difference
 	 char sol1[]="Solution1";
@@ -149,7 +149,7 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char
 	 if (pclose(pipe)) Errfun(sol1);
 
 	 // Set Lattice state to Solution2
-	 Mode_->ArcLenUpdate(Mode_->ArcLenDef() - Solution2);
+	 Mode_->ArcLenSet(Solution2);
 	 // Set Difference to Solution2 - Solution1
 	 Difference_ = Solution2 - Solution1;
 	 

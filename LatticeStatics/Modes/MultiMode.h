@@ -27,18 +27,22 @@ public:
    virtual Vector ArcLenRHS(double DS,const Vector &Diff,double Aspect);
    virtual Vector ArcLenDef();
    virtual Vector DrDt(const Vector &Diff);
+   virtual void ArcLenSet(const Vector &val);
    virtual void ArcLenUpdate(const Vector &newval);
    virtual double ArcLenAngle(Vector Old,Vector New,double Aspect);
    virtual Matrix ArcLenStiffness(const Vector &Diff,double Aspect);
 
    virtual double ScanningDefParameter();
+   virtual void ScanningDefParamSet(const double val);
    virtual void ScanningDefParamUpdate(const double newval);
    virtual double ScanningLoadParameter();
+   virtual void ScanningLoadParamSet(const double val);
    virtual void ScanningLoadParamUpdate(const double newval);
    virtual double ScanningStressParameter();
    
    virtual Vector ScanningRHS();
    virtual Vector ScanningDef();
+   virtual void ScanningSet(const Vector &val);
    virtual void ScanningUpdate(const Vector &newval);
    virtual Matrix ScanningStiffness();
 
