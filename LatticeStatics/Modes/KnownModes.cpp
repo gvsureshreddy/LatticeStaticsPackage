@@ -24,7 +24,8 @@ LatticeMode *InitializeMode(Lattice *Lat,char *datafile)
 			"Mono3MShuffle",
 			"OneShuffle",
 			"FullShuffle",
-			"Expand15"};
+			"Expand15",
+			"Full15"};
 
    switch (GetStringParameter("^MainModeType",datafile,Modes,NoModes))
    {
@@ -125,6 +126,11 @@ LatticeMode *InitializeMode(Lattice *Lat,char *datafile)
       case 19:
       {
 	 return new Expand15(Lat);
+      }
+      break;
+      case 20:
+      {
+	 return new Full15(Lat);
       }
       break;
       case -1:
