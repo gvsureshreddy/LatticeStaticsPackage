@@ -137,11 +137,13 @@ public:
    // Use Cyclic Jacobi Method -- Ref. "Numerical Analysis" by Pratel pg 440
    //
    // Returns vector containing eigenvalues
+   // AND-- Matrix of eigenvectors (as columns) if a pointer is passed
    // MaxItr - max number of iterations
    // Tol - tolerance for convergence
    //
    // Note: Assumes A is SYMMETRIC
-   friend Matrix SymEigVal(Matrix A,const int MaxItr=100,const double Tol=1.0e-12);
+   friend Matrix SymEigVal(Matrix A,Matrix *B=NULL,const int MaxItr=100,
+			   const double Tol=1.0e-12);
    
    // Cholesky Decomposition of Matrix
    // A=U.Transpose()*D*U

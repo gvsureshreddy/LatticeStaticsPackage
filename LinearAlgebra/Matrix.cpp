@@ -5,7 +5,7 @@
 #include <math.h>
 
 // Global IDString
-char MatrixID[]="$Id: Matrix.cpp,v 1.8 2001/11/30 01:35:14 elliottr Exp $";
+char MatrixID[]="$Id: Matrix.cpp,v 1.9 2002/08/23 15:43:54 elliottr Exp $";
 
 // Private Methods...
 
@@ -875,13 +875,18 @@ Matrix::Elm SVD(const Matrix& A,Matrix& U,Matrix& W,Matrix& V,
    return ConditionNumber;
 }
 
-Matrix SymEigVal(Matrix A,const int MaxItr,const double Tol)
+Matrix SymEigVal(Matrix A,Matrix *B,const int MaxItr,const double Tol)
 {
    int count=0,
       converged=0;
    Matrix EigVals(1,A.Cols_);
-   double theta,c,s,cc,ss,cs,aij1,aii1,ajj1,aki1,akj1;
+   double theta,c,s,cc,ss,cs,aij1,aii1,ajj1,aki1,akj1,tmp;
    const double PIby4=0.25*acos(-1.0);
+
+   if (B != NULL)
+   {
+      B->SetIdentity(A.Cols_);
+   }
    
    while ((count < MaxItr) && (!converged))
    {
@@ -922,6 +927,14 @@ Matrix SymEigVal(Matrix A,const int MaxItr,const double Tol)
 
 	    for (int k=0;k<A.Cols_;k++)
 	    {
+	       if (B != NULL)
+	       {
+		  tmp = B->Elements_[k][i]*c + B->Elements_[k][j]*s;
+		  B->Elements_[k][j] = -B->Elements_[k][i]*s + B->Elements_[k][j]*c;
+		  B->Elements_[k][i] = tmp;
+	       }
+
+	       
 	       if ( k==i || k==j)
 	       {
 		  continue;

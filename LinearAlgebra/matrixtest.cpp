@@ -11,7 +11,8 @@ int main()
       B(3,3),
       C(3,6),
       D(6,3),
-      E(6,6);
+      E(6,6),
+      F(6,6);
 
    Vector a(3),
       b(3),
@@ -22,7 +23,7 @@ int main()
    
    srand(time(NULL));
 
-   Matrix::MathematicaPrintFlag=1;
+//   Matrix::MathematicaPrintFlag=1;
    
    for (int i=0;i<3;i++)
       for (int j=0;j<3;j++)
@@ -55,6 +56,12 @@ int main()
    {
       c[i] = double(rand()%10);
       d[i] = double(rand()%10);
+   }
+
+   for (int i=0;i<3;i++)
+   {
+      e[i] = double(rand()%10);
+      f[i] = double(rand()%10);
    }
 
 
@@ -128,6 +135,25 @@ int main()
    
    // check SymEigVal
    cout << "SymEigVal" << endl << setw(20) << SymEigVal(E) << endl;
+
+   // check SymEigVal eigenvector calculation
+   d=SymEigVal(E,&F);
+   cout << "SymEigVal(E,F)" << endl << setw(20) << d << endl;
+   cout << "F" << endl << setw(20) << F << endl;
+   cout << "F*F.Transpose()" << endl << setw(20) << F*F.Transpose() << endl;
+
+   for (int i=0;i<6;i++)
+   {
+      for (int j=0;j<6;j++)
+      {
+	 c[j] = F[j][i];
+      }
+      
+      cout << setw(20) << E*c << endl;
+      cout << setw(20) << (E*c)/d[i] << endl << endl;
+   }
+      
+
 
    E.Resize(3,3);
    E=A;
