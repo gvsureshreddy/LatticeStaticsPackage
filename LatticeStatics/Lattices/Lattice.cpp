@@ -124,8 +124,8 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
 
    int prec = out.precision();
 
-   out << setiosflags(ios::scientific) << setprecision(prec/2);
-   cout << setiosflags(ios::scientific) << setprecision(prec/2);
+   out.flags(ios::scientific); out << setprecision(prec/2);
+   cout.flags(ios::scientific); cout << setprecision(prec/2);
 
    for (int i=0;i<count;i++)
    {
@@ -297,8 +297,8 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
       }
    }
 
-   out << setiosflags(ios::fixed) << setprecision(prec);
-   cout << setiosflags(ios::fixed) << setprecision(prec);
+   out.flags(ios::fixed); out << setprecision(prec);
+   cout.flags(ios::fixed); cout << setprecision(prec);
    
    cout << endl;
    out << endl;
