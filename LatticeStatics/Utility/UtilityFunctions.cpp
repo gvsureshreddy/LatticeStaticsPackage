@@ -73,8 +73,7 @@ int GetStringParameter(const char *prefix,const char *tag,const char *datafile,
 {
    int i;
    char strng[LINELENGTH];
-   GetParameter(prefix,tag,datafile,"%s",strng);
-   
+   if (!GetParameter(prefix,tag,datafile,"%s",strng)) exit(-1);
    for (i=numb-1;i>=0;i--)
    {
       if (!strcasecmp(strng,choices[i]))
@@ -89,14 +88,15 @@ int GetStringParameter(const char *prefix,const char *tag,const char *datafile,
 void SetPerlCommand(char *string,const char *datafile,const char *prefix,const char *tag)
 {
    char format[]=
-     {"perl -e '$R=findref($ARGV[1],$ARGV[0]); print $R;"\
-      "sub findref {my($tag,$df) = @_; my($fnd); $fnd=1; "\
-      "open(R,$df); while (<R>) {if (/$tag/) {$fnd=0; "\
-      "$_=deref($_,$df); split(\"=\",$_); return eval($_[1]);}} "\
+     {"perl -e '$R=findref($ARGV[1],$ARGV[2],$ARGV[0]); print $R;"\
+      "sub findref {my($prfx,$tag,$df) = @_; my($fnd,$reg); $fnd=1;"\
+      "$reg = $prfx . $tag;"\
+      "open(R,$df); while (<R>) {if (/$reg/) {$fnd=0; "\
+      "$_=deref($prfx,$_,$df); split(\"=\",$_); return eval($_[1]);}} "\
       "close(R); if ($fnd == 1) {exit $fnd;}} sub deref "\
-      "{my($fld,$df)=@_; my($t); while ($fld =~ m/<([^>]+)>/g) "\
-      "{$t=$1; $v=findref(\"^$t\",$df); "\
-      "$fld =~ s/<$t>/$v/} return $fld;}' %s \\%s%s"};
+      "{my($prfx,$fld,$df)=@_; my($t); while ($fld =~ m/<([^>]+)>/g) "\
+      "{$t=$1; $v=findref($prfx,\"$t\",$df); "\
+      "$fld =~ s/<$t>/$v/} return $fld;}' %s '%s' '%s'"};
       sprintf(string,format,datafile,prefix,tag);
 }
 
