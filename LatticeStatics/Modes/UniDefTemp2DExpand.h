@@ -34,7 +34,7 @@ public:
    virtual void ScanningUpdate(const Vector &newval);
    virtual Matrix ScanningStiffness();
 
-   virtual char *ModeName() {return "UniDefTempSquare";}
+   virtual char *ModeName() {return "UniDefTemp2DExpand";}
 
 };
 
