@@ -754,7 +754,7 @@ int NiTiShuffle3TPPLat::StiffnessNulity(double *Min)
    return NoNegEigVal;
 }
 
-void NiTiShuffle3TPPLat::CriticalPointInfo(int Width,ostream &out)
+void NiTiShuffle3TPPLat::CriticalPointInfo(double Tolerance,int Width,ostream &out)
 {
    // Matrix L4 = Phi(0,PairPotentials::D4Y,PairPotentials::T0),
    // 	 L3 = Phi(0,PairPotentials::D3Y,PairPotentials::T0),

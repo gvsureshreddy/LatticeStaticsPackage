@@ -711,7 +711,7 @@ int NiTiPressTempPairPotLat::StiffnessNulity(double *Min)
    return NoNegEigVal;
 }
 
-void NiTiPressTempPairPotLat::CriticalPointInfo(int Width,ostream &out)
+void NiTiPressTempPairPotLat::CriticalPointInfo(double Tolerance,int Width,ostream &out)
 {
    Matrix L4 = Phi(0,D4Y,T0),
       L3 = Phi(0,D3Y,T0),
