@@ -10,10 +10,13 @@
 #include "UniDefTemp3D1MMono.h"
 #include "UniDefTemp3DFull.h"
 #include "ExpandShuffle.h"
-#include "OrthoShuffle.h"
+#include "NaClShuffle.h"
 #include "RhomboShuffle.h"
+#include "OrthoShuffle.h"
+#include "Mono3PShuffle.h"
+#include "Mono3MShuffle.h"
 #include "FullShuffle.h"
 
-#define KNOWNMODES 15
+#define KNOWNMODES 18
 
 LatticeMode *InitializeMode(Lattice *Lat,char *datafile);
