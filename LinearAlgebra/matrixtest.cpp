@@ -1,4 +1,5 @@
 #include "Matrix.h"
+#include "CMatrix.h"
 #include "Vector.h"
 #include "Vector3D.h"
 #include <stdlib.h>
@@ -14,6 +15,13 @@ int main()
       E(6,6),
       F(6,6);
 
+   CMatrix CA(3,3),
+      CB(3,3),
+      CC(3,6),
+      CD(6,3),
+      CE(6,6),
+      CF(6,6);   
+
    Vector a(3),
       b(3),
       c(6),
@@ -27,25 +35,39 @@ int main()
    
    for (int i=0;i<3;i++)
       for (int j=0;j<3;j++)
+      {
 	 A[i][j] = double(rand()%10);
+	 CA[i][j] = complex<double>(rand()%10,rand()%10);
+      }
 
    for (int i=0;i<3;i++)
       for (int j=0;j<3;j++)
+      {
 	 B[i][j] = double(rand()%10);
-   
+	 CB[i][j] = complex<double>(rand()%10,rand()%10);
+      }
 
    for (int i=0;i<3;i++)
       for (int j=0;j<6;j++)
+      {
 	 C[i][j] = double(rand()%10);
-
+	 CC[i][j] = complex<double>(rand()%10,rand()%10);
+      }
+   
    for (int i=0;i<6;i++)
       for (int j=0;j<3;j++)
+      {
 	 D[i][j] = double(rand()%10);
-
+	 CD[i][j] = complex<double>(rand()%10,rand()%10);
+      }
+   
    for (int i=0;i<6;i++)
       for (int j=0;j<6;j++)
+      {
 	 E[i][j] = double(rand()%10);
-
+	 CE[i][j] = complex<double>(rand()%10,rand()%10);
+      }
+   
    for (int i=0;i<3;i++)
    {
       a[i] = double(rand()%10);
@@ -68,15 +90,33 @@ int main()
    cout << setiosflags(ios::fixed) << setprecision(12);
 //   cout << setiosflags(ios::scientific) << setprecision(12);
 
-   cout << setw(20) << A << endl
+   cout << "A" << endl
+	<< setw(20) << A << endl
+	<< "CA" << endl
+	<< setw(20) << CA << endl
+	<< "B" << endl
 	<< setw(20) << B << endl
+	<< "CB" << endl
+	<< setw(20) << CB << endl
+	<< "C" << endl
 	<< setw(20) << C << endl
+	<< "CC" << endl
+	<< setw(20) << CC << endl
+	<< "D" << endl
 	<< setw(20) << D << endl
+	<< "CD" << endl
+	<< setw(20) << CD << endl
+	<< "a" << endl
 	<< setw(20) << a << endl
+	<< "b" << endl
 	<< setw(20) << b << endl
+	<< "c" << endl
 	<< setw(20) << c << endl
+	<< "d" << endl
 	<< setw(20) << d << endl
+	<< "e" << endl
 	<< setw(20) << e << endl
+	<< "f" << endl
 	<< setw(20) << f << endl;
 
    Matrix q(A);
@@ -89,13 +129,21 @@ int main()
 
    cout << "A+B" << endl << setw(20) << A+B << endl;
 
+   cout << "CA+CB" << endl << setw(20) << CA+CB << endl;
+
    cout << "A*B" << endl << setw(20) << A*B << endl;
+
+   cout << "CA*CB" << endl << setw(20) << CA*CB << endl;
 
    cout << "D*C" << endl << setw(20) << D*C << endl;
 
    cout << "D^T" << endl << setw(20) << D.Transpose() << endl;
 
+   cout << "CD^T" << endl << setw(20) << CD.Transpose() << endl;
+
    cout << "Det(A)" << setw(20) << A.Det() << endl;
+
+   cout << "Det(CA)" << setw(20) << CA.Det() << endl;
 
    cout << "A^-1" << setw(20) << A.Inverse() << endl;
 
@@ -127,12 +175,19 @@ int main()
 
    // check cholesky
    Matrix DD,UU;
+   CMatrix CDD,CUU;
    // Make E symmetric
    E=E*E.Transpose();
+   // Make CE symmetric
+   CE=CE*CE.Transpose();
    Cholesky(E,UU,DD);
+   Cholesky(CE,CUU,CDD);
    cout << "Cholesky" << endl << setw(20) << E << endl;
    cout << "result" << endl << setw(20) << UU.Transpose()*DD*UU << endl;
-   
+
+   cout << "Complex Cholesky" << endl << setw(20) << CE << endl;
+   cout << "Complex result" << endl << setw(20) << CUU.Transpose()*CDD*CUU << endl;
+
    // check SymEigVal
    cout << "SymEigVal" << endl << setw(20) << SymEigVal(E) << endl;
 
@@ -230,9 +285,6 @@ int main()
    f=Vector3D(b);
    
    cout << "A*f" << setw(20) << A*f << endl;
-
-
-   
 
    return 1;
 }

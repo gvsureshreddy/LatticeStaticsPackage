@@ -1,7 +1,7 @@
 #**************************************************************************
 #**************************************************************************
 
-VPATH = ./lib ./depend
+VPATH = ./lib ./depend ./bin
 
 SRC_EXT    = .cpp
 OBJ_EXT    = .o
@@ -25,16 +25,20 @@ LIB_LOC    = ${HOME}/lib
 LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE)
 
 # Defines the source files needed #########################################
-SOURCES  = Matrix.cpp Vector.cpp Vector3D.cpp
+SOURCES  = Matrix.cpp Vector.cpp Vector3D.cpp CMatrix.cpp
 
 # Defines the object files to be created using the SYSTEM name ############
 OBJECTS  = $(SOURCES:$(SRC_EXT)=$(OBJ_EXT))
 
-all : $(OBJECTS)
+all : $(OBJECTS) EigenSys matrixtest
 .PHONY: all
 
 matrixtest : $(OBJECTS) matrixtest.cpp
-	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o matrixtest ./matrixtest.cpp ./lib/Matrix.o ./lib/Vector.o ./lib/Vector3D.o
+	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o bin/matrixtest ./matrixtest.cpp \
+	$(addprefix ./lib/,$(OBJECTS))
+
+EigenSys : $(OBJECTS) EigenSys.cpp
+	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o bin/EigenSys ./EigenSys.cpp ./lib/Matrix.o
 
 # include the dependicies
 include $(addprefix ./depend/,$(OBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
@@ -46,13 +50,15 @@ $(OBJECTS): Makefile
 .PHONY: install uninstall
 # Define install
 install: $(EXE)
-	ar -r $(LIB_LOC)/libLinearAlgebra.a ./lib/Vector.o ./lib/Vector3D.o ./lib/Matrix.o; ranlib $(LIB_LOC)/libLinearAlgebra.a 
-	/bin/cp Vector.h Vector3D.h Matrix.h $(INCL_LOC)
+	ar -r $(LIB_LOC)/libLinearAlgebra.a ./lib/Vector.o ./lib/Vector3D.o ./lib/Matrix.o ./lib/CMatrix.o; ranlib $(LIB_LOC)/libLinearAlgebra.a 
+	/bin/cp Vector.h Vector3D.h Matrix.h CMatrix.h $(INCL_LOC)
+	/bin/cp bin/EigenSys $(BIN_LOC)
 
 # Define uninstall
 uninstall:
-	ar -d $(LIB_LOC)/libLinearAlgebra.a Vector.o Vector3D.o Matrix.o; ranlib $(LIB_LOC)/libLinearAlgebra.a
-	/bin/rm -f $(INCL_LOC)/Vector.h $(INCL_LOC)/Vector3D.h $(INCL_LOC)/Matrix.h
+	ar -d $(LIB_LOC)/libLinearAlgebra.a Vector.o Vector3D.o Matrix.o CMatrix.o; ranlib $(LIB_LOC)/libLinearAlgebra.a
+	/bin/rm -f $(INCL_LOC)/Vector.h $(INCL_LOC)/Vector3D.h $(INCL_LOC)/Matrix.h $(INCL_LOC)/CMatrix.h
+	/bin/rm -f $(BIN_LOC)/EigenSys
 
 
 # Removes the current systems set of object files and executable file
@@ -60,7 +66,7 @@ uninstall:
 
 clean:
 	 -/bin/rm -f $(addprefix ./lib/,$(OBJECTS)) core *~ \
-		  matrixtest ./depend/*.d
+		  bin/matrixtest bin/EigenSys ./depend/*.d
 
 # Define rule for dependicy files
 depend/%.d: %$(SRC_EXT)
