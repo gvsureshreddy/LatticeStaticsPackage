@@ -1252,33 +1252,33 @@ Matrix MultiLatticeTPP::CondensedModuli()
    return CM;
 }
 
-CMatrix MultiLatticeTPP::DynamicalStiffness(Vector &Y)
+CMatrix MultiLatticeTPP::DynamicalStiffness(Vector &K)
 {
-   static CMatrix Cy;
+   static CMatrix Dk;
    static double pi = 4.0*atan(1.0);
    static complex<double> Ic(0,1);
    static complex<double> A = -2.0*pi*Ic;
    int i,j;
 
-   Cy.Resize(INTERNAL_ATOMS*DIM3,INTERNAL_ATOMS*DIM3,0.0);
+   Dk.Resize(INTERNAL_ATOMS*DIM3,INTERNAL_ATOMS*DIM3,0.0);
    
    for (LatSum_.Reset();!LatSum_.Done();++LatSum_)
    {
-      // Calculate Cy
+      // Calculate Dk
       if (LatSum_.Atom(0) != LatSum_.Atom(1))
       {
 	 for (i=0;i<DIM3;i++)
 	    for (j=0;j<DIM3;j++)
 	    {
-	       // K != K' terms (i.e., off block (3x3) diagonal terms)
-	       Cy[DIM3*LatSum_.Atom(0)+i][DIM3*LatSum_.Atom(1)+j] +=
+	       // y != y' terms (i.e., off block (3x3) diagonal terms)
+	       Dk[DIM3*LatSum_.Atom(0)+i][DIM3*LatSum_.Atom(1)+j] +=
 		  (-2.0*Del(i,j)*LatSum_.phi1()
 		   -4.0*LatSum_.Dx(i)*LatSum_.Dx(j)*LatSum_.phi2())
 		  *exp(A*
-		       (Y[0]*LatSum_.Dx(0) + Y[1]*LatSum_.Dx(1) + Y[2]*LatSum_.Dx(2)));
+		       (K[0]*LatSum_.Dx(0) + K[1]*LatSum_.Dx(1) + K[2]*LatSum_.Dx(2)));
 
-	       // K==K' components (i.e., Phi(0,k,k) term)
-	       Cy[DIM3*LatSum_.Atom(0)+i][DIM3*LatSum_.Atom(0)+j] +=
+	       // y==y' components (i.e., Phi(0,y,y) term)
+	       Dk[DIM3*LatSum_.Atom(0)+i][DIM3*LatSum_.Atom(0)+j] +=
 		  (2.0*Del(i,j)*LatSum_.phi1()
 		   +4.0*LatSum_.Dx(i)*LatSum_.Dx(j)*LatSum_.phi2());
 	    }
@@ -1288,12 +1288,12 @@ CMatrix MultiLatticeTPP::DynamicalStiffness(Vector &Y)
 	 for (i=0;i<DIM3;++i)
 	    for (j=0;j<DIM3;++j)
 	    {
-	       Cy[DIM3*LatSum_.Atom(0)+i][DIM3*LatSum_.Atom(1)+j] +=
+	       Dk[DIM3*LatSum_.Atom(0)+i][DIM3*LatSum_.Atom(1)+j] +=
 		  (-2.0*Del(i,j)*LatSum_.phi1()
 		   -4.0*LatSum_.Dx(i)*LatSum_.Dx(j)*LatSum_.phi2())
 		  *(exp(A*
-			(Y[0]*LatSum_.Dx(0) + Y[1]*LatSum_.Dx(1)
-			 + Y[2]*LatSum_.Dx(2)))
+			(K[0]*LatSum_.Dx(0) + K[1]*LatSum_.Dx(1)
+			 + K[2]*LatSum_.Dx(2)))
 		    - 1.0);
 	    }
       }
@@ -1304,13 +1304,13 @@ CMatrix MultiLatticeTPP::DynamicalStiffness(Vector &Y)
 	 for (i=0;i<DIM3;i++)
 	    for (j=0;j<DIM3;j++)
 	    {
-	       Cy[DIM3*p+i][DIM3*q+j] /= sqrt(AtomicMass_[p]*AtomicMass_[q]);
+	       Dk[DIM3*p+i][DIM3*q+j] /= sqrt(AtomicMass_[p]*AtomicMass_[q]);
 	    }
    
-   return Cy;
+   return Dk;
 }
 
-void MultiLatticeTPP::DispersionCurves(Vector Y,int NoPTS,const char *prefix,
+void MultiLatticeTPP::DispersionCurves(Vector K,int NoPTS,const char *prefix,
 				       ostream &out)
 {
    int w=out.width();
@@ -1342,8 +1342,8 @@ void MultiLatticeTPP::DispersionCurves(Vector Y,int NoPTS,const char *prefix,
    Vector Z1(DIM3),Z2(DIM3);
    for (int k=0;k<DIM3;++k)
    {
-      Z1[k] = Y[k];
-      Z2[k] = Y[DIM3 + k];
+      Z1[k] = K[k];
+      Z2[k] = K[DIM3 + k];
    }
    Z1 = InverseLat*Z1;
    Z2 = InverseLat*Z2;
@@ -1429,7 +1429,7 @@ void MultiLatticeTPP::interpolate(Matrix *EigVals,int zero,int one,int two)
    }
 }
 
-int MultiLatticeTPP::BlochWave(Vector &Y)
+int MultiLatticeTPP::BlochWave(Vector &K)
 {
    static CMatrix A(INTERNAL_ATOMS*DIM3,INTERNAL_ATOMS*DIM3);
    static Matrix EigVals(1,INTERNAL_ATOMS*DIM3);
@@ -1456,10 +1456,10 @@ int MultiLatticeTPP::BlochWave(Vector &Y)
    {
       for (int i=0;i<DIM3;++i)
       {
-	 Y[i] = UCIter_[i];
+	 K[i] = UCIter_[i];
       }
 
-      Z = InverseLat*Y;
+      Z = InverseLat*K;
       A = DynamicalStiffness(Z);
 
       EigVals = HermiteEigVal(A);
@@ -1508,7 +1508,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
    static Matrix
       CondModuli(6,6);
    static int RankOneConvex;
-   static Vector Y(DIM3);
+   static Vector K(DIM3);
    static int BlochWaveStable;
    
    W=out.width();
@@ -1538,10 +1538,10 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
    CondEV=SymEigVal(CondModuli);
    RankOneConvex = FullScanRank1Convex3D(CondModuli,ConvexityDX_);
 
-   Y.Resize(DIM3,0.0);
+   K.Resize(DIM3,0.0);
    if (RankOneConvex)
    {
-      BlochWaveStable = BlochWave(Y);
+      BlochWaveStable = BlochWave(K);
    }
    else
    {
@@ -1630,7 +1630,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 	     << "CondEV Info:" << setw(W) << CondEV
 	     << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << endl
 	     << "BlochWave Stability:" << setw(W) << BlochWaveStable << ", "
-	     << setw(W) << Y << endl;
+	     << setw(W) << K << endl;
 	 // send to cout also
 	 if (Echo_)
 	 {
@@ -1653,7 +1653,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 		 << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << endl
 		 << "BlochWave Stability (GridSize=" << GridSize_ << "):"
 		 << setw(W) << BlochWaveStable << ", "
-		 << setw(W) << Y << endl;
+		 << setw(W) << K << endl;
 	 }
 	 break;
    }

@@ -72,8 +72,8 @@ public:
    virtual Matrix Moduli() {return stiffness(1);}
    virtual Matrix E3();
    virtual Matrix E4();
-   virtual void DispersionCurves(Vector Y,int NoPTS,const char *prefix,ostream &out);
-   virtual int BlochWave(Vector &Y);
+   virtual void DispersionCurves(Vector K,int NoPTS,const char *prefix,ostream &out);
+   virtual int BlochWave(Vector &K);
    virtual void SetGridSize(int Grid) {GridSize_=Grid; UCIter_(GridSize_);}
    virtual void NeighborDistances(int cutoff,ostream &out);
    virtual void Print(ostream &out,PrintDetail flag);
@@ -86,7 +86,7 @@ public:
    double Pressure() const {return Pressure_;}
    double SetPressure(double &p) { Pressure_ = p;}
    double ShearMod() const {return ShearMod_;}
-   CMatrix DynamicalStiffness(Vector &Y);
+   CMatrix DynamicalStiffness(Vector &K);
    friend ostream &operator<<(ostream &out,MultiLatticeTPP &A);
 
 private:

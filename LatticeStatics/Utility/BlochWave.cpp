@@ -36,7 +36,7 @@ int main(int argc,char *argv[])
 
    cout  << setiosflags(ios::fixed) << setprecision(Precision);
 
-   Vector DOF((Lat->DOF()).Dim()),Y(3);
+   Vector DOF((Lat->DOF()).Dim()),K(3);
    int BlochWaveStable;
    double Temp;
    
@@ -47,11 +47,11 @@ int main(int argc,char *argv[])
       Lat->SetTemp(Temp);
       Lat->SetDOF(DOF);
 
-      BlochWaveStable = Lat->BlochWave(Y);
+      BlochWaveStable = Lat->BlochWave(K);
 
       cout << "BlochWave Stability (GridSize=" << GridSize << "):"
 	   << setw(Width) << BlochWaveStable << ", "
-	   << setw(Width) << Y << endl << flush;
+	   << setw(Width) << K << endl << flush;
    }
    
    return 1;

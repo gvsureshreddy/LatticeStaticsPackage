@@ -32,8 +32,8 @@ public:
    virtual Matrix E3() = 0;
    virtual Matrix E4() = 0;
    virtual int StiffnessNulity(double *Min=NULL);
-   virtual void DispersionCurves(Vector Y,int NoPTS,const char *prefix,ostream &out) {};
-   virtual int BlochWave(Vector &Y) {return -1;}
+   virtual void DispersionCurves(Vector K,int NoPTS,const char *prefix,ostream &out) {};
+   virtual int BlochWave(Vector &K) {return -1;}
    virtual void SetGridSize(int Grid) = 0;
    virtual void NeighborDistances(int cutoff,ostream &out) {};
    virtual void CriticalPointInfo(const Vector &DrDt,double Tolerance,
