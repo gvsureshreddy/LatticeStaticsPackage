@@ -24,4 +24,5 @@ MODES = KnownModes.cpp\
 	Full15.cpp\
 	Ortho15Shuff.cpp\
 	Expand9.cpp\
-	NaCl9.cpp
+	NaCl9.cpp\
+	ML_Expand.cpp

@@ -24,7 +24,8 @@
 #include "Ortho15Shuff.h"
 #include "Expand9.h"
 #include "NaCl9.h"
+#include "ML_Expand.h"
 
-#define KNOWNMODES 26
+#define KNOWNMODES 27
 
 LatticeMode *InitializeMode(Lattice *Lat,char *datafile);
