@@ -25,6 +25,19 @@ unsigned FullScanRank1Convex2D(Matrix K,double dx);
 unsigned Rank1Convex3D(Matrix K,double dx);
 unsigned Rank1Convex2D(Matrix K,double dx);
 
+static const double UtilityALT[3][3][3] = {0.0, 0.0, 0.0,
+					   0.0, 0.0, 1.0,
+					   0.0, -1.0, 0.0,
+					   0.0, 0.0, -1.0,
+					   0.0, 0.0, 0.0,
+					   1.0, 0.0, 0.0,
+					   0.0, 1.0, 0.0,
+					   -1.0, 0.0, 0.0,
+					   0.0, 0.0, 0.0};
+
+inline double Alt(int i,int j,int k) {return UtilityALT[i][j][k];}
+
+
 char *builddate();
 
 #endif

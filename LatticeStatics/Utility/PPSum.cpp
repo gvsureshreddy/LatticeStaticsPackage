@@ -107,7 +107,7 @@ void PPSum::Initialize()
    if (RelPosDATA_.Rows() < 0.55*tmp)
    {
       RelPosDATA_.Resize(tmp,DATALEN);
-      cerr << "Resizeing RELPOSDATA matrix in PPSum object!" << endl;
+      cerr << "Resizeing RELPOSDATA matrix in PPSum object to " << tmp << endl;
    }
 
    Pairs_ = 0;
@@ -132,7 +132,7 @@ void PPSum::Initialize()
 		     {
 			RelPosDATA_[Pairs_][i] +=
 			   (X[j] + (((*InternalPOS_)[q][j] + V_[q][j])
-				    - ((*InternalPOS_)[q][j] + V_[p][j])))
+				    - ((*InternalPOS_)[p][j] + V_[p][j])))
 			   *(*RefLattice_)[j][i];
 
 		     }
@@ -151,8 +151,8 @@ void PPSum::Initialize()
 			+= RelPosDATA_[Pairs_][3+i]*RelPosDATA_[Pairs_][3+i];
 		  }
 		  // Only use Sphere of Influance (current)
-		  if (RelPosDATA_[Pairs_][6] != 0 &&
-		      RelPosDATA_[Pairs_][6] <= (*InfluanceDist_)*(*InfluanceDist_))
+		  if ((RelPosDATA_[Pairs_][6] != 0) &&
+		      (RelPosDATA_[Pairs_][6] <= (*InfluanceDist_)*(*InfluanceDist_)))
 		  {
 		     ++Pairs_;
 		  }
