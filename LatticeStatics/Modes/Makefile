@@ -11,4 +11,5 @@ MODES = KnownModes.cpp\
 	UniDefTemp3DFull.cpp\
 	ExpandShuffle.cpp\
 	OrthoShuffle.cpp\
+	RhomboShuffle.cpp\
 	FullShuffle.cpp

@@ -17,6 +17,7 @@ LatticeMode *InitializeMode(Lattice *Lat,char *datafile)
                         "UniDefTemp3DFull",
 			"ExpandShuffle",
 			"OrthoShuffle",
+			"RhomboShuffle",
 			"FullShuffle"};
 
    switch (GetStringParameter("^MainModeType",datafile,Modes,NoModes))
@@ -80,6 +81,10 @@ LatticeMode *InitializeMode(Lattice *Lat,char *datafile)
 	 return new OrthoShuffle(Lat);
       }
       case 12:
+      {
+	 return new RhomboShuffle(Lat);
+      }
+      case 13:
       {
 	 return new FullShuffle(Lat);
       }
