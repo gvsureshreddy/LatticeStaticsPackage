@@ -19,9 +19,9 @@ open(GNUPLOT,">$ARGV[1]")
 print GNUPLOT "# gnuplot data file for ${dataset}\n#\n";
 print GNUPLOT "# Index 0\n";
 print GNUPLOT "# Bifurcation Points\n";
-printf GNUPLOT "#%20s %20s %20s %20s %20s %20s %20s %20s %20s %20s %20s\n",
+printf GNUPLOT "#%20s %20s %20s %20s %20s %20s %20s %20s %20s %20s %20s %20s\n",
     "Temperature","Potential","U11","U12","U13","U22","U23","U33",
-    "Min EigVal","Num Neg Eig Vals","Rank 1 Convex";
+    "Min EigVal","Num Neg Eig Vals","Rank 1 Convex","Uncertainty";
 
 
 $endgnuplot = "";
@@ -55,8 +55,9 @@ close(GNUPLOT);
 #          sections (indicies)
 #
 sub loaddata {
-    my(@fields,@temp,@U11,@U12,@U13,@U22,@U23,@U33,@potential,
-       @mineigval,@noneg,$stableflag,$stable_nodata,$unstable_nodata);
+    my(@fields,@temp,@U11,@U12,@U13,@U22,@U23,@U33,
+       @potential,@mineigval,@noneg,@uncertainty,
+       $stableflag,$stable_nodata,$unstable_nodata);
     my($gnuplot,$endgnuplot);
     $gnuplot = $_[2];
     $endgnuplot = $_[4];
@@ -128,6 +129,12 @@ sub loaddata {
 		@fields = split(/:/,$_);
 		push(@Convex,$fields[1]);
 	    }
+
+	    if (/^Uncertainty/)
+	    {
+		@fields = split(/=/,$_);
+		push(@uncertainty,$fields[1]);
+	    }
 	}
 	
 	close(DATA);
@@ -139,14 +146,14 @@ sub loaddata {
 
     $stable .= sprintf "# Index $_[3]\n";
     $stable .= sprintf "# Stable sections of $_[0] branch at Pressure $pressure\n";
-    $stable .= sprintf "#%20s %20s %20s %20s %20s %20s %20s %20s %20s %20s %20s\n",
+    $stable .= sprintf "#%20s %20s %20s %20s %20s %20s %20s %20s %20s %20s %20s %20s\n",
     "Temperature","Potential","U11","U12","U13","U22","U23","U33",
-    "Min EigVal","Num Neg Eig Vals","Rank 1 Convex";
+    "Min EigVal","Num Neg Eig Vals","Rank 1 Convex","Uncertainty";
     $unstable .= sprintf "# Index " . ($_[3]+1) . "\n";
     $unstable .= sprintf "# Unstable sections of $_[0] branch at Pressure $pressure\n";
-    $unstable .= sprintf "#%20s %20s %20s %20s %20s %20s %20s %20s %20s %20s %20s\n",
+    $unstable .= sprintf "#%20s %20s %20s %20s %20s %20s %20s %20s %20s %20s %20s %20s\n",
     "Temperature","Potential","U11","U12","U13","U22","U23","U33",
-    "Min EigVal","Num Neg Eig Vals","Rank 1 Convex";
+    "Min EigVal","Num Neg Eig Vals","Rank 1 Convex","Uncertainty";
     
     $stableflag=$noneg[0];
     while(defined($temp[0]))
@@ -155,10 +162,10 @@ sub loaddata {
 	if (defined($noneg[1]) && $stableflag != $noneg[1])
 	{
 	    printf $gnuplot "%20.12f %20.12f %20.12f %20.12f %20.12f %20.12f" .
-		" %20.12f %20.12f %20.12f %20.12f %20.12f\n",
+		" %20.12f %20.12f %20.12f %20.12f %20.12f %20.12f\n",
 		$temp[0],$potential[0],$U11[0],$U12[0],
 		$U13[0],$U22[0],$U23[0],$U33[0],
-		$mineigval[0],$noneg[0],$Convex[0];
+		$mineigval[0],$noneg[0],$Convex[0],$uncertainty[0];
 
 	    # Add blank line in corresponding file to seperate segments
 	    # and connecting line of data
@@ -167,20 +174,20 @@ sub loaddata {
 		$stable .= sprintf "\n";
 		$stable .= sprintf
 		    "%20.12f %20.12f %20.12f %20.12f %20.12f %20.12f"
-			. " %20.12f %20.12f %20.12f %20.12f %20.12f\n",
+			. " %20.12f %20.12f %20.12f %20.12f %20.12f %20.12f\n",
 			$temp[0],$potential[0],$U11[0],$U12[0],
 			$U13[0],$U22[0],$U23[0],$U33[0],
-			$mineigval[0],$noneg[0],$Convex[0];
+			$mineigval[0],$noneg[0],$Convex[0],$uncertainty[0];
 	    }
 	    elsif ($stableflag == 0)
 	    {
 		$unstable .= sprintf "\n";
 		$unstable .= sprintf
 		    "%20.12f %20.12f %20.12f %20.12f %20.12f %20.12f"
-			. " %20.12f %20.12f %20.12f %20.12f %20.12f\n",
+			. " %20.12f %20.12f %20.12f %20.12f %20.12f %20.12f\n",
 			$temp[0],$potential[0],$U11[0],$U12[0],
 			$U13[0],$U22[0],$U23[0],$U33[0],
-			$mineigval[0],$noneg[0],$Convex[0];
+			$mineigval[0],$noneg[0],$Convex[0],$uncertainty[0];
 	    }
 	}
 
@@ -190,20 +197,22 @@ sub loaddata {
 	    $stable_nodata = 0;
 	    $stable .= sprintf
 		"%20.12f %20.12f %20.12f %20.12f %20.12f %20.12f" .
-		    " %20.12f %20.12f %20.12f %20.12f %20.12f\n",
+		    " %20.12f %20.12f %20.12f %20.12f %20.12f %20.12f\n",
 		    shift(@temp),shift(@potential),shift(@U11),shift(@U12),
 		    shift(@U13),shift(@U22),shift(@U23),shift(@U33),
-		    shift(@mineigval),shift(@noneg),shift(@Convex);
+		    shift(@mineigval),shift(@noneg),shift(@Convex),
+		    shift(@uncertainty);
 	}
 	else
 	{
 	    $unstable_nodata = 0;
 	    $unstable .= sprintf
 		"%20.12f %20.12f %20.12f %20.12f %20.12f %20.12f" .
-		    " %20.12f %20.12f %20.12f %20.12f %20.12f\n",
+		    " %20.12f %20.12f %20.12f %20.12f %20.12f %20.12f\n",
 		    shift(@temp),shift(@potential),shift(@U11),shift(@U12),
 		    shift(@U13),shift(@U22),shift(@U23),shift(@U33),
-		    shift(@mineigval),shift(@noneg),shift(@Convex);
+		    shift(@mineigval),shift(@noneg),shift(@Convex),
+		    shift(@uncertainty);
 	}
 
 	$stableflag = $noneg[0];
@@ -213,13 +222,15 @@ sub loaddata {
     if ($stable_nodata)
     {
 	$stable .= sprintf "%20.12f %20.12f %20.12f %20.12f %20.12f %20.12f" .
-	    " %20.12f %20.12f %20.12f %20.12f %20.12f\n",0,0,0,0,0,0,0,0,0,0,0;
+	    " %20.12f %20.12f %20.12f %20.12f %20.12f %20.12f\n",
+	    0,0,0,0,0,0,0,0,0,0,0,0;
     }
     if ($unstable_nodata)
     {
 	$unstable .= sprintf
 	    "%20.12f %20.12f %20.12f %20.12f %20.12f %20.12f" .
-		" %20.12f %20.12f %20.12f %20.12f %20.12f\n",0,0,0,0,0,0,0,0,0,0,0;
+		" %20.12f %20.12f %20.12f %20.12f %20.12f %20.12f\n",
+		0,0,0,0,0,0,0,0,0,0,0,0;
     }
 
     $$endgnuplot .= $stable . "\n\n" . $unstable . "\n\n";
