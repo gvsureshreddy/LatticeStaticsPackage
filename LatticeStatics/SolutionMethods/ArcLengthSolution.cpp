@@ -322,7 +322,7 @@ double ArcLengthSolution::ArcLengthNewton(int &good)
 		      << Mode_->ScanningStressParameter() << ","
 		      << setw(20) << RHS.Norm() << ","
 		      << setw(20) << Dx.Norm() << "), ";
-#ifndef SOLVE_SVD
+#ifdef SOLVE_SVD
       if (Echo_) cout << endl;
 #endif
    }

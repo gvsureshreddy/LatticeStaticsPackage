@@ -1931,10 +1931,11 @@ void MultiLatticeTPP::DebugMode()
       "StiffnessDL",                   // 36
       "FindLatticeSpacing",            // 37
       "ConsistencyCheck",              // 38
-      "dbg_"                           // 39
+      "dbg_",                          // 39
+      "RefineEqbm"                     // 40
       
    };
-   int NOcommands=40;
+   int NOcommands=41;
    
    char response[LINELENGTH];
    char prompt[] = "Debug > ";
@@ -2040,10 +2041,7 @@ void MultiLatticeTPP::DebugMode()
       else if (!strcmp(response,Commands[21]))
       {
 	 Vector K(DIM3,0.0);
-	 cout << "\tK > ";
-	 cin >> K;
-	 cin.sync(); // clear input
-	 cout << "ReferenceBlochWave= " << ReferenceBlochWave(K);
+	 cout << "ReferenceBlochWave= " << ReferenceBlochWave(K) << "\t" << K << endl;
       }
       else if (!strcmp(response,Commands[22]))
       {
@@ -2158,6 +2156,16 @@ void MultiLatticeTPP::DebugMode()
       {
 	 cout << "dbg_ = " << dbg_ << endl;
       }
+      else if (!strcmp(response,Commands[40]))
+      {
+	 double Tol;
+	 int MaxItr;
+	 cout << "\tTolerence > ";
+	 cin >> Tol;
+	 cout << "\tMaxItr > ";
+	 cin >> MaxItr;
+	 RefineEqbm(Tol,MaxItr);
+      }
       else if (!strcmp(response,"?") ||
 	       !strcasecmp(response,"help"))
       {
@@ -2193,4 +2201,29 @@ void MultiLatticeTPP::DebugMode()
       cout << endl << prompt;
       cin.getline(response,LINELENGTH);
    }  
+}
+
+
+void MultiLatticeTPP::RefineEqbm(double Tol,int MaxItr)
+{
+   Vector dx(DOFS,0.0);
+   Vector Stress=stress();
+   int itr=0;
+   
+   while ((itr < MaxItr) && Stress.Norm() > Tol)
+   {
+      ++itr;
+
+#ifdef SOLVE_SVD
+      dx = SolveSVD(stiffness(),Stress,MAXCONDITION,Echo_);
+#else
+      dx = SolvePLU(stiffness(),Stress);
+#endif
+
+      SetDOF(DOF_-dx);
+
+      Stress=stress();
+
+      cout << itr << "\tdx " << dx.Norm() << "\tstress " << Stress.Norm() << endl;
+   }
 }
