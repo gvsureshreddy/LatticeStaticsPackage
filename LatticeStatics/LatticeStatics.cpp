@@ -12,7 +12,7 @@ void GetMainSettings(int &Width, int &Precision,YN &BisectCP,char *datafile);
 void InitializeOutputFile(fstream &out,char *outfile,char *datafile,char *startfile,
 			  Lattice *Lat,int Precision,int Width);
 SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
-				   char *startfile,Lattice *Lat,int Width);
+				   char *startfile,Lattice *Lat,fstream &out, int Width);
 
 int main(int argc, char *argv[])
 {
@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
    out << "Mode: " << Mode->ModeName() << endl;
    cout << "Mode: " << Mode->ModeName() << endl;
    
-   SolveMe = InitializeSolution(Mode,datafile,startfile,Lat,Width);
+   SolveMe = InitializeSolution(Mode,datafile,startfile,Lat,out,Width);
 
 
    
@@ -168,7 +168,7 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,char *startf
 
 
 SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
-				   char *startfile,Lattice *Lat,int Width)
+				   char *startfile,Lattice *Lat,fstream &out,int Width)
 {
    char slvmthd[LINELENGTH];
 
@@ -219,7 +219,7 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
 	 }
 	 else
 	 {
-	    return new ArcLengthSolution(Mode,datafile,startfile);
+	    return new ArcLengthSolution(Mode,datafile,startfile,out);
 	 }
       }
       break;
