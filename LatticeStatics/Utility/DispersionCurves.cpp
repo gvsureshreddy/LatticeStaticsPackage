@@ -73,7 +73,7 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,
    while (!input.eof())
    {
       input.getline(dataline,LINELENGTH-1);
-      out << "#Input File: " << dataline << endl;
+      out << "#Input File:" << dataline << endl;
    }
 
    input.close();

@@ -136,7 +136,7 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,char *startf
    while (!input.eof())
    {
       input.getline(dataline,LINELENGTH-1);
-      out << "Input File: " << dataline << endl;
+      out << "Input File:" << dataline << endl;
    }
 
    input.close();
@@ -154,7 +154,7 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,char *startf
       while (!start.eof())
       {
 	 start.getline(dataline,LINELENGTH-1);
-	 out << "Start File: " << dataline << endl;
+	 out << "Start File:" << dataline << endl;
       }
 
       start.close();
