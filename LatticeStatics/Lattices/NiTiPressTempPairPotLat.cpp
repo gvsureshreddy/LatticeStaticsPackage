@@ -266,7 +266,7 @@ double NiTiPressTempPairPotLat::PairPotential(interaction inter,double r2,
 		    + (beta/rhat)*Exp_temp*Exp_temp);
 	       break;
 	    case DT:
-	       val = (A0/(4.0*Tmelt))*(beta/(2*rhat*r2))
+	       val = (-A0/(4.0*Tmelt))*(beta/(2*rhat*r2))
 		  *((beta/rhat + 1.0/r)*(Exp_temp*Exp_temp - Exp_temp)
 		    +(beta/rhat)*Exp_temp*Exp_temp)
 		  +A0*(1.0 - Temp_/(4.0*Tmelt))*((Beta(inter,DT)*rhat
@@ -415,18 +415,22 @@ Matrix NiTiPressTempPairPotLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
    Vector X(DIM3),dummy(DIM3,0.0);
    Vector DX(DIM3),Dx(DIM3);
    Vector ABOffset(DIM3,0.5);
-   Matrix Uinv = DefGrad_.Inverse();
+   Matrix Uinv=DefGrad_.Inverse(),Eigvals=SymEigVal(Uinv);
    double J=DefGrad_.Det();
-   double r2,phi,phi1,phi2,Influancedist[DIM3];
+   double r2,phi,phi1,phi2,Influancedist[DIM3],tmp;
    int k,l,Top[DIM3],Bottom[DIM3],CurrentInfluanceDist;
    interaction Inter;
 
+
+   // find largest eigenvalue of the inverse transformation
+   // (i.e. from current to ref) and use influence cube of
+   // that size...
+   tmp = 0.0;
    for (int i=0;i<DIM3;i++)
-      Influancedist[i]=(fabs(Uinv[0][i]) < fabs(Uinv[1][i]) ?
-			(fabs(Uinv[1][i]) < fabs(Uinv[2][i]) ?
-			fabs(Uinv[2][i]) : fabs(Uinv[1][i])) :
-			(fabs(Uinv[0][i]) < fabs(Uinv[2][i]) ?
-			 fabs(Uinv[2][i]) : fabs(Uinv[0][i])))*InfluanceDist_;
+      if (Eigvals[0][i] > tmp) tmp = Eigvals[0][i];
+   
+   for (int i=0;i<DIM3;i++)
+      Influancedist[i]=tmp*InfluanceDist_;
 
    X=dummy;
    for (int p=0;p<DIM3;p++)
