@@ -43,4 +43,24 @@ int main()
 
    // this should be Coeff[0]
    cout << tst*Coeff[m] << endl;
+
+   cout << endl << endl;
+
+   double_complex A[3],B[3],R[5];
+   A[0] = double_complex(-4.0,0.0);
+   A[1] = double_complex(0.0,0.0);
+   A[2] = double_complex(1.0,0.0);
+   B[0] = double_complex(-21.0,0.0);
+   B[1] = double_complex(4.0,0.0);
+   B[2] = double_complex(1.0,0.0);
+
+   PolyMult(A,2,B,2,R);
+   for (int i=0;i<=4;i++)
+      cout << setw(20) << R[i];
+   cout << endl;
+
+   PolyRootsLaguerre(R,4,Roots,1);
+   for (int i=0;i<4;i++)
+      cout << setw(20) << Roots[i] << endl;
+
 }

@@ -107,3 +107,15 @@ int Laguerre(double_complex Coeff[],int Degree,double_complex *X)
    return iter;
 }
       
+void PolyMult(double_complex A[],int DegA,double_complex B[],int DegB,
+	      double_complex Result[])
+{
+   int DegC = DegA + DegB;
+
+   for (int i=0;i<=DegC;i++) Result[i] = double_complex(0.0,0.0);
+   for (int i=0;i<=DegA;i++)
+      for (int j=0;j<=DegB;j++)
+      {
+	 Result[i+j] += A[i]*B[j];
+      }
+}

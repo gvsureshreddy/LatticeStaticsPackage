@@ -22,5 +22,8 @@ void PolyRootsLaguerre(double_complex Coeff[],int Degree,double_complex Roots[],
 // Lagurre's method to find a root of a polynomial near X
 int Laguerre(double_complex Coeff[],int Degree,double_complex *X);
 
+// Multiply polynomials A and B with resulting poly of degree DegA+DegB
+void PolyMult(double_complex A[],int DegA,double_complex B[],int DegB,
+	      double_complex Result[]);
 
 #endif
