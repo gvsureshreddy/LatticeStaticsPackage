@@ -32,13 +32,13 @@ int main(int argc,char *argv[])
       strcpy(prefix,"^");
    }
    
-   GenericLat *Lat;
+   Lattice *Lat;
 
    int Width,Precision;
 
    GetMainSettings(Width,Precision,datafile,prefix);
 
-   Lat = (GenericLat*) InitializeLattice(datafile,prefix);
+   Lat = InitializeLattice(datafile,prefix);
 
    fstream out;
    InitializeOutputFile(out,outputfile,datafile,prefix,Lat,Precision,Width);

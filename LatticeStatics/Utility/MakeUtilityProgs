@@ -125,7 +125,7 @@ clean:
 	 -/bin/rm -f $(addprefix lib/,$(BSCOBJECTS)) \
 		  $(addprefix lib/,$(RK1OBJECTS)) \
 		  $(addprefix lib/,$(INSTOBJECTS)) \
-		  $(addprefix lib/,$(DISPERSIONOBJECTS) \
+		  $(addprefix lib/,$(DISPERSIONOBJECTS)) \
                   bin/Rank1Convex \
 		  bin/InstantModuli \
 		  bin/DispersionCurves \
