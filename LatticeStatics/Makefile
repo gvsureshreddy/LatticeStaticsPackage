@@ -32,7 +32,11 @@ LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(DATE_DEF)
 #
 # the below line is for OS X -- a bug in the libraries...
 #
-LFLAGS     := $(LFLAGS) `ar -x /usr/lib/libstdc++.a lib/dcomio.o lib/dcomplex.o` lib/dcomio.o lib/dcomplex.o
+UNAME      = `uname`
+#
+ifeq ($(UNAME),darwin)
+   LFLAGS     := $(LFLAGS) `ar -x /usr/lib/libstdc++.a lib/dcomio.o lib/dcomplex.o` lib/dcomio.o lib/dcomplex.o
+endif
 #
 #
 SUBDIRS    = Lattices Modes SolutionMethods Potentials Utility
