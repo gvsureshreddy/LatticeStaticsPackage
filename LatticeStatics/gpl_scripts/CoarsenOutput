@@ -1,0 +1,79 @@
+#!/usr/bin/perl
+#
+# Usage: CoarsenOutput inputfile skip <outputfile>
+#
+use IPC::Open2;
+use IO::Handle;
+
+if (scalar(@ARGV) < 2)
+{
+  die "Usage: BlochWaveRecalc inputfile skip <outputfile>";
+}
+
+open(DATA,"<$ARGV[0]") 
+    || die "Unable to open $ARGV[0] for read: $!";
+if (scalar(@ARGV) == 3)
+{
+  open(OUTPUT,">$ARGV[2]") || die "Unable to open $ARGV[2] for write: $!";
+}
+else
+{
+  open(OUTPUT,">-") || die "Unable to open standard out for write: $!";
+}
+
+$skip = $ARGV[1];
+
+if ($skip <= 0)
+{
+  die "skip must be greater than zero!";
+}
+
+$_ = <DATA>;
+print OUTPUT $_;
+
+while (! m/^Mode:/)
+{
+  $_ = <DATA>;
+  print OUTPUT $_;
+}
+
+$count = 0;
+
+while (<DATA>)
+{
+  if (/^========/)
+  {
+    if ($count ==0)
+    {
+	$count = 1;
+    }
+    else
+    {
+      $count = 0;
+    }
+  }
+
+  if (/^BlochWave/)
+  {
+    if ($count == 0)
+    {
+      print OUTPUT $_;
+      $count += 1;
+    }
+    else
+    {
+      $count += 1;
+      $count %= $skip;
+    }
+  }
+  else
+  {
+    if ($count == 0)
+    {
+      print OUTPUT $_;
+    }
+  }
+}
+
+close(OUTPUT);
+close(DATA);
