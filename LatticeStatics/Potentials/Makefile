@@ -1,0 +1,1 @@
+POTENTIALS = TempMorse.cpp

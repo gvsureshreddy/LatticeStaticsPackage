@@ -1,7 +1,7 @@
 #**************************************************************************
 #**************************************************************************
 
-VPATH = bin lib depend Lattices Modes SolutionMethods Utility
+VPATH = bin lib depend Lattices Modes SolutionMethods Potentials Utility
 
 EXE        = LatticeStatics
 SRC_EXT    = .cpp
@@ -24,7 +24,7 @@ INCL_LOC   = ${HOME}/include
 LIB_LOC    = ${HOME}/lib
 LIBS       = -lLinearAlgebra -lm
 LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE)
-SUBDIRS    = Lattices Modes SolutionMethods Utility
+SUBDIRS    = Lattices Modes SolutionMethods Potentials Utility
 
 # Defines the source files needed #########################################
 include $(addsuffix /Makefile, $(SUBDIRS))
@@ -32,6 +32,7 @@ SOURCES  = LatticeStatics.cpp\
 	   $(addprefix Lattices/,$(LATTICES))\
 	   $(addprefix Modes/,$(MODES))\
 	   $(addprefix SolutionMethods/,$(SOLUTIONMETHODS))\
+	   $(addprefix Potentials/,$(POTENTIALS))\
 	   $(addprefix Utility/,$(UTILITY))
 
 
