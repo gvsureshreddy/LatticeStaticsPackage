@@ -50,8 +50,8 @@ ScanningStart = 259.4
 ScanningEnd = 259.9
 ScanningStep = 0.5
 ScanningLineStart = 1
-ScanningLineStep = -0.02
 ScanningLineEnd = 0.5
+ScanningLineStep = -0.02
 
 // ArcLength Parameters
 DEG2RAD = atan2(1,1)*4/180
