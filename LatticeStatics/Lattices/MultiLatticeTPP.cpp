@@ -1333,7 +1333,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
    RankOneConvex = FullScanRank1Convex3D(CondModuli,ConvexityDX_);
 
    Y.Resize(DIM3,0.0);
-   if (NoNegEigVal == 0)
+   if (RankOneConvex)
    {
       BlochWaveStable = BlochWave(Y);
       Y = RefLatticeInv.Transpose()*Y;
