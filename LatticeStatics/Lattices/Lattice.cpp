@@ -406,45 +406,35 @@ void Lattice::ConsistencyCheck(double ConsistencyEpsilon,int Width,ostream &out)
    
    // Get current state
    OriginalState = DOF();
-   
+
+   out.flags(ios::scientific);
+   if (Echo_) cout.flags(ios::scientific);
+
    // Do Consistency check
+   int Do2=1,Do3=0,Do4=0;
+   
    if (Echo_)
    {
       for (int i=0;i<70;i++) cout << "="; cout << endl;
       cout << "Consistency Check." << endl;
-      cout << "F(U) * Epsilon" << endl;
    }
    for (int i=0;i<70;i++) out << "="; out << endl;
    out << "Consistency Check." << endl;
-   out << "F(U) * Epsilon" << endl;
+
    Force = ConsistencyEpsilon*Stress();
-   if (Echo_)
-   {
-      cout << setw(Width) << Force << endl;
-      cout << "K(U) * Epsilon" << endl;
-   }
-   out << setw(Width) << Force << endl;
-   out << "K(U) * Epsilon" << endl;
-   Stiff = ConsistencyEpsilon*Stiffness();
-   if (Echo_) cout << setw(Width) << Stiff << endl;
-   out << setw(Width) << Stiff << endl;
 
-   if (Echo_) cout << "E3(U) * Epsilon" << endl;
-   out << "E3(U) * Epsilon" << endl;
-   D3 = ConsistencyEpsilon*E3();
-   if (Echo_) cout << setw(Width) << D3 << endl;
-   out << setw(Width) << D3 << endl;
+   cout << "For Stiffness (1-yes,0-no) :"; cin >> Do2;
+   cout << "For E3 (1-yes,0-no) :"; cin >> Do3;
+   cout << "For E4 (1-yes,0-no) :"; cin >> Do4;
 
-   if (Echo_) cout << "E4(U) * Epsilon" << endl;
-   out << "E4(U) * Epsilon" << endl;
-   D4 = ConsistencyEpsilon*E4();
-   if (Echo_) cout << setw(Width) << D4 << endl;
-   out << setw(Width) << D4 << endl;
+   if (Do2) Stiff = ConsistencyEpsilon*Stiffness();
+   if (Do3) D3 = ConsistencyEpsilon*E3();
+   if (Do4) D4 = ConsistencyEpsilon*E4();
 
    potential = Energy();
-   stress1 = Stress();
-   stiff1 = Stiffness();
-   d31 = E3();
+   if (Do2) stress1 = Stress();
+   if (Do3) stiff1 = Stiffness();
+   if (Do4) d31 = E3();
    for (int i=0;i<Dim;++i)
    {
       // Perturb the lattice state
@@ -453,20 +443,27 @@ void Lattice::ConsistencyCheck(double ConsistencyEpsilon,int Width,ostream &out)
       SetDOF(OriginalState+ConsistencyEpsilon*pert);
       // Get Check
       PerturbedForce[i] = Energy() - potential;
-      stress2 = Stress();
-      stiff2 = Stiffness();
-      d32 = E3();
+      if (Do2) stress2 = Stress();
+      if (Do3) stiff2 = Stiffness();
+      if (Do4) d32 = E3();
       for (int j=0;j<Dim;j++)
       {
-	 PerturbedStiff[j][i] = stress2[0][j] - stress1[0][j];
+	 if (Do2) PerturbedStiff[j][i] = stress2[0][j] - stress1[0][j];
 	 
-	 for (int k=0;k<Dim;++k)
+	 if (Do3 || Do4)
 	 {
-	    PerturbedD3[k*Dim + j][i] = stiff2[k][j] - stiff1[k][j];
-
-	    for (int l=0;l<Dim;++l)
+	    for (int k=0;k<Dim;++k)
 	    {
-	       PerturbedD4[l*Dim + k][j*Dim + i] = d32[l*Dim + k][j] - d31[l*Dim + k][j];
+	       if (Do3) PerturbedD3[k*Dim + j][i] = stiff2[k][j] - stiff1[k][j];
+	       
+	       if (Do4)
+	       {
+		  for (int l=0;l<Dim;++l)
+		  {
+		     PerturbedD4[l*Dim + k][j*Dim + i]
+			= d32[l*Dim + k][j] - d31[l*Dim + k][j];
+		  }
+	       }
 	    }
 	 }
       }
@@ -475,34 +472,80 @@ void Lattice::ConsistencyCheck(double ConsistencyEpsilon,int Width,ostream &out)
    // Print out the facts
    if (Echo_)
    {
+      cout << "Stress(U) * Epsilon" << endl;
+      cout << setw(Width) << Force << endl;
       cout << "Stress(U + Epsilon*Vj)" << endl;
       cout << setw(Width) << PerturbedForce << endl;
-      cout << "Stiff(U + Epsilon*Vj)" << endl;
-      cout << setw(Width) << PerturbedStiff << endl;
-      cout << "E3(U + Epsilon*Vj)" << endl;
-      cout << setw(Width) << PerturbedD3 << endl;
-      cout << "E4(U + Epsilon*Vj)" << endl;
-      cout << setw(Width) << PerturbedD4 << endl;
+
+      if (Do2)
+      {
+	 cout << "Stiff(U)*Epsilon" << endl;
+	 cout << setw(Width) << Stiff << endl;
+	 cout << "Stiff(U + Epsilon*Vj)" << endl;
+	 cout << setw(Width) << PerturbedStiff << endl;
+      }
+
+      if (Do3)
+      {
+	 cout << "E3(U)*Epsilon" << endl;
+	 cout << setw(Width) << D3 << endl;
+	 cout << "E3(U + Epsilon*Vj)" << endl;
+	 cout << setw(Width) << PerturbedD3 << endl;
+      }
+
+      if (Do4)
+      {
+	 cout << "E4(U)*Epsilon" << endl;
+	 cout << setw(Width) << D4 << endl;
+	 cout << "E4(U + Epsilon*Vj)" << endl;
+	 cout << setw(Width) << PerturbedD4 << endl;
+      }
+
       cout << "Difference" << endl;
       cout << setw(Width) << Force - PerturbedForce << endl << endl;
-      cout << setw(Width) << Stiff - PerturbedStiff << endl;
-      cout << setw(Width) << D3 - PerturbedD3 << endl;
-      cout << setw(Width) << D4 - PerturbedD4 << endl;
+      if (Do2) cout << setw(Width) << Stiff - PerturbedStiff << endl;
+      if (Do3) cout << setw(Width) << D3 - PerturbedD3 << endl;
+      if (Do4) cout << setw(Width) << D4 - PerturbedD4 << endl;
    }
-
+ 
+   out << "Stress(U) * Epsilon" << endl;
+   out << setw(Width) << Force << endl;
    out << "Stress(U + Epsilon*Vj)" << endl;
    out << setw(Width) << PerturbedForce << endl;
-   out << "Stiff(U + Epsilon*Vj)" << endl;
-   out << setw(Width) << PerturbedStiff << endl;
-   out << "E3(U + Epsilon*Vj)" << endl;
-   out << setw(Width) << PerturbedD3 << endl;
-   out << "E4(U + Epsilon*Vj)" << endl;
-   out << setw(Width) << PerturbedD4 << endl;
+
+   if (Do2)
+   {
+      out << "Stiff(U)*Epsilon" << endl;
+      out << setw(Width) << Stiff << endl;
+      out << "Stiff(U + Epsilon*Vj)" << endl;
+      out << setw(Width) << PerturbedStiff << endl;
+   }
+
+   if (Do3)
+   {
+      out << "E3(U)*Epsilon" << endl;
+      out << setw(Width) << D3 << endl;
+      out << "E3(U + Epsilon*Vj)" << endl;
+      out << setw(Width) << PerturbedD3 << endl;
+   }
+
+   if (Do4)
+   {
+      out << "E4(U)*Epsilon" << endl;
+      out << setw(Width) << D4 << endl;
+      out << "E4(U + Epsilon*Vj)" << endl;
+      out << setw(Width) << PerturbedD4 << endl;
+   }
+
    out << "Difference" << endl;
    out << setw(Width) << Force - PerturbedForce << endl << endl;
-   out << setw(Width) << Stiff - PerturbedStiff << endl;
-   out << setw(Width) << D3 - PerturbedD3 << endl;
-   out << setw(Width) << D4 - PerturbedD4 << endl;
+   if (Do2) out << setw(Width) << Stiff - PerturbedStiff << endl;
+   if (Do3) out << setw(Width) << D3 - PerturbedD3 << endl;
+   if (Do4) out << setw(Width) << D4 - PerturbedD4 << endl;
+
+   out.flags(ios::fixed);
+   if (Echo_) cout.flags(ios::fixed);
+
 
    if (Echo_)
    {

@@ -371,8 +371,8 @@ double MultiLatticeTPP::OMEGA(double *Dx,int p,int q,int i, int j)
    {
       for (int t=0;t<DIM3;t++)
       {
-	 ret += (LatticeBasis[j][s]*DOF_[INDU(s,t)]*Dx[t] +
-		 Dx[t]*DOF_[INDU(t,s)]*LatticeBasis[j][s]);
+	 ret += (RefLattice_[j][s]*DOF_[INDU(s,t)]*Dx[t] +
+		 Dx[t]*DOF_[INDU(t,s)]*RefLattice_[j][s]);
       }
    }
    ret *= DELTA(i,p,q);
@@ -389,8 +389,8 @@ double MultiLatticeTPP::SIGMA(int p,int q,int i,int j,int k,int l)
       {
 	 for (int r=0;r<DIM3;r++)
 	 {
-	    tmp += (LatticeBasis[j][s]*DOF_[INDU(s,t)]*DOF_[INDU(t,r)]*LatticeBasis[l][r] +
-		    LatticeBasis[l][s]*DOF_[INDU(s,t)]*DOF_[INDU(t,r)]*LatticeBasis[j][r]);
+	    tmp += (RefLattice_[j][s]*DOF_[INDU(s,t)]*DOF_[INDU(t,r)]*RefLattice_[l][r] +
+		    RefLattice_[l][s]*DOF_[INDU(s,t)]*DOF_[INDU(t,r)]*RefLattice_[j][r]);
 	 }
       }
    }
@@ -404,26 +404,26 @@ double MultiLatticeTPP::GAMMA(double *Dx,double *DX,int p,int q,int i,int j,int 
    
    for (int s=0;s<DIM3;s++)
    {
-      tmp += (LatticeBasis[l][s]*DOF_[INDU(s,i)]*DX[j] +
-	      LatticeBasis[l][s]*DOF_[INDU(s,j)]*DX[i] +
-	      DX[i]*DOF_[INDU(j,s)]*LatticeBasis[l][s] +
-	      DX[j]*DOF_[INDU(i,s)]*LatticeBasis[l][s]);
+      tmp += (RefLattice_[l][s]*DOF_[INDU(s,i)]*DX[j] +
+	      RefLattice_[l][s]*DOF_[INDU(s,j)]*DX[i] +
+	      DX[i]*DOF_[INDU(j,s)]*RefLattice_[l][s] +
+	      DX[j]*DOF_[INDU(i,s)]*RefLattice_[l][s]);
    }
    
    
-   return (0.5*DELTA(k,p,q)*(LatticeBasis[l][i]*Dx[j] + LatticeBasis[l][j]*Dx[i] + tmp));
+   return (0.5*DELTA(k,p,q)*(2.0*RefLattice_[l][i]*Dx[j] + 2.0*RefLattice_[l][j]*Dx[i] + tmp));
 }
 
 double MultiLatticeTPP::THETA(double *DX,int p,int q,int i,int j,int k,int l,int m, int n)
 {
-   return (0.5*DELTA(m,p,q)*(Del(i,k)*LatticeBasis[n][j]*DX[l]
-			     + Del(i,k)*DX[j]*LatticeBasis[n][l]
-			     + Del(i,l)*LatticeBasis[n][j]*DX[k]
-			     + Del(i,l)*DX[j]*LatticeBasis[n][k]
-			     + Del(j,k)*LatticeBasis[n][i]*DX[l]
-			     + Del(j,k)*DX[i]*LatticeBasis[n][l]
-			     + Del(j,l)*LatticeBasis[n][i]*DX[k]
-			     + Del(j,l)*DX[i]*LatticeBasis[n][k]));
+   return (0.5*DELTA(m,p,q)*(Del(i,k)*RefLattice_[n][j]*DX[l]
+			     + Del(i,k)*DX[j]*RefLattice_[n][l]
+			     + Del(i,l)*RefLattice_[n][j]*DX[k]
+			     + Del(i,l)*DX[j]*RefLattice_[n][k]
+			     + Del(j,k)*RefLattice_[n][i]*DX[l]
+			     + Del(j,k)*DX[i]*RefLattice_[n][l]
+			     + Del(j,l)*RefLattice_[n][i]*DX[k]
+			     + Del(j,l)*DX[i]*RefLattice_[n][k]));
 }
 
 double MultiLatticeTPP::XI(int p,int q,int i,int j,int k,int l,int m,int n)
@@ -432,14 +432,14 @@ double MultiLatticeTPP::XI(int p,int q,int i,int j,int k,int l,int m,int n)
 
    for (int s=0;s<DIM3;s++)
    {
-      tmp += (LatticeBasis[j][m]*DOF_[INDU(n,s)]*LatticeBasis[l][s]
-	      + LatticeBasis[j][n]*DOF_[INDU(m,s)]*LatticeBasis[l][s]
-	      + LatticeBasis[j][s]*DOF_[INDU(s,m)]*LatticeBasis[l][n]
-	      + LatticeBasis[j][s]*DOF_[INDU(s,n)]*LatticeBasis[l][m]
-	      + LatticeBasis[l][m]*DOF_[INDU(n,s)]*LatticeBasis[j][s]
-	      + LatticeBasis[l][n]*DOF_[INDU(m,s)]*LatticeBasis[j][s]
-	      + LatticeBasis[l][s]*DOF_[INDU(s,m)]*LatticeBasis[j][n]
-	      + LatticeBasis[l][s]*DOF_[INDU(s,n)]*LatticeBasis[j][m]);
+      tmp += (RefLattice_[j][m]*DOF_[INDU(n,s)]*RefLattice_[l][s]
+	      + RefLattice_[j][n]*DOF_[INDU(m,s)]*RefLattice_[l][s]
+	      + RefLattice_[j][s]*DOF_[INDU(s,m)]*RefLattice_[l][n]
+	      + RefLattice_[j][s]*DOF_[INDU(s,n)]*RefLattice_[l][m]
+	      + RefLattice_[l][m]*DOF_[INDU(n,s)]*RefLattice_[j][s]
+	      + RefLattice_[l][n]*DOF_[INDU(m,s)]*RefLattice_[j][s]
+	      + RefLattice_[l][s]*DOF_[INDU(s,m)]*RefLattice_[j][n]
+	      + RefLattice_[l][s]*DOF_[INDU(s,n)]*RefLattice_[j][m]);
    }
 
    return (0.5*DELTA(i,p,q)*DELTA(k,p,q)*tmp);
@@ -449,14 +449,14 @@ double MultiLatticeTPP::LAMDA(int p,int q,int i,int j,int k,int l,int m,int n,in
 			  int b)
 {
    return (0.5*DELTA(m,p,q)*DELTA(a,p,q)*
-	   (Del(i,k)*LatticeBasis[n][j]*LatticeBasis[b][l]
-	    + Del(i,k)*LatticeBasis[b][j]*LatticeBasis[n][l]
-	    + Del(i,l)*LatticeBasis[n][j]*LatticeBasis[b][k]
-	    + Del(i,l)*LatticeBasis[b][j]*LatticeBasis[n][k]
-	    + Del(j,k)*LatticeBasis[n][i]*LatticeBasis[b][l]
-	    + Del(j,k)*LatticeBasis[b][i]*LatticeBasis[n][l]
-	    + Del(j,l)*LatticeBasis[n][i]*LatticeBasis[b][k]
-	    + Del(j,l)*LatticeBasis[b][i]*LatticeBasis[n][k]));
+	   (Del(i,k)*RefLattice_[n][j]*RefLattice_[b][l]
+	    + Del(i,k)*RefLattice_[b][j]*RefLattice_[n][l]
+	    + Del(i,l)*RefLattice_[n][j]*RefLattice_[b][k]
+	    + Del(i,l)*RefLattice_[b][j]*RefLattice_[n][k]
+	    + Del(j,k)*RefLattice_[n][i]*RefLattice_[b][l]
+	    + Del(j,k)*RefLattice_[b][i]*RefLattice_[n][l]
+	    + Del(j,l)*RefLattice_[n][i]*RefLattice_[b][k]
+	    + Del(j,l)*RefLattice_[b][i]*RefLattice_[n][k]));
 }
 
 inline int MultiLatticeTPP::INDU(int i,int j)
@@ -1563,8 +1563,8 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, int gridsize,const char *p
 	       tmp[i][j][l] = 0.0;
 	       for (int k=0;k<DIM3;++k)
 	       {
-		  tmp[i][j][l] += LatticeBasis[l][k]*DOF_[INDU(k,i)]*LatSum_.DX(j)
-		     +LatticeBasis[l][k]*DOF_[INDU(i,k)]*LatSum_.DX(j);
+		  tmp[i][j][l] += RefLattice_[l][k]*DOF_[INDU(k,i)]*LatSum_.DX(j)
+		     +RefLattice_[l][k]*DOF_[INDU(i,k)]*LatSum_.DX(j);
 	       }
 	    }
       for (int k=1;k<INTERNAL_ATOMS;++k)
@@ -1576,8 +1576,8 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, int gridsize,const char *p
 		     phi*(2.0*LatSum_.Dx(i)*LatSum_.DX(j))
 		     *OMEGA(LatSum_.pDx(),LatSum_.Atom(0),LatSum_.Atom(1),k,l) +
 		     phi1*0.5*DELTA(k,LatSum_.Atom(0),LatSum_.Atom(1))
-		     *( LatticeBasis[l][i]*LatSum_.Dx(j) +
-			LatticeBasis[l][j]*LatSum_.Dx(i) +
+		     *( RefLattice_[l][i]*LatSum_.Dx(j) +
+			RefLattice_[l][j]*LatSum_.Dx(i) +
 			tmp[i][j][l]);
 	       }
    }
