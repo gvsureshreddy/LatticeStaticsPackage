@@ -13,6 +13,9 @@
 #define LINELENGTH 600
 
 // Utility function definitions
+int kbhitNoWait();
+int kbhitWait();
+int EnterDebugMode();
 int GetParameter(const char *prefix,const char *tag,const char *datafile,
 		 const char *scanffmt,void *parameter,int DispErr=1);
 int GetVectorParameter(const char *prefix,const char *tag,

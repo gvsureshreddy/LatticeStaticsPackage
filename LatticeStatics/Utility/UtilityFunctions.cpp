@@ -1,5 +1,69 @@
 #include "UtilityFunctions.h"
 
+#include <termios.h>
+
+int kbhitNoWait(void)
+{
+  struct termios old, newstate;
+  int ch;
+
+  tcgetattr(0, &old);
+
+  newstate = old;
+  newstate.c_lflag &= ~(ICANON);
+  newstate.c_lflag &= ~(ECHO);
+  newstate.c_cc[VTIME] = 1;
+  newstate.c_cc[VMIN] = 0;
+
+  tcsetattr(0, TCSANOW, &newstate);
+
+  ch = getchar();
+
+  tcsetattr(0, TCSANOW, &old);
+
+  if(ch == EOF)
+    return 0;
+  return ch;
+}
+
+int kbhitWait(void)
+{
+  struct termios old, newstate;
+  int ch;
+
+  tcgetattr(0, &old);
+
+  newstate = old;
+  newstate.c_lflag &= ~(ICANON);
+  newstate.c_lflag &= ~(ECHO);
+  newstate.c_cc[VTIME] = 1;
+  newstate.c_cc[VMIN] = 1;
+
+  tcsetattr(0, TCSANOW, &newstate);
+
+  ch = getchar();
+
+  tcsetattr(0, TCSANOW, &old);
+
+  if(ch == EOF)
+    return 0;
+  return ch;
+}
+
+int EnterDebugMode()
+{
+   char dbg[6];
+   for (int i=0;i<5;++i)
+   {
+      dbg[i]=kbhitNoWait();
+   }
+   dbg[5]=NULL;
+
+   if (!strcmp(dbg,"debug"))
+      return 1;
+   else
+      return 0;
+}
 
 int GetParameter(const char *prefix,const char *tag,const char *datafile,
 		 const char *scanffmt,void *parameter,int DispErr)

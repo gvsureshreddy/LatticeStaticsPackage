@@ -25,8 +25,8 @@ CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS) $(SOLVE)
 
 # File Locations ##########################################################
 BIN_LOC    = ${HOME}/bin
-INCL_LOC   = ${HOME}/include
-LIB_LOC    = ${HOME}/lib
+INCL_LOC   = -I ${HOME}/include
+LIB_LOC    = -L${HOME}/lib
 LIBS       = -lLinearAlgebra -lMyMath -lm
 LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(DATE_DEF)
 #
@@ -77,14 +77,14 @@ all:	 Rank1Convex InstantModuli DispersionCurves BlochWave NeighborDistances\
 # Defines the Program Target (linking command) ############################
 Rank1Convex:  $(RK1OBJECTS) $(BSCOBJECTS)
 	      $(PURE) $(CC) $(LFLAGS) builddate.cpp \
-	        -L$(LIB_LOC) -o ./bin/Rank1Convex \
+	        $(LIB_LOC) -o ./bin/Rank1Convex \
 	        $(addprefix lib/,$(RK1OBJECTS)) \
 		$(addprefix lib/,$(BSCOBJECTS)) $(LIBS) 
 
 # Defines the Program Target (linking command) ############################
 InstantModuli:  $(INSTOBJECTS) $(BSCOBJECTS)
 	      $(PURE) $(CC) $(LFLAGS) builddate.cpp \
-	        -L$(LIB_LOC) -o ./bin/InstantModuli \
+	        $(LIB_LOC) -o ./bin/InstantModuli \
 	        $(addprefix lib/,$(INSTOBJECTS)) \
 		$(addprefix lib/,$(BSCOBJECTS)) $(LIBS) 
 
@@ -93,7 +93,7 @@ DispersionCurves:     $(DISPERSIONOBJECTS) $(BSCOBJECTS) \
 		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
 		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT)))
 		      $(PURE) $(CC) $(LFLAGS) builddate.cpp \
-		      -L$(LIB_LOC) -o ./bin/DispersionCurves \
+		      $(LIB_LOC) -o ./bin/DispersionCurves \
 		      $(addprefix lib/,$(DISPERSIONOBJECTS)) \
 		      $(addprefix lib/,$(BSCOBJECTS)) \
 		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
@@ -105,7 +105,7 @@ LongWavelengthModuli: $(WAVELENGTHOBJECTS) $(BSCOBJECTS) \
 		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
 		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT)))
 		      $(PURE) $(CC) $(LFLAGS) builddate.cpp \
-		      -L$(LIB_LOC) -o ./bin/LongWavelengthModuli \
+		      $(LIB_LOC) -o ./bin/LongWavelengthModuli \
 		      $(addprefix lib/,$(WAVELENGTHOBJECTS)) \
 		      $(addprefix lib/,$(BSCOBJECTS)) \
 		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
@@ -117,7 +117,7 @@ BlochWave:	      $(BLOCHWAVEOBJECTS) $(BSCOBJECTS) \
 		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
 		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT)))
 		      $(PURE) $(CC) $(LFLAGS) builddate.cpp \
-		      -L$(LIB_LOC) -o ./bin/BlochWave \
+		      $(LIB_LOC) -o ./bin/BlochWave \
 		      $(addprefix lib/,$(BLOCHWAVEOBJECTS)) \
 		      $(addprefix lib/,$(BSCOBJECTS)) \
 		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
@@ -129,7 +129,7 @@ NeighborDistances:    $(NEIGHBORSOBJECTS) $(BSCOBJECTS) \
 		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
 		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT)))
 		      $(PURE) $(CC) $(LFLAGS) builddate.cpp \
-		      -L$(LIB_LOC) -o ./bin/NeighborDistances \
+		      $(LIB_LOC) -o ./bin/NeighborDistances \
 		      $(addprefix lib/,$(NEIGHBORSOBJECTS)) \
 		      $(addprefix lib/,$(BSCOBJECTS)) \
 		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
@@ -147,7 +147,7 @@ include $(addprefix depend/,$(NEIGHBORSOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 
 # Define object file dependicies and make rule
 $(ALLOBJECTS): Makefile MakeUtilityProgs
-	$(CC) $(CCFLAGS) -I. $(addprefix -I ,$(SUBDIRS)) -I $(INCL_LOC)/ \
+	$(CC) $(CCFLAGS) -I. $(addprefix -I ,$(SUBDIRS)) $(INCL_LOC)/ \
         -o ./lib/$(notdir $@) \
         -c $(filter %$(*),$(basename $(ALLSOURCES)))$(SRC_EXT)
 
@@ -194,7 +194,7 @@ clean:
 # Define rule for dependicy files
 depend/$(notdir %).d: %$(SRC_EXT)
 	@$(SHELL) -ec '$(CC) -MM $(CCFLAGS) -I. $(addprefix -I ,$(SUBDIRS)) \
-	      -I $(INCL_LOC)/ $< \
+	      $(INCL_LOC)/ $< \
 	      | sed '\''s/\($*\)\.o[ :]*/\1.o $*.d : /g'\'' \
 	      > $@; [ -s $@ ] || rm -f $@'
 	@echo "Building $@"
