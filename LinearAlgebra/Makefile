@@ -55,7 +55,8 @@ $(OBJECTS): Makefile
 
 .PHONY: install uninstall
 # Define install
-install: all 
+install: $(LIB_LOC)/libLinearAlgebra.a;
+$(LIB_LOC)/libLinearAlgebra.a: $(OBJECTS)
 	$(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/LinearAlgebraBuildDate.o -c LinearAlgebraBuildDate.cpp
 	ar -r $(LIB_LOC)/libLinearAlgebra.a $(addprefix ./lib/,$(OBJECTS)) ./lib/LinearAlgebraBuildDate.o
 	/bin/rm -f ./lib/LinearAlgebraBuildDate.o
