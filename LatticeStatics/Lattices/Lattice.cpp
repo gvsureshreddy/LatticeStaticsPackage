@@ -164,6 +164,42 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
 	  << " ) = 0" << endl;
    }
 
+   //------- output coefficients ----------
+   out << endl << "DrDt = " << setw(Width) << DrDt << endl;
+   if (Echo_) cout << endl << "DrDt = " << setw(Width) << DrDt << endl;
+   out << "Eijk = " << endl;
+   if (Echo_) cout << "Eijk = " << endl;
+   for (int i=0;i<count;++i)
+      for (int j=0;j<count;++j)
+      {
+	 for (int k=0;k<count;++k)
+	 {
+	    out << setw(Width) << Eijk[i][j][k];
+	    if (Echo_) cout << setw(Width) << Eijk[i][j][k];
+	 }
+	 out << endl;
+	 if (Echo_) cout << endl;
+      }
+   out << endl;
+   if (Echo_) cout << endl;
+   
+   out << "EijT = " << endl;
+   if (Echo_) cout << "EijT = " << endl;
+   for (int i=0;i<count;++i)
+   {
+      for (int j=0;j<count;++j)
+      {
+	 out << setw(Width) << EijT[i][j];
+	 if (Echo_) cout << setw(Width) << EijT[i][j];
+      }
+      out << endl;
+      if (Echo_) cout << endl;
+   }
+   out << endl;
+   if (Echo_) cout << endl;
+   // ----------------------------
+
+
    if (thirdorder)
    {
       double Eijkl[DOFMAX][DOFMAX][DOFMAX][DOFMAX],
@@ -295,6 +331,25 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
 	 out << "(" << setw(Width) << EijT[i][count-1] << ")a_" << count-1
 	     << " ) = 0" << endl;
       }
+
+      //-------- output coefficients -----------
+      out << endl << "Eijkl = " << endl;
+      if (Echo_) cout << endl << "Eijkl = " << endl;
+      for (int i=0;i<count;++i)
+	 for (int j=0;j<count;++j)
+	 {
+	    for (int k=0;k<count;++k)
+	       for (int l=0;l<count;++l)
+	       {
+		  out << setw(Width) << Eijkl[i][j][k][l];
+		  if (Echo_) cout << setw(Width) << Eijkl[i][j][k][l];
+	       }
+	    out << endl;
+	    if (Echo_) cout << endl;
+	 }
+      out << endl;
+      if (Echo_) cout << endl;
+      // ----------------------------
    }
 
    out.flags(ios::fixed); out << setprecision(prec);
@@ -310,5 +365,11 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
    if (Echo_) cout << endl;
    out << endl;
 
+   
+   if (EnterDebugMode())
+   {
+      cout << setw(Width);
+      DebugMode();
+   }
    return;
 }

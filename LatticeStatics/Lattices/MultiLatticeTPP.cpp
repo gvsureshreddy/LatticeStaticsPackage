@@ -1910,7 +1910,6 @@ void MultiLatticeTPP::DebugMode()
    int NOcommands=37;
    
    char response[LINELENGTH];
-   char tokens[LINELENGTH];
    char prompt[] = "Debug > ";
    int W=cout.width();
 
