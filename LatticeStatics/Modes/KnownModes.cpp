@@ -29,7 +29,8 @@ LatticeMode *InitializeMode(Lattice *Lat,char *datafile)
 			"Expand15",
 			"Full15",
 			"Ortho15Shuff",
-			"Expand9"};
+			"Expand9",
+			"NaCl9"};
 
    switch (GetStringParameter("^MainModeType",datafile,Modes,NoModes))
    {
@@ -155,6 +156,11 @@ LatticeMode *InitializeMode(Lattice *Lat,char *datafile)
       case 24:
       {
 	 return new Expand9(Lat);
+      }
+      break;
+      case 25:
+      {
+	 return new NaCl9(Lat);
       }
       break;
       case -1:
