@@ -15,7 +15,8 @@ NiTi9TPPLat::NiTi9TPPLat(char *datafile)
    // Set RefLattice_
    RefLattice_.Resize(DIM3,DIM3);
    // Set A
-   A_.Resize(INTERNAL_ATOMS,DIM3);
+   for (int i=0;i<INTERNAL_ATOMS;++i)
+      A_[i].Resize(DIM3,0.0);
    A_[0][0]=A_[0][1]=A_[0][2] = 0.0;
    A_[1][0]=A_[1][1]=A_[1][2] = 0.5;
    
@@ -76,7 +77,7 @@ NiTi9TPPLat::NiTi9TPPLat(char *datafile)
 	 RefLattice_[i][j] = LatticeBasis[i][j]*RefLen_;
 
    // Initiate the Lattice Sum object
-   LatSum_(&DOF_,&RefLattice_,INTERNAL_ATOMS,&A_,&InfluanceDist_);
+   LatSum_(&DOF_,&RefLattice_,INTERNAL_ATOMS,A_,&InfluanceDist_);
 
    int err=0;
    err=FindLatticeSpacing(iter,DX);

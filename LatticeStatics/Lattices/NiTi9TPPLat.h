@@ -36,7 +36,7 @@ private:
 
    // Misc
    double ConvexityDX_;
-   Matrix A_;
+   Vector A_[INTERNAL_ATOMS];
 
 
    Matrix stress(PairPotentials::TDeriv dt=PairPotentials::T0);
