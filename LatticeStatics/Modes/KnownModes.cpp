@@ -8,6 +8,7 @@ LatticeMode *InitializeMode(Lattice *Lat,char *datafile)
    const char *Modes[]={"UniDefTemp2DExpand",
 		        "UniDefTemp3DExpand",
 		        "UniDefTemp3DNaCl",
+			"UniDefTemp3DTetrag",
 			"UniDefTemp3DRhombo",
 			"UniDefTemp3DOrtho",
 			"UniDefTemp3D3PMono",
@@ -39,52 +40,56 @@ LatticeMode *InitializeMode(Lattice *Lat,char *datafile)
       break;
       case 3:
       {
-	 return new UniDefTemp3DRhombo(Lat);
+	 return new UniDefTemp3DTetrag(Lat);
       }
-      break;
       case 4:
       {
-	 return new UniDefTemp3DOrtho(Lat);
+	 return new UniDefTemp3DRhombo(Lat);
       }
       break;
       case 5:
       {
-	 return new UniDefTemp3D3PMono(Lat);
+	 return new UniDefTemp3DOrtho(Lat);
       }
       break;
       case 6:
       {
-	 return new UniDefTemp3D3MMono(Lat);
+	 return new UniDefTemp3D3PMono(Lat);
       }
       break;
       case 7:
       {
-	 return new UniDefTemp3D1PMono(Lat);
+	 return new UniDefTemp3D3MMono(Lat);
       }
       break;
       case 8:
       {
-	 return new UniDefTemp3D1MMono(Lat);
+	 return new UniDefTemp3D1PMono(Lat);
       }
       break;
       case 9:
       {
-         return new UniDefTemp3DFull(Lat);
+	 return new UniDefTemp3D1MMono(Lat);
       }
       break;
       case 10:
       {
-	 return new ExpandShuffle(Lat);
+         return new UniDefTemp3DFull(Lat);
       }
+      break;
       case 11:
       {
-	 return new OrthoShuffle(Lat);
+	 return new ExpandShuffle(Lat);
       }
       case 12:
       {
-	 return new RhomboShuffle(Lat);
+	 return new OrthoShuffle(Lat);
       }
       case 13:
+      {
+	 return new RhomboShuffle(Lat);
+      }
+      case 14:
       {
 	 return new FullShuffle(Lat);
       }

@@ -1,6 +1,7 @@
 #include "UniDefTemp2DExpand.h"
 #include "UniDefTemp3DExpand.h"
 #include "UniDefTemp3DNaCl.h"
+#include "UniDefTemp3DTetrag.h"
 #include "UniDefTemp3DRhombo.h"
 #include "UniDefTemp3DOrtho.h"
 #include "UniDefTemp3D3PMono.h"
