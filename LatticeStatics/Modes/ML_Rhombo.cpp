@@ -127,7 +127,14 @@ Vector ML_Rhombo::ScanningDef()
    return Vector(1,Lattice_->DOF()[0]);
 }
 
-void ML_Rhombo::ScanningUpdate(const Vector &newval) {}
+void ML_Rhombo::ScanningUpdate(const Vector &newval)
+{
+   Vector dof=Lattice_->DOF();
+
+   dof[0]=dof[1]=dof[2] -= newval[0];
+
+   Lattice_->SetDOF(dof);
+}
 
 Matrix ML_Rhombo::ScanningStiffness()
 {
