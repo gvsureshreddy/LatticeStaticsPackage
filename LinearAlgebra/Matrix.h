@@ -7,7 +7,9 @@ char *LinearAlgebraBuildDate();
 #endif
 
 
-#include <iostream.h>
+#include <iostream>
+
+using namespace std;
 
 // Sentinal to allow for no initialization of data
 #define SENTINAL -9999999.8888888887777788
@@ -24,8 +26,10 @@ class Vector3D;
 
 class Matrix
 {
-protected:
+public:
    typedef double Elm;
+
+protected:
 
    Elm **Elements_;
    unsigned Rows_;

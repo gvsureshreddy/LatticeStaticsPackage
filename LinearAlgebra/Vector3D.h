@@ -7,7 +7,9 @@ char *LinearAlgebraBuildDate();
 #endif
 
 
-#include <math.h>
+#include <cmath>
+
+using namespace std;
 
 #define V3DLEN 3
 

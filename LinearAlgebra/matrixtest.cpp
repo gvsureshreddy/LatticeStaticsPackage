@@ -3,9 +3,9 @@
 #include "Vector.h"
 #include "CVector.h"
 #include "Vector3D.h"
-#include <stdlib.h>
-#include <iomanip.h>
-#include <time.h>
+#include <cstdlib>
+#include <iomanip>
+#include <ctime>
 
 int main()
 {

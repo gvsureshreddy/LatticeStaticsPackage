@@ -1,5 +1,5 @@
-#include <stdlib.h>
-#include <iomanip.h>
+#include <cstdlib>
+#include <iomanip>
 #include "Matrix.h"
 
 

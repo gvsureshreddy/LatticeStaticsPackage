@@ -9,6 +9,8 @@ char *LinearAlgebraBuildDate();
 
 #include "CMatrix.h"
 
+using namespace std;
+
 // Sentinal Value to allow conditional initialization of data
 #define SENTINAL -9999999.8888888887777788
 

@@ -1,13 +1,13 @@
 #include "CVector.h"
-#include <string.h>
-#include <iostream.h>
-#include <iomanip.h>
-#include <math.h>
+#include <string>
+#include <iostream>
+#include <iomanip>
+#include <cmath>
 #include "Vector.h"
 #include "Matrix.h"
 
 // Global IDString
-char CVectorID[]="$Id: CVector.cpp,v 1.1 2002/10/16 19:14:28 elliottr Exp $";
+char CVectorID[]="$Id: CVector.cpp,v 1.2 2004/08/24 19:38:00 elliottr Exp $";
 
 // Private Functions...
 

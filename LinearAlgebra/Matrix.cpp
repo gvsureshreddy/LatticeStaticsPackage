@@ -1,12 +1,12 @@
 #include "Matrix.h"
-#include <iostream.h>
-#include <iomanip.h>
-#include <string.h>
-#include <math.h>
-#include <stdlib.h>
+#include <iostream>
+#include <iomanip>
+#include <string>
+#include <cmath>
+#include <cstdlib>
 
 // Global IDString
-char MatrixID[]="$Id: Matrix.cpp,v 1.12 2003/04/02 18:45:34 elliottr Exp $";
+char MatrixID[]="$Id: Matrix.cpp,v 1.13 2004/08/24 19:38:00 elliottr Exp $";
 
 // Private Methods...
 

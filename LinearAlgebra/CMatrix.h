@@ -7,9 +7,11 @@ char *LinearAlgebraBuildDate();
 #endif
 
 
-#include <iostream.h>
-#include <complex.h>
+#include <iostream>
+#include <complex>
 #include <Matrix.h>
+
+using namespace std;
 
 // Sentinal to allow for no initialization of data
 #define SENTINAL -9999999.8888888887777788
