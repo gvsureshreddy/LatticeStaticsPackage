@@ -213,7 +213,6 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
       {
 	 return new ScanningSolution(Mode,datafile,"^",Echo);
       }
-      break;
       case ArcLen:
       {
 	 int good;
@@ -242,7 +241,6 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
 	    return new ArcLengthSolution(Mode,datafile,"^",startfile,out,Echo);
 	 }
       }
-      break;
    }
 
    return NULL;
