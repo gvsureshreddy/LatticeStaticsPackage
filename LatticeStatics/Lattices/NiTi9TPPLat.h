@@ -41,7 +41,7 @@ private:
 
 
    Matrix stress(PairPotentials::TDeriv dt=PairPotentials::T0);
-   Matrix stiffness(int moduliflag=0);
+   Matrix stiffness(int moduliflag=0,PairPotentials::TDeriv dt=PairPotentials::T0);
    Matrix CondensedModuli();
 
 public:
@@ -50,8 +50,8 @@ public:
    // Virtual Functions required by GenericLat
    Vector DOF() {return DOF_;}
    void SetDOF(const Vector &dof) {DOF_ = dof; LatSum_.Recalc();}
-   Matrix StressDT();
-   Matrix StiffnessDT();
+   Matrix StressDT() {return stress(PairPotentials::DT);}
+   Matrix StiffnessDT() {return stiffness(1,PairPotentials::DT);}
    double Temp() {return NTemp_;}
    void SetTemp(const double &Ntemp) {NTemp_ = Ntemp;}
 

@@ -466,7 +466,7 @@ Matrix NiTi9TPPLat::stress(PairPotentials::TDeriv dt)
    return S;
 }
       
-Matrix NiTi9TPPLat::stiffness(int moduliflag)
+Matrix NiTi9TPPLat::stiffness(int moduliflag,PairPotentials::TDeriv dt)
 {
    static Matrix Phi;
    Matrix U(DIM3,DIM3);
@@ -478,9 +478,9 @@ Matrix NiTi9TPPLat::stiffness(int moduliflag)
    for (LatSum_.Reset();!LatSum_.Done();++LatSum_)
    {
       phi=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)].PairPotential(
-	 NTemp_,LatSum_.r2(),PairPotentials::DY,PairPotentials::T0);
+	 NTemp_,LatSum_.r2(),PairPotentials::DY,dt);
       phi1=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)].PairPotential(
-	 NTemp_,LatSum_.r2(),PairPotentials::Y0,PairPotentials::T0);
+	 NTemp_,LatSum_.r2(),PairPotentials::Y0,dt);
       
       //Upper Diag Block (6,6)
       for (i=0;i<DIM3;i++)
@@ -540,7 +540,7 @@ Matrix NiTi9TPPLat::stiffness(int moduliflag)
    // Phi = Phi/(2*Vr*ShearMod)
    Phi *= 1.0/(2.0*(RefLattice_.Det()*ShearMod_));
    
-   if (!moduliflag)
+   if ((!moduliflag) && (dt == PairPotentials::T0))
    {
       U = LatSum_.U();
       // Pressure terms
