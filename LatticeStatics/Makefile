@@ -81,6 +81,8 @@ $(BIN_LOC)/$(EXE):	$(EXE)
 	/bin/cp gpl_scripts/NiTi2gpl $(BIN_LOC)/
 	/bin/cp gpl_scripts/NiTiShuffle2gpl $(BIN_LOC)/
 	/bin/cp gpl_scripts/NiTiShuffleParam2gpl $(BIN_LOC)/
+	/bin/cp gpl_scripts/NiTi152gpl $(BIN_LOC)/
+	/bin/cp gpl_scripts/NiTi15Param2gpl $(BIN_LOC)/
 
 # Define uninstall
 uninstall:
@@ -89,6 +91,8 @@ uninstall:
 	/bin/rm -f $(BIN_LOC)/NiTi2gpl
 	/bin/rm -f $(BIN_LOC)/NiTiShuffle2gpl
 	/bin/rm -f $(BIN_LOC)/NiTiShuffleParam2gpl
+	/bin/rm -f $(BIN_LOC)/NiTi152gpl
+	/bin/rm -f $(BIN_LOC)/NiTi15Param2gpl
 
 
 
