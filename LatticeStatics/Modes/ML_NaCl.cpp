@@ -1,7 +1,5 @@
 #include "ML_NaCl.h"
 
-#define DOFS 9
-
 ML_NaCl::ML_NaCl(Lattice *M)
 {
    Lattice_ = (GenericLat *) M;

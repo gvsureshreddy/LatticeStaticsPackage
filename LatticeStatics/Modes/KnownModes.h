@@ -4,8 +4,9 @@
 #include "UniDefTemp2DExpand.h"
 #include "ML_Expand.h"
 #include "ML_NaCl.h"
+#include "ML_Rhombo.h"
 
-#define KNOWNMODES 3
+#define KNOWNMODES 4
 
 LatticeMode *InitializeMode(Lattice *Lat,char *datafile);
 

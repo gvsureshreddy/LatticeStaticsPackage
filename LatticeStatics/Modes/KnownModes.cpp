@@ -7,7 +7,8 @@ LatticeMode *InitializeMode(Lattice *Lat,char *datafile)
    const int NoModes = KNOWNMODES;
    const char *Modes[]={"UniDefTemp2DExpand",
 			"ML_Expand",
-			"ML_NaCl"};
+			"ML_NaCl",
+			"ML_Rhombo"};
 
    switch (GetStringParameter("^MainModeType",datafile,Modes,NoModes))
    {
@@ -24,6 +25,11 @@ LatticeMode *InitializeMode(Lattice *Lat,char *datafile)
       case 2:
       {
 	 return new ML_NaCl(Lat);
+      }
+      break;
+      case 3:
+      {
+	 return new ML_Rhombo(Lat);
       }
       break;
       case -1:
