@@ -17,7 +17,7 @@ Vector UniDefTemp3DNaCl::ArcLenRHS(double DS,const Vector &Diff,
    Vector rhs(2);
 
    rhs[0] = Lattice_->Stress()[0][0];
-   rhs[1] = DS*DS - Diff[1]*Diff[1] - (Aspect*Diff[0])*(Aspect*Diff[0]);
+   rhs[1] = DS*DS - Diff[1]*Diff[1]/(Aspect*Aspect) - Diff[0]*Diff[0];
 
    return rhs;
 }
@@ -45,8 +45,8 @@ void UniDefTemp3DNaCl::ArcLenUpdate(const Vector &newval)
 
 double UniDefTemp3DNaCl::ArcLenAngle(Vector Old,Vector New,double Aspect)
 {
-   Old[0] *= Aspect;
-   New[0] *= Aspect;
+   Old[1] /= Aspect;
+   New[1] /= Aspect;
 
    return fabs(acos( (Old*New)/(Old.Norm()*New.Norm()) ));
 }
@@ -59,8 +59,8 @@ Matrix UniDefTemp3DNaCl::ArcLenStiffness(const Vector &Diff,double Aspect)
    K[0][0] = Stiff[0][0] + Stiff[0][1] + Stiff[0][2] +
       2.0*(Stiff[0][3] + Stiff[0][4] + Stiff[0][5])/4.0;
    K[0][1] = Lattice_->StressDT()[0][0];
-   K[1][0] = -2.0*Aspect*Aspect*Diff[0];
-   K[1][1] = -2.0*Diff[1];
+   K[1][0] = -2.0*Diff[0];
+   K[1][1] = -2.0*Diff[1]/(Aspect*Aspect);
    
    return K;
 }

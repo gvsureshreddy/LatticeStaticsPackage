@@ -6,45 +6,33 @@
 
 Lattice *InitializeLattice(char *datafile)
 {
-   char tmp[LINELENGTH];
-
-   enum lattices {SquarePressTempPairPot,TrianglePressTempPairPot,
-		  NiTiPressTempPairPot};
-   lattices lattice;
-
-   GetParameter("^MainLatticeType",datafile,"%s",tmp);
-   if ((!strcmp("SquarePressTempPairPotLat",tmp))
-       || (!strcmp("squarepresstemppairpotlat",tmp)))
-      lattice = SquarePressTempPairPot;
-   else if ((!strcmp("TrianglePressTempPairPotLat",tmp))
-       || (!strcmp("trianglepresstemppairpotlat",tmp)))
-      lattice = TrianglePressTempPairPot;
-   else if ((!strcmp("NiTiPressTempPairPotLat",tmp))
-       || (!strcmp("nitipresstemppairpotlat",tmp)))
-      lattice = NiTiPressTempPairPot;
-   else
+   const int NoLats = 3;
+   const char *Lattices[]={"SquarePressTempPairPotLat",
+		           "TrianglePressTempPairPotLat",
+		           "NiTiPressTempPairPotLat"};
+   
+   switch (GetStringParameter("^MainLatticeType",datafile,Lattices,NoLats))
    {
-      cerr << "Unknown Lattice Type : " << tmp << endl;
-      exit(-1);
-   }
-
-   switch (lattice)
-   {
-      case SquarePressTempPairPot:
+      case 0:
       {
 	 return new SquarePressTempPairPotLat(datafile);
       }
       break;
-      case TrianglePressTempPairPot:
+      case 1:
       {
 	 return new TrianglePressTempPairPotLat(datafile);
       }
       break;
-      case NiTiPressTempPairPot:
+      case 2:
       {
 	 return new NiTiPressTempPairPotLat(datafile);
       }
       break;
+      case -1:
+      {
+	 cerr << "Unknown Lattice Type " << endl;
+	 exit(-1);
+      }
    }
 
    return NULL;

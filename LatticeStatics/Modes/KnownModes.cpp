@@ -4,42 +4,32 @@
 
 LatticeMode *InitializeMode(Lattice *Lat,char *datafile)
 {
-   char tmp[LINELENGTH];
+   const int NoModes = 3;
+   const char *Modes[]={"UniDefTemp2DExpand",
+		        "UniDefTemp3DExpand",
+		        "UniDefTemp3DNaCl"};
 
-   enum modes {UniDefTemp2DExp,UniDefTemp3DExp,UniDefTemp3Dnacl};
-   modes mode;
-
-   GetParameter("^MainModeType",datafile,"%s",tmp);
-   if ((!strcmp("UniDefTemp2DExpand",tmp))
-       || (!strcmp("unideftemp2dexpand",tmp)))
-      mode = UniDefTemp2DExp;
-   else if ((!strcmp("UniDefTemp3DExpand",tmp))
-            || (!strcmp("unideftemp3dexpand",tmp)))
-      mode = UniDefTemp3DExp;
-   else if ((!strcmp("UniDefTemp3DNaCl",tmp))
-            || (!strcmp("unideftemp3dnacl",tmp)))
-      mode = UniDefTemp3Dnacl;
-   else
+   switch (GetStringParameter("^MainModeType",datafile,Modes,NoModes))
    {
-      cerr << "Unknown Mode Type : " << tmp << endl;
-      exit(-1);
-   }
-
-   switch (mode)
-   {
-      case UniDefTemp2DExp:
+      case 0:
       {
 	 return new UniDefTemp2DExpand(Lat);
       }
       break;
-      case UniDefTemp3DExp:
+      case 1:
       {
          return new UniDefTemp3DExpand(Lat);
       }
       break;
-      case UniDefTemp3Dnacl:
+      case 2:
       {
 	 return new UniDefTemp3DNaCl(Lat);
+      }
+      break;
+      case -1:
+      {
+	 cerr << "Unknown Mode Type" << endl;
+	 exit(-1);
       }
    }
 

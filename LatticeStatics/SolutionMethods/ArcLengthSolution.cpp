@@ -10,6 +10,7 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,
    GetParameter("^ArcLenMaxIterations",datafile,"%u",&MaxIter_);
    GetParameter("^ArcLenTolerance",datafile,"%lf",&Tolerance_);
    GetParameter("^ArcLenDSMax",datafile,"%lf",&DSMax_);
+   CurrentDS_ = DSMax_;
    GetParameter("^ArcLenDSMin",datafile,"%lf",&DSMin_);
    GetParameter("^ArcLenAngleCutoff",datafile,"%lf",&AngleCutoff_);
    GetParameter("^ArcLenAngleIncrease",datafile,"%lf",&AngleIncrease_);

@@ -4,7 +4,6 @@
 #include "ArcLengthSolution.h"
 
 #include "UtilityFunctions.h"
-#include <string.h>
 
 #include <fstream.h>
 

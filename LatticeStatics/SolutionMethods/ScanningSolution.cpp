@@ -1,5 +1,4 @@
 #include "ScanningSolution.h"
-#include <string.h>
 #include <math.h>
 
 #include "UtilityFunctions.h"
@@ -8,22 +7,25 @@ ScanningSolution::ScanningSolution(LatticeMode *Mode,char *datafile)
    : Mode_(Mode)
 {
    FILE *pipe;
-   char tmp[LINELENGTH];
+
+   const char *yn[]={"No","Yes"};
+   int ans;
    // Get parameters
    GetParameter("^ScanningMaxIterations",datafile,"%u",&MaxIter_);
    GetParameter("^ScanningTolerance",datafile,"%lf",&Tolerance_);
    GetParameter("^ScanningNewtonTolerance",datafile,"%lf",&NewtonTolerance_);
-   GetParameter("^ScanningFullFiled",datafile,"%s",tmp);
-   if (!strcmp("Yes",tmp) || !strcmp("yes",tmp))
+   ans=GetStringParameter("^ScanningFullField",datafile,yn,2);
+   if (ans == 1)
       ScanFullField_ = Yes;
-   else if (!strcmp("No",tmp) || !strcmp("no",tmp))
+   else if (ans == 0)
       ScanFullField_ = No;
    else
    {
-      cerr << "Unknown answer to ScanFullField : " << tmp << endl;
+      cerr << "Error: Unknown ScanningFullField value!" << endl;
       exit(-1);
    }
 
+   char tmp[LINELENGTH];
    char inidef[]="^ScanningInitialDeformation";
    SetPerlCommand(tmp,datafile,inidef);
    pipe=OpenPipe(tmp,"r");
@@ -35,14 +37,15 @@ ScanningSolution::ScanningSolution(LatticeMode *Mode,char *datafile)
    }
    if (pclose(pipe)) Errfun(inidef);
 
-   GetParameter("^ScanningDirection",datafile,"%s",tmp);
-   if (!strcmp("Loading",tmp))
+   const char *dir[]={"Loading","Deformation"};
+   ans=GetStringParameter("^ScanningDirection",datafile,dir,2);
+   if (ans == 0)
       Direction_ = Loading;
-   else if (!strcmp("Deformation",tmp))
+   else if (ans == 1)
       Direction_ = Deformation;
    else
    {
-      cerr << "Unknown Scanning direction : " << tmp<< endl;
+      cerr << "Unknown Scanning direction" << endl;
       exit(-1);
    }
 

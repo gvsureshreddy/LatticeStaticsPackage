@@ -12,6 +12,24 @@ void GetParameter(const char *tag,const char *datafile,const char *scanffmt,
    if (pclose(pipe)) Errfun(tag);
 }
 
+int GetStringParameter(const char *tag,const char *datafile,
+		       const char *choices[],const unsigned numb)
+{
+   int i;
+   char strng[LINELENGTH];
+   GetParameter(tag,datafile,"%s",strng);
+   
+   for (i=numb-1;i>=0;i--)
+   {
+      if (!strcasecmp(strng,choices[i]))
+      {
+	 return i;
+      }
+   }
+
+   return i;
+}
+
 void SetPerlCommand(char *string,const char *datafile,const char *tag)
 {
    char format[]=
