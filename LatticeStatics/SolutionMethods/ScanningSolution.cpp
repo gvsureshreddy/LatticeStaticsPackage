@@ -61,7 +61,6 @@ ScanningSolution::ScanningSolution(LatticeMode *Mode,char *datafile)
    CurrentScanLine_ = ScanStart_;
    OnSolution_ = No;
    InitializeLine();
-   
 };
 
 void ScanningSolution::InitializeLine()
@@ -128,6 +127,7 @@ double ScanningSolution::FindNextSolution(int &good)
    if (fabs(val) < Tolerance_)
    {
       good = 1;
+      OnSolution_ = Yes;
       return uncertainty;
    }
 
