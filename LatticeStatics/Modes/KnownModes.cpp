@@ -5,8 +5,7 @@
 LatticeMode *InitializeMode(Lattice *Lat,char *datafile,const char *prefix)
 {
    const int NoModes = KNOWNMODES;
-   const char *Modes[]={"UniDefTemp2DExpand",
-			"ML_Expand",
+   const char *Modes[]={"ML_Expand",
 			"ML_NaCl",
 			"ML_Rhombo",
 			"ML_B19"};
@@ -15,25 +14,20 @@ LatticeMode *InitializeMode(Lattice *Lat,char *datafile,const char *prefix)
    {
       case 0:
       {
-	 return new UniDefTemp2DExpand(Lat);
+	 return new ML_Expand(Lat);
       }
       break;
       case 1:
       {
-	 return new ML_Expand(Lat);
+	 return new ML_NaCl(Lat);
       }
       break;
       case 2:
       {
-	 return new ML_NaCl(Lat);
-      }
-      break;
-      case 3:
-      {
 	 return new ML_Rhombo(Lat);
       }
       break;
-      case 4:
+      case 3:
       {
 	 return new ML_B19(Lat);
       }

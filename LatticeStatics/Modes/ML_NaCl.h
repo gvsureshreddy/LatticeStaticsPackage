@@ -1,14 +1,14 @@
 #ifndef __ML_NaCl
 #define __ML_NaCl
 #include "LatticeMode.h"
-#include "GenericLat.h"
+#include "Lattice.h"
 
 #include <math.h>
 
 class ML_NaCl : public LatticeMode
 {
 private:
-   GenericLat *Lattice_;
+   Lattice *Lattice_;
 
 public:
    ML_NaCl(Lattice *M);

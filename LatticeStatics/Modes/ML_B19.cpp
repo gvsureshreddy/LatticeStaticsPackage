@@ -2,7 +2,7 @@
 
 ML_B19::ML_B19(Lattice *M)
 {
-   Lattice_ = (GenericLat *) M;
+   Lattice_ = (Lattice *) M;
 }
 
 // Functions required by LatticeMode

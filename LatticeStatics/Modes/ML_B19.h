@@ -1,14 +1,14 @@
 #ifndef __ML_B19
 #define __ML_B19
 #include "LatticeMode.h"
-#include "GenericLat.h"
+#include "Lattice.h"
 
 #include <math.h>
 
 class ML_B19 : public LatticeMode
 {
 private:
-   GenericLat *Lattice_;
+   Lattice *Lattice_;
 
 public:
    ML_B19(Lattice *M);

@@ -3,24 +3,12 @@
 
 Lattice *InitializeLattice(char *datafile,const char *prefix)
 {
-   const int NoLats = 3;
-   const char *Lattices[]={"SquarePressTempPairPotLat",
-		           "TrianglePressTempPairPotLat",
-			   "MultiLatticeTPP"};
+   const int NoLats = 1;
+   const char *Lattices[]={"MultiLatticeTPP"};
    
    switch (GetStringParameter(prefix,"MainLatticeType",datafile,Lattices,NoLats))
    {
       case 0:
-      {
-	 return new SquarePressTempPairPotLat(datafile,prefix);
-      }
-      break;
-      case 1:
-      {
-	 return new TrianglePressTempPairPotLat(datafile,prefix);
-      }
-      break;
-      case 2:
       {
 	 return new MultiLatticeTPP(datafile,prefix);
       }

@@ -2,7 +2,7 @@
 
 ML_Expand::ML_Expand(Lattice *M)
 {
-   Lattice_ = (GenericLat *) M;
+   Lattice_ = (Lattice *) M;
 }
 
 // Functions required by LatticeMode

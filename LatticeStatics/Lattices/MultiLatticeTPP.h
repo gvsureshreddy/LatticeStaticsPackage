@@ -1,13 +1,13 @@
 #ifndef __MultiLatticeTPP
 #define __MultiLatticeTPP
 
-#include "GenericLat.h"
+#include "Lattice.h"
 #include "UnitCellIterator.h"
 #include "PPSum.h"
 #include "KnownPairPotentials.h"
 #include <CMatrix.h>
 
-class MultiLatticeTPP : public GenericLat
+class MultiLatticeTPP : public Lattice
 {
 private:
    const static int DIM3 = 3;

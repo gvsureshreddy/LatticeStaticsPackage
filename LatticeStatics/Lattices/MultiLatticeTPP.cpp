@@ -1359,8 +1359,8 @@ void MultiLatticeTPP::DispersionCurves(Vector Y,int NoPTS,const char *prefix,
       cout << prefix << setw(w) << NTemp_ << setw(w) << k*dz;
       for (int i=0;i<INTERNAL_ATOMS*DIM3;++i)
       {
-	 out << setw(w) << EigVal[k][0][i];;
-	 cout << setw(w) << EigVal[k][0][i];;
+	 out << setw(w) << EigVal[k][0][i];
+	 cout << setw(w) << EigVal[k][0][i];
       }
       out << endl;
       cout << endl;
@@ -1382,6 +1382,7 @@ void MultiLatticeTPP::DispersionCurves(Vector Y,int NoPTS,const char *prefix,
       }
       out << endl;
       cout << endl;
+
       zero = (++zero)%3; one = (zero+1)%3; two = (one+1)%3;
    }
 }

@@ -1,14 +1,14 @@
 #ifndef __ML_Rhombo
 #define __ML_Rhombo
 #include "LatticeMode.h"
-#include "GenericLat.h"
+#include "Lattice.h"
 
 #include <math.h>
 
 class ML_Rhombo : public LatticeMode
 {
 private:
-   GenericLat *Lattice_;
+   Lattice *Lattice_;
 
 public:
    ML_Rhombo(Lattice *M);

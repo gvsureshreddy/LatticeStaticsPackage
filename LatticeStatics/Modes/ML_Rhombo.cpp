@@ -2,7 +2,7 @@
 
 ML_Rhombo::ML_Rhombo(Lattice *M)
 {
-   Lattice_ = (GenericLat *) M;
+   Lattice_ = (Lattice *) M;
 }
 
 // Functions required by LatticeMode

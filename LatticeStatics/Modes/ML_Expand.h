@@ -1,14 +1,14 @@
 #ifndef __ML_Expand
 #define __ML_Expand
 #include "LatticeMode.h"
-#include "GenericLat.h"
+#include "Lattice.h"
 
 #include <math.h>
 
 class ML_Expand : public LatticeMode
 {
 private:
-   GenericLat *Lattice_;
+   Lattice *Lattice_;
 
 public:
    ML_Expand(Lattice *M);
