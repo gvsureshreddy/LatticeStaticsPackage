@@ -1,31 +1,42 @@
 #include "UtilityFunctions.h"
 
 #include <termios.h>
+#include <fcntl.h>
 
 using namespace std;
 
-int kbhitNoWait(void)
+/*
+  The fcntl() function accepts a file descriptor and 
+  an action (depending on the action, it may accept 
+  a third parameter), and returns a result depending 
+  on that action.  
+
+  If things break bad, it returns -1.
+*/
+
+int setblock  (int file_desc, int block)
 {
-  struct termios old, newstate;
-  int ch;
+ int flags;
 
-  tcgetattr(0, &old);
+   /* retrieve the file descriptor's flags */
+   if ( (flags = fcntl (file_desc, F_GETFL)) == -1 )
+   {
+     return false;    /* something went wrong! */
+   }
 
-  newstate = old;
-  newstate.c_lflag &= ~(ICANON);
-  newstate.c_lflag &= ~(ECHO);
-  newstate.c_cc[VTIME] = 1;
-  newstate.c_cc[VMIN] = 0;
+   if (block)
+   {
+    flags &= ~O_NONBLOCK;      /* we want blocking input */
+   }
+   else
+   {
+    flags |= O_NONBLOCK;       /* we want non-blocking input */
+   }
 
-  tcsetattr(0, TCSANOW, &newstate);
+   /* set the flags (note the third parameter) */
+   fcntl (file_desc, F_SETFL, flags);
 
-  ch = getchar();
-
-  tcsetattr(0, TCSANOW, &old);
-
-  if(ch == EOF)
-    return 0;
-  return ch;
+   return 1;
 }
 
 int kbhitWait(void)
@@ -54,17 +65,20 @@ int kbhitWait(void)
 
 int EnterDebugMode()
 {
-   char dbg[6];
-   for (int i=0;i<5;++i)
+   int n;
+   char dbg[256];
+   setblock(fileno(stdin),0);
+   n=read(STDIN_FILENO,dbg,255);
+   setblock(fileno(stdin),1);
+   // remove newline
+   if (n>0)
    {
-      dbg[i]=kbhitNoWait();
+      dbg[n-1]=0;
+      
+      if (!strcmp(dbg,"debug"))
+	 return 1;
    }
-   dbg[5]=0;
-
-   if (!strcmp(dbg,"debug"))
-      return 1;
-   else
-      return 0;
+   return 0;
 }
 
 int GetParameter(const char *prefix,const char *tag,const char *datafile,

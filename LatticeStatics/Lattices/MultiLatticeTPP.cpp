@@ -2148,6 +2148,10 @@ void MultiLatticeTPP::DebugMode()
 	 }
 	 cout << resetiosflags(ios::left) << endl;
       }
+      else if (!strcmp(response,"\n") ||
+	 !strcmp(response,""))
+      {
+      }
       else
       {
 	 cout << "!--- Error - Unknown command ---!" << endl << endl;
