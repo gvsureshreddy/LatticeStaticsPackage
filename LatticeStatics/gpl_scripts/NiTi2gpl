@@ -25,13 +25,20 @@ printf GNUPLOT "#%20s %20s %20s %20s %20s %20s %20s %20s %20s %20s %20s %20s\n",
 
 
 $endgnuplot = "";
-
+$bifpoints = 1;
 $index = 1;
 foreach $dir (@directories)
 {
     chdir $dataset;
-    loaddata($dataset . "/" . $dir ,$ARGV[0],*GNUPLOT,$index,\$endgnuplot);
+    $bifpoints = loaddata($dataset . "/" . $dir ,$ARGV[0],*GNUPLOT,$index,\$endgnuplot) && $bifpoints;
     $index += 2;
+}
+
+if ($bifpoints)
+{
+    printf $gnuplot "%20.12f %20.12f %20.12f %20.12f %20.12f %20.12f" .
+	" %20.12f %20.12f %20.12f %20.12f %20.12f %20.12f\n",
+	0,0,0,0,0,0,0,0,0,0,0,0;
 }
 
 print GNUPLOT "\n\n", $endgnuplot;
@@ -57,7 +64,7 @@ close(GNUPLOT);
 sub loaddata {
     my(@fields,@temp,@U11,@U12,@U13,@U22,@U23,@U33,
        @potential,@mineigval,@noneg,@uncertainty,
-       $stableflag,$stable_nodata,$unstable_nodata);
+       $stableflag,$stable_nodata,$unstable_nodata,$bifpoints);
     my($gnuplot,$endgnuplot);
     $gnuplot = $_[2];
     $endgnuplot = $_[4];
@@ -70,6 +77,7 @@ sub loaddata {
     # flag to make sure there is data in the index
     $stable_nodata = 1;
     $unstable_nodata = 1;
+    $bifpoints = 1;
 
     if (-e $_[1])
     {
@@ -161,6 +169,7 @@ sub loaddata {
 	# Bifurcation Point
 	if (defined($noneg[1]) && $stableflag != $noneg[1])
 	{
+	    $bifpoints = 0;
 	    printf $gnuplot "%20.12f %20.12f %20.12f %20.12f %20.12f %20.12f" .
 		" %20.12f %20.12f %20.12f %20.12f %20.12f %20.12f\n",
 		$temp[0],$potential[0],$U11[0],$U12[0],
@@ -234,4 +243,6 @@ sub loaddata {
     }
 
     $$endgnuplot .= $stable . "\n\n" . $unstable . "\n\n";
+
+    $bifpoints;
 }
