@@ -21,7 +21,9 @@ int main(int argc, char *argv[])
    {
       cerr << "Usage: " << argv[0]
 	   << " ParamFile OutputFile <StartData>" << endl;
-      cerr << builddate() << endl;
+      cerr << "Built on:               " << builddate() << endl
+	   << "LinearAlgebra Built on: " << LinearAlgebraBuildDate() << endl
+	   << "MyMath Built on:        " << MyMathBuildDate() << endl;
       exit(-1);
    }
    char *datafile = argv[1],
@@ -162,8 +164,14 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,char *startf
    cout << setiosflags(ios::fixed) << setprecision(Precision);
    out  << setiosflags(ios::fixed) << setprecision(Precision);
 
-   cout << "Built on: " << builddate() << endl << setw(Width);
-   out << "Built on: " << builddate() << endl << setw(Width);
+   cout << "Built on:               " << builddate() << endl
+	<< "LinearAlgebra Build on: " << LinearAlgebraBuildDate() << endl
+	<< "MyMath Built on:        " << MyMathBuildDate() << endl
+	<< setw(Width);
+   out << "Built on:               " << builddate() << endl
+       << "LinearAlgebra Build on: " << LinearAlgebraBuildDate() << endl
+       << "MyMath Built on:        " << MyMathBuildDate() << endl
+       << setw(Width);
    
    Lat->Print(out,Lattice::PrintLong);
 }
