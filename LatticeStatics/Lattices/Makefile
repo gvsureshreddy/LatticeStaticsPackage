@@ -9,4 +9,5 @@ LATTICES = KnownLattices.cpp\
 	   NiTiShuffle2TPPLat.cpp\
 	   NiTiShuffle3TPPLat.cpp\
 	   NiTi15TPPLat.cpp\
-	   NiTi9TPPLat.cpp
+	   NiTi9TPPLat.cpp\
+	   MultiLatticeTPP.cpp
