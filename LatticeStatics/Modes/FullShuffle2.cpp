@@ -1,12 +1,12 @@
-#include "FullShuffle.h"
+#include "FullShuffle2.h"
 
-FullShuffle::FullShuffle(Lattice *M)
+FullShuffle2::FullShuffle2(Lattice *M)
 {
    Lattice_ = (GenericLat *) M;
 }
 
 // Functions required by LatticeMode
-Vector FullShuffle::ArcLenRHS(double DS,const Vector &Diff,
+Vector FullShuffle2::ArcLenRHS(double DS,const Vector &Diff,
 				double Aspect)
 {
    Vector rhs(10);
@@ -35,7 +35,7 @@ Vector FullShuffle::ArcLenRHS(double DS,const Vector &Diff,
    return rhs;
 }
 
-Vector FullShuffle::ArcLenDef()
+Vector FullShuffle2::ArcLenDef()
 {
    Vector def(10),
       DOF = Lattice_->DOF();
@@ -54,7 +54,7 @@ Vector FullShuffle::ArcLenDef()
    return def;
 }
 
-void FullShuffle::ArcLenUpdate(const Vector &newval)
+void FullShuffle2::ArcLenUpdate(const Vector &newval)
 {
    Vector DOF=Lattice_->DOF();
 
@@ -72,7 +72,7 @@ void FullShuffle::ArcLenUpdate(const Vector &newval)
    Lattice_->SetTemp(Lattice_->Temp() - newval[9]);
 }
 
-double FullShuffle::ArcLenAngle(Vector Old,Vector New,double Aspect)
+double FullShuffle2::ArcLenAngle(Vector Old,Vector New,double Aspect)
 {
    Old[9] /= Aspect;
    New[9] /= Aspect;
@@ -80,7 +80,7 @@ double FullShuffle::ArcLenAngle(Vector Old,Vector New,double Aspect)
    return fabs(acos( (Old*New)/(Old.Norm()*New.Norm()) ));
 }
 
-Matrix FullShuffle::ArcLenStiffness(const Vector &Diff,double Aspect)
+Matrix FullShuffle2::ArcLenStiffness(const Vector &Diff,double Aspect)
 {
    Matrix K(10,10);
    Matrix Stiff=Lattice_->Stiffness(),
@@ -190,12 +190,12 @@ Matrix FullShuffle::ArcLenStiffness(const Vector &Diff,double Aspect)
    return K;
 }
 
-double FullShuffle::ScanningDefParameter()
+double FullShuffle2::ScanningDefParameter()
 {
    return Lattice_->DOF()[6];
 }
 
-void FullShuffle::ScanningDefParamUpdate(const double newval)
+void FullShuffle2::ScanningDefParamUpdate(const double newval)
 {
    Vector DOF=Lattice_->DOF();
 
@@ -204,22 +204,22 @@ void FullShuffle::ScanningDefParamUpdate(const double newval)
    Lattice_->SetDOF(DOF);
 }
 
-double FullShuffle::ScanningLoadParameter()
+double FullShuffle2::ScanningLoadParameter()
 {
    return Lattice_->Temp();
 }
 
-void FullShuffle::ScanningLoadParamUpdate(const double newval)
+void FullShuffle2::ScanningLoadParamUpdate(const double newval)
 {
    Lattice_->SetTemp(Lattice_->Temp() - newval);
 }
 
-double FullShuffle::ScanningStressParameter()
+double FullShuffle2::ScanningStressParameter()
 {
    return Lattice_->Stress()[0][6];
 }
    
-Vector FullShuffle::ScanningRHS()
+Vector FullShuffle2::ScanningRHS()
 {
    Matrix Stress=Lattice_->Stress();
    Vector RHS(8);
@@ -236,7 +236,7 @@ Vector FullShuffle::ScanningRHS()
    return RHS;
 }
 
-Vector FullShuffle::ScanningDef()
+Vector FullShuffle2::ScanningDef()
 {
    Vector DOF=Lattice_->DOF();
    Vector Def(8);
@@ -253,7 +253,7 @@ Vector FullShuffle::ScanningDef()
    return Def;
 }
 
-void FullShuffle::ScanningUpdate(const Vector &newval)
+void FullShuffle2::ScanningUpdate(const Vector &newval)
 {
    Vector DOF=Lattice_->DOF();
 
@@ -269,7 +269,7 @@ void FullShuffle::ScanningUpdate(const Vector &newval)
    Lattice_->SetDOF(DOF);
 }
 
-Matrix FullShuffle::ScanningStiffness()
+Matrix FullShuffle2::ScanningStiffness()
 {
    Matrix K(8,8);
    Matrix Stiff=Lattice_->Stiffness();

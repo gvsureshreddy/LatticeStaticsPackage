@@ -1,12 +1,12 @@
-#include "NaClShuffle.h"
+#include "Shuffle3NaCl.h"
 
-NaClShuffle::NaClShuffle(Lattice *M)
+Shuffle3NaCl::Shuffle3NaCl(Lattice *M)
 {
    Lattice_ = (GenericLat*) M;
 }
 
 // Functions required by LatticeMode
-Vector NaClShuffle::ArcLenRHS(double DS,const Vector &Diff,
+Vector Shuffle3NaCl::ArcLenRHS(double DS,const Vector &Diff,
 				     double Aspect)
 {
    Vector rhs(2);
@@ -18,7 +18,7 @@ Vector NaClShuffle::ArcLenRHS(double DS,const Vector &Diff,
    return rhs;
 }
 
-Vector NaClShuffle::ArcLenDef()
+Vector Shuffle3NaCl::ArcLenDef()
 {
    Vector def(2);
 
@@ -28,7 +28,7 @@ Vector NaClShuffle::ArcLenDef()
    return def;
 }
 
-void NaClShuffle::ArcLenUpdate(const Vector &newval)
+void Shuffle3NaCl::ArcLenUpdate(const Vector &newval)
 {
    Vector DOF=Lattice_->DOF();
 
@@ -42,7 +42,7 @@ void NaClShuffle::ArcLenUpdate(const Vector &newval)
    Lattice_->SetTemp(Lattice_->Temp() - newval[1]);
 }
 
-double NaClShuffle::ArcLenAngle(Vector Old,Vector New,double Aspect)
+double Shuffle3NaCl::ArcLenAngle(Vector Old,Vector New,double Aspect)
 {
    Old[1] /= Aspect;
    New[1] /= Aspect;
@@ -50,7 +50,7 @@ double NaClShuffle::ArcLenAngle(Vector Old,Vector New,double Aspect)
    return fabs(acos( (Old*New)/(Old.Norm()*New.Norm()) ));
 }
 
-Matrix NaClShuffle::ArcLenStiffness(const Vector &Diff,double Aspect)
+Matrix Shuffle3NaCl::ArcLenStiffness(const Vector &Diff,double Aspect)
 {
    Matrix K(2,2);
    Matrix Stiff=Lattice_->Stiffness();
@@ -64,12 +64,12 @@ Matrix NaClShuffle::ArcLenStiffness(const Vector &Diff,double Aspect)
    return K;
 }
 
-double NaClShuffle::ScanningDefParameter()
+double Shuffle3NaCl::ScanningDefParameter()
 {
    return Lattice_->DOF()[0];
 }
 
-void NaClShuffle::ScanningDefParamUpdate(const double newval)
+void Shuffle3NaCl::ScanningDefParamUpdate(const double newval)
 {
    Vector DOF=Lattice_->DOF();
 
@@ -80,34 +80,34 @@ void NaClShuffle::ScanningDefParamUpdate(const double newval)
    Lattice_->SetDOF(DOF);
 }
 
-double NaClShuffle::ScanningLoadParameter()
+double Shuffle3NaCl::ScanningLoadParameter()
 {
    return Lattice_->Temp();
 }
 
-void NaClShuffle::ScanningLoadParamUpdate(const double newval)
+void Shuffle3NaCl::ScanningLoadParamUpdate(const double newval)
 {
    Lattice_->SetTemp(Lattice_->Temp() - newval);
 }
 
-double NaClShuffle::ScanningStressParameter()
+double Shuffle3NaCl::ScanningStressParameter()
 {
    return Lattice_->Stress()[0][0];
 }
    
-Vector NaClShuffle::ScanningRHS()
+Vector Shuffle3NaCl::ScanningRHS()
 {
    return Vector(1,0.0);
 }
 
-Vector NaClShuffle::ScanningDef()
+Vector Shuffle3NaCl::ScanningDef()
 {
    return Vector(1,0.0);
 }
 
-void NaClShuffle::ScanningUpdate(const Vector &newval) {}
+void Shuffle3NaCl::ScanningUpdate(const Vector &newval) {}
 
-Matrix NaClShuffle::ScanningStiffness()
+Matrix Shuffle3NaCl::ScanningStiffness()
 {
    return Matrix(1,1,1.0);
 }

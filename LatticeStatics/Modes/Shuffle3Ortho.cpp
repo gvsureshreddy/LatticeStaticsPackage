@@ -1,12 +1,12 @@
-#include "OrthoShuffle.h"
+#include "Shuffle3Ortho.h"
 
-OrthoShuffle::OrthoShuffle(Lattice *M)
+Shuffle3Ortho::Shuffle3Ortho(Lattice *M)
 {
    Lattice_ = (GenericLat *) M;
 }
 
 // Functions required by LatticeMode
-Vector OrthoShuffle::ArcLenRHS(double DS,const Vector &Diff,
+Vector Shuffle3Ortho::ArcLenRHS(double DS,const Vector &Diff,
 				double Aspect)
 {
    Vector rhs(4);
@@ -22,7 +22,7 @@ Vector OrthoShuffle::ArcLenRHS(double DS,const Vector &Diff,
    return rhs;
 }
 
-Vector OrthoShuffle::ArcLenDef()
+Vector Shuffle3Ortho::ArcLenDef()
 {
    Vector def(4),
       DOF = Lattice_->DOF();
@@ -35,7 +35,7 @@ Vector OrthoShuffle::ArcLenDef()
    return def;
 }
 
-void OrthoShuffle::ArcLenUpdate(const Vector &newval)
+void Shuffle3Ortho::ArcLenUpdate(const Vector &newval)
 {
    Vector DOF=Lattice_->DOF();
 
@@ -49,7 +49,7 @@ void OrthoShuffle::ArcLenUpdate(const Vector &newval)
    Lattice_->SetTemp(Lattice_->Temp() - newval[3]);
 }
 
-double OrthoShuffle::ArcLenAngle(Vector Old,Vector New,double Aspect)
+double Shuffle3Ortho::ArcLenAngle(Vector Old,Vector New,double Aspect)
 {
    Old[3] /= Aspect;
    New[3] /= Aspect;
@@ -57,7 +57,7 @@ double OrthoShuffle::ArcLenAngle(Vector Old,Vector New,double Aspect)
    return fabs(acos( (Old*New)/(Old.Norm()*New.Norm()) ));
 }
 
-Matrix OrthoShuffle::ArcLenStiffness(const Vector &Diff,double Aspect)
+Matrix Shuffle3Ortho::ArcLenStiffness(const Vector &Diff,double Aspect)
 {
    Matrix K(4,4);
    Matrix Stiff=Lattice_->Stiffness(),
@@ -83,12 +83,12 @@ Matrix OrthoShuffle::ArcLenStiffness(const Vector &Diff,double Aspect)
    return K;
 }
 
-double OrthoShuffle::ScanningDefParameter()
+double Shuffle3Ortho::ScanningDefParameter()
 {
    return Lattice_->DOF()[3];
 }
 
-void OrthoShuffle::ScanningDefParamUpdate(const double newval)
+void Shuffle3Ortho::ScanningDefParamUpdate(const double newval)
 {
    Vector DOF=Lattice_->DOF();
 
@@ -97,22 +97,22 @@ void OrthoShuffle::ScanningDefParamUpdate(const double newval)
    Lattice_->SetDOF(DOF);
 }
 
-double OrthoShuffle::ScanningLoadParameter()
+double Shuffle3Ortho::ScanningLoadParameter()
 {
    return Lattice_->Temp();
 }
 
-void OrthoShuffle::ScanningLoadParamUpdate(const double newval)
+void Shuffle3Ortho::ScanningLoadParamUpdate(const double newval)
 {
    Lattice_->SetTemp(Lattice_->Temp() - newval);
 }
 
-double OrthoShuffle::ScanningStressParameter()
+double Shuffle3Ortho::ScanningStressParameter()
 {
    return Lattice_->Stress()[0][3];
 }
    
-Vector OrthoShuffle::ScanningRHS()
+Vector Shuffle3Ortho::ScanningRHS()
 {
    Matrix Stress=Lattice_->Stress();
    Vector RHS(2);
@@ -123,7 +123,7 @@ Vector OrthoShuffle::ScanningRHS()
    return RHS;
 }
 
-Vector OrthoShuffle::ScanningDef()
+Vector Shuffle3Ortho::ScanningDef()
 {
    Vector DOF=Lattice_->DOF();
    Vector Def(2);
@@ -134,7 +134,7 @@ Vector OrthoShuffle::ScanningDef()
    return Def;
 }
 
-void OrthoShuffle::ScanningUpdate(const Vector &newval)
+void Shuffle3Ortho::ScanningUpdate(const Vector &newval)
 {
    Vector DOF=Lattice_->DOF();
 
@@ -145,7 +145,7 @@ void OrthoShuffle::ScanningUpdate(const Vector &newval)
    Lattice_->SetDOF(DOF);
 }
 
-Matrix OrthoShuffle::ScanningStiffness()
+Matrix Shuffle3Ortho::ScanningStiffness()
 {
    Matrix K(2,2);
    Matrix Stiff=Lattice_->Stiffness();

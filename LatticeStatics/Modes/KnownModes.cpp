@@ -17,12 +17,14 @@ LatticeMode *InitializeMode(Lattice *Lat,char *datafile)
 			"UniDefTemp3D1MMono",
                         "UniDefTemp3DFull",
 			"ExpandShuffle",
-			"NaClShuffle",
-			"RhomboShuffle",
-			"OrthoShuffle",
-			"Mono3PShuffle",
-			"Mono3MShuffle",
-			"FullShuffle",
+			"Shuffle3NaCl",
+			"Shuffle3Rhombo",
+			"Shuffle3Ortho",
+			"Shuffle3Mono3P",
+			"Shuffle3Mono3M",
+			"FullShuffle1",
+			"FullShuffle2",
+			"FullShuffle3",
 			"Expand15",
 			"Full15"};
 
@@ -89,40 +91,50 @@ LatticeMode *InitializeMode(Lattice *Lat,char *datafile)
       break;
       case 12:
       {
-	 return new NaClShuffle(Lat);
+	 return new Shuffle3NaCl(Lat);
       }
       break;
       case 13:
       {
-	 return new RhomboShuffle(Lat);
+	 return new Shuffle3Rhombo(Lat);
       }
       break;
       case 14:
       {
-	 return new OrthoShuffle(Lat);
+	 return new Shuffle3Ortho(Lat);
       }
       break;
       case 15:
       {
-	 return new Mono3PShuffle(Lat);
+	 return new Shuffle3Mono3P(Lat);
       }
       break;
       case 16:
       {
-	 return new Mono3MShuffle(Lat);
+	 return new Shuffle3Mono3M(Lat);
       }
       break;
       case 17:
       {
-	 return new FullShuffle(Lat);
+	 return new FullShuffle1(Lat);
       }
       break;
       case 18:
       {
-	 return new Expand15(Lat);
+	 return new FullShuffle2(Lat);
       }
       break;
       case 19:
+      {
+	 return new FullShuffle3(Lat);
+      }
+      break;
+      case 20:
+      {
+	 return new Expand15(Lat);
+      }
+      break;
+      case 21:
       {
 	 return new Full15(Lat);
       }

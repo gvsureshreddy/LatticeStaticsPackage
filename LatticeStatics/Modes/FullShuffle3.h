@@ -1,19 +1,19 @@
-#ifndef __OrthoShuffle
-#define __OrthoShuffle
+#ifndef __FullShuffle3
+#define __FullShuffle3
 #include "LatticeMode.h"
 #include "GenericLat.h"
 
 #include <math.h>
 
-class OrthoShuffle : public LatticeMode
+class FullShuffle3 : public LatticeMode
 {
 private:
    GenericLat *Lattice_;
 
 public:
-   OrthoShuffle(Lattice *M);
+   FullShuffle3(Lattice *M);
 
-   ~OrthoShuffle() {}
+   ~FullShuffle3() {}
 
    // Functions required by LatticeMode
    virtual Vector ArcLenRHS(double DS,const Vector &Diff,double Aspect);
@@ -33,7 +33,7 @@ public:
    virtual void ScanningUpdate(const Vector &newval);
    virtual Matrix ScanningStiffness();
 
-   virtual char *ModeName() {return "OrthoShuffle";}
+   virtual char *ModeName() {return "FullShuffle3";}
 
 };
 

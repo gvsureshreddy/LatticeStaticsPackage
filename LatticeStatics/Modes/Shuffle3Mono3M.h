@@ -1,18 +1,18 @@
-#ifndef __Mono3PShuffle
-#define __Mono3PShuffle
+#ifndef __Shuffle3Mono3M
+#define __Shuffle3Mono3M
 
 #include "LatticeMode.h"
 #include "GenericLat.h"
 
-class Mono3PShuffle : public LatticeMode
+class Shuffle3Mono3M : public LatticeMode
 {
 private:
    GenericLat *Lattice_;
 
 public:
-   Mono3PShuffle(Lattice *M);
+   Shuffle3Mono3M(Lattice *M);
 
-   ~Mono3PShuffle() {}
+   ~Shuffle3Mono3M() {}
 
    // Functions required by LatticeMode
    virtual Vector ArcLenRHS(double DS,const Vector &Diff,double Aspect);
@@ -32,7 +32,7 @@ public:
    virtual void ScanningUpdate(const Vector &newval);
    virtual Matrix ScanningStiffness();
 
-   virtual char *ModeName() {return "Mono3PShuffle";}
+   virtual char *ModeName() {return "Shuffle3Mono3M";}
 
 };
 

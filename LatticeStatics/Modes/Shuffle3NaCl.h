@@ -1,19 +1,19 @@
-#ifndef __NaClShuffle
-#define __NaClShuffle
+#ifndef __Shuffle3NaCl
+#define __Shuffle3NaCl
 
 #include "LatticeMode.h"
 #include "GenericLat.h"
 #include <math.h>
 
-class NaClShuffle : public LatticeMode
+class Shuffle3NaCl : public LatticeMode
 {
 private:
    GenericLat *Lattice_;
 
 public:
-   NaClShuffle(Lattice *M);
+   Shuffle3NaCl(Lattice *M);
 
-   ~NaClShuffle() {}
+   ~Shuffle3NaCl() {}
 
    // Functions required by LatticeMode
    virtual Vector ArcLenRHS(double DS,const Vector &Diff,double Aspect);
@@ -33,7 +33,7 @@ public:
    virtual void ScanningUpdate(const Vector &newval);
    virtual Matrix ScanningStiffness();
 
-   virtual char *ModeName() {return "NaClShuffle";}
+   virtual char *ModeName() {return "Shuffle3NaCl";}
 
 };
 

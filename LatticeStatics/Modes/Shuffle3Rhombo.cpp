@@ -1,12 +1,12 @@
-#include "RhomboShuffle.h"
+#include "Shuffle3Rhombo.h"
 
-RhomboShuffle::RhomboShuffle(Lattice *M)
+Shuffle3Rhombo::Shuffle3Rhombo(Lattice *M)
 {
    Lattice_ = (GenericLat*) M;
 }
 
 // Functions required by LatticeMode
-Vector RhomboShuffle::ArcLenRHS(double DS,const Vector &Diff,
+Vector Shuffle3Rhombo::ArcLenRHS(double DS,const Vector &Diff,
 				     double Aspect)
 {
    Vector rhs(3);
@@ -20,7 +20,7 @@ Vector RhomboShuffle::ArcLenRHS(double DS,const Vector &Diff,
    return rhs;
 }
 
-Vector RhomboShuffle::ArcLenDef()
+Vector Shuffle3Rhombo::ArcLenDef()
 {
    Vector def(3);
 
@@ -31,7 +31,7 @@ Vector RhomboShuffle::ArcLenDef()
    return def;
 }
 
-void RhomboShuffle::ArcLenUpdate(const Vector &newval)
+void Shuffle3Rhombo::ArcLenUpdate(const Vector &newval)
 {
    Vector DOF=Lattice_->DOF();
 
@@ -45,7 +45,7 @@ void RhomboShuffle::ArcLenUpdate(const Vector &newval)
    Lattice_->SetTemp(Lattice_->Temp() - newval[2]);
 }
 
-double RhomboShuffle::ArcLenAngle(Vector Old,Vector New,double Aspect)
+double Shuffle3Rhombo::ArcLenAngle(Vector Old,Vector New,double Aspect)
 {
    Old[2] /= Aspect;
    New[2] /= Aspect;
@@ -53,7 +53,7 @@ double RhomboShuffle::ArcLenAngle(Vector Old,Vector New,double Aspect)
    return fabs(acos( (Old*New)/(Old.Norm()*New.Norm()) ));
 }
 
-Matrix RhomboShuffle::ArcLenStiffness(const Vector &Diff,double Aspect)
+Matrix Shuffle3Rhombo::ArcLenStiffness(const Vector &Diff,double Aspect)
 {
    Matrix K(3,3);
    Matrix Stiff=Lattice_->Stiffness(),
@@ -72,12 +72,12 @@ Matrix RhomboShuffle::ArcLenStiffness(const Vector &Diff,double Aspect)
    return K;
 }
 
-double RhomboShuffle::ScanningDefParameter()
+double Shuffle3Rhombo::ScanningDefParameter()
 {
    return Lattice_->DOF()[3];
 }
 
-void RhomboShuffle::ScanningDefParamUpdate(const double newval)
+void Shuffle3Rhombo::ScanningDefParamUpdate(const double newval)
 {
    Vector DOF=Lattice_->DOF();
 
@@ -86,22 +86,22 @@ void RhomboShuffle::ScanningDefParamUpdate(const double newval)
    Lattice_->SetDOF(DOF);
 }
 
-double RhomboShuffle::ScanningLoadParameter()
+double Shuffle3Rhombo::ScanningLoadParameter()
 {
    return Lattice_->Temp();
 }
 
-void RhomboShuffle::ScanningLoadParamUpdate(const double newval)
+void Shuffle3Rhombo::ScanningLoadParamUpdate(const double newval)
 {
    Lattice_->SetTemp(Lattice_->Temp() - newval);
 }
 
-double RhomboShuffle::ScanningStressParameter()
+double Shuffle3Rhombo::ScanningStressParameter()
 {
    return Lattice_->Stress()[0][3];
 }
    
-Vector RhomboShuffle::ScanningRHS()
+Vector Shuffle3Rhombo::ScanningRHS()
 {
    Vector rhs(1);
 
@@ -110,7 +110,7 @@ Vector RhomboShuffle::ScanningRHS()
    return rhs;
 }
 
-Vector RhomboShuffle::ScanningDef()
+Vector Shuffle3Rhombo::ScanningDef()
 {
    Vector def(1);
 
@@ -119,7 +119,7 @@ Vector RhomboShuffle::ScanningDef()
    return def;
 }
 
-void RhomboShuffle::ScanningUpdate(const Vector &newval)
+void Shuffle3Rhombo::ScanningUpdate(const Vector &newval)
 {
    Vector DOF = Lattice_->DOF();
 
@@ -128,7 +128,7 @@ void RhomboShuffle::ScanningUpdate(const Vector &newval)
    Lattice_->SetDOF(DOF);
 }
 
-Matrix RhomboShuffle::ScanningStiffness()
+Matrix Shuffle3Rhombo::ScanningStiffness()
 {
    Matrix K(1,1),
       Stiff = Lattice_->Stiffness();

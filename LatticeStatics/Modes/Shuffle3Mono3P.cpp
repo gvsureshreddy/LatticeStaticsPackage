@@ -1,12 +1,12 @@
-#include "Mono3MShuffle.h"
+#include "Shuffle3Mono3P.h"
 
-Mono3MShuffle::Mono3MShuffle(Lattice *M)
+Shuffle3Mono3P::Shuffle3Mono3P(Lattice *M)
 {
    Lattice_ = (GenericLat*) M;
 }
 
 // Functions required by LatticeMode
-Vector Mono3MShuffle::ArcLenRHS(double DS,const Vector &Diff,
+Vector Shuffle3Mono3P::ArcLenRHS(double DS,const Vector &Diff,
 				     double Aspect)
 {
    Vector rhs(5);
@@ -22,7 +22,7 @@ Vector Mono3MShuffle::ArcLenRHS(double DS,const Vector &Diff,
    return rhs;
 }
 
-Vector Mono3MShuffle::ArcLenDef()
+Vector Shuffle3Mono3P::ArcLenDef()
 {
    Vector def(5);
    Vector DOF=Lattice_->DOF();
@@ -36,22 +36,21 @@ Vector Mono3MShuffle::ArcLenDef()
    return def;
 }
 
-void Mono3MShuffle::ArcLenUpdate(const Vector &newval)
+void Shuffle3Mono3P::ArcLenUpdate(const Vector &newval)
 {
    Vector dof=Lattice_->DOF();
 
    dof[0]=dof[1] -= newval[0];
    dof[2] -= newval[1];
    dof[3] -= newval[2];
-   dof[4] -= newval[3];
-   dof[5] = -dof[4];
+   dof[4]=dof[5] -= newval[3];
    dof[6]=dof[7]=dof[8] = 0.0;
    
    Lattice_->SetDOF(dof);
    Lattice_->SetTemp(Lattice_->Temp() - newval[4]);
 }
 
-double Mono3MShuffle::ArcLenAngle(Vector Old,Vector New,double Aspect)
+double Shuffle3Mono3P::ArcLenAngle(Vector Old,Vector New,double Aspect)
 {
    Old[4] /= Aspect;
    New[4] /= Aspect;
@@ -59,7 +58,7 @@ double Mono3MShuffle::ArcLenAngle(Vector Old,Vector New,double Aspect)
    return fabs(acos( (Old*New)/(Old.Norm()*New.Norm()) ));
 }
 
-Matrix Mono3MShuffle::ArcLenStiffness(const Vector &Diff,double Aspect)
+Matrix Shuffle3Mono3P::ArcLenStiffness(const Vector &Diff,double Aspect)
 {
    Matrix K(5,5);
    Matrix Stiff=Lattice_->Stiffness(),
@@ -68,22 +67,22 @@ Matrix Mono3MShuffle::ArcLenStiffness(const Vector &Diff,double Aspect)
    K[0][0] = Stiff[0][0] + Stiff[0][1];
    K[0][1] = Stiff[0][2];
    K[0][2] = 2.0*(Stiff[0][3]);
-   K[0][3] = 2.0*(Stiff[0][4] - Stiff[0][5]);
+   K[0][3] = 2.0*(Stiff[0][4] + Stiff[0][5]);
    K[0][4] = SDT[0][0];
    K[1][0] = Stiff[2][0] + Stiff[2][1];
    K[1][1] = Stiff[2][2];
    K[1][2] = 2.0*(Stiff[2][3]);
-   K[1][3] = 2.0*(Stiff[2][4] - Stiff[2][5]);
+   K[1][3] = 2.0*(Stiff[2][4] + Stiff[2][5]);
    K[1][4] = SDT[0][2];
    K[2][0] = Stiff[3][0] + Stiff[3][1];
    K[2][1] = Stiff[3][2];
    K[2][2] = 2.0*(Stiff[3][3]);
-   K[2][3] = 2.0*(Stiff[3][4] - Stiff[3][5]);
+   K[2][3] = 2.0*(Stiff[3][4] + Stiff[3][5]);
    K[2][4] = SDT[0][3];
    K[3][0] = Stiff[4][0] + Stiff[4][1];
    K[3][1] = Stiff[4][2];
    K[3][2] = 2.0*(Stiff[4][3]);
-   K[3][3] = 2.0*(Stiff[4][4] - Stiff[4][5]);
+   K[3][3] = 2.0*(Stiff[4][4] + Stiff[4][5]);
    K[3][4] = SDT[0][4];
    K[4][0] = -2.0*Diff[0];
    K[4][1] = -2.0*Diff[1];
@@ -94,37 +93,36 @@ Matrix Mono3MShuffle::ArcLenStiffness(const Vector &Diff,double Aspect)
    return K;
 }
 
-double Mono3MShuffle::ScanningDefParameter()
+double Shuffle3Mono3P::ScanningDefParameter()
 {
    return Lattice_->DOF()[4];
 }
 
-void Mono3MShuffle::ScanningDefParamUpdate(const double newval)
+void Shuffle3Mono3P::ScanningDefParamUpdate(const double newval)
 {
    Vector dof=Lattice_->DOF();
 
-   dof[4] -= newval;
-   dof[5] = -dof[4];
+   dof[4]=dof[5] -= newval;
 
    Lattice_->SetDOF(dof);
 }
 
-double Mono3MShuffle::ScanningLoadParameter()
+double Shuffle3Mono3P::ScanningLoadParameter()
 {
    return Lattice_->Temp();
 }
 
-void Mono3MShuffle::ScanningLoadParamUpdate(const double newval)
+void Shuffle3Mono3P::ScanningLoadParamUpdate(const double newval)
 {
    Lattice_->SetTemp(Lattice_->Temp() - newval);
 }
 
-double Mono3MShuffle::ScanningStressParameter()
+double Shuffle3Mono3P::ScanningStressParameter()
 {
    return Lattice_->Stress()[0][4];
 }
    
-Vector Mono3MShuffle::ScanningRHS()
+Vector Shuffle3Mono3P::ScanningRHS()
 {
    Vector rhs(3);
    Matrix S=Lattice_->Stress();
@@ -136,7 +134,7 @@ Vector Mono3MShuffle::ScanningRHS()
    return rhs;
 }
 
-Vector Mono3MShuffle::ScanningDef()
+Vector Shuffle3Mono3P::ScanningDef()
 {
    Vector def(3),
       DOF=Lattice_->DOF();
@@ -148,7 +146,7 @@ Vector Mono3MShuffle::ScanningDef()
    return def;
 }
 
-void Mono3MShuffle::ScanningUpdate(const Vector &newval)
+void Shuffle3Mono3P::ScanningUpdate(const Vector &newval)
 {
    Vector dof = Lattice_->DOF();
 
@@ -159,7 +157,7 @@ void Mono3MShuffle::ScanningUpdate(const Vector &newval)
    Lattice_->SetDOF(dof);
 }
 
-Matrix Mono3MShuffle::ScanningStiffness()
+Matrix Shuffle3Mono3P::ScanningStiffness()
 {
    Matrix K(3,3),
       Stiff = Lattice_->Stiffness();
