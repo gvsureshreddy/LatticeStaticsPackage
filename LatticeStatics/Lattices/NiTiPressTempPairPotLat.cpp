@@ -544,7 +544,7 @@ Matrix NiTiPressTempPairPotLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 					     Phi[IND(i,j,k,l)][IND(m,n,p,q)]+=
 						phi*(PI(Dx,DX,i,j)*PI(Dx,DX,k,l)*
 						     PI(Dx,DX,m,n)*PI(Dx,DX,p,q)) +
-						0.5*phi1*(0.25*(
+						0.5*phi1*(0.5*(
 						   PI(Dx,DX,p,q)*(
 						      PI(Dx,DX,i,j)*PSI(DX,k,l,m,n) +
 						      PI(Dx,DX,k,l)*PSI(DX,i,j,m,n) +
