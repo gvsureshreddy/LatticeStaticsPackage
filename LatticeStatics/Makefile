@@ -7,6 +7,7 @@ EXE        = LatticeStatics
 SRC_EXT    = .cpp
 OBJ_EXT    = .o
 DEP_EXT    = .d
+BUILD_DATE = \"`date +%c`\"
 
 # Compiling options, etc. #################################################
 #
@@ -16,9 +17,11 @@ ANSI       = -pedantic
 #PROFILE    = -pg
 #DEBUG      = -g
 #BOUNDS     = -DCHECK_BOUNDS
+DATE_DEF   = -DBUILD_DATE="$(BUILD_DATE)"
 SOLVE      = -DSOLVE_SVD
 OPTIMIZE   = -O
-CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS) $(SOLVE)
+CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS) $(SOLVE) \
+	     $(DATE_DEF)
 
 # File Locations ##########################################################
 BIN_LOC    = ${HOME}/bin

@@ -21,6 +21,9 @@ int main(int argc, char *argv[])
    {
       cerr << "Usage: " << argv[0]
 	   << " ParamFile OutputFile <StartData>" << endl;
+#ifdef BUILD_DATE
+      cerr << "Built on: " << BUILD_DATE << endl;
+#endif
       exit(-1);
    }
    char *datafile = argv[1],
