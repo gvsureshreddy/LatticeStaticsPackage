@@ -43,14 +43,7 @@ while (<DATA>)
 {
   if (/^========/)
   {
-    if ($count ==0)
-    {
-	$count = 1;
-    }
-    else
-    {
-      $count = 0;
-    }
+    $count = 0;
   }
 
   if (/^Success/)
