@@ -212,7 +212,7 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,int Width,fstream &out)
    
    cout << "\t" << setw(Width) << OldNulity << setw(Width) << OldMinEV
 	<< " DS " << setw(Width) << CurrentDS_ << endl;
-cout << setiosflags(ios::scientific);
+
    while ((fabs(CurrentMinEV) > ConvergenceFactor*Tolerance_)
 	  && (loops < MaxIter_))
    {
