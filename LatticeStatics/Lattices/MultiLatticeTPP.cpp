@@ -68,15 +68,22 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
 
    AtomicMass_ = new double[INTERNAL_ATOMS];
 
+   int AtomSpecies[100]; // Max number of atoms in unit cell. might need to be changed...
+   if (!GetIntVectorParameter(prefix,"AtomSpecies",datafile,INTERNAL_ATOMS,AtomSpecies)) exit(-1);
+
    for (int i=0;i<INTERNAL_ATOMS;++i)
    {
       for (int j=i;j<INTERNAL_ATOMS;++j)
       {
-	 Potential_[i][j] = Potential_[j][i]
-	    = InitializePairPotential(datafile,prefix,i,j);
+	 if (AtomSpecies[i] < AtomSpecies[j])
+	    Potential_[i][j] = Potential_[j][i]
+	       = InitializePairPotential(datafile,prefix,AtomSpecies[i],AtomSpecies[j]);
+	 else
+	    Potential_[i][j] = Potential_[j][i]
+	       = InitializePairPotential(datafile,prefix,AtomSpecies[j],AtomSpecies[i]);
       }
 
-      sprintf(tmp,"AtomicMass_%u",i);
+      sprintf(tmp,"AtomicMass_%u",AtomSpecies[i]);
       if(!GetParameter(prefix,tmp,datafile,"%lf",&(AtomicMass_[i]))) exit(-1);
    }
 
