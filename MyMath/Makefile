@@ -51,7 +51,7 @@ install: all
 	ar -r $(LIB_LOC)/libMyMath.a $(addprefix ./lib/,$(OBJECTS)) ./lib/MyMathBuildDate.o
 	/bin/rm -f ./lib/MyMathBuildDate.o
 	ranlib $(LIB_LOC)/libMyMath.a
-	/bin/cp MyMath.h $(INCL_LOC)
+	/bin/cp MyMath.h $(INCL_LOC)/
 
 # Define uninstall
 uninstall:
