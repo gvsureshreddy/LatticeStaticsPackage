@@ -6,7 +6,7 @@
 NiTiShuffleTPPLat::NiTiShuffleTPPLat(char *datafile)
 {
    // First Size DOF
-   DOF_.Resize(7);
+   DOF_.Resize(8);
    // Set LatticeVec_
    LatticeVec_[0].Resize(DIM3,0.0);
    LatticeVec_[1].Resize(DIM3,0.0);
@@ -76,7 +76,7 @@ int NiTiShuffleTPPLat::FindLatticeSpacing(int iter,double dx)
    NTemp_=1.0;
    ShearMod_=1.0;
    DOF_[0] = DOF_[1] = DOF_[2] = 1.0;
-   DOF_[3] = DOF_[4] = DOF_[5] = DOF_[6] = 0.0;
+   DOF_[3] = DOF_[4] = DOF_[5] = DOF_[6] = DOF_[7] = 0.0;
 
    double s=Stress()[0][0];
 
@@ -337,17 +337,18 @@ double NiTiShuffleTPPLat::PairPotential(interaction inter,double r2,
 
 // Lattice Routines
 
-void NiTiShuffleTPPLat::GetLatticeVectorInfo(double *SX,double *DXPrime,
+void NiTiShuffleTPPLat::GetLatticeVectorInfo(double *SX,double *DXPrimeS,double *DXPrimeD,
 					     interaction &Inter,int p,int q)
 {
    static double Basis[4][DIM3] = {0.0,0.0,0.0,
 				   0.5,0.5,0.0,
 				   0.5,0.0,0.5,
 				   0.0,0.5,0.5};
-   double dxprime=0;
+   double dxprimeS=0;
+   double dxprimeD=0;
 
-   Basis[1][0] = 0.5 + DOF_[6];
-   Basis[3][0] = DOF_[6];
+   Basis[1][0] = 0.5 + DOF_[6] + DOF_[7];
+   Basis[3][0] = DOF_[6] - DOF_[7];
 
    switch (p)
    {
@@ -355,19 +356,23 @@ void NiTiShuffleTPPLat::GetLatticeVectorInfo(double *SX,double *DXPrime,
 	 switch (q)
 	 {
 	    case 0:
-	       dxprime = 0.0;
+	       dxprimeS = 0.0;
+	       dxprimeD = 0.0;
 	       Inter = aa;
 	       break;
 	    case 1:
-	       dxprime = 1.0;
+	       dxprimeS = 1.0;
+	       dxprimeD = 1.0;
 	       Inter = aa;
 	       break;
 	    case 2:
-	       dxprime = 0.0;
+	       dxprimeS = 0.0;
+	       dxprimeD = 0.0;
 	       Inter = ab;
 	       break;
 	    case 3:
-	       dxprime = 1.0;
+	       dxprimeS = 1.0;
+	       dxprimeD = -1.0;
 	       Inter = ab;
 	       break;
 	 }
@@ -376,19 +381,23 @@ void NiTiShuffleTPPLat::GetLatticeVectorInfo(double *SX,double *DXPrime,
 	 switch (q)
 	 {
 	    case 0:
-	       dxprime = -1.0;
+	       dxprimeS = -1.0;
+	       dxprimeD = -1.0;
 	       Inter = aa;
 	       break;
 	    case 1:
-	       dxprime = 0.0;
+	       dxprimeS = 0.0;
+	       dxprimeD = 0.0;
 	       Inter = aa;
 	       break;
 	    case 2:
-	       dxprime = -1.0;
+	       dxprimeS = -1.0;
+	       dxprimeD = -1.0;
 	       Inter = ab;
 	       break;
 	    case 3:
-	       dxprime = 0.0;
+	       dxprimeS = 0.0;
+	       dxprimeD = -2.0;
 	       Inter = ab;
 	       break;
 	 }
@@ -397,19 +406,23 @@ void NiTiShuffleTPPLat::GetLatticeVectorInfo(double *SX,double *DXPrime,
 	 switch (q)
 	 {
 	    case 0:
-	       dxprime = 0.0;
+	       dxprimeS = 0.0;
+	       dxprimeD = 0.0;
 	       Inter = ab;
 	       break;
 	    case 1:
-	       dxprime = 1.0;
+	       dxprimeS = 1.0;
+	       dxprimeD = 1.0;
 	       Inter = ab;
 	       break;
 	    case 2:
-	       dxprime = 0.0;
+	       dxprimeS = 0.0;
+	       dxprimeD = 0.0;
 	       Inter = bb;
 	       break;
 	    case 3:
-	       dxprime = 1.0;
+	       dxprimeS = 1.0;
+	       dxprimeD = -1.0;
 	       Inter = bb;
 	       break;
 	 }
@@ -418,19 +431,23 @@ void NiTiShuffleTPPLat::GetLatticeVectorInfo(double *SX,double *DXPrime,
 	 switch (q)
 	 {
 	    case 0:
-	       dxprime = -1.0;
+	       dxprimeS = -1.0;
+	       dxprimeD = 1.0;
 	       Inter = ab;
 	       break;
 	    case 1:
-	       dxprime = 0.0;
+	       dxprimeS = 0.0;
+	       dxprimeD = 2.0;
 	       Inter = ab;
 	       break;
 	    case 2:
-	       dxprime = -1.0;
+	       dxprimeS = -1.0;
+	       dxprimeD = 1.0;
 	       Inter = bb;
 	       break;
 	    case 3:
-	       dxprime = 0.0;
+	       dxprimeS = 0.0;
+	       dxprimeD = 0.0;
 	       Inter = bb;
 	       break;
 	 }
@@ -439,9 +456,11 @@ void NiTiShuffleTPPLat::GetLatticeVectorInfo(double *SX,double *DXPrime,
    for (int i=0;i<DIM3;i++)
    {
       SX[i] = Basis[q][i] - Basis[p][i];
-      DXPrime[i] = 0.0;
+      DXPrimeS[i] = 0.0;
+      DXPrimeD[i] = 0.0;
    }
-   DXPrime[0] = dxprime;
+   DXPrimeS[0] = dxprimeS;
+   DXPrimeD[0] = dxprimeD;
 
 }
 
@@ -511,9 +530,10 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 {
    static Matrix U(3,3);
    static Matrix Eigvals(1,3);
-   static double X[3],SX[3],DXP[3];
+   static double X[3],SX[3],DXPS[3],DXPD[3];
    static Vector DX(DIM3),Dx(DIM3);
-   static Vector DXPrime(DIM3),DxPrime(DIM3),Direction(DIM3);
+   static Vector DXPrimeS(DIM3),DxPrimeS(DIM3),DXPrimeD(DIM3),DxPrimeD(DIM3);
+   static Vector Direction(DIM3);
    static double J;
    static int i,j,k,l,p,q,m,n,s,z;
    static double r2,phi,phi1,phi2,Influancedist[DIM3],tmp;
@@ -527,16 +547,16 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 	 Phi.Resize(1,1,0.0);
 	 break;
       case DY:
-	 Phi.Resize(1,7,0.0);
+	 Phi.Resize(1,8,0.0);
 	 break;
       case D2Y:
-	 Phi.Resize(7,7,0.0);
+	 Phi.Resize(8,8,0.0);
 	 break;
       case D3Y:
-	 Phi.Resize(49,7,0.0);
+	 Phi.Resize(64,8,0.0);
 	 break;
       case D4Y:
-	 Phi.Resize(49,49,0.0);
+	 Phi.Resize(64,64,0.0);
 	 break;
    }
 
@@ -585,7 +605,7 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
    {
       for (q=0;q<4;q++)
       {
-	 GetLatticeVectorInfo(SX,DXP,Inter,p,q);
+	 GetLatticeVectorInfo(SX,DXPS,DXPD,Inter,p,q);
 	 for (X[0] = Bottom[0];X[0] <= Top[0];X[0]++)
 	 {
 	    for (X[1] = Bottom[1];X[1] <= Top[1];X[1]++)
@@ -595,12 +615,14 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 		  for (i=0;i<DIM3;i++)
 		  {
 		     DX[i] = 0.0;
-		     DXPrime[i] = 0.0;
+		     DXPrimeS[i] = 0.0;
+		     DXPrimeD[i] = 0.0;
 		     
 		     for (j=0;j<DIM3;j++)
 		     {
 			DX[i] += (X[j] + SX[j])*LatticeVec_[j][i]*RefLen_;
-			DXPrime[i] += DXP[j]*RefLen_*LatticeVec_[j][i];
+			DXPrimeS[i] += DXPS[j]*RefLen_*LatticeVec_[j][i];
+			DXPrimeD[i] += DXPD[j]*RefLen_*LatticeVec_[j][i];
 		     }
 		  }
 
@@ -608,12 +630,14 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 		  for (i=0;i<DIM3;i++)
 		  {
 		     Dx[i] = 0.0;
-		     DxPrime[i] = 0.0;
+		     DxPrimeS[i] = 0.0;
+		     DxPrimeD[i] = 0.0;
 
 		     for (j=0;j<DIM3;j++)
 		     {
 			Dx[i] += U[i][j] * DX[j];
-			DxPrime[i] += U[i][j] * DXPrime[j];
+			DxPrimeS[i] += U[i][j] * DXPrimeS[j];
+			DxPrimeD[i] += U[i][j] * DXPrimeD[j];
 		     }
 		     r2 += Dx[i]*Dx[i];
 		  }
@@ -644,7 +668,8 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 			   {
 			      Phi[0][IND(i,j)] += phi*PI(Dx,DX,i,j);
 			   }
-			   Phi[0][6] += phi*(2.0*DxPrime[i]*Dx[i]);
+			   Phi[0][6] += phi*(2.0*DxPrimeS[i]*Dx[i]);
+			   Phi[0][7] += phi*(2.0*DxPrimeD[i]*Dx[i]);
 			}
 			break;
 		     case D2Y:
@@ -664,13 +689,22 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 				 }
 			      }
 			      Phi[6][IND(i,j)] = Phi[IND(i,j)][6]
-				 += phi*(PI(Dx,DX,i,j)*(2.0*DxPrime*Dx))
-				 + phi1*(DxPrime[i]*DX[j] + Dx[i]*DXPrime[j] +
-					       DXPrime[i]*Dx[j] + DX[i]*DxPrime[j]);
+				 += phi*(PI(Dx,DX,i,j)*(2.0*DxPrimeS*Dx))
+				 + phi1*(DxPrimeS[i]*DX[j] + Dx[i]*DXPrimeS[j] +
+					       DXPrimeS[i]*Dx[j] + DX[i]*DxPrimeS[j]);
+			      Phi[7][IND(i,j)] = Phi[IND(i,j)][7]
+				 += phi*(PI(Dx,DX,i,j)*(2.0*DxPrimeD*Dx))
+				 + phi1*(DxPrimeD[i]*DX[j] + Dx[i]*DXPrimeD[j] +
+					       DXPrimeD[i]*Dx[j] + DX[i]*DxPrimeD[j]);
 			   }
 			}
-			Phi[6][6] += phi*(2.0*(DxPrime*Dx))*(2.0*(DxPrime*Dx))
-			   + phi1*(2.0*DxPrime*DxPrime);
+			Phi[6][6] += phi*(2.0*(DxPrimeS*Dx))*(2.0*(DxPrimeS*Dx))
+			   + phi1*(2.0*DxPrimeS*DxPrimeS);
+			Phi[7][7] += phi*(2.0*(DxPrimeD*Dx))*(2.0*(DxPrimeD*Dx))
+			   + phi1*(2.0*DxPrimeD*DxPrimeD);
+			Phi[6][7] = Phi[7][6]
+			   += phi*(2.0*DxPrimeS*Dx)*(2.0*DxPrimeD*Dx)
+			   + phi1*(2.0*DxPrimeS*DxPrimeD);
 			break;
 		     case D3Y:
 			// phi1=PairPotential(Inter,r2,D2Y,dt);
@@ -857,11 +891,11 @@ int NiTiShuffleTPPLat::StiffnessNulity(double *Min)
    int NoNegEigVal = 0;
    int index = 0;
 
-   Matrix EigenValues(1,7);
+   Matrix EigenValues(1,8);
 
    EigenValues=SymEigVal(Stiffness());
    if (Min != NULL) *Min = fabs(EigenValues[0][0]);
-   for (int i=0;i<7;i++)
+   for (int i=0;i<8;i++)
    {
       if (EigenValues[0][i] < 0.0) NoNegEigVal++;
       if ((Min != NULL)
@@ -954,11 +988,11 @@ void NiTiShuffleTPPLat::Print(ostream &out,PrintDetail flag)
    Matrix
       stiffness = Stiffness(),
       moduli = Moduli(),
-      EigenValues(1,7);
+      EigenValues(1,8);
 
    EigenValues=SymEigVal(stiffness);
    MinEigVal = EigenValues[0][0];
-   for (int i=0;i<7;i++)
+   for (int i=0;i<8;i++)
    {
       if (EigenValues[0][i] < 0)
 	 NoNegEigVal++;

@@ -44,7 +44,7 @@ void Mono3PShuffle::ArcLenUpdate(const Vector &newval)
    dof[2] -= newval[1];
    dof[3] -= newval[2];
    dof[4]=dof[5] -= newval[3];
-   dof[6] = 0.0;
+   dof[6]=dof[7] = 0.0;
    
    Lattice_->SetDOF(dof);
    Lattice_->SetTemp(Lattice_->Temp() - newval[4]);
