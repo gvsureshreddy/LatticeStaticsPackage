@@ -82,7 +82,10 @@ while (<DATA>)
 
 	$newline = <PIPout>;
 	print OUTPUT $newline;
-	$count += 1;
+	if ($skip != 0)
+	{
+	  $count += 1;
+	}
       }
       else
       {
