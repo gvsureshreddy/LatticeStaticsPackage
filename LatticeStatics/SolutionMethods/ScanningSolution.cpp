@@ -143,7 +143,8 @@ void ScanningSolution::InitializeLine()
 
 int ScanningSolution::AllSolutionsFound()
 {
-   return CurrentScanLine_ > ScanEnd_;
+   return CurrentScanLine_*(ScanStep_/fabs(ScanStep_))
+      > ScanEnd_*(ScanStep_/fabs(ScanStep_));
 }
 
 int ScanningSolution::FindNextSolution()
