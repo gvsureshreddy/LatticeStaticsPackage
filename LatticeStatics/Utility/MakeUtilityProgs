@@ -1,3 +1,4 @@
+# -*- mode: makefile -*-
 #**************************************************************************
 #**************************************************************************
 
@@ -38,13 +39,19 @@ ifeq ($(UNAME),Darwin)
 endif
 #
 #
+SUBDIRS = ../Lattices ../Potentials
+#
 # Defines the source files needed #########################################
 include Makefile
+include ../Lattices/Makefile
+include ../Potentials/Makefile
+
 BSCSOURCES  = $(UTILITY)
 RK1SOURCES  = Rank1Convex.cpp
 INSTSOURCES = InstantModuli.cpp
+DISPERSIONSOURCES = DispersionCurves.cpp
 #
-ALLSOURCES  = $(BSCSOURCES) $(RK1SOURCES) $(INSTSOURCES)
+ALLSOURCES  = $(BSCSOURCES) $(RK1SOURCES) $(INSTSOURCES) $(DISPERSIONSOURCES)
 
 
 # Defines the object files to be created using the SYSTEM name ############
@@ -52,8 +59,11 @@ STRIPEDSOURCES = $(notdir $(BSCSOURCES))
 BSCOBJECTS  = $(STRIPEDSOURCES:$(SRC_EXT)=$(OBJ_EXT))
 RK1OBJECTS  = $(RK1SOURCES:$(SRC_EXT)=$(OBJ_EXT))
 INSTOBJECTS = $(INSTSOURCES:$(SRC_EXT)=$(OBJ_EXT))
+DISPERSIONOBJECTS = $(DISPERSIONSOURCES:$(SRC_EXT)=$(OBJ_EXT))
+#
+ALLOBJECTS = $(BSCOBJECTS) $(RK1OBJECTS) $(INSTOBJECTS) $(DISPERSIONOBJECTS)
 
-all:	 Rank1Convex InstantModuli
+all:	 Rank1Convex InstantModuli DispersionCurves
 
 # Defines the Program Target (linking command) ############################
 Rank1Convex:  $(RK1OBJECTS) $(BSCOBJECTS)
@@ -69,13 +79,26 @@ InstantModuli:  $(INSTOBJECTS) $(BSCOBJECTS)
 	        $(addprefix lib/,$(INSTOBJECTS)) \
 		$(addprefix lib/,$(BSCOBJECTS)) $(LIBS) 
 
+# Defines the Program Target (linking command) ############################
+DispersionCurves:     $(DISPERSIONOBJECTS) $(BSCOBJECTS) \
+		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
+		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT)))
+		      $(PURE) $(CC) $(LFLAGS) builddate.cpp \
+		      -L$(LIB_LOC) -o ./bin/DispersionCurves \
+		      $(addprefix lib/,$(DISPERSIONOBJECTS)) \
+		      $(addprefix lib/,$(BSCOBJECTS)) \
+		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
+		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT))) \
+		      $(LIBS)
+
 # include the dependicies
 include $(addprefix depend/,$(BSCOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 include $(addprefix depend/,$(RK1OBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 include $(addprefix depend/,$(INSTOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
+include $(addprefix depend/,$(DISPERSIONOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 
 # Define object file dependicies and make rule
-$(BSCOBJECTS) $(RK1OBJECTS) $(INSTOBJECTS): Makefile MakeUtilityProgs
+$(ALLOBJECTS): Makefile MakeUtilityProgs
 	$(CC) $(CCFLAGS) -I. $(addprefix -I ,$(SUBDIRS)) -I $(INCL_LOC)/ \
         -o ./lib/$(notdir $@) \
         -c $(filter %$(*),$(basename $(ALLSOURCES)))$(SRC_EXT)
@@ -87,11 +110,13 @@ $(BSCOBJECTS) $(RK1OBJECTS) $(INSTOBJECTS): Makefile MakeUtilityProgs
 install: all
 	/bin/cp bin/Rank1Convex $(BIN_LOC)/
 	/bin/cp bin/InstantModuli $(BIN_LOC)/
+	/bin/cp bin/DispersionCurves $(BIN_LOC)/
 
 # Define uninstall
 uninstall:
 	/bin/rm -f $(BIN_LOC)/Rank1Convex
 	/bin/rm -f $(BIN_LOC)/InstantModuli
+	/bin/rm -f $(BIN_LOC)/DispersionCurves
 
 # Removes the current systems set of object files and executable file
 .PHONY: clean
@@ -100,8 +125,10 @@ clean:
 	 -/bin/rm -f $(addprefix lib/,$(BSCOBJECTS)) \
 		  $(addprefix lib/,$(RK1OBJECTS)) \
 		  $(addprefix lib/,$(INSTOBJECTS)) \
+		  $(addprefix lib/,$(DISPERSIONOBJECTS) \
                   bin/Rank1Convex \
 		  bin/InstantModuli \
+		  bin/DispersionCurves \
 		  core *~ \
 		  depend/*.d
 
