@@ -24,7 +24,16 @@ BIN_LOC    = ${HOME}/bin
 INCL_LOC   = ${HOME}/include
 LIB_LOC    = ${HOME}/lib
 LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE)
-
+#
+# the below lines are for OS X -- a bug in the libraries...
+#
+UNAME      = $(shell uname)
+#
+ifeq ($(UNAME),Darwin)
+   LFLAGS     := $(LFLAGS) `ar -x /usr/lib/libstdc++.a lib/dcomio.o lib/dcomplex.o` lib/dcomio.o lib/dcomplex.o
+endif
+#
+#
 # Defines the source files needed #########################################
 SOURCES  = Matrix.cpp Vector.cpp Vector3D.cpp CMatrix.cpp CVector.cpp
 
@@ -35,11 +44,11 @@ all : $(OBJECTS) EigenSys matrixtest
 .PHONY: all
 
 matrixtest : $(OBJECTS) matrixtest.cpp
-	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o bin/matrixtest ./matrixtest.cpp \
+	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ $(LFLAGS) -o bin/matrixtest ./matrixtest.cpp \
 	$(addprefix ./lib/,$(OBJECTS))
 
 EigenSys : $(OBJECTS) EigenSys.cpp
-	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o bin/EigenSys ./EigenSys.cpp ./lib/Matrix.o
+	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ $(LFLAGS) -o bin/EigenSys ./EigenSys.cpp ./lib/Matrix.o
 
 # include the dependicies
 include $(addprefix ./depend/,$(OBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
