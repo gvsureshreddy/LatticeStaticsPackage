@@ -26,8 +26,7 @@ Vector FullShuffle::ArcLenRHS(double DS,const Vector &Diff,
       - Diff[3]*Diff[3]
       - Diff[4]*Diff[4]
       - Diff[5]*Diff[5]
-      - Diff[6]*Diff[6]
-      - Diff[7]*Diff[7];
+      - Diff[6]*Diff[6];
 
    return rhs;
 }
@@ -138,9 +137,9 @@ Matrix FullShuffle::ArcLenStiffness(const Vector &Diff,double Aspect)
    K[7][0] = -2.0*Diff[0];
    K[7][1] = -2.0*Diff[1];
    K[7][2] = -2.0*Diff[2];
-   K[7][3] = -4.0*Diff[3];
-   K[7][4] = -4.0*Diff[4];
-   K[7][5] = -4.0*Diff[5];
+   K[7][3] = -2.0*Diff[3];
+   K[7][4] = -2.0*Diff[4];
+   K[7][5] = -2.0*Diff[5];
    K[7][6] = -2.0*Diff[6];
    K[7][7] = -2.0*Diff[7]/(Aspect*Aspect);
    
@@ -216,7 +215,6 @@ void FullShuffle::ScanningUpdate(const Vector &newval)
    DOF[3] -= newval[3];
    DOF[4] -= newval[4];
    DOF[5] -= newval[5];
-   DOF[6] -= newval[6];
    
    Lattice_->SetDOF(DOF);
 }
