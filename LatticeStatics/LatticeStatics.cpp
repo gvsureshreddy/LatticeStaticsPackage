@@ -74,9 +74,6 @@ int main(int argc, char *argv[])
 	    SolveMe->BisectAlert(Lat,datafile,Width,out);
 	 
 	 // Send Output
-	 cout << setw(Width) << Lat
-	      << "Uncertainty = " << setw(Width) << uncertainty << endl
-	      << "Success = 1" << endl;
 	 out << setw(Width) << Lat
 	     << "Uncertainty = " << setw(Width) << uncertainty << endl
 	     << "Success = 1" << endl;
@@ -168,7 +165,6 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,char *startf
    cout << "Built on: " << builddate() << endl << setw(Width);
    out << "Built on: " << builddate() << endl << setw(Width);
    
-   Lat->Print(cout,Lattice::PrintLong);
    Lat->Print(out,Lattice::PrintLong);
 }
 
