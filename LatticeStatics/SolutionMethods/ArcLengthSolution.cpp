@@ -253,6 +253,9 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,int Width,fstream &out)
    }
    cout << endl; out << endl;
 
+   // Call Lattice function to do any Lattice Specific things
+   Lat->CriticalPointInfo(Width,out);
+   
    // Reset Lattice and ArcLengthSolution
    Mode_->ArcLenUpdate(-(OriginalDiff - IntermediateDiff));
    CurrentDS_ = OriginalDS;
