@@ -1,1 +1,2 @@
-UTILITY  = UtilityFunctions.cpp
+UTILITY  = UtilityFunctions.cpp\
+	 UnitCellIterator.cpp
