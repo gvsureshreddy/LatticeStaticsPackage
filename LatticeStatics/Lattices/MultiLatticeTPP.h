@@ -75,6 +75,7 @@ public:
    virtual void DispersionCurves(Vector Y,int NoPTS,const char *prefix,ostream &out);
    virtual int BlochWave(Vector &Y);
    virtual void SetGridSize(int Grid) {GridSize_=Grid; UCIter_(GridSize_);}
+   virtual void NeighborDistances(int cutoff,ostream &out);
    virtual void Print(ostream &out,PrintDetail flag);
    
    // Functions provided by MultiLatticeTPP

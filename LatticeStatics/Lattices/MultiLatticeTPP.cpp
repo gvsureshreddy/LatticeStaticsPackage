@@ -1476,6 +1476,24 @@ int MultiLatticeTPP::BlochWave(Vector &Y)
    return 1;
 }
 
+void MultiLatticeTPP::NeighborDistances(int cutoff,ostream &out)
+{
+   Matrix NeighborDist = LatSum_.NeighborDistances(cutoff,pow(10,-(out.precision()-1)));
+   
+   int W=out.width();
+   int types = (INTERNAL_ATOMS*(INTERNAL_ATOMS+1))/2;
+   for (int i=0;i<cutoff;++i)
+   {
+      out << setw(W) << NTemp_ << setw(W) << NeighborDist[i][0];
+      for (int j=0;j<types;++j)
+      {
+	 out << setw(W/4) << int(NeighborDist[i][1+j]);
+      }
+      out << endl;
+   }
+   out << endl;
+}
+
 void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 {
    static int W;
