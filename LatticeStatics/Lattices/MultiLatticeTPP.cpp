@@ -272,14 +272,14 @@ int MultiLatticeTPP::FindLatticeSpacing(int iter,double dx)
 	   << "    RHS=" << setw(20) << RHS << setw(20) << RHS.Norm() << endl
 	   << "     De=" << setw(20) << De  << setw(20) << De.Norm() << endl
 	   << "RefLen_=" << setw(20) << RefLen_[0] << setw(20) << RefLen_[1]
-	   << setw(20) << RefLen_[2] << endl
-	   << "AtomPositions_=";
+	   << setw(20) << RefLen_[2] << endl;
+      if (NoMovable_) cout << "AtomPositions_=";
       for (int i=0;i<NoMovable_;++i)
       {
 	 cout << setw(20)
 	      << AtomPositions_[1+(MovableAtoms_[i]-6)/3][(MovableAtoms_[i]-6)%3];
       }
-      cout << endl;
+      if (NoMovable_) cout << endl;
    }
    while ((itr < iter)
 	  && ((RHS.Norm() > 1.0e-13) || (De.Norm() > 1.0e-14)));
