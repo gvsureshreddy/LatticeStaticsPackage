@@ -20,15 +20,15 @@ ANSI       = -pedantic
 DATE_DEF   = -DBUILD_DATE="$(BUILD_DATE)"
 SOLVE      = -DSOLVE_SVD
 OPTIMIZE   = -O
-CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS) $(SOLVE) \
-	     $(DATE_DEF)
+CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS) $(SOLVE)
+
 
 # File Locations ##########################################################
 BIN_LOC    = ${HOME}/bin
 INCL_LOC   = ${HOME}/include
 LIB_LOC    = ${HOME}/lib
 LIBS       = -lLinearAlgebra -lMath -lm
-LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE)
+LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(DATE_DEF)
 SUBDIRS    = Lattices Modes SolutionMethods Potentials Utility
 
 # Defines the source files needed #########################################
@@ -47,7 +47,8 @@ OBJECTS  = $(STRIPEDSOURCES:$(SRC_EXT)=$(OBJ_EXT))
 
 # Defines the Program Target (linking command) ############################
 $(EXE):  $(OBJECTS)
-	 $(PURE) $(CC) $(LFLAGS) -L$(LIB_LOC) -o ./bin/$(EXE) \
+	 $(PURE) $(CC) $(LFLAGS) Utility/builddate.cpp \
+		 -L$(LIB_LOC) -o ./bin/$(EXE) \
 		 $(addprefix lib/,$(OBJECTS)) $(LIBS) 
 
 # include the dependicies
@@ -58,6 +59,7 @@ $(OBJECTS): Makefile
 	$(CC) $(CCFLAGS) -I. $(addprefix -I ,$(SUBDIRS)) -I $(INCL_LOC)/ \
         -o ./lib/$(notdir $@) \
         -c $(filter %$(*),$(basename $(SOURCES)))$(SRC_EXT)
+
 
 
 .PHONY: install uninstall
