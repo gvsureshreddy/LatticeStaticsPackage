@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define LINELENGTH 257
+#define LINELENGTH 600
 
 // Utility function definitions
 void SetPerlCommand(char *string,char *datafile,char *tag);
