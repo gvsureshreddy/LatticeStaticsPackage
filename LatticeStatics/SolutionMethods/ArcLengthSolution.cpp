@@ -404,11 +404,9 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,char *datafile,const char *prefi
    out << endl;
 
    if (Echo_) cout << setw(Width) << Lat
-		  << "Uncertainty = " << setw(Width) << uncertainty << endl
-		  << "Success = 1" << endl;
+		   << "Uncertainty = " << setw(Width) << uncertainty << endl;
    out << setw(Width) << Lat
-       << "Uncertainty = " << setw(Width) << uncertainty << endl
-       << "Success = 1" << endl;
+       << "Uncertainty = " << setw(Width) << uncertainty << endl;
       
    for (int i=0;i<70;i++)
    {
@@ -420,6 +418,9 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,char *datafile,const char *prefi
    // Call Lattice function to do any Lattice Specific things
    Lat->CriticalPointInfo(Mode_->DrDt(Difference_),ConvergenceFactor*Tolerance_,datafile,
 			  prefix,Width,out);
+
+   if (Echo_) cout << "Success = 1" << endl;
+   out << "Success = 1" << endl;
    
    // Reset Lattice and ArcLengthSolution
    Mode_->ArcLenUpdate(-(OriginalDiff - IntermediateDiff));
