@@ -14,16 +14,14 @@ $StrSPEC = "%12s";
 $FSPEC = "%12.6f";
 
 chomp($dataset=`pwd`);
-@directories = qw(Princ
-		  NaCl
-		  Rhombo1
-		  Ortho1
-		  Ortho2
-		  Ortho3
-		  OrthoNaCl
-		  Mono1
-		  Mono2
-		  ShuffleOrtho);
+@dir = glob("./*");
+for (my $i=0;$i<@dir;$i+=1)
+{
+  if (-d $dir[$i])
+  {
+    push @directories, $dir[$i];
+  }
+}
 
 open(GNUPLOT,">$ARGV[2]") 
     || die "Unable to open $ARGV[2] for write: $!";
