@@ -1235,6 +1235,7 @@ int MultiLatticeTPP::BlochWave(Vector &Y)
       
       for (int i=0;i<INTERNAL_ATOMS*DIM3;++i)
       {
+	 // if w^2 <= 0.0 --> Re(i*w*x) > 0 --> growing solutions --> unstable
 	 if ( real(D[i][i]) <= 0.0 )
 	 {
 	    return 0;
