@@ -1,0 +1,6 @@
+LatticeStatics
+depend
+lib
+bin
+.lib.*
+.bin.*
