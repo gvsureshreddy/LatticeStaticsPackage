@@ -36,7 +36,6 @@ private:
 
    // Misc
    double ConvexityDX_;
-   static const double Alt[DIM3][DIM3][DIM3];
    Matrix A_;
 
 

@@ -10,7 +10,8 @@ const double NiTi9TPPLat::LatticeBasis[DIM3][DIM3] = {1.0, 0.0, 0.0,
 NiTi9TPPLat::NiTi9TPPLat(char *datafile)
 {
    // First Size DOF
-   DOF_.Resize(DOFS);
+   DOF_.Resize(DOFS,0.0);
+   DOF_[0]=DOF_[1]=DOF_[2] = 1.0;
    // Set RefLattice_
    RefLattice_.Resize(DIM3,DIM3);
    // Set A
@@ -74,6 +75,9 @@ NiTi9TPPLat::NiTi9TPPLat(char *datafile)
       for (int j=0;j<DIM3;++j)
 	 RefLattice_[i][j] = LatticeBasis[i][j]*RefLen_;
 
+   // Initiate the Lattice Sum object
+   LatSum_(&DOF_,&RefLattice_,INTERNAL_ATOMS,&A_,&InfluanceDist_);
+
    int err=0;
    err=FindLatticeSpacing(iter,DX);
    if (err)
@@ -81,9 +85,6 @@ NiTi9TPPLat::NiTi9TPPLat(char *datafile)
       cerr << "unable to find initial lattice spacing!" << endl;
       exit(-1);
    }
-
-   // Initiate the Lattice Sum object
-   LatSum_(&DOF_,&RefLattice_,INTERNAL_ATOMS,&A_,&InfluanceDist_);
 
    // Initiate the Unit Cell Iterator for Bloch wave calculations.
    UCIter_(GridSize_,&RefLattice_);
@@ -382,6 +383,9 @@ double NiTi9TPPLat::Energy()
 	 NTemp_,LatSum_.r2(),PairPotentials::Y0,PairPotentials::T0);
    }
 
+   // Phi = Phi/(2*Vr*ShearMod)
+   Phi *= 1.0/(2.0*(RefLattice_.Det()*ShearMod_));
+
    Phi = Phi - Pressure_*LatSum_.J();;
 
    return Phi;
@@ -478,9 +482,9 @@ Matrix NiTi9TPPLat::stiffness(int moduliflag,PairPotentials::TDeriv dt)
    for (LatSum_.Reset();!LatSum_.Done();++LatSum_)
    {
       phi=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)].PairPotential(
-	 NTemp_,LatSum_.r2(),PairPotentials::DY,dt);
+	 NTemp_,LatSum_.r2(),PairPotentials::D2Y,dt);
       phi1=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)].PairPotential(
-	 NTemp_,LatSum_.r2(),PairPotentials::Y0,dt);
+	 NTemp_,LatSum_.r2(),PairPotentials::DY,dt);
       
       //Upper Diag Block (6,6)
       for (i=0;i<DIM3;i++)
@@ -554,10 +558,10 @@ Matrix NiTi9TPPLat::stiffness(int moduliflag,PairPotentials::TDeriv dt)
 		     {
 			Phi[INDU(i,j)][INDU(k,l)] -=
 			   (Pressure_/8.0)*(
-			      Alt[i][k][q]*Alt[j][l][s] + Alt[j][k][q]*Alt[i][l][s] +
-			      Alt[i][l][q]*Alt[j][k][s] + Alt[j][l][q]*Alt[i][k][s] +
-			      Alt[i][q][k]*Alt[j][s][l] + Alt[j][q][k]*Alt[i][s][l] +
-			      Alt[i][q][l]*Alt[j][s][k] + Alt[j][q][l]*Alt[i][s][k]
+			      Alt(i,k,q)*Alt(j,l,s) + Alt(j,k,q)*Alt(i,l,s) +
+			      Alt(i,l,q)*Alt(j,k,s) + Alt(j,l,q)*Alt(i,k,s) +
+			      Alt(i,q,k)*Alt(j,s,l) + Alt(j,q,k)*Alt(i,s,l) +
+			      Alt(i,q,l)*Alt(j,s,k) + Alt(j,q,l)*Alt(i,s,k)
 			      )*U[q][s];
 		     }
 	       }
@@ -577,11 +581,11 @@ Matrix NiTi9TPPLat::E3()
    for (LatSum_.Reset();!LatSum_.Done();++LatSum_)
    {
       phi=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)].PairPotential(
-	 NTemp_,LatSum_.r2(),PairPotentials::D2Y,PairPotentials::T0);
+	 NTemp_,LatSum_.r2(),PairPotentials::D3Y,PairPotentials::T0);
       phi1=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)].PairPotential(
-	 NTemp_,LatSum_.r2(),PairPotentials::DY,PairPotentials::T0);
+	 NTemp_,LatSum_.r2(),PairPotentials::D2Y,PairPotentials::T0);
       phi2=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)].PairPotential(
-	 NTemp_,LatSum_.r2(),PairPotentials::Y0,PairPotentials::T0);
+	 NTemp_,LatSum_.r2(),PairPotentials::DY,PairPotentials::T0);
 	 
       // DU^3 block
       for (i=0;i<DIM3;i++)
@@ -696,14 +700,14 @@ Matrix NiTi9TPPLat::E3()
 		  {
 		     Phi[INDUU(i,j,k,l)][INDU(q,s)] -=
 			(Pressure_/16.0)*(
-			   Alt[i][k][q]*Alt[j][l][s] + Alt[j][k][q]*Alt[i][l][s] +
-			   Alt[i][l][q]*Alt[j][k][s] + Alt[j][l][q]*Alt[i][k][s] +
-			   Alt[i][q][k]*Alt[j][s][l] + Alt[j][q][k]*Alt[i][s][l] +
-			   Alt[i][q][l]*Alt[j][s][k] + Alt[j][q][l]*Alt[i][s][k] +
-			   Alt[i][k][s]*Alt[j][l][q] + Alt[j][k][s]*Alt[i][l][q] +
-			   Alt[i][l][s]*Alt[j][k][q] + Alt[j][l][s]*Alt[i][k][q] +
-			   Alt[i][s][k]*Alt[j][q][l] + Alt[j][s][k]*Alt[i][q][l] +
-			   Alt[i][s][l]*Alt[j][q][k] + Alt[j][s][l]*Alt[i][q][k]);
+			   Alt(i,k,q)*Alt(j,l,s) + Alt(j,k,q)*Alt(i,l,s) +
+			   Alt(i,l,q)*Alt(j,k,s) + Alt(j,l,q)*Alt(i,k,s) +
+			   Alt(i,q,k)*Alt(j,s,l) + Alt(j,q,k)*Alt(i,s,l) +
+			   Alt(i,q,l)*Alt(j,s,k) + Alt(j,q,l)*Alt(i,s,k) +
+			   Alt(i,k,s)*Alt(j,l,q) + Alt(j,k,s)*Alt(i,l,q) +
+			   Alt(i,l,s)*Alt(j,k,q) + Alt(j,l,s)*Alt(i,k,q) +
+			   Alt(i,s,k)*Alt(j,q,l) + Alt(j,s,k)*Alt(i,q,l) +
+			   Alt(i,s,l)*Alt(j,q,k) + Alt(j,s,l)*Alt(i,q,k));
 		  }
 
    return Phi;
@@ -1326,13 +1330,3 @@ ostream &operator<<(ostream &out,NiTi9TPPLat &A)
    A.Print(out,Lattice::PrintShort);
    return out;
 }
-
-const double NiTi9TPPLat::Alt[DIM3][DIM3][DIM3] = {0.0, 0.0, 0.0,
-						    0.0, 0.0, 1.0,
-						    0.0, -1.0, 0.0,
-						    0.0, 0.0, -1.0,
-						    0.0, 0.0, 0.0,
-						    1.0, 0.0, 0.0,
-						    0.0, 1.0, 0.0,
-						    -1.0, 0.0, 0.0,
-						    0.0, 0.0, 0.0};
