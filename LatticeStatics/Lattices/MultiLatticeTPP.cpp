@@ -1940,7 +1940,7 @@ void MultiLatticeTPP::DebugMode()
       "Rotation_",                     // 42
       "Loading_"                       // 43
    };
-   int NOcommands=43;
+   int NOcommands=44;
    
    char response[LINELENGTH];
    char prompt[] = "Debug > ";
