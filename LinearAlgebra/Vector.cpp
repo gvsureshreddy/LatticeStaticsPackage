@@ -5,7 +5,7 @@
 #include <math.h>
 
 // Global IDString
-char VectorID[]="$Id: Vector.cpp,v 1.9 2002/08/23 15:24:36 elliottr Exp $";
+char VectorID[]="$Id: Vector.cpp,v 1.10 2003/04/02 18:45:07 elliottr Exp $";
 
 // Private Functions...
 
@@ -361,13 +361,13 @@ void Vector::Resize(const unsigned& Cols,const Matrix::Elm& InitVal)
       {
 	 Elements_=new Vector::Elm[Cols_];
       }
+   }
 
-      if (InitVal!=SENTINAL)
+   if (InitVal!=SENTINAL)
+   {
+      for (register int j=0;j<Cols_;j++)
       {
-	 for (register int j=0;j<Cols_;j++)
-	 {
-	    Elements_[j]=InitVal;
-	 }
+	 Elements_[j]=InitVal;
       }
    }
 
