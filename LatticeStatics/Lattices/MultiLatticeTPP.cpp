@@ -7,11 +7,11 @@ MultiLatticeTPP::~MultiLatticeTPP()
 {
    delete [] BodyForce_;
    delete [] AtomicMass_;
-   for (int i=0;i<DOFS;++i)
-      for (int j=i;j<DOFS;++j)
+   for (int i=0;i<INTERNAL_ATOMS;++i)
+      for (int j=i;j<INTERNAL_ATOMS;++j)
 	 delete Potential_[i][j];
-   delete Potential_[0];
-   delete Potential_;
+   delete [] Potential_[0];
+   delete [] Potential_;
    delete [] A_;
 }
 
