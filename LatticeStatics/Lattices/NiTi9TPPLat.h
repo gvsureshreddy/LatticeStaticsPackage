@@ -50,7 +50,7 @@ public:
    Vector DOF() {return DOF_;}
    void SetDOF(const Vector &dof) {DOF_ = dof; LatSum_.Recalc();}
    Matrix StressDT() {return stress(PairPotentials::DT);}
-   Matrix StiffnessDT() {return stiffness(1,PairPotentials::DT);}
+   Matrix StiffnessDT() {return stiffness(0,PairPotentials::DT);}
    double Temp() {return NTemp_;}
    void SetTemp(const double &Ntemp) {NTemp_ = Ntemp;}
 

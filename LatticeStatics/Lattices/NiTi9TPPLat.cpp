@@ -576,7 +576,7 @@ Matrix NiTi9TPPLat::E3()
    double phi,phi1,phi2;
    int i,j,k,l,m,n,q,s;
 
-   Phi.Resize(DOFS,DOFS*DOFS,0.0);
+   Phi.Resize(DOFS*DOFS,DOFS,0.0);
 
    for (LatSum_.Reset();!LatSum_.Done();++LatSum_)
    {
