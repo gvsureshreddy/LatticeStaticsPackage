@@ -119,12 +119,13 @@ int ScanningSolution::FindNextSolution()
 
    good = ScanningNewton();
 
+   double stepsize;
    double val = Mode_->ScanningStressParameter(),
+      oldval = val,
       sign = fabs(val)/val,
       newsign = 0;
-   val = fabs(val);
 
-   if (val < Tolerance_)
+   if (fabs(val) < Tolerance_)
       return 1;
 
    // March along CurrentScanLine_ until
@@ -166,11 +167,13 @@ int ScanningSolution::FindNextSolution()
 
       good = (ScanningNewton() && good);
 
+      oldval = val;
       val = Mode_->ScanningStressParameter();
       newsign = val/fabs(val);
    }
 
-   // Bisection method
+   // Iterate onto solution
+   stepsize = LineStep_;
    while ((fabs(Mode_->ScanningStressParameter()) > Tolerance_)
 	  && (iteration < MaxIter_))
    {
@@ -184,17 +187,28 @@ int ScanningSolution::FindNextSolution()
 
       if (Direction_ == Loading)
       {
-	 Mode_->ScanningLoadParamUpdate(
-	    -LineStep_*sign*newsign/(pow(2.0,iteration)));
+	 // Bisection Method
+	 //Mode_->ScanningLoadParamUpdate(
+	 //   -LineStep_*sign*newsign/(pow(2.0,iteration)));
+
+	 // Secant Method
+	 stepsize /= -(1.0 - oldval/val);
+	 Mode_->ScanningLoadParamUpdate(-stepsize);
       }
       else
       {
-	 Mode_->ScanningDefParamUpdate(
-	    -LineStep_*sign*newsign/(pow(2.0,iteration)));
+	 // Bisection Method
+	 //Mode_->ScanningDefParamUpdate(
+	 //   -LineStep_*sign*newsign/(pow(2.0,iteration)));
+
+	 // Secant Method
+	 stepsize /= -(1.0 - oldval/val);
+	 Mode_->ScanningDefParamUpdate(-stepsize);
       }
 
       good = (ScanningNewton() && good);
 
+      oldval = val;
       val = Mode_->ScanningStressParameter();
       newsign =val/fabs(val);
    }

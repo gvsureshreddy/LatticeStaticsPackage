@@ -130,7 +130,7 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,int Width,fstream &out)
 	   << " DS " << setw(Width) << CurrentDS_ << endl;
 
       //CurrentDS_ /= 2.0; // Bisection Method
-      CurrentDS_ /= (1- (OldMinEV/CurrentMinEV)); // Secant Method
+      CurrentDS_ /= (1.0 - (OldMinEV/CurrentMinEV)); // Secant Method
       if (((OldNulity - CurrentNulity) != 0)
 	  && (loops != 0))
 	 Difference_ = -Difference_;
