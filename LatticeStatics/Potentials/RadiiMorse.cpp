@@ -1,9 +1,9 @@
 #include "RadiiMorse.h"
 
 RadiiMorse::RadiiMorse(double A0,double B0,double Alpha,double Rref,double Rtheta,
-		       double Tref,double Tmelt):
+		       double Tref):
    A0_(A0),B0_(B0),Alpha_(Alpha),Rref_(Rref),Rtheta_(Rtheta),
-   Tref_(Tref),Tmelt_(Tmelt)
+   Tref_(Tref)
 {
 }
 
@@ -176,8 +176,7 @@ void RadiiMorse::Print(ostream &out)
        << "; Alpha=" << setw(W) << Alpha_
        << "; Rref=" << setw(W) << Rref_
        << "; Rtheta=" << setw(W) << Rtheta_
-       << "; Tref=" << setw(W) << Tref_
-       << "; Tmelt=" << setw(W) << Tmelt_;
+       << "; Tref=" << setw(W) << Tref_;
 }
 
 ostream &operator<<(ostream &out,RadiiMorse &A)
