@@ -373,6 +373,10 @@ int main()
    
    cout << "A*f" << setw(20) << A*f << endl;
 
+   Matrix zz(1,1);
+   zz[0][0] = 4.0;
+   cout << "zz.Inverse()" << setw(20) << zz.Inverse() << endl;
+
    return 1;
 }
 

@@ -26,16 +26,7 @@ BIN_LOC    = ${HOME}/bin
 INCL_LOC   = ${HOME}/include
 LIB_LOC    = ${HOME}/lib
 LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(DATE_DEF)
-#
-# the below lines are for OS X -- a bug in the libraries...
-#
-UNAME      = $(shell uname)
-#
-ifeq ($(UNAME),Darwin)
-   LFLAGS     := $(LFLAGS) `ar -x /usr/lib/libstdc++.a lib/dcomio.o lib/dcomplex.o` lib/dcomio.o lib/dcomplex.o
-endif
-#
-#
+
 # Defines the source files needed #########################################
 SOURCES  = Matrix.cpp Vector.cpp Vector3D.cpp CMatrix.cpp CVector.cpp
 
