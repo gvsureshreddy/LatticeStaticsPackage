@@ -16,6 +16,7 @@ public:
    enum YDeriv {Y0,DY,D2Y,D3Y,D4Y};
    enum TDeriv {T0,DT};
 
+   TempMorse() {};
    TempMorse(double A0,double B0,double Alpha,double Rref,double Tref,double Tmelt);
    ~TempMorse() {};
    friend ostream &operator<<(ostream &out,TempMorse &A);

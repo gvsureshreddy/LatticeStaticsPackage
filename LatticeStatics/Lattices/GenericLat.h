@@ -10,7 +10,6 @@ public:
 
    virtual Vector DOF() = 0;
    virtual void SetDOF(const Vector &dof) = 0;
-   enum TDeriv {T0,DT};
    virtual Matrix StressDT() = 0;
    virtual double Temp() = 0;
    virtual void SetTemp(const double &temp) = 0;

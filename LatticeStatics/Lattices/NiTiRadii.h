@@ -21,6 +21,7 @@ private:
 
    //Pair Potential data
    enum YDeriv {Y0,DY,D2Y,D3Y,D4Y};
+   enum TDeriv {T0,DT};
    enum interaction {aa,bb,ab};
    double Tref_;
    double A0_aa, B0_aa, Alpha_aa, Rref_aa, Rtheta_aa, Tmelt_aa;

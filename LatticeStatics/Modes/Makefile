@@ -17,4 +17,5 @@ MODES = KnownModes.cpp\
 	Mono3PShuffle.cpp\
 	Mono3MShuffle.cpp\
 	OneShuffle.cpp\
-	FullShuffle.cpp
+	FullShuffle.cpp\
+	Expand15.cpp

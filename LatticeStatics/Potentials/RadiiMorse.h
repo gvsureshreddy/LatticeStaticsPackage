@@ -16,6 +16,7 @@ public:
    enum YDeriv {Y0,DY,D2Y,D3Y,D4Y};
    enum TDeriv {T0,DT};
 
+   RadiiMorse() {};
    RadiiMorse(double A0,double B0,double Alpha,double Rref,double Rtheta,
 	      double Tref,double Tmelt);
    ~RadiiMorse() {};

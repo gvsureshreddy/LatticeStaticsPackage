@@ -3,4 +3,5 @@ LATTICES = KnownLattices.cpp\
 	   TrianglePressTempPairPotLat.cpp\
 	   NiTiPressTempPairPotLat.cpp\
 	   NiTiShuffleTPPLat.cpp\
-	   NiTiRadii.cpp
+	   NiTiRadii.cpp\
+	   NiTi15TPPLat.cpp

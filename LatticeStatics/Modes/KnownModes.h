@@ -17,7 +17,8 @@
 #include "Mono3MShuffle.h"
 #include "OneShuffle.h"
 #include "FullShuffle.h"
+#include "Expand15.h"
 
-#define KNOWNMODES 19
+#define KNOWNMODES 20
 
 LatticeMode *InitializeMode(Lattice *Lat,char *datafile);
