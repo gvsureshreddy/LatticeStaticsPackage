@@ -106,7 +106,7 @@ void UniDefTemp3D1PMono::ScanningDefParamUpdate(const double newval)
 {
    Matrix U=Lattice_->DefGrad();
 
-   U[0][1]=U[1][0]=U[0][2]=U[2][0] += newval;
+   U[0][1]=U[1][0]=U[0][2]=U[2][0] -= newval;
 
    Lattice_->SetDefGrad(U);
 }
@@ -118,7 +118,7 @@ double UniDefTemp3D1PMono::ScanningLoadParameter()
 
 void UniDefTemp3D1PMono::ScanningLoadParamUpdate(const double newval)
 {
-   Lattice_->SetTemp(Lattice_->Temp() + newval);
+   Lattice_->SetTemp(Lattice_->Temp() - newval);
 }
 
 double UniDefTemp3D1PMono::ScanningStressParameter()

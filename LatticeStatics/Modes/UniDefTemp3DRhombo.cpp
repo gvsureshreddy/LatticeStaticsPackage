@@ -83,7 +83,7 @@ void UniDefTemp3DRhombo::ScanningDefParamUpdate(const double newval)
 {
    Matrix U=Lattice_->DefGrad();
 
-   U[0][1]=U[1][0]=U[0][2]=U[2][0]=U[1][2]=U[2][1] += newval;
+   U[0][1]=U[1][0]=U[0][2]=U[2][0]=U[1][2]=U[2][1] -= newval;
 
    Lattice_->SetDefGrad(U);
 }
@@ -95,7 +95,7 @@ double UniDefTemp3DRhombo::ScanningLoadParameter()
 
 void UniDefTemp3DRhombo::ScanningLoadParamUpdate(const double newval)
 {
-   Lattice_->SetTemp(Lattice_->Temp() + newval);
+   Lattice_->SetTemp(Lattice_->Temp() - newval);
 }
 
 double UniDefTemp3DRhombo::ScanningStressParameter()

@@ -73,7 +73,7 @@ void UniDefTemp2DExpand::ScanningDefParamUpdate(const double newval)
 {
    Matrix U=Lattice_->DefGrad();
 
-   U[0][0]=U[1][1] += newval;
+   U[0][0]=U[1][1] -= newval;
 
    Lattice_->SetDefGrad(U);
 }
@@ -85,7 +85,7 @@ double UniDefTemp2DExpand::ScanningLoadParameter()
 
 void UniDefTemp2DExpand::ScanningLoadParamUpdate(const double newval)
 {
-   Lattice_->SetTemp(Lattice_->Temp() + newval);
+   Lattice_->SetTemp(Lattice_->Temp() - newval);
 }
 
 double UniDefTemp2DExpand::ScanningStressParameter()

@@ -9,7 +9,7 @@
 
 enum YN {No,Yes};
 void GetMainSettings(int &Width, int &Precision,YN &BisectCP,char *datafile);
-void InitializeOutputFile(fstream &out,char *outfile,char *datafile,
+void InitializeOutputFile(fstream &out,char *outfile,char *datafile,char *startfile,
 			  Lattice *Lat,int Precision,int Width);
 SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
 				   char *startfile,Lattice *Lat,int Width);
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
    Lat = InitializeLattice(datafile);
 
    fstream out;
-   InitializeOutputFile(out,outputfile,datafile,Lat,Precision,Width);
+   InitializeOutputFile(out,outputfile,datafile,startfile,Lat,Precision,Width);
    
    Mode = InitializeMode(Lat,datafile);
    out << "Mode: " << Mode->ModeName() << endl;
@@ -110,10 +110,10 @@ void GetMainSettings(int &Width, int &Precision,YN &BisectCP,char *datafile)
 }
 
 
-void InitializeOutputFile(fstream &out,char *outfile,char *datafile,
+void InitializeOutputFile(fstream &out,char *outfile,char *datafile,char *startfile,
 			  Lattice *Lat,int Precision,int Width)
 {
-   fstream input;
+   fstream input,start;
    char dataline[LINELENGTH];
 
    input.open(datafile,ios::in);
@@ -139,6 +139,24 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,
 
    input.close();
 
+   if (startfile != NULL)
+   {
+      start.open(startfile,ios::in);
+      if (start.fail())
+      {
+	 cerr << "Error: Unable to open file : " << startfile << " for read"
+	      << endl;
+	 exit(-1);
+      }
+
+      while (!start.eof())
+      {
+	 start.getline(dataline,LINELENGTH-1);
+	 out << "Start File: " << dataline << endl;
+      }
+
+      start.close();
+   }
    
    cout << setiosflags(ios::fixed) << setprecision(Precision) << setw(Width);
    out  << setiosflags(ios::fixed) << setprecision(Precision) << setw(Width);

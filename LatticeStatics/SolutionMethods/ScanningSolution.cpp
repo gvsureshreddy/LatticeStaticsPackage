@@ -69,10 +69,10 @@ void ScanningSolution::InitializeLine()
    if (Direction_ == Loading)
    {
       Mode_->ScanningLoadParamUpdate(
-	 LineStart_ - Mode_->ScanningLoadParameter());
+	 Mode_->ScanningLoadParameter() - LineStart_);
       
       Mode_->ScanningDefParamUpdate(
-	 CurrentScanLine_ - Mode_->ScanningDefParameter());
+	 Mode_->ScanningDefParameter() - CurrentScanLine_);
 
       Mode_->ScanningUpdate(
 	 Mode_->ScanningDef() - InitialDef_);
@@ -80,10 +80,10 @@ void ScanningSolution::InitializeLine()
    else
    {
       Mode_->ScanningLoadParamUpdate(
-	 CurrentScanLine_ - Mode_->ScanningLoadParameter());
+	 Mode_->ScanningLoadParameter() - CurrentScanLine_);
 
       Mode_->ScanningDefParamUpdate(
-	 LineStart_ - Mode_->ScanningDefParameter());
+	 Mode_->ScanningDefParameter() - LineStart_);
 
       Mode_->ScanningUpdate(
 	 Mode_->ScanningDef() - InitialDef_);
@@ -111,9 +111,9 @@ int ScanningSolution::FindNextSolution()
       else
       {
 	 if (Direction_ == Loading)
-	    Mode_->ScanningLoadParamUpdate(LineStep_);
+	    Mode_->ScanningLoadParamUpdate(-LineStep_);
 	 else
-	    Mode_->ScanningDefParamUpdate(LineStep_);
+	    Mode_->ScanningDefParamUpdate(-LineStep_);
       }
    }
 
@@ -160,9 +160,9 @@ int ScanningSolution::FindNextSolution()
       cout << "\t" << Mode_->ScanningStressParameter() << endl;
 
       if (Direction_ == Loading)
-	 Mode_->ScanningLoadParamUpdate(LineStep_);
+	 Mode_->ScanningLoadParamUpdate(-LineStep_);
       else
-	 Mode_->ScanningDefParamUpdate(LineStep_);
+	 Mode_->ScanningDefParamUpdate(-LineStep_);
 
       good = (ScanningNewton() && good);
 
@@ -185,12 +185,12 @@ int ScanningSolution::FindNextSolution()
       if (Direction_ == Loading)
       {
 	 Mode_->ScanningLoadParamUpdate(
-	    LineStep_*sign*newsign/(pow(2.0,iteration)));
+	    -LineStep_*sign*newsign/(pow(2.0,iteration)));
       }
       else
       {
 	 Mode_->ScanningDefParamUpdate(
-	    LineStep_*sign*newsign/(pow(2.0,iteration)));
+	    -LineStep_*sign*newsign/(pow(2.0,iteration)));
       }
 
       good = (ScanningNewton() && good);
@@ -227,11 +227,11 @@ int ScanningSolution::ScanningNewton()
 
    if (Direction_ == Loading)
    {
-      Mode_->ScanningLoadParamUpdate(-LineStep_);
+      Mode_->ScanningLoadParamUpdate(LineStep_);
    }
    else
    {
-      Mode_->ScanningDefParamUpdate(-LineStep_);
+      Mode_->ScanningDefParamUpdate(LineStep_);
    }
 
    dx = SolveSVD(Mode_->ScanningStiffness(),
@@ -241,11 +241,11 @@ int ScanningSolution::ScanningNewton()
 
    if (Direction_ == Loading)
    {
-      Mode_->ScanningLoadParamUpdate(LineStep_);
+      Mode_->ScanningLoadParamUpdate(-LineStep_);
    }
    else
    {
-      Mode_->ScanningDefParamUpdate(LineStep_);
+      Mode_->ScanningDefParamUpdate(-LineStep_);
    }
 
    // Iterate until convergence
