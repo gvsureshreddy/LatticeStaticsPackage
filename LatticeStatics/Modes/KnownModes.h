@@ -25,7 +25,8 @@
 #include "Expand9.h"
 #include "NaCl9.h"
 #include "ML_Expand.h"
+#include "ML_NaCl.h"
 
-#define KNOWNMODES 27
+#define KNOWNMODES 28
 
 LatticeMode *InitializeMode(Lattice *Lat,char *datafile);
