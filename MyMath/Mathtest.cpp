@@ -1,23 +1,23 @@
-#include <iostream.h>
-#include <stdlib.h>
-#include <iomanip.h>
+#include <iostream>
+#include <cstdlib>
+#include <iomanip>
 
 #include "MyMath.h"
 
 int main()
 {
    const int m=6;
-   double_complex Coeff[m+1],tst;
+   complex<double> Coeff[m+1],tst;
 
-   Coeff[0] = double_complex(6.0,0.0);
-   Coeff[1] = double_complex(5.0,0.0);
-   Coeff[2] = double_complex(1.0,0.0);
-   Coeff[3] = double_complex(12.0,0.0);
-   Coeff[4] = double_complex(8.0,0.0);
-   Coeff[5] = double_complex(0.5,0.0);
-   Coeff[6] = double_complex(1.5,0.0);
+   Coeff[0] = complex<double>(6.0,0.0);
+   Coeff[1] = complex<double>(5.0,0.0);
+   Coeff[2] = complex<double>(1.0,0.0);
+   Coeff[3] = complex<double>(12.0,0.0);
+   Coeff[4] = complex<double>(8.0,0.0);
+   Coeff[5] = complex<double>(0.5,0.0);
+   Coeff[6] = complex<double>(1.5,0.0);
 
-   double_complex Roots[m+1];
+   complex<double> Roots[m+1];
 
    PolyRootsLaguerre(Coeff,2,Roots,1);
 
@@ -46,13 +46,13 @@ int main()
 
    cout << endl << endl;
 
-   double_complex A[3],B[3],R[5];
-   A[0] = double_complex(-4.0,0.0);
-   A[1] = double_complex(0.0,0.0);
-   A[2] = double_complex(1.0,0.0);
-   B[0] = double_complex(-21.0,0.0);
-   B[1] = double_complex(4.0,0.0);
-   B[2] = double_complex(1.0,0.0);
+   complex<double> A[3],B[3],R[5];
+   A[0] = complex<double>(-4.0,0.0);
+   A[1] = complex<double>(0.0,0.0);
+   A[2] = complex<double>(1.0,0.0);
+   B[0] = complex<double>(-21.0,0.0);
+   B[1] = complex<double>(4.0,0.0);
+   B[2] = complex<double>(1.0,0.0);
 
    PolyMult(A,2,B,2,R);
    for (int i=0;i<=4;i++)

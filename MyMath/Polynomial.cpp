@@ -4,7 +4,7 @@
 void PolyRootsLaguerre(complex<double> Coeff[],int Degree,complex<double> Roots[],
 		       int Polish)
 {
-   int i,its,j,jj;
+   int i,j,jj;
    complex<double> x,b,c,ad[MAXDEGREE];
 
    // Copy of coefficients for successive deflation.
@@ -16,7 +16,7 @@ void PolyRootsLaguerre(complex<double> Coeff[],int Degree,complex<double> Roots[
       // remaining root
       x = complex<double>(0.0,0.0);
       // find the root
-      its=Laguerre(ad,j,&x);
+      Laguerre(ad,j,&x);
       if (fabs(x.imag()) <= 2.0*EPS*fabs(x.real())) x=complex<double>(x.real());
       Roots[j-1] = x;
       b = ad[j];  // forward deflation.
@@ -31,7 +31,7 @@ void PolyRootsLaguerre(complex<double> Coeff[],int Degree,complex<double> Roots[
    if (Polish)
    {
       for (j=1;j<=Degree;j++)
-	 its=Laguerre(Coeff,Degree,&Roots[j-1]);
+	 Laguerre(Coeff,Degree,&Roots[j-1]);
    }
 
    for (j=1;j<=Degree-1;j++)
@@ -58,7 +58,7 @@ int Laguerre(complex<double> Coeff[],int Degree,complex<double> *X)
    int iter,j;
    double abx,abp,abm,err;
    complex<double> dx,x1,b,d,f,g,h,sq,gp,gm,g2;
-   static double frac[MR+1] = {0.0,0.5,0.25,0.75,0.13,0.38,0.62,0.88,1.0};
+   // static double frac[MR+1] = {0.0,0.5,0.25,0.75,0.13,0.38,0.62,0.88,1.0};
 
    for (iter=1;iter<=MAXIT;iter++)
    {

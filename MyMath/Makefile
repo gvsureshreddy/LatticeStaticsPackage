@@ -10,19 +10,31 @@ BUILD_DATE = \"`date +%c`\"
 
 # Compiling options, etc. #################################################
 #
-CC         = g++
-ANSI       = -pedantic
+gCC        = g++
+
+# gCC compiler
+#CC         = $(gCC)
+#OPTIMIZE   = -O
+#ANSI       = -pedantic
+
+# PGI compiler
+CC         = pgCC
+OPTIMIZE   = -fast -Minline=levels:10 --no_exceptions
+#ANSI       = -A
+
+# general options 
 #PURE       = purify
 #PROFILE    = -pg
 #DEBUG      = -g
+BOUNDS     = -DCHECK_BOUNDS
 DATE_DEF   = -DBUILD_DATE="$(BUILD_DATE)"
-OPTIMIZE   = -O
-CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE)
+CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS)
 
 # File Locations ##########################################################
+BIN_LOC    = ${HOME}/bin
 INCL_LOC   = ${HOME}/include
 LIB_LOC    = ${HOME}/lib
-LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BUILD_DATE)
+LFLAGS     = $(DATE_DEF)
 
 # Defines the source files needed #########################################
 SOURCES  = Polynomial.cpp
@@ -34,7 +46,8 @@ all : $(OBJECTS)
 .PHONY: all
 
 Mathtest : $(OBJECTS) Mathtest.cpp
-	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o ./bin/Mathtest ./Mathtest.cpp \
+	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o ./lib/$@.o -c ./Mathtest.cpp
+	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o ./bin/Mathtest ./lib/Mathtest.o \
 		./lib/Polynomial.o 
 
 # include the dependicies
@@ -64,11 +77,12 @@ uninstall:
 
 clean:
 	 -/bin/rm -f $(addprefix ./lib/,$(OBJECTS)) core *~ \
-		  Mathtest ./depend/*.d
+		  $(addprefix ./lib/,$(OBJECTS:$(OBJ_EXT)=.ti)) \
+		  ./lib/Mathtest.* ./bin/Mathtest ./depend/*.d
 
 # Define rule for dependicy files
 depend/%.d: %$(SRC_EXT)
-	@$(SHELL) -ec '$(CC) -MM $(CCFLAGS) -I. -I $(INCL_LOC)/ $< \
+	@$(SHELL) -ec '$(gCC) -MM -I. -I $(INCL_LOC)/ $< \
 	      | sed '\''s/\($*\)\.o[ :]*/\1.o $*.d : /g'\'' > $@; \
 	      [ -s $@ ] || rm -f $@'
 	@echo "Building $@"
