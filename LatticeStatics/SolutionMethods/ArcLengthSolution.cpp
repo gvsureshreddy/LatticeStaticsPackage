@@ -309,7 +309,7 @@ double ArcLengthSolution::ArcLengthNewton(int &good)
    return uncertainty;
 }
 
-int ArcLengthSolution::BisectAlert(Lattice *Lat,int Width,fstream &out)
+int ArcLengthSolution::BisectAlert(Lattice *Lat,char *datafile,int Width,fstream &out)
 {
    double NewtonTolFactor = 10.0,
       ConvergenceFactor = 100;
@@ -383,7 +383,7 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,int Width,fstream &out)
    cout << endl; out << endl;
 
    // Call Lattice function to do any Lattice Specific things
-   Lat->CriticalPointInfo(ConvergenceFactor*Tolerance_,Width,out);
+   Lat->CriticalPointInfo(Mode_->DrDt(Difference_),ConvergenceFactor*Tolerance_,datafile,Width,out);
    
    // Reset Lattice and ArcLengthSolution
    Mode_->ArcLenUpdate(-(OriginalDiff - IntermediateDiff));
