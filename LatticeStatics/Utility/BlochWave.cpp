@@ -51,7 +51,7 @@ int main(int argc,char *argv[])
 
       cout << "BlochWave Stability (GridSize=" << GridSize << "):"
 	   << setw(Width) << BlochWaveStable << ", "
-	   << setw(Width) << Y << endl;
+	   << setw(Width) << Y << endl << flush;
    }
    
    return 1;
