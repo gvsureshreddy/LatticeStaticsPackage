@@ -1334,7 +1334,7 @@ void MultiLatticeTPP::DispersionCurves(Vector K,int NoPTS,const char *prefix,
 	    Tmp[i][j] += DefGrad[i][k]*RefLattice_[j][k];
 	 }
       }
-   InverseLat = Tmp.Inverse();
+   InverseLat = (Tmp.Inverse()).Transpose();
 
    Matrix EigVal[3];
    for (int i=0;i<3;++i) EigVal[i].Resize(1,INTERNAL_ATOMS*DIM3);
@@ -1433,7 +1433,7 @@ int MultiLatticeTPP::BlochWave(Vector &K)
 {
    static CMatrix A(INTERNAL_ATOMS*DIM3,INTERNAL_ATOMS*DIM3);
    static Matrix EigVals(1,INTERNAL_ATOMS*DIM3);
-   static Matrix DefGrad(DIM3,DIM3),InverseLat(DIM3,DIM3),tmp(DIM3,DIM3,0.0);
+   static Matrix DefGrad(DIM3,DIM3),InverseLat(DIM3,DIM3),Tmp(DIM3,DIM3,0.0);
    static Vector Z(DIM3);
 
    // Setup DefGrad
@@ -1447,9 +1447,9 @@ int MultiLatticeTPP::BlochWave(Vector &K)
       for (int j=0;j<DIM3;++j)
 	 for (int k=0;k<DIM3;++k)
 	 {
-	    tmp[i][j] += DefGrad[i][j]*RefLattice_[k][j];
+	    Tmp[i][j] += DefGrad[i][k]*RefLattice_[j][k];
 	 }
-   InverseLat = tmp.Inverse();
+   InverseLat = (Tmp.Inverse()).Transpose();
 
    // Iterate over points in cubic unit cell
    for (UCIter_.Reset();!UCIter_.Done();++UCIter_)
