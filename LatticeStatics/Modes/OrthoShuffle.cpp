@@ -67,7 +67,7 @@ Matrix OrthoShuffle::ArcLenStiffness(const Vector &Diff,double Aspect)
    K[0][1] = Stiff[0][2];
    K[0][2] = 2.0*Stiff[0][3];
    K[0][3] = StressDT[0][0];
-   K[1][0] = Stiff[2][0] + Stiff[1][1];
+   K[1][0] = Stiff[2][0] + Stiff[2][1];
    K[1][1] = Stiff[2][2];
    K[1][2] = 2.0*Stiff[2][3];
    K[1][3] = StressDT[0][2];
@@ -139,6 +139,7 @@ void OrthoShuffle::ScanningUpdate(const Vector &newval)
    Vector DOF=Lattice_->DOF();
 
    DOF[0] -= newval[0];
+   DOF[1] = DOF[0];
    DOF[2] -= newval[1];
 
    Lattice_->SetDOF(DOF);
