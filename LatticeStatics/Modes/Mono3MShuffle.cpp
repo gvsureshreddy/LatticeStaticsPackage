@@ -2,7 +2,7 @@
 
 Mono3MShuffle::Mono3MShuffle(Lattice *M)
 {
-   Lattice_ = (NiTiShuffleTPPLat*) M;
+   Lattice_ = (GenericLat*) M;
 }
 
 // Functions required by LatticeMode

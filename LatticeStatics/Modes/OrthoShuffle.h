@@ -1,14 +1,14 @@
 #ifndef __OrthoShuffle
 #define __OrthoShuffle
 #include "LatticeMode.h"
-#include "NiTiShuffleTPPLat.h"
+#include "GenericLat.h"
 
 #include <math.h>
 
 class OrthoShuffle : public LatticeMode
 {
 private:
-   NiTiShuffleTPPLat *Lattice_;
+   GenericLat *Lattice_;
 
 public:
    OrthoShuffle(Lattice *M);

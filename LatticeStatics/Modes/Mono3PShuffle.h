@@ -2,12 +2,12 @@
 #define __Mono3PShuffle
 
 #include "LatticeMode.h"
-#include "NiTiShuffleTPPLat.h"
+#include "GenericLat.h"
 
 class Mono3PShuffle : public LatticeMode
 {
 private:
-   NiTiShuffleTPPLat *Lattice_;
+   GenericLat *Lattice_;
 
 public:
    Mono3PShuffle(Lattice *M);

@@ -2,7 +2,7 @@
 
 RhomboShuffle::RhomboShuffle(Lattice *M)
 {
-   Lattice_ = (NiTiShuffleTPPLat*) M;
+   Lattice_ = (GenericLat*) M;
 }
 
 // Functions required by LatticeMode

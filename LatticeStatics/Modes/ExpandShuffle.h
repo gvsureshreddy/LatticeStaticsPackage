@@ -1,14 +1,14 @@
 #ifndef __ExpandShuffle
 #define __ExpandShuffle
 #include "LatticeMode.h"
-#include "NiTiShuffleTPPLat.h"
+#include "GenericLat.h"
 
 #include <math.h>
 
 class ExpandShuffle : public LatticeMode
 {
 private:
-   NiTiShuffleTPPLat *Lattice_;
+   GenericLat *Lattice_;
 
 public:
    ExpandShuffle(Lattice *M);
