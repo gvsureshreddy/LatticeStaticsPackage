@@ -3,14 +3,13 @@
 
 Lattice *InitializeLattice(char *datafile)
 {
-   const int NoLats = 8;
+   const int NoLats = 7;
    const char *Lattices[]={"SquarePressTempPairPotLat",
 		           "TrianglePressTempPairPotLat",
 		           "NiTiPressTempPairPotLat",
 		           "NiTiShuffle1TPPLat",
 		           "NiTiShuffle2TPPLat",
 		           "NiTiShuffle3TPPLat",
-			   "NiTiRadii",
 			   "NiTi15TPPLat"};
    
    switch (GetStringParameter("^MainLatticeType",datafile,Lattices,NoLats))
@@ -46,11 +45,6 @@ Lattice *InitializeLattice(char *datafile)
       }
       break;
       case 6:
-      {
-	 return new NiTiRadii(datafile);
-      }
-      break;
-      case 7:
       {
 	 return new NiTi15TPPLat(datafile);
       }
