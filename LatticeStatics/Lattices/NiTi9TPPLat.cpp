@@ -62,6 +62,7 @@ NiTi9TPPLat::NiTi9TPPLat(char *datafile)
    double DX;
    GetParameter("^MaxIterations",datafile,"%u",&iter);
    GetParameter("^InitializeStepSize",datafile,"%lf",&DX);
+   GetParameter("^BlochWaveGridSize",datafile,"%u",&GridSize_);
 
    int err=0;
    err=FindLatticeSpacing(iter,DX);
@@ -70,6 +71,10 @@ NiTi9TPPLat::NiTi9TPPLat(char *datafile)
       cerr << "unable to find initial lattice spacing!" << endl;
       exit(-1);
    }
+
+   // Initiate the Unit Cell Iterator for Bloch wave calculations.
+   UCIter_ = new UnitCellIterator(GridSize_,&LatticeVec_,&RefLen_);
+   
 }
 
 int NiTi9TPPLat::FindLatticeSpacing(int iter,double dx)
@@ -1087,118 +1092,6 @@ CMatrix NiTi9TPPLat::DynamicalStiffness(Vector &Y)
    return Cy;
 }
 
-#include <fstream.h>
-
-int NiTi9TPPLat::DynamicallyStable(Vector &Y)
-{
-   int Depth = 4;
-   double offset;
-   double onehalf = 0.5;
-
-   fstream out;
-
-   out.open("test.out",ios::out);
-
-   // I have changed the k values so as to only
-   // cover 1/2 of the cube (positive Z)
-
-   
-   // Place nodes at corners of cube
-   for (int k=1;k<2;k++)
-      for (int j=0;j<2;j++)
-	 for (int i=0;i<2;i++)
-	 {
-	    out << setw(20) << i-1/2.0
-		<< setw(20) << j-1/2.0
-		<< setw(20) << k-1/2.0
-		<< endl;
-	 }
-
-   for (int n=0;n<Depth;n++)
-   {
-      double twon = pow(2,n),
-	 twon1 = pow(2,n+1);
-      int twonm1 = int((n!=0) ? pow(2,n-1) : 0);
-      
-      offset = (twon-1)/twon1;
-
-      // Place nodes at centroid of n level squares.
-      for (int k=twonm1;k<twon;k++)
-      {
-	 for (int j=0;j<twon;j++)
-	 {
-	    for (int i=0;i<twon;i++)
-	    {
-	       out << setw(20) << (i/twon)-offset
-		   << setw(20) << (j/twon)-offset
-		   << setw(20) << (k/twon)-offset
-		   << endl;
-	    }
-	 }
-      }
-
-      // Place nodes at corners of n+1 level squares.
-      for (int k=twonm1;k<twon;k++)
-      {
-	 for (int j=0;j<=twon;j++)
-	 {
-	    for (int i=0;i<=twon1;i++)
-	    {
-	       out << setw(20) << (i/twon1) - onehalf
-		   << setw(20) << (j/twon) - onehalf
-		   << setw(20) << (k/twon) - offset
-		   << endl;
-	    }
-	 }
-	 
-	 for (int j=0;j<twon;j++)
-	 {
-	    for (int i=0;i<=twon;i++)
-	    {
-	       out << setw(20) << (i/twon) - onehalf
-		   << setw(20) << (j/twon) - offset
-		   << setw(20) << (k/twon) - offset
-		   << endl;
-	    }
-	 }
-      }
-
-      out << endl << endl;
-
-      if (twonm1 == 0) twonm1++;
-      for (int k=twonm1;k<=twon;k++)
-      {
-	 for (int j=0;j<twon;j++)
-	 {
-	    for (int i=0;i<=twon1;i++)
-	    {
-	       out << setw(20) << (i/twon1) - onehalf
-		   << setw(20) << (j/twon) - offset
-		   << setw(20) << (k/twon) - onehalf
-		   << endl;
-	    }
-	 }
-
-	 for (int j=0;j<=twon;j++)
-	 {
-	    for (int i=0;i<twon;i++)
-	    {
-	       out << setw(20) << (i/twon) - offset
-		   << setw(20) << (j/twon) - onehalf
-		   << setw(20) << (k/twon) - onehalf
-		   << endl;
-	    }
-	 }
-      }
-
-      out << endl << endl;
-   }
-   
-   
-   out.close();
-   return 1;
-}
-
 void NiTi9TPPLat::Print(ostream &out,PrintDetail flag)
 {
    int W=out.width();
@@ -1291,7 +1184,17 @@ void NiTi9TPPLat::Print(ostream &out,PrintDetail flag)
 	 out << "Dynamical Stability" << endl << setw(W) << DynamicalStiffness(Z) << endl;
 	 cout << "Dynamical Stability" << endl << setw(W) << DynamicalStiffness(Z) << endl;
 
-	 DynamicallyStable(Z);
+	 out << "\n\n\n";
+	 for (UCIter_->Reset();!UCIter_->Done();++(*UCIter_))
+	 {
+	    for (int z=0;z<3;++z)
+	    {
+	       out << setw(20) << (*UCIter_)[z];
+	    }
+	    out << endl;
+	 }
+	 out << "\n\n\n";
+	 
 	 break;
    }
 }

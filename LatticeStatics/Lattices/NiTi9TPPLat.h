@@ -2,6 +2,7 @@
 #define __NiTi9TPPLat
 
 #include "GenericLat.h"
+#include "UnitCellIterator.h"
 #include "RadiiMorse.h"
 #include "CMatrix.h"
 
@@ -22,6 +23,9 @@ private:
    double Pressure_;
    Vector BodyForce_[INTERNAL_ATOMS];
    double AtomicMass_[INTERNAL_ATOMS];
+
+   UnitCellIterator *UCIter_;
+   int GridSize_;
 
    //Pair Potential data
    enum interaction {aa,bb,ab,NOINTERACTIONS};
@@ -64,7 +68,6 @@ public:
    double SetPressure(double &p) { Pressure_ = p;}
    double ShearMod() const { return ShearMod_;}
    CMatrix DynamicalStiffness(Vector &Y);
-   int DynamicallyStable(Vector &Y);
    friend ostream &operator<<(ostream &out,NiTi9TPPLat &A);
 
 private:
