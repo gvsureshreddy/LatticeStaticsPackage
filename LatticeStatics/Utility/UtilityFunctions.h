@@ -6,6 +6,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "Matrix.h"
+#include "Math.h"
+
 #define LINELENGTH 600
 
 // Utility function definitions
@@ -16,5 +19,8 @@ int GetStringParameter(const char *tag,const char *datafile,
 void SetPerlCommand(char *string,const char *datafile,const char *tag);
 void Errfun(const char *string);
 FILE *OpenPipe(const char *command,const char *mode);
+
+unsigned Rank1Convex3D(Matrix K,double dx);
+unsigned Rank1Convex2D(Matrix K,double dx);
 
 #endif
