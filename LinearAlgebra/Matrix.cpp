@@ -6,7 +6,7 @@
 #include <cstdlib>
 
 // Global IDString
-char MatrixID[]="$Id: Matrix.cpp,v 1.15 2005/03/17 19:33:25 elliott Exp $";
+char MatrixID[]="$Id: Matrix.cpp,v 1.16 2005/03/25 17:11:16 elliott Exp $";
 
 // Private Methods...
 
@@ -880,7 +880,10 @@ Matrix SymEigVal(Matrix A,Matrix *B,const int MaxItr,const double Tol)
 	 for (int j=i+1;j<A.Cols_;j++)
 	 {
 	    if (fabs(A.Elements_[i][j]) < Tol )
+	    {
+	       A.Elements_[i][j]=A.Elements_[j][i] = 0.0;
 	       continue;
+	    }
 	    
 	    if (fabs(A.Elements_[i][i] - A.Elements_[j][j]) > Tol)
 	    {
@@ -937,9 +940,9 @@ Matrix SymEigVal(Matrix A,Matrix *B,const int MaxItr,const double Tol)
 
       converged = 1;
       for (int i=0;i<A.Cols_;i++)
-	 for (int j=0;j<A.Cols_;j++)
+	 for (int j=i+1;j<A.Cols_;j++)
 	 {
-	    if ((i != j) && (fabs(A.Elements_[i][j]) > Tol))
+	    if (fabs(A.Elements_[i][j]) > Tol)
 	    {
 	       converged = 0;
 	    }
