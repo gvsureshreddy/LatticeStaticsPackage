@@ -52,8 +52,8 @@ public:
    // Element Access methods
 #ifdef CHECK_BOUNDS
    // With Bounds checking!!!
-   inline Elm& operator[](const unsigned& i);
-   inline const Elm operator[](const unsigned& i) const;
+   Elm& operator[](const unsigned& i);
+   const Elm operator[](const unsigned& i) const;
 #else
    // Without Bounds Checking!!!
    inline Elm& operator[](const unsigned& i) {return Elements_[i];}
