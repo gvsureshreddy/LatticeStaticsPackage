@@ -12,7 +12,7 @@ int main(int argc,char *argv[])
    if (argc < 3)
    {
       cerr << "Usage: " << argv[0]
-	   << " ParamFile OutputFile <PathFile>" << endl;
+	   << " ParamFile OutputFile" << endl;
       cerr << "Built on:               " << builddate() << endl
 	   << "LinearAlgebra Built on: " << LinearAlgebraBuildDate() << endl
 	   << "MyMath Built on:        " << MyMathBuildDate() << endl;
@@ -21,8 +21,17 @@ int main(int argc,char *argv[])
 
    char *datafile = argv[1],
       *outputfile = argv[2],
-      prefix[]="^";
+      prefix[LINELENGTH];
 
+   if (GetParameter("","^Input File:",datafile,"%s",prefix))
+   {
+      strcpy(prefix,"^Input File:");
+   }
+   else
+   {
+      strcpy(prefix,"^");
+   }
+   
    GenericLat *Lat;
 
    int Width,Precision;
@@ -49,7 +58,7 @@ int main(int argc,char *argv[])
       if(!GetVectorParameter(prefix,tmp,datafile,&(Direction[i]))) exit(-1);
    }
 
-   if (argc<4)
+   if (strcmp(prefix,"^Input File:"))
    {
       for (int i=0;i<NoDirs;++i)
       {
@@ -70,7 +79,7 @@ int main(int argc,char *argv[])
       
       char strng[LINELENGTH];
       char tmp[LINELENGTH];
-      sprintf(strng,format,argv[3]);
+      sprintf(strng,format,datafile);
 
       for (int i=0;i<NoDirs;++i)
       {
@@ -163,6 +172,7 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,const char *
 	     (strstr(dataline,"Start File:") != NULL))
       {
 	 out << "#" << dataline << endl;
+	 input.getline(dataline,LINELENGTH-1);
       }
    }
 
