@@ -6,7 +6,7 @@
 #include <cstdlib>
 
 // Global IDString
-char MatrixID[]="$Id: Matrix.cpp,v 1.14 2005/03/16 22:55:19 elliott Exp $";
+char MatrixID[]="$Id: Matrix.cpp,v 1.15 2005/03/17 19:33:25 elliott Exp $";
 
 // Private Methods...
 
@@ -289,7 +289,7 @@ Matrix::Elm* Matrix::operator[](unsigned i)
 
 Matrix::Elm* Matrix::operator[](unsigned i) const
 {
-   if (i < Rows_)
+   if (i >= Rows_)
    {
       cerr << "Matrix Index Overflow -- Matrix::Elm* operator[]()" << endl;
       exit(-1);
