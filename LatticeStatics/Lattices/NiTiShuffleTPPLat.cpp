@@ -8,8 +8,18 @@ NiTiShuffleTPPLat::NiTiShuffleTPPLat(char *datafile)
    // First Size DOF
    DOF_.Resize(7);
    // Set LatticeVec_
-   LatticeVec_[0] = LatticeVec_[1] = sqrt(2.0);
-   LatticeVec_[2] = 1.0;
+   LatticeVec_[0].Resize(DIM3,0.0);
+   LatticeVec_[1].Resize(DIM3,0.0);
+   LatticeVec_[2].Resize(DIM3,0.0);
+   LatticeVec_[0][0] = 1.0;
+   LatticeVec_[0][1] = -1.0;
+   
+   LatticeVec_[1][0] = 1.0;
+   LatticeVec_[1][1] = 1.0;
+
+   LatticeVec_[2][2] = 1.0;
+   // Setup Bodyforce_
+   BodyForce_.Resize(DIM3,0.0);
 
    // Get Potential Parameters
    GetParameter("^A0_aa",datafile,"%lf",&A0_aa);
@@ -115,7 +125,7 @@ int NiTiShuffleTPPLat::FindLatticeSpacing(int iter,double dx)
    
 // Pair Potential Routines
 
-double NiTiShuffleTPPLat::Beta(interaction inter,TDeriv dt)
+inline double NiTiShuffleTPPLat::Beta(interaction inter,TDeriv dt)
 {
    double B0,Alpha,Tref;
    
@@ -152,7 +162,7 @@ double NiTiShuffleTPPLat::Beta(interaction inter,TDeriv dt)
    exit(-1);
 }
 
-double NiTiShuffleTPPLat::Rhat(interaction inter,TDeriv dt)
+inline double NiTiShuffleTPPLat::Rhat(interaction inter,TDeriv dt)
 {
    double num,den,rhat;
    double B0,Tref,Tmelt,Rref;
@@ -331,41 +341,37 @@ double NiTiShuffleTPPLat::PairPotential(interaction inter,double r2,
 
 // Lattice Routines
 
-void NiTiShuffleTPPLat::GetLatticeVectorInfo(Vector &SX,Vector &DXPrime,interaction &Inter,
-					     int p,int q)
+void NiTiShuffleTPPLat::GetLatticeVectorInfo(double *SX,double *DXPrime,
+					     interaction &Inter,int p,int q)
 {
-   static Vector Basis[4];
-   static Vector Zero(DIM3,0.0);
+   static double Basis[4][DIM3] = {0.0,0.0,0.0,
+				   0.5,0.0,0.5,
+				   0.5,0.5,0.0,
+				   0.0,0.5,0.5};
+   double dxprime=0;
 
-   for (int i=0;i<4;i++) Basis[i].Resize(DIM3,0.0);
-   Basis[1][0] = Basis[1][2] = 0.5;
    Basis[2][0] = 0.5 + DOF_[6];
-   Basis[2][1] = 0.5;
    Basis[3][0] = DOF_[6];
-   Basis[3][1] = Basis[3][2] = 0.5;
 
-   SX = Basis[q] - Basis[p];
-   DXPrime = Zero;
-   
    switch (p)
    {
       case 0:
 	 switch (q)
 	 {
 	    case 0:
-	       DXPrime[0] = 0.0;
+	       dxprime = 0.0;
 	       Inter = aa;
 	       break;
 	    case 1:
-	       DXPrime[0] = 1.0;
+	       dxprime = 1.0;
 	       Inter = ab;
 	       break;
 	    case 2:
-	       DXPrime[0] = 0.0;
+	       dxprime = 0.0;
 	       Inter = aa;
 	       break;
 	    case 3:
-	       DXPrime[0] = 1.0;
+	       dxprime = 1.0;
 	       Inter = ab;
 	       break;
 	 }
@@ -374,19 +380,19 @@ void NiTiShuffleTPPLat::GetLatticeVectorInfo(Vector &SX,Vector &DXPrime,interact
 	 switch (q)
 	 {
 	    case 0:
-	       DXPrime[0] = -1.0;
+	       dxprime = -1.0;
 	       Inter = ab;
 	       break;
 	    case 1:
-	       DXPrime[0] = 0.0;
+	       dxprime = 0.0;
 	       Inter = bb;
 	       break;
 	    case 2:
-	       DXPrime[0] = -1.0;
+	       dxprime = -1.0;
 	       Inter = ab;
 	       break;
 	    case 3:
-	       DXPrime[0] = 0.0;
+	       dxprime = 0.0;
 	       Inter = bb;
 	       break;
 	 }
@@ -395,19 +401,19 @@ void NiTiShuffleTPPLat::GetLatticeVectorInfo(Vector &SX,Vector &DXPrime,interact
 	 switch (q)
 	 {
 	    case 0:
-	       DXPrime[0] = 0.0;
+	       dxprime = 0.0;
 	       Inter = aa;
 	       break;
 	    case 1:
-	       DXPrime[0] = 1.0;
+	       dxprime = 1.0;
 	       Inter = ab;
 	       break;
 	    case 2:
-	       DXPrime[0] = 0.0;
+	       dxprime = 0.0;
 	       Inter = aa;
 	       break;
 	    case 3:
-	       DXPrime[0] = 1.0;
+	       dxprime = 1.0;
 	       Inter = ab;
 	       break;
 	 }
@@ -416,33 +422,41 @@ void NiTiShuffleTPPLat::GetLatticeVectorInfo(Vector &SX,Vector &DXPrime,interact
 	 switch (q)
 	 {
 	    case 0:
-	       DXPrime[0] = -1.0;
+	       dxprime = -1.0;
 	       Inter = ab;
 	       break;
 	    case 1:
-	       DXPrime[0] = 0.0;
+	       dxprime = 0.0;
 	       Inter = bb;
 	       break;
 	    case 2:
-	       DXPrime[0] = -1.0;
+	       dxprime = -1.0;
 	       Inter = ab;
 	       break;
 	    case 3:
-	       DXPrime[0] = 0.0;
+	       dxprime = 0.0;
 	       Inter = bb;
 	       break;
 	 }
    }
+
+   for (int i=0;i<DIM3;i++)
+   {
+      SX[i] = Basis[q][i] - Basis[p][i];
+      DXPrime[i] = 0.0;
+   }
+   DXPrime[0] = dxprime;
+
 }
 
-double NiTiShuffleTPPLat::PI(const Vector &Dx,const Vector &DX,
-				 int r, int s)
+inline double NiTiShuffleTPPLat::PI(const Vector &Dx,const Vector &DX,
+				    int r, int s)
 {
    return (Dx[r]*DX[s] + DX[r]*Dx[s]);
 }
 
-double NiTiShuffleTPPLat::PSI(const Vector &DX,
-				  int r, int s, int t, int u)
+inline double NiTiShuffleTPPLat::PSI(const Vector &DX,
+				     int r, int s, int t, int u)
 {
    return (Del(r,t)*DX[s]*DX[u] +
 	   Del(r,u)*DX[s]*DX[t] +
@@ -463,7 +477,7 @@ double NiTiShuffleTPPLat::pwr(const double &x,const unsigned y)
    }
 }
 
-int NiTiShuffleTPPLat::IND(int i,int j)
+inline int NiTiShuffleTPPLat::IND(int i,int j)
 {
    if (i==j)
       return i;
@@ -471,7 +485,7 @@ int NiTiShuffleTPPLat::IND(int i,int j)
       return 2+i+j;
 }
 
-int NiTiShuffleTPPLat::IND(int k,int l,int m,int n)
+inline int NiTiShuffleTPPLat::IND(int k,int l,int m,int n)
 {
    if (k==l)
    {
@@ -499,7 +513,17 @@ int NiTiShuffleTPPLat::IND(int k,int l,int m,int n)
 
 Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 {
-   Matrix Phi;
+   static Matrix U(3,3);
+   static Matrix Eigvals(1,3);
+   static double X[3],SX[3],DXP[3];
+   static Vector DX(DIM3),Dx(DIM3);
+   static Vector DXPrime(DIM3),DxPrime(DIM3),Direction(DIM3);
+   static double J;
+   static int i,j,k,l,p,q,m,n,s;
+   static double r2,phi,phi1,phi2,Influancedist[DIM3],tmp;
+   static int Top[DIM3],Bottom[DIM3],CurrentInfluanceDist;
+   static interaction Inter;
+   static Matrix Phi;
 
    switch (dy)
    {
@@ -520,7 +544,7 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 	 break;
    }
 
-   Matrix U(3,3);
+
    U[0][0] = DOF_[0];
    U[1][1] = DOF_[1];
    U[2][2] = DOF_[2];
@@ -528,31 +552,25 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
    U[0][2] = U[2][0] = DOF_[4];
    U[1][2] = U[2][1] = DOF_[5];
 
-   Vector X(DIM3),dummy(DIM3,0.0);
-   Vector DX(DIM3),Dx(DIM3),SX(DIM3);;
-   Vector DXP(DIM3),DXPrime(DIM3),DxPrime(DIM3);
-   double J=U.Det();
-   double r2,phi,phi1,phi2,Influancedist[DIM3],tmp;
-   int k,l,Top[DIM3],Bottom[DIM3],CurrentInfluanceDist;
-   interaction Inter;
-
    // find largest eigenvalue of the inverse transformation
    // (i.e. from current to ref) and use influence cube of
    // that size...
    //
    // Use the fact that eigs of Uinv = 1/ eigs of U.
-   Matrix Eigvals = SymEigVal(U);
+   J = U.Det();
+   Eigvals = SymEigVal(U);
    tmp = Eigvals[0][0];
-   for (int i=0;i<DIM3;i++)
+   for (i=0;i<DIM3;i++)
       if (Eigvals[0][i] < tmp) tmp = Eigvals[0][i];
    
    // Set to inverse eigenvalue
    tmp = 1.0/tmp;
-   for (int i=0;i<DIM3;i++)
+   for (i=0;i<DIM3;i++)
+   {
       Influancedist[i]=tmp*InfluanceDist_;
-
-   X=dummy;
-   for (int p=0;p<DIM3;p++)
+   }
+   
+   for (p=0;p<DIM3;p++)
    {
       // set influance distance based on cube size
       //
@@ -561,11 +579,14 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 
       Top[p] = CurrentInfluanceDist;
       Bottom[p] = -CurrentInfluanceDist;
+
+      // misc initialization
+      BodyForce_[p] = 0.0;
    }
 
-   for (int p=0;p<4;p++)
+   for (p=0;p<4;p++)
    {
-      for (int q=0;q<4;q++)
+      for (q=0;q<4;q++)
       {
 	 GetLatticeVectorInfo(SX,DXP,Inter,p,q);
 	 for (X[0] = Bottom[0];X[0] <= Top[0];X[0]++)
@@ -574,21 +595,45 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 	    {
 	       for (X[2] = Bottom[2];X[2] <= Top[2];X[2]++)
 	       {
-		  for (int i=0;i<DIM3;i++)
+		  for (i=0;i<DIM3;i++)
 		  {
-		     DX[i] = (X[i] + SX[i])*LatticeVec_[i]*RefLen_;
-		     DXPrime[i] = DXP[i]*RefLen_*LatticeVec_[i];
+		     DX[i] = 0.0;
+		     DXPrime[i] = 0.0;
+		     
+		     for (j=0;j<DIM3;j++)
+		     {
+			DX[i] += (X[j] + SX[j])*LatticeVec_[j][i]*RefLen_;
+			DXPrime[i] += DXP[j]*RefLen_*LatticeVec_[j][i];
+		     }
 		  }
-		  Dx = U * DX;
-		  DxPrime = U * DXPrime;
-		  
-		  r2=Dx*Dx;
+
+		  r2 = 0.0;
+		  for (i=0;i<DIM3;i++)
+		  {
+		     Dx[i] = 0.0;
+		     DxPrime[i] = 0.0;
+
+		     for (j=0;j<DIM3;j++)
+		     {
+			Dx[i] += U[i][j] * DX[j];
+			DxPrime[i] += U[i][j] * DXPrime[j];
+		     }
+		     r2 += Dx[i]*Dx[i];
+		  }
 		  // Only use Sphere of Influance (current)
 		  if (r2==0 || r2 > InfluanceDist_*InfluanceDist_)
 		  {
 		     continue;
 		  }
 
+		  // Calculate bodyforce
+		  phi1 = PairPotential(Inter,r2,DY,T0);
+		  for (i=0;i<DIM3;i++)
+		  {
+		     BodyForce_[i] += -phi1*Dx[i]/sqrt(r2);
+		  }
+		  
+		  // Calculate Phi
 		  phi = PairPotential(Inter,r2,dy,dt);
 		  switch (dy)
 		  {
@@ -596,45 +641,49 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 			Phi[0][0]+=phi;
 			break;
 		     case DY:
-			for (int i=0;i<DIM3;i++)
+			for (i=0;i<DIM3;i++)
 			{
-			   for (int j=i;j<DIM3;j++)
+			   for (j=i;j<DIM3;j++)
 			   {
 			      Phi[0][IND(i,j)] += phi*PI(Dx,DX,i,j);
 			   }
+			   Phi[0][6] += phi*(2.0*DxPrime[i]*Dx[i]);
 			}
-			Phi[0][6] += phi*(2.0*DxPrime*Dx);
 			break;
 		     case D2Y:
 			phi1=PairPotential(Inter,r2,DY,dt);
 		     
-			for (int i=0;i<DIM3;i++)
-			   for (int j=i;j<DIM3;j++)
+			for (i=0;i<DIM3;i++)
+			{
+			   for (j=i;j<DIM3;j++)
 			   {
-			      for (int k=0;k<DIM3;k++)
-				 for (int l=k;l<DIM3;l++)
+			      for (k=0;k<DIM3;k++)
+			      {
+				 for (l=k;l<DIM3;l++)
 				 {
 				    Phi[IND(i,j)][IND(k,l)]+=
 				       phi*PI(Dx,DX,i,j)*PI(Dx,DX,k,l)
 				       +phi1*(0.5)*PSI(DX,i,j,k,l);
 				 }
-			      Phi[6][IND(i,j)] = Phi[IND(i,j)][6]
-				 += phi*(PI(Dx,DX,i,j)*(2.0*DxPrime*Dx))
-				 + phi1*(DxPrime[i]*DX[j] + Dx[i]*DXPrime[j] +
-					 DXPrime[i]*Dx[j] + DX[i]*DxPrime[j]);
+				 Phi[6][IND(i,j)] = Phi[IND(i,j)][6]
+				    += phi*(PI(Dx,DX,i,j)*(2.0*DxPrime[k]*Dx[k]))
+				    + phi1*(DxPrime[i]*DX[j] + Dx[i]*DXPrime[j] +
+					    DXPrime[i]*Dx[j] + DX[i]*DxPrime[j]);
+			      }
 			   }
-			Phi[6][6] += phi*(2.0*DxPrime*Dx)*(2.0*DxPrime*Dx)
-			   + phi1*(2.0*DxPrime*DxPrime);
+			   Phi[6][6] += phi*(2.0*DxPrime[i]*Dx[i])*(2.0*DxPrime[i]*Dx[i])
+			      + phi1*(2.0*DxPrime[i]*DxPrime[i]);
+			}
 			break;
 		     case D3Y:
 			// phi1=PairPotential(Inter,r2,D2Y,dt);
 			// 
-			// for (int i=0;i<DIM3;i++)
-			//    for (int j=i;j<DIM3;j++)
-			// 	 for (int k=0;k<DIM3;k++)
-			// 	    for (int l=k;l<DIM3;l++)
-			// 	       for (int m=0;m<DIM3;m++)
-			// 		  for (int n=m;n<DIM3;n++)
+			// for (i=0;i<DIM3;i++)
+			//    for (j=i;j<DIM3;j++)
+			// 	 for (k=0;k<DIM3;k++)
+			// 	    for (l=k;l<DIM3;l++)
+			// 	       for (m=0;m<DIM3;m++)
+			// 		  for (n=m;n<DIM3;n++)
 			// 		  {
 			// 		     Phi[IND(i,j,k,l)][IND(m,n)] +=
 			// 			phi*PI(Dx,DX,i,j)*PI(Dx,DX,k,l)*PI(Dx,DX,m,n)
@@ -649,14 +698,14 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 			// phi1=PairPotential(Inter,r2,D3Y,dt);
 			// phi2=PairPotential(Inter,r2,D2Y,dt);
 			// 
-			// for (int i=0;i<DIM3;i++)
-			//    for (int j=i;j<DIM3;j++)
-			// 	 for (int k=0;k<DIM3;k++)
-			// 	    for (int l=k;l<DIM3;l++)
-			// 	       for (int m=0;m<DIM3;m++)
-			// 		  for (int n=m;n<DIM3;n++)
-			// 		     for (int p=0;p<DIM3;p++)
-			// 			for (int q=p;q<DIM3;q++)
+			// for (i=0;i<DIM3;i++)
+			//    for (j=i;j<DIM3;j++)
+			// 	 for (k=0;k<DIM3;k++)
+			// 	    for (l=k;l<DIM3;l++)
+			// 	       for (m=0;m<DIM3;m++)
+			// 		  for (n=m;n<DIM3;n++)
+			// 		     for (p=0;p<DIM3;p++)
+			// 			for (q=p;q<DIM3;q++)
 			// 			{
 			// 			   Phi[IND(i,j,k,l)][IND(m,n,p,q)]+=
 			// 			      phi*(PI(Dx,DX,i,j)*PI(Dx,DX,k,l)*
@@ -693,9 +742,15 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 	 }
       }
    }
+
+   // BodyForce = BodyForce / (2*Vr*ShearMod)
+   for (i=0;i<DIM3;i++)
+   {
+      BodyForce_[i] *= 1.0/(2.0*(2.0*RefLen_*RefLen_*RefLen_)*ShearMod_);
+   }
    
    // Phi = Phi/(2*Vr*ShearMod)
-   Phi *= 1.0/(2.0*RefLen_*(LatticeVec_[0]*LatticeVec_[1]*LatticeVec_[2])*ShearMod_);
+   Phi *= 1.0/(2.0*(2.0*RefLen_*RefLen_*RefLen_)*ShearMod_);
 
    if (moduliflag)
    {
@@ -716,21 +771,21 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 	 case DY:
 	 {
 	    Matrix Uinv = U.Inverse();
-	    for (int i=0;i<DIM3;i++)
-	       for (int j=i;j<DIM3;j++)
+	    for (i=0;i<DIM3;i++)
+	       for (j=i;j<DIM3;j++)
 	       {
 		  Phi[0][IND(i,j)] -= Pressure_*J*Uinv[i][j];
 	       }
 	 }
 	 break;
 	 case D2Y:
-	    for (int i=0;i<DIM3;i++)
-	       for (int j=i;j<DIM3;j++)
-		  for (int k=0;k<DIM3;k++)
-		     for (int l=k;l<DIM3;l++)
+	    for (i=0;i<DIM3;i++)
+	       for (j=i;j<DIM3;j++)
+		  for (k=0;k<DIM3;k++)
+		     for (l=k;l<DIM3;l++)
 		     {
-			for (int q=0;q<DIM3;q++)
-			   for (int s=0;s<DIM3;s++)
+			for (q=0;q<DIM3;q++)
+			   for (s=0;s<DIM3;s++)
 			   {
 			      Phi[IND(i,j)][IND(k,l)] -=
 				 (Pressure_/8.0)*(
@@ -743,12 +798,12 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 		     }
 	    break;
 	 case D3Y:
-	    for (int i=0;i<DIM3;i++)
-	       for (int j=i;j<DIM3;j++)
-		  for (int k=0;k<DIM3;k++)
-		     for (int l=k;l<DIM3;l++)
-			for (int q=0;q<DIM3;q++)
-			   for (int s=q;s<DIM3;s++)
+	    for (i=0;i<DIM3;i++)
+	       for (j=i;j<DIM3;j++)
+		  for (k=0;k<DIM3;k++)
+		     for (l=k;l<DIM3;l++)
+			for (q=0;q<DIM3;q++)
+			   for (s=q;s<DIM3;s++)
 			   {
 			      Phi[IND(i,j,k,l)][IND(q,s)] -=
 				 (Pressure_/16.0)*(
@@ -949,6 +1004,7 @@ void NiTiShuffleTPPLat::Print(ostream &out,PrintDetail flag)
 	     << "Pressure (Normalized): " << setw(W) << Pressure_ << endl
 	     << "DOF's :" << endl << setw(W) << DOF_ << endl
 	     << "Potential Value (Normalized):" << setw(W) << Energy() << endl
+	     << "BodyForce Value (Normalized):" << setw(W) << BodyForce_ << endl
 	     << "Stress (Normalized):" << setw(W) << Stress() << endl
 	     << "Stiffness (Normalized):" << setw(W) << stiffness
 	     << "Rank 1 Convex:" << setw(W)

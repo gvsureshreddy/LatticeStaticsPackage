@@ -13,9 +13,10 @@ private:
    double Temp_;
    // DOF[i] = [U11 U22 U33 U12 U13 U12 S]
    Vector DOF_;
-   double LatticeVec_[DIM3];
+   Vector LatticeVec_[DIM3];
    double ShearMod_;
    double Pressure_;
+   Vector BodyForce_;
 
    //Pair Potential data
    enum YDeriv {Y0,DY,D2Y,D3Y,D4Y};
@@ -50,18 +51,19 @@ public:
    NiTiShuffleTPPLat(char *datafile);
    ~NiTiShuffleTPPLat() {}
    inline double Del(int i,int j) {return i==j;}
+   Vector BodyForce() { return BodyForce_; }
    double Pressure() const { return Pressure_;}
    double SetPressure(double &p) { Pressure_ = p;}
    double ShearMod() const { return ShearMod_;}
    friend ostream &operator<<(ostream &out,NiTiShuffleTPPLat &A);
 private:
    double PairPotential(interaction inter,double r2,YDeriv dy=Y0,TDeriv dt=T0);
-   double Beta(interaction inter,TDeriv dt=T0);
-   double Rhat(interaction inter,TDeriv dt=T0);
-   void GetLatticeVectorInfo(Vector &SX,Vector &DXPrime,interaction &Inter,
+   inline double Beta(interaction inter,TDeriv dt=T0);
+   inline double Rhat(interaction inter,TDeriv dt=T0);
+   void GetLatticeVectorInfo(double *SX,double *DXPrime,interaction &Inter,
 			     int p,int q);
-   double PI(const Vector &Dx,const Vector &DX,int r,int s);
-   double PSI(const Vector &DX,int r,int s,int t,int u);
+   inline double PI(const Vector &Dx,const Vector &DX,int r,int s);
+   inline double PSI(const Vector &DX,int r,int s,int t,int u);
    double pwr(const double &x,const unsigned y);
    inline int IND(int i,int j);
    inline int IND(int k,int l,int m,int n);
