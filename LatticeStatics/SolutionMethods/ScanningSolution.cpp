@@ -286,6 +286,7 @@ double ScanningSolution::ScanningNewton(int &good)
 #endif
       
       Mode_->ScanningUpdate(dx);
+      cout << "ScanningNewton(dx.Norm) = " << dx.Norm() << endl;
    }
 
    if (itr >= MaxIter_)
