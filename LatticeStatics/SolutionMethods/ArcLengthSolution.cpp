@@ -202,10 +202,9 @@ int ArcLengthSolution::AllSolutionsFound()
    return (CurrentSolution_ == NumSolutions_);
 }
 
-int ArcLengthSolution::FindNextSolution()
+double ArcLengthSolution::FindNextSolution(int &good)
 {
-   int good=1;
-
+   double uncertainty;
    double AngleTest;
 
    Vector OldDiff = Difference_;
@@ -214,7 +213,7 @@ int ArcLengthSolution::FindNextSolution()
    {
       cout << "DS= " << CurrentDS_ << endl;
 
-      good = (ArcLengthNewton() && good);
+      uncertainty = ArcLengthNewton(good);
 
       AngleTest = Mode_->ArcLenAngle(OldDiff,Difference_,Aspect_);
    }
@@ -235,12 +234,16 @@ int ArcLengthSolution::FindNextSolution()
 
    CurrentSolution_++;
 
-   return 1;
+   good = 1;
+   
+   return uncertainty;
 }
 
-int ArcLengthSolution::ArcLengthNewton()
+double ArcLengthSolution::ArcLengthNewton(int &good)
 {
-   int good = 1;
+   int loc_good = 1;
+   double uncertainty;
+   
    int itr = 0;
    int Dim=Mode_->ArcLenDef().Dim();
 
@@ -275,14 +278,16 @@ int ArcLengthSolution::ArcLengthNewton()
 	  && ((fabs(RHS.Norm()) > Tolerance_) || (fabs(Dx.Norm()) > Tolerance_)));
 
    cout << resetiosflags(ios::scientific) << endl;
+   uncertainty = Dx.Norm();
 
    if (itr >= MaxIter_)
    {
       cerr << "Convergence Not Reached!!! -- ArcLengthNewton" << endl;
-      good = 0;
+      loc_good = 0;
    }
 
-   return good;
+   good = good && loc_good;
+   return uncertainty;
 }
 
 int ArcLengthSolution::BisectAlert(Lattice *Lat,int Width,fstream &out)
@@ -294,6 +299,7 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,int Width,fstream &out)
    Vector IntermediateDiff(Difference_.Dim(),0.0);
    double OriginalDS = CurrentDS_;
    double CurrentMinEV,OldMinEV;
+   int dummy;
    int loops = 0;
    int OldNulity = Lat->StiffnessNulity(&OldMinEV);
    int CurrentNulity;
@@ -321,7 +327,7 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,int Width,fstream &out)
 	  && (loops != 0))
 	 Difference_ = -Difference_;
 
-      ArcLengthNewton();
+      ArcLengthNewton(dummy);
       IntermediateDiff += Difference_;
       OldMinEV = CurrentMinEV;
       OldNulity = CurrentNulity;

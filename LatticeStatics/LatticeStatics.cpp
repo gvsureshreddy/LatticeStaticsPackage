@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
    SolveMe = InitializeSolution(Mode,datafile,startfile,Lat,out,Width);
 
 
-   
+   double uncertainty;
    int success;
    int Nulity=-1,
       OldNulity=Nulity;
@@ -62,8 +62,7 @@ int main(int argc, char *argv[])
    
    while (!SolveMe->AllSolutionsFound())
    {
-      
-      success=SolveMe->FindNextSolution();
+      uncertainty = SolveMe->FindNextSolution(success);
 
       if (success)
       {	 
@@ -74,8 +73,12 @@ int main(int argc, char *argv[])
 	    SolveMe->BisectAlert(Lat,Width,out);
 	 
 	 // Send Output
-	 cout << setw(Width) << Lat << "Success = 1" << endl;
-	 out << setw(Width) << Lat << "Success = 1" << endl;
+	 cout << setw(Width) << Lat
+	      << "Uncertainty = " << setw(Width) << uncertainty << endl
+	      << "Success = 1" << endl;
+	 out << setw(Width) << Lat
+	     << "Uncertainty = " << setw(Width) << uncertainty << endl
+	     << "Success = 1" << endl;
       }
    }
 
@@ -207,7 +210,7 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
 	    while (!ScanMe.AllSolutionsFound())
 	    {
 	       One = Two;
-	       good = ScanMe.FindNextSolution();
+	       ScanMe.FindNextSolution(good);
 	       if (good)
 	       {
 		  cout << setw(Width) << Lat;

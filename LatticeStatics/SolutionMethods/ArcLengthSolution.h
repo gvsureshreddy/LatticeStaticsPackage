@@ -28,7 +28,7 @@ private:
    // Consistency Check data
    double ConsistencyEpsilon_;
 
-   int ArcLengthNewton();
+   double ArcLengthNewton(int &good);
    int ConsistencyCheck();
 
 public:
@@ -39,7 +39,7 @@ public:
 
    // Functions required by SolutionMethod
    virtual int AllSolutionsFound();
-   virtual int FindNextSolution();
+   virtual double FindNextSolution(int &good);
    virtual int BisectAlert(Lattice *Lat,int Width,fstream &out);
    
 };

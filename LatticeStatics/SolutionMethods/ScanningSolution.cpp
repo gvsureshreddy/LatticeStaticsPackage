@@ -97,10 +97,10 @@ int ScanningSolution::AllSolutionsFound()
       > ScanEnd_*(ScanStep_/fabs(ScanStep_));
 }
 
-int ScanningSolution::FindNextSolution()
+double ScanningSolution::FindNextSolution(int &good)
 {
-   int iteration=0,
-      good = 1;
+   double uncertainty;
+   int iteration=0;
 
    if (OnSolution_ == Yes)
    {
@@ -117,7 +117,7 @@ int ScanningSolution::FindNextSolution()
       }
    }
 
-   good = ScanningNewton();
+   uncertainty = ScanningNewton(good);
 
    double stepsize;
    double val = Mode_->ScanningStressParameter(),
@@ -126,7 +126,10 @@ int ScanningSolution::FindNextSolution()
       newsign = 0;
 
    if (fabs(val) < Tolerance_)
-      return 1;
+   {
+      good = 1;
+      return uncertainty;
+   }
 
    // March along CurrentScanLine_ until
    // ScanningStressParameter changes sign
@@ -140,7 +143,8 @@ int ScanningSolution::FindNextSolution()
 	    CurrentScanLine_ += ScanStep_;
 	    OnSolution_ = No;
 	    InitializeLine();
-	    return 0;
+	    good = 0;
+	    return uncertainty;
 	 }
 	 
 	 cout << Mode_->ScanningLoadParameter();
@@ -153,7 +157,8 @@ int ScanningSolution::FindNextSolution()
 	    CurrentScanLine_ += ScanStep_;
 	    OnSolution_ = No;
 	    InitializeLine();
-	    return 0;
+	    good = 0;
+	    return uncertainty;
 	 }
 	 
 	 cout << Mode_->ScanningDefParameter();
@@ -165,7 +170,7 @@ int ScanningSolution::FindNextSolution()
       else
 	 Mode_->ScanningDefParamUpdate(-LineStep_);
 
-      good = (ScanningNewton() && good);
+      uncertainty = ScanningNewton(good);
 
       oldval = val;
       val = Mode_->ScanningStressParameter();
@@ -206,7 +211,7 @@ int ScanningSolution::FindNextSolution()
 	 Mode_->ScanningDefParamUpdate(-stepsize);
       }
 
-      good = (ScanningNewton() && good);
+      uncertainty = ScanningNewton(good);
 
       oldval = val;
       val = Mode_->ScanningStressParameter();
@@ -229,12 +234,11 @@ int ScanningSolution::FindNextSolution()
       CurrentScanLine_ += ScanStep_;
    } 
    
-   return 1;
+   return (stepsize > uncertainty)?stepsize:uncertainty;
 }
 
-int ScanningSolution::ScanningNewton()
+double ScanningSolution::ScanningNewton(int &good)
 {
-   int good=1;
    int itr=0;
    Vector RHS=Mode_->ScanningRHS();
    Vector dx(RHS.Dim());
@@ -278,8 +282,8 @@ int ScanningSolution::ScanningNewton()
    if (itr >= MaxIter_)
    {
       cerr << "Convergence Not Reached -- ScanningNewton" << endl;
-      good =0;
+      good = 0;
    }
 
-   return good;
+   return dx.Norm();
 }

@@ -31,7 +31,7 @@ private:
 
    double CurrentScanLine_;
 
-   int ScanningNewton();
+   double ScanningNewton(int &good);
    void InitializeLine();
 
 public:
@@ -40,7 +40,7 @@ public:
 
    // Functions required by SolutionMethod
    virtual int AllSolutionsFound();
-   virtual int FindNextSolution();
+   virtual double FindNextSolution(int &good);
    virtual int BisectAlert(Lattice *Lat,int Width,fstream &out) {return 1;}
    
 };
