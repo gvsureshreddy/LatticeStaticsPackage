@@ -322,6 +322,8 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,int Width,fstream &out)
    int dummy;
    int loops = 0;
    int OldNulity = Lat->StiffnessNulity(&OldMinEV);
+   // OriginalNulity is the nulity on the front side of the path being traced
+   int OriginalNulity = OldNulity; 
    int CurrentNulity;
 
    // Set Lattice back to previous solution
@@ -333,8 +335,10 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,int Width,fstream &out)
    
    cout << "\t" << setw(Width) << OldNulity << setw(Width) << OldMinEV
 	<< " DS " << setw(Width) << CurrentDS_ << endl;
-
-   while ((fabs(CurrentMinEV) > ConvergenceFactor*Tolerance_)
+   
+   // Find bifurcation point and make sure we are on the back side edge
+   while (((fabs(CurrentMinEV) > ConvergenceFactor*Tolerance_)
+	   || (CurrentNulity == OriginalNulity))
 	  && (loops < MaxIter_))
    {
       cout << setw(Width) << CurrentNulity
