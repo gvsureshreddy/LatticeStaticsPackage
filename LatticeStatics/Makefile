@@ -79,12 +79,14 @@ $(BIN_LOC)/$(EXE):	$(EXE)
 	/bin/cp bin/$(EXE) $(BIN_LOC)/
 	/bin/cp gpl_scripts/AddRank1Convex $(BIN_LOC)/
 	/bin/cp gpl_scripts/MultiLattice2gpl $(BIN_LOC)/
+	/bin/cp gpl_scripts/BlochWaveRecalc $(BIN_LOC)/
 
 # Define uninstall
 uninstall:
 	/bin/rm -f $(BIN_LOC)/$(EXE)
 	/bin/rm -f $(BIN_LOC)/AddRank1Convex
 	/bin/rm -f $(BIN_LOC)/MultiLattice2gpl
+	/bin/rm -f $(BIN_LOC)/BlochWaveRecalc
 
 # Removes the current systems set of object files and executable file
 .PHONY: clean
