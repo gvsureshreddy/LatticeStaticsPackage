@@ -12,7 +12,8 @@ MultiLatticeTPP::~MultiLatticeTPP()
 	 delete Potential_[i][j];
    delete [] Potential_[0];
    delete [] Potential_;
-   delete [] A_;
+   delete [] AtomPositions_;
+   delete [] MovableAtoms_;
 }
 
 MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix)
@@ -33,14 +34,20 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix)
    DOF_[0]=DOF_[1]=DOF_[2] = 1.0;
    // Set RefLattice_
    RefLattice_.Resize(DIM3,DIM3);
-   // Set A
-   A_ = new Vector[INTERNAL_ATOMS];
+   // Set AtomPositions_
+   AtomPositions_ = new Vector[INTERNAL_ATOMS];
    for (int i=0;i<INTERNAL_ATOMS;++i)
    {
-      A_[i].Resize(DIM3);
+      AtomPositions_[i].Resize(DIM3);
       sprintf(tmp,"AtomPosition_%u",i);
-      if(!GetVectorParameter(prefix,tmp,datafile,&(A_[i]))) exit(-1);
+      if(!GetVectorParameter(prefix,tmp,datafile,&(AtomPositions_[i]))) exit(-1);
    }
+   // Set MovableAtoms_ : atoms which can move in initialization.
+   if(!GetParameter(prefix,"NoMovableAtoms",datafile,"%u",&NoMovable_)) exit(-1);
+   MovableAtoms_ = new int[NoMovable_];
+   if((NoMovable_ > 0) &&
+      (!GetIntVectorParameter(prefix,"MovableAtoms",datafile,NoMovable_,MovableAtoms_)))
+      exit(-1);
    
    // Setup Bodyforce_
    BodyForce_ = new Vector[INTERNAL_ATOMS];
@@ -94,7 +101,7 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix)
 	 RefLattice_[i][j] = LatticeBasis[i][j]*RefLen_[i];
 
    // Initiate the Lattice Sum object
-   LatSum_(&DOF_,&RefLattice_,INTERNAL_ATOMS,A_,&InfluanceDist_);
+   LatSum_(&DOF_,&RefLattice_,INTERNAL_ATOMS,AtomPositions_,&InfluanceDist_);
 
    int err=0;
    err=FindLatticeSpacing(iter,DX);
@@ -126,9 +133,9 @@ int MultiLatticeTPP::FindLatticeSpacing(int iter,double dx)
 
    LatSum_.Recalc();
 
-   Vector RHS(DIM3,0.0);
-   Matrix Stiff(DIM3,DIM3,0.0);
-   Vector De(DIM3,0.0);
+   Vector RHS(DIM3+NoMovable_,0.0);
+   Matrix Stiff(DIM3+NoMovable_,DIM3+NoMovable_,0.0);
+   Vector De(DIM3+NoMovable_,0.0);
    Matrix stress=Stress();
    Matrix stiff=stiffness();
    Vector LatBasisNorm[3];
@@ -142,25 +149,48 @@ int MultiLatticeTPP::FindLatticeSpacing(int iter,double dx)
    for (int i=0;i<DIM3;++i)
    {
       for (int j=0;j<DIM3;++j)
-	 for (int k=0;k<DIM3;k++)
+	 // Don't forget the 2's in the stress[][]
+	 for (int k=j;k<DIM3;k++)
 	 {
 	    RHS[i] += LatBasisNorm[i][j]*stress[0][INDU(j,k)]*LatBasisNorm[i][k];
 	 }
+   }
+   for (int i=0;i<NoMovable_;++i)
+   {
+      RHS[DIM3+i] = stress[0][MovableAtoms_[i]];
    }
 
    for (int i=0;i<DIM3;++i)
       for (int j=0;j<DIM3;++j)
       {
+	 Stiff[i][j] = 0.0;
 	 for (int k=0;k<DIM3;++k)
-	    for (int l=0;l<DIM3;++l)
+	    for (int l=k;l<DIM3;++l)
 	       for (int m=0;m<DIM3;++m)
-		  for (int n=0;n<DIM3;++n)
+		  for (int n=m;n<DIM3;++n)
 		  {
 		     Stiff[i][j] +=
 			LatBasisNorm[i][k]*LatBasisNorm[i][l]
 			*stiff[INDU(k,l)][INDU(m,n)]
 			*LatBasisNorm[j][m]*LatBasisNorm[j][n];
 		  }
+      }
+   for (int i=0;i<NoMovable_;++i)
+      for (int j=0;j<DIM3;++j)
+      {
+	 Stiff[DIM3+i][j] = 0.0;
+	 for (int m=0;m<DIM3;++m)
+	    for (int n=m;n<DIM3;++n)
+	    {
+	       Stiff[DIM3+i][j] += stiff[MovableAtoms_[i]][INDU(m,n)]
+		  *LatBasisNorm[j][m]*LatBasisNorm[j][n];
+	    }
+	 Stiff[j][DIM3+i] = Stiff[DIM3+i][j];
+      }
+   for (int i=0;i<NoMovable_;++i)
+      for (int j=0;j<NoMovable_;++j)
+      {
+	 Stiff[DIM3+i][DIM3+j] = stiff[MovableAtoms_[i]][MovableAtoms_[j]];
       }
 
    int itr=0;
@@ -176,6 +206,10 @@ int MultiLatticeTPP::FindLatticeSpacing(int iter,double dx)
 
       for (int i=0;i<DIM3;++i)
 	 RefLen_[i] -= De[i];
+      for (int i=0;i<NoMovable_;++i)
+      {
+	 AtomPositions_[1+(MovableAtoms_[i]-6)/3][(MovableAtoms_[i]-6)%3] -= De[DIM3+i];
+      }
    
       // Update RefLattice_
       for (int p=0;p<DIM3;++p)
@@ -190,10 +224,15 @@ int MultiLatticeTPP::FindLatticeSpacing(int iter,double dx)
       {
 	 RHS[i] = 0.0;
 	 for (int j=0;j<DIM3;++j)
-	    for (int k=0;k<DIM3;k++)
+	    // Don't forget the 2's in stress[][]
+	    for (int k=j;k<DIM3;k++)
 	    {
 	       RHS[i] += LatBasisNorm[i][j]*stress[0][INDU(j,k)]*LatBasisNorm[i][k];
 	    }
+      }
+      for (int i=0;i<NoMovable_;++i)
+      {
+	 RHS[DIM3+i] = stress[0][MovableAtoms_[i]];
       }
       
       for (int i=0;i<DIM3;++i)
@@ -201,9 +240,9 @@ int MultiLatticeTPP::FindLatticeSpacing(int iter,double dx)
 	 {
 	    Stiff[i][j] = 0.0;
 	    for (int k=0;k<DIM3;++k)
-	       for (int l=0;l<DIM3;++l)
+	       for (int l=k;l<DIM3;++l)
 		  for (int m=0;m<DIM3;++m)
-		     for (int n=0;n<DIM3;++n)
+		     for (int n=m;n<DIM3;++n)
 		     {
 			Stiff[i][j] +=
 			   LatBasisNorm[i][k]*LatBasisNorm[i][l]
@@ -211,12 +250,36 @@ int MultiLatticeTPP::FindLatticeSpacing(int iter,double dx)
 			   *LatBasisNorm[j][m]*LatBasisNorm[j][n];
 		     }
 	 }
+      for (int i=0;i<NoMovable_;++i)
+	 for (int j=0;j<DIM3;++j)
+	 {
+	    Stiff[DIM3+i][j] = 0.0;
+	    for (int m=0;m<DIM3;++m)
+	       for (int n=m;n<DIM3;++n)
+	       {
+		  Stiff[DIM3+i][j] += stiff[MovableAtoms_[i]][INDU(m,n)]
+		     *LatBasisNorm[j][m]*LatBasisNorm[j][n];
+	       }
+	    Stiff[j][DIM3+i] = Stiff[DIM3+i][j];
+	 }
+      for (int i=0;i<NoMovable_;++i)
+	 for (int j=0;j<NoMovable_;++j)
+	 {
+	    Stiff[DIM3+i][DIM3+j] = stiff[MovableAtoms_[i]][MovableAtoms_[j]];
+	 }
 
       cout << setw(10) << itr << endl
 	   << "    RHS=" << setw(20) << RHS << setw(20) << RHS.Norm() << endl
 	   << "     De=" << setw(20) << De  << setw(20) << De.Norm() << endl
 	   << "RefLen_=" << setw(20) << RefLen_[0] << setw(20) << RefLen_[1]
-	   << setw(20) << RefLen_[2] << endl;
+	   << setw(20) << RefLen_[2] << endl
+	   << "AtomPositions_=";
+      for (int i=0;i<NoMovable_;++i)
+      {
+	 cout << setw(20)
+	      << AtomPositions_[1+(MovableAtoms_[i]-6)/3][(MovableAtoms_[i]-6)%3];
+      }
+      cout << endl;
    }
    while ((itr < iter)
 	  && ((RHS.Norm() > 1.0e-13) || (De.Norm() > 1.0e-14)));
@@ -1476,7 +1539,8 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 	     << "Lattice Basis_2 : " << setw(W) << LatticeBasis[2] <<endl << endl;
 	 for (int i=0;i<INTERNAL_ATOMS;++i)
 	 {
-	    out << "Atom_" << i << " Position : " << setw(W) << A_[i] << endl;
+	    out << "Atom_" << i << " Position : "
+		<< setw(W) << AtomPositions_[i] << endl;
 	 }
 	 out << "Influance Distance   : " << setw(W) << InfluanceDist_ << endl;
 	 for (int i=0;i<INTERNAL_ATOMS;++i)
@@ -1503,7 +1567,8 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 	      << "Lattice Basis_2 : " << setw(W) << LatticeBasis[2] <<endl << endl;
 	 for (int i=0;i<INTERNAL_ATOMS;++i)
 	 {
-	    cout << "Atom_" << i << " Position : " << setw(W) << A_[i] << endl;
+	    cout << "Atom_" << i << " Position : "
+		 << setw(W) << AtomPositions_[i] << endl;
 	 }
 	 cout << "Influance Distance   : " << setw(W) << InfluanceDist_ << endl;
 	 for (int i=0;i<INTERNAL_ATOMS;++i)

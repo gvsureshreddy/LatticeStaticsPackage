@@ -37,7 +37,9 @@ private:
 
    // Misc
    double ConvexityDX_;
-   Vector *A_;
+   Vector *AtomPositions_;
+   int NoMovable_;
+   int *MovableAtoms_;
    
    Matrix stress(PairPotentials::TDeriv dt=PairPotentials::T0);
    Matrix stiffness(int moduliflag=0,PairPotentials::TDeriv dt=PairPotentials::T0);
@@ -53,6 +55,7 @@ private:
 
 public:
    double RefLen(int i=0) {return RefLen_[i];}
+   Vector AtomPositions(int i) {return AtomPositions_[i];}
 
    // Virtual Functions required by GenericLat
    Vector DOF() {return DOF_;}
