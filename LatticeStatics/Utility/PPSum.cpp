@@ -3,10 +3,28 @@
 PPSum::PPSum(Vector *DOF,Matrix *RefLat,int InternalAtoms,
 	     Matrix *InternalPOS,unsigned *InfluDist)
    : DOF_(DOF),RefLattice_(RefLat),InternalAtoms_(InternalAtoms),
-     InternalPOS_(InternalPOS),InfluanceDist_(InfluDist),U(3,3),V(InternalAtoms,3),
+     InternalPOS_(InternalPOS),InfluanceDist_(InfluDist),U_(3,3),V_(InternalAtoms,3),
      Recalc_(0),CurrentPOS_(0),Pairs_(0),
      RelPosDATA_(int(pow(2*(*InfluDist),3)*pow(InternalAtoms,2)),DATALEN)
 {
+   Initialize();
+}
+
+void PPSum::operator()(Vector *DOF,Matrix *RefLat,int InternalAtoms,
+		       Matrix *InternalPOS,unsigned *InfluDist)
+{
+   DOF_ = DOF;
+   RefLattice_ = RefLat;
+   InternalAtoms_= InternalAtoms;
+   InternalPOS_ = InternalPOS;
+   InfluanceDist_ = InfluDist;
+   U_.Resize(3,3);
+   V_.Resize(InternalAtoms,3);
+   Recalc_ = 0;
+   CurrentPOS_ = 0;
+   Pairs_ = 0;
+   RelPosDATA_.Resize(int(pow(2*(*InfluDist),3)*pow(InternalAtoms,2)),DATALEN);
+
    Initialize();
 }
 
@@ -31,22 +49,22 @@ void PPSum::Initialize()
    static int p,q,i,j;
    static int Top[3],Bottom[3],CurrentInfluanceDist;
 
-   U[0][0] = (*DOF_)[0];
-   U[1][1] = (*DOF_)[1];
-   U[2][2] = (*DOF_)[2];
-   U[0][1] = U[1][0] = (*DOF_)[3];
-   U[0][2] = U[2][0] = (*DOF_)[4];
-   U[1][2] = U[2][1] = (*DOF_)[5];
+   U_[0][0] = (*DOF_)[0];
+   U_[1][1] = (*DOF_)[1];
+   U_[2][2] = (*DOF_)[2];
+   U_[0][1] = U_[1][0] = (*DOF_)[3];
+   U_[0][2] = U_[2][0] = (*DOF_)[4];
+   U_[1][2] = U_[2][1] = (*DOF_)[5];
 
-   V[0][0] = 0.0;
-   V[0][1] = 0.0;
-   V[0][2] = 0.0;
+   V_[0][0] = 0.0;
+   V_[0][1] = 0.0;
+   V_[0][2] = 0.0;
    i=6;
    for (q=1;q<InternalAtoms_;++q)
    {
       for (p=0;p<3;p++)
       {
-	 V[q][p] = (*DOF_)[i++];
+	 V_[q][p] = (*DOF_)[i++];
       }
    }
 
@@ -55,8 +73,8 @@ void PPSum::Initialize()
    // that size...
    //
    // Use the fact that eigs of Uinv = 1/ eigs of U.
-   J = U.Det();
-   Eigvals = SymEigVal(U);
+   J = U_.Det();
+   Eigvals = SymEigVal(U_);
    tmp = Eigvals[0][0];
    for (i=0;i<3;i++)
       if (Eigvals[0][i] < tmp) tmp = Eigvals[0][i];
@@ -113,8 +131,8 @@ void PPSum::Initialize()
 		     for (j=0;j<3;j++)
 		     {
 			RelPosDATA_[Pairs_][i] +=
-			   (X[j] + (((*InternalPOS_)[q][j] + V[q][j])
-				    - ((*InternalPOS_)[q][j] + V[p][j])))
+			   (X[j] + (((*InternalPOS_)[q][j] + V_[q][j])
+				    - ((*InternalPOS_)[q][j] + V_[p][j])))
 			   *(*RefLattice_)[j][i];
 
 		     }
@@ -127,7 +145,7 @@ void PPSum::Initialize()
 
 		     for (j=0;j<3;j++)
 		     {
-			RelPosDATA_[Pairs_][3+i] += U[i][j] * RelPosDATA_[Pairs_][j];
+			RelPosDATA_[Pairs_][3+i] += U_[i][j] * RelPosDATA_[Pairs_][j];
 		     }
 		     RelPosDATA_[Pairs_][6]
 			+= RelPosDATA_[Pairs_][3+i]*RelPosDATA_[Pairs_][3+i];
