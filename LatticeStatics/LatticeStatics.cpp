@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
 	 OldNulity = Nulity;
 	 Nulity = Lat->StiffnessNulity();
 	 if ((OldNulity != Nulity) && (BisectCP == Yes) && (OldNulity != -1))
-	    SolveMe->BisectAlert(Lat,Width,out);
+	    SolveMe->BisectAlert(Lat,datafile,Width,out);
 	 
 	 // Send Output
 	 cout << setw(Width) << Lat
