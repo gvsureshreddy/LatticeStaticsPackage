@@ -303,7 +303,7 @@ inline int NiTiShuffle1TPPLat::IND(int k,int l,int m,int n)
    }
 }
 
-Matrix NiTiShuffle1TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,RadiiMorse::TDeriv dt)
+Matrix NiTiShuffle1TPPLat::Phi(unsigned moduliflag,PairPotentials::YDeriv dy,PairPotentials::TDeriv dt)
 {
    static Matrix U(3,3);
    static Matrix Eigvals(1,3);
@@ -320,19 +320,19 @@ Matrix NiTiShuffle1TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,RadiiMo
 
    switch (dy)
    {
-      case RadiiMorse::Y0:
+      case PairPotentials::Y0:
 	 Phi.Resize(1,1,0.0);
 	 break;
-      case RadiiMorse::DY:
+      case PairPotentials::DY:
 	 Phi.Resize(1,7,0.0);
 	 break;
-      case RadiiMorse::D2Y:
+      case PairPotentials::D2Y:
 	 Phi.Resize(7,7,0.0);
 	 break;
-      case RadiiMorse::D3Y:
+      case PairPotentials::D3Y:
 	 Phi.Resize(49,7,0.0);
 	 break;
-      case RadiiMorse::D4Y:
+      case PairPotentials::D4Y:
 	 Phi.Resize(49,49,0.0);
 	 break;
    }
@@ -424,7 +424,7 @@ Matrix NiTiShuffle1TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,RadiiMo
 
 		  // Calculate bodyforce
 		  phi1 = 2.0*sqrt(r2)*
-		     Potential_[Inter].PairPotential(NTemp_,r2,RadiiMorse::DY,RadiiMorse::T0);
+		     Potential_[Inter].PairPotential(NTemp_,r2,PairPotentials::DY,PairPotentials::T0);
 		  if (ForceNorm < fabs(-phi1/2.0))
 		  {
 		     ForceNorm = fabs(-phi1/2.0);
@@ -438,10 +438,10 @@ Matrix NiTiShuffle1TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,RadiiMo
 		  phi = Potential_[Inter].PairPotential(NTemp_,r2,dy,dt);
 		  switch (dy)
 		  {
-		     case RadiiMorse::Y0:
+		     case PairPotentials::Y0:
 			Phi[0][0]+=phi;
 			break;
-		     case RadiiMorse::DY:
+		     case PairPotentials::DY:
 			for (i=0;i<DIM3;i++)
 			{
 			   for (j=0;j<DIM3;j++)
@@ -451,8 +451,8 @@ Matrix NiTiShuffle1TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,RadiiMo
 			   Phi[0][6] += phi*(2.0*DxPrime[i]*Dx[i]);
 			}
 			break;
-		     case RadiiMorse::D2Y:
-			phi1=Potential_[Inter].PairPotential(NTemp_,r2,RadiiMorse::DY,dt);
+		     case PairPotentials::D2Y:
+			phi1=Potential_[Inter].PairPotential(NTemp_,r2,PairPotentials::DY,dt);
 		     
 			for (i=0;i<DIM3;i++)
 			{
@@ -476,8 +476,8 @@ Matrix NiTiShuffle1TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,RadiiMo
 			Phi[6][6] += phi*(2.0*(DxPrime*Dx))*(2.0*(DxPrime*Dx))
 			   + phi1*(2.0*DxPrime*DxPrime);
 			break;
-		     case RadiiMorse::D3Y:
-			// phi1=Potential_[Inter].PairPotential(NTemp_,r2,RadiiMorse::D2Y,dt);
+		     case PairPotentials::D3Y:
+			// phi1=Potential_[Inter].PairPotential(NTemp_,r2,PairPotentials::D2Y,dt);
 			// 
 			// for (i=0;i<DIM3;i++)
 			//    for (j=0;j<DIM3;j++)
@@ -495,9 +495,9 @@ Matrix NiTiShuffle1TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,RadiiMo
 			cerr << "D3Y not programmed !" << endl;
 			exit(1);
 			break;
-		     case RadiiMorse::D4Y:
-			// phi1=Potential_[Inter].PairPotential(NTemp_,r2,RadiiMorse::D3Y,dt);
-			// phi2=Potential_[Inter].PairPotential(NTemp_,r2,RadiiMorse::D2Y,dt);
+		     case PairPotentials::D4Y:
+			// phi1=Potential_[Inter].PairPotential(NTemp_,r2,PairPotentials::D3Y,dt);
+			// phi2=Potential_[Inter].PairPotential(NTemp_,r2,PairPotentials::D2Y,dt);
 			// 
 			// for (i=0;i<DIM3;i++)
 			//    for (j=0;j<DIM3;j++)
@@ -565,14 +565,14 @@ Matrix NiTiShuffle1TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,RadiiMo
    // Recall that Pressure_ is applied stress
    // Thus E = W - pJ
 
-   if (dt == RadiiMorse::T0)
+   if (dt == PairPotentials::T0)
    {
       switch (dy)
       {
-	 case RadiiMorse::Y0:
+	 case PairPotentials::Y0:
 	    Phi[0][0] = Phi[0][0] - Pressure_*J;
 	    break;
-	 case RadiiMorse::DY:
+	 case PairPotentials::DY:
 	 {
 	    Matrix Uinv = U.Inverse();
 	    for (i=0;i<DIM3;i++)
@@ -582,7 +582,7 @@ Matrix NiTiShuffle1TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,RadiiMo
 	       }
 	 }
 	 break;
-	 case RadiiMorse::D2Y:
+	 case PairPotentials::D2Y:
 	    for (i=0;i<DIM3;i++)
 	       for (j=0;j<DIM3;j++)
 		  for (k=0;k<DIM3;k++)
@@ -601,7 +601,7 @@ Matrix NiTiShuffle1TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,RadiiMo
 			   }
 		     }
 	    break;
-	 case RadiiMorse::D3Y:
+	 case PairPotentials::D3Y:
 	    for (i=0;i<DIM3;i++)
 	       for (j=0;j<DIM3;j++)
 		  for (k=0;k<DIM3;k++)
@@ -621,7 +621,7 @@ Matrix NiTiShuffle1TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,RadiiMo
 				    Alt[i][s][l]*Alt[j][q][k] + Alt[j][s][l]*Alt[i][q][k]);
 			   }
 	    break;
-	 case RadiiMorse::D4Y:
+	 case PairPotentials::D4Y:
 	    // Terms are zero
 	    break;
       }
@@ -638,22 +638,22 @@ double NiTiShuffle1TPPLat::Energy()
 
 Matrix NiTiShuffle1TPPLat::Stress()
 {
-   return Phi(0,RadiiMorse::DY);
+   return Phi(0,PairPotentials::DY);
 }
 
 Matrix NiTiShuffle1TPPLat::StressDT()
 {
-   return Phi(0,RadiiMorse::DY,RadiiMorse::DT);
+   return Phi(0,PairPotentials::DY,PairPotentials::DT);
 }
 
 Matrix NiTiShuffle1TPPLat::Stiffness()
 {
-   return Phi(0,RadiiMorse::D2Y);
+   return Phi(0,PairPotentials::D2Y);
 }
 
 Matrix NiTiShuffle1TPPLat::Moduli()
 {
-   return Phi(1,RadiiMorse::D2Y);
+   return Phi(1,PairPotentials::D2Y);
 }
 
 int NiTiShuffle1TPPLat::StiffnessNulity(double *Min)
@@ -682,9 +682,9 @@ int NiTiShuffle1TPPLat::StiffnessNulity(double *Min)
 
 void NiTiShuffle1TPPLat::CriticalPointInfo(int Width,ostream &out)
 {
-   // Matrix L4 = Phi(0,RadiiMorse::D4Y,RadiiMorse::T0),
-   // 	 L3 = Phi(0,RadiiMorse::D3Y,RadiiMorse::T0),
-   // 	 L2T = Phi(0,RadiiMorse::D2Y,RadiiMorse::DT),
+   // Matrix L4 = Phi(0,PairPotentials::D4Y,PairPotentials::T0),
+   // 	 L3 = Phi(0,PairPotentials::D3Y,PairPotentials::T0),
+   // 	 L2T = Phi(0,PairPotentials::D2Y,PairPotentials::DT),
    // 	 L = Stiffness();
    // 
    // double E,Ehat,Et1,Et2,eta,etahat,a,b,c;

@@ -62,8 +62,8 @@ private:
    double pwr(const double &x,const unsigned y);
    inline int IND(int i,int j);
    inline int IND(int k,int l,int m,int n);
-   Matrix Phi(unsigned moduliflag=0,RadiiMorse::YDeriv dy=RadiiMorse::Y0,
-	      RadiiMorse::TDeriv dt=RadiiMorse::T0);
+   Matrix Phi(unsigned moduliflag=0,PairPotentials::YDeriv dy=PairPotentials::Y0,
+	      PairPotentials::TDeriv dt=PairPotentials::T0);
    int FindLatticeSpacing(int iter,double dx);
    
 };

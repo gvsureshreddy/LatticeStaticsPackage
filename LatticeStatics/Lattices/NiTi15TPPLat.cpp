@@ -353,8 +353,8 @@ inline int NiTi15TPPLat::INDVU(int m,int n,int i,int j)
    }
 }
 
-Matrix NiTi15TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,
-			 RadiiMorse::TDeriv dt)
+Matrix NiTi15TPPLat::Phi(unsigned moduliflag,PairPotentials::YDeriv dy,
+			 PairPotentials::TDeriv dt)
 {
    static Matrix U(3,3);
    static Matrix V(4,3);
@@ -372,19 +372,19 @@ Matrix NiTi15TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,
 
    switch (dy)
    {
-      case RadiiMorse::Y0:
+      case PairPotentials::Y0:
 	 Phi.Resize(1,1,0.0);
 	 break;
-      case RadiiMorse::DY:
+      case PairPotentials::DY:
 	 Phi.Resize(1,15,0.0);
 	 break;
-      case RadiiMorse::D2Y:
+      case PairPotentials::D2Y:
 	 Phi.Resize(15,15,0.0);
 	 break;
-      case RadiiMorse::D3Y:
+      case PairPotentials::D3Y:
 	 Phi.Resize(225,15,0.0);
 	 break;
-      case RadiiMorse::D4Y:
+      case PairPotentials::D4Y:
 	 Phi.Resize(225,225,0.0);
 	 break;
    }
@@ -492,8 +492,8 @@ Matrix NiTi15TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,
 		  // NOTE: phi1 = d(phi)/d(r2)
 		  // We need d(phi)/dr = 2*r*d(phi)/d(r2)
 		  phi1 = 2.0*sqrt(r2)*
-		     Potential_[Inter].PairPotential(NTemp_,r2,RadiiMorse::DY,
-						     RadiiMorse::T0);
+		     Potential_[Inter].PairPotential(NTemp_,r2,PairPotentials::DY,
+						     PairPotentials::T0);
 		  if (ForceNorm < fabs(-phi1/2.0))
 		  {
 		     ForceNorm = fabs(-phi1/2.0);
@@ -507,10 +507,10 @@ Matrix NiTi15TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,
 		  phi = Potential_[Inter].PairPotential(NTemp_,r2,dy,dt);
 		  switch (dy)
 		  {
-		     case RadiiMorse::Y0:
+		     case PairPotentials::Y0:
 			Phi[0][0]+=phi;
 			break;
-		     case RadiiMorse::DY:
+		     case PairPotentials::DY:
 			for (i=0;i<DIM3;i++)
 			{
 			   for (j=0;j<DIM3;j++)
@@ -526,8 +526,8 @@ Matrix NiTi15TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,
 			   }
 			}
 			break;
-		     case RadiiMorse::D2Y:
-			phi1=Potential_[Inter].PairPotential(NTemp_,r2,RadiiMorse::DY,
+		     case PairPotentials::D2Y:
+			phi1=Potential_[Inter].PairPotential(NTemp_,r2,PairPotentials::DY,
 							     dt);
 
 			//Upper Diag Block (6,6)
@@ -580,7 +580,7 @@ Matrix NiTi15TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,
 			   }
 			}		
 			break;
-		     case RadiiMorse::D3Y:
+		     case PairPotentials::D3Y:
 			// phi1=PairPotential(Inter,r2,D2Y,dt);
 			// 
 			// for (i=0;i<DIM3;i++)
@@ -599,7 +599,7 @@ Matrix NiTi15TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,
 			cerr << "D3Y not programmed !" << endl;
 			exit(1);
 			break;
-		     case RadiiMorse::D4Y:
+		     case PairPotentials::D4Y:
 			// phi1=PairPotential(Inter,r2,D3Y,dt);
 			// phi2=PairPotential(Inter,r2,D2Y,dt);
 			// 
@@ -669,14 +669,14 @@ Matrix NiTi15TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,
    // Recall that Pressure_ is applied stress
    // Thus E = W - pJ
 
-   if (dt == RadiiMorse::T0)
+   if (dt == PairPotentials::T0)
    {
       switch (dy)
       {
-	 case RadiiMorse::Y0:
+	 case PairPotentials::Y0:
 	    Phi[0][0] = Phi[0][0] - Pressure_*J;
 	    break;
-	 case RadiiMorse::DY:
+	 case PairPotentials::DY:
 	 {
 	    Matrix Uinv = U.Inverse();
 	    for (i=0;i<DIM3;i++)
@@ -686,7 +686,7 @@ Matrix NiTi15TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,
 	       }
 	 }
 	 break;
-	 case RadiiMorse::D2Y:
+	 case PairPotentials::D2Y:
 	    for (i=0;i<DIM3;i++)
 	       for (j=0;j<DIM3;j++)
 		  for (k=0;k<DIM3;k++)
@@ -705,7 +705,7 @@ Matrix NiTi15TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,
 			   }
 		     }
 	    break;
-	 case RadiiMorse::D3Y:
+	 case PairPotentials::D3Y:
 	    for (i=0;i<DIM3;i++)
 	       for (j=0;j<DIM3;j++)
 		  for (k=0;k<DIM3;k++)
@@ -725,7 +725,7 @@ Matrix NiTi15TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,
 				    Alt[i][s][l]*Alt[j][q][k] + Alt[j][s][l]*Alt[i][q][k]);
 			   }
 	    break;
-	 case RadiiMorse::D4Y:
+	 case PairPotentials::D4Y:
 	    // Terms are zero
 	    break;
       }
@@ -742,22 +742,22 @@ double NiTi15TPPLat::Energy()
 
 Matrix NiTi15TPPLat::Stress()
 {
-   return Phi(0,RadiiMorse::DY);
+   return Phi(0,PairPotentials::DY);
 }
 
 Matrix NiTi15TPPLat::StressDT()
 {
-   return Phi(0,RadiiMorse::DY,RadiiMorse::DT);
+   return Phi(0,PairPotentials::DY,PairPotentials::DT);
 }
 
 Matrix NiTi15TPPLat::Stiffness()
 {
-   return Phi(0,RadiiMorse::D2Y);
+   return Phi(0,PairPotentials::D2Y);
 }
 
 Matrix NiTi15TPPLat::Moduli()
 {
-   return Phi(1,RadiiMorse::D2Y);
+   return Phi(1,PairPotentials::D2Y);
 }
 
 int NiTi15TPPLat::StiffnessNulity(double *Min)

@@ -77,8 +77,8 @@ private:
    inline int INDUV(int i,int j,int m,int n);
    inline int INDVU(int m,int n,int i,int j);
    inline double DELTA(int s,int p,int q) {return Del(s,q) - Del(s,p);}
-   Matrix Phi(unsigned moduliflag=0,RadiiMorse::YDeriv dy=RadiiMorse::Y0,
-	      RadiiMorse::TDeriv dt=RadiiMorse::T0);
+   Matrix Phi(unsigned moduliflag=0,PairPotentials::YDeriv dy=PairPotentials::Y0,
+	      PairPotentials::TDeriv dt=PairPotentials::T0);
    int FindLatticeSpacing(int iter,double dx);
    
 };

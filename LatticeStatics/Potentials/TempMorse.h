@@ -1,21 +1,15 @@
 #ifndef __TempMorse
 #define __TempMorse
 
-#include <stdio.h>
-#include <iostream.h>
-#include <iomanip.h>
-#include <math.h>
+#include "PairPotentials.h"
 
 
-class TempMorse
+class TempMorse: public PairPotentials
 {
 private:
    double A0_, B0_, Alpha_, Rref_, Tref_, Tmelt_;
 
 public:
-   enum YDeriv {Y0,DY,D2Y,D3Y,D4Y};
-   enum TDeriv {T0,DT};
-
    TempMorse() {};
    TempMorse(double A0,double B0,double Alpha,double Rref,double Tref,double Tmelt);
    ~TempMorse() {};
