@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 // Global IDString
-char MatrixID[]="$Id: Matrix.cpp,v 1.11 2003/02/19 20:33:48 elliottr Exp $";
+char MatrixID[]="$Id: Matrix.cpp,v 1.12 2003/04/02 18:45:34 elliottr Exp $";
 
 // Private Methods...
 
@@ -406,29 +406,19 @@ void Matrix::Resize(unsigned Rows,unsigned Cols,Matrix::Elm InitVal)
 	    Elements_[i]=Elements_[i-1]+Cols_;
 	 }
       }
-
-      if (InitVal!=SENTINAL)
+   }
+   
+   if (InitVal!=SENTINAL)
+   {
+      for (register int i=0;i<Rows_;i++)
       {
-	 for (register int i=0;i<Rows_;i++)
+	 for (register int j=0;j<Cols_;j++)
 	 {
-	    for (register int j=0;j<Cols_;j++)
-	    {
-	       Elements_[i][j]=InitVal;
-	    }
+	    Elements_[i][j]=InitVal;
 	 }
       }
    }
-   else
-   {
-      if (InitVal != SENTINAL)
-	 for (register int i=0;i<Rows_;i++)
-	 {
-	    for (register int j=0;j<Cols_;j++)
-	    {
-	       Elements_[i][j]=InitVal;
-	    }
-	 }
-   }
+
    return;
 }
 

@@ -6,7 +6,7 @@
 #include <math.h>
 
 // Global IDString
-char CMatrixID[]="$Id: CMatrix.cpp,v 1.3 2002/10/16 19:14:27 elliottr Exp $";
+char CMatrixID[]="$Id: CMatrix.cpp,v 1.4 2003/04/02 18:45:52 elliottr Exp $";
 
 // Private Methods...
 
@@ -411,29 +411,17 @@ void CMatrix::Resize(unsigned Rows,unsigned Cols,CMatrix::Elm InitVal)
 	    Elements_[i]=Elements_[i-1]+Cols_;
 	 }
       }
+   }
 
-      if (InitVal!=SENTINAL)
+   if (InitVal != SENTINAL)
+      for (register int i=0;i<Rows_;i++)
       {
-	 for (register int i=0;i<Rows_;i++)
+	 for (register int j=0;j<Cols_;j++)
 	 {
-	    for (register int j=0;j<Cols_;j++)
-	    {
-	       Elements_[i][j]=InitVal;
-	    }
+	    Elements_[i][j]=InitVal;
 	 }
       }
-   }
-   else
-   {
-      if (InitVal != SENTINAL)
-	 for (register int i=0;i<Rows_;i++)
-	 {
-	    for (register int j=0;j<Cols_;j++)
-	    {
-	       Elements_[i][j]=InitVal;
-	    }
-	 }
-   }
+
    return;
 }
 
