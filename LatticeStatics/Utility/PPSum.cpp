@@ -140,7 +140,8 @@ void PPSum::Initialize()
 		  for (i=0;i<3;i++)
 		  {
 		     RelPosDATA_[Pairs_][DXSTART+i] = 0.0;
-				     
+
+		     // "SHIFTED reference position"
 		     for (j=0;j<3;j++)
 		     {
 			RelPosDATA_[Pairs_][DXSTART+i] +=

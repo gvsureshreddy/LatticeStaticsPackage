@@ -34,6 +34,8 @@ public:
    virtual int StiffnessNulity(double *Min=NULL);
    virtual void DispersionCurves(Vector K,int NoPTS,const char *prefix,ostream &out) {};
    virtual int BlochWave(Vector &K) {return -1;}
+   virtual void LongWavelengthModuli(double dk,int gridsize,const char *prefix,
+				     ostream &out) {};
    virtual void SetGridSize(int Grid) = 0;
    virtual void NeighborDistances(int cutoff,ostream &out) {};
    virtual void CriticalPointInfo(const Vector &DrDt,double Tolerance,

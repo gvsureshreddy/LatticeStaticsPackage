@@ -59,6 +59,7 @@ private:
    void interpolate(Matrix *EigVals,int zero,int one,int two);
    // compair function for qsort
    static int comp(const void *a,const void *b);
+   static int abscomp(const void *a,const void *b);
 
 public:
    double RefLen(int i=0) {return RefLen_[i];}
@@ -84,6 +85,8 @@ public:
 	:ReferenceDispersionCurves(K,NoPTS,prefix,out);}
    virtual int BlochWave(Vector &K)
    { CurrRef_? CurrentBlochWave(K) : ReferenceBlochWave(K);}
+   virtual void LongWavelengthModuli(double dk,int gridsize,const char *prefix,
+				     ostream &out);
    virtual void SetGridSize(int Grid) {GridSize_=Grid; UCIter_(GridSize_);}
    virtual void NeighborDistances(int cutoff,ostream &out);
    virtual void Print(ostream &out,PrintDetail flag);

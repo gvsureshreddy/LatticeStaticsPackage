@@ -294,6 +294,8 @@ int MultiLatticeTPP::FindLatticeSpacing(int iter,double dx)
    ShearMod_ = 0.25*fabs(Stiffness()[5][5]);
    NTemp_=oldTemp;
    Pressure_=oldPressure;
+   //Normalize the Pressure
+   // Should be input in normalized form
 
    LatSum_.Recalc();
    return 0;
@@ -646,7 +648,7 @@ Matrix MultiLatticeTPP::stiffness(int moduliflag,PairPotentials::TDeriv dt)
 	    }
 	 }
       }
-      //Lower Diag Block (3,3)
+      //Lower Diag Block (3*INTERNAL_ATOMS,3*INTERNAL_ATOMS)
       for (i=1;i<INTERNAL_ATOMS;i++)
       {
 	 for (j=0;j<DIM3;j++)
@@ -686,7 +688,7 @@ Matrix MultiLatticeTPP::stiffness(int moduliflag,PairPotentials::TDeriv dt)
       
    // Phi = Phi/(2*Vr*ShearMod)
    Phi *= 1.0/(2.0*(RefLattice_.Det()*ShearMod_));
-   
+
    if ((!moduliflag) && (dt == PairPotentials::T0))
    {
       U = LatSum_.U();
@@ -1204,7 +1206,7 @@ Matrix MultiLatticeTPP::E4()
 
 Matrix MultiLatticeTPP::CondensedModuli()
 {
-   Matrix stiff = Moduli();
+   Matrix stiff = Stiffness();
    int intrn = DOFS-6;
    Matrix CM(6,6), IM(intrn,intrn);
    
@@ -1261,6 +1263,18 @@ int MultiLatticeTPP::comp(const void *a,const void *b)
    else
    {
       t= *((double*) a) - *((double*) b);
+      t/=fabs(t);
+      return int(t);
+   }
+}
+
+int MultiLatticeTPP::abscomp(const void *a,const void *b)
+{
+   double t;
+   if( fabs(*((double*) a)) == fabs(*((double*) b))) return 0;
+   else
+   {
+      t= fabs(*((double*) a)) - fabs(*((double*) b));
       t/=fabs(t);
       return int(t);
    }
@@ -1644,6 +1658,91 @@ int MultiLatticeTPP::ReferenceBlochWave(Vector &K)
       }
    }
    return 1;
+}
+
+void MultiLatticeTPP::LongWavelengthModuli(double dk, int gridsize,const char *prefix,
+					   ostream &out)
+{
+   static double pi = 4*atan(1.0);
+   static double twopi = 2*pi;
+   double GS = double(gridsize);
+   int w=out.width();
+   out.width(0);
+   if (Echo_) cout.width(0);
+
+   Matrix
+      L = CondensedModuli(),
+      A(DIM3,DIM3);
+
+   Vector K(DIM3),Z(DIM3);
+   Matrix BlkEigVal(1,INTERNAL_ATOMS*DIM3);
+   Matrix ModEigVal(1,DIM3);
+
+   double Mc=0.0;
+   double Vc=RefLattice_.Det();
+   for (int i=0;i<INTERNAL_ATOMS;++i)
+   {
+      Mc += AtomicMass_[i];
+   }
+
+   for (int phi=0;phi<gridsize;++phi)
+   {
+      for (int theta=0;theta<gridsize;++theta)
+      {
+	 K[0] = sin(pi*(phi/GS))*cos(twopi*(theta/GS));
+	 K[1] = sin(pi*(phi/GS))*sin(twopi*(theta/GS));
+	 K[2] = cos(pi*(phi/GS));
+
+	 Z=dk*K;
+	 BlkEigVal = HermiteEigVal(ReferenceDynamicalStiffness(Z));
+	 // sort by absolute value
+	 qsort(BlkEigVal[0],INTERNAL_ATOMS*DIM3,sizeof(double),&abscomp);
+
+	 for (int i=0;i<DIM3;++i)
+	 {
+	    // normalize by (Mc/Vc)/G
+	    BlkEigVal[0][i] *= (Mc/Vc)/ShearMod_;
+	    // wave speed squared
+	    BlkEigVal[0][i] /= (twopi*dk*twopi*dk);
+	 }
+
+	 for (int i=0;i<DIM3;++i)
+	    for (int j=0;j<DIM3;++j)
+	    {
+	 	 A[i][j] = 0.0;
+	 	 for (int k=0;k<DIM3;++k)
+	 	    for (int l=0;l<DIM3;++l)
+	 	    {
+	 	       A[i][j] += L[INDU(k,i)][INDU(j,l)]
+	 		  *K[k]*K[l];
+	 	    }
+	    }
+	 ModEigVal = SymEigVal(A);
+	 qsort(ModEigVal[0],DIM3,sizeof(double),&abscomp);
+
+	 out << prefix << setw(w/2) << phi << setw(w/2) << theta;
+	 if (Echo_) cout << prefix << setw(w/2) << phi << setw(w/2) << theta;
+	 for (int i=0;i<DIM3;++i)
+	 {
+	    out << setw(w) << ModEigVal[0][i];
+	    if (Echo_) cout << setw(w) << ModEigVal[0][i];
+	 }
+	 for (int i=0;i<DIM3;++i)
+	 {
+	    out << setw(w) << BlkEigVal[0][i];
+	    if (Echo_) cout << setw(w) << BlkEigVal[0][i];
+	 }
+	 for (int i=0;i<DIM3;++i)
+	 {
+	    out << setw(w) << BlkEigVal[0][i]-ModEigVal[0][i];
+	    if (Echo_) cout << setw(w) << BlkEigVal[0][i]-ModEigVal[0][i];
+	 }
+	 out << endl;
+	 if (Echo_) cout << endl;
+      }
+      out << endl;
+      if (Echo_) cout << endl;
+   }
 }
 
 void MultiLatticeTPP::NeighborDistances(int cutoff,ostream &out)

@@ -50,11 +50,12 @@ BSCSOURCES  = $(UTILITY)
 RK1SOURCES  = Rank1Convex.cpp
 INSTSOURCES = InstantModuli.cpp
 DISPERSIONSOURCES = DispersionCurves.cpp
+LONGWAVELENGTH = LongWavelengthModuli.cpp
 BLOCHWAVESOURCES = BlochWave.cpp
 NEIGHBORSSOURCES = NeighborDistances.cpp
 #
 ALLSOURCES  = $(BSCSOURCES) $(RK1SOURCES) $(INSTSOURCES) $(DISPERSIONSOURCES) \
-	      $(BLOCHWAVESOURCES) $(NEIGHBORSSOURCES)
+	      $(BLOCHWAVESOURCES) $(NEIGHBORSSOURCES) $(LONGWAVELENGTH)
 
 
 # Defines the object files to be created using the SYSTEM name ############
@@ -63,13 +64,15 @@ BSCOBJECTS  = $(STRIPEDSOURCES:$(SRC_EXT)=$(OBJ_EXT))
 RK1OBJECTS  = $(RK1SOURCES:$(SRC_EXT)=$(OBJ_EXT))
 INSTOBJECTS = $(INSTSOURCES:$(SRC_EXT)=$(OBJ_EXT))
 DISPERSIONOBJECTS = $(DISPERSIONSOURCES:$(SRC_EXT)=$(OBJ_EXT))
+WAVELENGTHOBJECTS = $(LONGWAVELENGTH:$(SRC_EXT)=$(OBJ_EXT))
 BLOCHWAVEOBJECTS = $(BLOCHWAVESOURCES:$(SRC_EXT)=$(OBJ_EXT))
 NEIGHBORSOBJECTS = $(NEIGHBORSSOURCES:$(SRC_EXT)=$(OBJ_EXT))
 #
 ALLOBJECTS = $(BSCOBJECTS) $(RK1OBJECTS) $(INSTOBJECTS) $(DISPERSIONOBJECTS) \
-	     $(BLOCHWAVEOBJECTS) $(NEIGHBORSOBJECTS)
+	     $(BLOCHWAVEOBJECTS) $(NEIGHBORSOBJECTS) $(WAVELENGTHOBJECTS)
 
-all:	 Rank1Convex InstantModuli DispersionCurves BlochWave NeighborDistances
+all:	 Rank1Convex InstantModuli DispersionCurves BlochWave NeighborDistances\
+	 LongWavelengthModuli
 
 # Defines the Program Target (linking command) ############################
 Rank1Convex:  $(RK1OBJECTS) $(BSCOBJECTS)
@@ -92,6 +95,18 @@ DispersionCurves:     $(DISPERSIONOBJECTS) $(BSCOBJECTS) \
 		      $(PURE) $(CC) $(LFLAGS) builddate.cpp \
 		      -L$(LIB_LOC) -o ./bin/DispersionCurves \
 		      $(addprefix lib/,$(DISPERSIONOBJECTS)) \
+		      $(addprefix lib/,$(BSCOBJECTS)) \
+		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
+		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT))) \
+		      $(LIBS)
+
+# Defines the Program Target (linking command) ############################
+LongWavelengthModuli: $(WAVELENGTHOBJECTS) $(BSCOBJECTS) \
+		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
+		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT)))
+		      $(PURE) $(CC) $(LFLAGS) builddate.cpp \
+		      -L$(LIB_LOC) -o ./bin/LongWavelengthModuli \
+		      $(addprefix lib/,$(WAVELENGTHOBJECTS)) \
 		      $(addprefix lib/,$(BSCOBJECTS)) \
 		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
 		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT))) \
@@ -126,6 +141,7 @@ include $(addprefix depend/,$(BSCOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 include $(addprefix depend/,$(RK1OBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 include $(addprefix depend/,$(INSTOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 include $(addprefix depend/,$(DISPERSIONOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
+include $(addprefix depend/,$(WAVELENGTHOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 include $(addprefix depend/,$(BLOCHWAVEOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 include $(addprefix depend/,$(NEIGHBORSOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 
@@ -143,6 +159,7 @@ install: all
 	/bin/cp bin/Rank1Convex $(BIN_LOC)/
 	/bin/cp bin/InstantModuli $(BIN_LOC)/
 	/bin/cp bin/DispersionCurves $(BIN_LOC)/
+	/bin/cp bin/LongWavelengthModuli $(BIN_LOC)/
 	/bin/cp bin/BlochWave $(BIN_LOC)/
 	/bin/cp bin/NeighborDistances $(BIN_LOC)/
 
@@ -151,6 +168,7 @@ uninstall:
 	/bin/rm -f $(BIN_LOC)/Rank1Convex
 	/bin/rm -f $(BIN_LOC)/InstantModuli
 	/bin/rm -f $(BIN_LOC)/DispersionCurves
+	/bin/rm -f $(BIN_LOC)/LongWavelengthModuli
 	/bin/rm -f $(BIN_LOC)/BlochWave
 	/bin/rm -f $(BIN_LOC)/NeighborDistances
 
@@ -162,11 +180,13 @@ clean:
 		  $(addprefix lib/,$(RK1OBJECTS)) \
 		  $(addprefix lib/,$(INSTOBJECTS)) \
 		  $(addprefix lib/,$(DISPERSIONOBJECTS)) \
+		  $(addprefix lib/,$(WAVELENGTHOBJECTS)) \
 		  $(addprefix lib/,$(BLOCHWAVEOBJECTS)) \
 		  $(addprefix lib/,$(NEIGHBORSOBJECTS)) \
                   bin/Rank1Convex \
 		  bin/InstantModuli \
 		  bin/DispersionCurves \
+		  bin/LongWavelengthModuli \
 		  bin/BlochWave \
 		  core *~ \
 		  depend/*.d
