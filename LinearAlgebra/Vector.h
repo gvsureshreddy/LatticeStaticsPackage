@@ -70,7 +70,6 @@ public:
    Vector& operator=(const Vector& B);
    Vector operator+=(const Vector& B) {return *this=*this+B;}
    Vector operator-=(const Vector& B) {return *this=*this-B;}
-   Vector operator*=(const Vector& B) {return *this=*this*B;}
    Vector operator*=(const Elm& B) {return *this=*this*B;}
 
    // Destructively Resize Vector
