@@ -23,7 +23,7 @@ LIB_LOC    = ${HOME}/lib
 LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE)
 
 # Defines the source files needed #########################################
-SOURCES  = Math.cpp
+SOURCES  = Polynomial.cpp
 
 # Defines the object files to be created using the SYSTEM name ############
 OBJECTS  = $(SOURCES:$(SRC_EXT)=$(OBJ_EXT))
@@ -32,7 +32,8 @@ all : $(OBJECTS)
 .PHONY: all
 
 Mathtest : $(OBJECTS) Mathtest.cpp
-	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o Mathtest ./Mathtest.cpp ./lib/Math.o
+	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o Mathtest ./Mathtest.cpp \
+		./lib/Polynomial.o 
 
 # include the dependicies
 include $(addprefix ./depend/,$(OBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
@@ -44,7 +45,7 @@ $(OBJECTS): Makefile
 .PHONY: install uninstall
 # Define install
 install: $(EXE)
-	ar -r $(LIB_LOC)/libMath.a ./lib/Math.o
+	ar -r $(LIB_LOC)/libMath.a $(addprefix ./lib/,$(OBJECTS))
 	/bin/cp Math.h $(INCL_LOC)
 
 # Define uninstall
