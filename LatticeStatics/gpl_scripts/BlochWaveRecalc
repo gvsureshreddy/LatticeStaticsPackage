@@ -1,4 +1,4 @@
-#!/usr/um/bin/perl
+#!/usr/bin/perl
 #
 # Usage: BlochWaveRecalc inputfile gridsize skip <outputfile>
 #
