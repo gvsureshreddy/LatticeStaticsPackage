@@ -490,6 +490,8 @@ void Lattice::ConsistencyCheck(double ConsistencyEpsilon,int Width,ostream &out)
 	 }
       }
    }
+   // Set Lattice back to originalstate
+   SetDOF(OriginalState);
    
    // Print out the facts
    if (Echo_)

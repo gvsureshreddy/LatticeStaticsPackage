@@ -595,6 +595,8 @@ Matrix MultiLatticeTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
 
    S.Resize(1,DOFS,0.0);
 
+   Vr = RefLattice_.Det();
+   
    if (dl==L0)
    {
       for (i=0;i<INTERNAL_ATOMS;++i)
@@ -654,15 +656,17 @@ Matrix MultiLatticeTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
       }
 
       // S = S/(2*Vr*ShearMod)
-      Vr = RefLattice_.Det();
       S *= 1.0/(2.0*(Vr*ShearMod_));
 
       // Load terms
-      for (i=0;i<DIM3;++i)
-	 for (j=0;j<DIM3;++j)
-	 {
-	    S[0][INDU(i,j)] -= Lambda_*Loading_[i][j]/Vr;
-	 }
+      if (dt == PairPotentials::T0)
+      {
+	 for (i=0;i<DIM3;++i)
+	    for (j=0;j<DIM3;++j)
+	    {
+	       S[0][INDU(i,j)] -= Lambda_*Loading_[i][j]/Vr;
+	    }
+      }
 
    }
    else if (dl==DL)
@@ -670,9 +674,14 @@ Matrix MultiLatticeTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
       // dl=DL
       for (i=0;i<DIM3;++i)
 	 for (j=0;j<DIM3;++j)
-	    S[0][INDU(i,j)] -= Loading_[i][j];
+	    S[0][INDU(i,j)] -= Loading_[i][j]/Vr;
    }
-
+   else
+   {
+      cerr << "Unknown LDeriv dl in MultiLatticeTpp::stress()" << endl;
+      exit(-1);
+   }
+   
    return S;
 }
       
@@ -764,7 +773,11 @@ Matrix MultiLatticeTPP::stiffness(PairPotentials::TDeriv dt,LDeriv dl)
    {
       // Nothing to do: Phi is zero
    }
-   
+   else
+   {
+      cerr << "Unknown LDeriv dl in MultiLatticeTpp::stiffness()" << endl;
+      exit(-1);
+   }   
    return Phi;
 }
 
