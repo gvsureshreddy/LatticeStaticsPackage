@@ -148,6 +148,8 @@ sub loaddata {
 
 	    if (/^BlochWave/)
 	    {
+	      @fields = split(/,/,$_);
+	      $_ = $fields[1];
 	      @fields = split;
 	      push(@blochwave,$fields[2]);
 	    }
