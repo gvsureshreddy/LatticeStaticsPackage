@@ -25,25 +25,32 @@ NiTiShuffle3TPPLat::NiTiShuffle3TPPLat(char *datafile)
    BodyForce_[3].Resize(DIM3,0.0);
 
    // Get Potential Parameters
-   GetParameter("^Tref",datafile,"%lf",&Tref_);
-   GetParameter("^A0_aa",datafile,"%lf",&A0_aa);
-   GetParameter("^B0_aa",datafile,"%lf",&B0_aa);
-   GetParameter("^Alpha_aa",datafile,"%lf",&Alpha_aa);
-   GetParameter("^Rref_aa",datafile,"%lf",&Rref_aa);
-   GetParameter("Tmelt_aa",datafile,"%lf",&Tmelt_aa);
+   double Tref,A0,B0,Alpha,Rref,Rtheta,Tmelt;
+   GetParameter("^Tref",datafile,"%lf",&Tref);
+   GetParameter("^A0_aa",datafile,"%lf",&A0);
+   GetParameter("^B0_aa",datafile,"%lf",&B0);
+   GetParameter("^Alpha_aa",datafile,"%lf",&Alpha);
+   GetParameter("^Rref_aa",datafile,"%lf",&Rref);
+   GetParameter("^Rtheta_aa",datafile,"%lf",&Rtheta);
+   GetParameter("Tmelt_aa",datafile,"%lf",&Tmelt);
+   Potential_[aa]=RadiiMorse(A0,B0,Alpha,Rref,Rtheta,Tref,Tmelt);
 
-   GetParameter("^A0_bb",datafile,"%lf",&A0_bb);
-   GetParameter("^B0_bb",datafile,"%lf",&B0_bb);
-   GetParameter("^Alpha_bb",datafile,"%lf",&Alpha_bb);
-   GetParameter("^Rref_bb",datafile,"%lf",&Rref_bb);
-   GetParameter("Tmelt_bb",datafile,"%lf",&Tmelt_bb);
+   GetParameter("^A0_bb",datafile,"%lf",&A0);
+   GetParameter("^B0_bb",datafile,"%lf",&B0);
+   GetParameter("^Alpha_bb",datafile,"%lf",&Alpha);
+   GetParameter("^Rref_bb",datafile,"%lf",&Rref);
+   GetParameter("^Rtheta_bb",datafile,"%lf",&Rtheta);
+   GetParameter("Tmelt_bb",datafile,"%lf",&Tmelt);
+   Potential_[bb]=RadiiMorse(A0,B0,Alpha,Rref,Rtheta,Tref,Tmelt);
 
-   GetParameter("^A0_ab",datafile,"%lf",&A0_ab);
-   GetParameter("^B0_ab",datafile,"%lf",&B0_ab);
-   GetParameter("^Alpha_ab",datafile,"%lf",&Alpha_ab);
-   GetParameter("^Rref_ab",datafile,"%lf",&Rref_ab);
-   GetParameter("Tmelt_ab",datafile,"%lf",&Tmelt_ab);
-   
+   GetParameter("^A0_ab",datafile,"%lf",&A0);
+   GetParameter("^B0_ab",datafile,"%lf",&B0);
+   GetParameter("^Alpha_ab",datafile,"%lf",&Alpha);
+   GetParameter("^Rref_ab",datafile,"%lf",&Rref);
+   GetParameter("^Rtheta_ab",datafile,"%lf",&Rtheta);
+   GetParameter("Tmelt_ab",datafile,"%lf",&Tmelt);
+   Potential_[ab]=RadiiMorse(A0,B0,Alpha,Rref,Rtheta,Tref,Tmelt);
+      
    // Get Lattice parameters
    GetParameter("^RefLen",datafile,"%lf",&RefLen_);
    GetParameter("^InfluanceDist",datafile,"%u",&InfluanceDist_);
@@ -124,221 +131,10 @@ int NiTiShuffle3TPPLat::FindLatticeSpacing(int iter,double dx)
 }
 
    
-// Pair Potential Routines
-
-inline double NiTiShuffle3TPPLat::Beta(interaction inter,TDeriv dt)
-{
-   double B0,Alpha;
-   
-   switch (inter)
-   {
-      case aa:
-	 B0 = B0_aa;
-	 Alpha = Alpha_aa;
-	 break;
-      case bb:
-	 B0 = B0_bb;
-	 Alpha = Alpha_bb;
-	 break;
-      case ab:
-	 B0 = B0_ab;
-	 Alpha = Alpha_ab;
-	 break;
-   }
-   
-   switch (dt)
-   {
-      case T0:
-	 return B0*(1.0+Alpha*(NTemp_-1.0));
-	 break;
-      case DT:
-	 return B0*Alpha;
-	 break;
-   }
-
-   cerr << "Error in NiTiShuffle3TPPLat::Beta" << endl;
-   exit(-1);
-}
-
-inline double NiTiShuffle3TPPLat::Rhat(interaction inter,TDeriv dt)
-{
-   double num,den,rhat;
-   double B0,Tmelt,Rref;
-
-   switch (inter)
-   {
-      case aa:
-	 B0 = B0_aa;
-	 Tmelt = Tmelt_aa;
-	 Rref = Rref_aa;
-	 break;
-      case bb:
-	 B0 = B0_bb;
-	 Tmelt = Tmelt_bb;
-	 Rref = Rref_bb;
-	 break;
-      case ab:
-	 return (Rhat(aa,dt) + Rhat(bb,dt)) / 2.0;
-	 break;
-   }
-
-   switch (dt)
-   {
-      case T0:
-	 num = 1.0 - (1.0/(2.0*B0))*
-	    log(1.0 - NTemp_*Tref_/(4.0*Tmelt));
-	 break;
-      case DT:
-	 num = -(1.0/(2.0*B0))*
-	    (1.0/(1.0 - NTemp_*Tref_/(4.0*Tmelt)))*(-Tref_/(4.0*Tmelt));
-	 break;
-   }
-
-   den = 1.0 - (1.0/(2.0*B0))*
-      log(1.0 - Tref_/(4.0*Tmelt));
-
-   rhat = Rref*(num/den);
-
-   return rhat;
-}
-
-double NiTiShuffle3TPPLat::PairPotential(interaction inter,double r2,
-					      YDeriv dy,TDeriv dt)
-{
-   double beta=Beta(inter),
-      rhat=Rhat(inter),
-      r = sqrt(r2),
-      Exp_temp=exp(-beta*(r/rhat - 1.0));
-
-   double val=0;
-   double A0,Tmelt;
-
-   switch (inter)
-   {
-      case aa:
-	 A0 = A0_aa;
-	 Tmelt = Tmelt_aa;
-	 break;
-      case bb:
-	 A0 = A0_bb;
-	 Tmelt = Tmelt_bb;
-	 break;
-      case ab:
-	 A0 = A0_ab;
-	 Tmelt = Tmelt_ab;
-	 break;
-   }
-
-   switch (dy)
-   {
-      case Y0:
-	 switch (dt)
-	 {
-	    case T0:
-	       val = A0*(1.0 - NTemp_*Tref_/(4.0*Tmelt))*Exp_temp*(Exp_temp - 2.0);
-	       break;
-	    case DT:
-	       val = -A0*(Tref_/(4.0*Tmelt))*Exp_temp*(Exp_temp - 2.0)
-		  - 2.0*A0*(1.0 - NTemp_*Tref_/(4.0*Tmelt))*(Beta(inter,DT)
-							     *(r/rhat -1.0)
-							     -beta*Rhat(inter,DT)
-							     *(r/(rhat*rhat)))
-		  *Exp_temp*(Exp_temp - 1.0);
-	       break;
-	 }
-	 break;
-      case DY:
-	 switch (dt)
-	 {
-	    case T0:
-	       val = -A0*(1.0 - NTemp_*Tref_/(4.0*Tmelt))
-		  *(beta/(r*rhat))
-		  *Exp_temp*(Exp_temp - 1.0);
-	       break;
-	    case DT:
-	       val = (A0*Tref_/(4.0*Tmelt))*
-		  (beta/(rhat*r))*Exp_temp*(Exp_temp - 1.0)
-		  + A0*(1.0 - NTemp_*Tref_/(4.0*Tmelt))*Exp_temp*
-		  (((beta*Rhat(inter,DT) - Beta(inter,DT)*rhat)/(rhat*rhat*r))*
-		   (Exp_temp - 1.0)
-		   +(beta/(rhat*r))*(Beta(inter,DT)*(r/rhat - 1.0)
-				     - beta*r*Rhat(inter,DT)/(rhat*rhat))
-		   *(2.0*Exp_temp - 1.0));
-	       break;
-	 }
-	 break;
-      case D2Y:
-	 switch (dt)
-	 {
-	    case T0:
-	       val = A0*(1.0 - NTemp_*Tref_/(4.0*Tmelt))*(beta/(2.0*rhat*r2))
-		  *((beta/rhat + 1.0/r)*Exp_temp*(Exp_temp - 1.0)
-		    + (beta/rhat)*Exp_temp*Exp_temp);
-	       break;
-	    case DT:
-	       val = (-A0*Tref_/(4.0*Tmelt))*(beta/(2*rhat*r2))
-		  *((beta/rhat + 1.0/r)*(Exp_temp*Exp_temp - Exp_temp)
-		    +(beta/rhat)*Exp_temp*Exp_temp)
-		  +A0*(1.0 - NTemp_*Tref_/(4.0*Tmelt))*((Beta(inter,DT)*rhat
-							 - beta*Rhat(inter,DT))/
-							(2.0*rhat*rhat*r2))
-		  *((beta/rhat + 1.0/r)*(Exp_temp*Exp_temp - Exp_temp)
-		    +(beta/rhat)*Exp_temp*Exp_temp)
-		  +A0*(1.0 - NTemp_*Tref_/(4.0*Tmelt))*(beta/(2.0*rhat*r2))
-		  *(((Beta(inter,DT)*rhat - beta*Rhat(inter,DT))/(rhat*rhat))*
-		    (2.0*Exp_temp*Exp_temp - Exp_temp)
-		    +(beta*Rhat(inter,DT)*r/(rhat*rhat)
-		      - Beta(inter,DT)*(r/rhat - 1.0))
-		    *(2.0*beta/rhat*Exp_temp*Exp_temp +
-		      (beta/rhat + 1.0/r)
-		      *(2.0*Exp_temp*Exp_temp - Exp_temp)));
-	       break;
-	 }
-	 break;
-      case D3Y:
-	 switch (dt)
-	 {
-	    case T0:
-	       val = -A0*(1.0 - NTemp_*Tref_/(4.0*Tmelt))*(beta/(2.0*rhat*r2))
-		  *((3.0*beta/(2.0*rhat*r2) + 3.0/(2.0*r2*r) + beta*beta
-		     /(2.0*rhat*rhat*r))*Exp_temp*(Exp_temp - 1.0)
-		    +(3.0*beta/(2.0*rhat*r2) + 3.0*beta*beta/(2.0*rhat*rhat*r))
-		    *Exp_temp*Exp_temp);
-	       break;
-	    case DT:
-	       cerr << "D4phi/Dy3DT Not Coded... " << endl;
-	       exit(-1);
-	       break;
-	 }
-	 break;
-      case D4Y:
-	 switch (dt)
-	 {
-	    case T0:
-	       val = A0*(1.0 - NTemp_*Tref_/(4.0*Tmelt))*(beta/(2.0*rhat*r2))
-		  *Exp_temp*((15.0/(4.0*r2*r2*r))*(Exp_temp - 1.0)
-			     +(15.0*beta/(4.0*rhat*r2*r2))*(2.0*Exp_temp - 1.0)
-			     +(6.0*beta*beta/(4.0*rhat*rhat*r2*r))
-			     *(4.0*Exp_temp - 1.0)
-			     +(beta*beta*beta/(4.0*rhat*rhat*rhat*r2))
-			     *(8.0*Exp_temp - 1.0));
-	       break;
-	    case DT:
-	       cerr << "D5phi/Dy4DT Not Coded... " << endl;
-	       exit(-1);
-	       break;
-	 }
-	 break;
-   }
-   return val;
-}
-	       
-// End Pair Potential Routines
-
 // Lattice Routines
 
 void NiTiShuffle3TPPLat::GetLatticeVectorInfo(double *SX,double *DXPrimeS,double *DXPrimeD,
-					     double *DXPrimeA,interaction &Inter,int p,int q)
+					      double *DXPrimeA,interaction &Inter,int p,int q)
 {
    static double Basis[INTERNAL_ATOMS][DIM3] = {0.0,0.0,0.0,
 						0.5,0.5,0.0,
@@ -546,7 +342,7 @@ inline int NiTiShuffle3TPPLat::IND(int k,int l,int m,int n)
    }
 }
 
-Matrix NiTiShuffle3TPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
+Matrix NiTiShuffle3TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,RadiiMorse::TDeriv dt)
 {
    static Matrix U(3,3);
    static Matrix Eigvals(1,3);
@@ -565,19 +361,19 @@ Matrix NiTiShuffle3TPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 
    switch (dy)
    {
-      case Y0:
+      case RadiiMorse::Y0:
 	 Phi.Resize(1,1,0.0);
 	 break;
-      case DY:
+      case RadiiMorse::DY:
 	 Phi.Resize(1,9,0.0);
 	 break;
-      case D2Y:
+      case RadiiMorse::D2Y:
 	 Phi.Resize(9,9,0.0);
 	 break;
-      case D3Y:
+      case RadiiMorse::D3Y:
 	 Phi.Resize(81,9,0.0);
 	 break;
-      case D4Y:
+      case RadiiMorse::D4Y:
 	 Phi.Resize(81,81,0.0);
 	 break;
    }
@@ -678,7 +474,8 @@ Matrix NiTiShuffle3TPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 		  }
 
 		  // Calculate bodyforce
-		  phi1 = 2.0*sqrt(r2)*PairPotential(Inter,r2,DY,T0);
+		  phi1 = 2.0*sqrt(r2)*
+		     Potential_[Inter].PairPotential(NTemp_,r2,RadiiMorse::DY,RadiiMorse::T0);
 		  if (ForceNorm < fabs(-phi1/2.0))
 		  {
 		     ForceNorm = fabs(-phi1/2.0);
@@ -689,13 +486,13 @@ Matrix NiTiShuffle3TPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 		  }
 		  
 		  // Calculate Phi
-		  phi = PairPotential(Inter,r2,dy,dt);
+		  phi = Potential_[Inter].PairPotential(NTemp_,r2,dy,dt);
 		  switch (dy)
 		  {
-		     case Y0:
+		     case RadiiMorse::Y0:
 			Phi[0][0]+=phi;
 			break;
-		     case DY:
+		     case RadiiMorse::DY:
 			for (i=0;i<DIM3;i++)
 			{
 			   for (j=i;j<DIM3;j++)
@@ -707,8 +504,8 @@ Matrix NiTiShuffle3TPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 			   Phi[0][8] += phi*(2.0*DxPrimeA[i]*Dx[i]);
 			}
 			break;
-		     case D2Y:
-			phi1=PairPotential(Inter,r2,DY,dt);
+		     case RadiiMorse::D2Y:
+			phi1=Potential_[Inter].PairPotential(NTemp_,r2,RadiiMorse::DY,dt);
 		     
 			for (i=0;i<DIM3;i++)
 			{
@@ -753,8 +550,8 @@ Matrix NiTiShuffle3TPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 			   += phi*(2.0*DxPrimeA*Dx)*(2.0*DxPrimeD*Dx)
 			   + phi1*(2.0*DxPrimeA*DxPrimeD);
 			break;
-		     case D3Y:
-			// phi1=PairPotential(Inter,r2,D2Y,dt);
+		     case RadiiMorse::D3Y:
+			// phi1=Potential_[Inter].PairPotential(NTemp_,r2,RadiiMorse::D2Y,dt);
 			// 
 			// for (i=0;i<DIM3;i++)
 			//    for (j=i;j<DIM3;j++)
@@ -772,9 +569,9 @@ Matrix NiTiShuffle3TPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 			cerr << "D3Y not programmed !" << endl;
 			exit(1);
 			break;
-		     case D4Y:
-			// phi1=PairPotential(Inter,r2,D3Y,dt);
-			// phi2=PairPotential(Inter,r2,D2Y,dt);
+		     case RadiiMorse::D4Y:
+			// phi1=Potential_[Inter].PairPotential(NTemp_,r2,RadiiMorse::D3Y,dt);
+			// phi2=Potential_[Inter].PairPotential(NTemp_,r2,RadiiMorse::D2Y,dt);
 			// 
 			// for (i=0;i<DIM3;i++)
 			//    for (j=i;j<DIM3;j++)
@@ -842,14 +639,14 @@ Matrix NiTiShuffle3TPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
    // Recall that Pressure_ is applied stress
    // Thus E = W - pJ
 
-   if (dt == T0)
+   if (dt == RadiiMorse::T0)
    {
       switch (dy)
       {
-	 case Y0:
+	 case RadiiMorse::Y0:
 	    Phi[0][0] = Phi[0][0] - Pressure_*J;
 	    break;
-	 case DY:
+	 case RadiiMorse::DY:
 	 {
 	    Matrix Uinv = U.Inverse();
 	    for (i=0;i<DIM3;i++)
@@ -859,7 +656,7 @@ Matrix NiTiShuffle3TPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 	       }
 	 }
 	 break;
-	 case D2Y:
+	 case RadiiMorse::D2Y:
 	    for (i=0;i<DIM3;i++)
 	       for (j=i;j<DIM3;j++)
 		  for (k=0;k<DIM3;k++)
@@ -878,7 +675,7 @@ Matrix NiTiShuffle3TPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 			   }
 		     }
 	    break;
-	 case D3Y:
+	 case RadiiMorse::D3Y:
 	    for (i=0;i<DIM3;i++)
 	       for (j=i;j<DIM3;j++)
 		  for (k=0;k<DIM3;k++)
@@ -898,7 +695,7 @@ Matrix NiTiShuffle3TPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 				    Alt[i][s][l]*Alt[j][q][k] + Alt[j][s][l]*Alt[i][q][k]);
 			   }
 	    break;
-	 case D4Y:
+	 case RadiiMorse::D4Y:
 	    // Terms are zero
 	    break;
       }
@@ -915,22 +712,22 @@ double NiTiShuffle3TPPLat::Energy()
 
 Matrix NiTiShuffle3TPPLat::Stress()
 {
-   return Phi(0,DY);
+   return Phi(0,RadiiMorse::DY);
 }
 
 Matrix NiTiShuffle3TPPLat::StressDT()
 {
-   return Phi(0,DY,DT);
+   return Phi(0,RadiiMorse::DY,RadiiMorse::DT);
 }
 
 Matrix NiTiShuffle3TPPLat::Stiffness()
 {
-   return Phi(0,D2Y);
+   return Phi(0,RadiiMorse::D2Y);
 }
 
 Matrix NiTiShuffle3TPPLat::Moduli()
 {
-   return Phi(1,D2Y);
+   return Phi(1,RadiiMorse::D2Y);
 }
 
 int NiTiShuffle3TPPLat::StiffnessNulity(double *Min)
@@ -959,9 +756,9 @@ int NiTiShuffle3TPPLat::StiffnessNulity(double *Min)
 
 void NiTiShuffle3TPPLat::CriticalPointInfo(int Width,ostream &out)
 {
-   // Matrix L4 = Phi(0,D4Y,T0),
-   // 	 L3 = Phi(0,D3Y,T0),
-   // 	 L2T = Phi(0,D2Y,DT),
+   // Matrix L4 = Phi(0,RadiiMorse::D4Y,RadiiMorse::T0),
+   // 	 L3 = Phi(0,RadiiMorse::D3Y,RadiiMorse::T0),
+   // 	 L2T = Phi(0,RadiiMorse::D2Y,RadiiMorse::DT),
    // 	 L = Stiffness();
    // 
    // double E,Ehat,Et1,Et2,eta,etahat,a,b,c;
@@ -1054,28 +851,10 @@ void NiTiShuffle3TPPLat::Print(ostream &out,PrintDetail flag)
 	 out << "NiTiShuffle3TPPLat:" << endl << endl
 	     << "Cell Reference Length: " << setw(W) << RefLen_ << endl
 	     << "Influance Distance   : " << setw(W) << InfluanceDist_ << endl
-	     << "Reference Temperature: " << setw(W) << Tref_ << endl
 	     << "Potential Parameters : "
-	     << "A0_aa=  " << setw(W) << A0_aa
-	     << "; B0_aa=  " << setw(W) << B0_aa
-	     << "; Alpha_aa=" << setw(W) << Alpha_aa << endl
-	     << "                       "
-	     << "Rref_aa=" << setw(W) << Rref_aa
-	     << "; Tmelt_aa=" << setw(W) << Tmelt_aa << endl
-	     << "                       "
-	     << "A0_bb=  " << setw(W) << A0_bb
-	     << "; B0_bb=  " << setw(W) << B0_bb
-	     << "; Alpha_bb=" << setw(W) << Alpha_bb << endl
-	     << "                       "
-	     << "Rref_bb=" << setw(W) << Rref_bb
-	     << "; Tmelt_bb=" << setw(W) << Tmelt_bb << endl
-	     << "                       "
-	     << "A0_ab=  " << setw(W) << A0_ab
-	     << "; B0_ab=  " << setw(W) << B0_ab
-	     << "; Alpha_ab=" << setw(W) << Alpha_ab << endl
-	     << "                       "
-	     << "Rref_ab=" << setw(W) << Rref_ab
-	     << "; Tmelt_ab=" << setw(W) << Tmelt_ab << endl
+	     << "AA -- " << setw(W) << Potential_[aa] << endl
+             << "BB -- " << setw(W) << Potential_[bb] << endl
+             << "AB -- " << setw(W) << Potential_[ab] << endl
 	     << "Shear Modulus : " << setw(W) << ShearMod_ << endl;
 	 // passthrough to short
       case PrintShort:
@@ -1113,3 +892,4 @@ const double NiTiShuffle3TPPLat::Alt[DIM3][DIM3][DIM3]= {0.0, 0.0, 0.0,
 							 0.0, 1.0, 0.0,
 							 -1.0,0.0, 0.0,
 							 0.0, 0.0, 0.0};
+
