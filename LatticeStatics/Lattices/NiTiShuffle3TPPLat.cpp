@@ -1,9 +1,9 @@
-#include "NiTiShuffleTPPLat.h"
+#include "NiTiShuffle3TPPLat.h"
 #include <math.h>
 
 #include "UtilityFunctions.h"
 
-NiTiShuffleTPPLat::NiTiShuffleTPPLat(char *datafile)
+NiTiShuffle3TPPLat::NiTiShuffle3TPPLat(char *datafile)
 {
    // First Size DOF
    DOF_.Resize(9);
@@ -67,7 +67,7 @@ NiTiShuffleTPPLat::NiTiShuffleTPPLat(char *datafile)
    }
 }
 
-int NiTiShuffleTPPLat::FindLatticeSpacing(int iter,double dx)
+int NiTiShuffle3TPPLat::FindLatticeSpacing(int iter,double dx)
 {
    double oldPressure=Pressure_,
       oldTemp=NTemp_;
@@ -126,7 +126,7 @@ int NiTiShuffleTPPLat::FindLatticeSpacing(int iter,double dx)
    
 // Pair Potential Routines
 
-inline double NiTiShuffleTPPLat::Beta(interaction inter,TDeriv dt)
+inline double NiTiShuffle3TPPLat::Beta(interaction inter,TDeriv dt)
 {
    double B0,Alpha;
    
@@ -156,11 +156,11 @@ inline double NiTiShuffleTPPLat::Beta(interaction inter,TDeriv dt)
 	 break;
    }
 
-   cerr << "Error in NiTiShuffleTPPLat::Beta" << endl;
+   cerr << "Error in NiTiShuffle3TPPLat::Beta" << endl;
    exit(-1);
 }
 
-inline double NiTiShuffleTPPLat::Rhat(interaction inter,TDeriv dt)
+inline double NiTiShuffle3TPPLat::Rhat(interaction inter,TDeriv dt)
 {
    double num,den,rhat;
    double B0,Tmelt,Rref;
@@ -202,7 +202,7 @@ inline double NiTiShuffleTPPLat::Rhat(interaction inter,TDeriv dt)
    return rhat;
 }
 
-double NiTiShuffleTPPLat::PairPotential(interaction inter,double r2,
+double NiTiShuffle3TPPLat::PairPotential(interaction inter,double r2,
 					      YDeriv dy,TDeriv dt)
 {
    double beta=Beta(inter),
@@ -337,7 +337,7 @@ double NiTiShuffleTPPLat::PairPotential(interaction inter,double r2,
 
 // Lattice Routines
 
-void NiTiShuffleTPPLat::GetLatticeVectorInfo(double *SX,double *DXPrimeS,double *DXPrimeD,
+void NiTiShuffle3TPPLat::GetLatticeVectorInfo(double *SX,double *DXPrimeS,double *DXPrimeD,
 					     double *DXPrimeA,interaction &Inter,int p,int q)
 {
    static double Basis[INTERNAL_ATOMS][DIM3] = {0.0,0.0,0.0,
@@ -484,13 +484,13 @@ void NiTiShuffleTPPLat::GetLatticeVectorInfo(double *SX,double *DXPrimeS,double 
 
 }
 
-inline double NiTiShuffleTPPLat::PI(const Vector &Dx,const Vector &DX,
+inline double NiTiShuffle3TPPLat::PI(const Vector &Dx,const Vector &DX,
 				    int r, int s)
 {
    return (Dx[r]*DX[s] + DX[r]*Dx[s]);
 }
 
-inline double NiTiShuffleTPPLat::PSI(const Vector &DX,
+inline double NiTiShuffle3TPPLat::PSI(const Vector &DX,
 				     int r, int s, int t, int u)
 {
    return (Del(r,t)*DX[s]*DX[u] +
@@ -500,7 +500,7 @@ inline double NiTiShuffleTPPLat::PSI(const Vector &DX,
 }
 
 
-double NiTiShuffleTPPLat::pwr(const double &x,const unsigned y)
+double NiTiShuffle3TPPLat::pwr(const double &x,const unsigned y)
 {
    if (y==1)
    {
@@ -512,7 +512,7 @@ double NiTiShuffleTPPLat::pwr(const double &x,const unsigned y)
    }
 }
 
-inline int NiTiShuffleTPPLat::IND(int i,int j)
+inline int NiTiShuffle3TPPLat::IND(int i,int j)
 {
    if (i==j)
       return i;
@@ -520,7 +520,7 @@ inline int NiTiShuffleTPPLat::IND(int i,int j)
       return 2+i+j;
 }
 
-inline int NiTiShuffleTPPLat::IND(int k,int l,int m,int n)
+inline int NiTiShuffle3TPPLat::IND(int k,int l,int m,int n)
 {
    if (k==l)
    {
@@ -546,7 +546,7 @@ inline int NiTiShuffleTPPLat::IND(int k,int l,int m,int n)
    }
 }
 
-Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
+Matrix NiTiShuffle3TPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 {
    static Matrix U(3,3);
    static Matrix Eigvals(1,3);
@@ -908,32 +908,32 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 }
 
 
-double NiTiShuffleTPPLat::Energy()
+double NiTiShuffle3TPPLat::Energy()
 {
    return Phi()[0][0];
 }
 
-Matrix NiTiShuffleTPPLat::Stress()
+Matrix NiTiShuffle3TPPLat::Stress()
 {
    return Phi(0,DY);
 }
 
-Matrix NiTiShuffleTPPLat::StressDT()
+Matrix NiTiShuffle3TPPLat::StressDT()
 {
    return Phi(0,DY,DT);
 }
 
-Matrix NiTiShuffleTPPLat::Stiffness()
+Matrix NiTiShuffle3TPPLat::Stiffness()
 {
    return Phi(0,D2Y);
 }
 
-Matrix NiTiShuffleTPPLat::Moduli()
+Matrix NiTiShuffle3TPPLat::Moduli()
 {
    return Phi(1,D2Y);
 }
 
-int NiTiShuffleTPPLat::StiffnessNulity(double *Min)
+int NiTiShuffle3TPPLat::StiffnessNulity(double *Min)
 {
    int NoNegEigVal = 0;
    int index = 0;
@@ -957,7 +957,7 @@ int NiTiShuffleTPPLat::StiffnessNulity(double *Min)
    return NoNegEigVal;
 }
 
-void NiTiShuffleTPPLat::CriticalPointInfo(int Width,ostream &out)
+void NiTiShuffle3TPPLat::CriticalPointInfo(int Width,ostream &out)
 {
    // Matrix L4 = Phi(0,D4Y,T0),
    // 	 L3 = Phi(0,D3Y,T0),
@@ -1023,7 +1023,7 @@ void NiTiShuffleTPPLat::CriticalPointInfo(int Width,ostream &out)
    return;
 }
 
-void NiTiShuffleTPPLat::Print(ostream &out,PrintDetail flag)
+void NiTiShuffle3TPPLat::Print(ostream &out,PrintDetail flag)
 {
    int W=out.width();
 
@@ -1051,7 +1051,7 @@ void NiTiShuffleTPPLat::Print(ostream &out,PrintDetail flag)
    switch (flag)
    {
       case PrintLong:
-	 out << "NiTiShuffleTPPLat:" << endl << endl
+	 out << "NiTiShuffle3TPPLat:" << endl << endl
 	     << "Cell Reference Length: " << setw(W) << RefLen_ << endl
 	     << "Influance Distance   : " << setw(W) << InfluanceDist_ << endl
 	     << "Reference Temperature: " << setw(W) << Tref_ << endl
@@ -1098,18 +1098,18 @@ void NiTiShuffleTPPLat::Print(ostream &out,PrintDetail flag)
    }
 }
 
-ostream &operator<<(ostream &out,NiTiShuffleTPPLat &A)
+ostream &operator<<(ostream &out,NiTiShuffle3TPPLat &A)
 {
    A.Print(out,Lattice::PrintShort);
    return out;
 }
 
-const double NiTiShuffleTPPLat::Alt[DIM3][DIM3][DIM3]= {0.0, 0.0, 0.0,
-							0.0, 0.0, 1.0,
-							0.0, -1.0,0.0,
-							0.0, 0.0, -1.0,
-							0.0, 0.0, 0.0,
-							1.0, 0.0, 0.0,
-							0.0, 1.0, 0.0,
-							-1.0,0.0, 0.0,
-							0.0, 0.0, 0.0};
+const double NiTiShuffle3TPPLat::Alt[DIM3][DIM3][DIM3]= {0.0, 0.0, 0.0,
+							 0.0, 0.0, 1.0,
+							 0.0, -1.0,0.0,
+							 0.0, 0.0, -1.0,
+							 0.0, 0.0, 0.0,
+							 1.0, 0.0, 0.0,
+							 0.0, 1.0, 0.0,
+							 -1.0,0.0, 0.0,
+							 0.0, 0.0, 0.0};

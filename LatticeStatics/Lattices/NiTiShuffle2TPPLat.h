@@ -1,12 +1,12 @@
-#ifndef __NiTiShuffleTPPLat
-#define __NiTiShuffleTPPLat
+#ifndef __NiTiShuffle2TPPLat
+#define __NiTiShuffle2TPPLat
 
 #include "GenericLat.h"
 
 #define DIM3 3
 #define INTERNAL_ATOMS 4
 
-class NiTiShuffleTPPLat : public GenericLat
+class NiTiShuffle2TPPLat : public GenericLat
 {
 private:
    double RefLen_;
@@ -49,15 +49,15 @@ public:
    virtual void Print(ostream &out,PrintDetail flag);
    virtual void CriticalPointInfo(int Width,ostream &out);
    
-   // Functions provided by NiTiShuffleTPPLat
-   NiTiShuffleTPPLat(char *datafile);
-   ~NiTiShuffleTPPLat() {}
+   // Functions provided by NiTiShuffle2TPPLat
+   NiTiShuffle2TPPLat(char *datafile);
+   ~NiTiShuffle2TPPLat() {}
    inline double Del(int i,int j) {return i==j;}
    Vector BodyForce(int i) { return BodyForce_[i]; }
    double Pressure() const { return Pressure_;}
    double SetPressure(double &p) { Pressure_ = p;}
    double ShearMod() const { return ShearMod_;}
-   friend ostream &operator<<(ostream &out,NiTiShuffleTPPLat &A);
+   friend ostream &operator<<(ostream &out,NiTiShuffle2TPPLat &A);
 private:
    double PairPotential(interaction inter,double r2,YDeriv dy=Y0,TDeriv dt=T0);
    inline double Beta(interaction inter,TDeriv dt=T0);
