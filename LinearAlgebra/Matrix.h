@@ -30,6 +30,9 @@ protected:
 
 public:
 
+   // Flag to print in mathematica format
+   static int MathematicaPrintFlag;
+
    // Constructor...
    // Precond. Matrix object has been declared
    // Receive. Rows,Cols,Initial Value
@@ -57,10 +60,12 @@ public:
    friend Matrix operator*(const Matrix& A,const Matrix& B);
    friend Matrix operator*(const Elm& A,const Matrix& B);
    friend Matrix operator*(const Matrix& A,const Elm& B);
+   // Below are defined in corresponding class --------------------
    friend Vector operator*(const Matrix& A,const Vector& B);
    friend Vector operator*(const Vector& A,const Matrix& B);
    friend Vector3D operator*(const Matrix& A,const Vector3D& B);
-   friend Vector3D operator*(const Vector3D& A,const Matrix& B);   
+   friend Vector3D operator*(const Vector3D& A,const Matrix& B);
+   // -------------------------------------------------------------
    friend Matrix operator/(const Matrix& A,const Elm& B);
 
    // Element Access methods
@@ -121,6 +126,16 @@ public:
    //
    friend Elm SVD(const Matrix& A,Matrix& U,Matrix& W,Matrix& V,
 		  const Elm MaxCond=MAXCONDITION,const int PrintFlag=0);
+
+   // SymEigVal -- determine the eigenvalues of A
+   // Use Cyclic Jacobi Method -- Ref. "Numerical Analysis" by Pratel pg 440
+   //
+   // Returns vector containing eigenvalues
+   // MaxItr - max number of iterations
+   // Tol - tolerance for convergence
+   //
+   // Note: Assumes A is SYMMETRIC
+   friend Matrix SymEigVal(Matrix A,const int MaxItr=100,const double Tol=1.0e-12);
    
    // Cholesky Decomposition of Matrix
    // A=U.Transpose()*D*U

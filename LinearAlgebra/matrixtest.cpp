@@ -21,6 +21,8 @@ int main()
    Vector3D e,f;
    
    srand(time(NULL));
+
+   Matrix::MathematicaPrintFlag=1;
    
    for (int i=0;i<3;i++)
       for (int j=0;j<3;j++)
@@ -56,7 +58,8 @@ int main()
    }
 
 
-   cout << setiosflags(ios::scientific) << setprecision(12);
+   cout << setiosflags(ios::fixed) << setprecision(12);
+//   cout << setiosflags(ios::scientific) << setprecision(12);
 
    cout << setw(20) << A << endl
 	<< setw(20) << B << endl
@@ -122,6 +125,9 @@ int main()
    Cholesky(E,UU,DD);
    cout << "Cholesky" << endl << setw(20) << E << endl;
    cout << "result" << endl << setw(20) << UU.Transpose()*DD*UU << endl;
+   
+   // check SymEigVal
+   cout << "SymEigVal" << endl << setw(20) << SymEigVal(E) << endl;
 
    E.Resize(3,3);
    E=A;

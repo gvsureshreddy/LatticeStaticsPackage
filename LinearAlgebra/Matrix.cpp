@@ -5,7 +5,7 @@
 #include <math.h>
 
 // Global IDString
-char MatrixID[]="$Id: Matrix.cpp,v 1.5 2001/01/03 16:46:30 elliottr Exp $";
+char MatrixID[]="$Id: Matrix.cpp,v 1.6 2001/05/31 14:09:37 elliottr Exp $";
 
 // Private Methods...
 
@@ -68,6 +68,8 @@ Matrix Matrix::Minor(unsigned i,unsigned j) const
 }
 
 // Public Methods...
+
+int Matrix::MathematicaPrintFlag = 0;
 
 Matrix::Matrix(unsigned Rows,unsigned Cols,Matrix::Elm InitVal)
 {
@@ -870,7 +872,91 @@ Matrix::Elm SVD(const Matrix& A,Matrix& U,Matrix& W,Matrix& V,
 
    return ConditionNumber;
 }
-	    
+
+Matrix SymEigVal(Matrix A,const int MaxItr,const double Tol)
+{
+   int count=0,
+      converged=0;
+   Matrix EigVals(1,A.Cols_);
+   double theta,c,s,cc,ss,cs,aij1,aii1,ajj1,aki1,akj1;
+   const double PIby4=0.25*acos(-1.0);
+   
+   while ((count < MaxItr) && (!converged))
+   {
+      for (int i=0;i<A.Cols_;i++)
+      {
+	 for (int j=i+1;j<A.Cols_;j++)
+	 {
+	    if (fabs(A.Elements_[i][i] - A.Elements_[j][j]) > Tol)
+	    {
+	       theta = 0.5*atan(2.0*A.Elements_[i][j]/(A.Elements_[i][i] - A.Elements_[j][j]));
+	    }
+	    else
+	    {
+	       theta = PIby4*(A.Elements_[i][j]/fabs(A.Elements_[i][j]));
+	    }
+
+	    if (fabs(theta) > PIby4)
+	    {
+	       theta -= 2.0*PIby4*(theta/fabs(theta));
+	    }
+
+	    c = cos(theta);
+	    s = sin(theta);
+	    cc = c*c;
+	    ss = s*s;
+	    cs = c*s;
+	    aij1 = A.Elements_[i][j];
+	    aii1 = A.Elements_[i][i];
+	    ajj1 = A.Elements_[j][j];
+
+
+	    A.Elements_[i][i] = aii1*cc + 2.0*aij1*cs + ajj1*ss;
+	    A.Elements_[j][j] = aii1*ss - 2.0*aij1*cs + ajj1*cc;
+	    A.Elements_[i][j] = A.Elements_[j][i] = 0.0;
+
+	    for (int k=0;k<A.Cols_;k++)
+	    {
+	       if ( k==i || k==j)
+	       {
+		  continue;
+	       }
+
+	       aki1 = A.Elements_[k][i];
+	       akj1 = A.Elements_[k][j];
+
+	       A.Elements_[i][k] = A.Elements_[k][i] = aki1*c + akj1*s;
+	       A.Elements_[j][k] = A.Elements_[k][j] = -aki1*s + akj1*c;
+	    }
+	 }
+      }
+      count++;
+
+      converged = 1;
+      for (int i=0;i<A.Cols_;i++)
+	 for (int j=0;j<A.Cols_;j++)
+	 {
+	    if ((i != j) && (fabs(A.Elements_[i][j]) > Tol))
+	    {
+	       converged = 0;
+	    }
+	 }
+   }
+
+   if (!converged)
+   {
+      cerr << "Error: SymEigVal(): Failed - No convergence!" << endl;
+      exit(-1);
+   }
+   else
+   {
+      for (int i=0;i<A.Cols_;i++)
+	 EigVals.Elements_[0][i] = A.Elements_[i][i];
+
+      return EigVals;
+   }
+}
+
 void Cholesky(const Matrix& A,Matrix& U,Matrix& D)
 {
    if (!A.IsSquare() || A.IsNull())
@@ -1010,13 +1096,25 @@ ostream& operator<<(ostream& out,const Matrix& A)
    
    out << endl;
 
+   if (Matrix::MathematicaPrintFlag) out << setw(0) << "{{";
    for (register int i=0;i<A.Rows_;i++)
    {
       for (register int j=0;j<A.Cols_;j++)
       {
 	 out << setw(W) << A.Elements_[i][j];
+	 if ((Matrix::MathematicaPrintFlag) && (j!=(A.Cols_-1)))
+	    out << ",";
       }
-      out << endl;
+      
+      if (Matrix::MathematicaPrintFlag)
+      {
+	 if (i!=(A.Rows_-1))
+	    out << "},\n {";
+	 else
+	    out << "}}";
+      }
+      else
+	 out << endl;
    }
 
    out << endl;
