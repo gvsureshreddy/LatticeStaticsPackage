@@ -29,6 +29,12 @@ INCL_LOC   = ${HOME}/include
 LIB_LOC    = ${HOME}/lib
 LIBS       = -lLinearAlgebra -lMath -lm
 LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(DATE_DEF)
+#
+# the below line is for OS X -- a bug in the libraries...
+#
+LFLAGS     := $(LFLAGS) `ar -x /usr/lib/libstdc++.a lib/dcomio.o lib/dcomplex.o` lib/dcomio.o lib/dcomplex.o
+#
+#
 SUBDIRS    = Lattices Modes SolutionMethods Potentials Utility
 
 # Defines the source files needed #########################################
