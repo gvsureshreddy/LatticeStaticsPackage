@@ -60,10 +60,10 @@ Matrix Shuffle3Rhombo::ArcLenStiffness(const Vector &Diff,double Aspect)
       SDT=Lattice_->StressDT();
 
    K[0][0] = Stiff[0][0] + Stiff[0][1] + Stiff[0][2];
-   K[0][1] = 2.0*(Stiff[0][3] + Stiff[0][4] + Stiff[0][5]);
+   K[0][1] = (Stiff[0][3] + Stiff[0][4] + Stiff[0][5]);
    K[0][2] = SDT[0][0];
    K[1][0] = Stiff[3][0] + Stiff[3][1] + Stiff[3][2];
-   K[1][1] = 2.0*(Stiff[3][3] + Stiff[3][4] + Stiff[3][5]);
+   K[1][1] = (Stiff[3][3] + Stiff[3][4] + Stiff[3][5]);
    K[1][2] = SDT[0][3];
    K[2][0] = -2.0*Diff[0];
    K[2][1] = -2.0*Diff[1];

@@ -56,7 +56,7 @@ Matrix Shuffle3NaCl::ArcLenStiffness(const Vector &Diff,double Aspect)
    Matrix Stiff=Lattice_->Stiffness();
 
    K[0][0] = Stiff[0][0] + Stiff[0][1] + Stiff[0][2] +
-      2.0*(Stiff[0][3] + Stiff[0][4] + Stiff[0][5])/4.0;
+      (Stiff[0][3] + Stiff[0][4] + Stiff[0][5])/4.0;
    K[0][1] = Lattice_->StressDT()[0][0];
    K[1][0] = -2.0*Diff[0];
    K[1][1] = -2.0*Diff[1]/(Aspect*Aspect);

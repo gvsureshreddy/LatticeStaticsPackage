@@ -123,7 +123,7 @@ int NiTiShuffle2TPPLat::FindLatticeSpacing(int iter,double dx)
 	 return 1;
    }
 
-   ShearMod_ = fabs(Stiffness()[5][5]);
+   ShearMod_ = 0.25*fabs(Stiffness()[5][5]);
    NTemp_=oldTemp;
    Pressure_=oldPressure;
    
@@ -468,7 +468,7 @@ Matrix NiTiShuffle2TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,RadiiMo
 		     case RadiiMorse::DY:
 			for (i=0;i<DIM3;i++)
 			{
-			   for (j=i;j<DIM3;j++)
+			   for (j=0;j<DIM3;j++)
 			   {
 			      Phi[0][IND(i,j)] += phi*PI(Dx,DX,i,j);
 			   }
@@ -481,11 +481,11 @@ Matrix NiTiShuffle2TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,RadiiMo
 		     
 			for (i=0;i<DIM3;i++)
 			{
-			   for (j=i;j<DIM3;j++)
+			   for (j=0;j<DIM3;j++)
 			   {
 			      for (k=0;k<DIM3;k++)
 			      {
-				 for (l=k;l<DIM3;l++)
+				 for (l=0;l<DIM3;l++)
 				 {
 				    Phi[IND(i,j)][IND(k,l)]+=
 				       phi*PI(Dx,DX,i,j)*PI(Dx,DX,k,l)
@@ -514,11 +514,11 @@ Matrix NiTiShuffle2TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,RadiiMo
 			// phi1=Potential_[Inter].PairPotential(NTemp_,r2,RadiiMorse::D2Y,dt);
 			// 
 			// for (i=0;i<DIM3;i++)
-			//    for (j=i;j<DIM3;j++)
+			//    for (j=0;j<DIM3;j++)
 			// 	 for (k=0;k<DIM3;k++)
-			// 	    for (l=k;l<DIM3;l++)
+			// 	    for (l=0;l<DIM3;l++)
 			// 	       for (m=0;m<DIM3;m++)
-			// 		  for (n=m;n<DIM3;n++)
+			// 		  for (n=0;n<DIM3;n++)
 			// 		  {
 			// 		     Phi[IND(i,j,k,l)][IND(m,n)] +=
 			// 			phi*PI(Dx,DX,i,j)*PI(Dx,DX,k,l)*PI(Dx,DX,m,n)
@@ -534,13 +534,13 @@ Matrix NiTiShuffle2TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,RadiiMo
 			// phi2=Potential_[Inter].PairPotential(NTemp_,r2,RadiiMorse::D2Y,dt);
 			// 
 			// for (i=0;i<DIM3;i++)
-			//    for (j=i;j<DIM3;j++)
+			//    for (j=0;j<DIM3;j++)
 			// 	 for (k=0;k<DIM3;k++)
-			// 	    for (l=k;l<DIM3;l++)
+			// 	    for (l=0;l<DIM3;l++)
 			// 	       for (m=0;m<DIM3;m++)
-			// 		  for (n=m;n<DIM3;n++)
+			// 		  for (n=0;n<DIM3;n++)
 			// 		     for (p=0;p<DIM3;p++)
-			// 			for (q=p;q<DIM3;q++)
+			// 			for (q=0;q<DIM3;q++)
 			// 			{
 			// 			   Phi[IND(i,j,k,l)][IND(m,n,p,q)]+=
 			// 			      phi*(PI(Dx,DX,i,j)*PI(Dx,DX,k,l)*
@@ -610,7 +610,7 @@ Matrix NiTiShuffle2TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,RadiiMo
 	 {
 	    Matrix Uinv = U.Inverse();
 	    for (i=0;i<DIM3;i++)
-	       for (j=i;j<DIM3;j++)
+	       for (j=0;j<DIM3;j++)
 	       {
 		  Phi[0][IND(i,j)] -= Pressure_*J*Uinv[i][j];
 	       }
@@ -618,9 +618,9 @@ Matrix NiTiShuffle2TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,RadiiMo
 	 break;
 	 case RadiiMorse::D2Y:
 	    for (i=0;i<DIM3;i++)
-	       for (j=i;j<DIM3;j++)
+	       for (j=0;j<DIM3;j++)
 		  for (k=0;k<DIM3;k++)
-		     for (l=k;l<DIM3;l++)
+		     for (l=0;l<DIM3;l++)
 		     {
 			for (q=0;q<DIM3;q++)
 			   for (s=0;s<DIM3;s++)
@@ -637,11 +637,11 @@ Matrix NiTiShuffle2TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,RadiiMo
 	    break;
 	 case RadiiMorse::D3Y:
 	    for (i=0;i<DIM3;i++)
-	       for (j=i;j<DIM3;j++)
+	       for (j=0;j<DIM3;j++)
 		  for (k=0;k<DIM3;k++)
-		     for (l=k;l<DIM3;l++)
+		     for (l=0;l<DIM3;l++)
 			for (q=0;q<DIM3;q++)
-			   for (s=q;s<DIM3;s++)
+			   for (s=0;s<DIM3;s++)
 			   {
 			      Phi[IND(i,j,k,l)][IND(q,s)] -=
 				 (Pressure_/16.0)*(

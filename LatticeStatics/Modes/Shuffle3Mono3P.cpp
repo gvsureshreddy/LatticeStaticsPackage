@@ -66,23 +66,23 @@ Matrix Shuffle3Mono3P::ArcLenStiffness(const Vector &Diff,double Aspect)
 
    K[0][0] = Stiff[0][0] + Stiff[0][1];
    K[0][1] = Stiff[0][2];
-   K[0][2] = 2.0*(Stiff[0][3]);
-   K[0][3] = 2.0*(Stiff[0][4] + Stiff[0][5]);
+   K[0][2] = (Stiff[0][3]);
+   K[0][3] = (Stiff[0][4] + Stiff[0][5]);
    K[0][4] = SDT[0][0];
    K[1][0] = Stiff[2][0] + Stiff[2][1];
    K[1][1] = Stiff[2][2];
-   K[1][2] = 2.0*(Stiff[2][3]);
-   K[1][3] = 2.0*(Stiff[2][4] + Stiff[2][5]);
+   K[1][2] = (Stiff[2][3]);
+   K[1][3] = (Stiff[2][4] + Stiff[2][5]);
    K[1][4] = SDT[0][2];
    K[2][0] = Stiff[3][0] + Stiff[3][1];
    K[2][1] = Stiff[3][2];
-   K[2][2] = 2.0*(Stiff[3][3]);
-   K[2][3] = 2.0*(Stiff[3][4] + Stiff[3][5]);
+   K[2][2] = (Stiff[3][3]);
+   K[2][3] = (Stiff[3][4] + Stiff[3][5]);
    K[2][4] = SDT[0][3];
    K[3][0] = Stiff[4][0] + Stiff[4][1];
    K[3][1] = Stiff[4][2];
-   K[3][2] = 2.0*(Stiff[4][3]);
-   K[3][3] = 2.0*(Stiff[4][4] + Stiff[4][5]);
+   K[3][2] = (Stiff[4][3]);
+   K[3][3] = (Stiff[4][4] + Stiff[4][5]);
    K[3][4] = SDT[0][4];
    K[4][0] = -2.0*Diff[0];
    K[4][1] = -2.0*Diff[1];
@@ -164,13 +164,13 @@ Matrix Shuffle3Mono3P::ScanningStiffness()
 
    K[0][0] = Stiff[0][0] + Stiff[0][1];
    K[0][1] = Stiff[0][2];
-   K[0][2] = 2.0*(Stiff[0][3]);
+   K[0][2] = (Stiff[0][3]);
    K[1][0] = Stiff[2][0] + Stiff[2][1];
    K[1][1] = Stiff[2][2];
-   K[1][2] = 2.0*(Stiff[2][3]);
+   K[1][2] = (Stiff[2][3]);
    K[2][0] = Stiff[3][0] + Stiff[3][1];
    K[2][1] = Stiff[3][2];
-   K[2][2] = 2.0*(Stiff[3][3]);
+   K[2][2] = (Stiff[3][3]);
 
    return K;
 }

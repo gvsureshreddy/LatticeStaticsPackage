@@ -65,15 +65,15 @@ Matrix Shuffle3Ortho::ArcLenStiffness(const Vector &Diff,double Aspect)
 
    K[0][0] = Stiff[0][0] + Stiff[0][1];
    K[0][1] = Stiff[0][2];
-   K[0][2] = 2.0*Stiff[0][3];
+   K[0][2] = Stiff[0][3];
    K[0][3] = StressDT[0][0];
    K[1][0] = Stiff[2][0] + Stiff[2][1];
    K[1][1] = Stiff[2][2];
-   K[1][2] = 2.0*Stiff[2][3];
+   K[1][2] = Stiff[2][3];
    K[1][3] = StressDT[0][2];
    K[2][0] = Stiff[3][0] + Stiff[3][1];
    K[2][1] = Stiff[3][2];
-   K[2][2] = 2.0*Stiff[3][3];
+   K[2][2] = Stiff[3][3];
    K[2][3] = StressDT[0][3];
    K[3][0] = -2.0*Diff[0];
    K[3][1] = -2.0*Diff[1];
