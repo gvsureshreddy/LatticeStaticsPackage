@@ -18,8 +18,9 @@ public:
    friend ostream &operator<<(ostream &out,RadiiMorse &A);
    double PairPotential(double NTemp,double r2,YDeriv dy=Y0,TDeriv dt=T0);
 private:
+   double A(double NTemp,TDeriv dt=T0);
    double Beta(double NTemp,TDeriv dt=T0);
-   double Rhat(double NTemp,TDeriv dt=T0);   
+   double Rhat(double NTemp,TDeriv dt=T0);
 };
 
 #endif
