@@ -22,7 +22,8 @@
 #include "Expand15.h"
 #include "Full15.h"
 #include "Ortho15Shuff.h"
+#include "Expand9.h"
 
-#define KNOWNMODES 24
+#define KNOWNMODES 25
 
 LatticeMode *InitializeMode(Lattice *Lat,char *datafile);
