@@ -105,12 +105,7 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,char *star
 	 break;
       }
    }
-}
-
-
-	 
-
-   
+}   
 
 int ArcLengthSolution::AllSolutionsFound()
 {
@@ -197,6 +192,9 @@ int ArcLengthSolution::ArcLengthNewton()
 
 int ArcLengthSolution::BisectAlert(Lattice *Lat,int Width,fstream &out)
 {
+   double NewtonTolFactor = 10.0,
+      ConvergenceFactor = 100;
+   
    Vector OriginalDiff=Difference_;
    Vector IntermediateDiff(Difference_.Dim(),0.0);
    double OriginalDS = CurrentDS_;
@@ -208,11 +206,14 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,int Width,fstream &out)
    // Set Lattice back to previous solution
    Mode_->ArcLenUpdate(Difference_);
    CurrentNulity = Lat->StiffnessNulity(&CurrentMinEV);
+
+   // Set Tolerance_ tighter
+   Tolerance_ /= NewtonTolFactor;
    
    cout << "\t" << setw(Width) << OldNulity << setw(Width) << OldMinEV
 	<< " DS " << setw(Width) << CurrentDS_ << endl;
-
-   while ((fabs(CurrentMinEV - OldMinEV) > Tolerance_)
+cout << setiosflags(ios::scientific);
+   while ((fabs(CurrentMinEV) > ConvergenceFactor*Tolerance_)
 	  && (loops < MaxIter_))
    {
       cout << setw(Width) << CurrentNulity
@@ -256,6 +257,9 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,int Width,fstream &out)
    Mode_->ArcLenUpdate(-(OriginalDiff - IntermediateDiff));
    CurrentDS_ = OriginalDS;
    Difference_ = OriginalDiff;
+
+   // Reste Tolerance_
+   Tolerance_ *= NewtonTolFactor;
 
    return 1;
 }
