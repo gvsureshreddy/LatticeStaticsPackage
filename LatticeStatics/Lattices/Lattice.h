@@ -41,6 +41,7 @@ public:
    virtual void CriticalPointInfo(const Vector &DrDt,double Tolerance,
 				  char *datafile,const char *prefix,
 				  int Width,ostream &out);
+   virtual void DebugMode() {};
 
    enum PrintDetail {PrintLong,PrintShort};
    virtual void Print(ostream &out,PrintDetail flag) = 0;

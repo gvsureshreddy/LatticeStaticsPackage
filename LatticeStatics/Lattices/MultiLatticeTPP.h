@@ -92,6 +92,7 @@ public:
 				     ostream &out);
    virtual void SetGridSize(int Grid) {GridSize_=Grid; UCIter_(GridSize_);}
    virtual void NeighborDistances(int cutoff,ostream &out);
+   virtual void DebugMode();
    virtual void Print(ostream &out,PrintDetail flag);
    
    // Functions provided by MultiLatticeTPP

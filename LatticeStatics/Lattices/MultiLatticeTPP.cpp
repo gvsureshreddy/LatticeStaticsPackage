@@ -1711,8 +1711,6 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, int gridsize,const char *p
 
 	 for (int i=0;i<DIM3;++i)
 	 {
-	    // normalize by (Mc/Vc)/G
-	    BlkEigVal[0][i] *= (Mc/Vc)/ShearMod_;
 	    // wave speed squared
 	    BlkEigVal[0][i] /= (twopi*dk*twopi*dk);
 	 }
@@ -1740,6 +1738,11 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, int gridsize,const char *p
 
 	 ModEigVal = SymEigVal(A);
 	 qsort(ModEigVal[0],DIM3,sizeof(double),&abscomp);
+	 for (int i=0;i<3;++i)
+	 {
+	    // normalize by G/(Mc/Vc)
+	    ModEigVal[0][i] *= ShearMod_/(Mc/Vc);
+	 }
 
 	 out << prefix << setw(w/2) << phi << setw(w/2) << theta;
 	 if (Echo_) cout << prefix << setw(w/2) << phi << setw(w/2) << theta;
@@ -1763,6 +1766,34 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, int gridsize,const char *p
       }
       out << endl;
       if (Echo_) cout << endl;
+   }
+
+   for (int i=0;i<DIM3;++i)
+      for (int j=0;j<DIM3;++j)
+      {
+	 A[i][j] = 0.0;
+	 for (int k=0;k<DIM3;++k)
+	    for (int l=0;l<DIM3;++l)
+	    {
+	       A[i][j] += L[3*i+k][3*j+l]
+		  *(1.0/3.0);
+	    }
+      }
+   
+   ModEigVal = SymEigVal(A);
+   qsort(ModEigVal[0],DIM3,sizeof(double),&abscomp);
+   for (int i=0;i<3;++i)
+   {
+      // normalize by G/(Mc/Vc)
+      ModEigVal[0][i] *= ShearMod_/(Mc/Vc);
+   }
+   
+   out << prefix << "(1,1,1) ";
+   if (Echo_) cout << "(1,1,1) ";
+   for (int i=0;i<DIM3;++i)
+   {
+      out << setw(w) << ModEigVal[0][i];
+      if (Echo_) cout << setw(w) << ModEigVal[0][i];
    }
 }
 
@@ -1953,6 +1984,170 @@ ostream &operator<<(ostream &out,MultiLatticeTPP &A)
 {
    A.Print(out,Lattice::PrintShort);
    return out;
+}
+
+
+//---------------------- Debug Mode Handler --------------------------
+
+
+void MultiLatticeTPP::DebugMode()
+{
+   char *Commands[] = {
+      "INTERNAL_ATOMS",                // 0
+      "DOFS",                          // 1
+      "RefLen_",                       // 2
+      "InfluanceDist_",                // 3
+      "NTemp_",                        // 4
+      "DOF_",                          // 5
+      "LatticeBasis",                  // 6
+      "RefLattice_",                   // 7
+      "ShearMod_",                     // 8
+      "Pressure_",                     // 9
+      "BodyForce_",                    // 10
+      "AtomicMass_",                   // 11
+      "GridSize_",                     // 12
+      "Potential_",                    // 13
+      "CurrRef_",                      // 14
+      "ConvexityDX_",                  // 15
+      "NoMovable_",                    // 16
+      "MovableAtoms_",                 // 17
+      "stress",                        // 18
+      "stiffness",                     // 19
+      "CondensedModuli",               // 20
+      "CurrentDispersionCurves",       // 21
+      "CurrentBlochWave",              // 22
+      "CurrentDynamicalStiffness",     // 23
+      "ReferenceDispersionCurves",     // 24
+      "ReferenceBlochWave",            // 25
+      "ReferenceDynamicalStiffness",   // 26
+      "interpolate",                   // 27
+      "comp",                          // 28
+      "abscomp",                       // 29
+      "DOF",                           // 30
+      "SetDOF",                        // 31
+      "StressDT",                      // 32
+      "StiffnessDT",                   // 33
+      "SetTemp",                       // 34
+      "Energy",                        // 35
+      "Moduli",                        // 36
+      "E3",                            // 37
+      "E4",                            // 38
+      "SetGridSize",                   // 39
+      "NeighborDistances",             // 40
+      "Print",                         // 41
+      "Del",                           // 42
+      "SetPressure",                   // 43
+      "PI",                            // 44
+      "PSI",                           // 45
+      "OMEGA",                         // 46
+      "SIGMA",                         // 47
+      "GAMMA",                         // 48
+      "THETA",                         // 49
+      "XI",                            // 50
+      "LAMDA",                         // 51
+      "INDU",                          // 52
+      "INDV",                          // 53
+      "INDUU",                         // 54
+      "INDVV",                         // 55
+      "INDUV",                         // 56
+      "INDVU",                         // 57
+      "DELTA",                         // 58
+      "FindLatticeSpacing"            // 59
+   };
+   int NOcommands=60;
+
+   
+   char response[LINELENGTH];
+   char tokens[LINELENGTH];
+   char prompt[] = "Debug >";
+   int W=cout.width();
+
+   cout << setw(0) << prompt;
+
+   cin.getline(response,LINELENGTH);
+
+   while (strcasecmp(response,"q") &&
+	  strcasecmp(response,"quit") &&
+	  strcasecmp(response,"exit"))
+   {
+      if (!strcmp(response,Commands[0]))
+	 cout << "INTERNAL_ATOMS = " << INTERNAL_ATOMS << endl;
+      else if (!strcmp(response,Commands[1]))
+	 cout << "DOFS = " << DOFS << endl << endl;
+      else if (!strcmp(response,Commands[2]))
+	 cout << "RefLen_[0] = " << RefLen_[0] << endl
+	      << "RefLen_[1] = " << RefLen_[1] << endl
+	      << "RefLen_[2] = " << RefLen_[2] << endl << endl;
+      else if (!strcmp(response,Commands[3]))
+	 cout << "InfluanceDist_ = " << InfluanceDist_ << endl << endl;
+      else if (!strcmp(response,Commands[4]))
+	 cout << "NTemp_ = " << NTemp_ << endl << endl;
+      else if (!strcmp(response,Commands[5]))
+      {
+	 for (int i=0;i<DOFS;++i)
+	    cout << "DOF_[" << i << "] = " << DOF_[i] << endl;
+	 cout << endl;
+      }
+
+
+      
+      else if (!strcmp(response,Commands[7]))
+	 cout << setw(W) << RefLattice_ << endl;
+
+
+
+      else if (!strcmp(response,Commands[26]))
+      {
+	 cout << "\tK >";
+	 Vector K(3,0.0);
+	 cin >> K;
+	 cin.getline(response,LINELENGTH); // clear input
+	 cout << setw(W) << ReferenceDynamicalStiffness(K) << endl;;
+      }
+
+
+      else if (!strcmp(response,Commands[31]))
+      {
+	 cout << "\tDOF_ >";
+	 Vector dof(DOFS,0.0);
+	 cin >> dof;
+	 cin.getline(response,LINELENGTH); // clear input
+	 SetDOF(dof);
+      }
+
+      
+      else if (!strcmp(response,Commands[34]))
+      {
+	 cout << "\tTemp >";
+	 double temp;
+	 cin >> temp;
+	 cin.getline(response,LINELENGTH); // clear input
+	 SetTemp(temp);
+      }
+
+
+      else if (!strcmp(response,"?") ||
+	       !strcasecmp(response,"help"))
+      {
+	 cout << setiosflags(ios::left);
+	 for (int i=0;i<NOcommands/2 + NOcommands%2;++i)
+	 {
+	    cout << "  " << setw(30) << Commands[i];
+	    if (i==NOcommands/2 && !NOcommands%2)
+	       cout << endl;
+	    else
+	       cout << setw(30) << Commands[NOcommands/2+i] << endl;
+	 }
+	 cout << resetiosflags(ios::left) << endl;
+      }
+      else
+      {
+	 cout << "!--- Error - Unknown command ---!" << endl << endl;
+      }
+
+      cout << prompt;
+      cin.getline(response,LINELENGTH);
+   }  
 }
 
 
