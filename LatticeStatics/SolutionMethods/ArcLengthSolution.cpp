@@ -223,10 +223,12 @@ double ArcLengthSolution::FindNextSolution(int &good)
       uncertainty = ArcLengthNewton(good);
 
       AngleTest = Mode_->ArcLenAngle(OldDiff,Difference_,Aspect_);
+
+      cout << "AngleTest = " << AngleTest << "  Cutoff = " << AngleCutoff_ << endl;
    }
-   while ((AngleTest >= AngleCutoff_)
+   while (((AngleTest >= AngleCutoff_) || !good)
 	  && (CurrentDS_ >= DSMin_)
-	  && (Mode_->ArcLenUpdate(Difference_),CurrentDS_ = CurrentDS_/2.0));
+	  && (Mode_->ArcLenUpdate(Difference_), CurrentDS_=CurrentDS_/2.0, good=1));
 
    if ((AngleTest <= AngleIncrease_) && (CurrentDS_ < DSMax_))
    {
