@@ -3,9 +3,10 @@
 #include <iomanip.h>
 #include <string.h>
 #include <math.h>
+#include <stdlib.h>
 
 // Global IDString
-char MatrixID[]="$Id: Matrix.cpp,v 1.10 2002/09/11 17:04:10 elliottr Exp $";
+char MatrixID[]="$Id: Matrix.cpp,v 1.11 2003/02/19 20:33:48 elliottr Exp $";
 
 // Private Methods...
 
