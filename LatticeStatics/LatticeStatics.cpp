@@ -214,23 +214,13 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
 		  Two = Mode->ArcLenDef();
 	       }
 	    }
+
+	    return new ArcLengthSolution(Mode,datafile,One,Two);
 	 }
 	 else
 	 {
-	    fstream start;
-	    start.open(startfile,ios::in);
-	    if (start.fail())
-	    {
-	       cerr << "Error: Unable to open file : " << startfile
-		    << " for read" << endl;
-	       exit(-1);
-	    }
-
-	    start >> One;
-	    start >> Two;
+	    return new ArcLengthSolution(Mode,datafile,startfile);
 	 }
-	 
-	 return new ArcLengthSolution(Mode,datafile,One,Two);
       }
       break;
    }
