@@ -10,7 +10,7 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,
    GetParameter("^ArcLenMaxIterations",datafile,"%u",&MaxIter_);
    GetParameter("^ArcLenTolerance",datafile,"%lf",&Tolerance_);
    GetParameter("^ArcLenDSMax",datafile,"%lf",&DSMax_);
-   CurrentDS_ = DSMax_;
+   GetParameter("^ArcLenDSStart",datafile,"%lf",&CurrentDS_);
    GetParameter("^ArcLenDSMin",datafile,"%lf",&DSMin_);
    GetParameter("^ArcLenAngleCutoff",datafile,"%lf",&AngleCutoff_);
    GetParameter("^ArcLenAngleIncrease",datafile,"%lf",&AngleIncrease_);
@@ -31,7 +31,7 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,
    GetParameter("^ArcLenMaxIterations",datafile,"%u",&MaxIter_);
    GetParameter("^ArcLenTolerance",datafile,"%lf",&Tolerance_);
    GetParameter("^ArcLenDSMax",datafile,"%lf",&DSMax_);
-   CurrentDS_ = DSMax_;
+   GetParameter("^ArcLenDSStart",datafile,"%lf",&CurrentDS_);
    GetParameter("^ArcLenDSMin",datafile,"%lf",&DSMin_);
    GetParameter("^ArcLenAngleCutoff",datafile,"%lf",&AngleCutoff_);
    GetParameter("^ArcLenAngleIncrease",datafile,"%lf",&AngleIncrease_);
@@ -253,6 +253,7 @@ double ArcLengthSolution::FindNextSolution(int &good)
    if ((AngleTest <= AngleIncrease_) && (CurrentDS_ < DSMax_))
    {
       CurrentDS_ *= 2.0;
+      if (CurrentDS_ > DSMax_) CurrentDS_ = DSMax_;
       cout << "DS= " << CurrentDS_ << endl;
    }
 
