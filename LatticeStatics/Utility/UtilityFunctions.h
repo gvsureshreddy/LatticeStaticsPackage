@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "Matrix.h"
-#include "MyMath.h"
+#include <Matrix.h>
+#include <MyMath.h>
 
 #define LINELENGTH 600
 
