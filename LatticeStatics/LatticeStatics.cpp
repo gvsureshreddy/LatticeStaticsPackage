@@ -49,6 +49,8 @@ int main(int argc, char *argv[])
    InitializeOutputFile(out,outputfile,datafile,Lat,Precision,Width);
    
    Mode = InitializeMode(Lat,datafile);
+   out << "Mode: " << Mode->ModeName() << endl;
+   cout << "Mode: " << Mode->ModeName() << endl;
    
    SolveMe = InitializeSolution(Mode,datafile,startfile,Lat,Width);
 
