@@ -58,7 +58,8 @@ double RadiiMorse::Rhat(double NTemp,TDeriv dt)
 
 double RadiiMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
 {
-   double At(NTemp),
+   double At=A(NTemp),
+      //double At(NTemp),
       beta=Beta(NTemp),
       rhat=Rhat(NTemp),
       r = sqrt(r2),
