@@ -6,7 +6,7 @@
 #include <math.h>
 
 // Global IDString
-char CMatrixID[]="$Id: CMatrix.cpp,v 1.5 2003/04/30 16:56:35 elliottr Exp $";
+char CMatrixID[]="$Id: CMatrix.cpp,v 1.6 2003/04/30 21:08:11 elliottr Exp $";
 
 // Private Methods...
 
@@ -571,6 +571,108 @@ void PLU(const CMatrix& A,CMatrix& P,CMatrix& L,CMatrix& U)
    delete [] Ipivot;
 
    return;
+}
+
+Matrix HermiteEigVal(CMatrix A,CMatrix *B,const int MaxItr,const double Tol)
+{
+   int count=0,
+      converged=0;
+   Matrix EigVals(1,A.Cols_);
+   complex<double> tau,t1,t2,t,c,s,cc,ss,cs,ssbar,csbar,
+      aij1,aii1,ajj1,aki1,akj1,tmp;
+
+   if (B != NULL)
+   {
+      B->SetIdentity(A.Cols_);
+   }
+   
+   while ((count < MaxItr) && (!converged))
+   {
+      for (int i=0;i<A.Cols_;i++)
+      {
+	 for (int j=i+1;j<A.Cols_;j++)
+	 {
+	    if (abs(A.Elements_[i][j]) < Tol )
+	       continue;
+	    else
+	    {
+	       tau = (A.Elements_[i][i] - A.Elements_[j][j])
+		  /(2.0*conj(A.Elements_[i][j]));
+
+	       t1 = -tau - sqrt( (A.Elements_[i][j]/conj(A.Elements_[i][j])) + tau*tau);
+	       t2 = -tau + sqrt( (A.Elements_[i][j]/conj(A.Elements_[i][j])) + tau*tau);
+	       if (abs(t1) >= abs(t2))
+		  t = t2;
+	       else
+		  t = t1;
+	    }
+	    
+	    c = 1.0/sqrt(1.0 + t*conj(t));
+	    s = t * c;
+	    cc = c*c;
+	    ss = s*s;
+	    ssbar = s*conj(s);
+	    cs = c*s;
+	    csbar = c*conj(s);
+	    aij1 = A.Elements_[i][j];
+	    aii1 = A.Elements_[i][i];
+	    ajj1 = A.Elements_[j][j];
+
+
+	    A.Elements_[i][i] = aii1*cc + cs*conj(aij1) + csbar*aij1 + ssbar*ajj1;
+	    A.Elements_[j][j] = aii1*ssbar - cs*conj(aij1) - csbar*aij1 + cc*ajj1;
+	    A.Elements_[i][j] = A.Elements_[j][i] = 0.0;
+
+	    for (int k=0;k<A.Cols_;k++)
+	    {
+	       if (B != NULL)
+	       {
+		  tmp = B->Elements_[k][i]*c + B->Elements_[k][j]*conj(s);
+		  B->Elements_[k][j] = -B->Elements_[k][i]*s + B->Elements_[k][j]*c;
+		  B->Elements_[k][i] = tmp;
+	       }
+
+	       
+	       if ( k==i || k==j)
+	       {
+		  continue;
+	       }
+
+	       aki1 = A.Elements_[k][i];
+	       akj1 = A.Elements_[k][j];
+
+	       A.Elements_[k][i] = aki1*c + akj1*conj(s);
+	       A.Elements_[i][k] = conj(A.Elements_[k][i]);
+	       A.Elements_[k][j] = -aki1*s + akj1*c;
+	       A.Elements_[j][k] = conj(A.Elements_[k][j]);
+	    }
+	 }
+      }
+      count++;
+
+      converged = 1;
+      for (int i=0;i<A.Cols_;i++)
+	 for (int j=0;j<A.Cols_;j++)
+	 {
+	    if ((i != j) && (abs(A.Elements_[i][j]) > Tol))
+	    {
+	       converged = 0;
+	    }
+	 }
+   }
+
+   if (!converged)
+   {
+      cerr << "Error: HermiteEigVal(): Failed - No convergence!" << endl;
+      exit(-1);
+   }
+   else
+   {
+      for (int i=0;i<A.Cols_;i++)
+	 EigVals[0][i] = real(A.Elements_[i][i]);
+
+      return EigVals;
+   }
 }
 
 void Cholesky(const CMatrix& A,CMatrix& U,CMatrix& D)

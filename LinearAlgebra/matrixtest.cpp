@@ -35,7 +35,8 @@ int main()
 
    Vector3D e,f;
    
-   srand(time(NULL));
+//   srand(time(NULL));
+   srand(1);
 
 //   Matrix::MathematicaPrintFlag=1;
    
@@ -167,6 +168,10 @@ int main()
 
    cout << "A*A^-1" << setw(20) << A*A.Inverse() << endl;
 
+   cout << "CA^-1" << setw(20) << CA.Inverse() << endl;
+
+   cout << "CA*CA^-1" << setw(20) << CA*CA.Inverse() << endl;
+
    PLU(A,B,C,D);
    PLU(CA,CB,CC,CD);
 
@@ -221,15 +226,16 @@ int main()
    CMatrix CDD,CUU;
    // Make E symmetric
    E=E*E.Transpose();
-   // Make CE symmetric
-   CE=CE*CE.Transpose();
+   // Make CE Hermitian
+   CE=CE*CE.ConjTrans();
    Cholesky(E,UU,DD);
    Cholesky(CE,CUU,CDD);
    cout << "Cholesky" << endl << setw(20) << E << endl;
    cout << "result" << endl << setw(20) << UU.Transpose()*DD*UU << endl;
 
    cout << "Complex Cholesky" << endl << setw(20) << CE << endl;
-   cout << "Complex result" << endl << setw(20) << CUU.Transpose()*CDD*CUU << endl;
+   cout << "Complex result" << endl << setw(20)
+	<< CUU.ConjTrans()*CDD*CUU << endl;
 
    // check SymEigVal
    cout << "SymEigVal" << endl << setw(20) << SymEigVal(E) << endl;
@@ -250,8 +256,23 @@ int main()
       cout << setw(20) << E*c << endl;
       cout << setw(20) << (E*c)/d[i] << endl << endl;
    }
-      
 
+   // check HermiteigVal eigenvector calculation
+   d=HermiteEigVal(CE,&CF);
+   cout << "HermiteEigVal(CE,&CF)" << endl << setw(20) << d << endl;
+   cout << "CF" << endl << setw(20) << CF << endl;
+   cout << "CF.ConjTrans()*CF" << endl << setw(20) << CF.ConjTrans()*CF << endl;
+
+   for (int i=0;i<6;i++)
+   {
+      for (int j=0;j<6;j++)
+      {
+	 cc[j] = CF[j][i];
+      }
+      
+      cout << setw(20) << CE*cc << endl;
+      cout << setw(20) << (CE*cc)/d[i] << endl << endl;
+   }
 
    E.Resize(3,3);
    E=A;

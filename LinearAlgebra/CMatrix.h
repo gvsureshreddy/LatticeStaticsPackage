@@ -9,13 +9,13 @@ char *LinearAlgebraBuildDate();
 
 #include <iostream.h>
 #include <complex.h>
+#include <Matrix.h>
 
 // Sentinal to allow for no initialization of data
 #define SENTINAL -9999999.8888888887777788
 
 class Vector;
 class Vector3D;
-class Matrix;
 
 class CMatrix
 {
@@ -111,6 +111,21 @@ public:
    // Set P,L,U to the corresponding matricies of the PLU
    //   decomposition of A
    friend void PLU(const CMatrix& A,CMatrix& P,CMatrix& L,CMatrix& U);
+
+   // HermiteEigVal -- determine the eigenvalues of A
+   // Diag(eigen values) = B.ConjTrans()*A*B
+   //
+   // Modified for Hermite matricies from symmetric jacobi in
+   // "Matrix Computations"
+   //
+   // Returns vector containing eigenvalues
+   // AND-- CMatrix of eigenvectors (as columns) if a pointer is passed
+   // MaxItr - max number of iterations
+   // Tol - tolerance for convergence
+   //
+   // Note: Assumes A is HERMITIAN
+   friend Matrix HermiteEigVal(CMatrix A,CMatrix *B=NULL,const int MaxItr=100,
+			       const double Tol=1.0e-13);
 
    // Cholesky Decomposition of CMatrix
    // A=U.ConjTrans()*D*U

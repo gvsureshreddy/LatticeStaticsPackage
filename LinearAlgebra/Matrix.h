@@ -140,6 +140,8 @@ public:
 		  const Elm MaxCond=MAXCONDITION,const int PrintFlag=0);
 
    // SymEigVal -- determine the eigenvalues of A
+   // Diag(eigen values) = B.Transpose()*A*B
+   //
    // Use Cyclic Jacobi Method -- Ref. "Numerical Analysis" by Pratel pg 440
    //
    // Returns vector containing eigenvalues
