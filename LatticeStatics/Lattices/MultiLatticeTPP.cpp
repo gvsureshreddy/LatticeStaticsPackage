@@ -18,9 +18,10 @@ MultiLatticeTPP::~MultiLatticeTPP()
    delete [] MovableAtoms_;
 }
 
-MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo)
+MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int Debug)
 {
    Echo_ = Echo;
+   dbg_ = Debug;
    // Get Lattice definition
    char tmp[LINELENGTH];
    if(!GetParameter(prefix,"InternalAtoms",datafile,"%u",&INTERNAL_ATOMS)) exit(-1);
@@ -155,10 +156,13 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo)
 
    // Initiate the Unit Cell Iterator for Bloch wave calculations.
    UCIter_(GridSize_);
-   if (EnterDebugMode())
+   if (dbg_)
    {
-      cout << setw(15);
-      DebugMode();
+      if (EnterDebugMode())
+      {
+	 cout << setw(15);
+	 DebugMode();
+      }
    }
    
 }
@@ -1865,11 +1869,14 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 	 break;
    }
    // check for debug mode request
-   if (EnterDebugMode())
+   if (dbg_)
+   {
+      if (EnterDebugMode())
       {
 	 cout << setw(15);
 	 DebugMode();
       }
+   }
 }
 
 ostream &operator<<(ostream &out,MultiLatticeTPP &A)
@@ -1923,9 +1930,11 @@ void MultiLatticeTPP::DebugMode()
       "StressDL",                      // 35
       "StiffnessDL",                   // 36
       "FindLatticeSpacing",            // 37
-      "ConsistencyCheck"               // 38
+      "ConsistencyCheck",              // 38
+      "dbg_"                           // 39
+      
    };
-   int NOcommands=39;
+   int NOcommands=40;
    
    char response[LINELENGTH];
    char prompt[] = "Debug > ";
@@ -2144,6 +2153,10 @@ void MultiLatticeTPP::DebugMode()
 	 Echo_=0;
 	 ConsistencyCheck(epsilon,width,cout);
 	 Echo_=oldEcho;
+      }
+      else if (!strcmp(response,Commands[39]))
+      {
+	 cout << "dbg_ = " << dbg_ << endl;
       }
       else if (!strcmp(response,"?") ||
 	       !strcasecmp(response,"help"))

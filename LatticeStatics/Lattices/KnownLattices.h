@@ -3,6 +3,6 @@
 
 #include "MultiLatticeTPP.h"
 
-Lattice *InitializeLattice(char *datafile,const char *prefix,int Echo);
+Lattice *InitializeLattice(char *datafile,const char *prefix,int Echo,int Debug);
 
 #endif

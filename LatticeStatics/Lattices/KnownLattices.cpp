@@ -1,7 +1,7 @@
 #include "KnownLattices.h"
 #include "UtilityFunctions.h"
 
-Lattice *InitializeLattice(char *datafile,const char *prefix,int Echo)
+Lattice *InitializeLattice(char *datafile,const char *prefix,int Echo,int Debug)
 {
    const int NoLats = 1;
    const char *Lattices[]={"MultiLatticeTPP"};
@@ -10,7 +10,7 @@ Lattice *InitializeLattice(char *datafile,const char *prefix,int Echo)
    {
       case 0:
       {
-	 return new MultiLatticeTPP(datafile,prefix,Echo);
+	 return new MultiLatticeTPP(datafile,prefix,Echo,Debug);
       }
       break;
       case -1:

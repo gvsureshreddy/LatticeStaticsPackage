@@ -14,6 +14,7 @@ class Lattice
 {
 public:
    int Echo_;
+   int dbg_;
 
    enum LoadType {Temperature,Load};
    LoadType LoadParameter_;

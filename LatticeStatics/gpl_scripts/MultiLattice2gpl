@@ -5,7 +5,7 @@
 
 if (scalar(@ARGV) != 3)
 {
-  die "Usage: MultiLattice2gpl dofs output inputname\n";
+  die "Usage: MultiLattice2gpl dofs dataname gplfilename\n";
 }
 
 $DOFSize = $ARGV[0];
@@ -29,7 +29,7 @@ open(GNUPLOT,">$ARGV[2]")
 print GNUPLOT "# gnuplot data file for ${dataset}\n#\n";
 print GNUPLOT "# Index 0\n";
 print GNUPLOT "# Bifurcation Points\n";
-printf GNUPLOT "#" . $StrSPEC . $StrSPEC,"Temperature","Potential";
+printf GNUPLOT "#" . $StrSPEC . $StrSPEC . $StrSPEC,"Temperature","Stress","Potential";
 for (my $i=0;$i<$DOFSize;$i+=1)
 {
     printf GNUPLOT $StrSPEC,"DOF $i";
@@ -78,11 +78,10 @@ close(GNUPLOT);
 #          sections (indicies)
 #
 sub loaddata {
-    my(@fields,@temp,@DOF,
+    my(@fields,@temp,,@stress,@DOF,
        @potential,@mineigval,@noneg,@blochwave,
        $stableflag,$stable_nodata,$unstable_nodata,$bifpoints);
     my($gnuplot,$endgnuplot);
-    $pressure = "unknown";
     $gnuplot = $_[2];
     $endgnuplot = $_[4];
     $stable = "";
@@ -114,12 +113,12 @@ sub loaddata {
 		push(@temp,$fields[1]);
 	    }
 
-	    if ( /^Pressure/)
+	    if ( /^Lambda/)
 	    {
 		@fields=split(/:/,$_);
-		$pressure=$fields[1];
+		push(@stress,$fields[1]);
 	    }
-	    
+
 	    if ( /^DOF/)
 	    {
 		$_ = <DATA>;
@@ -163,8 +162,7 @@ sub loaddata {
     }
 
     $stable .= sprintf "# Index $_[3]\n";
-    $stable .= sprintf "# Stable sections of $_[0] branch at Pressure $pressure";
-    $stable .= sprintf "#" . $StrSPEC . $StrSPEC,"Temperature","Potential";
+    $stable .= sprintf "#" . $StrSPEC . $StrSPEC . $StrSPEC,"Temperature","Stress","Potential";
     for (my $i=0;$i<$DOFSize;$i+=1)
     {
 	$stable .= sprintf $StrSPEC,"DOF $i";
@@ -172,8 +170,7 @@ sub loaddata {
     $stable .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . "\n",
     "Min EigVal","Num Neg Eig Vals","Rank 1 Convex","Blochwave";
     $unstable .= sprintf "# Index " . ($_[3]+1) . "\n";
-    $unstable .= sprintf "# Unstable sections of $_[0] branch at Pressure $pressure";
-    $unstable .= sprintf "#" . $StrSPEC . $StrSPEC,"Temperature","Potential";
+    $unstable .= sprintf "#" . $StrSPEC . $StrSPEC . $StrSPEC,"Temperature","Stress","Potential";
     for (my $i=0;$i<$DOFSize;$i+=1)
     {
 	$unstable .= sprintf $StrSPEC,"DOF $i";
@@ -188,7 +185,7 @@ sub loaddata {
 	if (defined($noneg[1]) && $stableflag != $noneg[1])
 	{
 	    $bifpoints = 0;
-	    printf $gnuplot $FSPEC . $FSPEC,$temp[0],$potential[0];
+	    printf $gnuplot $FSPEC . $FSPEC . $FSPEC,$temp[0],$stress[0],$potential[0];
 	    for (my $i=0;$i<$DOFSize;$i+=1)
 	    {
 		printf $gnuplot $FSPEC,$DOF[0][$i];
@@ -201,7 +198,7 @@ sub loaddata {
 	    if ($noneg[1] == 0)
 	    {
 		$stable .= sprintf "\n";
-		$stable .= sprintf $FSPEC . $FSPEC,$temp[0],$potential[0];
+		$stable .= sprintf $FSPEC . $FSPEC . $FSPEC,$temp[0],$stress[0],$potential[0];
 		for (my $i=0;$i<$DOFSize;$i+=1)
 		{
 		    $stable .= sprintf $FSPEC,$DOF[0][$i];
@@ -212,7 +209,7 @@ sub loaddata {
 	    elsif ($stableflag == 0)
 	    {
 		$unstable .= sprintf "\n";
-		$unstable .= sprintf $FSPEC . $FSPEC,$temp[0],$potential[0];
+		$unstable .= sprintf $FSPEC . $FSPEC . $FSPEC,$temp[0],$stress[0],$potential[0];
 		for (my $i=0;$i<$DOFSize;$i+=1)
 		{
 		    $unstable .= sprintf $FSPEC,$DOF[0][$i];
@@ -226,7 +223,8 @@ sub loaddata {
 	if ($stableflag == 0)
 	{
 	    $stable_nodata = 0;
-	    $stable .= sprintf $FSPEC . $FSPEC,shift(@temp),shift(@potential);
+	    $stable .= sprintf $FSPEC . $FSPEC . $FSPEC,
+	      shift(@temp),shift(@stress),shift(@potential);
 	    for (my $i=0;$i<$DOFSize;$i+=1)
 	    {
 		$stable .= sprintf $FSPEC,$DOF[0][$i];
@@ -238,7 +236,8 @@ sub loaddata {
 	else
 	{
 	    $unstable_nodata = 0;
-	    $unstable .= sprintf $FSPEC . $FSPEC,shift(@temp),shift(@potential);
+	    $unstable .= sprintf $FSPEC . $FSPEC . $FSPEC,
+	      shift(@temp),shift(@stress),shift(@potential);
 	    for (my $i=0;$i<$DOFSize;$i+=1)
 	    {
 		$unstable .= sprintf $FSPEC,$DOF[0][$i];

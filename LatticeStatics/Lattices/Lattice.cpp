@@ -39,7 +39,7 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
    Matrix 
       D3=E3(),
       D2=Stiffness(),
-      D2T,
+      D2T(D2.Rows(),D2.Cols()),
       EigVec,
       EigVal=SymEigVal(D2,&EigVec);
    if (LoadParameter_ == Temperature)
@@ -370,10 +370,13 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
    out << endl;
 
    
-   if (EnterDebugMode())
+   if (dbg_)
    {
-      cout << setw(Width);
-      DebugMode();
+      if (EnterDebugMode())
+      {
+	 cout << setw(Width);
+	 DebugMode();
+      }
    }
    return;
 }

@@ -23,17 +23,24 @@ int main(int argc, char *argv[])
    if (argc < 3)
    {
       cerr << "Usage: " << argv[0]
+	   << " [--debug]"
 	   << " ParamFile OutputFile <StartData>" << endl;
       cerr << "Built on:               " << builddate() << endl
 	   << "LinearAlgebra Built on: " << LinearAlgebraBuildDate() << endl
 	   << "MyMath Built on:        " << MyMathBuildDate() << endl;
       exit(-1);
    }
-   char *datafile = argv[1],
-      *outputfile = argv[2],
+   int Debug;
+   if (!strcmp(argv[1],"--debug"))
+      Debug=1;
+   else
+      Debug=0;
+
+   char *datafile = argv[1+Debug],
+      *outputfile = argv[2+Debug],
       *startfile;
-   if (argc == 4)
-      startfile = argv[3];
+   if (argc == 4+Debug)
+      startfile = argv[3+Debug];
    else
       startfile = NULL;   
    
@@ -48,7 +55,7 @@ int main(int argc, char *argv[])
    
    GetMainSettings(Width,Precision,BisectCP,Echo,datafile);
 
-   Lat = InitializeLattice(datafile,"^",Echo);
+   Lat = InitializeLattice(datafile,"^",Echo,Debug);
 
    fstream out;
    InitializeOutputFile(out,outputfile,datafile,startfile,Lat,Precision,Width,Echo);

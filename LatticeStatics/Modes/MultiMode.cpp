@@ -113,7 +113,7 @@ void MultiMode::ArcLenUpdate(const Vector &newval)
    if (Lattice_->LoadParameter()==Lattice::Temperature)
       Lattice_->SetTemp(Lattice_->Temp() - newval[DOFS]);
    else if (Lattice_->LoadParameter()==Lattice::Load)
-      Lattice_->SetTemp(Lattice_->Temp() - newval[DOFS]);
+      Lattice_->SetLambda(Lattice_->Lambda() - newval[DOFS]);
 }
 
 double MultiMode::ArcLenAngle(Vector Old,Vector New,double Aspect)
