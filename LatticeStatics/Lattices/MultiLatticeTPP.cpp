@@ -564,6 +564,7 @@ inline int MultiLatticeTPP::INDVU(int m,int n,int i,int j)
 double MultiLatticeTPP::Energy()
 {
    double Phi = 0.0;
+   double Vr;
 
    for (LatSum_.Reset();!LatSum_.Done();++LatSum_)
    {
@@ -573,12 +574,13 @@ double MultiLatticeTPP::Energy()
    }
 
    // Phi = Phi/(2*Vr*ShearMod)
-   Phi *= 1.0/(2.0*(RefLattice_.Det()*ShearMod_));
+   Vr = RefLattice_.Det();
+   Phi *= 1.0/(2.0*(Vr*ShearMod_));
 
    // Apply loading potential
    for (int i=0;i<DIM3;++i)
       for (int j=0;j<DIM3;++j)
-	 Phi -= Lambda_*Loading_[i][j]*DOF_[INDU(i,j)];
+	 Phi -= Lambda_*Loading_[i][j]*(DOF_[INDU(i,j)] - Del(i,j))/Vr;
 
    return Phi;
 }
@@ -588,7 +590,7 @@ Matrix MultiLatticeTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
    static Matrix S;
    Matrix Uinv(DIM3,DIM3);
    double ForceNorm = 0.0;
-   double phi,J;
+   double phi,J,Vr;
    int i,j;
 
    S.Resize(1,DOFS,0.0);
@@ -652,13 +654,14 @@ Matrix MultiLatticeTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
       }
 
       // S = S/(2*Vr*ShearMod)
-      S *= 1.0/(2.0*(RefLattice_.Det()*ShearMod_));
+      Vr = RefLattice_.Det();
+      S *= 1.0/(2.0*(Vr*ShearMod_));
 
       // Load terms
       for (i=0;i<DIM3;++i)
 	 for (j=0;j<DIM3;++j)
 	 {
-	    S[0][INDU(i,j)] -= Lambda_*Loading_[i][j];
+	    S[0][INDU(i,j)] -= Lambda_*Loading_[i][j]/Vr;
 	 }
 
    }
