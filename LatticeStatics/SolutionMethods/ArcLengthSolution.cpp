@@ -42,6 +42,12 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,
    const char *StartType[] = {"Bifurcation","Continuation","ConsistencyCheck"};
    switch (GetStringParameter("^StartType",startfile,StartType,3))
    {
+      case -1:
+      {
+	 cerr << "Unknown StartType!" << endl;
+	 exit(-1);
+	 break;
+      }
       case 0:
       {
 	 // Set Difference and Lattice state
@@ -193,6 +199,7 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,
 
 	 // We are done -- set currentsolution to numsolutions
 	 CurrentSolution_ = NumSolutions_;
+	 break;
       }
    }
 }   
