@@ -13,7 +13,7 @@ void GetMainSettings(int &Width, int &Precision,YN &BisectCP,char *datafile);
 void InitializeOutputFile(fstream &out,char *outfile,char *datafile,
 			  Lattice *Lat,int Precision,int Width);
 SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
-				   char *startfile);
+				   char *startfile,Lattice *Lat,int Width);
 
 int main(int argc, char *argv[])
 {
@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
    
    Mode = InitializeMode(Lat,datafile);
    
-   SolveMe = InitializeSolution(Mode,datafile,startfile);
+   SolveMe = InitializeSolution(Mode,datafile,startfile,Lat,Width);
 
 
    
@@ -65,13 +65,13 @@ int main(int argc, char *argv[])
       success=SolveMe->FindNextSolution();
 
       if (success)
-      {
+      {	 
 	 // Check for Critical Point Crossing
 	 OldNulity = Nulity;
 	 Nulity = Lat->StiffnessNulity();
 	 if ((OldNulity != Nulity) && (BisectCP == Yes))
 	    SolveMe->BisectAlert(Lat,Width,out);
-
+	 
 	 // Send Output
 	 cout << setw(Width) << Lat << "Success = 1" << endl;
 	 out << setw(Width) << Lat << "Success = 1" << endl;
@@ -156,7 +156,6 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,
    cout << setiosflags(ios::fixed) << setprecision(Precision) << setw(Width);
    out  << setiosflags(ios::fixed) << setprecision(Precision) << setw(Width);
 
-   cout << Lat;
    Lat->Print(cout,Lattice::PrintLong);
    Lat->Print(out,Lattice::PrintLong);
 }
@@ -164,7 +163,7 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,
 
 
 SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
-				   char *startfile)
+				   char *startfile,Lattice *Lat,int Width)
 {
    FILE *pipe;
    char command[LINELENGTH];
@@ -178,8 +177,8 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
    pipe=OpenPipe(command,"r");
    fscanf(pipe,"%s",command);
    if (pclose(pipe)) Errfun(solv);
-   if ((!strcmp("ScanningSolution",command))
-       || (!strcmp("scanningsolution",command)))
+   if ((!strcmp("Scanning",command))
+       || (!strcmp("scanning",command)))
       solu = Scanning;
    else if ((!strcmp("ArcLength",command)) || (!strcmp("arclength",command)))
       solu = ArcLen;
@@ -209,6 +208,7 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
 	    good = ScanMe.FindNextSolution();
 	    if (good)
 	    {
+	       cout << setw(Width) << Lat;
 	       Two = Mode->ArcLenDef();
 	    }
 	 }

@@ -3,20 +3,20 @@ this is a test file for SquarePressPairPotLat
 // Main Parameters
 MainFieldWidth = 20
 MainPrecision = 12
-MainBisectCP = No
+MainBisectCP = Yes
 
 MainLatticeType = SquarePressTempPairPotLat
-MainModeType = UniDefTempSquare
+MainModeType = UniDefTemp2DExpand
 MainSolutionMethod = ArcLength
 
 
 // Lattice Parameters
 MaxIterations = 100
 InitializeStepSize = .1
-B0 = 4
+B0 = 2
 A0 = 1
 Rref= 1
-Alpha = 3
+Alpha = 0.5591
 Tref = 300
 RefLen = 1
 Tmelt = 1445 + 273
@@ -26,17 +26,17 @@ Pressure=0
 
 // Scanning Parameters
 ScanningMaxIterations = 100
-ScanningTolerance = 1.0e-12
+ScanningTolerance = 1.0e-13
 ScanningNewtonTolerance = 1.0e-28
 ScanningFullField = No
 ScanningInitialDeformation = 0.0
 ScanningDirection = Deformation
-ScanningStart = 280.0
-ScanningEnd = 281.0
-ScanningStep = 0.5
-ScanningLineStart = 0.9
+ScanningStart = 324.6
+ScanningEnd = 324.8
+ScanningStep = 0.2
+ScanningLineStart = 1.0
 ScanningLineStep = 0.01
-ScanningLineEnd = 1.1
+ScanningLineEnd = 1.9
 
 // ArcLength Parameters
 ArcLenMaxIterations = 100
@@ -46,5 +46,5 @@ ArcLenDSMin = 0.2*1.0e-3
 ArcLenAngleCutoff = 25*3.14159/180
 ArcLenAngleIncrease = 10*3.14159/180
 ArcLenAspect = 62.5
-ArcLenNumSolutions = 10
+ArcLenNumSolutions = 50
 
