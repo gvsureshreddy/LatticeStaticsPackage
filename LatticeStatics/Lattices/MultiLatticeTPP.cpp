@@ -1905,9 +1905,10 @@ void MultiLatticeTPP::DebugMode()
       "Print-short",                   // 33
       "Print-long",                    // 34
       "SetPressure",                   // 35
-      "FindLatticeSpacing"             // 36
+      "FindLatticeSpacing",            // 36
+      "ConsistencyCheck"               // 37
    };
-   int NOcommands=37;
+   int NOcommands=38;
    
    char response[LINELENGTH];
    char prompt[] = "Debug > ";
@@ -2107,6 +2108,19 @@ void MultiLatticeTPP::DebugMode()
 	 cin >> dx;
 	 cin.sync(); // clear input
 	 FindLatticeSpacing(iter,dx);
+      }
+      else if (!strcmp(response,Commands[37]))
+      {
+	 int width;
+	 int oldEcho=Echo_;
+	 double epsilon;
+	 cout << "\tConsistencyEpsilon > ";
+	 cin >> epsilon;
+	 cout << "\tWidth > ";
+	 cin >> width;
+	 Echo_=0;
+	 ConsistencyCheck(epsilon,width,cout);
+	 Echo_=oldEcho;
       }
       else if (!strcmp(response,"?") ||
 	       !strcasecmp(response,"help"))

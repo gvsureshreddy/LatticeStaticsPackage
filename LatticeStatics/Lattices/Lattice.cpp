@@ -373,3 +373,137 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
    }
    return;
 }
+
+void Lattice::ConsistencyCheck(double ConsistencyEpsilon,int Width,ostream &out)
+{
+   double potential;
+   int Dim=DOF().Dim();
+   Matrix
+      Stiff(Dim,Dim),
+      PerturbedStiff(Dim,Dim),
+      D3(Dim*Dim,Dim),
+      PerturbedD3(Dim*Dim,Dim),
+      D4(Dim*Dim,Dim*Dim),
+      PerturbedD4(Dim*Dim,Dim*Dim),
+      Force(1,Dim),
+      stress1(1,Dim),
+      stress2(1,Dim),
+      stiff1(Dim,Dim),
+      stiff2(Dim,Dim),
+      d31(Dim*Dim,Dim),
+      d32(Dim*Dim,Dim);
+   Vector
+      PerturbedForce(Dim),
+      OriginalState(Dim),
+      pert(Dim,0.0);
+   
+   // Get current state
+   OriginalState = DOF();
+   
+   // Do Consistency check
+   if (Echo_)
+   {
+      for (int i=0;i<70;i++) cout << "="; cout << endl;
+      cout << "Consistency Check." << endl;
+      cout << "F(U) * Epsilon" << endl;
+   }
+   for (int i=0;i<70;i++) out << "="; out << endl;
+   out << "Consistency Check." << endl;
+   out << "F(U) * Epsilon" << endl;
+   Force = ConsistencyEpsilon*Stress();
+   if (Echo_)
+   {
+      cout << setw(Width) << Force << endl;
+      cout << "K(U) * Epsilon" << endl;
+   }
+   out << setw(Width) << Force << endl;
+   out << "K(U) * Epsilon" << endl;
+   Stiff = ConsistencyEpsilon*Stiffness();
+   if (Echo_) cout << setw(Width) << Stiff << endl;
+   out << setw(Width) << Stiff << endl;
+
+   if (Echo_) cout << "E3(U) * Epsilon" << endl;
+   out << "E3(U) * Epsilon" << endl;
+   D3 = ConsistencyEpsilon*E3();
+   if (Echo_) cout << setw(Width) << D3 << endl;
+   out << setw(Width) << D3 << endl;
+
+   if (Echo_) cout << "E4(U) * Epsilon" << endl;
+   out << "E4(U) * Epsilon" << endl;
+   D4 = ConsistencyEpsilon*E4();
+   if (Echo_) cout << setw(Width) << D4 << endl;
+   out << setw(Width) << D4 << endl;
+
+   potential = Energy();
+   stress1 = Stress();
+   stiff1 = Stiffness();
+   d31 = E3();
+   for (int i=0;i<Dim;++i)
+   {
+      // Perturb the lattice state
+      pert.Resize(Dim,0.0);
+      pert[i]=1.0;
+      SetDOF(OriginalState+ConsistencyEpsilon*pert);
+      // Get Check
+      PerturbedForce[i] = Energy() - potential;
+      stress2 = Stress();
+      for (int j=0;j<Dim;j++)
+	 PerturbedStiff[j][i] = stress2[0][j] - stress1[0][j];
+      
+      for (int j=0;j<Dim;++j)
+      {
+	 stiff2 = Stiffness();
+	 for (int k=0;k<Dim;++k)
+	 {
+	    PerturbedD3[k*Dim + j][i] = stiff2[k][j] - stiff1[k][j];
+	 }
+
+	 for (int k=0;k<Dim;++k)
+	 {
+	    d32 = E3();
+	    for (int l=0;l<Dim;++l)
+	    {
+	 	 PerturbedD4[l*Dim + k][j*Dim + i] = d32[l*Dim + k][j] - d31[l*Dim + k][l];
+	    }
+	 }
+      }
+   }
+
+   // Print out the facts
+   if (Echo_)
+   {
+      cout << "Stress(U + Epsilon*Vj)" << endl;
+      cout << setw(Width) << PerturbedForce << endl;
+      cout << "Stiff(U + Epsilon*Vj)" << endl;
+      cout << setw(Width) << PerturbedStiff << endl;
+      cout << "E3(U + Epsilon*Vj)" << endl;
+      cout << setw(Width) << PerturbedD3 << endl;
+      cout << "E4(U + Epsilon*Vj)" << endl;
+      cout << setw(Width) << PerturbedD4 << endl;
+      cout << "Difference" << endl;
+      cout << setw(Width) << Force - PerturbedForce << endl << endl;
+      cout << setw(Width) << Stiff - PerturbedStiff << endl;
+      cout << setw(Width) << D3 - PerturbedD3 << endl;
+      cout << setw(Width) << D4 - PerturbedD4 << endl;
+   }
+
+   out << "Stress(U + Epsilon*Vj)" << endl;
+   out << setw(Width) << PerturbedForce << endl;
+   out << "Stiff(U + Epsilon*Vj)" << endl;
+   out << setw(Width) << PerturbedStiff << endl;
+   out << "E3(U + Epsilon*Vj)" << endl;
+   out << setw(Width) << PerturbedD3 << endl;
+   out << "E4(U + Epsilon*Vj)" << endl;
+   out << setw(Width) << PerturbedD4 << endl;
+   out << "Difference" << endl;
+   out << setw(Width) << Force - PerturbedForce << endl << endl;
+   out << setw(Width) << Stiff - PerturbedStiff << endl;
+   out << setw(Width) << D3 - PerturbedD3 << endl;
+   out << setw(Width) << D4 - PerturbedD4 << endl;
+
+   if (Echo_)
+   {
+      for (int i=0;i<70;i++) cout << "="; cout << endl;
+   }
+   for (int i=0;i<70;i++) out << "="; out << endl;
+}

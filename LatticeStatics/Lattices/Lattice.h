@@ -41,6 +41,7 @@ public:
    virtual void CriticalPointInfo(const Vector &DrDt,double Tolerance,
 				  char *datafile,const char *prefix,
 				  int Width,ostream &out);
+   void ConsistencyCheck(double ConsistencyEpsilon,int Width,ostream &out);
    virtual void DebugMode() {};
 
    enum PrintDetail {PrintLong,PrintShort};
