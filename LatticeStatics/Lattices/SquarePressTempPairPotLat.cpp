@@ -556,7 +556,7 @@ void SquarePressTempPairPotLat::Print(ostream &out,PrintDetail flag)
 	 MinEigVal = EigenValues[0][i];
    }
 
-   int Rank1Convex = Rank1Convex2D(moduli,ConvexityDX_);
+   int Rank1Convex = FullScanRank1Convex2D(moduli,ConvexityDX_);
 
    switch (flag)
    {

@@ -975,7 +975,7 @@ void NiTi15TPPLat::Print(ostream &out,PrintDetail flag)
       CondModuli = CondensedModuli(stiffness);
 
    CondEV=SymEigVal(CondModuli);
-   int RankOneConvex = Rank1Convex3D(CondModuli,ConvexityDX_);
+   int RankOneConvex = FullScanRank1Convex3D(CondModuli,ConvexityDX_);
 
    switch (flag)
    {

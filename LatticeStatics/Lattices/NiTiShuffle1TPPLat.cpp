@@ -658,7 +658,7 @@ void NiTiShuffle1TPPLat::Print(ostream &out,PrintDetail flag)
 	 MinEigVal = EigenValues[0][i];
    }
 
-   int Rank1Convex = Rank1Convex3D(moduli,ConvexityDX_);
+   int Rank1Convex = FullScanRank1Convex3D(moduli,ConvexityDX_);
 
    switch (flag)
    {

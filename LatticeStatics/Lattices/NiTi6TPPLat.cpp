@@ -536,7 +536,7 @@ void NiTi6TPPLat::Print(ostream &out,PrintDetail flag)
 	 MinEigVal = EigenValues[0][i];
    }
 
-   int RankOneConvex = Rank1Convex3D(moduli,ConvexityDX_);
+   int RankOneConvex = FullScanRank1Convex3D(moduli,ConvexityDX_);
 
    switch (flag)
    {
