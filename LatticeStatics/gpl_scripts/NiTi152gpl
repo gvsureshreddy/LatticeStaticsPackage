@@ -78,6 +78,7 @@ sub loaddata {
        @potential,@mineigval,@noneg,@uncertainty,
        $stableflag,$stable_nodata,$unstable_nodata,$bifpoints);
     my($gnuplot,$endgnuplot);
+    $pressure = "unknown";
     $gnuplot = $_[2];
     $endgnuplot = $_[4];
     $stable = "";
