@@ -1244,6 +1244,74 @@ CMatrix MultiLatticeTPP::DynamicalStiffness(Vector &Y)
    return Cy;
 }
 
+void MultiLatticeTPP::DispersionCurves(char *datafile,ostream &out)
+{
+   int w=out.width();
+   out.width(0);
+   char tmp[LINELENGTH];
+   
+   int NoDirs,NoPTS;
+   GetParameter("^DispersionDirections",datafile,"%u",&NoDirs);
+   GetParameter("^DispersionPoints",datafile,"%u",&NoPTS);
+
+   Vector *Direction;
+   Vector Y(DIM3);
+   Direction = new Vector[NoDirs];
+
+   for (int i=0;i<NoDirs;++i)
+   {
+      Direction[i].Resize(DIM3);
+      sprintf(tmp,"^DispersionDir_%u",i);
+      GetVectorParameter(tmp,datafile,&(Direction[i]));
+   }
+
+   Matrix DefGrad(DIM3,DIM3),Tmp(DIM3,DIM3),InverseLat(DIM3,DIM3);
+   // Setup DefGrad
+   DefGrad[0][0] = DOF_[0];
+   DefGrad[1][1] = DOF_[1];
+   DefGrad[2][2] = DOF_[2];
+   DefGrad[0][1] = DefGrad[1][0] = DOF_[3];
+   DefGrad[0][2] = DefGrad[2][0] = DOF_[4];
+   DefGrad[2][1] = DefGrad[1][2] = DOF_[5];
+   for (int i=0;i<DIM3;++i)
+      for (int j=0;j<DIM3;++j)
+      {
+	 Tmp[i][j] = 0.0;
+	 for (int k=0;k<DIM3;++k)
+	 {
+	    Tmp[i][j] += DefGrad[i][k]*RefLattice_[k][j];
+	 }
+      }
+   InverseLat = Tmp.Inverse();
+
+   Matrix EigVal(1,INTERNAL_ATOMS*DIM3);
+   for (int dir=0;dir<NoDirs;++dir)
+   {
+      out << "# " << setw(w) << Direction[dir] << endl;
+      cout << "# " << setw(w) << Direction[dir] << endl;
+      Direction[dir] = InverseLat*Direction[dir];
+      for (double k=0.5/NoPTS;k<=0.5;k+=0.5/NoPTS)
+      {
+	 Y = k*Direction[dir];
+	 EigVal = HermiteEigVal(DynamicalStiffness(Y));
+
+	 out << setw(w) << NTemp_ << setw(w) << k;
+	 cout << setw(w) << NTemp_ << setw(w) << k;
+	 for (int i=0;i<INTERNAL_ATOMS*DIM3;++i)
+	 {
+	    out << setw(w) << EigVal[0][i];;
+	    cout << setw(w) << EigVal[0][i];;
+	 }
+	 out << endl;
+	 cout << endl;
+      }
+      out << endl << endl;
+      cout << endl << endl;
+   }
+
+   delete [] Direction;
+}
+
 int MultiLatticeTPP::BlochWave(Vector &Y)
 {
    static CMatrix A(INTERNAL_ATOMS*DIM3,INTERNAL_ATOMS*DIM3);
@@ -1262,7 +1330,7 @@ int MultiLatticeTPP::BlochWave(Vector &Y)
       for (int j=0;j<DIM3;++j)
 	 for (int k=0;k<DIM3;++k)
 	 {
-	    tmp[i][j] += DefGrad[i][j]*RefLattice_[j][k];
+	    tmp[i][j] += DefGrad[i][j]*RefLattice_[k][j];
 	 }
    InverseLat = tmp.Inverse();
 

@@ -73,6 +73,7 @@ public:
    double ShearMod() const {return ShearMod_;}
    CMatrix DynamicalStiffness(Vector &Y);
    int BlochWave(Vector &Y);
+   void DispersionCurves(char *datafile,ostream &out);
    friend ostream &operator<<(ostream &out,MultiLatticeTPP &A);
 
 private:
