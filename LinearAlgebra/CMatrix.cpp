@@ -6,7 +6,7 @@
 #include <math.h>
 
 // Global IDString
-char CMatrixID[]="$Header: /h/elliott/.cvsroot/ttttttttttt/LinearAlgebra/CMatrix.cpp,v 1.1 2002/10/15 20:30:20 elliottr Exp $";
+char CMatrixID[]="$Id: CMatrix.cpp,v 1.2 2002/10/15 20:31:08 elliottr Exp $";
 
 // Private Methods...
 
