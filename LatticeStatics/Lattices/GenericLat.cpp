@@ -52,8 +52,8 @@ void GenericLat::CriticalPointInfo(const Vector &DrDt,double Tolerance,
    }
 
    // Print out the Eigenvectors
-   cout << setw(Width) << EigVec << endl;
-   out << setw(Width) << EigVec << endl;
+   cout << "EigenVectors" << endl << setw(Width) << EigVec;
+   out << "EigenVectors" << endl << setw(Width) << EigVec;
 
    // Eijk
    for (int i=0;i<count;i++)
@@ -173,6 +173,9 @@ void GenericLat::CriticalPointInfo(const Vector &DrDt,double Tolerance,
 		     }
 	    }
 
+	    cout << endl << "V[" << i << "][" << j << "]=";
+	    out << endl << "V[" << i << "][" << j << "]=";
+
 	    for (int k=0;k<dofs;k++)
 	    {
 	       Vij[i][j][k] = 0.0;
@@ -181,8 +184,12 @@ void GenericLat::CriticalPointInfo(const Vector &DrDt,double Tolerance,
 		  {
 		     Vij[i][j][k] += S[l][k]*Ainv[l][m]*b[m][0];
 		  }
+	       cout << setw(Width) << Vij[i][j][k];
+	       out << setw(Width) << Vij[i][j][k];
 	    }
 	 }
+      cout << endl;
+      out << endl;
 
       // Eijkl
       for (int i=0;i<count;i++)
@@ -251,9 +258,9 @@ void GenericLat::CriticalPointInfo(const Vector &DrDt,double Tolerance,
 		<< " + ";
 	 }
 	 cout << "(" << setw(Width) << EijT[i][count-1] << ")a_" << count-1
-	      << " ) = 0" << endl;
+	      << " ) = 0" << endl << endl;
 	 out << "(" << setw(Width) << EijT[i][count-1] << ")a_" << count-1
-	     << " ) = 0" << endl;
+	     << " ) = 0" << endl << endl;
       }      
    }
    
