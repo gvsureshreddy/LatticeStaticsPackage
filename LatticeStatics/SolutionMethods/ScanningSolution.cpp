@@ -3,7 +3,7 @@
 
 #include "UtilityFunctions.h"
 
-ScanningSolution::ScanningSolution(LatticeMode *Mode,char *datafile)
+ScanningSolution::ScanningSolution(LatticeMode *Mode,char *datafile,const char *prefix)
    : Mode_(Mode)
 {
    FILE *pipe;
@@ -11,10 +11,10 @@ ScanningSolution::ScanningSolution(LatticeMode *Mode,char *datafile)
    const char *yn[]={"No","Yes"};
    int ans;
    // Get parameters
-   if(!GetParameter("^ScanningMaxIterations",datafile,"%u",&MaxIter_)) exit(-1);
-   if(!GetParameter("^ScanningTolerance",datafile,"%lf",&Tolerance_)) exit(-1);
-   if(!GetParameter("^ScanningNewtonTolerance",datafile,"%lf",&NewtonTolerance_)) exit(-1);
-   ans=GetStringParameter("^ScanningFullField",datafile,yn,2);
+   if(!GetParameter(prefix,"ScanningMaxIterations",datafile,"%u",&MaxIter_)) exit(-1);
+   if(!GetParameter(prefix,"ScanningTolerance",datafile,"%lf",&Tolerance_)) exit(-1);
+   if(!GetParameter(prefix,"ScanningNewtonTolerance",datafile,"%lf",&NewtonTolerance_)) exit(-1);
+   ans=GetStringParameter(prefix,"ScanningFullField",datafile,yn,2);
    if (ans == 1)
       ScanFullField_ = Yes;
    else if (ans == 0)
@@ -26,8 +26,8 @@ ScanningSolution::ScanningSolution(LatticeMode *Mode,char *datafile)
    }
 
    char tmp[LINELENGTH];
-   char inidef[]="^ScanningInitialDeformation";
-   SetPerlCommand(tmp,datafile,inidef);
+   char inidef[]="ScanningInitialDeformation";
+   SetPerlCommand(tmp,datafile,prefix,inidef);
    pipe=OpenPipe(tmp,"r");
    InitialDef_.Resize(Mode->ScanningRHS().Dim());
    InitialDef_=Mode->ScanningRHS();
@@ -38,7 +38,7 @@ ScanningSolution::ScanningSolution(LatticeMode *Mode,char *datafile)
    if (pclose(pipe)) Errfun(inidef);
 
    const char *dir[]={"Loading","Deformation"};
-   ans=GetStringParameter("^ScanningDirection",datafile,dir,2);
+   ans=GetStringParameter(prefix,"ScanningDirection",datafile,dir,2);
    if (ans == 0)
       Direction_ = Loading;
    else if (ans == 1)
@@ -49,12 +49,12 @@ ScanningSolution::ScanningSolution(LatticeMode *Mode,char *datafile)
       exit(-1);
    }
 
-   if(!GetParameter("^ScanningStart",datafile,"%lf",&ScanStart_)) exit(-1);
-   if(!GetParameter("^ScanningEnd",datafile,"%lf",&ScanEnd_)) exit(-1);
-   if(!GetParameter("^ScanningStep",datafile,"%lf",&ScanStep_)) exit(-1);
-   if(!GetParameter("^ScanningLineStart",datafile,"%lf",&LineStart_)) exit(-1);
-   if(!GetParameter("^ScanningLineStep",datafile,"%lf",&LineStep_)) exit(-1);
-   if(!GetParameter("^ScanningLineEnd",datafile,"%lf",&LineEnd_)) exit(-1);
+   if(!GetParameter(prefix,"ScanningStart",datafile,"%lf",&ScanStart_)) exit(-1);
+   if(!GetParameter(prefix,"ScanningEnd",datafile,"%lf",&ScanEnd_)) exit(-1);
+   if(!GetParameter(prefix,"ScanningStep",datafile,"%lf",&ScanStep_)) exit(-1);
+   if(!GetParameter(prefix,"ScanningLineStart",datafile,"%lf",&LineStart_)) exit(-1);
+   if(!GetParameter(prefix,"ScanningLineStep",datafile,"%lf",&LineStep_)) exit(-1);
+   if(!GetParameter(prefix,"ScanningLineEnd",datafile,"%lf",&LineEnd_)) exit(-1);
 
    // Initialize Lattice to be ready to
    // find a solution

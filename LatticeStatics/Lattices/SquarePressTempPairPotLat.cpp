@@ -3,31 +3,31 @@
 
 #include "UtilityFunctions.h"
 
-SquarePressTempPairPotLat::SquarePressTempPairPotLat(char *datafile)
+SquarePressTempPairPotLat::SquarePressTempPairPotLat(char *datafile,const char *prefix)
 {
    // First Size Defgrad
    DefGrad_.SetIdentity(DIM2);
 
    // Get Potential Parameters
-   if(!GetParameter("^A0",datafile,"%lf",&A0_)) exit(-1);
-   if(!GetParameter("^B0",datafile,"%lf",&B0_)) exit(-1);
-   if(!GetParameter("^Alpha",datafile,"%lf",&Alpha_)) exit(-1);
-   if(!GetParameter("^Rref",datafile,"%lf",&Rref_)) exit(-1);
-   if(!GetParameter("^Tref",datafile,"%lf",&Rref_)) exit(-1);
-   if(!GetParameter("^Tmelt",datafile,"%lf",&Tmelt_)) exit(-1);
+   if(!GetParameter(prefix,"A0",datafile,"%lf",&A0_)) exit(-1);
+   if(!GetParameter(prefix,"B0",datafile,"%lf",&B0_)) exit(-1);
+   if(!GetParameter(prefix,"Alpha",datafile,"%lf",&Alpha_)) exit(-1);
+   if(!GetParameter(prefix,"Rref",datafile,"%lf",&Rref_)) exit(-1);
+   if(!GetParameter(prefix,"Tref",datafile,"%lf",&Rref_)) exit(-1);
+   if(!GetParameter(prefix,"Tmelt",datafile,"%lf",&Tmelt_)) exit(-1);
 
    // Get Lattice parameters
-   if(!GetParameter("^RefLen",datafile,"%lf",&RefLen_)) exit(-1);
-   if(!GetParameter("^InfluanceDist",datafile,"%lf",&InfluanceDist_)) exit(-1);
-   if(!GetParameter("^Temp",datafile,"%lf",&Temp_)) exit(-1);
-   if(!GetParameter("^Pressure",datafile,"%lf",&Pressure_)) exit(-1);
-   if(!GetParameter("^ConvexityDX",datafile,"%lf",&ConvexityDX_)) exit(-1);
+   if(!GetParameter(prefix,"RefLen",datafile,"%lf",&RefLen_)) exit(-1);
+   if(!GetParameter(prefix,"InfluanceDist",datafile,"%lf",&InfluanceDist_)) exit(-1);
+   if(!GetParameter(prefix,"Temp",datafile,"%lf",&Temp_)) exit(-1);
+   if(!GetParameter(prefix,"Pressure",datafile,"%lf",&Pressure_)) exit(-1);
+   if(!GetParameter(prefix,"ConvexityDX",datafile,"%lf",&ConvexityDX_)) exit(-1);
 
    // needed to initialize reference length
    unsigned iter;
    double DX;
-   if(!GetParameter("^MaxIterations",datafile,"%u",&iter)) exit(-1);
-   if(!GetParameter("^InitializeStepSize",datafile,"%lf",&DX)) exit(-1);
+   if(!GetParameter(prefix,"MaxIterations",datafile,"%u",&iter)) exit(-1);
+   if(!GetParameter(prefix,"InitializeStepSize",datafile,"%lf",&DX)) exit(-1);
 
    
    int err=0;

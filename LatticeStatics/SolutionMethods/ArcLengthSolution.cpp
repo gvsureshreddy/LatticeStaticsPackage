@@ -3,44 +3,44 @@
 
 #include "UtilityFunctions.h"
 
-ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,
+ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char *prefix,
 				     const Vector &one,const Vector &two)
    : Mode_(Mode),Difference_(two-one), CurrentSolution_(0)
 {
-   if(!GetParameter("^ArcLenMaxIterations",datafile,"%u",&MaxIter_)) exit(-1);
-   if(!GetParameter("^ArcLenTolerance",datafile,"%lf",&Tolerance_)) exit(-1);
-   if(!GetParameter("^ArcLenDSMax",datafile,"%lf",&DSMax_)) exit(-1);
-   if(!GetParameter("^ArcLenDSStart",datafile,"%lf",&CurrentDS_)) exit(-1);
-   if(!GetParameter("^ArcLenDSMin",datafile,"%lf",&DSMin_)) exit(-1);
-   if(!GetParameter("^ArcLenAngleCutoff",datafile,"%lf",&AngleCutoff_)) exit(-1);
-   if(!GetParameter("^ArcLenAngleIncrease",datafile,"%lf",&AngleIncrease_)) exit(-1);
-   if(!GetParameter("^ArcLenAspect",datafile,"%lf",&Aspect_)) exit(-1);
-   if(!GetParameter("^ArcLenNumSolutions",datafile,"%u",&NumSolutions_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenMaxIterations",datafile,"%u",&MaxIter_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenTolerance",datafile,"%lf",&Tolerance_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenDSMax",datafile,"%lf",&DSMax_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenDSStart",datafile,"%lf",&CurrentDS_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenDSMin",datafile,"%lf",&DSMin_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenAngleCutoff",datafile,"%lf",&AngleCutoff_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenAngleIncrease",datafile,"%lf",&AngleIncrease_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenAspect",datafile,"%lf",&Aspect_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenNumSolutions",datafile,"%u",&NumSolutions_)) exit(-1);
 
    // Set Lattice to solution "two"
    Mode_->ArcLenUpdate(
       Mode_->ArcLenDef() - two);
 }
 
-ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,
+ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char *prefix,
 				     char *startfile,fstream &out)
    : Mode_(Mode), CurrentSolution_(0)
 {
    FILE *pipe;
    
-   if(!GetParameter("^ArcLenMaxIterations",datafile,"%u",&MaxIter_)) exit(-1);
-   if(!GetParameter("^ArcLenTolerance",datafile,"%lf",&Tolerance_)) exit(-1);
-   if(!GetParameter("^ArcLenDSMax",datafile,"%lf",&DSMax_)) exit(-1);
-   if(!GetParameter("^ArcLenDSStart",datafile,"%lf",&CurrentDS_)) exit(-1);
-   if(!GetParameter("^ArcLenDSMin",datafile,"%lf",&DSMin_)) exit(-1);
-   if(!GetParameter("^ArcLenAngleCutoff",datafile,"%lf",&AngleCutoff_)) exit(-1);
-   if(!GetParameter("^ArcLenAngleIncrease",datafile,"%lf",&AngleIncrease_)) exit(-1);
-   if(!GetParameter("^ArcLenAspect",datafile,"%lf",&Aspect_)) exit(-1);
-   if(!GetParameter("^ArcLenNumSolutions",datafile,"%u",&NumSolutions_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenMaxIterations",datafile,"%u",&MaxIter_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenTolerance",datafile,"%lf",&Tolerance_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenDSMax",datafile,"%lf",&DSMax_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenDSStart",datafile,"%lf",&CurrentDS_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenDSMin",datafile,"%lf",&DSMin_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenAngleCutoff",datafile,"%lf",&AngleCutoff_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenAngleIncrease",datafile,"%lf",&AngleIncrease_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenAspect",datafile,"%lf",&Aspect_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenNumSolutions",datafile,"%u",&NumSolutions_)) exit(-1);
 
 
    const char *StartType[] = {"Bifurcation","Continuation","ConsistencyCheck"};
-   switch (GetStringParameter("^StartType",startfile,StartType,3))
+   switch (GetStringParameter(prefix,"StartType",startfile,StartType,3))
    {
       case -1:
       {
@@ -52,11 +52,11 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,
       {
 	 // Set Difference and Lattice state
 	 double eps;
-	 if(!GetParameter("^Epsilon",startfile,"%lf",&eps)) exit(-1);
+	 if(!GetParameter(prefix,"Epsilon",startfile,"%lf",&eps)) exit(-1);
 
 	 char tmp[LINELENGTH];
-	 char tang[]="^Tangent";
-	 SetPerlCommand(tmp,startfile,tang);
+	 char tang[]="Tangent";
+	 SetPerlCommand(tmp,startfile,prefix,tang);
 	 pipe=OpenPipe(tmp,"r");
 	 Difference_.Resize(Mode_->ArcLenDef().Dim());
 	 for (int i=0;i<Difference_.Dim();i++)
@@ -67,8 +67,8 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,
 	 }
 	 if (pclose(pipe)) Errfun(tang);
 
-	 char bifpt[]="^BifurcationPoint";
-	 SetPerlCommand(tmp,startfile,bifpt);
+	 char bifpt[]="BifurcationPoint";
+	 SetPerlCommand(tmp,startfile,prefix,bifpt);
 	 pipe=OpenPipe(tmp,"r");
 	 Vector stat(Difference_.Dim());
 	 for (int i=0;i<stat.Dim();i++)
@@ -85,8 +85,8 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,
       {
 	 // Set Difference_ to   two - one
 	 char tmp[LINELENGTH];
-	 char sol2[]="^Solution2";
-	 SetPerlCommand(tmp,startfile,sol2);
+	 char sol2[]="Solution2";
+	 SetPerlCommand(tmp,startfile,prefix,sol2);
 	 pipe=OpenPipe(tmp,"r");
 	 Difference_.Resize(Mode_->ArcLenDef().Dim());
 	 for (int i=0;i<Difference_.Dim();i++)
@@ -99,9 +99,9 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,
 	 Mode_->ArcLenUpdate(Mode_->ArcLenDef() - Difference_);
 	 
 	 // Get solution1 and set Difference
-	 char sol1[]="^Solution1";
+	 char sol1[]="Solution1";
 	 double tmpval;
-	 SetPerlCommand(tmp,startfile,sol1);
+	 SetPerlCommand(tmp,startfile,prefix,sol1);
 	 pipe=OpenPipe(tmp,"r");
 	 for (int i=0;i<Difference_.Dim();i++)
 	 {
@@ -129,8 +129,8 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,
 	 
 	 Difference_.Resize(Dim);
 	 char tmp[LINELENGTH];
-	 char sol2[]="^Solution2";
-	 SetPerlCommand(tmp,startfile,sol2);
+	 char sol2[]="Solution2";
+	 SetPerlCommand(tmp,startfile,prefix,sol2);
 	 pipe=OpenPipe(tmp,"r");
 	 for (int i=0;i<Dim;i++)
 	 {
@@ -139,8 +139,8 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,
 	 if (pclose(pipe)) Errfun(sol2);
 
 	 // Get solution1
-	 char sol1[]="^Solution1";
-	 SetPerlCommand(tmp,startfile,sol1);
+	 char sol1[]="Solution1";
+	 SetPerlCommand(tmp,startfile,prefix,sol1);
 	 pipe=OpenPipe(tmp,"r");
 	 for (int i=0;i<Dim;i++)
 	 {
@@ -154,8 +154,8 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,
 	 Difference_ = Solution2 - Solution1;
 	 
 	 // Get Epsilon and Width
-	 if(!GetParameter("^ConsistencyEpsilon",startfile,"%lf",&ConsistencyEpsilon_)) exit(-1);
-	 if(!GetParameter("^MainFieldWidth",datafile,"%i",&Width)) exit(-1);
+	 if(!GetParameter(prefix,"ConsistencyEpsilon",startfile,"%lf",&ConsistencyEpsilon_)) exit(-1);
+	 if(!GetParameter(prefix,"MainFieldWidth",datafile,"%i",&Width)) exit(-1);
 
 	 // Do Consistency check
 	 for (int i=0;i<70;i++) cout << "="; cout << endl;
@@ -327,7 +327,8 @@ double ArcLengthSolution::ArcLengthNewton(int &good)
    return uncertainty;
 }
 
-int ArcLengthSolution::BisectAlert(Lattice *Lat,char *datafile,int Width,fstream &out)
+int ArcLengthSolution::BisectAlert(Lattice *Lat,char *datafile,const char *prefix,
+				   int Width,fstream &out)
 {
    double NewtonTolFactor = 10.0,
       ConvergenceFactor = 100;
@@ -401,7 +402,8 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,char *datafile,int Width,fstream
    cout << endl; out << endl;
 
    // Call Lattice function to do any Lattice Specific things
-   Lat->CriticalPointInfo(Mode_->DrDt(Difference_),ConvergenceFactor*Tolerance_,datafile,Width,out);
+   Lat->CriticalPointInfo(Mode_->DrDt(Difference_),ConvergenceFactor*Tolerance_,datafile,
+			  prefix,Width,out);
    
    // Reset Lattice and ArcLengthSolution
    Mode_->ArcLenUpdate(-(OriginalDiff - IntermediateDiff));

@@ -35,13 +35,14 @@ private:
    void InitializeLine();
 
 public:
-   ScanningSolution(LatticeMode *Mode,char *datafile);
+   ScanningSolution(LatticeMode *Mode,char *datafile,const char *prefix);
    ~ScanningSolution() {}
 
    // Functions required by SolutionMethod
    virtual int AllSolutionsFound();
    virtual double FindNextSolution(int &good);
-   virtual int BisectAlert(Lattice *Lat,char *datafile,int Width,fstream &out) {return 1;}
+   virtual int BisectAlert(Lattice *Lat,char *datafile,const char *prefix,
+			   int Width,fstream &out) {return 1;}
    
 };
 

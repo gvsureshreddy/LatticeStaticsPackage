@@ -17,7 +17,8 @@ public:
    virtual double Temp() = 0;
    virtual void SetTemp(const double &temp) = 0;
    virtual void CriticalPointInfo(const Vector &DrDt,double Tolerance,
-				  char *datafile,int Width,ostream &out);
+				  char *datafile,const char *prefix,
+				  int Width,ostream &out);
 };
 
 #endif

@@ -2,8 +2,8 @@
 #include "UtilityFunctions.h"
 #include <fstream.h>
 
-void GetMainSettings(int &Width,int &Presision,char *datafile);
-void InitializeOutputFile(fstream &out,char *outfile,char *datafile,
+void GetMainSettings(int &Width,int &Presision,char *datafile,const char *prefix);
+void InitializeOutputFile(fstream &out,char *outfile,char *datafile,const char *prefix,
 			  Lattice *Lat,int Precision,int Width);
 
 int main(int argc,char *argv[])
@@ -20,20 +20,21 @@ int main(int argc,char *argv[])
    }
 
    char *datafile = argv[1],
-      *outputfile = argv[2];
+      *outputfile = argv[2],
+      prefix[LINELENGTH]="^";
 
    Lattice *Lat;
 
    int Width,Precision;
 
-   GetMainSettings(Width,Precision,datafile);
+   GetMainSettings(Width,Precision,datafile,prefix);
 
-   Lat = InitializeLattice(datafile);
+   Lat = InitializeLattice(datafile,prefix);
 
    fstream out;
-   InitializeOutputFile(out,outputfile,datafile,Lat,Precision,Width);
+   InitializeOutputFile(out,outputfile,datafile,prefix,Lat,Precision,Width);
 
-   Lat->DispersionCurves(datafile,out);
+   Lat->DispersionCurves(datafile,prefix,out);
 
    out.close();
    return 1;
@@ -42,13 +43,13 @@ int main(int argc,char *argv[])
 
 
 
-void GetMainSettings(int &Width, int &Precision,char *datafile)
+void GetMainSettings(int &Width, int &Precision,char *datafile,const char *prefix)
 {
-   if(!GetParameter("^MainFieldWidth",datafile,"%d",&Width)) exit(-1);
-   if(!GetParameter("^MainPrecision",datafile,"%d",&Precision)) exit(-1);   
+   if(!GetParameter(prefix,"MainFieldWidth",datafile,"%d",&Width)) exit(-1);
+   if(!GetParameter(prefix,"MainPrecision",datafile,"%d",&Precision)) exit(-1);   
 }
 
-void InitializeOutputFile(fstream &out,char *outfile,char *datafile,
+void InitializeOutputFile(fstream &out,char *outfile,char *datafile,const char *prefix,
 			  Lattice *Lat,int Precision,int Width)
 {
    fstream input,devnull;
@@ -70,10 +71,17 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,
    }
    devnull.open("/dev/null",ios::out);
 
-   while (!input.eof())
+   if (!strcmp("^",prefix))
    {
-      input.getline(dataline,LINELENGTH-1);
-      out << "#Input File:" << dataline << endl;
+      while (!input.eof())
+      {
+	 input.getline(dataline,LINELENGTH-1);
+	 out << "#Input File:" << dataline << endl;
+      }
+   }
+   else
+   {
+
    }
 
    input.close();

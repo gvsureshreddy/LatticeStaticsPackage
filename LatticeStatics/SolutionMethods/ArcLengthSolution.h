@@ -32,15 +32,17 @@ private:
    int ConsistencyCheck();
 
 public:
-   ArcLengthSolution(LatticeMode *Mode,char *datafile,
+   ArcLengthSolution(LatticeMode *Mode,char *datafile,const char *prefix,
 		     const Vector &one,const Vector &two);
-   ArcLengthSolution(LatticeMode *Mode,char *datafile,char *startfile,fstream &out);
+   ArcLengthSolution(LatticeMode *Mode,char *datafile,const char *prefix,
+		     char *startfile,fstream &out);
    ~ArcLengthSolution() {}
 
    // Functions required by SolutionMethod
    virtual int AllSolutionsFound();
    virtual double FindNextSolution(int &good);
-   virtual int BisectAlert(Lattice *Lat,char *datafile,int Width,fstream &out);
+   virtual int BisectAlert(Lattice *Lat,char *datafile,const char *prefix,
+			   int Width,fstream &out);
    
 };
 

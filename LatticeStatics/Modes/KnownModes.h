@@ -8,6 +8,6 @@
 
 #define KNOWNMODES 4
 
-LatticeMode *InitializeMode(Lattice *Lat,char *datafile);
+LatticeMode *InitializeMode(Lattice *Lat,char *datafile,const char *prefix);
 
 #endif

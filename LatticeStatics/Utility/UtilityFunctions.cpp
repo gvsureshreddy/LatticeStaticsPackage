@@ -1,13 +1,13 @@
 #include "UtilityFunctions.h"
 
 
-int GetParameter(const char *tag,const char *datafile,const char *scanffmt,
-		 void *parameter)
+int GetParameter(const char *prefix,const char *tag,const char *datafile,
+		 const char *scanffmt,void *parameter)
 {
    char command[LINELENGTH];
    FILE *pipe;
 
-   SetPerlCommand(command,datafile,tag);
+   SetPerlCommand(command,datafile,prefix,tag);
    pipe = OpenPipe(command,"r");
    fscanf(pipe,scanffmt,parameter);
    if (pclose(pipe))
@@ -21,12 +21,12 @@ int GetParameter(const char *tag,const char *datafile,const char *scanffmt,
    }
 }
 
-int GetVectorParameter(const char *tag,const char *datafile,Vector *V)
+int GetVectorParameter(const char *prefix,const char *tag,const char *datafile,Vector *V)
 {
    char command[LINELENGTH];
    FILE *pipe;
 
-   SetPerlCommand(command,datafile,tag);
+   SetPerlCommand(command,datafile,prefix,tag);
    pipe = OpenPipe(command,"r");
    for (int i=0;i<V->Dim();++i)
    {
@@ -43,12 +43,12 @@ int GetVectorParameter(const char *tag,const char *datafile,Vector *V)
    }
 }
 
-int GetMatrixParameter(const char *tag,const char *datafile,Matrix *M)
+int GetMatrixParameter(const char *prefix,const char *tag,const char *datafile,Matrix *M)
 {
    char command[LINELENGTH];
    FILE *pipe;
 
-   SetPerlCommand(command,datafile,tag);
+   SetPerlCommand(command,datafile,prefix,tag);
    pipe = OpenPipe(command,"r");
    for (int i=0;i<M->Rows();++i)
    {
@@ -68,12 +68,12 @@ int GetMatrixParameter(const char *tag,const char *datafile,Matrix *M)
    }
 }
 
-int GetStringParameter(const char *tag,const char *datafile,
+int GetStringParameter(const char *prefix,const char *tag,const char *datafile,
 		       const char *choices[],const unsigned numb)
 {
    int i;
    char strng[LINELENGTH];
-   GetParameter(tag,datafile,"%s",strng);
+   GetParameter(tag,datafile,"%s",prefix,strng);
    
    for (i=numb-1;i>=0;i--)
    {
@@ -86,7 +86,7 @@ int GetStringParameter(const char *tag,const char *datafile,
    return i;
 }
 
-void SetPerlCommand(char *string,const char *datafile,const char *tag)
+void SetPerlCommand(char *string,const char *datafile,const char *prefix,const char *tag)
 {
    char format[]=
      {"perl -e '$R=findref($ARGV[1],$ARGV[0]); print $R;"\
@@ -96,8 +96,8 @@ void SetPerlCommand(char *string,const char *datafile,const char *tag)
       "close(R); if ($fnd == 1) {exit $fnd;}} sub deref "\
       "{my($fld,$df)=@_; my($t); while ($fld =~ m/<([^>]+)>/g) "\
       "{$t=$1; $v=findref(\"^$t\",$df); "\
-      "$fld =~ s/<$t>/$v/} return $fld;}' %s \\%s"};
-      sprintf(string,format,datafile,tag);
+      "$fld =~ s/<$t>/$v/} return $fld;}' %s \\%s%s"};
+      sprintf(string,format,datafile,prefix,tag);
 }
 
 FILE *OpenPipe(const char *command,const char *mode)

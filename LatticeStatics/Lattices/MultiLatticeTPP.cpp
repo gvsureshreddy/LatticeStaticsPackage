@@ -15,17 +15,17 @@ MultiLatticeTPP::~MultiLatticeTPP()
    delete [] A_;
 }
 
-MultiLatticeTPP::MultiLatticeTPP(char *datafile)
+MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix)
 {
    // Get Lattice definition
    char tmp[LINELENGTH];
-   if(!GetParameter("^InternalAtoms",datafile,"%u",&INTERNAL_ATOMS)) exit(-1);
+   if(!GetParameter(prefix,"InternalAtoms",datafile,"%u",&INTERNAL_ATOMS)) exit(-1);
    DOFS = 6 + 3*(INTERNAL_ATOMS-1);
    for (int i=0;i<DIM3;++i)
    {
       LatticeBasis[i].Resize(DIM3);
-      sprintf(tmp,"^LatticeBasis_%u",i);
-      if(!GetVectorParameter(tmp,datafile,&(LatticeBasis[i]))) exit(-1);
+      sprintf(tmp,"LatticeBasis_%u",i);
+      if(!GetVectorParameter(prefix,tmp,datafile,&(LatticeBasis[i]))) exit(-1);
    }
    
    // First Size DOF
@@ -38,8 +38,8 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile)
    for (int i=0;i<INTERNAL_ATOMS;++i)
    {
       A_[i].Resize(DIM3);
-      sprintf(tmp,"^AtomPosition_%u",i);
-      if(!GetVectorParameter(tmp,datafile,&(A_[i]))) exit(-1);
+      sprintf(tmp,"AtomPosition_%u",i);
+      if(!GetVectorParameter(prefix,tmp,datafile,&(A_[i]))) exit(-1);
    }
    
    // Setup Bodyforce_
@@ -61,31 +61,32 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile)
    {
       for (int j=i;j<INTERNAL_ATOMS;++j)
       {
-	 Potential_[i][j] = Potential_[j][i] = InitializePairPotential(datafile,i,j);
+	 Potential_[i][j] = Potential_[j][i]
+	    = InitializePairPotential(datafile,prefix,i,j);
       }
 
-      sprintf(tmp,"^AtomicMass_%u",i);
-      if(!GetParameter(tmp,datafile,"%lf",&(AtomicMass_[i]))) exit(-1);
+      sprintf(tmp,"AtomicMass_%u",i);
+      if(!GetParameter(prefix,tmp,datafile,"%lf",&(AtomicMass_[i]))) exit(-1);
    }
 
 	 
    // Get Lattice parameters
    
-   if(!GetParameter("^RefLen_0",datafile,"%lf",&(RefLen_[0]))) exit(-1);
-   if(!GetParameter("^RefLen_1",datafile,"%lf",&(RefLen_[1]))) exit(-1);
-   if(!GetParameter("^RefLen_2",datafile,"%lf",&(RefLen_[2]))) exit(-1);
+   if(!GetParameter(prefix,"RefLen_0",datafile,"%lf",&(RefLen_[0]))) exit(-1);
+   if(!GetParameter(prefix,"RefLen_1",datafile,"%lf",&(RefLen_[1]))) exit(-1);
+   if(!GetParameter(prefix,"RefLen_2",datafile,"%lf",&(RefLen_[2]))) exit(-1);
    
-   if(!GetParameter("^InfluanceDist",datafile,"%u",&InfluanceDist_)) exit(-1);
-   if(!GetParameter("^NTemp",datafile,"%lf",&NTemp_)) exit(-1);
-   if(!GetParameter("^Pressure",datafile,"%lf",&Pressure_)) exit(-1);
-   if(!GetParameter("^ConvexityDX",datafile,"%lf",&ConvexityDX_)) exit(-1);
+   if(!GetParameter(prefix,"InfluanceDist",datafile,"%u",&InfluanceDist_)) exit(-1);
+   if(!GetParameter(prefix,"NTemp",datafile,"%lf",&NTemp_)) exit(-1);
+   if(!GetParameter(prefix,"Pressure",datafile,"%lf",&Pressure_)) exit(-1);
+   if(!GetParameter(prefix,"ConvexityDX",datafile,"%lf",&ConvexityDX_)) exit(-1);
    
    // needed to initialize reference length
    int iter;
    double DX;
-   if(!GetParameter("^MaxIterations",datafile,"%u",&iter)) exit(-1);
-   if(!GetParameter("^InitializeStepSize",datafile,"%lf",&DX)) exit(-1);
-   if(!GetParameter("^BlochWaveGridSize",datafile,"%u",&GridSize_)) exit(-1);
+   if(!GetParameter(prefix,"MaxIterations",datafile,"%u",&iter)) exit(-1);
+   if(!GetParameter(prefix,"InitializeStepSize",datafile,"%lf",&DX)) exit(-1);
+   if(!GetParameter(prefix,"BlochWaveGridSize",datafile,"%u",&GridSize_)) exit(-1);
 
    // Initialize RefLattice_
    for (int i=0;i<DIM3;++i)
@@ -1244,15 +1245,15 @@ CMatrix MultiLatticeTPP::DynamicalStiffness(Vector &Y)
    return Cy;
 }
 
-void MultiLatticeTPP::DispersionCurves(char *datafile,ostream &out)
+void MultiLatticeTPP::DispersionCurves(char *datafile,const char *prefix,ostream &out)
 {
    int w=out.width();
    out.width(0);
    char tmp[LINELENGTH];
    
    int NoDirs,NoPTS;
-   if(!GetParameter("^DispersionDirections",datafile,"%u",&NoDirs)) exit(-1);
-   if(!GetParameter("^DispersionPoints",datafile,"%u",&NoPTS)) exit(-1);
+   if(!GetParameter(prefix,"DispersionDirections",datafile,"%u",&NoDirs)) exit(-1);
+   if(!GetParameter(prefix,"DispersionPoints",datafile,"%u",&NoPTS)) exit(-1);
 
    Vector *Direction;
    Vector Y(DIM3);
@@ -1261,8 +1262,8 @@ void MultiLatticeTPP::DispersionCurves(char *datafile,ostream &out)
    for (int i=0;i<NoDirs;++i)
    {
       Direction[i].Resize(DIM3);
-      sprintf(tmp,"^DispersionDir_%u",i);
-      if(!GetVectorParameter(tmp,datafile,&(Direction[i]))) exit(-1);
+      sprintf(tmp,"DispersionDir_%u",i);
+      if(!GetVectorParameter(prefix,tmp,datafile,&(Direction[i]))) exit(-1);
    }
 
    Matrix DefGrad(DIM3,DIM3),Tmp(DIM3,DIM3),InverseLat(DIM3,DIM3);

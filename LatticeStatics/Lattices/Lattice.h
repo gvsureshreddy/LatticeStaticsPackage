@@ -22,9 +22,10 @@ public:
    virtual Matrix E3() = 0;
    virtual Matrix E4() = 0;
    virtual int StiffnessNulity(double *Min=NULL);
-   virtual void DispersionCurves(char *datafile,ostream &out) {};
+   virtual void DispersionCurves(char *datafile,const char *prefix,ostream &out) {};
    virtual void CriticalPointInfo(const Vector &DrDt,double Tolerance,
-				  char *datafile,int Width,ostream &out) = 0;
+				  char *datafile,const char *prefix,
+				  int Width,ostream &out) = 0;
 
    enum PrintDetail {PrintLong,PrintShort};
    virtual void Print(ostream &out,PrintDetail flag) = 0;

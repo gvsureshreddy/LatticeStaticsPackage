@@ -13,13 +13,16 @@
 #define LINELENGTH 600
 
 // Utility function definitions
-int GetParameter(const char *tag,const char *datafile,const char *scanffmt,
-		 void *parameter);
-int GetVectorParameter(const char *tag,const char *datafile,Vector *V);
-int GetMatrixParameter(const char *tag,const char *datafile,Matrix *M);
-int GetStringParameter(const char *tag,const char *datafile,
+int GetParameter(const char *prefix,const char *tag,const char *datafile,
+		 const char *scanffmt,void *parameter);
+int GetVectorParameter(const char *prefix,const char *tag,
+		       const char *datafile,Vector *V);
+int GetMatrixParameter(const char *prefix,const char *tag,
+		       const char *datafile,Matrix *M);
+int GetStringParameter(const char *prefix,const char *tag,const char *datafile,
 		       const char *choices[],const unsigned numb);
-void SetPerlCommand(char *string,const char *datafile,const char *tag);
+void SetPerlCommand(char *string,const char *datafile,const char *prefix,
+		    const char *tag);
 void Errfun(const char *string);
 FILE *OpenPipe(const char *command,const char *mode);
 

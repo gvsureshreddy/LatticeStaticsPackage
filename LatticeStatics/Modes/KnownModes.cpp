@@ -2,7 +2,7 @@
 
 #include "UtilityFunctions.h"
 
-LatticeMode *InitializeMode(Lattice *Lat,char *datafile)
+LatticeMode *InitializeMode(Lattice *Lat,char *datafile,const char *prefix)
 {
    const int NoModes = KNOWNMODES;
    const char *Modes[]={"UniDefTemp2DExpand",
@@ -10,7 +10,7 @@ LatticeMode *InitializeMode(Lattice *Lat,char *datafile)
 			"ML_NaCl",
 			"ML_Rhombo"};
 
-   switch (GetStringParameter("^MainModeType",datafile,Modes,NoModes))
+   switch (GetStringParameter(prefix,"MainModeType",datafile,Modes,NoModes))
    {
       case 0:
       {

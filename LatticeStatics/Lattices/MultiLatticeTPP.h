@@ -72,7 +72,7 @@ public:
    virtual void Print(ostream &out,PrintDetail flag);
    
    // Functions provided by MultiLatticeTPP
-   MultiLatticeTPP(char *datafile);
+   MultiLatticeTPP(char *datafile,const char *prefix);
    ~MultiLatticeTPP();
    inline double Del(int i,int j) {return i==j;}
    Vector BodyForce(int i) {return BodyForce_[i]; }
@@ -81,7 +81,7 @@ public:
    double ShearMod() const {return ShearMod_;}
    CMatrix DynamicalStiffness(Vector &Y);
    int BlochWave(Vector &Y);
-   void DispersionCurves(char *datafile,ostream &out);
+   void DispersionCurves(char *datafile,const char *prefix,ostream &out);
    friend ostream &operator<<(ostream &out,MultiLatticeTPP &A);
 
 private:

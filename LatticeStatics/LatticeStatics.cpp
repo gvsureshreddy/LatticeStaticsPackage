@@ -45,12 +45,12 @@ int main(int argc, char *argv[])
    
    GetMainSettings(Width,Precision,BisectCP,datafile);
 
-   Lat = InitializeLattice(datafile);
+   Lat = InitializeLattice(datafile,"^");
 
    fstream out;
    InitializeOutputFile(out,outputfile,datafile,startfile,Lat,Precision,Width);
    
-   Mode = InitializeMode(Lat,datafile);
+   Mode = InitializeMode(Lat,datafile,"^");
    out << "Mode: " << Mode->ModeName() << endl;
    cout << "Mode: " << Mode->ModeName() << endl;
    
@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 	 OldNulity = Nulity;
 	 Nulity = Lat->StiffnessNulity();
 	 if ((OldNulity != Nulity) && (BisectCP == Yes) && (OldNulity != -1))
-	    SolveMe->BisectAlert(Lat,datafile,Width,out);
+	    SolveMe->BisectAlert(Lat,datafile,"^",Width,out);
 	 
 	 // Send Output
 	 out << setw(Width) << Lat
@@ -97,9 +97,9 @@ void GetMainSettings(int &Width, int &Precision,YN &BisectCP,char *datafile)
 {
    char bisect[LINELENGTH];
 
-   if(!GetParameter("^MainFieldWidth",datafile,"%d",&Width)) exit(-1);
-   if(!GetParameter("^MainPrecision",datafile,"%d",&Precision)) exit(-1);
-   if(!GetParameter("^MainBisectCP",datafile,"%s",bisect)) exit(-1);
+   if(!GetParameter("^","MainFieldWidth",datafile,"%d",&Width)) exit(-1);
+   if(!GetParameter("^","MainPrecision",datafile,"%d",&Precision)) exit(-1);
+   if(!GetParameter("^","MainBisectCP",datafile,"%s",bisect)) exit(-1);
    if ((!strcmp("Yes",bisect)) || (!strcmp("yes",bisect)))
       BisectCP = Yes;
    else if ((!strcmp("No",bisect)) || (!strcmp("no",bisect)))
@@ -185,7 +185,7 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
    enum solution {Scanning,ArcLen};
    solution solu;
 
-   if(!GetParameter("^MainSolutionMethod",datafile,"%s",slvmthd)) exit(-1);
+   if(!GetParameter("^","MainSolutionMethod",datafile,"%s",slvmthd)) exit(-1);
    if ((!strcmp("Scanning",slvmthd))
        || (!strcmp("scanning",slvmthd)))
       solu = Scanning;
@@ -201,7 +201,7 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
    {
       case Scanning:
       {
-	 return new ScanningSolution(Mode,datafile);
+	 return new ScanningSolution(Mode,datafile,"^");
       }
       break;
       case ArcLen:
@@ -212,7 +212,7 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
 
 	 if ( startfile == NULL)
 	 {
-	    ScanningSolution ScanMe(Mode,datafile);
+	    ScanningSolution ScanMe(Mode,datafile,"^");
 	    
 	    while (!ScanMe.AllSolutionsFound())
 	    {
@@ -225,11 +225,11 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
 	       }
 	    }
 
-	    return new ArcLengthSolution(Mode,datafile,One,Two);
+	    return new ArcLengthSolution(Mode,datafile,"^",One,Two);
 	 }
 	 else
 	 {
-	    return new ArcLengthSolution(Mode,datafile,startfile,out);
+	    return new ArcLengthSolution(Mode,datafile,"^",startfile,out);
 	 }
       }
       break;

@@ -2,11 +2,13 @@
 #include "UtilityFunctions.h"
 
 void GenericLat::CriticalPointInfo(const Vector &DrDt,double Tolerance,
-				   char *datafile,int Width,ostream &out)
+				   char *datafile,const char *prefix,
+				   int Width,ostream &out)
 {
 
    const char *thirdorderchoices[] = {"No","Yes"};
-   int thirdorder=GetStringParameter("^CriticalPoint_T2",datafile,thirdorderchoices,2);
+   int thirdorder=GetStringParameter(prefix,"CriticalPoint_T2",datafile,
+				     thirdorderchoices,2);
    if (thirdorder < 0) exit(-1);
    
    Matrix 

@@ -6,6 +6,6 @@
 
 #define NOPOTENTIALS 2
 
-PairPotentials *InitializePairPotential(char *datafile,int i,int j);
+PairPotentials *InitializePairPotential(char *datafile,const char *prefix,int i,int j);
 
 #endif

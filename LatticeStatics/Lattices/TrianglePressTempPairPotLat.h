@@ -42,10 +42,11 @@ public:
    virtual int StiffnessNulity(double *Min=NULL);
    virtual void Print(ostream &out,PrintDetail flag);
    virtual void CriticalPointInfo(const Vector &DrDt,double Tolerance,
-				  char *datafile,int Width,ostream &out) {};
+				  char *datafile,const char *prefix,
+				  int Width,ostream &out) {};
    
    // Functions provided by TrianglePressTempPairPotLat
-   TrianglePressTempPairPotLat(char *datafile);
+   TrianglePressTempPairPotLat(char *datafile,const char *prefix);
    ~TrianglePressTempPairPotLat() {}
    inline double Del(int i,int j) {return i==j;}
    double Pressure() const { return Pressure_;}
