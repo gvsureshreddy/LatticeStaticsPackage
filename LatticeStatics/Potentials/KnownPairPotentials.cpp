@@ -17,19 +17,19 @@ PairPotentials* InitializePairPotential(char *datafile,int i,int j)
       case 0:
       {
 	 sprintf(tmp,"^Tref",i,j);
-	 GetParameter(tmp,datafile,"%lf",&Tref);
+	 if(!GetParameter(tmp,datafile,"%lf",&Tref)) exit(-1);
 	 sprintf(tmp,"^A0_%u_%u",i,j);
-	 GetParameter(tmp,datafile,"%lf",&A0);
+	 if(!GetParameter(tmp,datafile,"%lf",&A0)) exit(-1);
 	 sprintf(tmp,"^B0_%u_%u",i,j);
-	 GetParameter(tmp,datafile,"%lf",&B0);
+	 if(!GetParameter(tmp,datafile,"%lf",&B0)) exit(-1);
 	 sprintf(tmp,"^Alpha_%u_%u",i,j);
-	 GetParameter(tmp,datafile,"%lf",&Alpha);
+	 if(!GetParameter(tmp,datafile,"%lf",&Alpha)) exit(-1);
 	 sprintf(tmp,"^Rref_%u_%u",i,j);
-	 GetParameter(tmp,datafile,"%lf",&Rref);
+	 if(!GetParameter(tmp,datafile,"%lf",&Rref)) exit(-1);
 	 sprintf(tmp,"^Rtheta_%u_%u",i,j);
-	 GetParameter(tmp,datafile,"%lf",&Rtheta);
+	 if(!GetParameter(tmp,datafile,"%lf",&Rtheta)) exit(-1);
 	 sprintf(tmp,"^Tmelt_%u_%u",i,j);
-	 GetParameter(tmp,datafile,"%lf",&Tmelt);
+	 if(!GetParameter(tmp,datafile,"%lf",&Tmelt)) exit(-1);
 	 
 	 return new RadiiMorse(A0,B0,Alpha,Rref,Rtheta,Tref,Tmelt);
       }
@@ -37,17 +37,17 @@ PairPotentials* InitializePairPotential(char *datafile,int i,int j)
       case 1:
       {
 	 sprintf(tmp,"^Tref",i,j);
-	 GetParameter(tmp,datafile,"%lf",&Tref);
+	 if(!GetParameter(tmp,datafile,"%lf",&Tref)) exit(-1);
 	 sprintf(tmp,"^A0_%u_%u",i,j);
-	 GetParameter(tmp,datafile,"%lf",&A0);
+	 if(!GetParameter(tmp,datafile,"%lf",&A0)) exit(-1);
 	 sprintf(tmp,"^B0_%u_%u",i,j);
-	 GetParameter(tmp,datafile,"%lf",&B0);
+	 if(!GetParameter(tmp,datafile,"%lf",&B0)) exit(-1);
 	 sprintf(tmp,"^Alpha_%u_%u",i,j);
-	 GetParameter(tmp,datafile,"%lf",&Alpha);
+	 if(!GetParameter(tmp,datafile,"%lf",&Alpha)) exit(-1);
 	 sprintf(tmp,"^Rref_%u_%u",i,j);
-	 GetParameter(tmp,datafile,"%lf",&Rref);
+	 if(!GetParameter(tmp,datafile,"%lf",&Rref)) exit(-1);
 	 sprintf(tmp,"^Tmelt_%u_%u",i,j);
-	 GetParameter(tmp,datafile,"%lf",&Tmelt);
+	 if(!GetParameter(tmp,datafile,"%lf",&Tmelt)) exit(-1);
 	 
 	 return new TempMorse(A0,B0,Alpha,Rref,Tref,Tmelt);
       }

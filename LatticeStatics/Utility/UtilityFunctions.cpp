@@ -1,8 +1,8 @@
 #include "UtilityFunctions.h"
 
 
-void GetParameter(const char *tag,const char *datafile,const char *scanffmt,
-		  void *parameter)
+int GetParameter(const char *tag,const char *datafile,const char *scanffmt,
+		 void *parameter)
 {
    char command[LINELENGTH];
    FILE *pipe;
@@ -10,10 +10,18 @@ void GetParameter(const char *tag,const char *datafile,const char *scanffmt,
    SetPerlCommand(command,datafile,tag);
    pipe = OpenPipe(command,"r");
    fscanf(pipe,scanffmt,parameter);
-   if (pclose(pipe)) Errfun(tag);
+   if (pclose(pipe))
+   {
+      Errfun(tag);
+      return 0;
+   }
+   else
+   {
+      return 1;
+   }
 }
 
-void GetVectorParameter(const char *tag,const char *datafile,Vector *V)
+int GetVectorParameter(const char *tag,const char *datafile,Vector *V)
 {
    char command[LINELENGTH];
    FILE *pipe;
@@ -24,10 +32,18 @@ void GetVectorParameter(const char *tag,const char *datafile,Vector *V)
    {
       fscanf(pipe,"%lf",&((*V)[i]));
    }
-   if (pclose(pipe)) Errfun(tag);
+   if (pclose(pipe))
+   {
+      Errfun(tag);
+      return 0;
+   }
+   else
+   {
+      return 1;
+   }
 }
 
-void GetMatrixParameter(const char *tag,const char *datafile,Matrix *M)
+int GetMatrixParameter(const char *tag,const char *datafile,Matrix *M)
 {
    char command[LINELENGTH];
    FILE *pipe;
@@ -41,7 +57,15 @@ void GetMatrixParameter(const char *tag,const char *datafile,Matrix *M)
 	 fscanf(pipe,"%lf",&((*M)[i][j]));
       }
    }
-   if (pclose(pipe)) Errfun(tag);
+   if (pclose(pipe))
+   {
+      Errfun(tag);
+      return 0;
+   }
+   else
+   {
+      return 1;
+   }
 }
 
 int GetStringParameter(const char *tag,const char *datafile,
@@ -94,7 +118,6 @@ void Errfun(const char *string)
 {
    cerr << "Error -- Unable to find : "
 	<< string << endl;
-   exit(-1);
 }
 
 //======================================================================

@@ -97,10 +97,9 @@ void GetMainSettings(int &Width, int &Precision,YN &BisectCP,char *datafile)
 {
    char bisect[LINELENGTH];
 
-   GetParameter("^MainFieldWidth",datafile,"%d",&Width);
-   GetParameter("^MainPrecision",datafile,"%d",&Precision);
-   
-   GetParameter("^MainBisectCP",datafile,"%s",bisect);
+   if(!GetParameter("^MainFieldWidth",datafile,"%d",&Width)) exit(-1);
+   if(!GetParameter("^MainPrecision",datafile,"%d",&Precision)) exit(-1);
+   if(!GetParameter("^MainBisectCP",datafile,"%s",bisect)) exit(-1);
    if ((!strcmp("Yes",bisect)) || (!strcmp("yes",bisect)))
       BisectCP = Yes;
    else if ((!strcmp("No",bisect)) || (!strcmp("no",bisect)))
@@ -186,7 +185,7 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
    enum solution {Scanning,ArcLen};
    solution solu;
 
-   GetParameter("^MainSolutionMethod",datafile,"%s",slvmthd);
+   if(!GetParameter("^MainSolutionMethod",datafile,"%s",slvmthd)) exit(-1);
    if ((!strcmp("Scanning",slvmthd))
        || (!strcmp("scanning",slvmthd)))
       solu = Scanning;

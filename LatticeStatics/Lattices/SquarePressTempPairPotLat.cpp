@@ -9,25 +9,25 @@ SquarePressTempPairPotLat::SquarePressTempPairPotLat(char *datafile)
    DefGrad_.SetIdentity(DIM2);
 
    // Get Potential Parameters
-   GetParameter("^A0",datafile,"%lf",&A0_);
-   GetParameter("^B0",datafile,"%lf",&B0_);
-   GetParameter("^Alpha",datafile,"%lf",&Alpha_);
-   GetParameter("^Rref",datafile,"%lf",&Rref_);
-   GetParameter("^Tref",datafile,"%lf",&Rref_);
-   GetParameter("^Tmelt",datafile,"%lf",&Tmelt_);
+   if(!GetParameter("^A0",datafile,"%lf",&A0_)) exit(-1);
+   if(!GetParameter("^B0",datafile,"%lf",&B0_)) exit(-1);
+   if(!GetParameter("^Alpha",datafile,"%lf",&Alpha_)) exit(-1);
+   if(!GetParameter("^Rref",datafile,"%lf",&Rref_)) exit(-1);
+   if(!GetParameter("^Tref",datafile,"%lf",&Rref_)) exit(-1);
+   if(!GetParameter("^Tmelt",datafile,"%lf",&Tmelt_)) exit(-1);
 
    // Get Lattice parameters
-   GetParameter("^RefLen",datafile,"%lf",&RefLen_);
-   GetParameter("^InfluanceDist",datafile,"%lf",&InfluanceDist_);
-   GetParameter("^Temp",datafile,"%lf",&Temp_);
-   GetParameter("^Pressure",datafile,"%lf",&Pressure_);
-   GetParameter("^ConvexityDX",datafile,"%lf",&ConvexityDX_);
+   if(!GetParameter("^RefLen",datafile,"%lf",&RefLen_)) exit(-1);
+   if(!GetParameter("^InfluanceDist",datafile,"%lf",&InfluanceDist_)) exit(-1);
+   if(!GetParameter("^Temp",datafile,"%lf",&Temp_)) exit(-1);
+   if(!GetParameter("^Pressure",datafile,"%lf",&Pressure_)) exit(-1);
+   if(!GetParameter("^ConvexityDX",datafile,"%lf",&ConvexityDX_)) exit(-1);
 
    // needed to initialize reference length
    unsigned iter;
    double DX;
-   GetParameter("^MaxIterations",datafile,"%u",&iter);
-   GetParameter("^InitializeStepSize",datafile,"%lf",&DX);
+   if(!GetParameter("^MaxIterations",datafile,"%u",&iter)) exit(-1);
+   if(!GetParameter("^InitializeStepSize",datafile,"%lf",&DX)) exit(-1);
 
    
    int err=0;

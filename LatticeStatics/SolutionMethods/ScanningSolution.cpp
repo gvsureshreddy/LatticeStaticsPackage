@@ -11,9 +11,9 @@ ScanningSolution::ScanningSolution(LatticeMode *Mode,char *datafile)
    const char *yn[]={"No","Yes"};
    int ans;
    // Get parameters
-   GetParameter("^ScanningMaxIterations",datafile,"%u",&MaxIter_);
-   GetParameter("^ScanningTolerance",datafile,"%lf",&Tolerance_);
-   GetParameter("^ScanningNewtonTolerance",datafile,"%lf",&NewtonTolerance_);
+   if(!GetParameter("^ScanningMaxIterations",datafile,"%u",&MaxIter_)) exit(-1);
+   if(!GetParameter("^ScanningTolerance",datafile,"%lf",&Tolerance_)) exit(-1);
+   if(!GetParameter("^ScanningNewtonTolerance",datafile,"%lf",&NewtonTolerance_)) exit(-1);
    ans=GetStringParameter("^ScanningFullField",datafile,yn,2);
    if (ans == 1)
       ScanFullField_ = Yes;
@@ -49,12 +49,12 @@ ScanningSolution::ScanningSolution(LatticeMode *Mode,char *datafile)
       exit(-1);
    }
 
-   GetParameter("^ScanningStart",datafile,"%lf",&ScanStart_);
-   GetParameter("^ScanningEnd",datafile,"%lf",&ScanEnd_);
-   GetParameter("^ScanningStep",datafile,"%lf",&ScanStep_);
-   GetParameter("^ScanningLineStart",datafile,"%lf",&LineStart_);
-   GetParameter("^ScanningLineStep",datafile,"%lf",&LineStep_);
-   GetParameter("^ScanningLineEnd",datafile,"%lf",&LineEnd_);
+   if(!GetParameter("^ScanningStart",datafile,"%lf",&ScanStart_)) exit(-1);
+   if(!GetParameter("^ScanningEnd",datafile,"%lf",&ScanEnd_)) exit(-1);
+   if(!GetParameter("^ScanningStep",datafile,"%lf",&ScanStep_)) exit(-1);
+   if(!GetParameter("^ScanningLineStart",datafile,"%lf",&LineStart_)) exit(-1);
+   if(!GetParameter("^ScanningLineStep",datafile,"%lf",&LineStep_)) exit(-1);
+   if(!GetParameter("^ScanningLineEnd",datafile,"%lf",&LineEnd_)) exit(-1);
 
    // Initialize Lattice to be ready to
    // find a solution

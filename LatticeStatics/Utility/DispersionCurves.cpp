@@ -44,8 +44,8 @@ int main(int argc,char *argv[])
 
 void GetMainSettings(int &Width, int &Precision,char *datafile)
 {
-   GetParameter("^MainFieldWidth",datafile,"%d",&Width);
-   GetParameter("^MainPrecision",datafile,"%d",&Precision);   
+   if(!GetParameter("^MainFieldWidth",datafile,"%d",&Width)) exit(-1);
+   if(!GetParameter("^MainPrecision",datafile,"%d",&Precision)) exit(-1);   
 }
 
 void InitializeOutputFile(fstream &out,char *outfile,char *datafile,
