@@ -512,11 +512,15 @@ void NiTi6TPPLat::Print(ostream &out,PrintDetail flag)
    int W=out.width();
 
    out.width(0);
+   cout.width(0);
 
    double MinEigVal;
    int NoNegEigVal=0;
+
+   double energy=Energy();
    
    Matrix
+      stress = Stress(),
       stiffness = Stiffness(),
       moduli = Moduli(),
       EigenValues(1,DOFS);
@@ -532,6 +536,8 @@ void NiTi6TPPLat::Print(ostream &out,PrintDetail flag)
 	 MinEigVal = EigenValues[0][i];
    }
 
+   int RankOneConvex = Rank1Convex3D(moduli,ConvexityDX_);
+
    switch (flag)
    {
       case PrintLong:
@@ -543,21 +549,40 @@ void NiTi6TPPLat::Print(ostream &out,PrintDetail flag)
 	     << "BB -- " << setw(W) << Potential_[bb] << endl
 	     << "AB -- " << setw(W) << Potential_[ab] << endl
 	     << "Shear Modulus : " << setw(W) << ShearMod_ << endl;
+	 cout << "NiTi6TPPLat:" << endl << endl
+	      << "Cell Reference Length: " << setw(W) << RefLen_ << endl
+	      << "Influance Distance   : " << setw(W) << InfluanceDist_ << endl
+	      << "Potential Parameters : " << endl
+	      << "AA -- " << setw(W) << Potential_[aa] << endl
+	      << "BB -- " << setw(W) << Potential_[bb] << endl
+	      << "AB -- " << setw(W) << Potential_[ab] << endl
+	      << "Shear Modulus : " << setw(W) << ShearMod_ << endl;	 
 	 // passthrough to short
       case PrintShort:
 	 out << "Temperature (Ref Normalized): " << setw(W) << NTemp_ << endl
 	     << "Pressure (G Normalized): " << setw(W) << Pressure_ << endl
 	     << "DOF's :" << endl << setw(W) << DOF_ << endl
-	     << "Potential Value (G Normalized):" << setw(W) << Energy() << endl
+	     << "Potential Value (G Normalized):" << setw(W) << energy << endl
 	     << "BodyForce Value 0 (Inf Normalized):" << setw(W) << BodyForce_[0] << endl
 	     << "BodyForce Value 1 (Inf Normalized):" << setw(W) << BodyForce_[1] << endl
-	     << "Stress (G Normalized):" << setw(W) << Stress() << endl
+	     << "Stress (G Normalized):" << setw(W) << stress << endl
 	     << "Stiffness (G Normalized):" << setw(W) << stiffness
-	     << "Rank 1 Convex:" << setw(W)
-	     << Rank1Convex3D(moduli,ConvexityDX_) << endl
+	     << "Rank 1 Convex:" << setw(W) << RankOneConvex << endl
 	     << "Eigenvalue Info:"  << setw(W) << EigenValues
 	     << "Bifurcation Info:" << setw(W) << MinEigVal
 	     << setw(W) << NoNegEigVal << endl;
+	 cout << "Temperature (Ref Normalized): " << setw(W) << NTemp_ << endl
+	      << "Pressure (G Normalized): " << setw(W) << Pressure_ << endl
+	      << "DOF's :" << endl << setw(W) << DOF_ << endl
+	      << "Potential Value (G Normalized):" << setw(W) << energy << endl
+	      << "BodyForce Value 0 (Inf Normalized):" << setw(W) << BodyForce_[0] << endl
+	      << "BodyForce Value 1 (Inf Normalized):" << setw(W) << BodyForce_[1] << endl
+	      << "Stress (G Normalized):" << setw(W) << stress << endl
+	      << "Stiffness (G Normalized):" << setw(W) << stiffness
+	      << "Rank 1 Convex:" << setw(W) << RankOneConvex << endl
+	      << "Eigenvalue Info:"  << setw(W) << EigenValues
+	      << "Bifurcation Info:" << setw(W) << MinEigVal
+	      << setw(W) << NoNegEigVal << endl;	 
 	 break;
    }
 }

@@ -733,11 +733,14 @@ void NiTiPressTempPairPotLat::Print(ostream &out,PrintDetail flag)
    int W=out.width();
 
    out.width(0);
+   cout.width(0);
 
    double MinEigVal;
    int NoNegEigVal=0;
-   
+
+   double energy = Energy();
    Matrix
+      stress = Stress(),
       stiffness = Stiffness(),
       moduli = Moduli(),
       EigenValues(1,6);
@@ -752,6 +755,8 @@ void NiTiPressTempPairPotLat::Print(ostream &out,PrintDetail flag)
       if (MinEigVal > EigenValues[0][i])
 	 MinEigVal = EigenValues[0][i];
    }
+
+   int Rank1Convex = Rank1Convex3D(moduli,ConvexityDX_);
 
    switch (flag)
    {
@@ -784,19 +789,56 @@ void NiTiPressTempPairPotLat::Print(ostream &out,PrintDetail flag)
 	     << "; Tref_ab=" << setw(W) << Tref_ab
 	     << "; Tmelt_ab=" << setw(W) << Tmelt_ab << endl
 	     << "Shear Modulus : " << setw(W) << ShearMod_ << endl;
+	 cout << "NiTiPressTempPairPotLat:" << endl << endl
+	      << "Cell Reference Length: " << setw(W) << RefLen_ << endl
+	      << "Influance Distance   : " << setw(W) << InfluanceDist_ << endl
+	      << "Potential Parameters : "
+	      << "A0_aa=  " << setw(W) << A0_aa
+	      << "; B0_aa=  " << setw(W) << B0_aa
+	      << "; Alpha_aa=" << setw(W) << Alpha_aa << endl
+	      << "                       "
+	      << "Rref_aa=" << setw(W) << Rref_aa
+	      << "; Tref_aa=" << setw(W) << Tref_aa
+	      << "; Tmelt_aa=" << setw(W) << Tmelt_aa << endl
+	      << "                       "
+	      << "A0_bb=  " << setw(W) << A0_bb
+	      << "; B0_bb=  " << setw(W) << B0_bb
+	      << "; Alpha_bb=" << setw(W) << Alpha_bb << endl
+	      << "                       "
+	      << "Rref_bb=" << setw(W) << Rref_bb
+	      << "; Tref_bb=" << setw(W) << Tref_bb
+	      << "; Tmelt_bb=" << setw(W) << Tmelt_bb << endl
+	      << "                       "
+	      << "A0_ab=  " << setw(W) << A0_ab
+	      << "; B0_ab=  " << setw(W) << B0_ab
+	      << "; Alpha_ab=" << setw(W) << Alpha_ab << endl
+	      << "                       "
+	      << "Rref_ab=" << setw(W) << Rref_ab
+	      << "; Tref_ab=" << setw(W) << Tref_ab
+	      << "; Tmelt_ab=" << setw(W) << Tmelt_ab << endl
+	      << "Shear Modulus : " << setw(W) << ShearMod_ << endl;
 	 // passthrough to short
       case PrintShort:
 	 out << "Temperature : " << setw(W) << Temp_ << endl
 	     << "Pressure (Normalized): " << setw(W) << Pressure_ << endl
 	     << "Deformation Gradient:" << setw(W) << DefGrad_
-	     << "Potential Value (Normalized):" << setw(W) << Energy() << endl
-	     << "Stress (Normalized):" << setw(W) << Stress()
+	     << "Potential Value (Normalized):" << setw(W) << energy << endl
+	     << "Stress (Normalized):" << setw(W) << stress
 	     << "Stiffness (Normalized):" << setw(W) << stiffness
-	     << "Rank 1 Convex:"<< setw(W)
-	     << Rank1Convex3D(moduli,ConvexityDX_) << endl
+	     << "Rank 1 Convex:"<< setw(W) << Rank1Convex << endl
 	     << "Eigenvalue Info:"  << setw(W) << EigenValues
 	     << "Bifurcation Info:" << setw(W) << MinEigVal
 	     << setw(W) << NoNegEigVal << endl;
+	 cout << "Temperature : " << setw(W) << Temp_ << endl
+	      << "Pressure (Normalized): " << setw(W) << Pressure_ << endl
+	      << "Deformation Gradient:" << setw(W) << DefGrad_
+	      << "Potential Value (Normalized):" << setw(W) << energy << endl
+	      << "Stress (Normalized):" << setw(W) << stress
+	      << "Stiffness (Normalized):" << setw(W) << stiffness
+	      << "Rank 1 Convex:"<< setw(W) << Rank1Convex << endl
+	      << "Eigenvalue Info:"  << setw(W) << EigenValues
+	      << "Bifurcation Info:" << setw(W) << MinEigVal
+	      << setw(W) << NoNegEigVal << endl;	 
 	 break;
    }
 }

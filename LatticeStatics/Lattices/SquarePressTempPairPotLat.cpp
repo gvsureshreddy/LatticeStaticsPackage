@@ -533,11 +533,14 @@ void SquarePressTempPairPotLat::Print(ostream &out,PrintDetail flag)
    int W=out.width();
 
    out.width(0);
+   cout.width(0);
 
    double MinEigVal;
    int NoNegEigVal=0;
-   
+
+   double energy = Energy();
    Matrix
+      stress = Stress(),
       stiffness = Stiffness(),
       moduli = Moduli(),
       EigenValues(1,3);
@@ -552,6 +555,8 @@ void SquarePressTempPairPotLat::Print(ostream &out,PrintDetail flag)
       if (MinEigVal > EigenValues[0][i])
 	 MinEigVal = EigenValues[0][i];
    }
+
+   int Rank1Convex = Rank1Convex2D(moduli,ConvexityDX_);
 
    switch (flag)
    {
@@ -568,19 +573,40 @@ void SquarePressTempPairPotLat::Print(ostream &out,PrintDetail flag)
 	     << "; Tref=" << setw(W) << Tref_
 	     << "; Tmelt=" << setw(W) << Tmelt_ << endl
 	     << "Shear Modulus : " << setw(W) << ShearMod_ << endl;
+	 cout << "SquarePressTempPairPotLat:" << endl << endl
+	      << "Cell Reference Length: " << setw(W) << RefLen_ << endl
+	      << "Influance Distance   : " << setw(W) << InfluanceDist_ << endl
+	      << "Potential Parameters : "
+	      << "A0=  " << setw(W) << A0_
+	      << "; B0=  " << setw(W) << B0_
+	      << "; Alpha=" << setw(W) << Alpha_ << endl
+	      << "                       "
+	      << "Rref=" << setw(W) << Rref_
+	      << "; Tref=" << setw(W) << Tref_
+	      << "; Tmelt=" << setw(W) << Tmelt_ << endl
+	      << "Shear Modulus : " << setw(W) << ShearMod_ << endl;
 	 // passthrough to short
       case PrintShort:
 	 out << "Temperature : " << setw(W) << Temp_ << endl
 	     << "Pressure (Normalized): " << setw(W) << Pressure_ << endl
 	     << "Deformation Gradient:" << setw(W) << DefGrad_
-	     << "Potential Value (Normalized):" << setw(W) << Energy() << endl
-	     << "Stress (Normalized):" << setw(W) << Stress()
+	     << "Potential Value (Normalized):" << setw(W) << energy << endl
+	     << "Stress (Normalized):" << setw(W) << stress
 	     << "Stiffness (Normalized):" << setw(W) << stiffness
-	     << "Rank 1 Convex:" << setw(W)
-	     << Rank1Convex2D(moduli,ConvexityDX_) << endl
+	     << "Rank 1 Convex:" << setw(W) << Rank1Convex << endl
 	     << "Eigenvalue Info:"  << setw(W) << EigenValues
 	     << "Bifurcation Info:" << setw(W) << MinEigVal
 	     << setw(W) << NoNegEigVal << endl;
+	 cout << "Temperature : " << setw(W) << Temp_ << endl
+	      << "Pressure (Normalized): " << setw(W) << Pressure_ << endl
+	      << "Deformation Gradient:" << setw(W) << DefGrad_
+	      << "Potential Value (Normalized):" << setw(W) << energy << endl
+	      << "Stress (Normalized):" << setw(W) << stress
+	      << "Stiffness (Normalized):" << setw(W) << stiffness
+	      << "Rank 1 Convex:" << setw(W) << Rank1Convex << endl
+	      << "Eigenvalue Info:"  << setw(W) << EigenValues
+	      << "Bifurcation Info:" << setw(W) << MinEigVal
+	      << setw(W) << NoNegEigVal << endl;
 	 break;
    }
 }

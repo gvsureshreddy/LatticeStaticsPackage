@@ -98,31 +98,34 @@ int NiTi15TPPLat::FindLatticeSpacing(int iter,double dx)
 
    int i=0;
 
-   while ((sign*newsign >= 0) && (i < iter))
+   if (!(val < 1.0e-14))
    {
-      cout << setw(20) << RefLen_ << setw(20) << s << endl;
-      RefLen_ -= dx*sign;
-      s = Stress()[0][0];
-      
-      newsign = s/fabs(s);
-      i++;
-   }
-
-   if (i >= iter)
-      return 1;
-   else
-   {
-      i=0;
-      while ((fabs(s) > (1.0e-14)*val) && (i < iter))
+      while ((sign*newsign >= 0) && (i < iter))
       {
 	 cout << setw(20) << RefLen_ << setw(20) << s << endl;
-	 i++;
-	 RefLen_ -= dx*newsign/(pwr(2,i));
+	 RefLen_ -= dx*sign;
 	 s = Stress()[0][0];
-	 newsign=s/fabs(s);
+	 
+	 newsign = s/fabs(s);
+	 i++;
       }
-      if (i > iter)
+      
+      if (i >= iter)
 	 return 1;
+      else
+      {
+	 i=0;
+	 while ((fabs(s) > 1.0e-14) && (i < iter))
+	 {
+	    cout << setw(20) << RefLen_ << setw(20) << s << endl;
+	    i++;
+	    RefLen_ -= dx*newsign/(pwr(2,i));
+	    s = Stress()[0][0];
+	    newsign=s/fabs(s);
+	 }
+	 if (i > iter)
+	    return 1;
+      }
    }
 
    ShearMod_ = 0.25*fabs(Stiffness()[5][5]);
@@ -907,19 +910,55 @@ Matrix NiTi15TPPLat::Phi(unsigned moduliflag,PairPotentials::YDeriv dy,
    return Phi;
 }
 
+Matrix NiTi15TPPLat::CondensedModuli(Matrix &stiffness)
+{
+   int intrn = DOFS-6;
+   Matrix CM(6,6), IM(intrn,intrn);
+   
+   for (int i=0;i<6;i++)
+      for (int j=0;j<6;j++)
+      {
+	 CM[i][j] = stiffness[i][j];
+      }
+   
+   for (int i=0;i<intrn;i++)
+      for (int j=0;j<intrn;j++)
+      {
+	 IM[i][j] = stiffness[6+i][6+j];
+      }
+   IM = IM.Inverse();
+
+   // Set up Condensed Moduli
+   for (int i=0;i<6;i++)
+      for (int j=0;j<6;j++)
+      {
+	 for (int m=0;m<intrn;m++)
+	    for (int n=0;n<intrn;n++)
+	    {
+	       CM[i][j] -= stiffness[i][6+m]*IM[m][n]*stiffness[6+n][j];
+	    }
+      }
+
+   return CM;
+}
+
 void NiTi15TPPLat::Print(ostream &out,PrintDetail flag)
 {
    int W=out.width();
 
    out.width(0);
+   cout.width(0);
 
    double MinEigVal;
    int NoNegEigVal=0;
+
+   double energy = Energy();
    
    Matrix
+      stress = Stress(),
       stiffness = Stiffness(),
-      moduli = Moduli(),
-      EigenValues(1,DOFS);
+      EigenValues(1,DOFS),
+      CondEV(1,6);
 
    EigenValues=SymEigVal(stiffness);
    MinEigVal = EigenValues[0][0];
@@ -932,6 +971,12 @@ void NiTi15TPPLat::Print(ostream &out,PrintDetail flag)
 	 MinEigVal = EigenValues[0][i];
    }
 
+   Matrix
+      CondModuli = CondensedModuli(stiffness);
+
+   CondEV=SymEigVal(CondModuli);
+   int RankOneConvex = Rank1Convex3D(CondModuli,ConvexityDX_);
+
    switch (flag)
    {
       case PrintLong:
@@ -943,23 +988,48 @@ void NiTi15TPPLat::Print(ostream &out,PrintDetail flag)
 	     << "BB -- " << setw(W) << Potential_[bb] << endl
 	     << "AB -- " << setw(W) << Potential_[ab] << endl
 	     << "Shear Modulus : " << setw(W) << ShearMod_ << endl;
+	 cout << "NiTi15TPPLat:" << endl << endl
+	      << "Cell Reference Length: " << setw(W) << RefLen_ << endl
+	      << "Influance Distance   : " << setw(W) << InfluanceDist_ << endl
+	      << "Potential Parameters : " << endl
+	      << "AA -- " << setw(W) << Potential_[aa] << endl
+	      << "BB -- " << setw(W) << Potential_[bb] << endl
+	      << "AB -- " << setw(W) << Potential_[ab] << endl
+	      << "Shear Modulus : " << setw(W) << ShearMod_ << endl;	 
 	 // passthrough to short
       case PrintShort:
 	 out << "Temperature (Ref Normalized): " << setw(W) << NTemp_ << endl
 	     << "Pressure (G Normalized): " << setw(W) << Pressure_ << endl
 	     << "DOF's :" << endl << setw(W) << DOF_ << endl
-	     << "Potential Value (G Normalized):" << setw(W) << Energy() << endl
+	     << "Potential Value (G Normalized):" << setw(W) << energy << endl
 	     << "BodyForce Value 0 (Inf Normalized):" << setw(W) << BodyForce_[0] << endl
 	     << "BodyForce Value 1 (Inf Normalized):" << setw(W) << BodyForce_[1] << endl
 	     << "BodyForce Value 2 (Inf Normalized):" << setw(W) << BodyForce_[2] << endl
 	     << "BodyForce Value 3 (Inf Normalized):" << setw(W) << BodyForce_[3] << endl
-	     << "Stress (G Normalized):" << setw(W) << Stress() << endl
+	     << "Stress (G Normalized):" << setw(W) << stress << endl
 	     << "Stiffness (G Normalized):" << setw(W) << stiffness
-	     << "Rank 1 Convex:" << setw(W)
-	     << Rank1Convex3D(moduli,ConvexityDX_) << endl
 	     << "Eigenvalue Info:"  << setw(W) << EigenValues
 	     << "Bifurcation Info:" << setw(W) << MinEigVal
-	     << setw(W) << NoNegEigVal << endl;
+	     << setw(W) << NoNegEigVal << endl
+	     << "Condensed Moduli (G Normalized):" << setw(W) << CondModuli
+	     << "CondEV Info:" << setw(W) << CondEV
+	     << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << endl;
+	 cout << "Temperature (Ref Normalized): " << setw(W) << NTemp_ << endl
+	      << "Pressure (G Normalized): " << setw(W) << Pressure_ << endl
+	      << "DOF's :" << endl << setw(W) << DOF_ << endl
+	      << "Potential Value (G Normalized):" << setw(W) << energy << endl
+	      << "BodyForce Value 0 (Inf Normalized):" << setw(W) << BodyForce_[0] << endl
+	      << "BodyForce Value 1 (Inf Normalized):" << setw(W) << BodyForce_[1] << endl
+	      << "BodyForce Value 2 (Inf Normalized):" << setw(W) << BodyForce_[2] << endl
+	      << "BodyForce Value 3 (Inf Normalized):" << setw(W) << BodyForce_[3] << endl
+	      << "Stress (G Normalized):" << setw(W) << stress << endl
+	      << "Stiffness (G Normalized):" << setw(W) << stiffness
+	      << "Eigenvalue Info:"  << setw(W) << EigenValues
+	      << "Bifurcation Info:" << setw(W) << MinEigVal
+	      << setw(W) << NoNegEigVal << endl
+	      << "Condensed Moduli (G Normalized):" << setw(W) << CondModuli
+	      << "CondEV Info:" << setw(W) << CondEV
+	      << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << endl;
 	 break;
    }
 }

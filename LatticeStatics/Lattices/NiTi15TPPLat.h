@@ -31,6 +31,8 @@ private:
    static const double A[INTERNAL_ATOMS][DIM3];
    static const interaction INTER[INTERNAL_ATOMS][INTERNAL_ATOMS];
 
+   Matrix CondensedModuli(Matrix &stiffness);
+
 public:
    double RefLen() {return RefLen_;}
 
