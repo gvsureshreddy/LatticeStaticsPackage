@@ -87,9 +87,9 @@ int ArcLengthSolution::FindNextSolution()
    }
    while ((AngleTest >= AngleCutoff_)
 	  && (CurrentDS_ >= DSMin_)
-	  && (CurrentDS_ = CurrentDS_/2.0));
+	  && (Mode_->ArcLenUpdate(Difference_),CurrentDS_ = CurrentDS_/2.0));
 
-   if ((AngleTest >= AngleIncrease_) && (CurrentDS_ < DSMax_))
+   if ((AngleTest <= AngleIncrease_) && (CurrentDS_ < DSMax_))
    {
       CurrentDS_ *= 2.0;
       cout << "DS= " << CurrentDS_ << endl;
@@ -132,9 +132,9 @@ int ArcLengthSolution::ArcLengthNewton()
 	   << Mode_->ScanningStressParameter() << "), ";
    }
    while ((itr < MaxIter_)
-	  && (fabs(Mode_->ArcLenRHS(CurrentDS_,Difference_,Aspect_).Norm())
-	      > Tolerance_)
-	  && (fabs(Dx.Norm()) > Tolerance_));
+	  && ((fabs(Mode_->ArcLenRHS(CurrentDS_,Difference_,Aspect_).Norm())
+	       > Tolerance_)
+	      || (fabs(Dx.Norm()) > Tolerance_)));
 
    cout << endl;
 
