@@ -6,7 +6,15 @@
 // Sentinal to allow for no initialization of data
 #define SENTINAL -9999999.8888888887777788
 
+// Maximum condition number for double precision
+// above this a matrix is very ill-conditioned
+//
+// MAXCONDITION is used by SVD.
+#define MAXCONDITION 10.0e12
+
+
 class Vector;
+class Vector3D;
 
 class Matrix
 {
@@ -51,6 +59,8 @@ public:
    friend Matrix operator*(const Matrix& A,const Elm& B);
    friend Vector operator*(const Matrix& A,const Vector& B);
    friend Vector operator*(const Vector& A,const Matrix& B);
+   friend Vector3D operator*(const Matrix& A,const Vector3D& B);
+   friend Vector3D operator*(const Vector3D& A,const Matrix& B);   
    friend Matrix operator/(const Matrix& A,const Elm& B);
 
    // Element Access methods
@@ -87,17 +97,54 @@ public:
    // Set P,L,U to the corresponding matricies of the PLU
    //   decomposition of A
    friend void PLU(const Matrix& A,Matrix& P,Matrix& L,Matrix& U);
+
+   // Singular Value Decomposition of A -- Algorithm from Numerical Recipies
+   //
+   // return value - condition number of A
+   // A - mxn matrix to decompose
+   // U - mxn "column-orthogonal" matrix
+   // W - nxn diagonal matrix (singular values)
+   // V - nxn orthogonal matrix
+   //
+   // A = U*W*V.Transpose();
+   //
+   // each W[i][i] < fabs(MAX(W)) / MaxCond; will be set to 0.0
+   // -- this most often reduces error when solving a system of equations
+   // -- that is ill-conditioned (as compaired with a straight SVD or LU
+   // -- decomposition).
+   //
+   // if (PrintFlag); then the condition number of A will be echoed on cerr
+   //
+   // WHENEVER a W[i][i] is explicitly set to 0.0 a message is echoed to cerr
+   // NOTE: this situation may be detected by the calling program by compairing
+   // -- the value of MaxCond with the returned condition number.
+   //
+   friend Elm SVD(const Matrix& A,Matrix& U,Matrix& W,Matrix& V,
+		  const Elm MaxCond=MAXCONDITION,const int PrintFlag=0);
    
    // Cholesky Decomposition of Matrix
    // A=U.Transpose()*D*U
+   //
+   // D - diagonal Matrix
+   //
    // Assumes Symmetric Matrix (thus uses only Upper Diagonal part of A
    // Note: will fail if A has EigenValue of 0.0
    friend void Cholesky(const Matrix& A,Matrix& U,Matrix& D);
 
    // Return solution x of the linear system A*x=B
    // Uses PLU decomposition and Forward and Backwards substitution
-   friend Matrix Solve(const Matrix& A,const Matrix& B);
-
+   friend Matrix SolvePLU(const Matrix& A,const Matrix& B);
+   
+   // Return solution x of the linear system A*x=B
+   // Uses SVD decomposition
+   //
+   // x = V*W.Inverse()*(U.Transpose()*B);
+   // WHERE: W.Inverse() is actually calculated by hand and any
+   // -- W[i][i] == 0.0 has inverse component 0.0
+   friend Matrix SolveSVD(const Matrix& A,const Matrix& B,
+			  const Elm MaxCond=MAXCONDITION,
+			  const int PrintFlag=0);   
+   
    // Output/Input Functions
    friend ostream& operator<<(ostream& out,const Matrix& A);
    friend istream& operator>>(istream& in, Matrix& A);

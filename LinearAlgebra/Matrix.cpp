@@ -5,9 +5,25 @@
 #include <math.h>
 
 // Global IDString
-char MatrixID[]="$Id: Matrix.cpp,v 1.4 2000/11/22 19:56:06 elliottr Exp $";
+char MatrixID[]="$Id: Matrix.cpp,v 1.5 2001/01/03 16:46:30 elliottr Exp $";
 
 // Private Methods...
+
+
+// Computes sqrt(a^2 + b^2) without destructive underflow or overflow.
+Matrix::Elm pythag(Matrix::Elm a,Matrix::Elm b);
+Matrix::Elm pythag(Matrix::Elm a,Matrix::Elm b)
+{
+   Matrix::Elm absa,absb;
+   absa=fabs(a);
+   absb=fabs(b);
+   if (absa > absb)
+      return absa*sqrt(1.0+((absb/absa)*(absb/absa)));
+   else
+      return (absb == 0.0 ?
+	      0.0 :
+	      absb*sqrt(1.0+((absa/absb)*(absa/absb))));
+}
 
 
 // Returns matrix of size Rows_-1 x Cols_-1 with ith row and
@@ -346,7 +362,7 @@ Matrix Matrix::Inverse() const
    B.Elements_[0][0]=1.0;
    for (register int i=0;i<Cols_;i++)
    {
-      X=Solve(*this,B);
+      X=SolvePLU(*this,B);
 
       for (register int j=0;j<Rows_;j++)
 	 C.Elements_[j][i]=X.Elements_[j][0];
@@ -545,6 +561,316 @@ void PLU(const Matrix& A,Matrix& P,Matrix& L,Matrix& U)
    return;
 }
 
+// Singular Value Decomposition of A -- Algorithm from Numerical Recipies
+//
+// return value - condition number of A
+// A - mxn matrix to decompose
+// U - mxn "column-orthogonal" matrix
+// W - nxn diagonal matrix (singular values)
+// V - nxn orthogonal matrix
+//
+// A = U*W*V.Transpose();
+//
+Matrix::Elm SVD(const Matrix& A,Matrix& U,Matrix& W,Matrix& V,
+		const Matrix::Elm MaxCond,const int PrintFlag)
+{
+   // Initialize U = A
+   U.Resize(A.Rows_,A.Cols_);
+   U = A;
+
+   // Initialize W and V
+   W.Resize(A.Cols_,A.Cols_,0.0);
+   V.Resize(A.Cols_,A.Cols_);
+
+   // allocate temp storage space
+   Matrix::Elm *temp;
+   temp = new Matrix::Elm[A.Cols_];
+
+   // define local variables
+   int flag,
+      l,
+      nm;
+   Matrix::Elm anorm,
+      c,f,g,h,s,scale,x,y,z;
+
+   g=scale=anorm=0.0;
+
+   // Householder reduction to bidiagonal form.
+   for (int i=0;i<A.Cols_;i++)
+   {
+      l = i+1;
+      temp[i] = scale*g;
+      g=s=scale=0.0;
+
+      if (i < A.Rows_)
+      {
+	 for (int k=i;k<A.Rows_;k++) scale += fabs(U.Elements_[k][i]);
+	 if (scale)
+	 {
+	    for (int k=i;k<A.Rows_;k++)
+	    {
+	       U.Elements_[k][i] /= scale;
+	       s += U.Elements_[k][i]*U.Elements_[k][i];
+	    }
+	    f = U.Elements_[i][i];
+	    g = - ( f >= 0.0 ? fabs(sqrt(s)) : -fabs(sqrt(s)) );
+	    h = f*g - s;
+	    U.Elements_[i][i] = f-g;
+	    for (int j=l;j<A.Cols_;j++)
+	    {
+	       s = 0.0;
+	       for (int k=i;k<A.Rows_;k++)
+		  s += U.Elements_[k][i]*U.Elements_[k][j];
+	       f = s/h;
+	       for (int k=i;k<A.Rows_;k++)
+		  U.Elements_[k][j] += f*U.Elements_[k][i];
+	    }
+
+	    for (int k=i;k<A.Rows_;k++) U.Elements_[k][i] *= scale;
+	 }
+      }
+      W.Elements_[i][i] = scale*g;
+
+      g=s=scale=0.0;
+      if ((i < A.Rows_) && (i != A.Cols_-1))
+      {
+	 for (int k=l;k<A.Cols_;k++) scale += fabs(U.Elements_[i][k]);
+	 if (scale)
+	 {
+	    for (int k=l;k<A.Cols_;k++)
+	    {
+	       U.Elements_[i][k] /= scale;
+	       s += U.Elements_[i][k]*U.Elements_[i][k];
+	    }
+	    f = U.Elements_[i][l];
+	    g = - ( f >= 0.0 ? fabs(sqrt(s)) : -fabs(sqrt(s)) );
+	    h = f*g - s;
+	    U.Elements_[i][l] = f-g;
+	    for (int k=l;k<A.Cols_;k++) temp[k] = U.Elements_[i][k]/h;
+	    for (int j=l;j<A.Rows_;j++)
+	    {
+	       s = 0.0;
+	       for (int k=l;k<A.Cols_;k++)
+		  s += U.Elements_[j][k]*U.Elements_[i][k];
+	       for (int k=l;k<A.Cols_;k++) U.Elements_[j][k] += s*temp[k];
+	    }
+	    for (int k=l;k<A.Cols_;k++) U.Elements_[i][k] *= scale;
+	 }
+      }
+      anorm = ( anorm > (fabs(W.Elements_[i][i])+fabs(temp[i])) ?
+		anorm :
+		(fabs(W.Elements_[i][i])+fabs(temp[i])));
+   }
+
+   // Accumulation of right-hand transformations.
+   for (int i=A.Cols_-1;i>-1;i--)
+   {
+      if (i < A.Cols_-1)
+      {
+	 if (g)
+	 {
+	    for (int j=l;j<A.Cols_;j++)
+	       // Double division to avoid possible underflow
+	       V.Elements_[j][i] = (U.Elements_[i][j]/U.Elements_[i][l])/g;
+	    for (int j=l;j<A.Cols_;j++)
+	    {
+	       s = 0.0;
+	       for (int k=l;k<A.Cols_;k++)
+		  s += U.Elements_[i][k]*V.Elements_[k][j];
+	       for (int k=l;k<A.Cols_;k++)
+		  V.Elements_[k][j] += s*V.Elements_[k][i];
+	    }
+	 }
+	 for (int j=l;j<A.Cols_;j++)
+	    V.Elements_[i][j] = V.Elements_[j][i]=0.0;
+      }
+      V.Elements_[i][i]=1.0;
+      g = temp[i];
+      l = i;
+   }
+
+   // Accumulation of left-hand transformations.
+   for (int i=(A.Cols_ < A.Rows_ ? A.Cols_ : A.Rows_)-1;i>-1;i--)
+   {
+
+      l = i+1;
+      g = W.Elements_[i][i];
+      for (int j=l;j<A.Cols_;j++) U.Elements_[i][j] = 0.0;
+      if (g)
+      {
+	 g = 1.0/g;
+	 for (int j=l;j<A.Cols_;j++)
+	 {
+	    s = 0.0;
+	    for (int k=l;k<A.Rows_;k++)
+	       s += U.Elements_[k][i]*U.Elements_[k][j];
+	    f = (s/U.Elements_[i][i])*g;
+	    for (int k=i;k<A.Rows_;k++)
+	       U.Elements_[k][j] += f*U.Elements_[k][i];
+	 }
+	 for (int j=i;j<A.Rows_;j++) U.Elements_[j][i] *= g;
+      }
+      else
+      {
+	 for (int j=i;j<A.Rows_;j++) U.Elements_[j][i] = 0.0;
+      }
+      ++U.Elements_[i][i];
+   }
+
+   // Diagonalization of the bidiagonal form: Loop over singular values, and
+   // -- over allowed iterations.
+   for (int k=A.Cols_-1;k>-1;k--)
+   {
+      for (int its=0;its<30;its++)
+      {
+	 flag = 1;
+	 // Test for splitting
+	 for (l=k;l>-1;l--)
+	 {
+	    // Note that temp[0] is always zero
+	    nm=l-1;
+	    if (fabs(temp[l])+anorm == anorm)
+	    {
+	       flag = 0;
+	       break;
+	    }
+	    if (fabs(W.Elements_[nm][nm])+anorm == anorm) break;
+	 }
+	 if (flag)
+	 {
+	    // Cancellation of temp[l], if l > 0
+	    c = 0.0;
+	    s = 1.0;
+	    for (int i=l;i<=k;i++)
+	    {
+	       f = s*temp[i];
+	       temp[i]=c*temp[i];
+	       if (fabs(f)+anorm == anorm) break;
+	       g = W.Elements_[i][i];
+	       h = pythag(f,g);
+	       W.Elements_[i][i] = h;
+	       h = 1.0/h;
+	       c = g*h;
+	       s = -f*h;
+	       for (int j=0;j<A.Rows_;j++)
+	       {
+		  y = U.Elements_[j][nm];
+		  z = U.Elements_[j][i];
+		  U.Elements_[j][nm] = y*c + z*s;
+		  U.Elements_[j][i] = z*c - y*s;
+	       }
+	    }
+	 }
+	 z = W.Elements_[k][k];
+
+	 // Convergence
+	 if (l == k)
+	 {
+	    // Singular value is made nonnegative.
+	    if (z < 0.0)
+	    {
+	       W.Elements_[k][k] = -z;
+	       for (int j=0;j<A.Cols_;j++)
+		  V.Elements_[j][k] = -V.Elements_[j][k];
+	    }
+	    break;
+	 }
+	 if (its == 30)
+	 {
+	    cerr << "no convergence in 30 SVD iterations" << endl;
+	    exit(-1);
+	 }
+	 // Shift from bottom 2-by-2 minor
+	 x = W.Elements_[l][l];
+	 nm = k-1;
+	 y = W.Elements_[nm][nm];
+	 g = temp[nm];
+	 h = temp[k];
+	 f = ((y-z)*(y+z) + (g-h)*(g+h))/(2.0*h*y);
+	 g = pythag(f,1.0);
+	 f = ((x-z)*(x+z) + h*((y/(f + (f >=0.0 ? fabs(g) : -fabs(g)))) - h))/x;
+	 // Next QR transformation:
+	 c=s=1.0;
+	 for (int j=l;j<=nm;j++)
+	 {
+	    int i;
+	    i = j+1;
+	    g = temp[i];
+	    y = W.Elements_[i][i];
+	    h = s*g;
+	    g = c*g;
+	    z = pythag(f,h);
+	    temp[j] = z;
+	    c = f/z;
+	    s = h/z;
+	    f = x*c + g*s;
+	    g = g*c - x*s;
+	    h = y*s;
+	    y *= c;
+	    for (int jj=0;jj<A.Cols_;jj++)
+	    {
+	       x = V.Elements_[jj][j];
+	       z = V.Elements_[jj][i];
+	       V.Elements_[jj][j] = x*c + z*s;
+	       V.Elements_[jj][i] = z*c - x*s;
+	    }
+	    z = pythag(f,h);
+	    // Rotation can be arbitrary if z = 0
+	    W.Elements_[j][j] = z;
+	    if (z)
+	    {
+	       z = 1.0/z;
+	       c = f*z;
+	       s = h*z;
+	    }
+	    f = c*g + s*y;
+	    x = c*y - s*g;
+	    for (int jj=0;jj<A.Rows_;jj++)
+	    {
+	       y = U.Elements_[jj][j];
+	       z = U.Elements_[jj][i];
+	       U.Elements_[jj][j] = y*c + z*s;
+	       U.Elements_[jj][i] = z*c - y*s;
+	    }
+	 }
+	 temp[l] = 0.0;
+	 temp[k] = f;
+	 W.Elements_[k][k] = x;
+      }
+   }
+
+   delete [] temp;
+
+   // Condition number stuff...
+   // Remember the singular values are >= 0.0
+   Matrix::Elm
+      ConditionNumber,
+      wmax=0.0,
+      wmin;
+   for (int j=0;j<A.Cols_;j++)
+      if (W.Elements_[j][j] > wmax) wmax = W.Elements_[j][j];
+   wmin = wmax;
+   for (int j=0;j<A.Cols_;j++)
+      if (W.Elements_[j][j] < wmin) wmin = W.Elements_[j][j];
+   
+   ConditionNumber = wmax/wmin;
+   if (PrintFlag)
+   {
+      cerr << "SVD: Condition Number is : " << ConditionNumber << endl;
+   }
+
+   // Fix up any singular values that are "too small"
+   for (int j=0;j<A.Cols_;j++)
+      if (W.Elements_[j][j] < wmax/MaxCond)
+      {
+	 W.Elements_[j][j] = 0.0;
+	 cerr << "SVD: Explicitly set Singular Value #" << j
+	      << " to 0.0  !!!" << endl;
+      }
+
+   return ConditionNumber;
+}
+	    
 void Cholesky(const Matrix& A,Matrix& U,Matrix& D)
 {
    if (!A.IsSquare() || A.IsNull())
@@ -584,7 +910,7 @@ void Cholesky(const Matrix& A,Matrix& U,Matrix& D)
    return;
 }
 
-Matrix Solve(const Matrix& A,const Matrix& B)
+Matrix SolvePLU(const Matrix& A,const Matrix& B)
 {
    if (!A.IsSquare() || A.IsNull() || A.Cols_!=B.Rows_)
    {
@@ -628,6 +954,54 @@ Matrix Solve(const Matrix& A,const Matrix& B)
    delete [] Y;
       
    return X;
+}
+
+Matrix SolveSVD(const Matrix& A,const Matrix& B,
+		const Matrix::Elm MaxCond,const int PrintFlag)
+{
+   // SVD resizes U,W,V so don't bother now
+   Matrix
+      U,W,V;
+   Matrix x(B.Rows_,B.Cols_);
+
+   Matrix::Elm ConditionNumber;
+
+   ConditionNumber=SVD(A,U,W,V,MaxCond,PrintFlag);
+
+   int jj,j,i;
+   Matrix::Elm s,*tmp;
+
+   // Allocate temp space
+   tmp = new Matrix::Elm[A.Cols_];
+
+   // Claculate U.Transpose()*B
+   for (j=0;j<A.Cols_;j++)
+   {
+      s = 0.0;
+      // Nonzero result only if W[j][j] is nonzero
+      if (W.Elements_[j][j])
+      {
+	 for (i=0;i<A.Rows_;i++)
+	    s += U.Elements_[i][j]*B.Elements_[i][0];
+	 // This is the divide by W[j][j];
+	 s /= W.Elements_[j][j];
+      }
+      tmp[j] = s;
+   }
+
+   // Matrix multiply by V to get answer
+   for (j=0;j<A.Cols_;j++)
+   {
+      s = 0.0;
+      for (jj=0;jj<A.Cols_;jj++)
+	 s += V.Elements_[j][jj]*tmp[jj];
+      x[j][0] = s;
+   }
+
+   // release temp space
+   delete [] tmp;
+
+   return x;
 }
 
 ostream& operator<<(ostream& out,const Matrix& A)

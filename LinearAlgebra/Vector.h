@@ -2,6 +2,7 @@
 #define __Vector
 
 #include <Matrix.h>
+#include <Vector3D.h>
 
 // Sentinal Value to allow conditional initialization of data
 #define SENTINAL -9999999.8888888887777788
@@ -24,7 +25,9 @@ public:
    // Devaults: Cols-0,Initial Value= (un initialized)
    Vector(const unsigned& Cols=0,const Elm& InitVal=SENTINAL);
    Vector(const Vector& A);
+   Vector(const Vector3D& A);
    Vector(const Matrix& A);
+   friend Vector3D::Vector3D(const Vector& A);
 
    // Deconstructor...
    // Release dynamic memory.

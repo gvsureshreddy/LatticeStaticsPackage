@@ -1,5 +1,6 @@
 #include <Matrix.h>
 #include <Vector.h>
+#include <Vector3D.h>
 #include <stdlib.h>
 #include <iomanip.h>
 #include <time.h>
@@ -17,6 +18,8 @@ int main()
       c(6),
       d(6);
 
+   Vector3D e,f;
+   
    srand(time(NULL));
    
    for (int i=0;i<3;i++)
@@ -53,7 +56,7 @@ int main()
    }
 
 
-   cout << setiosflags(ios::fixed) << setprecision(6);
+   cout << setiosflags(ios::scientific) << setprecision(12);
 
    cout << setw(20) << A << endl
 	<< setw(20) << B << endl
@@ -62,7 +65,9 @@ int main()
 	<< setw(20) << a << endl
 	<< setw(20) << b << endl
 	<< setw(20) << c << endl
-	<< setw(20) << d << endl;
+	<< setw(20) << d << endl
+	<< setw(20) << e << endl
+	<< setw(20) << f << endl;
 
    Matrix q(A);
 
@@ -98,6 +103,66 @@ int main()
 
    cout << "PLU" << endl << setw(20) << B.Inverse()*C*D << endl;
 
+   SVD(A,B,C,D,MAXCONDITION,1);
+
+   cout << "A" << endl << setw(20) << A << endl;
+
+   cout << "U" << endl << setw(20) << B << endl;
+
+   cout << "W" << endl << setw(20) << C << endl;
+
+   cout << "V" << endl << setw(20) << D << endl;
+
+   cout << "SVD" << endl << setw(20) << B*C*D.Transpose() << endl;
+
+   E.Resize(3,3);
+   E=A;
+
+
+   // Create an ill conditioned matrix !!!!!
+   A[0][0] = 1.0;
+   A[0][1] = 0.0;
+   A[0][2] = 2.0;
+   A[1][0] = 1.0 + 1.0e-17;
+   A[1][1] = 0.0;
+   A[1][2] = 2.0;
+   A[2][0] = 5.0;
+   A[2][1] = 6.0;
+   A[2][2] = 4.0;
+
+   SVD(A,B,C,D,MAXCONDITION,1);
+
+   cout << "A" << endl << setw(20) << A << endl;
+
+   cout << "U" << endl << setw(20) << B << endl;
+
+   cout << "W" << endl << setw(20) << C << endl;
+
+   cout << "V" << endl << setw(20) << D << endl;
+
+   cout << "SVD" << endl << setw(20) << B*C*D.Transpose() << endl;
+
+   for (int i=0;i<C.Rows();i++)
+      if (C[i][i]) C[i][i] = 1.0/C[i][i];
+   
+   cout << "A^-1 via SVD" << endl << setw(20) << D*C*B.Transpose() << endl
+	<< setw(20) << A*(D*C*B.Transpose()) << endl;
+
+   cout << "A^-1 via PLU" << endl << setw(20) << A.Inverse() << endl
+	<< setw(20) << A*(A.Inverse()) << endl;
+
+   SVD(A,B,C,D,10e17,1);
+
+   cout << "W" << endl << setw(20) << C << endl;
+
+   for (int i=0;i<C.Rows();i++)
+      if (C[i][i]) C[i][i] = 1.0/C[i][i];
+   
+   cout << "A^-1 via SVD" << endl << setw(20) << D*C*B.Transpose() << endl
+	<< setw(20) << A*(D*C*B.Transpose()) << endl;
+
+   A=E;
+
    cout << "a" << setw(20) << a << endl;
 
    cout << "b" << setw(20) << b << endl;
@@ -121,6 +186,10 @@ int main()
    cout << "a=b" << setw(20) << a << endl;
 
    cout << "A*b" << setw(20) << A*b << endl;
+
+   f=Vector3D(b);
+   
+   cout << "A*f" << setw(20) << A*f << endl;
 
    return 1;
 }

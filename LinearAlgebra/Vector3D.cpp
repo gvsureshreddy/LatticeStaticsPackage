@@ -3,9 +3,11 @@
 #include <iomanip.h>
 #include <math.h>
 #include <Vector3D.h>
+#include <Vector.h>
+#include <Matrix.h>
 
 // Global IDString
-char Vector3DID[]="$Id: Vector3D.cpp,v 1.1 2000/09/24 06:54:38 elliottr Exp $";
+char Vector3DID[]="$Id: Vector3D.cpp,v 1.2 2001/01/03 16:46:30 elliottr Exp $";
 
 // Private Functions...
 
@@ -31,11 +33,64 @@ Vector3D::Vector3D(const Vector3D& A)
    return;
 }
 
+Vector3D::Vector3D(const Vector& A)
+{
+   if (A.Cols_ != V3DLEN)
+   {
+      cerr << "Vector3D: error: Constructor: Wrong Size" << endl;
+      exit(-1);
+   }
+   
+   memmove(Elements_,A.Elements_,sizeof(Vector3D::Elm[V3DLEN]));
+
+   return;
+}
+
 Vector3D& Vector3D::operator=(const Vector3D& B)
 {
    memmove(Elements_,B.Elements_,sizeof(Vector3D::Elm[V3DLEN]));
 
    return *this;
+}
+
+Vector3D operator*(const Vector3D& A,const Matrix& B)
+{
+   if (B.Rows_ != V3DLEN)
+   {
+      cerr << "Vector3D: error: operator*(vec,matrix): Wrong Size" << endl;
+      exit(-1);
+   }
+
+   Vector3D z(0.0);
+   for (int i=0;i<V3DLEN;i++)
+   {
+      for (int j=0;j<V3DLEN;j++)
+      {
+	 z.Elements_[i] += A.Elements_[j]*B.Elements_[j][i];
+      }
+   }
+
+   return z;
+}
+
+Vector3D operator*(const Matrix& A,const Vector3D& B)
+{
+   if (A.Cols_ != V3DLEN)
+   {
+      cerr << "Vector3D: error: operator*(matrix,vec): Wrong Size" << endl;
+      exit(-1);
+   }
+
+   Vector3D z(0.0);
+   for (int i=0;i<V3DLEN;i++)
+   {
+      for (int j=0;j<V3DLEN;j++)
+      {
+	 z.Elements_[i] += A.Elements_[i][j]*B.Elements_[j];
+      }
+   }
+
+   return z;
 }
 
 ostream& operator<<(ostream& out,const Vector3D& A)

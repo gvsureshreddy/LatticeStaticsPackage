@@ -32,8 +32,8 @@ OBJECTS  = $(SOURCES:$(SRC_EXT)=$(OBJ_EXT))
 all : $(OBJECTS)
 .PHONY: all
 
-matrixtest : $(OBJECTS)
-	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o matrixtest ./matrixtest.cpp ./lib/Matrix.o ./lib/Vector.o
+matrixtest : $(OBJECTS) matrixtest.cpp
+	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o matrixtest ./matrixtest.cpp ./lib/Matrix.o ./lib/Vector.o ./lib/Vector3D.o
 
 # include the dependicies
 include $(addprefix ./depend/,$(OBJECTS:$(OBJ_EXT)=$(DEP_EXT)))

@@ -3,6 +3,9 @@
 
 #define V3DLEN 3
 
+class Matrix;
+class Vector;
+
 class Vector3D
 {
 protected:
@@ -16,6 +19,7 @@ public:
    Vector3D(const Elm& InitVal);
    Vector3D(const Elm& x,const Elm& y,const Elm& z);
    Vector3D(const Vector3D& A);
+   Vector3D(const Vector& A);
 
 
    // Deconstructor...
@@ -52,12 +56,17 @@ public:
 		      -(A.Elements_[0]*B.Elements_[2]-A.Elements_[2]*B.Elements_[0]),
 		      A.Elements_[0]*B.Elements_[1]-A.Elements_[1]*B.Elements_[0]);
    }
+   // Scalar Products
    inline friend Vector3D operator*(const Elm& A,const Vector3D& B)
    {return Vector3D(A*B.Elements_[0],A*B.Elements_[1],A*B.Elements_[2]);}
    inline friend Vector3D operator*(const Vector3D& A,const Elm& B)
    {return Vector3D(B*A.Elements_[0],B*A.Elements_[1],B*A.Elements_[2]);}
    inline friend Vector3D operator/(const Vector3D& A,const Elm& B)
    {return Vector3D(A.Elements_[0]/B,A.Elements_[1]/B,A.Elements_[2]/B);}
+
+   // Matrix Products
+   friend Vector3D operator*(const Vector3D& A,const Matrix& B);
+   friend Vector3D operator*(const Matrix& A,const Vector3D& B);
    
    // Element Access methods
    inline Elm& operator[](const unsigned& i) {return Elements_[i];}

@@ -5,7 +5,7 @@
 #include <math.h>
 
 // Global IDString
-char VectorID[]="$Id: Vector.cpp,v 1.4 2000/11/22 19:56:06 elliottr Exp $";
+char VectorID[]="$Id: Vector.cpp,v 1.5 2001/01/03 16:46:30 elliottr Exp $";
 
 // Private Functions...
 
@@ -47,6 +47,27 @@ Vector::Vector(const Vector& A)
    }
 
    memmove(Elements_,A.Elements_,sizeof(Vector::Elm)*Cols_);
+
+   return;
+}
+
+Vector::Vector(const Vector3D& A)
+{
+   Cols_=3;
+   
+   if (Cols_==0)
+   {
+      Elements_=NULL;
+   }
+   else
+   {
+      Elements_=new Vector::Elm[Cols_];
+   }
+
+   for (int i=0;i<3;i++)
+   {
+      Elements_[i] = A[i];
+   }
 
    return;
 }
