@@ -30,11 +30,11 @@ LIB_LOC    = ${HOME}/lib
 LIBS       = -lLinearAlgebra -lMath -lm
 LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(DATE_DEF)
 #
-# the below line is for OS X -- a bug in the libraries...
+# the below lines are for OS X -- a bug in the libraries...
 #
-UNAME      = `uname`
+UNAME      = $(shell uname)
 #
-ifeq ($(UNAME),darwin)
+ifeq ($(UNAME),Darwin)
    LFLAGS     := $(LFLAGS) `ar -x /usr/lib/libstdc++.a lib/dcomio.o lib/dcomplex.o` lib/dcomio.o lib/dcomplex.o
 endif
 #
