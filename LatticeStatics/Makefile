@@ -22,7 +22,7 @@ CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE)
 BIN_LOC    = ${HOME}/bin
 INCL_LOC   = ${HOME}/include
 LIB_LOC    = ${HOME}/lib
-LIBS       = -lLinearAlgebra -lm
+LIBS       = -lLinearAlgebra -lMath -lm
 LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE)
 SUBDIRS    = Lattices Modes SolutionMethods Potentials Utility
 
