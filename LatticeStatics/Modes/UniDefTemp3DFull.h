@@ -17,6 +17,7 @@ public:
    ~UniDefTemp3DFull() {}
 
    // Functions required by LatticeMode
+   virtual double ModeEnergy() {return Lattice_->Energy();}
    virtual Vector ArcLenRHS(double DS,const Vector &Diff,double Aspect);
    virtual Vector ArcLenDef();
    virtual Vector DrDt(const Vector &Diff) {}

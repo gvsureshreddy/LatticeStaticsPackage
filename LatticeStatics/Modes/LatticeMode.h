@@ -8,6 +8,7 @@ class LatticeMode
 public:
    virtual ~LatticeMode() {}
 
+   virtual double ModeEnergy() = 0;
    virtual Vector ArcLenRHS(double DS,const Vector &Diff,double Aspect) = 0;
    virtual Vector ArcLenDef() = 0;
    virtual Vector DrDt(const Vector &Diff) = 0;
