@@ -43,28 +43,28 @@ int main(int argc,char *argv[])
    fstream out;
    InitializeOutputFile(out,outputfile,datafile,prefix,Lat,Precision,Width);
 
-   int NoDirs,NoPTS;
-   if(!GetParameter(prefix,"DispersionDirections",datafile,"%u",&NoDirs)) exit(-1);
+   int NoLines,NoPTS;
+   if(!GetParameter(prefix,"DispersionLines",datafile,"%u",&NoLines)) exit(-1);
    if(!GetParameter(prefix,"DispersionPoints",datafile,"%u",&NoPTS)) exit(-1);
 
-   Vector *Direction;
-   Direction = new Vector[NoDirs];
+   Vector *Line;
+   Line = new Vector[NoLines];
    char tmp[LINELENGTH];
 
-   for (int i=0;i<NoDirs;++i)
+   for (int i=0;i<NoLines;++i)
    {
-      Direction[i].Resize(3);
-      sprintf(tmp,"DispersionDir_%u",i);
-      if(!GetVectorParameter(prefix,tmp,datafile,&(Direction[i]))) exit(-1);
+      Line[i].Resize(6);
+      sprintf(tmp,"DispersionLine_%u",i);
+      if(!GetVectorParameter(prefix,tmp,datafile,&(Line[i]))) exit(-1);
    }
 
    if (strcmp(prefix,"^Input File:"))
    {
-      for (int i=0;i<NoDirs;++i)
+      for (int i=0;i<NoLines;++i)
       {
-	 out << "#" << setw(Width) << Direction[i] << endl << setw(Width);
-	 cout << "#" << setw(Width) << Direction[i] << endl << setw(Width);
-	 Lat->DispersionCurves(Direction[i],NoPTS,"",out);
+	 out << "#" << setw(Width) << Line[i] << endl << setw(Width);
+	 cout << "#" << setw(Width) << Line[i] << endl << setw(Width);
+	 Lat->DispersionCurves(Line[i],NoPTS,"",out);
 	 out << endl << endl;
 	 cout << endl << endl;
       }
@@ -81,10 +81,10 @@ int main(int argc,char *argv[])
       char tmp[LINELENGTH];
       sprintf(strng,format,datafile);
 
-      for (int i=0;i<NoDirs;++i)
+      for (int i=0;i<NoLines;++i)
       {
-	 out << "#" << setw(Width) << Direction[i] << endl;
-	 cout << "#" << setw(Width) << Direction[i] << endl;
+	 out << "#" << setw(Width) << Line[i] << endl;
+	 cout << "#" << setw(Width) << Line[i] << endl;
 	 
 	 pipe = popen(strng,"r");
 	 
@@ -107,7 +107,7 @@ int main(int argc,char *argv[])
 	    cout << "#" << setw(Width) << temp << endl
 		 << "#" << setw(Width) << DOF << endl;;
 	    
-	    Lat->DispersionCurves(Direction[i],NoPTS,"",out);
+	    Lat->DispersionCurves(Line[i],NoPTS,"",out);
 	    out << endl;
 	    cout << endl;
 	    
@@ -120,7 +120,7 @@ int main(int argc,char *argv[])
       }
    }  
       
-   delete [] Direction;
+   delete [] Line;
    
    out.close();
    return 1;

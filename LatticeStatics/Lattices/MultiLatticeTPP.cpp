@@ -1273,17 +1273,27 @@ void MultiLatticeTPP::DispersionCurves(Vector Y,int NoPTS,const char *prefix,
 
    Matrix EigVal[3];
    for (int i=0;i<3;++i) EigVal[i].Resize(1,INTERNAL_ATOMS*DIM3);
+
+   Vector Z1(DIM3),Z2(DIM3);
+   for (int k=0;k<DIM3;++k)
+   {
+      Z1[k] = Y[k];
+      Z2[k] = Y[DIM3 + k];
+   }
+   Z1 = InverseLat*Z1;
+   Z2 = InverseLat*Z2;
    
-   Y = InverseLat*Y;
-   Vector Z(Y.Dim());
+   Vector Z(DIM3),
+      DZ=Z2-Z1;
+   double dz = 1.0/NoPTS;
    for (int k=0;k<2;++k)
    {
-      Z = ((k+1)*0.5/NoPTS)*Y;
+      Z = Z1 + (k*dz)*DZ;
       EigVal[k] = HermiteEigVal(DynamicalStiffness(Z));
       qsort(EigVal[k][0],INTERNAL_ATOMS*DIM3,sizeof(double),&comp);
       
-      out << prefix << setw(w) << NTemp_ << setw(w) << (k+1)*0.5/NoPTS;
-      cout << prefix << setw(w) << NTemp_ << setw(w) << (k+1)*0.5/NoPTS;
+      out << prefix << setw(w) << NTemp_ << setw(w) << k*dz;
+      cout << prefix << setw(w) << NTemp_ << setw(w) << k*dz;
       for (int i=0;i<INTERNAL_ATOMS*DIM3;++i)
       {
 	 out << setw(w) << EigVal[k][0][i];;
@@ -1293,15 +1303,15 @@ void MultiLatticeTPP::DispersionCurves(Vector Y,int NoPTS,const char *prefix,
       cout << endl;
    }
    int zero=0,one=1,two=2;
-   for (double k=1.5/NoPTS;k<=0.501;k+=0.5/NoPTS)
+   for (int k=2;k<=NoPTS;++k)
    {
-      Z = k*Y;
+      Z = Z1 + (k*dz)*DZ;
       EigVal[two] = HermiteEigVal(DynamicalStiffness(Z));
       qsort(EigVal[two][0],INTERNAL_ATOMS*DIM3,sizeof(double),&comp);
       interpolate(EigVal,zero,one,two);
       
-      out << prefix << setw(w) << NTemp_ << setw(w) << k;
-      cout << prefix << setw(w) << NTemp_ << setw(w) << k;
+      out << prefix << setw(w) << NTemp_ << setw(w) << k*dz;
+      cout << prefix << setw(w) << NTemp_ << setw(w) << k*dz;
       for (int i=0;i<INTERNAL_ATOMS*DIM3;++i)
       {
 	 out << setw(w) << EigVal[two][0][i];;
