@@ -86,7 +86,7 @@ int Laguerre(complex<double> Coeff[],int Degree,complex<double> *X)
       g = d/b;
       g2 = g*g;
       h = g2 - (2.0*(f/b));
-      sq = sqrt((Degree-1)*(Degree*h - g2));
+      sq = sqrt((complex<double>(Degree-1,0))*(complex<double>(Degree,0)*h - g2));
       gp = g + sq;
       gm = g - sq;
       abp = abs(gp);
