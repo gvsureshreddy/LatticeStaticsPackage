@@ -19,7 +19,7 @@ private:
    // DOF[i] = [U11 U22 U33 U12 U13 U23 V11 V12 V13]
    Vector DOF_;
    static const double LatticeBasis[DIM3][DIM3];
-   Matrix LatticeVec_;
+   Matrix RefLattice_;
    double ShearMod_;
    double Pressure_;
    Vector BodyForce_[INTERNAL_ATOMS];
@@ -69,7 +69,7 @@ public:
    double SetPressure(double &p) { Pressure_ = p;}
    double ShearMod() const { return ShearMod_;}
    CMatrix DynamicalStiffness(Vector &Y);
-   int BlockWave(Vector &Y);
+   int BlochWave(Vector &Y);
    friend ostream &operator<<(ostream &out,NiTi9TPPLat &A);
 
 private:
