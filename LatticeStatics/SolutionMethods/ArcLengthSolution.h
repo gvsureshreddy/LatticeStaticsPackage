@@ -25,12 +25,16 @@ private:
 
    Vector Difference_;
 
+   // Consistency Check data
+   double ConsistencyEpsilon_;
+
    int ArcLengthNewton();
+   int ConsistencyCheck();
 
 public:
    ArcLengthSolution(LatticeMode *Mode,char *datafile,
 		     const Vector &one,const Vector &two);
-   ArcLengthSolution(LatticeMode *Mode,char *datafile,char *startfile);
+   ArcLengthSolution(LatticeMode *Mode,char *datafile,char *startfile,fstream &out);
    ~ArcLengthSolution() {}
 
    // Functions required by SolutionMethod

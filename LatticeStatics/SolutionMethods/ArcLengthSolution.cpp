@@ -22,7 +22,8 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,
       Mode_->ArcLenDef() - two);
 }
 
-ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,char *startfile)
+ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,
+				     char *startfile,fstream &out)
    : Mode_(Mode), CurrentSolution_(0)
 {
    FILE *pipe;
@@ -38,8 +39,8 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,char *star
    GetParameter("^ArcLenNumSolutions",datafile,"%u",&NumSolutions_);
 
 
-   const char *StartType[] = {"Bifurcation","Continuation"};
-   switch (GetStringParameter("^StartType",startfile,StartType,2))
+   const char *StartType[] = {"Bifurcation","Continuation","ConsistencyCheck"};
+   switch (GetStringParameter("^StartType",startfile,StartType,3))
    {
       case 0:
       {
@@ -103,6 +104,95 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,char *star
 	 }
 	 if (pclose(pipe)) Errfun(sol1);
 	 break;
+      }
+      case 2:
+      {
+	 int Width;
+	 int Dim=Mode_->ArcLenDef().Dim();
+	 Matrix
+	    Stiff(Dim,Dim),
+	    Perturbed(Dim,Dim);
+	 Vector
+	    Solution1(Dim),
+	    Solution2(Dim),
+	    pert(Dim,0.0),
+	    RHS(Dim);
+	 
+	 Difference_.Resize(Dim);
+	 char tmp[LINELENGTH];
+	 char sol2[]="^Solution2";
+	 SetPerlCommand(tmp,startfile,sol2);
+	 pipe=OpenPipe(tmp,"r");
+	 for (int i=0;i<Dim;i++)
+	 {
+	    fscanf(pipe,"%lf",&Solution2[i]);
+	 }
+	 if (pclose(pipe)) Errfun(sol2);
+
+	 // Get solution1
+	 char sol1[]="^Solution1";
+	 SetPerlCommand(tmp,startfile,sol1);
+	 pipe=OpenPipe(tmp,"r");
+	 for (int i=0;i<Dim;i++)
+	 {
+	    fscanf(pipe,"%lf",&Solution1[i]);
+	 }
+	 if (pclose(pipe)) Errfun(sol1);
+
+	 // Set Lattice state to Solution2
+	 Mode_->ArcLenUpdate(Mode_->ArcLenDef() - Solution2);
+	 // Set Difference to Solution2 - Solution1
+	 Difference_ = Solution2 - Solution1;
+
+	 // Get Epsilon and Width
+	 GetParameter("^ConsistencyEpsilon",startfile,"%lf",&ConsistencyEpsilon_);
+	 GetParameter("^MainFieldWidth",datafile,"%i",&Width);
+
+	 // Do Consistency check
+	 for (int i=0;i<70;i++) cout << "="; cout << endl;
+	 for (int i=0;i<70;i++) out << "="; out << endl;
+	 cout << "Consistency Check." << endl
+	      << "K(U + DeltaU) * Epsilon" << endl;
+	 out << "Consistency Check." << endl
+	     << "K(U + DeltaU) * Epsilon" << endl;
+	 Mode_->ArcLenUpdate(-Difference_);
+	 Stiff = ConsistencyEpsilon_*Mode_->ArcLenStiffness(Difference_,1.0);
+	 cout << setw(Width) << Stiff << endl;
+	 out << setw(Width) << Stiff << endl;
+	 for (int i=0;i<Difference_.Dim();i++)
+	 {
+	    // Get RHS
+	    Difference_ = Solution2 - Solution1;
+	    Mode_->ArcLenUpdate(Mode_->ArcLenDef() - (Solution2 + Difference_));
+	    RHS = Mode_->ArcLenRHS(ConsistencyEpsilon_,Difference_,1.0);
+	    
+	    // Perturb the lattice state
+	    pert=Vector(pert.Dim(),0.0);
+	    pert[i]=1.0;
+	    Difference_ = Solution2 - Solution1 + ConsistencyEpsilon_*pert;
+	    Mode_->ArcLenUpdate(Mode_->ArcLenDef() - (Solution2 + Difference_));
+	    // Get Check
+	    RHS = RHS - Mode_->ArcLenRHS(ConsistencyEpsilon_,Difference_,1.0);
+	    for (int j=0;j<Dim;j++)
+	       Perturbed[j][i] = -RHS[j];
+	 }
+
+	 // Print out the facts
+	 cout << "Fi(U + DeltaU) - Fi(U + DeltaU + Epsilon*Vj)" << endl;
+	 cout << setw(Width) << Perturbed << endl;
+	 cout << "Difference" << endl;
+	 cout << setw(Width) << Stiff - Perturbed << endl;
+
+	 out << "Fi(U + DeltaU) - Fi(U + DeltaU + Epsilon*Vj)" << endl;
+	 out << setw(Width) << Perturbed << endl;
+	 out << "Difference" << endl;
+	 out << setw(Width) << Stiff - Perturbed << endl;
+	 
+	 for (int i=0;i<70;i++) cout << "="; cout << endl;
+	 for (int i=0;i<70;i++) out << "="; out << endl;
+
+	 // We are done -- set currentsolution to numsolutions
+	 CurrentSolution_ = NumSolutions_;
       }
    }
 }   
