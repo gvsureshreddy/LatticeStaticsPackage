@@ -51,9 +51,10 @@ RK1SOURCES  = Rank1Convex.cpp
 INSTSOURCES = InstantModuli.cpp
 DISPERSIONSOURCES = DispersionCurves.cpp
 BLOCHWAVESOURCES = BlochWave.cpp
+NEIGHBORSSOURCES = NeighborDistances.cpp
 #
 ALLSOURCES  = $(BSCSOURCES) $(RK1SOURCES) $(INSTSOURCES) $(DISPERSIONSOURCES) \
-	      $(BLOCHWAVESOURCES)
+	      $(BLOCHWAVESOURCES) $(NEIGHBORSSOURCES)
 
 
 # Defines the object files to be created using the SYSTEM name ############
@@ -63,11 +64,12 @@ RK1OBJECTS  = $(RK1SOURCES:$(SRC_EXT)=$(OBJ_EXT))
 INSTOBJECTS = $(INSTSOURCES:$(SRC_EXT)=$(OBJ_EXT))
 DISPERSIONOBJECTS = $(DISPERSIONSOURCES:$(SRC_EXT)=$(OBJ_EXT))
 BLOCHWAVEOBJECTS = $(BLOCHWAVESOURCES:$(SRC_EXT)=$(OBJ_EXT))
+NEIGHBORSOBJECTS = $(NEIGHBORSSOURCES:$(SRC_EXT)=$(OBJ_EXT))
 #
 ALLOBJECTS = $(BSCOBJECTS) $(RK1OBJECTS) $(INSTOBJECTS) $(DISPERSIONOBJECTS) \
-	     $(BLOCHWAVEOBJECTS)
+	     $(BLOCHWAVEOBJECTS) $(NEIGHBORSOBJECTS)
 
-all:	 Rank1Convex InstantModuli DispersionCurves BlochWave
+all:	 Rank1Convex InstantModuli DispersionCurves BlochWave NeighborDistances
 
 # Defines the Program Target (linking command) ############################
 Rank1Convex:  $(RK1OBJECTS) $(BSCOBJECTS)
@@ -107,12 +109,25 @@ BlochWave:	      $(BLOCHWAVEOBJECTS) $(BSCOBJECTS) \
 		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT))) \
 		      $(LIBS)
 
+# Defines the Program Target (linking command) ############################
+NeighborDistances:    $(NEIGHBORSOBJECTS) $(BSCOBJECTS) \
+		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
+		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT)))
+		      $(PURE) $(CC) $(LFLAGS) builddate.cpp \
+		      -L$(LIB_LOC) -o ./bin/NeighborDistances \
+		      $(addprefix lib/,$(NEIGHBORSOBJECTS)) \
+		      $(addprefix lib/,$(BSCOBJECTS)) \
+		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
+		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT))) \
+		      $(LIBS)
+
 # include the dependicies
 include $(addprefix depend/,$(BSCOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 include $(addprefix depend/,$(RK1OBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 include $(addprefix depend/,$(INSTOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 include $(addprefix depend/,$(DISPERSIONOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 include $(addprefix depend/,$(BLOCHWAVEOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
+include $(addprefix depend/,$(NEIGHBORSOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 
 # Define object file dependicies and make rule
 $(ALLOBJECTS): Makefile MakeUtilityProgs
@@ -129,6 +144,7 @@ install: all
 	/bin/cp bin/InstantModuli $(BIN_LOC)/
 	/bin/cp bin/DispersionCurves $(BIN_LOC)/
 	/bin/cp bin/BlochWave $(BIN_LOC)/
+	/bin/cp bin/NeighborDistances $(BIN_LOC)/
 
 # Define uninstall
 uninstall:
@@ -136,6 +152,7 @@ uninstall:
 	/bin/rm -f $(BIN_LOC)/InstantModuli
 	/bin/rm -f $(BIN_LOC)/DispersionCurves
 	/bin/rm -f $(BIN_LOC)/BlochWave
+	/bin/rm -f $(BIN_LOC)/NeighborDistances
 
 # Removes the current systems set of object files and executable file
 .PHONY: clean
@@ -146,6 +163,7 @@ clean:
 		  $(addprefix lib/,$(INSTOBJECTS)) \
 		  $(addprefix lib/,$(DISPERSIONOBJECTS)) \
 		  $(addprefix lib/,$(BLOCHWAVEOBJECTS)) \
+		  $(addprefix lib/,$(NEIGHBORSOBJECTS)) \
                   bin/Rank1Convex \
 		  bin/InstantModuli \
 		  bin/DispersionCurves \

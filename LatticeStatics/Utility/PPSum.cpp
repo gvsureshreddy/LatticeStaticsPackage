@@ -1,5 +1,9 @@
 #include "PPSum.h"
 
+int comp(const void *a,const void *b);
+int IND(double i,double j);
+#include <stdlib.h>
+
 PPSum::PPSum(Vector *DOF,Matrix *RefLat,int InternalAtoms,Vector *InternalPOS,
 	     PairPotentials ***PairPot,unsigned *InfluDist,double *Ntemp)
    : DOF_(DOF),RefLattice_(RefLat),InternalAtoms_(InternalAtoms),Ntemp_(Ntemp),
@@ -180,4 +184,64 @@ void PPSum::Initialize()
 
    Recalc_ = 0;
    CurrentPOS_ = 0;
+}
+
+Matrix PPSum::NeighborDistances(double cutoff,double eps)
+{
+   Reset();
+   Matrix NeighborInfo(Pairs_,3);
+
+   for (int i=0;i<Pairs_;++i)
+   {
+      NeighborInfo[i][0] = RelPosDATA_[i][R2START];
+      NeighborInfo[i][1] = RelPosDATA_[i][ATOMSTART];
+      NeighborInfo[i][2] = RelPosDATA_[i][ATOMSTART+1];
+   }
+   qsort(&(NeighborInfo[0][0]),Pairs_,3*sizeof(double),&comp);
+
+   Matrix NeighborDist(cutoff,(InternalAtoms_*(InternalAtoms_+1))/2 + 1,0.0);
+   int i=0,j=0;
+   double CurrentDist;
+   while (i<cutoff)
+   {
+      CurrentDist = NeighborInfo[j][0];
+      NeighborDist[i][0] = sqrt(CurrentDist);
+      while (fabs(CurrentDist - NeighborInfo[j][0]) < eps)
+      {
+	 ++NeighborDist[i][IND(NeighborInfo[j][1],NeighborInfo[j][2])];
+	 ++j;
+      }
+      ++i;
+   }
+
+   return NeighborDist;
+}
+
+
+int comp(const void *a,const void *b)
+{
+   double t;
+   if( *((double*) a) == *((double*) b) ) return 0;
+   else
+   {
+      t= *((double*) a) - *((double*) b);
+      t/=fabs(t);
+      return int(t);
+   }
+}
+
+int IND(double i,double j)
+{
+   int I=int(i+1),J=int(j+1);
+
+   // Make sure I<=J
+   if (I>J)
+   {
+      int s;
+      s=I;
+      I=J;
+      J=s;
+   }
+
+   return ((J-1)*J)/2 + I;
 }
