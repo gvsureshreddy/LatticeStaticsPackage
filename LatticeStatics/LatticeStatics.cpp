@@ -179,21 +179,39 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
       case ArcLen:
       {
 	 int good;
-	 ScanningSolution ScanMe(Mode,datafile);
 	 Vector One = Mode->ArcLenDef(),
 	    Two = Mode->ArcLenDef();
 
-	 while (!ScanMe.AllSolutionsFound())
+	 if ( startfile == NULL)
 	 {
-	    One = Two;
-	    good = ScanMe.FindNextSolution();
-	    if (good)
+	    ScanningSolution ScanMe(Mode,datafile);
+	    
+	    while (!ScanMe.AllSolutionsFound())
 	    {
-	       cout << setw(Width) << Lat;
-	       Two = Mode->ArcLenDef();
+	       One = Two;
+	       good = ScanMe.FindNextSolution();
+	       if (good)
+	       {
+		  cout << setw(Width) << Lat;
+		  Two = Mode->ArcLenDef();
+	       }
 	    }
 	 }
+	 else
+	 {
+	    fstream start;
+	    start.open(startfile,ios::in);
+	    if (start.fail())
+	    {
+	       cerr << "Error: Unable to open file : " << startfile
+		    << " for read" << endl;
+	       exit(-1);
+	    }
 
+	    start >> One;
+	    start >> Two;
+	 }
+	 
 	 return new ArcLengthSolution(Mode,datafile,One,Two);
       }
       break;
