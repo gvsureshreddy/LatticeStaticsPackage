@@ -32,7 +32,7 @@ all : $(OBJECTS)
 .PHONY: all
 
 Mathtest : $(OBJECTS) Mathtest.cpp
-	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o Mathtest ./Mathtest.cpp \
+	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o ./bin/Mathtest ./Mathtest.cpp \
 		./lib/Polynomial.o 
 
 # include the dependicies
