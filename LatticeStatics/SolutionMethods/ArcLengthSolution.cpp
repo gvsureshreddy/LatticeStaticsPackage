@@ -299,6 +299,7 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,int Width,fstream &out)
    Vector IntermediateDiff(Difference_.Dim(),0.0);
    double OriginalDS = CurrentDS_;
    double CurrentMinEV,OldMinEV;
+   double uncertainty;
    int dummy;
    int loops = 0;
    int OldNulity = Lat->StiffnessNulity(&OldMinEV);
@@ -327,7 +328,7 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,int Width,fstream &out)
 	  && (loops != 0))
 	 Difference_ = -Difference_;
 
-      ArcLengthNewton(dummy);
+      uncertainty = ArcLengthNewton(dummy);
       IntermediateDiff += Difference_;
       OldMinEV = CurrentMinEV;
       OldNulity = CurrentNulity;
@@ -344,8 +345,12 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,int Width,fstream &out)
    }
    cout << endl; out << endl;
 
-   cout << setw(Width) << Lat;
-   out << setw(Width) << Lat;
+   cout << setw(Width) << Lat
+	<< "Uncertainty = " << setw(Width) << uncertainty << endl
+	<< "Success = 1" << endl;
+   out << setw(Width) << Lat
+       << "Uncertainty = " << setw(Width) << uncertainty << endl
+       << "Success = 1" << endl;
       
    for (int i=0;i<70;i++)
    {
