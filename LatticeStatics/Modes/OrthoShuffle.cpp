@@ -12,8 +12,8 @@ Vector OrthoShuffle::ArcLenRHS(double DS,const Vector &Diff,
    Vector rhs(4);
 
    rhs[0] = Lattice_->Stress()[0][0];
-   rhs[1] = Lattice_->Stress()[0][1];
-   rhs[2] = Lattice_->Stress()[0][2];
+   rhs[1] = Lattice_->Stress()[0][2];
+   rhs[2] = Lattice_->Stress()[0][3];
    rhs[3] = DS*DS - Diff[3]*Diff[3]/(Aspect*Aspect)
       - Diff[0]*Diff[0]
       - Diff[1]*Diff[1]
@@ -28,8 +28,8 @@ Vector OrthoShuffle::ArcLenDef()
       DOF = Lattice_->DOF();
 
    def[0] = DOF[0];
-   def[1] = DOF[1];
-   def[2] = DOF[2];
+   def[1] = DOF[2];
+   def[2] = DOF[3];
    def[3] = Lattice_->Temp();
 
    return def;
@@ -40,9 +40,10 @@ void OrthoShuffle::ArcLenUpdate(const Vector &newval)
    Vector DOF=Lattice_->DOF();
 
    DOF[0] -= newval[0];
-   DOF[1] -= newval[1];
-   DOF[2] -= newval[2];
-   DOF[3]=DOF[4]=DOF[5]=DOF[6] = 0.0;
+   DOF[1] = DOF[0];
+   DOF[2] -= newval[1];
+   DOF[3] -= newval[2];
+   DOF[4]=DOF[5]=DOF[6] = 0.0;
 
    Lattice_->SetDOF(DOF);
    Lattice_->SetTemp(Lattice_->Temp() - newval[3]);
@@ -62,18 +63,18 @@ Matrix OrthoShuffle::ArcLenStiffness(const Vector &Diff,double Aspect)
    Matrix Stiff=Lattice_->Stiffness(),
       StressDT = Lattice_->StressDT();
 
-   K[0][0] = Stiff[0][0];
-   K[0][1] = Stiff[0][1];
-   K[0][2] = Stiff[0][2];
+   K[0][0] = Stiff[0][0] + Stiff[0][1];
+   K[0][1] = Stiff[0][2];
+   K[0][2] = 2.0*Stiff[0][3];
    K[0][3] = StressDT[0][0];
-   K[1][0] = Stiff[1][0];
-   K[1][1] = Stiff[1][1];
-   K[1][2] = Stiff[1][2];
-   K[1][3] = StressDT[0][1];
-   K[2][0] = Stiff[2][0];
-   K[2][1] = Stiff[2][1];
-   K[2][2] = Stiff[2][2];
-   K[2][3] = StressDT[0][2];
+   K[1][0] = Stiff[2][0] + Stiff[1][1];
+   K[1][1] = Stiff[2][2];
+   K[1][2] = 2.0*Stiff[2][3];
+   K[1][3] = StressDT[0][2];
+   K[2][0] = Stiff[3][0] + Stiff[3][1];
+   K[2][1] = Stiff[3][2];
+   K[2][2] = 2.0*Stiff[3][3];
+   K[2][3] = StressDT[0][3];
    K[3][0] = -2.0*Diff[0];
    K[3][1] = -2.0*Diff[1];
    K[3][2] = -2.0*Diff[2];
@@ -84,14 +85,14 @@ Matrix OrthoShuffle::ArcLenStiffness(const Vector &Diff,double Aspect)
 
 double OrthoShuffle::ScanningDefParameter()
 {
-   return Lattice_->DOF()[1];
+   return Lattice_->DOF()[3];
 }
 
 void OrthoShuffle::ScanningDefParamUpdate(const double newval)
 {
    Vector DOF=Lattice_->DOF();
 
-   DOF[1] -= newval;
+   DOF[3] -= newval;
 
    Lattice_->SetDOF(DOF);
 }
@@ -108,7 +109,7 @@ void OrthoShuffle::ScanningLoadParamUpdate(const double newval)
 
 double OrthoShuffle::ScanningStressParameter()
 {
-   return Lattice_->Stress()[0][1];
+   return Lattice_->Stress()[0][3];
 }
    
 Vector OrthoShuffle::ScanningRHS()
@@ -148,9 +149,9 @@ Matrix OrthoShuffle::ScanningStiffness()
    Matrix K(2,2);
    Matrix Stiff=Lattice_->Stiffness();
 
-   K[0][0] = Stiff[0][0];
+   K[0][0] = Stiff[0][0] + Stiff[0][1];
    K[0][1] = Stiff[0][2];
-   K[1][0] = Stiff[2][0];
+   K[1][0] = Stiff[2][0] + Stiff[2][1];
    K[1][1] = Stiff[2][2];
 
    return K;
