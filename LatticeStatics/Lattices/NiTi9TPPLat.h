@@ -68,6 +68,7 @@ public:
    double SetPressure(double &p) { Pressure_ = p;}
    double ShearMod() const { return ShearMod_;}
    CMatrix DynamicalStiffness(Vector &Y);
+   int BlockWave(Vector &Y);
    friend ostream &operator<<(ostream &out,NiTi9TPPLat &A);
 
 private:

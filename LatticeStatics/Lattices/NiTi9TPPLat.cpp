@@ -1092,6 +1092,34 @@ CMatrix NiTi9TPPLat::DynamicalStiffness(Vector &Y)
    return Cy;
 }
 
+int NiTi9TPPLat::BlockWave(Vector &Y)
+{
+   CMatrix A(INTERNAL_ATOMS*DIM3,INTERNAL_ATOMS*DIM3),
+      U(INTERNAL_ATOMS*DIM3,INTERNAL_ATOMS*DIM3),
+      D(INTERNAL_ATOMS*DIM3,INTERNAL_ATOMS*DIM3);
+
+   for (UCIter_->Reset();!UCIter_->Done();++(*UCIter_))
+   {
+      for (int i=0;i<DIM3;++i)
+      {
+	 Y[i] = (*UCIter_)[i];
+      }
+
+      A = DynamicalStiffness(Y);
+
+      Cholesky(A,U,D);
+
+      for (int i=0;i<INTERNAL_ATOMS*DIM3;++i)
+      {
+	 if ( real(D[i][i]) >= 0.0 )
+	 {
+	    return 0;
+	 }
+      }
+   }
+   return 1;
+}
+
 void NiTi9TPPLat::Print(ostream &out,PrintDetail flag)
 {
    int W=out.width();
@@ -1109,7 +1137,7 @@ void NiTi9TPPLat::Print(ostream &out,PrintDetail flag)
       stiffness = Stiffness(),
       EigenValues(1,DOFS),
       CondEV(1,6);
-
+   
    EigenValues=SymEigVal(stiffness);
    MinEigVal = EigenValues[0][0];
    for (int i=0;i<DOFS;i++)
@@ -1126,6 +1154,18 @@ void NiTi9TPPLat::Print(ostream &out,PrintDetail flag)
 
    CondEV=SymEigVal(CondModuli);
    int RankOneConvex = FullScanRank1Convex3D(CondModuli,ConvexityDX_);
+
+   Vector Y(DIM3,0.0);
+   int BlockWaveStable;
+   if (NoNegEigVal == 0)
+   {
+      BlockWaveStable = BlockWave(Y);
+   }
+   else
+   {
+      BlockWaveStable = -1;
+   }
+
 
    switch (flag)
    {
@@ -1165,7 +1205,9 @@ void NiTi9TPPLat::Print(ostream &out,PrintDetail flag)
 	     << setw(W) << NoNegEigVal << endl
 	     << "Condensed Moduli (G Normalized):" << setw(W) << CondModuli
 	     << "CondEV Info:" << setw(W) << CondEV
-	     << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << endl;
+	     << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << endl
+	     << "BlockWave Stability:" << setw(W) << BlockWaveStable << ", "
+	     << setw(W) << Y << endl;
 	 cout << "Temperature (Ref Normalized): " << setw(W) << NTemp_ << endl
 	      << "Pressure (G Normalized): " << setw(W) << Pressure_ << endl
 	      << "DOF's :" << endl << setw(W) << DOF_ << endl
@@ -1179,22 +1221,10 @@ void NiTi9TPPLat::Print(ostream &out,PrintDetail flag)
 	      << setw(W) << NoNegEigVal << endl
 	      << "Condensed Moduli (G Normalized):" << setw(W) << CondModuli
 	      << "CondEV Info:" << setw(W) << CondEV
-	      << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << endl;
-	 Vector Z(DIM3,0.0);
-	 out << "Dynamical Stability" << endl << setw(W) << DynamicalStiffness(Z) << endl;
-	 cout << "Dynamical Stability" << endl << setw(W) << DynamicalStiffness(Z) << endl;
+	      << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << endl
+	      << "BlockWave Stability:" << setw(W) << BlockWaveStable << ", "
+	      << setw(W) << Y << endl;
 
-	 out << "\n\n\n";
-	 for (UCIter_->Reset();!UCIter_->Done();++(*UCIter_))
-	 {
-	    for (int z=0;z<3;++z)
-	    {
-	       out << setw(20) << (*UCIter_)[z];
-	    }
-	    out << endl;
-	 }
-	 out << "\n\n\n";
-	 
 	 break;
    }
 }
