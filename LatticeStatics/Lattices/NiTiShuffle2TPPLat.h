@@ -38,6 +38,9 @@ public:
    void SetDOF(const Vector &dof) { DOF_ = dof;}
    double Temp() {return NTemp_;}
    void SetTemp(const double &Ntemp) {NTemp_ = Ntemp;}
+   //
+   virtual void CriticalPointInfo(const Vector &DrDt,double Tolerance,
+				  char *datafile,int Width,ostream &out) {};
    
    // Virtual Functions required by Lattice
    virtual double Energy() {return Phi()[0][0];}

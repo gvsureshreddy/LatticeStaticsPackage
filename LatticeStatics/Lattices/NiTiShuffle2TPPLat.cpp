@@ -695,7 +695,7 @@ void NiTiShuffle2TPPLat::Print(ostream &out,PrintDetail flag)
 	 out << "NiTiShuffle2TPPLat:" << endl << endl
 	     << "Cell Reference Length: " << setw(W) << RefLen_ << endl
 	     << "Influance Distance   : " << setw(W) << InfluanceDist_ << endl
-	     << "Potential Parameters : "
+	     << "Potential Parameters : " << endl
 	     << "AA -- " << setw(W) << Potential_[aa] << endl
              << "BB -- " << setw(W) << Potential_[bb] << endl
              << "AB -- " << setw(W) << Potential_[ab] << endl
