@@ -171,7 +171,7 @@ sub loaddata {
     $stable .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . "\n",
     "Min EigVal","Num Neg Eig Vals","Rank 1 Convex","Blochwave";
     $unstable .= sprintf "# Index " . ($_[3]+1) . "\n";
-    $stable .= sprintf "# $_[0]/$_[1] --- Unstable\n";
+    $unstable .= sprintf "# $_[0]/$_[1] --- Unstable\n";
     $unstable .= sprintf "#" . $StrSPEC . $StrSPEC . $StrSPEC,"Temperature","Stress","Potential";
     for (my $i=0;$i<$DOFSize;$i+=1)
     {
