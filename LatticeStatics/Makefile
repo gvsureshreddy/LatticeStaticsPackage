@@ -11,15 +11,25 @@ BUILD_DATE = \"`date +%c`\"
 
 # Compiling options, etc. #################################################
 #
-CC         = g++
-ANSI       = -pedantic
+gCC        = g++
+
+# gCC compiler
+#CC         = $(gCC)
+#OPTIMIZE   = -O
+#ANSI       = -pedantic
+
+# PGI compiler
+CC         = pgCC
+OPTIMIZE   = -fast -Minline=levels:10 --no_exceptions
+#ANSI       = -A
+
+# general options
 #PURE       = purify
 #PROFILE    = -pg
 #DEBUG      = -g
 #BOUNDS     = -DCHECK_BOUNDS
 DATE_DEF   = -DBUILD_DATE="$(BUILD_DATE)"
 SOLVE      = -DSOLVE_SVD
-OPTIMIZE   = -O
 CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS) $(SOLVE)
 
 
@@ -47,9 +57,11 @@ OBJECTS  = $(STRIPEDSOURCES:$(SRC_EXT)=$(OBJ_EXT))
 
 # Defines the Program Target (linking command) ############################
 $(EXE):  $(OBJECTS)
-	 $(PURE) $(CC) $(LFLAGS) Utility/builddate.cpp \
+	 $(CC) $(CCFLAGS) $(DATE_DEF) -o lib/builddate.o -c Utility/builddate.cpp
+	 $(PURE) $(CC) $(LFLAGS) lib/builddate.o \
 		 -L$(LIB_LOC) -o ./bin/$(EXE) \
-		 $(addprefix lib/,$(OBJECTS)) $(LIBS) 
+		 $(addprefix lib/,$(OBJECTS)) $(LIBS)
+	 /bin/rm -f lib/builddate.o
 
 # include the dependicies
 include $(addprefix depend/,$(OBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
@@ -87,12 +99,13 @@ uninstall:
 clean:
 	 -/bin/rm -f $(addprefix lib/,$(OBJECTS)) \
 		  $(addsuffix /*~,$(SUBDIRS))\
-                  bin/$(EXE) core *~ \
+		  $(addprefix lib/,$(OBJECTS:$(OBJ_EXT)=.ti))\
+                  lib/$(EXE).* bin/$(EXE) core *~ \
 		  depend/*.d
 
 # Define rule for dependicy files
 depend/$(notdir %).d: %$(SRC_EXT)
-	@$(SHELL) -ec '$(CC) -MM $(CCFLAGS) -I. $(addprefix -I ,$(SUBDIRS)) \
+	@$(SHELL) -ec '$(gCC) -MM -I. $(addprefix -I ,$(SUBDIRS)) \
 	      -I $(INCL_LOC)/ $< \
 	      | sed '\''s/\($*\)\.o[ :]*/\1.o $*.d : /g'\'' \
 	      > $@; [ -s $@ ] || rm -f $@'
