@@ -17,6 +17,7 @@ public:
    virtual Matrix Stiffness() = 0;
    virtual Matrix Moduli() = 0;
    virtual int StiffnessNulity(double *Min=NULL) = 0;
+   virtual void CriticalPointInfo(int Width,ostream &out) = 0;
 
    enum PrintDetail {PrintLong,PrintShort};
    virtual void Print(ostream &out,PrintDetail flag) = 0;
