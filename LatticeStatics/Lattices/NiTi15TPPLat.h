@@ -64,11 +64,18 @@ private:
    inline double SIGMA(int p,int q,int i,int j,int k,int l);
    inline double GAMMA(const Vector &Dx,const Vector &DX,int p,int q,
 		       int i,int j,int k,int l);
+   inline double THETA(const Vector &DX,int p,int q,int i,int j,int k,int l,
+		       int m, int n);
+   inline double XI(int p,int q,int i,int j,int k,int l,int m,int n);
+   inline double LAMDA(int p,int q,int i,int j,int k,int l,int m,int n,int a,int b);
+   
    double pwr(const double &x,const unsigned y);
    inline int INDU(int i,int j);
-   inline int INDU(int k,int l,int m,int n);
    inline int INDV(int i,int j);
-   inline int INDV(int k,int l,int m,int n);
+   inline int INDUU(int k,int l,int m,int n);
+   inline int INDVV(int k,int l,int m,int n);
+   inline int INDUV(int i,int j,int m,int n);
+   inline int INDVU(int m,int n,int i,int j);
    inline double DELTA(int s,int p,int q) {return Del(s,q) - Del(s,p);}
    Matrix Phi(unsigned moduliflag=0,RadiiMorse::YDeriv dy=RadiiMorse::Y0,
 	      RadiiMorse::TDeriv dt=RadiiMorse::T0);

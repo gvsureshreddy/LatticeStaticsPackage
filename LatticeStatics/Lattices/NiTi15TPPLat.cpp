@@ -202,6 +202,51 @@ inline double NiTi15TPPLat::GAMMA(const Vector &Dx,const Vector &DX,
    return (0.5*DELTA(k,p,q)*(LatticeVec_[l][i]*Dx[j] + LatticeVec_[l][j]*Dx[i] + tmp));
 }
 
+inline double NiTi15TPPLat::THETA(const Vector &DX,int p,int q,int i,int j,int k,int l,
+				  int m, int n)
+{
+   return (0.5*DELTA(m,p,q)*(Del(i,k)*LatticeVec_[n][j]*DX[l]
+			     + Del(i,k)*DX[j]*LatticeVec_[n][l]
+			     + Del(i,l)*LatticeVec_[n][j]*DX[k]
+			     + Del(i,l)*DX[j]*LatticeVec_[n][k]
+			     + Del(j,k)*LatticeVec_[n][i]*DX[l]
+			     + Del(j,k)*DX[i]*LatticeVec_[n][l]
+			     + Del(j,l)*LatticeVec_[n][i]*DX[k]
+			     + Del(j,l)*DX[i]*LatticeVec_[n][k]));
+}
+
+inline double NiTi15TPPLat::XI(int p,int q,int i,int j,int k,int l,int m,int n)
+{
+   double tmp=0;
+
+   for (int s=0;s<DIM3;s++)
+   {
+      tmp += (LatticeVec_[j][m]*DOF_[INDU(n,s)]*LatticeVec_[l][s]
+	      + LatticeVec_[j][n]*DOF_[INDU(m,s)]*LatticeVec_[l][s]
+	      + LatticeVec_[j][s]*DOF_[INDU(s,m)]*LatticeVec_[l][n]
+	      + LatticeVec_[j][s]*DOF_[INDU(s,n)]*LatticeVec_[l][m]
+	      + LatticeVec_[l][m]*DOF_[INDU(n,s)]*LatticeVec_[j][s]
+	      + LatticeVec_[l][n]*DOF_[INDU(m,s)]*LatticeVec_[j][s]
+	      + LatticeVec_[l][s]*DOF_[INDU(s,m)]*LatticeVec_[j][n]
+	      + LatticeVec_[l][s]*DOF_[INDU(s,n)]*LatticeVec_[j][m]);
+   }
+
+   return (0.5*DELTA(i,p,q)*DELTA(k,p,q)*tmp);
+}
+
+inline double NiTi15TPPLat::LAMDA(int p,int q,int i,int j,int k,int l,int m,int n,int a,
+				  int b)
+{
+   return (0.5*DELTA(m,p,q)*DELTA(a,p,q)*(Del(i,k)*LatticeVec_[n][j]*LatticeVec_[b][l]
+					  + Del(i,k)*LatticeVec_[b][j]*LatticeVec_[n][l]
+					  + Del(i,l)*LatticeVec_[n][j]*LatticeVec_[b][k]
+					  + Del(i,l)*LatticeVec_[b][j]*LatticeVec_[n][k]
+					  + Del(j,k)*LatticeVec_[n][i]*LatticeVec_[b][l]
+					  + Del(j,k)*LatticeVec_[b][i]*LatticeVec_[n][l]
+					  + Del(j,l)*LatticeVec_[n][j]*LatticeVec_[b][j]
+					  + Del(j,l)*LatticeVec_[b][i]*LatticeVec_[n][k]));
+}
+
 double NiTi15TPPLat::pwr(const double &x,const unsigned y)
 {
    if (y==1)
@@ -222,28 +267,28 @@ inline int NiTi15TPPLat::INDU(int i,int j)
       return 2+i+j;
 }
 
-inline int NiTi15TPPLat::INDU(int k,int l,int m,int n)
+inline int NiTi15TPPLat::INDUU(int k,int l,int m,int n)
 {
    if (k==l)
    {
       if (m==n)
       {
-	 return 6*k+m;
+	 return 15*k+m;
       }
       else
       {
-	 return 6*k+2+m+n;
+	 return 15*k + 2+m+n;
       }
    }
    else
    {
       if (m==n)
       {
-	 return 6*(2+k+l) + m;
+	 return 15*(2+k+l) + m;
       }
       else
       {
-	 return 6*(2+k+l) + 2+m+n;
+	 return 15*(2+k+l) + 2+m+n;
       }
    }
 }
@@ -259,10 +304,53 @@ inline int NiTi15TPPLat::INDV(int i,int j)
    return 6 + (i-1)*3 + j;
 }
 
-inline int NiTi15TPPLat::INDV(int k,int l,int m,int n)
+inline int NiTi15TPPLat::INDVV(int k,int l,int m,int n)
 {
-   cerr << "ERROR : INDV(k,l,m,n) Not known!!!!!!" << endl;
-   exit(-1);
+   if (!k || !m)
+   {
+      cerr << "Error : INDVV(k,l,m,n) i==0 OR m==0!!!!!!" << endl;
+      exit(-1);
+   }
+
+   return 96
+      + 15*( (k-1)*3 + l )
+      + ( (m-1)*3 + n );
+}
+
+inline int NiTi15TPPLat::INDUV(int i,int j,int m,int n)
+{
+   if (!m)
+   {
+      cerr << "Error : INDUV(i,j,m,n) m==0!!!!!!" << endl;
+      exit(-1);
+   }
+
+   if (i==j)
+   {
+      return 15*i + 6 + (m-1)*3+n;
+   }
+   else
+   {
+      return 15*(2+i+j) + 6 + (m-1)*3+n;
+   }
+}
+
+inline int NiTi15TPPLat::INDVU(int m,int n,int i,int j)
+{
+   if (!m)
+   {
+      cerr << "Error : INDVU(m,n,i,j) m==0!!!!!!" << endl;
+      exit(-1);
+   }
+
+   if (i==j)
+   {
+      return 6*15 + 15*( (m-1)*3+n ) + i;
+   }
+   else
+   {
+      return 6*15 + 15*( (m-1)*3+n ) + 2+i+j;
+   }
 }
 
 Matrix NiTi15TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,
@@ -294,10 +382,10 @@ Matrix NiTi15TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,
 	 Phi.Resize(15,15,0.0);
 	 break;
       case RadiiMorse::D3Y:
-	 Phi.Resize(175,15,0.0);
+	 Phi.Resize(225,15,0.0);
 	 break;
       case RadiiMorse::D4Y:
-	 Phi.Resize(175,175,0.0);
+	 Phi.Resize(225,225,0.0);
 	 break;
    }
 
@@ -625,7 +713,7 @@ Matrix NiTi15TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,
 			for (q=0;q<DIM3;q++)
 			   for (s=q;s<DIM3;s++)
 			   {
-			      Phi[INDU(i,j,k,l)][INDU(q,s)] -=
+			      Phi[INDUU(i,j,k,l)][INDU(q,s)] -=
 				 (Pressure_/16.0)*(
 				    Alt[i][k][q]*Alt[j][l][s] + Alt[j][k][q]*Alt[i][l][s] +
 				    Alt[i][l][q]*Alt[j][k][s] + Alt[j][l][q]*Alt[i][k][s] +
