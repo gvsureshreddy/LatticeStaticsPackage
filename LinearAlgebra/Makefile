@@ -46,12 +46,12 @@ $(OBJECTS): Makefile
 .PHONY: install uninstall
 # Define install
 install: $(EXE)
-	ar -r $(LIB_LOC)/libLinearAlgebra.a ./lib/Vector.o ./lib/Vector3D.o ./lib/Matrix.o 
+	ar -r $(LIB_LOC)/libLinearAlgebra.a ./lib/Vector.o ./lib/Vector3D.o ./lib/Matrix.o; ranlib $(LIB_LOC)/libLinearAlgebra.a 
 	/bin/cp Vector.h Vector3D.h Matrix.h $(INCL_LOC)
 
 # Define uninstall
 uninstall:
-	ar -d $(LIB_LOC)/libLinearAlgebra.a Vector.o Vector3D.o Matrix.o
+	ar -d $(LIB_LOC)/libLinearAlgebra.a Vector.o Vector3D.o Matrix.o; ranlib $(LIB_LOC)/libLinearAlgebra.a
 	/bin/rm -f $(INCL_LOC)/Vector.h $(INCL_LOC)/Vector3D.h $(INCL_LOC)/Matrix.h
 
 
