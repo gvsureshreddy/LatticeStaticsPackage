@@ -4,7 +4,7 @@
 #include "GenericLat.h"
 #include "UnitCellIterator.h"
 #include "RadiiMorse.h"
-#include "CMatrix.h"
+#include <CMatrix.h>
 
 class NiTi9TPPLat : public GenericLat
 {
@@ -18,13 +18,14 @@ private:
    double NTemp_;
    // DOF[i] = [U11 U22 U33 U12 U13 U23 V11 V12 V13]
    Vector DOF_;
+   static const double LatticeBasis[DIM3][DIM3];
    Matrix LatticeVec_;
    double ShearMod_;
    double Pressure_;
    Vector BodyForce_[INTERNAL_ATOMS];
    double AtomicMass_[INTERNAL_ATOMS];
 
-   UnitCellIterator *UCIter_;
+   UnitCellIterator UCIter_;
    int GridSize_;
 
    //Pair Potential data

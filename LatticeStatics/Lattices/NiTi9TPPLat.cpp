@@ -3,15 +3,24 @@
 
 #include "UtilityFunctions.h"
 
+const double NiTi9TPPLat::LatticeBasis[DIM3][DIM3] = {1.0, 0.0, 0.0,
+						      0.0, 1.0, 0.0,
+						      0.0, 0.0, 1.0};
+
+const double NiTi9TPPLat::A[INTERNAL_ATOMS][DIM3] = {0.0, 0.0, 0.0,
+						     0.5, 0.5, 0.5};
+
+const NiTi9TPPLat::interaction NiTi9TPPLat::INTER[INTERNAL_ATOMS][INTERNAL_ATOMS] =
+{aa, ab,
+ ab, bb};
+
+
 NiTi9TPPLat::NiTi9TPPLat(char *datafile)
 {
    // First Size DOF
    DOF_.Resize(DOFS);
    // Set LatticeVec_
-   LatticeVec_.Resize(DIM3,DIM3,0.0);
-   LatticeVec_[0][0] = 1.0;
-   LatticeVec_[1][1] = 1.0;
-   LatticeVec_[2][2] = 1.0;
+   LatticeVec_.Resize(DIM3,DIM3);
    
    // Setup Bodyforce_
    BodyForce_[0].Resize(DIM3,0.0);
@@ -64,6 +73,11 @@ NiTi9TPPLat::NiTi9TPPLat(char *datafile)
    GetParameter("^InitializeStepSize",datafile,"%lf",&DX);
    GetParameter("^BlochWaveGridSize",datafile,"%u",&GridSize_);
 
+   // Initialize LatticeVec_
+   for (int i=0;i<DIM3;++i)
+      for (int j=0;j<DIM3;++j)
+	 LatticeVec_[i][j] = LatticeBasis[i][j]*RefLen_;
+
    int err=0;
    err=FindLatticeSpacing(iter,DX);
    if (err)
@@ -73,7 +87,7 @@ NiTi9TPPLat::NiTi9TPPLat(char *datafile)
    }
 
    // Initiate the Unit Cell Iterator for Bloch wave calculations.
-   UCIter_ = new UnitCellIterator(GridSize_,&LatticeVec_,&RefLen_);
+   UCIter_(GridSize_,&LatticeVec_);
    
 }
 
@@ -108,6 +122,11 @@ int NiTi9TPPLat::FindLatticeSpacing(int iter,double dx)
       {
 	 cout << setw(20) << RefLen_ << setw(20) << s << endl;
 	 RefLen_ -= dx*sign;
+	 // Update LatticeVec_
+	 for (int p=0;p<DIM3;++p)
+	    for (int q=0;q<DIM3;++q)
+	       LatticeVec_[p][q] = LatticeBasis[p][q]*RefLen_;
+
 	 s = Stress()[0][0];
 	 
 	 newsign = s/fabs(s);
@@ -124,6 +143,11 @@ int NiTi9TPPLat::FindLatticeSpacing(int iter,double dx)
 	    cout << setw(20) << RefLen_ << setw(20) << s << endl;
 	    i++;
 	    RefLen_ -= dx*newsign/(pwr(2,i));
+	    // Update LatticeVec_
+	    for (int p=0;p<DIM3;++p)
+	       for (int q=0;q<DIM3;++q)
+		  LatticeVec_[p][q] = LatticeBasis[p][q]*RefLen_;
+
 	    s = Stress()[0][0];
 	    newsign=s/fabs(s);
 	 }
@@ -468,7 +492,7 @@ Matrix NiTi9TPPLat::Phi(unsigned moduliflag,PairPotentials::YDeriv dy,
 		     for (j=0;j<DIM3;j++)
 		     {
 			DX[i] += (X[j] + A[q][j] - A[p][j] + V[q][j] - V[p][j])*
-			   LatticeVec_[j][i]*RefLen_;
+			   LatticeVec_[j][i];
 
 		     }
 		  }
@@ -832,7 +856,7 @@ Matrix NiTi9TPPLat::Phi(unsigned moduliflag,PairPotentials::YDeriv dy,
    }
    
    // Phi = Phi/(2*Vr*ShearMod)
-   Phi *= 1.0/(2.0*(RefLen_*RefLen_*RefLen_*LatticeVec_.Det()*ShearMod_));
+   Phi *= 1.0/(2.0*(LatticeVec_.Det()*ShearMod_));
 
    if (moduliflag)
    {
@@ -1038,7 +1062,7 @@ CMatrix NiTi9TPPLat::DynamicalStiffness(Vector &Y)
 		     for (j=0;j<DIM3;j++)
 		     {
 			DX[i] += (X[j] + A[q][j] - A[p][j] + V[q][j] - V[p][j])*
-			   LatticeVec_[j][i]*RefLen_;
+			   LatticeVec_[j][i];
 
 		     }
 		  }
@@ -1094,18 +1118,31 @@ CMatrix NiTi9TPPLat::DynamicalStiffness(Vector &Y)
 
 int NiTi9TPPLat::BlockWave(Vector &Y)
 {
-   CMatrix A(INTERNAL_ATOMS*DIM3,INTERNAL_ATOMS*DIM3),
+   static CMatrix A(INTERNAL_ATOMS*DIM3,INTERNAL_ATOMS*DIM3),
       U(INTERNAL_ATOMS*DIM3,INTERNAL_ATOMS*DIM3),
       D(INTERNAL_ATOMS*DIM3,INTERNAL_ATOMS*DIM3);
 
-   for (UCIter_->Reset();!UCIter_->Done();++(*UCIter_))
+   static Matrix DefGrad(DIM3,DIM3);
+   static Vector Z(DIM3);
+
+   // Setup DefGrad
+   DefGrad[0][0] = DOF_[0];
+   DefGrad[1][1] = DOF_[1];
+   DefGrad[2][2] = DOF_[2];
+   DefGrad[0][1] = DefGrad[1][0] = DOF_[3];
+   DefGrad[0][2] = DefGrad[2][0] = DOF_[4];
+   DefGrad[2][1] = DefGrad[1][2] = DOF_[5];
+   
+   // Iterate over points in unit cell
+   for (UCIter_.Reset();!UCIter_.Done();++UCIter_)
    {
       for (int i=0;i<DIM3;++i)
       {
-	 Y[i] = (*UCIter_)[i];
+	 Y[i] = UCIter_[i];
       }
 
-      A = DynamicalStiffness(Y);
+      Z = DefGrad*Y;
+      A = DynamicalStiffness(Z);
 
       Cholesky(A,U,D);
 
@@ -1122,21 +1159,33 @@ int NiTi9TPPLat::BlockWave(Vector &Y)
 
 void NiTi9TPPLat::Print(ostream &out,PrintDetail flag)
 {
-   int W=out.width();
+   static int W;
+   static int NoNegEigVal;
+   static double MinEigVal;
+   static double energy;
+   static Matrix
+      stress(1,DOFS),
+      stiffness(DOFS,DOFS),
+      EigenValues(1,DOFS),
+      CondEV(1,6);
+   static Matrix
+      CondModuli(6,6);
+   static int RankOneConvex;
+   static Vector Y(DIM3);
+   static int BlockWaveStable;
+   static Matrix
+      LatticeVecInv = LatticeVec_.Inverse();
+   
+   W=out.width();
 
    out.width(0);
    cout.width(0);
 
-   double MinEigVal;
-   int NoNegEigVal=0;
+   NoNegEigVal=0;
 
-   double energy = Energy();
-   
-   Matrix
-      stress = Stress(),
-      stiffness = Stiffness(),
-      EigenValues(1,DOFS),
-      CondEV(1,6);
+   energy = Energy();
+   stress = Stress();
+   stiffness = Stiffness();
    
    EigenValues=SymEigVal(stiffness);
    MinEigVal = EigenValues[0][0];
@@ -1149,17 +1198,16 @@ void NiTi9TPPLat::Print(ostream &out,PrintDetail flag)
 	 MinEigVal = EigenValues[0][i];
    }
 
-   Matrix
-      CondModuli = CondensedModuli();
+   CondModuli = CondensedModuli();
 
    CondEV=SymEigVal(CondModuli);
-   int RankOneConvex = FullScanRank1Convex3D(CondModuli,ConvexityDX_);
+   RankOneConvex = FullScanRank1Convex3D(CondModuli,ConvexityDX_);
 
-   Vector Y(DIM3,0.0);
-   int BlockWaveStable;
+   Y.Resize(DIM3,0.0);
    if (NoNegEigVal == 0)
    {
       BlockWaveStable = BlockWave(Y);
+      Y = LatticeVecInv*Y;
    }
    else
    {
@@ -1244,10 +1292,3 @@ const double NiTi9TPPLat::Alt[DIM3][DIM3][DIM3] = {0.0, 0.0, 0.0,
 						    0.0, 1.0, 0.0,
 						    -1.0, 0.0, 0.0,
 						    0.0, 0.0, 0.0};
-
-const double NiTi9TPPLat::A[INTERNAL_ATOMS][DIM3] = {0.0, 0.0, 0.0,
-						     0.5, 0.5, 0.5};
-
-const NiTi9TPPLat::interaction NiTi9TPPLat::INTER[INTERNAL_ATOMS][INTERNAL_ATOMS] = {
-   aa, ab,
-   ab, bb};
