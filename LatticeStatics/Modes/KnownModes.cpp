@@ -22,7 +22,6 @@ LatticeMode *InitializeMode(Lattice *Lat,char *datafile)
 			"OrthoShuffle",
 			"Mono3PShuffle",
 			"Mono3MShuffle",
-			"OneShuffle",
 			"FullShuffle",
 			"Expand15",
 			"Full15"};
@@ -115,20 +114,15 @@ LatticeMode *InitializeMode(Lattice *Lat,char *datafile)
       break;
       case 17:
       {
-	 return new OneShuffle(Lat);
+	 return new FullShuffle(Lat);
       }
       break;
       case 18:
       {
-	 return new FullShuffle(Lat);
-      }
-      break;
-      case 19:
-      {
 	 return new Expand15(Lat);
       }
       break;
-      case 20:
+      case 19:
       {
 	 return new Full15(Lat);
       }

@@ -15,11 +15,10 @@
 #include "OrthoShuffle.h"
 #include "Mono3PShuffle.h"
 #include "Mono3MShuffle.h"
-#include "OneShuffle.h"
 #include "FullShuffle.h"
 #include "Expand15.h"
 #include "Full15.h"
 
-#define KNOWNMODES 21
+#define KNOWNMODES 20
 
 LatticeMode *InitializeMode(Lattice *Lat,char *datafile);
