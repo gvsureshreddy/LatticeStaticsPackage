@@ -11,7 +11,8 @@ chomp($dataset=`pwd`);
 		  Ortho3
 		  OrthoNaCl
 		  Mono1
-		  Mono2);
+		  Mono2
+		  ShuffleOrtho);
 
 open(GNUPLOT,">$ARGV[1]") 
     || die "Unable to open $ARGV[1] for write: $!";
