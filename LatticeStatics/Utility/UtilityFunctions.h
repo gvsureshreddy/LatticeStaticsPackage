@@ -23,4 +23,6 @@ FILE *OpenPipe(const char *command,const char *mode);
 unsigned Rank1Convex3D(Matrix K,double dx);
 unsigned Rank1Convex2D(Matrix K,double dx);
 
+char *builddate();
+
 #endif
