@@ -6,7 +6,7 @@
 #include <math.h>
 
 // Global IDString
-char CMatrixID[]="$Id: CMatrix.cpp,v 1.8 2003/05/29 20:11:26 elliottr Exp $";
+char CMatrixID[]="$Id: CMatrix.cpp,v 1.9 2003/05/29 20:24:39 elliottr Exp $";
 
 // Private Methods...
 
@@ -613,7 +613,7 @@ Matrix HermiteEigVal(CMatrix A,CMatrix *B,const int MaxItr,const double Tol)
 	       }
 	       else
 	       {
-		  t = 0.0;
+		  continue;
 	       }
 	    }
 	    
