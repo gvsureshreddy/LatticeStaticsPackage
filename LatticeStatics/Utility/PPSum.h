@@ -14,7 +14,7 @@ private:
    Vector *DOF_;
    Matrix *RefLattice_;
    int InternalAtoms_;
-   Matrix *InternalPOS_;
+   Vector *InternalPOS_;
 
    unsigned CurrentPOS_;
    unsigned Pairs_;
@@ -27,12 +27,12 @@ private:
    
 public:
    PPSum() {}
-   PPSum(Vector *DOF,Matrix *RefLat,int InternalAtoms,Matrix *InternalPOS,
+   PPSum(Vector *DOF,Matrix *RefLat,int InternalAtoms,Vector *InternalPOS,
 	 unsigned *InfluDist);
    ~PPSum() {}
 
    void operator()(Vector *DOF,Matrix *RefLat,int InternalAtoms,
-		   Matrix *InternalPOS,unsigned *InfluDist);
+		   Vector *InternalPOS,unsigned *InfluDist);
 
    void Reset();
    void Recalc() {Recalc_ = 1;}

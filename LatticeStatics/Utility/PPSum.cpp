@@ -1,7 +1,7 @@
 #include "PPSum.h"
 
 PPSum::PPSum(Vector *DOF,Matrix *RefLat,int InternalAtoms,
-	     Matrix *InternalPOS,unsigned *InfluDist)
+	     Vector *InternalPOS,unsigned *InfluDist)
    : DOF_(DOF),RefLattice_(RefLat),InternalAtoms_(InternalAtoms),
      InternalPOS_(InternalPOS),InfluanceDist_(InfluDist),U_(3,3),V_(InternalAtoms,3),
      Recalc_(0),CurrentPOS_(0),Pairs_(0),
@@ -11,7 +11,7 @@ PPSum::PPSum(Vector *DOF,Matrix *RefLat,int InternalAtoms,
 }
 
 void PPSum::operator()(Vector *DOF,Matrix *RefLat,int InternalAtoms,
-		       Matrix *InternalPOS,unsigned *InfluDist)
+		       Vector *InternalPOS,unsigned *InfluDist)
 {
    DOF_ = DOF;
    RefLattice_ = RefLat;
@@ -73,11 +73,17 @@ void PPSum::Initialize()
    // that size...
    //
    // Use the fact that eigs of Uinv = 1/ eigs of U.
+   //
+   // Use U_*RefLattice_ as def grad.  This takes an
+   // orthonormal lattice to the current config.
+   // Thus, allowing non-square unit cells....
+   //
+   // Use F*F^T and take sqrt of eigvecs.
    J = U_.Det();
-   Eigvals = SymEigVal(U_);
-   tmp = Eigvals[0][0];
+   Eigvals = SymEigVal(U_*(*RefLattice_)*((U_*(*RefLattice_)).Transpose()));
+   tmp = sqrt(Eigvals[0][0]);
    for (i=0;i<3;i++)
-      if (Eigvals[0][i] < tmp) tmp = Eigvals[0][i];
+      if (sqrt(Eigvals[0][i]) < tmp) tmp = sqrt(Eigvals[0][i]);
    
    // Set to inverse eigenvalue
    tmp = 1.0/tmp;
@@ -131,13 +137,12 @@ void PPSum::Initialize()
 		     for (j=0;j<3;j++)
 		     {
 			RelPosDATA_[Pairs_][i] +=
-			   (X[j] + (((*InternalPOS_)[q][j] + V_[q][j])
-				    - ((*InternalPOS_)[p][j] + V_[p][j])))
+			   (X[j] + ((InternalPOS_[q][j] + V_[q][j])
+				    - (InternalPOS_[p][j] + V_[p][j])))
 			   *(*RefLattice_)[j][i];
 
 		     }
 		  }
-
 		  RelPosDATA_[Pairs_][6] = 0.0;
 		  for (i=0;i<3;i++)
 		  {
