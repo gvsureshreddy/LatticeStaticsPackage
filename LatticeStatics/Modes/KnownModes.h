@@ -7,5 +7,8 @@
 #include "UniDefTemp3D3MMono.h"
 #include "UniDefTemp3D1PMono.h"
 #include "UniDefTemp3D1MMono.h"
+#include "UniDefTemp3DFull.h"
+
+#define KNOWNMODES 10
 
 LatticeMode *InitializeMode(Lattice *Lat,char *datafile);
