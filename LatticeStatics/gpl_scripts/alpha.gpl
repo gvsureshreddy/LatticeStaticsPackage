@@ -1,0 +1,55 @@
+# routine to plot data in gpl file
+
+reset
+set terminal fig color small landscape inches fontsize 12
+set output "alpha.0.001.fig"
+set size ratio 0.618
+set border 3
+set xtics nomirror
+set ytics nomirror 30,30,120
+set tics out
+set nokey
+set xrange [220:320]
+set yrange [30:120]
+alpha(u11,u12,u13,u22,u23) =\
+      (180/pi)*acos((u11*u12 + u12*u22 + u13*u23)/(sqrt(u11**2 + u12**2 + u13**2) *\
+                                                   sqrt(u12**2 + u22**2 + u23**2)))
+
+#1 Stable sections of Princ branch
+#2 Unstable sections of Princ branch
+#3 Stable sections of NaCl branch
+#4 Unstable sections of NaCl branch
+#5 Stable sections of Rhombo1 branch
+#6 Unstable sections of Rhombo1 branch
+#7 Stable sections of Ortho1 branch
+#8 Unstable sections of Ortho1 branch
+#9 Stable sections of Ortho2 branch
+#10 Unstable sections of Ortho2 branch
+#11 Stable sections of Ortho3 branch
+#12 Unstable sections of Ortho3 branch
+#13 Stable sections of OrthoNaCl branch
+#14 Unstable sections of OrthoNaCl branch
+#15 Stable sections of Mono1 branch
+#16 Unstable sections of Mono1 branch
+#17 Stable sections of Mono2 branch
+#18 Unstable sections of Mono2 branch
+
+plot "0.001.gpl" index 0 using 1:(alpha($3,$4,$5,$6,$7)) with points linetype 2001 pointtype 159 pointsize 1.5,\
+"" index 1 using 1:(alpha($3,$4,$5,$6,$7)) with lines linetype 3005 linewidth 2,\
+"" index 2 using 1:(alpha($3,$4,$5,$6,$7)) with lines linetype 3012 linewidth 2,\
+"" index 3 using 1:(alpha($3,$4,$5,$6,$7)) with lines linetype 4002 linewidth 2,\
+"" index 4 using 1:(alpha($3,$4,$5,$6,$7)) with lines linetype 4009 linewidth 2,\
+"" index 5 using 1:(alpha($3,$4,$5,$6,$7)) with lines linetype 5003 linewidth 2,\
+"" index 6 using 1:(alpha($3,$4,$5,$6,$7)) with lines linetype 5010 linewidth 2,\
+"" index 7 using 1:(alpha($3,$4,$5,$6,$7)) with lines linetype 6007 linewidth 2,\
+"" index 8 using 1:(alpha($3,$4,$5,$6,$7)) with lines linetype 6014 linewidth 2,\
+"" index 9 using 1:(alpha($3,$4,$5,$6,$7)) with lines linetype 6007 linewidth 2,\
+"" index 10 using 1:(alpha($3,$4,$5,$6,$7)) with lines linetype 6014 linewidth 2,\
+"" index 11 using 1:(alpha($3,$4,$5,$6,$7)) with lines linetype 6007 linewidth 2,\
+"" index 12 using 1:(alpha($3,$4,$5,$6,$7)) with lines linetype 6014 linewidth 2,\
+"" index 13 using 1:(alpha($3,$4,$5,$6,$7)) with lines linetype 6007 linewidth 2,\
+"" index 14 using 1:(alpha($3,$4,$5,$6,$7)) with lines linetype 6014 linewidth 2,\
+"" index 15 using 1:(alpha($3,$4,$5,$6,$7)) with lines linetype 7004 linewidth 2,\
+"" index 16 using 1:(alpha($3,$4,$5,$6,$7)) with lines linetype 7011 linewidth 2,\
+"" index 17 using 1:(alpha($3,$4,$5,$6,$7)) with lines linetype 7004 linewidth 2,\
+"" index 18 using 1:(alpha($3,$4,$5,$6,$7)) with lines linetype 7011 linewidth 2
