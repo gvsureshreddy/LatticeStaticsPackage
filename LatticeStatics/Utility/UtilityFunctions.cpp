@@ -2,6 +2,7 @@
 
 #include <termios.h>
 #include <fcntl.h>
+#include <unistd.h>
 
 using namespace std;
 
@@ -68,7 +69,7 @@ int EnterDebugMode()
    int n;
    char dbg[256];
    setblock(fileno(stdin),0);
-   n=read(STDIN_FILENO,dbg,255);
+   n=read(fileno(stdin),dbg,255);
    setblock(fileno(stdin),1);
    // remove newline
    if (n>0)
