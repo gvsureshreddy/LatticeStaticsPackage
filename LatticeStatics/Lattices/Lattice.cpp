@@ -447,28 +447,24 @@ void Lattice::ConsistencyCheck(double ConsistencyEpsilon,int Width,ostream &out)
       // Get Check
       PerturbedForce[i] = Energy() - potential;
       stress2 = Stress();
+      stiff2 = Stiffness();
+      d32 = E3();
       for (int j=0;j<Dim;j++)
-	 PerturbedStiff[j][i] = stress2[0][j] - stress1[0][j];
-      
-      for (int j=0;j<Dim;++j)
       {
-	 stiff2 = Stiffness();
+	 PerturbedStiff[j][i] = stress2[0][j] - stress1[0][j];
+	 
 	 for (int k=0;k<Dim;++k)
 	 {
 	    PerturbedD3[k*Dim + j][i] = stiff2[k][j] - stiff1[k][j];
-	 }
 
-	 for (int k=0;k<Dim;++k)
-	 {
-	    d32 = E3();
 	    for (int l=0;l<Dim;++l)
 	    {
-	 	 PerturbedD4[l*Dim + k][j*Dim + i] = d32[l*Dim + k][j] - d31[l*Dim + k][l];
+	       PerturbedD4[l*Dim + k][j*Dim + i] = d32[l*Dim + k][j] - d31[l*Dim + k][j];
 	    }
 	 }
       }
    }
-
+   
    // Print out the facts
    if (Echo_)
    {
