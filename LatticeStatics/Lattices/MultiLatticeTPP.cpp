@@ -1246,10 +1246,8 @@ CMatrix MultiLatticeTPP::DynamicalStiffness(Vector &Y)
 
 int MultiLatticeTPP::BlochWave(Vector &Y)
 {
-   static CMatrix A(INTERNAL_ATOMS*DIM3,INTERNAL_ATOMS*DIM3),
-      U(INTERNAL_ATOMS*DIM3,INTERNAL_ATOMS*DIM3),
-      D(INTERNAL_ATOMS*DIM3,INTERNAL_ATOMS*DIM3);
-
+   static CMatrix A(INTERNAL_ATOMS*DIM3,INTERNAL_ATOMS*DIM3);
+   static Matrix EigVals(1,INTERNAL_ATOMS*DIM3);
    static Matrix DefGrad(DIM3,DIM3);
    static Vector Z(DIM3);
 
@@ -1272,12 +1270,12 @@ int MultiLatticeTPP::BlochWave(Vector &Y)
       Z = DefGrad*Y;
       A = DynamicalStiffness(Z);
 
-      Cholesky(A,U,D);
+      EigVals = HermiteEigVal(A);
       
       for (int i=0;i<INTERNAL_ATOMS*DIM3;++i)
       {
 	 // if w^2 <= 0.0 --> Re(i*w*x) > 0 --> growing solutions --> unstable
-	 if ( real(D[i][i]) <= 0.0 )
+	 if ( EigVals[0][i] <= 0.0 )
 	 {
 	    return 0;
 	 }
