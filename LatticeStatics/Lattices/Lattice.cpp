@@ -40,7 +40,7 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
       D3=E3(),
       D2=Stiffness(),
       D2T(D2.Rows(),D2.Cols()),
-      D1T(D2.Rows()),
+      D1T(1,D2.Rows()),
       EigVec,
       EigVal=SymEigVal(D2,&EigVec);
    if (LoadParameter_ == Temperature)
