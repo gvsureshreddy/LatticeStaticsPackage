@@ -37,14 +37,14 @@ all : $(OBJECTS) EigenSys HermiteEigenSys matrixtest
 .PHONY: all
 
 matrixtest : $(OBJECTS) matrixtest.cpp
-	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ $(LFLAGS) -o bin/matrixtest ./matrixtest.cpp \
+	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ $(LFLAGS) -o ./bin/matrixtest ./matrixtest.cpp \
 	$(addprefix ./lib/,$(OBJECTS))
 
 EigenSys : $(OBJECTS) EigenSys.cpp
-	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ $(LFLAGS) -o bin/EigenSys ./EigenSys.cpp ./lib/Matrix.o
+	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ $(LFLAGS) -o ./bin/EigenSys ./EigenSys.cpp ./lib/Matrix.o
 
 HermiteEigenSys : $(OBJECTS) HermiteEigenSys.cpp
-	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ $(LFLAGS) -o bin/HermiteEigenSys ./HermiteEigenSys.cpp ./lib/CMatrix.o ./lib/Matrix.o
+	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ $(LFLAGS) -o ./bin/HermiteEigenSys ./HermiteEigenSys.cpp ./lib/CMatrix.o ./lib/Matrix.o
 
 # include the dependicies
 include $(addprefix ./depend/,$(OBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
@@ -62,8 +62,8 @@ $(LIB_LOC)/libLinearAlgebra.a: $(OBJECTS)
 	/bin/rm -f ./lib/LinearAlgebraBuildDate.o
 	ranlib $(LIB_LOC)/libLinearAlgebra.a 
 	/bin/cp $(SOURCES:$(SRC_EXT)=$(HDR_EXT)) $(INCL_LOC)
-	/bin/cp bin/EigenSys $(BIN_LOC)
-	/bin/cp bin/HermiteEigenSys $(BIN_LOC)
+	/bin/cp ./bin/EigenSys $(BIN_LOC)
+	/bin/cp ./bin/HermiteEigenSys $(BIN_LOC)
 
 # Define uninstall
 uninstall:
