@@ -31,7 +31,7 @@ NiTi15TPPLat::NiTi15TPPLat(char *datafile)
    GetParameter("^Alpha_aa",datafile,"%lf",&Alpha);
    GetParameter("^Rref_aa",datafile,"%lf",&Rref);
    GetParameter("^Rtheta_aa",datafile,"%lf",&Rtheta);
-   GetParameter("Tmelt_aa",datafile,"%lf",&Tmelt);
+   GetParameter("^Tmelt_aa",datafile,"%lf",&Tmelt);
    Potential_[aa]=RadiiMorse(A0,B0,Alpha,Rref,Rtheta,Tref,Tmelt);
 
    GetParameter("^A0_bb",datafile,"%lf",&A0);
@@ -39,7 +39,7 @@ NiTi15TPPLat::NiTi15TPPLat(char *datafile)
    GetParameter("^Alpha_bb",datafile,"%lf",&Alpha);
    GetParameter("^Rref_bb",datafile,"%lf",&Rref);
    GetParameter("^Rtheta_bb",datafile,"%lf",&Rtheta);
-   GetParameter("Tmelt_bb",datafile,"%lf",&Tmelt);
+   GetParameter("^Tmelt_bb",datafile,"%lf",&Tmelt);
    Potential_[bb]=RadiiMorse(A0,B0,Alpha,Rref,Rtheta,Tref,Tmelt);
 
    GetParameter("^A0_ab",datafile,"%lf",&A0);
@@ -47,7 +47,7 @@ NiTi15TPPLat::NiTi15TPPLat(char *datafile)
    GetParameter("^Alpha_ab",datafile,"%lf",&Alpha);
    GetParameter("^Rref_ab",datafile,"%lf",&Rref);
    GetParameter("^Rtheta_ab",datafile,"%lf",&Rtheta);
-   GetParameter("Tmelt_ab",datafile,"%lf",&Tmelt);
+   GetParameter("^Tmelt_ab",datafile,"%lf",&Tmelt);
    Potential_[ab]=RadiiMorse(A0,B0,Alpha,Rref,Rtheta,Tref,Tmelt);
    
    // Get Lattice parameters
