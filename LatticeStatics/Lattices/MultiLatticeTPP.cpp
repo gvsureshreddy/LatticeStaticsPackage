@@ -1152,16 +1152,7 @@ CMatrix MultiLatticeTPP::DynamicalStiffness(Vector &Y)
 	 for (i=0;i<DIM3;i++)
 	    for (j=0;j<DIM3;j++)
 	    {
-	       Cy[DIM3*LatSum_.Atom(0)+i][DIM3*LatSum_.Atom(0)+j] +=
-		  (2.0*Del(i,j)
-		   *Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
-		      NTemp_,LatSum_.r2(),PairPotentials::DY)
-		   +4.0*LatSum_.Dx(i)*LatSum_.Dx(j)
-		   *Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
-		      NTemp_,LatSum_.r2(),PairPotentials::D2Y))
-		  *exp(-2.0*pi*Ic *
-		       (Y[0]*LatSum_.Dx(0) + Y[1]*LatSum_.Dx(1) + Y[2]*LatSum_.Dx(2)));
-	       
+	       // K != K' terms (i.e., off block (3x3) diagonal terms)
 	       Cy[DIM3*LatSum_.Atom(0)+i][DIM3*LatSum_.Atom(1)+j] +=
 		  (-2.0*Del(i,j)
 		   *Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
@@ -1171,9 +1162,35 @@ CMatrix MultiLatticeTPP::DynamicalStiffness(Vector &Y)
 		      NTemp_,LatSum_.r2(),PairPotentials::D2Y))
 		  *exp(-2.0*pi*Ic *
 		       (Y[0]*LatSum_.Dx(0) + Y[1]*LatSum_.Dx(1) + Y[2]*LatSum_.Dx(2)));
+
+	       // K==K' components (i.e., Phi(0,k,k) term)
+	       Cy[DIM3*LatSum_.Atom(0)+i][DIM3*LatSum_.Atom(0)+j] +=
+		  (2.0*Del(i,j)
+		   *Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
+		      NTemp_,LatSum_.r2(),PairPotentials::DY)
+		   +4.0*LatSum_.Dx(i)*LatSum_.Dx(j)
+		   *Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
+		      NTemp_,LatSum_.r2(),PairPotentials::D2Y));
 	    }
       }
-   
+      else
+      {
+	 for (i=0;i<DIM3;++i)
+	    for (j=0;j<DIM3;++j)
+	    {
+	       Cy[DIM3*LatSum_.Atom(0)+i][DIM3*LatSum_.Atom(1)+j] +=
+		  (-2.0*Del(i,j)
+		   *Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
+		      NTemp_,LatSum_.r2(),PairPotentials::DY)
+		   -4.0*LatSum_.Dx(i)*LatSum_.Dx(j)
+		   *Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
+		      NTemp_,LatSum_.r2(),PairPotentials::D2Y))
+		  *(exp(-2.0*pi*Ic *
+			(Y[0]*LatSum_.Dx(0) + Y[1]*LatSum_.Dx(1)
+			 + Y[2]*LatSum_.Dx(2)))
+		    - 1.0);
+	    }
+      }
       // Normalize through the Mass Matrix
       for (i=0;i<DIM3;i++)
 	 for (j=0;j<DIM3;j++)
@@ -1215,10 +1232,10 @@ int MultiLatticeTPP::BlochWave(Vector &Y)
       A = DynamicalStiffness(Z);
 
       Cholesky(A,U,D);
-
+      
       for (int i=0;i<INTERNAL_ATOMS*DIM3;++i)
       {
-	 if ( real(D[i][i]) >= 0.0 )
+	 if ( real(D[i][i]) <= 0.0 )
 	 {
 	    return 0;
 	 }
