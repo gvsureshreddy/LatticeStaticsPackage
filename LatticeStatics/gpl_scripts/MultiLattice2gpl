@@ -161,8 +161,8 @@ sub loaddata {
     }
 
     $stable .= sprintf "# Index $_[3]\n";
-    $stable .= sprintf "# Stable sections of $_[0] branch at Pressure $pressure\n";
-    $stable .= sprintf $StrSPEC . $StrSPEC,"Temperature","Potential";
+    $stable .= sprintf "# Stable sections of $_[0] branch at Pressure $pressure";
+    $stable .= sprintf "#" . $StrSPEC . $StrSPEC,"Temperature","Potential";
     for (my $i=0;$i<$DOFSize;$i+=1)
     {
 	$stable .= sprintf $StrSPEC,"DOF $i";
@@ -170,8 +170,8 @@ sub loaddata {
     $stable .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . "\n",
     "Min EigVal","Num Neg Eig Vals","Rank 1 Convex","Uncertainty";
     $unstable .= sprintf "# Index " . ($_[3]+1) . "\n";
-    $unstable .= sprintf "# Unstable sections of $_[0] branch at Pressure $pressure\n";
-    $unstable .= sprintf $StrSPEC . $StrSPEC,"Temperature","Potential";
+    $unstable .= sprintf "# Unstable sections of $_[0] branch at Pressure $pressure";
+    $unstable .= sprintf "#" . $StrSPEC . $StrSPEC,"Temperature","Potential";
     for (my $i=0;$i<$DOFSize;$i+=1)
     {
 	$unstable .= sprintf $StrSPEC,"DOF $i";
