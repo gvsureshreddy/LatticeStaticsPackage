@@ -15,6 +15,7 @@ public:
    virtual double Energy() = 0;
    virtual Matrix Stress() = 0;
    virtual Matrix Stiffness() = 0;
+   virtual Matrix Moduli() = 0;
    virtual int StiffnessNulity(double *Min=NULL) = 0;
 
    enum PrintDetail {PrintLong,PrintShort};

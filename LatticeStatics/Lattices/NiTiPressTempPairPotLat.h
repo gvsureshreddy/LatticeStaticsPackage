@@ -39,6 +39,7 @@ public:
    virtual double Energy();
    virtual Matrix Stress();
    virtual Matrix Stiffness();
+   virtual Matrix Moduli();
    virtual int StiffnessNulity(double *Min=NULL);
    virtual void Print(ostream &out,PrintDetail flag);
 
@@ -59,7 +60,7 @@ private:
    double pwr(const double &x,const unsigned y);
    inline int IND(int i,int j);
    inline int IND(int k,int l,int m,int n);
-   Matrix Phi(YDeriv dy=Y0,TDeriv dt=T0);
+   Matrix Phi(unsigned moduliflag=0,YDeriv dy=Y0,TDeriv dt=T0);
    int FindLatticeSpacing(int iter,double dx);
    
 };

@@ -21,6 +21,7 @@ TrianglePressTempPairPotLat::TrianglePressTempPairPotLat(char *datafile)
    GetParameter("^InfluanceDist",datafile,"%lf",&InfluanceDist_);
    GetParameter("^Temp",datafile,"%lf",&Temp_);
    GetParameter("^Pressure",datafile,"%lf",&Pressure_);
+   GetParameter("^ConvexityDX",datafile,"%lf",&ConvexityDX_);
 
    // needed to initialize reference length
    unsigned iter;
@@ -313,7 +314,7 @@ int TrianglePressTempPairPotLat::IND(int k,int l,int m,int n)
    }
 }
 
-Matrix TrianglePressTempPairPotLat::Phi(YDeriv dy,TDeriv dt)
+Matrix TrianglePressTempPairPotLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 {
    Matrix Phi;
 
@@ -458,6 +459,11 @@ Matrix TrianglePressTempPairPotLat::Phi(YDeriv dy,TDeriv dt)
    // Phi = Phi/(2*Vr*ShearMod)
    Phi *= 1.0/(2.0*RefLen_*RefLen_*ShearMod_);
 
+   if (moduliflag)
+   {
+      return Phi;
+   }
+   
    // Add in External Work Terms
    // Recall that Pressure_ is applied stress
    // Thus E = W - pJ
@@ -512,17 +518,22 @@ double TrianglePressTempPairPotLat::Energy()
 
 Matrix TrianglePressTempPairPotLat::Stress()
 {
-   return Phi(DY);
+   return Phi(0,DY);
 }
 
 Matrix TrianglePressTempPairPotLat::StressDT()
 {
-   return Phi(DY,DT);
+   return Phi(0,DY,DT);
 }
 
 Matrix TrianglePressTempPairPotLat::Stiffness()
 {
-   return Phi(D2Y);
+   return Phi(0,D2Y);
+}
+
+Matrix TrianglePressTempPairPotLat::Moduli()
+{
+   return Phi(1,D2Y);
 }
 
 int TrianglePressTempPairPotLat::StiffnessNulity(double *Min)
@@ -560,6 +571,7 @@ void TrianglePressTempPairPotLat::Print(ostream &out,PrintDetail flag)
    
    Matrix
       stiffness = Stiffness(),
+      moduli = Moduli(),
       EigenValues(1,3);
 
    EigenValues=SymEigVal(stiffness);
@@ -596,6 +608,8 @@ void TrianglePressTempPairPotLat::Print(ostream &out,PrintDetail flag)
 	     << "Potential Value (Normalized):" << setw(W) << Energy() << endl
 	     << "Stress (Normalized):" << setw(W) << Stress()
 	     << "Stiffness (Normalized):" << setw(W) << stiffness
+	     << "Rank 1 Convex:" << setw(W)
+	     << Rank1Convex2D(moduli,ConvexityDX_) << endl
 	     << "Eigenvalue Info:"  << setw(W) << EigenValues
 	     << "Bifurcation Info:" << setw(W) << MinEigVal
 	     << setw(W) << NoNegEigVal << endl;

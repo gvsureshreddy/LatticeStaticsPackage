@@ -389,7 +389,7 @@ int NiTiPressTempPairPotLat::IND(int k,int l,int m,int n)
    }
 }
 
-Matrix NiTiPressTempPairPotLat::Phi(YDeriv dy,TDeriv dt)
+Matrix NiTiPressTempPairPotLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 {
    Matrix Phi;
 
@@ -555,6 +555,11 @@ Matrix NiTiPressTempPairPotLat::Phi(YDeriv dy,TDeriv dt)
    // Phi = Phi/(2*Vr*ShearMod)
    Phi *= 1.0/(2.0*RefLen_*RefLen_*RefLen_*ShearMod_);
 
+   if (moduliflag)
+   {
+      return Phi;
+   }
+
    // Add in External Work Terms
    // Recall that Pressure_ is applied stress
    // Thus E = W - pJ
@@ -610,17 +615,22 @@ double NiTiPressTempPairPotLat::Energy()
 
 Matrix NiTiPressTempPairPotLat::Stress()
 {
-   return Phi(DY);
+   return Phi(0,DY);
 }
 
 Matrix NiTiPressTempPairPotLat::StressDT()
 {
-   return Phi(DY,DT);
+   return Phi(0,DY,DT);
 }
 
 Matrix NiTiPressTempPairPotLat::Stiffness()
 {
-   return Phi(D2Y);
+   return Phi(0,D2Y);
+}
+
+Matrix NiTiPressTempPairPotLat::Moduli()
+{
+   return Phi(1,D2Y);
 }
 
 int NiTiPressTempPairPotLat::StiffnessNulity(double *Min)
@@ -658,6 +668,7 @@ void NiTiPressTempPairPotLat::Print(ostream &out,PrintDetail flag)
    
    Matrix
       stiffness = Stiffness(),
+      moduli = Moduli(),
       EigenValues(1,6);
 
    EigenValues=SymEigVal(stiffness);
@@ -711,7 +722,7 @@ void NiTiPressTempPairPotLat::Print(ostream &out,PrintDetail flag)
 	     << "Stress (Normalized):" << setw(W) << Stress()
 	     << "Stiffness (Normalized):" << setw(W) << stiffness
 	     << "Rank 1 Convex:"<< setw(W)
-	     << Rank1Convex3D(stiffness,ConvexityDX_) << endl
+	     << Rank1Convex3D(moduli,ConvexityDX_) << endl
 	     << "Eigenvalue Info:"  << setw(W) << EigenValues
 	     << "Bifurcation Info:" << setw(W) << MinEigVal
 	     << setw(W) << NoNegEigVal << endl;
