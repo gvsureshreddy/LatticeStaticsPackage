@@ -78,8 +78,6 @@ public:
    virtual Matrix Stress() {return stress();}
    virtual Matrix Stiffness() {return stiffness();}
 
-   Matrix stiffy();
-   
    virtual Matrix Moduli() {return stiffness(1);}
    virtual Matrix E3();
    virtual Matrix E4();

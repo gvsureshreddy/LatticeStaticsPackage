@@ -117,6 +117,11 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo)
 
    // Initiate the Unit Cell Iterator for Bloch wave calculations.
    UCIter_(GridSize_);
+   if (EnterDebugMode())
+   {
+      cout << setw(15);
+      DebugMode();
+   }
    
 }
 
@@ -1671,11 +1676,109 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, int gridsize,const char *p
    if (Echo_) cout.width(0);
 
    Matrix
-      //L = CondensedModuli(),
       Lp=CondensedModuli(),
-      L = stiffy(),
       Ap(DIM3,DIM3),
       A(DIM3,DIM3);
+
+   //----------------  setup L condensed moduli wrt F NOT U ----------------------
+   Matrix Phi(9,9,0.0),
+      Dpp((INTERNAL_ATOMS-1)*3,(INTERNAL_ATOMS-1)*3,0.0),
+      Dfp((INTERNAL_ATOMS-1)*3,9,0.0);
+   double phi,phi1,tmp[3][3][3];
+   
+   for (LatSum_.Reset();!LatSum_.Done();++LatSum_)
+   {
+      phi = LatSum_.phi2();
+      phi1 = LatSum_.phi1();
+
+      // upper 9x9 block
+      for (int i=0;i<DIM3;i++)
+      {
+	 for (int j=0;j<DIM3;j++)
+	 {
+	    for (int k=0;k<DIM3;k++)
+	    {
+	       for (int l=0;l<DIM3;l++)
+	       {
+		  Phi[3*i+j][3*k+l]+=
+		     4.0*phi*(LatSum_.Dx(i)*LatSum_.DX(j))
+			  *(LatSum_.Dx(k)*LatSum_.DX(l))
+		     +2*phi1*(Del(i,k)*LatSum_.DX(j)*LatSum_.DX(l));
+	       }
+	    }
+	 }
+      }
+
+      // lower block
+      for (int i=1;i<INTERNAL_ATOMS;++i)
+      {
+	 for (int j=0;j<DIM3;++j)
+	 {
+	    for (int k=1;k<INTERNAL_ATOMS;++k)
+	    {
+	       for (int l=0;l<DIM3;++l)
+	       {
+		  Dpp[3*(i-1)+j][3*(k-1)+l]+=
+		     phi*OMEGA(LatSum_.pDx(),LatSum_.Atom(0),LatSum_.Atom(1),i,j)
+		     *OMEGA(LatSum_.pDx(),LatSum_.Atom(0),LatSum_.Atom(1),k,l)
+		     +phi1*SIGMA(LatSum_.Atom(0),LatSum_.Atom(1),i,j,k,l);
+	       }
+	    }
+	 }
+      }
+      
+      // off-diagonal block
+      for (int i=0;i<DIM3;++i)
+	 for (int j=0;j<DIM3;++j)
+	    for (int l=0;l<DIM3;++l)
+	    {
+	       tmp[i][j][l] = 0.0;
+	       for (int k=0;k<DIM3;++k)
+	       {
+		  tmp[i][j][l] += LatticeBasis[l][k]*DOF_[INDU(k,i)]*LatSum_.DX(j)
+		     +LatticeBasis[l][k]*DOF_[INDU(i,k)]*LatSum_.DX(j);
+	       }
+	    }
+      for (int k=1;k<INTERNAL_ATOMS;++k)
+	 for (int l=0;l<DIM3;++l)
+	    for (int i=0;i<DIM3;++i)
+	       for (int j=0;j<DIM3;++j)
+	       {
+		  Dfp[3*(k-1)+l][3*i+j] +=
+		     phi*(2.0*LatSum_.Dx(i)*LatSum_.DX(j))
+		     *OMEGA(LatSum_.pDx(),LatSum_.Atom(0),LatSum_.Atom(1),k,l) +
+		     phi1*0.5*DELTA(k,LatSum_.Atom(0),LatSum_.Atom(1))
+		     *( LatticeBasis[l][i]*LatSum_.Dx(j) +
+			LatticeBasis[l][j]*LatSum_.Dx(i) +
+			tmp[i][j][l]);
+	       }
+   }
+
+   // Condense moduli.
+   Phi -= (Dfp.Transpose())*(Dpp.Inverse())*Dfp;
+   // Phi = Phi/(2*Vr*ShearMod)
+   Phi *= 1.0/(2.0*(RefLattice_.Det()*ShearMod_));
+   
+   //-----------------------------------------------------------------------------
+
+   Matrix SymPhi(6,6,0.0);
+
+   for (int i=0;i<DIM3;++i)
+      for (int j=i;j<DIM3;++j)
+	 for (int k=0;k<DIM3;++k)
+	    for (int l=k;l<DIM3;++l)
+	    {
+	       SymPhi[INDU(i,j)][INDU(k,l)] = 0.25*(
+		  Phi[3*i+j][3*k+l] +
+		  Phi[3*j+i][3*k+l] +
+		  Phi[3*i+j][3*l+k] +
+		  Phi[3*j+i][3*l+k]);
+	    }
+
+   cout << "Condensed Moduli Check!:" << endl;
+   cout << setw(w) << Lp-SymPhi << endl;
+
+   
 
    Vector K(DIM3),Z(DIM3,0.0);
    Matrix BlkEigVal(1,INTERNAL_ATOMS*DIM3);
@@ -1688,9 +1791,6 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, int gridsize,const char *p
       Mc += AtomicMass_[i];
    }
 
-   CMatrix Q=ReferenceDynamicalStiffness(Z);
-   cout << setw(w) << Q;
-
    for (int phi=0;phi<gridsize;++phi)
    {
       for (int theta=0;theta<gridsize;++theta)
@@ -1702,10 +1802,6 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, int gridsize,const char *p
 	 Z=dk*K;
 	 BlkEigVal = HermiteEigVal(ReferenceDynamicalStiffness(Z));
 
-	 if ((phi==5) && (theta==0))
-	 {
-	    cout << setw(w) << ReferenceDynamicalStiffness(Z);
-	 }
 	 // sort by absolute value
 	 qsort(BlkEigVal[0],INTERNAL_ATOMS*DIM3,sizeof(double),&abscomp);
 
@@ -1719,23 +1815,13 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, int gridsize,const char *p
 	    for (int j=0;j<DIM3;++j)
 	    {
 	       A[i][j] = 0.0;
-	       Ap[i][j] = 0.0;
 	       for (int k=0;k<DIM3;++k)
 		  for (int l=0;l<DIM3;++l)
 		  {
-		     A[i][j] += L[3*i+k][3*j+l]
-			*K[k]*K[l];
-		     Ap[i][j] += Lp[INDU(i,k)][INDU(j,l)]
-			*K[k]*K[l];
+		     A[i][j] += Phi[3*i+k][3*j+l]*K[k]*K[l];
 		  }
 	    }
 	 
-	 if ((phi==5) && (theta==0))
-	 {
-	    cout << setw(w) << Ap;
-	    cout << setw(w) << A;
-	 }
-
 	 ModEigVal = SymEigVal(A);
 	 qsort(ModEigVal[0],DIM3,sizeof(double),&abscomp);
 	 for (int i=0;i<3;++i)
@@ -1759,41 +1845,14 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, int gridsize,const char *p
 	 for (int i=0;i<DIM3;++i)
 	 {
 	    out << setw(w) << (ModEigVal[0][i]-BlkEigVal[0][i])/ModEigVal[0][i];
-	    if (Echo_) cout << setw(w) << (ModEigVal[0][i]-BlkEigVal[0][i])/ModEigVal[0][i];
+	    if (Echo_) cout << setw(w)
+			    << (ModEigVal[0][i]-BlkEigVal[0][i])/ModEigVal[0][i];
 	 }
 	 out << endl;
 	 if (Echo_) cout << endl;
       }
       out << endl;
       if (Echo_) cout << endl;
-   }
-
-   for (int i=0;i<DIM3;++i)
-      for (int j=0;j<DIM3;++j)
-      {
-	 A[i][j] = 0.0;
-	 for (int k=0;k<DIM3;++k)
-	    for (int l=0;l<DIM3;++l)
-	    {
-	       A[i][j] += L[3*i+k][3*j+l]
-		  *(1.0/3.0);
-	    }
-      }
-   
-   ModEigVal = SymEigVal(A);
-   qsort(ModEigVal[0],DIM3,sizeof(double),&abscomp);
-   for (int i=0;i<3;++i)
-   {
-      // normalize by G/(Mc/Vc)
-      ModEigVal[0][i] *= ShearMod_/(Mc/Vc);
-   }
-   
-   out << prefix << "(1,1,1) ";
-   if (Echo_) cout << "(1,1,1) ";
-   for (int i=0;i<DIM3;++i)
-   {
-      out << setw(w) << ModEigVal[0][i];
-      if (Echo_) cout << setw(w) << ModEigVal[0][i];
    }
 }
 
@@ -1978,6 +2037,12 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 	 }
 	 break;
    }
+   // check for debug mode request
+   if (EnterDebugMode())
+      {
+	 cout << setw(15);
+	 DebugMode();
+      }
 }
 
 ostream &operator<<(ostream &out,MultiLatticeTPP &A)
@@ -2020,46 +2085,26 @@ void MultiLatticeTPP::DebugMode()
       "ReferenceDispersionCurves",     // 24
       "ReferenceBlochWave",            // 25
       "ReferenceDynamicalStiffness",   // 26
-      "interpolate",                   // 27
-      "comp",                          // 28
-      "abscomp",                       // 29
-      "DOF",                           // 30
-      "SetDOF",                        // 31
-      "StressDT",                      // 32
-      "StiffnessDT",                   // 33
-      "SetTemp",                       // 34
-      "Energy",                        // 35
-      "Moduli",                        // 36
-      "E3",                            // 37
-      "E4",                            // 38
-      "SetGridSize",                   // 39
-      "NeighborDistances",             // 40
-      "Print",                         // 41
-      "Del",                           // 42
-      "SetPressure",                   // 43
-      "PI",                            // 44
-      "PSI",                           // 45
-      "OMEGA",                         // 46
-      "SIGMA",                         // 47
-      "GAMMA",                         // 48
-      "THETA",                         // 49
-      "XI",                            // 50
-      "LAMDA",                         // 51
-      "INDU",                          // 52
-      "INDV",                          // 53
-      "INDUU",                         // 54
-      "INDVV",                         // 55
-      "INDUV",                         // 56
-      "INDVU",                         // 57
-      "DELTA",                         // 58
-      "FindLatticeSpacing"            // 59
+      "SetDOF",                        // 27
+      "StressDT",                      // 28
+      "StiffnessDT",                   // 29
+      "SetTemp",                       // 30
+      "Energy",                        // 31
+      "Moduli",                        // 32
+      "E3",                            // 33
+      "E4",                            // 34
+      "SetGridSize",                   // 35
+      "NeighborDistances",             // 36
+      "Print-short",                   // 37
+      "Print-long",                    // 38
+      "SetPressure",                   // 39
+      "FindLatticeSpacing"             // 40
    };
-   int NOcommands=60;
-
+   int NOcommands=41;
    
    char response[LINELENGTH];
    char tokens[LINELENGTH];
-   char prompt[] = "Debug >";
+   char prompt[] = "Debug > ";
    int W=cout.width();
 
    cout << setw(0) << prompt;
@@ -2073,59 +2118,229 @@ void MultiLatticeTPP::DebugMode()
       if (!strcmp(response,Commands[0]))
 	 cout << "INTERNAL_ATOMS = " << INTERNAL_ATOMS << endl;
       else if (!strcmp(response,Commands[1]))
-	 cout << "DOFS = " << DOFS << endl << endl;
+	 cout << "DOFS = " << DOFS << endl;
       else if (!strcmp(response,Commands[2]))
 	 cout << "RefLen_[0] = " << RefLen_[0] << endl
 	      << "RefLen_[1] = " << RefLen_[1] << endl
-	      << "RefLen_[2] = " << RefLen_[2] << endl << endl;
+	      << "RefLen_[2] = " << RefLen_[2] << endl;
       else if (!strcmp(response,Commands[3]))
-	 cout << "InfluanceDist_ = " << InfluanceDist_ << endl << endl;
+	 cout << "InfluanceDist_ = " << InfluanceDist_ << endl;
       else if (!strcmp(response,Commands[4]))
-	 cout << "NTemp_ = " << NTemp_ << endl << endl;
+	 cout << "NTemp_ = " << NTemp_ << endl;
       else if (!strcmp(response,Commands[5]))
       {
 	 for (int i=0;i<DOFS;++i)
 	    cout << "DOF_[" << i << "] = " << DOF_[i] << endl;
-	 cout << endl;
       }
-
-
-      
+      else if (!strcmp(response,Commands[6]))
+      {
+	 cout << "LatticeBasis[0]= " << setw(W) << LatticeBasis[0] << endl;
+	 cout << "LatticeBasis[1]= " << setw(W) << LatticeBasis[1] << endl;
+	 cout << "LatticeBasis[2]= " << setw(W) << LatticeBasis[2] << endl;
+      }
       else if (!strcmp(response,Commands[7]))
-	 cout << setw(W) << RefLattice_ << endl;
-
-
-
+	 cout << "RefLattice_= " << setw(W) << RefLattice_;
+      else if (!strcmp(response,Commands[8]))
+	 cout << "ShearMod_= " << ShearMod_ << endl;
+      else if (!strcmp(response,Commands[9]))
+	 cout << "Pressure_= " << Pressure_ << endl;
+      else if (!strcmp(response,Commands[10]))
+      {
+	 for (int i=0;i<INTERNAL_ATOMS;++i)
+	 {
+	    cout << "BodyForce_[" << i << "]= " << setw(W)
+		 << BodyForce_[i] << endl;
+	 }
+      }
+      else if (!strcmp(response,Commands[11]))
+      {
+	 for (int i=0;i<INTERNAL_ATOMS;++i)
+	 {
+	    cout << "AtomicMass_[" << i << "]= " << setw(W)
+		 << AtomicMass_[i] << endl;
+	 }
+      }
+      else if (!strcmp(response,Commands[12]))
+	 cout << "GridSize_= " << GridSize_ << endl;
+      else if (!strcmp(response,Commands[13]))
+      {
+	 for (int i=0;i<INTERNAL_ATOMS;++i)
+	    for (int j=i;j<INTERNAL_ATOMS;++j)
+	    {
+	       cout << "Potential_[" << i << "][" << j << "]= "
+		    << setw(W) << Potential_[i][j] << endl;
+	    }
+      }
+      else if (!strcmp(response,Commands[14]))
+	 cout << "CurrRef_= " << CurrRef_ << endl;
+      else if (!strcmp(response,Commands[15]))
+	 cout << "ConvexityDX_= " << ConvexityDX_ << endl;
+      else if (!strcmp(response,Commands[16]))
+	 cout << "NoMovable_= " << NoMovable_ << endl;
+      else if (!strcmp(response,Commands[17]))
+	 for (int i=0;i<NoMovable_;++i)
+	    cout << "MovableAtoms_[" << i << "]= " << MovableAtoms_[i] << endl;
+      else if (!strcmp(response,Commands[18]))
+	 cout << "stress= " << setw(W) << stress();
+      else if (!strcmp(response,Commands[19]))
+	 cout << "stiffness= " << setw(W) << stiffness();
+      else if (!strcmp(response,Commands[20]))
+	 cout << "CondensedModuli= " << setw(W) << CondensedModuli();
+      else if (!strcmp(response,Commands[21]))
+      {
+	 Vector K(DIM3,0.0);
+	 int NoPTS;
+	 char prefix[LINELENGTH];
+	 int oldEcho_=Echo_;
+	 cout << "\tK > ";
+	 cin >> K;
+	 cin.sync(); // clear input
+	 cout << "\tNoPTS > ";
+	 cin >> NoPTS;
+	 cin.sync(); // clear input
+	 cout << "\tprefix > ";
+	 cin >> prefix;
+	 cin.sync(); // clear input
+	 Echo_=0;
+	 cout << "CurrentDispersionCurves= ";
+	 CurrentDispersionCurves(K,NoPTS,prefix,cout);
+	 Echo_=oldEcho_;
+      }
+      else if (!strcmp(response,Commands[22]))
+      {
+	 Vector K(DIM3,0.0);
+	 cout << "\tK > ";
+	 cin >> K;
+	 cin.sync(); // clear input
+	 cout << "CurrentBlochWave= " << CurrentBlochWave(K);
+      }
+      else if (!strcmp(response,Commands[23]))
+      {
+	 Vector K(DIM3,0.0);
+	 cout << "\tK > ";
+	 cin >> K;
+	 cin.sync(); // clear input
+	 cout << "CurrentDynamicalStiffness= " << setw(W)
+	      << CurrentDynamicalStiffness(K);
+      }
+      else if (!strcmp(response,Commands[24]))
+      {
+	 Vector K(DIM3,0.0);
+	 int NoPTS;
+	 char prefix[LINELENGTH];
+	 int oldEcho_=Echo_;
+	 cout << "\tK > ";
+	 cin >> K;
+	 cin.sync(); // clear input
+	 cout << "\tNoPTS > ";
+	 cin >> NoPTS;
+	 cin.sync(); // clear input
+	 cout << "\tprefix > ";
+	 cin >> prefix;
+	 cin.sync(); // clear input
+	 Echo_=0;
+	 cout << "ReferenceDispersionCurves= ";
+	 ReferenceDispersionCurves(K,NoPTS,prefix,cout);
+	 Echo_=oldEcho_;
+      }
+      else if (!strcmp(response,Commands[25]))
+      {
+	 Vector K(DIM3,0.0);
+	 cout << "\tK > ";
+	 cin >> K;
+	 cin.sync(); // clear input
+	 cout << "ReferenceBlochWave= " << ReferenceBlochWave(K);
+      }
       else if (!strcmp(response,Commands[26]))
       {
-	 cout << "\tK >";
+	 cout << "\tK > ";
 	 Vector K(3,0.0);
 	 cin >> K;
-	 cin.getline(response,LINELENGTH); // clear input
-	 cout << setw(W) << ReferenceDynamicalStiffness(K) << endl;;
+	 cin.sync(); // clear input
+	 cout << "ReferenceDynamicalStiffness= "
+	      << setw(W) << ReferenceDynamicalStiffness(K) << endl;
       }
-
-
+      else if (!strcmp(response,Commands[27]))
+      {
+	 Vector DOF(DOFS,0.0);
+	 cout << "\tDOF > ";
+	 cin >> DOF;
+	 cin.sync(); // clear input
+	 SetDOF(DOF);
+      }
+      else if (!strcmp(response,Commands[28]))
+	 cout << "StressDT= " << setw(W) << StressDT();
+      else if (!strcmp(response,Commands[29]))
+	 cout << "StiffnessDT= " << setw(W) << StiffnessDT();
+      else if (!strcmp(response,Commands[30]))
+      {
+	 double Temp;
+	 cout << "\tTemp > ";
+	 cin >> Temp;
+	 cin.sync(); // clear input
+	 SetTemp(Temp);
+      }
       else if (!strcmp(response,Commands[31]))
-      {
-	 cout << "\tDOF_ >";
-	 Vector dof(DOFS,0.0);
-	 cin >> dof;
-	 cin.getline(response,LINELENGTH); // clear input
-	 SetDOF(dof);
-      }
-
-      
+	 cout << "Energy= " << Energy() << endl;
+      else if (!strcmp(response,Commands[32]))
+	 cout << "Moduli= " << setw(W) << Moduli();
+      else if (!strcmp(response,Commands[33]))
+	 cout << "E3= " << setw(W) << E3();
       else if (!strcmp(response,Commands[34]))
+	 cout << "E4= " << setw(W) << E4();
+      else if (!strcmp(response,Commands[35]))
       {
-	 cout << "\tTemp >";
-	 double temp;
-	 cin >> temp;
-	 cin.getline(response,LINELENGTH); // clear input
-	 SetTemp(temp);
+	 int GridSize;
+	 cout << "\tGridSize > ";
+	 cin >> GridSize;
+	 cin.sync(); // clear input
+	 SetGridSize(GridSize);
       }
-
-
+      else if (!strcmp(response,Commands[36]))
+      {
+	 int oldEcho_=Echo_;
+	 int cutoff;
+	 cout << "\tcutoff > ";
+	 cin >> cutoff;
+	 cin.sync(); // clear input
+	 Echo_ = 0;
+	 NeighborDistances(cutoff,cout);
+	 Echo_=oldEcho_;
+      }
+      else if (!strcmp(response,Commands[37]))
+      {
+	 int oldEcho_=Echo_;
+	 Echo_=0;
+	 cout << setw(W) << *this;
+	 Echo_=oldEcho_;
+      }
+      else if (!strcmp(response,Commands[38]))
+      {
+	 int oldEcho_=Echo_;
+	 Echo_=0;
+	 Print(cout,PrintLong);
+	 Echo_=oldEcho_;
+      }
+      else if (!strcmp(response,Commands[39]))
+      {
+	 double pressure;
+	 cout << "\tPressure > ";
+	 cin >> pressure;
+	 cin.sync(); // clear input
+	 SetPressure(pressure);
+      }
+      else if (!strcmp(response,Commands[40]))
+      {
+	 int iter;
+	 double dx;
+	 cout << "\titer > ";
+	 cin >> iter;
+	 cin.sync(); // clear input
+	 cout << "\tdx > ";
+	 cin >> dx;
+	 cin.sync(); // clear input
+	 FindLatticeSpacing(iter,dx);
+      }
       else if (!strcmp(response,"?") ||
 	       !strcasecmp(response,"help"))
       {
@@ -2137,6 +2352,15 @@ void MultiLatticeTPP::DebugMode()
 	       cout << endl;
 	    else
 	       cout << setw(30) << Commands[NOcommands/2+i] << endl;
+	    
+	    if (!((i+1)%30))
+	    {
+	       cout << "more...." << endl;
+	       char ans;
+	       cin.sync(); // clear input
+	       ans=kbhitWait();
+	       if (ans=='q') break;
+	    }
 	 }
 	 cout << resetiosflags(ios::left) << endl;
       }
@@ -2144,47 +2368,8 @@ void MultiLatticeTPP::DebugMode()
       {
 	 cout << "!--- Error - Unknown command ---!" << endl << endl;
       }
-
-      cout << prompt;
+      
+      cout << endl << prompt;
       cin.getline(response,LINELENGTH);
    }  
-}
-
-
-Matrix MultiLatticeTPP::stiffy()
-{
-   static Matrix Phi;
-   Matrix U(DIM3,DIM3);
-   double phi,phi1;
-   int i,j,k,l,q,s;
-
-   Phi.Resize(9,9,0.0);
-
-   for (LatSum_.Reset();!LatSum_.Done();++LatSum_)
-   {
-      phi = LatSum_.phi2();
-      phi1 = LatSum_.phi1();
-      
-      for (i=0;i<DIM3;i++)
-      {
-	 for (j=0;j<DIM3;j++)
-	 {
-	    for (k=0;k<DIM3;k++)
-	    {
-	       for (l=0;l<DIM3;l++)
-	       {
-		  Phi[3*i+j][3*k+l]+=
-		     4.0*phi*(LatSum_.Dx(i)*LatSum_.DX(j))
-			  *(LatSum_.Dx(k)*LatSum_.DX(l))
-		     +2*phi1*(Del(i,k)*LatSum_.DX(j)*LatSum_.DX(l));
-	       }
-	    }
-	 }
-      }
-   }
-      
-   // Phi = Phi/(2*Vr*ShearMod)
-   Phi *= 1.0/(2.0*(RefLattice_.Det()*ShearMod_));
-
-   return Phi;
 }
