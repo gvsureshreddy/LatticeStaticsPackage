@@ -43,6 +43,29 @@ int GetVectorParameter(const char *prefix,const char *tag,const char *datafile,V
    }
 }
 
+int GetIntVectorParameter(const char *prefix,const char *tag,
+			  const char *datafile,int N,int *Vec)
+{
+   char command[LINELENGTH];
+   FILE *pipe;
+
+   SetPerlCommand(command,datafile,prefix,tag);
+   pipe = OpenPipe(command,"r");
+   for (int i=0;i<N;++i)
+   {
+      fscanf(pipe,"%u",&(Vec[i]));
+   }
+   if (pclose(pipe))
+   {
+      Errfun(tag);
+      return 0;
+   }
+   else
+   {
+      return 1;
+   }
+}
+
 int GetMatrixParameter(const char *prefix,const char *tag,const char *datafile,Matrix *M)
 {
    char command[LINELENGTH];

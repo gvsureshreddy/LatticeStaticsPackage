@@ -17,6 +17,8 @@ int GetParameter(const char *prefix,const char *tag,const char *datafile,
 		 const char *scanffmt,void *parameter);
 int GetVectorParameter(const char *prefix,const char *tag,
 		       const char *datafile,Vector *V);
+int GetIntVectorParameter(const char *prefix,const char *tag,
+			  const char *datafile,int N,int *Vec);
 int GetMatrixParameter(const char *prefix,const char *tag,
 		       const char *datafile,Matrix *M);
 int GetStringParameter(const char *prefix,const char *tag,const char *datafile,
