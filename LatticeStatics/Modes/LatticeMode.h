@@ -3,8 +3,6 @@
 
 #include "Lattice.h"
 
-#define DIM 2
-
 class LatticeMode
 {
 public:
@@ -12,6 +10,7 @@ public:
 
    virtual Vector ArcLenRHS(double DS,const Vector &Diff,double Aspect) = 0;
    virtual Vector ArcLenDef() = 0;
+   virtual Vector DrDt(const Vector &Diff) = 0;
    virtual void ArcLenUpdate(const Vector &newval) = 0;
    virtual double ArcLenAngle(Vector Old,Vector New,double Aspect) = 0;
    virtual Matrix ArcLenStiffness(const Vector &Diff,double Aspect) = 0;

@@ -45,6 +45,16 @@ double ExpandShuffle::ArcLenAngle(Vector Old,Vector New,double Aspect)
    return fabs(acos( (Old*New)/(Old.Norm()*New.Norm()) ));
 }
 
+Vector ExpandShuffle::DrDt(const Vector &Diff)
+{
+   int size=Lattice_->DOF().Dim();
+   Vector ddt(size,0.0);
+
+   ddt[0] = ddt[1] = ddt[2] = Diff[0]/Diff[Diff.Dim()-1];
+   
+   return ddt;
+}
+
 Matrix ExpandShuffle::ArcLenStiffness(const Vector &Diff,double Aspect)
 {
    Matrix K(2,2);

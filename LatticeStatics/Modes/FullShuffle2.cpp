@@ -76,6 +76,19 @@ double FullShuffle2::ArcLenAngle(Vector Old,Vector New,double Aspect)
    return fabs(acos( (Old*New)/(Old.Norm()*New.Norm()) ));
 }
 
+Vector FullShuffle2::DrDt(const Vector &Diff)
+{
+   int size=Diff.Dim();
+   Vector ddt(size-1);
+
+   for (int i=0;i<size-1;i++)
+   {
+      ddt[i] = Diff[i]/Diff[size];
+   }
+
+   return ddt;
+}
+
 Matrix FullShuffle2::ArcLenStiffness(const Vector &Diff,double Aspect)
 {
    Matrix K(9,9);

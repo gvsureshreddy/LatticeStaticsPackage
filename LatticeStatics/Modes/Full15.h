@@ -18,6 +18,7 @@ public:
    // Functions required by LatticeMode
    virtual Vector ArcLenRHS(double DS,const Vector &Diff,double Aspect);
    virtual Vector ArcLenDef();
+   virtual Vector DrDt(const Vector &Diff);
    virtual void ArcLenUpdate(const Vector &newval);
    virtual double ArcLenAngle(Vector Old,Vector New,double Aspect);
    virtual Matrix ArcLenStiffness(const Vector &Diff,double Aspect);

@@ -10,6 +10,7 @@ MODES = KnownModes.cpp\
 	UniDefTemp3D1PMono.cpp\
 	UniDefTemp3D1MMono.cpp\
 	UniDefTemp3DFull.cpp\
+	Expand6.cpp\
 	ExpandShuffle.cpp\
 	Shuffle3NaCl.cpp\
 	Shuffle3Rhombo.cpp\

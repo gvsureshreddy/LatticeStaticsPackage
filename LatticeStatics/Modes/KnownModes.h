@@ -9,6 +9,7 @@
 #include "UniDefTemp3D1PMono.h"
 #include "UniDefTemp3D1MMono.h"
 #include "UniDefTemp3DFull.h"
+#include "Expand6.h"
 #include "ExpandShuffle.h"
 #include "Shuffle3NaCl.h"
 #include "Shuffle3Rhombo.h"
@@ -21,6 +22,6 @@
 #include "Expand15.h"
 #include "Full15.h"
 
-#define KNOWNMODES 22
+#define KNOWNMODES 23
 
 LatticeMode *InitializeMode(Lattice *Lat,char *datafile);

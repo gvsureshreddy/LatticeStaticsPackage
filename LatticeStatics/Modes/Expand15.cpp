@@ -1,5 +1,7 @@
 #include "Expand15.h"
 
+#define DOFS 15
+
 Expand15::Expand15(Lattice *M)
 {
    Lattice_ = (GenericLat *) M;
@@ -45,6 +47,16 @@ double Expand15::ArcLenAngle(Vector Old,Vector New,double Aspect)
    New[1] /= Aspect;
 
    return fabs(acos( (Old*New)/(Old.Norm()*New.Norm()) ));
+}
+
+Vector Expand15::DrDt(const Vector &Diff)
+{
+   Vector ddt(DOFS,0.0);
+
+   ddt[0] = Diff[0]/Diff[1];
+   ddt[1] = ddt[2] = ddt[0];
+
+   return ddt;
 }
 
 Matrix Expand15::ArcLenStiffness(const Vector &Diff,double Aspect)

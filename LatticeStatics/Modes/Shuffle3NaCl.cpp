@@ -50,6 +50,18 @@ double Shuffle3NaCl::ArcLenAngle(Vector Old,Vector New,double Aspect)
    return fabs(acos( (Old*New)/(Old.Norm()*New.Norm()) ));
 }
 
+Vector Shuffle3NaCl::DrDt(const Vector &Diff)
+{
+   int size=Lattice_->DOF().Dim();
+   int ds=Diff.Dim()-1;
+   Vector ddt(size,0.0);
+
+   ddt[0] = ddt[1] = ddt[2] = Diff[0]/Diff[ds];
+   ddt[3] = ddt[4] = ddt[5] = ddt[0]/4.0;
+
+   return ddt;
+}
+
 Matrix Shuffle3NaCl::ArcLenStiffness(const Vector &Diff,double Aspect)
 {
    Matrix K(2,2);
