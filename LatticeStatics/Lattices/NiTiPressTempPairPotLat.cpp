@@ -459,9 +459,12 @@ Matrix NiTiPressTempPairPotLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 		     DX = X*RefLen_;
 		     break;
 		  case 2:
-		  case 3:
 		     Inter = ab;
 		     DX = (X + ABOffset)*RefLen_;
+		     break;
+		  case 3:
+		     Inter = ab;
+		     DX = (X - ABOffset)*RefLen_;
 		     break;
 	       }
 		     
@@ -471,6 +474,7 @@ Matrix NiTiPressTempPairPotLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 	       // Only use Sphere of Influance (current)
 	       if (r2==0 || r2 > InfluanceDist_*InfluanceDist_)
 	       {
+		  if (inter == 0) inter++;
 		  continue;
 	       }
 
