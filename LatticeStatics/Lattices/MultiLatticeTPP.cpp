@@ -95,7 +95,9 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo)
    if(!GetParameter(prefix,"MaxIterations",datafile,"%u",&iter)) exit(-1);
    if(!GetParameter(prefix,"InitializeStepSize",datafile,"%lf",&DX)) exit(-1);
    if(!GetParameter(prefix,"BlochWaveGridSize",datafile,"%u",&GridSize_)) exit(-1);
-
+   if(!GetParameter(prefix,"BlochWaveCurrRef",datafile,"%u",&CurrRef_))
+      CurrRef_ = 1;
+   
    // Initialize RefLattice_
    for (int i=0;i<DIM3;++i)
       for (int j=0;j<DIM3;++j)
@@ -1252,7 +1254,47 @@ Matrix MultiLatticeTPP::CondensedModuli()
    return CM;
 }
 
-CMatrix MultiLatticeTPP::DynamicalStiffness(Vector &K)
+int MultiLatticeTPP::comp(const void *a,const void *b)
+{
+   double t;
+   if( *((double*) a) == *((double*) b)) return 0;
+   else
+   {
+      t= *((double*) a) - *((double*) b);
+      t/=fabs(t);
+      return int(t);
+   }
+}
+
+void MultiLatticeTPP::interpolate(Matrix *EigVals,int zero,int one,int two)
+{
+   // Calculate expected value for eigvals and store in zero position
+   EigVals[zero] = 2.0*EigVals[one] - EigVals[zero];
+
+   double delta,dtmp;
+   int i,j,pos;
+
+   for (i=0;i<EigVals[0].Cols();++i)
+   {
+      pos = i;
+      delta = fabs(EigVals[zero][0][i] - EigVals[two][0][i]);
+      for (j=i+1;j<EigVals[0].Cols();++j)
+      {
+	 dtmp = fabs(EigVals[zero][0][i] - EigVals[two][0][j]);
+	 if (dtmp < delta)
+	 {
+	    delta = dtmp;
+	    pos = j;
+	 }
+      }
+      // move correct eigval to current pos
+      dtmp = EigVals[two][0][i];
+      EigVals[two][0][i] = EigVals[two][0][pos];
+      EigVals[two][0][pos] = dtmp;
+   }
+}
+
+CMatrix MultiLatticeTPP::CurrentDynamicalStiffness(Vector &K)
 {
    static CMatrix Dk;
    static double pi = 4.0*atan(1.0);
@@ -1310,7 +1352,7 @@ CMatrix MultiLatticeTPP::DynamicalStiffness(Vector &K)
    return Dk;
 }
 
-void MultiLatticeTPP::DispersionCurves(Vector K,int NoPTS,const char *prefix,
+void MultiLatticeTPP::CurrentDispersionCurves(Vector K,int NoPTS,const char *prefix,
 				       ostream &out)
 {
    int w=out.width();
@@ -1354,7 +1396,7 @@ void MultiLatticeTPP::DispersionCurves(Vector K,int NoPTS,const char *prefix,
    for (int k=0;k<2;++k)
    {
       Z = Z1 + (k*dz)*DZ;
-      EigVal[k] = HermiteEigVal(DynamicalStiffness(Z));
+      EigVal[k] = HermiteEigVal(CurrentDynamicalStiffness(Z));
       qsort(EigVal[k][0],INTERNAL_ATOMS*DIM3,sizeof(double),&comp);
       
       out << prefix << setw(w) << NTemp_ << setw(w) << k*dz;
@@ -1371,7 +1413,7 @@ void MultiLatticeTPP::DispersionCurves(Vector K,int NoPTS,const char *prefix,
    for (int k=2;k<NoPTS;++k)
    {
       Z = Z1 + (k*dz)*DZ;
-      EigVal[two] = HermiteEigVal(DynamicalStiffness(Z));
+      EigVal[two] = HermiteEigVal(CurrentDynamicalStiffness(Z));
       qsort(EigVal[two][0],INTERNAL_ATOMS*DIM3,sizeof(double),&comp);
       interpolate(EigVal,zero,one,two);
       
@@ -1389,47 +1431,7 @@ void MultiLatticeTPP::DispersionCurves(Vector K,int NoPTS,const char *prefix,
    }
 }
 
-int MultiLatticeTPP::comp(const void *a,const void *b)
-{
-   double t;
-   if( *((double*) a) == *((double*) b)) return 0;
-   else
-   {
-      t= *((double*) a) - *((double*) b);
-      t/=fabs(t);
-      return int(t);
-   }
-}
-
-void MultiLatticeTPP::interpolate(Matrix *EigVals,int zero,int one,int two)
-{
-   // Calculate expected value for eigvals and store in zero position
-   EigVals[zero] = 2.0*EigVals[one] - EigVals[zero];
-
-   double delta,dtmp;
-   int i,j,pos;
-
-   for (i=0;i<EigVals[0].Cols();++i)
-   {
-      pos = i;
-      delta = fabs(EigVals[zero][0][i] - EigVals[two][0][i]);
-      for (j=i+1;j<EigVals[0].Cols();++j)
-      {
-	 dtmp = fabs(EigVals[zero][0][i] - EigVals[two][0][j]);
-	 if (dtmp < delta)
-	 {
-	    delta = dtmp;
-	    pos = j;
-	 }
-      }
-      // move correct eigval to current pos
-      dtmp = EigVals[two][0][i];
-      EigVals[two][0][i] = EigVals[two][0][pos];
-      EigVals[two][0][pos] = dtmp;
-   }
-}
-
-int MultiLatticeTPP::BlochWave(Vector &K)
+int MultiLatticeTPP::CurrentBlochWave(Vector &K)
 {
    static CMatrix A(INTERNAL_ATOMS*DIM3,INTERNAL_ATOMS*DIM3);
    static Matrix EigVals(1,INTERNAL_ATOMS*DIM3);
@@ -1463,7 +1465,172 @@ int MultiLatticeTPP::BlochWave(Vector &K)
       }
 
       Z = InverseLat*K;
-      A = DynamicalStiffness(Z);
+      A = CurrentDynamicalStiffness(Z);
+
+      EigVals = HermiteEigVal(A);
+      
+      for (int i=0;i<INTERNAL_ATOMS*DIM3;++i)
+      {
+	 // if w^2 <= 0.0 --> Re(i*w*x) > 0 --> growing solutions --> unstable
+	 if ( EigVals[0][i] <= 0.0 )
+	 {
+	    return 0;
+	 }
+      }
+   }
+   return 1;
+}
+
+CMatrix MultiLatticeTPP::ReferenceDynamicalStiffness(Vector &K)
+{
+   static CMatrix Dk;
+   static double pi = 4.0*atan(1.0);
+   static complex<double> Ic(0,1);
+   static complex<double> A = 2.0*pi*Ic;
+   int i,j;
+
+   Dk.Resize(INTERNAL_ATOMS*DIM3,INTERNAL_ATOMS*DIM3,0.0);
+   
+   for (LatSum_.Reset();!LatSum_.Done();++LatSum_)
+   {
+      // Calculate Dk
+      if (LatSum_.Atom(0) != LatSum_.Atom(1))
+      {
+	 for (i=0;i<DIM3;i++)
+	    for (j=0;j<DIM3;j++)
+	    {
+	       // y != y' terms (i.e., off block (3x3) diagonal terms)
+	       Dk[DIM3*LatSum_.Atom(0)+i][DIM3*LatSum_.Atom(1)+j] +=
+		  (-2.0*Del(i,j)*LatSum_.phi1()
+		   -4.0*LatSum_.Dx(i)*LatSum_.Dx(j)*LatSum_.phi2())
+		  *exp(A*
+		       (K[0]*LatSum_.DX(0) + K[1]*LatSum_.DX(1) + K[2]*LatSum_.DX(2)));
+
+	       // y==y' components (i.e., Phi(0,y,y) term)
+	       Dk[DIM3*LatSum_.Atom(0)+i][DIM3*LatSum_.Atom(0)+j] +=
+		  (2.0*Del(i,j)*LatSum_.phi1()
+		   +4.0*LatSum_.Dx(i)*LatSum_.Dx(j)*LatSum_.phi2());
+	    }
+      }
+      else
+      {
+	 for (i=0;i<DIM3;++i)
+	    for (j=0;j<DIM3;++j)
+	    {
+	       Dk[DIM3*LatSum_.Atom(0)+i][DIM3*LatSum_.Atom(1)+j] +=
+		  (-2.0*Del(i,j)*LatSum_.phi1()
+		   -4.0*LatSum_.Dx(i)*LatSum_.Dx(j)*LatSum_.phi2())
+		  *(exp(A*
+			(K[0]*LatSum_.DX(0) + K[1]*LatSum_.DX(1)
+			 + K[2]*LatSum_.DX(2)))
+		    - 1.0);
+	    }
+      }
+   }
+   // Normalize through the Mass Matrix
+   for (int p=0;p<INTERNAL_ATOMS;++p)
+      for (int q=0;q<INTERNAL_ATOMS;++q)
+	 for (i=0;i<DIM3;i++)
+	    for (j=0;j<DIM3;j++)
+	    {
+	       Dk[DIM3*p+i][DIM3*q+j] /= sqrt(AtomicMass_[p]*AtomicMass_[q]);
+	    }
+   
+   return Dk;
+}
+
+void MultiLatticeTPP::ReferenceDispersionCurves(Vector K,int NoPTS,const char *prefix,
+						ostream &out)
+{
+   int w=out.width();
+   out.width(0);
+   if (Echo_) cout.width(0);
+
+   Matrix Tmp(DIM3,DIM3),InverseLat(DIM3,DIM3);
+   for (int i=0;i<DIM3;++i)
+      for (int j=0;j<DIM3;++j)
+      {
+	 Tmp[i][j] = RefLattice_[i][j];
+      }
+   InverseLat = Tmp.Inverse();
+
+   Matrix EigVal[3];
+   for (int i=0;i<3;++i) EigVal[i].Resize(1,INTERNAL_ATOMS*DIM3);
+
+   Vector Z1(DIM3),Z2(DIM3);
+   for (int k=0;k<DIM3;++k)
+   {
+      Z1[k] = K[k];
+      Z2[k] = K[DIM3 + k];
+   }
+   Z1 = InverseLat*Z1;
+   Z2 = InverseLat*Z2;
+   
+   Vector Z(DIM3),
+      DZ=Z2-Z1;
+   double dz = 1.0/(NoPTS-1);
+   for (int k=0;k<2;++k)
+   {
+      Z = Z1 + (k*dz)*DZ;
+      EigVal[k] = HermiteEigVal(ReferenceDynamicalStiffness(Z));
+      qsort(EigVal[k][0],INTERNAL_ATOMS*DIM3,sizeof(double),&comp);
+      
+      out << prefix << setw(w) << NTemp_ << setw(w) << k*dz;
+      if (Echo_) cout << prefix << setw(w) << NTemp_ << setw(w) << k*dz;
+      for (int i=0;i<INTERNAL_ATOMS*DIM3;++i)
+      {
+	 out << setw(w) << EigVal[k][0][i];
+	 if (Echo_) cout << setw(w) << EigVal[k][0][i];
+      }
+      out << endl;
+      if (Echo_) cout << endl;
+   }
+   int zero=0,one=1,two=2;
+   for (int k=2;k<NoPTS;++k)
+   {
+      Z = Z1 + (k*dz)*DZ;
+      EigVal[two] = HermiteEigVal(ReferenceDynamicalStiffness(Z));
+      qsort(EigVal[two][0],INTERNAL_ATOMS*DIM3,sizeof(double),&comp);
+      interpolate(EigVal,zero,one,two);
+      
+      out << prefix << setw(w) << NTemp_ << setw(w) << k*dz;
+      if (Echo_) cout << prefix << setw(w) << NTemp_ << setw(w) << k*dz;
+      for (int i=0;i<INTERNAL_ATOMS*DIM3;++i)
+      {
+	 out << setw(w) << EigVal[two][0][i];;
+	 if (Echo_) cout << setw(w) << EigVal[two][0][i];;
+      }
+      out << endl;
+      if (Echo_) cout << endl;
+
+      zero = (++zero)%3; one = (zero+1)%3; two = (one+1)%3;
+   }
+}
+
+int MultiLatticeTPP::ReferenceBlochWave(Vector &K)
+{
+   static CMatrix A(INTERNAL_ATOMS*DIM3,INTERNAL_ATOMS*DIM3);
+   static Matrix EigVals(1,INTERNAL_ATOMS*DIM3);
+   static Matrix InverseLat(DIM3,DIM3),Tmp(DIM3,DIM3);
+   static Vector Z(DIM3);
+
+   for (int i=0;i<DIM3;++i)
+      for (int j=0;j<DIM3;++j)
+      {
+	 Tmp[i][j] = RefLattice_[i][j];
+      }
+   InverseLat = Tmp.Inverse();
+
+   // Iterate over points in cubic unit cell
+   for (UCIter_.Reset();!UCIter_.Done();++UCIter_)
+   {
+      for (int i=0;i<DIM3;++i)
+      {
+	 K[i] = UCIter_[i];
+      }
+
+      Z = InverseLat*K;
+      A = ReferenceDynamicalStiffness(Z);
 
       EigVals = HermiteEigVal(A);
       

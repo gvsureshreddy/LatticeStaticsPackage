@@ -36,6 +36,7 @@ private:
    PairPotentials ***Potential_;
 
    // Misc
+   int CurrRef_;
    double ConvexityDX_;
    Vector *AtomPositions_;
    int NoMovable_;
@@ -45,6 +46,12 @@ private:
    Matrix stiffness(int moduliflag=0,PairPotentials::TDeriv dt=PairPotentials::T0);
    Matrix CondensedModuli();
 
+   void CurrentDispersionCurves(Vector K,int NoPTS,const char *prefix,ostream &out);
+   int CurrentBlochWave(Vector &K);
+   CMatrix CurrentDynamicalStiffness(Vector &K);
+   void ReferenceDispersionCurves(Vector K,int NoPTS,const char *prefix,ostream &out);
+   int ReferenceBlochWave(Vector &K);
+   CMatrix ReferenceDynamicalStiffness(Vector &K);
    // Needed for DispersionCurves()
    //
    // find next eigval in position two based on previous two values
@@ -72,8 +79,11 @@ public:
    virtual Matrix Moduli() {return stiffness(1);}
    virtual Matrix E3();
    virtual Matrix E4();
-   virtual void DispersionCurves(Vector K,int NoPTS,const char *prefix,ostream &out);
-   virtual int BlochWave(Vector &K);
+   virtual void DispersionCurves(Vector K,int NoPTS,const char *prefix,ostream &out)
+   { CurrRef_? CurrentDispersionCurves(K,NoPTS,prefix,out)
+	:ReferenceDispersionCurves(K,NoPTS,prefix,out);}
+   virtual int BlochWave(Vector &K)
+   { CurrRef_? CurrentBlochWave(K) : ReferenceBlochWave(K);}
    virtual void SetGridSize(int Grid) {GridSize_=Grid; UCIter_(GridSize_);}
    virtual void NeighborDistances(int cutoff,ostream &out);
    virtual void Print(ostream &out,PrintDetail flag);
@@ -86,7 +96,6 @@ public:
    double Pressure() const {return Pressure_;}
    double SetPressure(double &p) { Pressure_ = p;}
    double ShearMod() const {return ShearMod_;}
-   CMatrix DynamicalStiffness(Vector &K);
    friend ostream &operator<<(ostream &out,MultiLatticeTPP &A);
 
 private:
