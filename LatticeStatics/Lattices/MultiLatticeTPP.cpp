@@ -1257,7 +1257,7 @@ CMatrix MultiLatticeTPP::DynamicalStiffness(Vector &K)
    static CMatrix Dk;
    static double pi = 4.0*atan(1.0);
    static complex<double> Ic(0,1);
-   static complex<double> A = -2.0*pi*Ic;
+   static complex<double> A = 2.0*pi*Ic;
    int i,j;
 
    Dk.Resize(INTERNAL_ATOMS*DIM3,INTERNAL_ATOMS*DIM3,0.0);
@@ -1433,7 +1433,7 @@ int MultiLatticeTPP::BlochWave(Vector &K)
 {
    static CMatrix A(INTERNAL_ATOMS*DIM3,INTERNAL_ATOMS*DIM3);
    static Matrix EigVals(1,INTERNAL_ATOMS*DIM3);
-   static Matrix DefGrad(DIM3,DIM3),InverseLat(DIM3,DIM3),Tmp(DIM3,DIM3,0.0);
+   static Matrix DefGrad(DIM3,DIM3),InverseLat(DIM3,DIM3),Tmp(DIM3,DIM3);
    static Vector Z(DIM3);
 
    // Setup DefGrad
@@ -1445,10 +1445,13 @@ int MultiLatticeTPP::BlochWave(Vector &K)
    DefGrad[2][1] = DefGrad[1][2] = DOF_[5];
    for (int i=0;i<DIM3;++i)
       for (int j=0;j<DIM3;++j)
+      {
+	 Tmp[i][j] = 0.0;
 	 for (int k=0;k<DIM3;++k)
 	 {
 	    Tmp[i][j] += DefGrad[i][k]*RefLattice_[j][k];
 	 }
+      }
    InverseLat = (Tmp.Inverse()).Transpose();
 
    // Iterate over points in cubic unit cell
