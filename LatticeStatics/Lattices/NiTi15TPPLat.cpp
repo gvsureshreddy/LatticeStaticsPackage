@@ -115,7 +115,7 @@ int NiTi15TPPLat::FindLatticeSpacing(int iter,double dx)
       else
       {
 	 i=0;
-	 while ((fabs(s) > 1.0e-14) && (i < iter))
+	 while ((fabs(s) > 1.0e-13) && (i < iter))
 	 {
 	    cout << setw(20) << RefLen_ << setw(20) << s << endl;
 	    i++;
