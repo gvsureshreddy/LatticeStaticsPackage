@@ -128,11 +128,13 @@ unsigned Rank1Convex3D(Matrix K,double dx)
       PolyRootsLaguerre(A[0][0],2,Roots,1);
       for (int i=0;i<2;i++) if (Roots[i].imag() == 0.0) return 0;
       
-      PolyRootsLaguerre(A[1][1],2,Roots,1);
-      for (int i=0;i<2;i++) if (Roots[i].imag() == 0.0) return 0;
+      // Only need to check the leading principal minors
+      //PolyRootsLaguerre(A[1][1],2,Roots,1);
+      //for (int i=0;i<2;i++) if (Roots[i].imag() == 0.0) return 0;
 
-      PolyRootsLaguerre(A[2][2],2,Roots,1);
-      for (int i=0;i<2;i++) if (Roots[i].imag() == 0.0) return 0;
+      // Only need to check the leading principal minors
+      //PolyRootsLaguerre(A[2][2],2,Roots,1);
+      //for (int i=0;i<2;i++) if (Roots[i].imag() == 0.0) return 0;
 
       PolyMult(A[0][0],2,A[1][1],2,PA);
       PolyMult(A[0][1],2,A[1][0],2,PB);
@@ -140,17 +142,19 @@ unsigned Rank1Convex3D(Matrix K,double dx)
       PolyRootsLaguerre(SolveMe,4,Roots,1);
       for (int i=0;i<4;i++) if (Roots[i].imag() == 0.0) return 0;
 
-      PolyMult(A[0][0],2,A[2][2],2,PA);
-      PolyMult(A[0][2],2,A[2][0],2,PB);
-      for (int i=0;i<=4;i++) SolveMe[i] = PA[i] - PB[i];
-      PolyRootsLaguerre(SolveMe,4,Roots,1);
-      for (int i=0;i<4;i++) if (Roots[i].imag() == 0.0) return 0;
+      // Only need to check the leading principal minors
+      //PolyMult(A[0][0],2,A[2][2],2,PA);
+      //PolyMult(A[0][2],2,A[2][0],2,PB);
+      //for (int i=0;i<=4;i++) SolveMe[i] = PA[i] - PB[i];
+      //PolyRootsLaguerre(SolveMe,4,Roots,1);
+      //for (int i=0;i<4;i++) if (Roots[i].imag() == 0.0) return 0;
       
-      PolyMult(A[1][1],2,A[2][2],2,PA);
-      PolyMult(A[1][2],2,A[2][1],2,PB);
-      for (int i=0;i<=4;i++) SolveMe[i] = PA[i] - PB[i];
-      PolyRootsLaguerre(SolveMe,4,Roots,1);
-      for (int i=0;i<4;i++) if (Roots[i].imag() == 0.0) return 0;
+      // Only need to check the leading principal minors
+      //PolyMult(A[1][1],2,A[2][2],2,PA);
+      //PolyMult(A[1][2],2,A[2][1],2,PB);
+      //for (int i=0;i<=4;i++) SolveMe[i] = PA[i] - PB[i];
+      //PolyRootsLaguerre(SolveMe,4,Roots,1);
+      //for (int i=0;i<4;i++) if (Roots[i].imag() == 0.0) return 0;
 
       double_complex DA[7],DB[7],DC[7];
 
@@ -206,7 +210,8 @@ unsigned Rank1Convex2D(Matrix K,double dx)
 
 
       if (A[0][0] <= 0.0) return 0;
-      if (A[1][1] <= 0.0) return 0;
+      // Only need to check the leading principal minors
+      //if (A[1][1] <= 0.0) return 0;
       
       if ((A[0][0]*A[1][1] - A[0][1]*A[1][0]) <= 0.0) return 0;
    }
