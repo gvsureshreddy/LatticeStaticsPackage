@@ -5,7 +5,7 @@
 #include <math.h>
 
 // Global IDString
-char VectorID[]="$Id: Vector.cpp,v 1.3 2000/08/01 06:26:08 elliottr Exp $";
+char VectorID[]="$Id: Vector.cpp,v 1.4 2000/11/22 19:56:06 elliottr Exp $";
 
 // Private Functions...
 
@@ -46,7 +46,7 @@ Vector::Vector(const Vector& A)
       Elements_=new Vector::Elm[Cols_];
    }
 
-   memmove(Elements_,A.Elements_,sizeof(Vector::Elm[Cols_]));
+   memmove(Elements_,A.Elements_,sizeof(Vector::Elm)*Cols_);
 
    return;
 }
@@ -73,7 +73,7 @@ Vector::Vector(const Matrix& A)
          Elements_=new Vector::Elm[Cols_];
       }
 
-      memmove(Elements_,A[0],sizeof(Vector::Elm[Cols_]));
+      memmove(Elements_,A[0],sizeof(Vector::Elm)*Cols_);
    }
    else
    {
@@ -88,7 +88,7 @@ Vector::Vector(const Matrix& A)
          Elements_=new Vector::Elm[Cols_];
       }
 
-      memmove(Elements_,A[0],sizeof(Vector::Elm[Cols_]));
+      memmove(Elements_,A[0],sizeof(Vector::Elm)*Cols_);
    }
 
    return;
@@ -317,7 +317,7 @@ Vector& Vector::operator=(const Vector& B)
       exit(-1);
    }
 
-   memmove(Elements_,B.Elements_,sizeof(Vector::Elm[Cols_]));
+   memmove(Elements_,B.Elements_,sizeof(Vector::Elm)*Cols_);
 
    return *this;
 }

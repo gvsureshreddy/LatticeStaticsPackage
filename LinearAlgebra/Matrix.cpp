@@ -5,7 +5,7 @@
 #include <math.h>
 
 // Global IDString
-char MatrixID[]="$Id: Matrix.cpp,v 1.3 2000/08/01 06:26:08 elliottr Exp $";
+char MatrixID[]="$Id: Matrix.cpp,v 1.4 2000/11/22 19:56:06 elliottr Exp $";
 
 // Private Methods...
 
@@ -103,7 +103,7 @@ Matrix::Matrix(const Matrix& A)
 	 Elements_[i]=Elements_[i-1]+Cols_;
       }
 
-      memmove(Elements_[0],A.Elements_[0],sizeof(Matrix::Elm[Rows_*Cols_]));
+      memmove(Elements_[0],A.Elements_[0],sizeof(Matrix::Elm)*Rows_*Cols_);
    }
 
    return;
@@ -294,7 +294,7 @@ Matrix& Matrix::operator=(const Matrix& B)
       exit(-1);
    }
 
-   memmove(Elements_[0],B.Elements_[0],sizeof(Matrix::Elm[Rows_*Cols_]));
+   memmove(Elements_[0],B.Elements_[0],sizeof(Matrix::Elm)*Rows_*Cols_);
 
    return *this;
 }
@@ -397,6 +397,17 @@ void Matrix::Resize(unsigned Rows,unsigned Cols,Matrix::Elm InitVal)
 	 }
       }
    }
+   else
+   {
+      if (InitVal != SENTINAL)
+	 for (register int i=0;i<Rows_;i++)
+	 {
+	    for (register int j=0;j<Cols_;j++)
+	    {
+	       Elements_[i][j]=InitVal;
+	    }
+	 }
+   }
    return;
 }
 
@@ -441,7 +452,8 @@ void PLU(const Matrix& A,Matrix& P,Matrix& L,Matrix& U)
 
    Matrix Temp=A,
       S(A.Rows_,1,0);
-   int Ipivot[A.Rows_];
+   int *Ipivot;
+   Ipivot = new int[A.Rows_];
 
    for (register int i=0;i<A.Rows_;i++)
    {
@@ -474,9 +486,10 @@ void PLU(const Matrix& A,Matrix& P,Matrix& L,Matrix& U)
 
       if (k>i)
       {
+	 Matrix::Elm *Switch;
+	 Switch = new Matrix::Elm[A.Rows_];
 	 for (register int j=i;j<A.Rows_;j++)
 	 {
-	    Matrix::Elm Switch[A.Rows_];
 	    Switch[j]=Temp.Elements_[i][j];
 	    Temp.Elements_[i][j]=Temp.Elements_[k][j];
 	    Temp.Elements_[k][j]=Switch[j];
@@ -484,11 +497,12 @@ void PLU(const Matrix& A,Matrix& P,Matrix& L,Matrix& U)
 
 	 for (register int j=0;j<i;j++)
 	 {
-	    Matrix::Elm Switch[A.Rows_];
 	    Switch[j]=L.Elements_[i][j];
 	    L.Elements_[i][j]=L.Elements_[k][j];
 	    L.Elements_[k][j]=Switch[j];
 	 }
+
+	 delete [] Switch;
 
 	 temp1=S.Elements_[i][0];
 	 S.Elements_[i][0]=S.Elements_[k][0];
@@ -525,6 +539,8 @@ void PLU(const Matrix& A,Matrix& P,Matrix& L,Matrix& U)
    {
       P.Elements_[i][Ipivot[i]]=1;
    }
+
+   delete [] Ipivot;
 
    return;
 }
@@ -582,7 +598,8 @@ Matrix Solve(const Matrix& A,const Matrix& B)
 
    PLU(A,P,L,U);
 
-   Matrix::Elm Y[B.Rows_];
+   Matrix::Elm *Y;
+   Y = new Matrix::Elm[B.Rows_];
    Matrix Temp=P*B;
 
    Y[0]=Temp.Elements_[0][0];
@@ -608,6 +625,8 @@ Matrix Solve(const Matrix& A,const Matrix& B)
       X.Elements_[i][0]=X.Elements_[i][0]/U.Elements_[i][i];
    }
 
+   delete [] Y;
+      
    return X;
 }
 
