@@ -89,12 +89,7 @@ int main(int argc,char *argv[])
 	     << "#" << setw(Width) << DOF << endl << setw(Width);
 	 if (Echo) cout << "#" << setw(Width) << temp << endl
 			<< "#" << setw(Width) << DOF << endl;
-	 out << "#" << setw(Width) << Lat->Stress() << endl << setw(Width);
-	 if (Echo)
-	 {
-	    cout << "#" << setw(Width) << Lat->Stress() << endl;
-	 }
-	 
+
 	 Lat->LongWavelengthModuli(dk,gridsize,"",out);
 	 out << endl;
 	 if (Echo) cout << endl;
