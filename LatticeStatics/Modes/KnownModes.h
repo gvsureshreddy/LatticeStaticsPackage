@@ -14,6 +14,6 @@
 #include "RhomboShuffle.h"
 #include "FullShuffle.h"
 
-#define KNOWNMODES 14
+#define KNOWNMODES 15
 
 LatticeMode *InitializeMode(Lattice *Lat,char *datafile);
