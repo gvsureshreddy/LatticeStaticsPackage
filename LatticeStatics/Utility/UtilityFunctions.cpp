@@ -13,6 +13,37 @@ void GetParameter(const char *tag,const char *datafile,const char *scanffmt,
    if (pclose(pipe)) Errfun(tag);
 }
 
+void GetVectorParameter(const char *tag,const char *datafile,Vector *V)
+{
+   char command[LINELENGTH];
+   FILE *pipe;
+
+   SetPerlCommand(command,datafile,tag);
+   pipe = OpenPipe(command,"r");
+   for (int i=0;i<V->Dim();++i)
+   {
+      fscanf(pipe,"%lf",&((*V)[i]));
+   }
+   if (pclose(pipe)) Errfun(tag);
+}
+
+void GetMatrixParameter(const char *tag,const char *datafile,Matrix *M)
+{
+   char command[LINELENGTH];
+   FILE *pipe;
+
+   SetPerlCommand(command,datafile,tag);
+   pipe = OpenPipe(command,"r");
+   for (int i=0;i<M->Rows();++i)
+   {
+      for (int j=0;M->Cols();++j)
+      {
+	 fscanf(pipe,"%lf",&((*M)[i][j]));
+      }
+   }
+   if (pclose(pipe)) Errfun(tag);
+}
+
 int GetStringParameter(const char *tag,const char *datafile,
 		       const char *choices[],const unsigned numb)
 {

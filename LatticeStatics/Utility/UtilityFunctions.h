@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include <Matrix.h>
+#include <Vector.h>
 #include <MyMath.h>
 
 #define LINELENGTH 600
@@ -14,6 +15,8 @@
 // Utility function definitions
 void GetParameter(const char *tag,const char *datafile,const char *scanffmt,
 		  void *parameter);
+void GetVectorParameter(const char *tag,const char *datafile,Vector *V);
+void GetMatrixParameter(const char *tag,const char *datafile,Matrix *M);
 int GetStringParameter(const char *tag,const char *datafile,
 		       const char *choices[],const unsigned numb);
 void SetPerlCommand(char *string,const char *datafile,const char *tag);
