@@ -22,7 +22,7 @@ public:
    virtual Matrix E3() = 0;
    virtual Matrix E4() = 0;
    virtual int StiffnessNulity(double *Min=NULL);
-   virtual void DispersionCurves(char *datafile,const char *prefix,ostream &out) {};
+   virtual void DispersionCurves(Vector Y,int NoPTS,const char *prefix,ostream &out) {};
    virtual void CriticalPointInfo(const Vector &DrDt,double Tolerance,
 				  char *datafile,const char *prefix,
 				  int Width,ostream &out) = 0;

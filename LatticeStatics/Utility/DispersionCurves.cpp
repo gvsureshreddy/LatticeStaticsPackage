@@ -34,9 +34,31 @@ int main(int argc,char *argv[])
    fstream out;
    InitializeOutputFile(out,outputfile,datafile,prefix,Lat,Precision,Width);
 
+   int NoDirs,NoPTS;
+   if(!GetParameter(prefix,"DispersionDirections",datafile,"%u",&NoDirs)) exit(-1);
+   if(!GetParameter(prefix,"DispersionPoints",datafile,"%u",&NoPTS)) exit(-1);
+
+   Vector *Direction;
+   Direction = new Vector[NoDirs];
+   char tmp[LINELENGTH];
+
+   for (int i=0;i<NoDirs;++i)
+   {
+      Direction[i].Resize(3);
+      sprintf(tmp,"DispersionDir_%u",i);
+      if(!GetVectorParameter(prefix,tmp,datafile,&(Direction[i]))) exit(-1);
+   }
+
    if (argc<4)
    {
-      Lat->DispersionCurves(datafile,prefix,out);
+      for (int i=0;i<NoDirs;++i)
+      {
+	 out << "#" << setw(Width) << Direction[i] << endl << setw(Width);
+	 cout << "#" << setw(Width) << Direction[i] << endl << setw(Width);
+	 Lat->DispersionCurves(Direction[i],NoPTS,"",out);
+	 out << endl << endl;
+	 cout << endl << endl;
+      }
    }
    else
    {
@@ -47,37 +69,50 @@ int main(int argc,char *argv[])
        "\"DONE\\n\";' %s"};
       
       char strng[LINELENGTH];
+      char tmp[LINELENGTH];
       sprintf(strng,format,argv[3]);
-      pipe = popen(strng,"r");
 
-      double temp;
-      Vector DOF((Lat->DOF()).Dim());
-      fscanf(pipe,"%s",strng);
-      while (strcmp("DONE",strng))
+      for (int i=0;i<NoDirs;++i)
       {
-	 temp = atof(strng);
-	 for (int i=0;i<DOF.Dim();++i)
-	 {
-	    fscanf(pipe,"%lf",&(DOF[i]));
-	 }
-
-	 Lat->SetTemp(temp);
-	 Lat->SetDOF(DOF);
-
-	 out << setw(0);
-	 out << "#" << setw(Width) << temp << endl
-	     << "#" << setw(Width) << DOF << endl << setw(Width);
-	 cout << setw(0);
-	 cout << "#" << setw(Width) << temp << endl
-	      << "#" << setw(Width) << DOF << endl;;
+	 out << "#" << setw(Width) << Direction[i] << endl;
+	 cout << "#" << setw(Width) << Direction[i] << endl;
 	 
-	 Lat->DispersionCurves(datafile,prefix,out);
-
-	 fscanf(pipe,"%s",strng);
+	 pipe = popen(strng,"r");
+	 
+	 double temp;
+	 Vector DOF((Lat->DOF()).Dim());
+	 fscanf(pipe,"%s",tmp);
+	 while (strcmp("DONE",tmp))
+	 {
+	    temp = atof(tmp);
+	    for (int j=0;j<DOF.Dim();++j)
+	    {
+	       fscanf(pipe,"%lf",&(DOF[j]));
+	    }
+	    
+	    Lat->SetTemp(temp);
+	    Lat->SetDOF(DOF);
+	    
+	    out << "#" << setw(Width) << temp << endl
+		<< "#" << setw(Width) << DOF << endl << setw(Width);
+	    cout << "#" << setw(Width) << temp << endl
+		 << "#" << setw(Width) << DOF << endl;;
+	    
+	    Lat->DispersionCurves(Direction[i],NoPTS,"",out);
+	    out << endl;
+	    cout << endl;
+	    
+	    fscanf(pipe,"%s",tmp);
+	 }
+	 pclose(pipe);
+	 
+	 out << endl;
+	 cout << endl;
       }
-      pclose(pipe);
-   }
-
+   }  
+      
+   delete [] Direction;
+   
    out.close();
    return 1;
 }
@@ -138,15 +173,14 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,const char *
 
    cout << "Built on:               " << builddate() << endl
 	<< "LinearAlgebra Build on: " << LinearAlgebraBuildDate() << endl
-	<< "MyMath Built on:        " << MyMathBuildDate() << endl
-	<< setw(Width);
+	<< "MyMath Built on:        " << MyMathBuildDate() << endl;
    out << "#Built on:               " << builddate() << endl
        << "#LinearAlgebra Build on: " << LinearAlgebraBuildDate() << endl
-       << "#MyMath Built on:        " << MyMathBuildDate() << endl
-       << setw(Width);
+       << "#MyMath Built on:        " << MyMathBuildDate() << endl;
 
    devnull << setw(Width);
    Lat->Print(devnull,Lattice::PrintLong);
 
    devnull.close();
 }
+

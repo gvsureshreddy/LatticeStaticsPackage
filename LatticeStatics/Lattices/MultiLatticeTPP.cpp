@@ -1245,26 +1245,11 @@ CMatrix MultiLatticeTPP::DynamicalStiffness(Vector &Y)
    return Cy;
 }
 
-void MultiLatticeTPP::DispersionCurves(char *datafile,const char *prefix,ostream &out)
+void MultiLatticeTPP::DispersionCurves(Vector Y,int NoPTS,const char *prefix,
+				       ostream &out)
 {
    int w=out.width();
-   out.width(0);
-   char tmp[LINELENGTH];
-   
-   int NoDirs,NoPTS;
-   if(!GetParameter(prefix,"DispersionDirections",datafile,"%u",&NoDirs)) exit(-1);
-   if(!GetParameter(prefix,"DispersionPoints",datafile,"%u",&NoPTS)) exit(-1);
-
-   Vector *Direction;
-   Vector Y(DIM3);
-   Direction = new Vector[NoDirs];
-
-   for (int i=0;i<NoDirs;++i)
-   {
-      Direction[i].Resize(DIM3);
-      sprintf(tmp,"DispersionDir_%u",i);
-      if(!GetVectorParameter(prefix,tmp,datafile,&(Direction[i]))) exit(-1);
-   }
+   out.width(0); cout.width(0);
 
    Matrix DefGrad(DIM3,DIM3),Tmp(DIM3,DIM3),InverseLat(DIM3,DIM3);
    // Setup DefGrad
@@ -1288,51 +1273,43 @@ void MultiLatticeTPP::DispersionCurves(char *datafile,const char *prefix,ostream
    Matrix EigVal[3];
    for (int i=0;i<3;++i) EigVal[i].Resize(1,INTERNAL_ATOMS*DIM3);
    
-   for (int dir=0;dir<NoDirs;++dir)
+   Y = InverseLat*Y;
+   Vector Z(Y.Dim());
+   for (int k=0;k<2;++k)
    {
-      out << "#" << setw(w) << Direction[dir] << endl;
-      cout << "#" << setw(w) << Direction[dir] << endl;
-      Direction[dir] = InverseLat*Direction[dir];
-      for (int k=0;k<2;++k)
+      Z = ((k+1)*0.5/NoPTS)*Y;
+      EigVal[k] = HermiteEigVal(DynamicalStiffness(Z));
+      qsort(EigVal[k][0],INTERNAL_ATOMS*DIM3,sizeof(double),&comp);
+      
+      out << prefix << setw(w) << NTemp_ << setw(w) << (k+1)*0.5/NoPTS;
+      cout << prefix << setw(w) << NTemp_ << setw(w) << (k+1)*0.5/NoPTS;
+      for (int i=0;i<INTERNAL_ATOMS*DIM3;++i)
       {
-	 Y = ((k+1)*0.5/NoPTS)*Direction[dir];
-	 EigVal[k] = HermiteEigVal(DynamicalStiffness(Y));
-	 qsort(EigVal[k][0],INTERNAL_ATOMS*DIM3,sizeof(double),&comp);
-
-	 out << setw(w) << NTemp_ << setw(w) << (k+1)*0.5/NoPTS;
-	 cout << setw(w) << NTemp_ << setw(w) << (k+1)*0.5/NoPTS;
-	 for (int i=0;i<INTERNAL_ATOMS*DIM3;++i)
-	 {
-	    out << setw(w) << EigVal[k][0][i];;
-	    cout << setw(w) << EigVal[k][0][i];;
-	 }
-	 out << endl;
-	 cout << endl;
-      }
-      int zero=0,one=1,two=2;
-      for (double k=1.5/NoPTS;k<=0.5;k+=0.5/NoPTS)
-      {
-	 Y = k*Direction[dir];
-	 EigVal[two] = HermiteEigVal(DynamicalStiffness(Y));
-	 qsort(EigVal[two][0],INTERNAL_ATOMS*DIM3,sizeof(double),&comp);
-	 interpolate(EigVal,zero,one,two);
-	 
-	 out << setw(w) << NTemp_ << setw(w) << k;
-	 cout << setw(w) << NTemp_ << setw(w) << k;
-	 for (int i=0;i<INTERNAL_ATOMS*DIM3;++i)
-	 {
-	    out << setw(w) << EigVal[two][0][i];;
-	    cout << setw(w) << EigVal[two][0][i];;
-	 }
-	 out << endl;
-	 cout << endl;
-	 zero = (++zero)%3; one = (zero+1)%3; two = (one+1)%3;
+	 out << setw(w) << EigVal[k][0][i];;
+	 cout << setw(w) << EigVal[k][0][i];;
       }
       out << endl;
       cout << endl;
    }
-
-   delete [] Direction;
+   int zero=0,one=1,two=2;
+   for (double k=1.5/NoPTS;k<=0.501;k+=0.5/NoPTS)
+   {
+      Z = k*Y;
+      EigVal[two] = HermiteEigVal(DynamicalStiffness(Z));
+      qsort(EigVal[two][0],INTERNAL_ATOMS*DIM3,sizeof(double),&comp);
+      interpolate(EigVal,zero,one,two);
+      
+      out << prefix << setw(w) << NTemp_ << setw(w) << k;
+      cout << prefix << setw(w) << NTemp_ << setw(w) << k;
+      for (int i=0;i<INTERNAL_ATOMS*DIM3;++i)
+      {
+	 out << setw(w) << EigVal[two][0][i];;
+	 cout << setw(w) << EigVal[two][0][i];;
+      }
+      out << endl;
+      cout << endl;
+      zero = (++zero)%3; one = (zero+1)%3; two = (one+1)%3;
+   }
 }
 
 int MultiLatticeTPP::comp(const void *a,const void *b)

@@ -69,6 +69,7 @@ public:
    virtual Matrix Moduli() {return stiffness(1);}
    virtual Matrix E3();
    virtual Matrix E4();
+   virtual void DispersionCurves(Vector Y,int NoPTS,const char *prefix,ostream &out);
    virtual void Print(ostream &out,PrintDetail flag);
    
    // Functions provided by MultiLatticeTPP
@@ -81,7 +82,6 @@ public:
    double ShearMod() const {return ShearMod_;}
    CMatrix DynamicalStiffness(Vector &Y);
    int BlochWave(Vector &Y);
-   void DispersionCurves(char *datafile,const char *prefix,ostream &out);
    friend ostream &operator<<(ostream &out,MultiLatticeTPP &A);
 
 private:
