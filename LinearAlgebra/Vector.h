@@ -48,12 +48,18 @@ public:
    friend Vector operator*(const Elm& A,const Vector& B);
    friend Vector operator*(const Vector& A,const Elm& B);
    friend Vector operator/(const Vector& A,const Elm& B);
-
+   
    // Element Access methods
+#ifdef CHECK_BOUNDS
    // With Bounds checking!!!
-   Elm& operator[](const unsigned& i);
-   const Elm operator[](const unsigned& i) const;
-
+   inline Elm& operator[](const unsigned& i);
+   inline const Elm operator[](const unsigned& i) const;
+#else
+   // Without Bounds Checking!!!
+   inline Elm& operator[](const unsigned& i) {return Elements_[i];}
+   inline const Elm operator[](const unsigned& i) const {return Elements_[i];}
+#endif
+   
    // Assignment Operatons
 
    Vector& operator=(const Vector& B);

@@ -70,10 +70,16 @@ public:
 
    // Element Access methods
 
+#ifdef CHECK_BOUNDS
    // Note: Index checking on Rows but not on Columns....
    Elm* operator[](unsigned i);
    Elm* operator[](unsigned i) const;
-
+#else
+   // Note: NO Index checking
+   Elm* operator[](unsigned i) {return Elements_[i];}
+   Elm* operator[](unsigned i) const {return Elements_[i];}
+#endif
+   
    // Assignment Operations
 
    Matrix& operator=(const Matrix& B);

@@ -5,7 +5,7 @@
 #include <math.h>
 
 // Global IDString
-char VectorID[]="$Id: Vector.cpp,v 1.7 2001/06/27 20:03:28 elliottr Exp $";
+char VectorID[]="$Id: Vector.cpp,v 1.8 2001/11/30 01:35:14 elliottr Exp $";
 
 // Private Functions...
 
@@ -300,7 +300,8 @@ Vector operator/(const Vector& A,const Vector::Elm& B)
    return C;
 }
 
-Vector::Elm& Vector::operator[](const unsigned& i)
+#ifdef CHECK_BOUNDS
+inline Vector::Elm& Vector::operator[](const unsigned& i)
 {
    if (i<Cols_)
    {
@@ -314,7 +315,7 @@ Vector::Elm& Vector::operator[](const unsigned& i)
    }
 }
 
-const Vector::Elm Vector::operator[](const unsigned& i) const
+inline const Vector::Elm Vector::operator[](const unsigned& i) const
 {
    if (i<Cols_)
    {
@@ -327,6 +328,7 @@ const Vector::Elm Vector::operator[](const unsigned& i) const
       exit(-1);
    }
 }
+#endif
 
 Vector& Vector::operator=(const Vector& B)
 {

@@ -5,7 +5,7 @@
 #include <math.h>
 
 // Global IDString
-char MatrixID[]="$Id: Matrix.cpp,v 1.7 2001/06/05 17:44:50 elliottr Exp $";
+char MatrixID[]="$Id: Matrix.cpp,v 1.8 2001/11/30 01:35:14 elliottr Exp $";
 
 // Private Methods...
 
@@ -280,6 +280,7 @@ Matrix operator/(const Matrix& A,const Matrix::Elm& B)
    return C;
 }
 
+#ifdef CHECK_BOUNDS
 Matrix::Elm* Matrix::operator[](unsigned i)
 {
    if (i < Rows_)
@@ -301,6 +302,7 @@ Matrix::Elm* Matrix::operator[](unsigned i) const
       exit(-1);
    }
 }
+#endif
    
 Matrix& Matrix::operator=(const Matrix& B)
 {

@@ -1,6 +1,8 @@
 #ifndef __Vector3D
 #define __Vector3D
 
+#include <math.h>
+
 #define V3DLEN 3
 
 class Matrix;
