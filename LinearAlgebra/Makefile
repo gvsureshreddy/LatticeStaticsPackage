@@ -76,12 +76,13 @@ $(OBJECTS): Makefile
 
 .PHONY: install uninstall
 # Define install
-install: $(LIB_LOC)/libLinearAlgebra.a;
+install: all $(LIB_LOC)/libLinearAlgebra.a;
 $(LIB_LOC)/libLinearAlgebra.a: $(OBJECTS)
 	$(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/LinearAlgebraBuildDate.o -c LinearAlgebraBuildDate.cpp
 	ar -r $(LIB_LOC)/libLinearAlgebra.a $(addprefix ./lib/,$(OBJECTS)) ./lib/LinearAlgebraBuildDate.o
 	/bin/rm -f ./lib/LinearAlgebraBuildDate.o
 	ranlib $(LIB_LOC)/libLinearAlgebra.a 
+
 	/bin/cp $(SOURCES:$(SRC_EXT)=$(HDR_EXT)) $(INCL_LOC)
 	/bin/cp ./bin/EigenSys $(BIN_LOC)
 	/bin/cp ./bin/HermiteEigenSys $(BIN_LOC)
