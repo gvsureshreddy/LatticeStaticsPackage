@@ -6,7 +6,7 @@
 #include <math.h>
 
 // Global IDString
-char CMatrixID[]="$Id: CMatrix.cpp,v 1.7 2003/05/29 19:30:56 elliottr Exp $";
+char CMatrixID[]="$Id: CMatrix.cpp,v 1.8 2003/05/29 20:11:26 elliottr Exp $";
 
 // Private Methods...
 
@@ -600,14 +600,21 @@ Matrix HermiteEigVal(CMatrix A,CMatrix *B,const int MaxItr,const double Tol)
 		  /(2.0*conj(A.Elements_[i][j]));
 
 	       // take care to make the sqrt well conditioned! (not overflow)
-	       t1 = tau*(-1.0 - sqrt( 1.0 + (A.Elements_[i][j]
-					     /(conj(A.Elements_[i][j])*tau*tau))));
-	       t2 = tau*(-1.0 + sqrt( 1.0 + (A.Elements_[i][j]
-					     /(conj(A.Elements_[i][j])*tau*tau))));
-	       if (abs(t1) >= abs(t2))
-		  t = t2;
+	       if (tau != 0.0)
+	       {
+		  t1 = tau*(-1.0 - sqrt( 1.0 + (A.Elements_[i][j]
+						/(conj(A.Elements_[i][j])*tau*tau))));
+		  t2 = tau*(-1.0 + sqrt( 1.0 + (A.Elements_[i][j]
+						/(conj(A.Elements_[i][j])*tau*tau))));
+		  if (abs(t1) >= abs(t2))
+		     t = t2;
+		  else
+		     t = t1;
+	       }
 	       else
-		  t = t1;
+	       {
+		  t = 0.0;
+	       }
 	    }
 	    
 	    c = 1.0/sqrt(1.0 + real(t*conj(t)));
