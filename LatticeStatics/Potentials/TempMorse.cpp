@@ -159,19 +159,22 @@ double TempMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
    return val;
 }
 
-ostream &operator<<(ostream &out,TempMorse &A)
+void TempMorse::Print(ostream &out)
 {
    int W=out.width();
 
    out.width(0);
    
-   out << "A0=" << setw(W) << A.A0_
-       << "; B0=" << setw(W) << A.B0_
-       << "; Alpha=" << setw(W) << A.Alpha_
-       << "; Rref=" << setw(W) << A.Rref_
-       << "; Tref=" << setw(W) << A.Tref_
-       << "; Tmelt=" << setw(W) << A.Tmelt_;
-
-   return out;
+   out << "A0=" << setw(W) << A0_
+       << "; B0=" << setw(W) << B0_
+       << "; Alpha=" << setw(W) << Alpha_
+       << "; Rref=" << setw(W) << Rref_
+       << "; Tref=" << setw(W) << Tref_
+       << "; Tmelt=" << setw(W) << Tmelt_;
 }
 
+ostream &operator<<(ostream &out,TempMorse &A)
+{
+   A.Print(out);
+   return out;
+}

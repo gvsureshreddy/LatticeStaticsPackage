@@ -1,43 +1,123 @@
-// Main Parameters
-MainFieldWidth = 20
-MainPrecision = 12
-MainBisectCP = Yes
+// FCC lattice
 
-MainLatticeType = NiTiPressTempPairPotLat
-MainModeType = UniDefTemp3DExpand
+// Main Parameters
+MainFieldWidth = 15
+MainPrecision = 10
+MainBisectCP = No
+CriticalPoint_T2 = No
+
+MainLatticeType = MultiLatticeTPP
+MainModeType = ML_Expand
 MainSolutionMethod = ArcLength
 
+// Lattice Definition
+InternalAtoms = 4
+LatticeBasis_0 = "1.0 0.0 0.0"
+LatticeBasis_1 = "0.0 1.0 0.0"
+LatticeBasis_2 = "0.0 0.0 1.0"
+
+AtomPosition_0 = "0.0 0.0 0.0"
+AtomPosition_1 = "0.5 0.5 0.0"
+AtomPosition_2 = "0.5 0.0 0.5"
+AtomPosition_3 = "0.0 0.5 0.5"
 
 // Lattice Parameters
 MaxIterations = 100
 InitializeStepSize = .01
 
-B0_aa = 4
-A0_aa = 1
-Rref_aa = 1
-Alpha_aa = 0
-Tref_aa = 300
-Tmelt_aa = 1445 + 273
+Tref = 300
 
-B0_bb = 7
-A0_bb = 1943/1728
-Rref_bb = 1.445/1.246
-Alpha_bb = 0
-Tref_bb = <Tref_aa>
-Tmelt_bb = 1670 + 273
+PotentialType_0_0 = RadiiMorse
+B0_0_0 = 4
+A0_0_0 = 1
+Rref_0_0 = 1
+Alpha_0_0 = 0
+Rtheta_0_0 = 0
+Tmelt_0_0 = 1445 + 273
 
-B0_ab = (<B0_aa> + <B0_bb>)/2
-A0_ab = (<A0_aa> + <A0_bb>)/5
-Rref_ab = (<Rref_aa> + <Rref_bb>)/2
-Alpha_ab = 3
-Tref_ab = <Tref_aa>
-Tmelt_ab = 1300 + 273
+PotentialType_0_1 = <PotentialType_0_0>
+B0_0_1 = <B0_0_0>
+A0_0_1 = <A0_0_0>
+Rref_0_1 = <Rref_0_0>
+Alpha_0_1 = <Alpha_0_0>
+Rtheta_0_1 = <Rtheta_0_0>
+Tmelt_0_1 = <Tmelt_0_0>
 
-RefLen = 1.1
-InfluanceDist = 5
-Temp=300
+PotentialType_0_2 = <PotentialType_0_0>
+B0_0_2 = <B0_0_0>
+A0_0_2 = <A0_0_0>
+Rref_0_2 = <Rref_0_0>
+Alpha_0_2 = <Alpha_0_0>
+Rtheta_0_2 = <Rtheta_0_0>
+Tmelt_0_2 = <Tmelt_0_0>
+
+PotentialType_0_3 = <PotentialType_0_0>
+B0_0_3 = <B0_0_0>
+A0_0_3 = <A0_0_0>
+Rref_0_3 = <Rref_0_0>
+Alpha_0_3 = <Alpha_0_0>
+Rtheta_0_3 = <Rtheta_0_0>
+Tmelt_0_3 = <Tmelt_0_0>
+
+PotentialType_1_1 = <PotentialType_0_0>
+B0_1_1 = <B0_0_0>
+A0_1_1 = <A0_0_0>
+Rref_1_1 = <Rref_0_0>
+Alpha_1_1 = <Alpha_0_0>
+Rtheta_1_1 = <Rtheta_0_0>
+Tmelt_1_1 = <Tmelt_0_0>
+
+PotentialType_1_2 = <PotentialType_0_0>
+B0_1_2 = <B0_0_0>
+A0_1_2 = <A0_0_0>
+Rref_1_2 = <Rref_0_0>
+Alpha_1_2 = <Alpha_0_0>
+Rtheta_1_2 = <Rtheta_0_0>
+Tmelt_1_2 = <Tmelt_0_0>
+
+PotentialType_1_3 = <PotentialType_0_0>
+B0_1_3 = <B0_0_0>
+A0_1_3 = <A0_0_0>
+Rref_1_3 = <Rref_0_0>
+Alpha_1_3 = <Alpha_0_0>
+Rtheta_1_3 = <Rtheta_0_0>
+Tmelt_1_3 = <Tmelt_0_0>
+
+PotentialType_2_2 = <PotentialType_0_0>
+B0_2_2 = <B0_0_0>
+A0_2_2 = <A0_0_0>
+Rref_2_2 = <Rref_0_0>
+Alpha_2_2 = <Alpha_0_0>
+Rtheta_2_2 = <Rtheta_0_0>
+Tmelt_2_2 = <Tmelt_0_0>
+
+PotentialType_2_3 = <PotentialType_0_0>
+B0_2_3 = <B0_0_0>
+A0_2_3 = <A0_0_0>
+Rref_2_3 = <Rref_0_0>
+Alpha_2_3 = <Alpha_0_0>
+Rtheta_2_3 = <Rtheta_0_0>
+Tmelt_2_3 = <Tmelt_0_0>
+
+PotentialType_3_3 = <PotentialType_0_0>
+B0_3_3 = <B0_0_0>
+A0_3_3 = <A0_0_0>
+Rref_3_3 = <Rref_0_0>
+Alpha_3_3 = <Alpha_0_0>
+Rtheta_3_3 = <Rtheta_0_0>
+Tmelt_3_3 = <Tmelt_0_0>
+
+AtomicMass_0 = 1
+AtomicMass_1 = <AtomicMass_0>
+AtomicMass_2 = <AtomicMass_0>
+AtomicMass_3 = <AtomicMass_0>
+
+RefLen = 1.2
+InfluanceDist = 7
+NTemp=1
 Pressure=0
 ConvexityDX=1.0*<DEG2RAD>
+BlochWaveGridSize = 2
 
 // Scanning Parameters
 ScanningMaxIterations = 100
@@ -46,21 +126,22 @@ ScanningNewtonTolerance = 1.0e-13
 ScanningFullField = No
 ScanningInitialDeformation = "0.0"
 ScanningDirection = Deformation
-ScanningStart = 259.4
-ScanningEnd = 259.9
-ScanningStep = 0.5
-ScanningLineStart = 1
+ScanningStart = 2.00
+ScanningEnd = 1.95
+ScanningStep = -0.05
+ScanningLineStart = 1.4
 ScanningLineEnd = 0.5
 ScanningLineStep = -0.02
 
 // ArcLength Parameters
 DEG2RAD = atan2(1,1)*4/180
-ArcLenMaxIterations = 100
+ArcLenMaxIterations = 50
 ArcLenTolerance = 1.0e-13
-ArcLenDSMax = sqrt( 0.2**2 / <ArcLenAspect>**2 )
+ArcLenDSMax = 0.05
+ArcLenDSStart = 0.05
 ArcLenDSMin = <ArcLenDSMax>*1.0e-3
 ArcLenAngleCutoff = 25*<DEG2RAD>
 ArcLenAngleIncrease = 10*<DEG2RAD>
 ArcLenAspect = 1
-ArcLenNumSolutions = 600
+ArcLenNumSolutions = 100
 

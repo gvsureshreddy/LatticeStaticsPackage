@@ -1,2 +1,3 @@
-POTENTIALS = TempMorse.cpp\
-		RadiiMorse.cpp
+POTENTIALS = KnownPairPotentials.cpp\
+	     TempMorse.cpp\
+	     RadiiMorse.cpp

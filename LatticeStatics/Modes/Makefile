@@ -1,29 +1,4 @@
 MODES = KnownModes.cpp\
 	UniDefTemp2DExpand.cpp\
-        UniDefTemp3DExpand.cpp\
-	UniDefTemp3DNaCl.cpp\
-	UniDefTemp3DTetrag.cpp\
-	UniDefTemp3DRhombo.cpp\
-	UniDefTemp3DOrtho.cpp\
-	UniDefTemp3D3PMono.cpp\
-	UniDefTemp3D3MMono.cpp\
-	UniDefTemp3D1PMono.cpp\
-	UniDefTemp3D1MMono.cpp\
-	UniDefTemp3DFull.cpp\
-	Expand6.cpp\
-	ExpandShuffle.cpp\
-	Shuffle3NaCl.cpp\
-	Shuffle3Rhombo.cpp\
-	Shuffle3Ortho.cpp\
-	Shuffle3Mono3P.cpp\
-	Shuffle3Mono3M.cpp\
-	FullShuffle1.cpp\
-	FullShuffle2.cpp\
-	FullShuffle3.cpp\
-	Expand15.cpp\
-	Full15.cpp\
-	Ortho15Shuff.cpp\
-	Expand9.cpp\
-	NaCl9.cpp\
 	ML_Expand.cpp\
 	ML_NaCl.cpp

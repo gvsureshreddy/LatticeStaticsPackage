@@ -4,7 +4,7 @@
 #include "GenericLat.h"
 #include "UnitCellIterator.h"
 #include "PPSum.h"
-#include "RadiiMorse.h"
+#include "KnownPairPotentials.h"
 #include <CMatrix.h>
 
 class MultiLatticeTPP : public GenericLat
@@ -33,13 +33,12 @@ private:
    int GridSize_;
 
    //Pair Potential data
-   RadiiMorse **Potential_;
+   PairPotentials ***Potential_;
 
    // Misc
    double ConvexityDX_;
    Vector *A_;
-
-
+   
    Matrix stress(PairPotentials::TDeriv dt=PairPotentials::T0);
    Matrix stiffness(int moduliflag=0,PairPotentials::TDeriv dt=PairPotentials::T0);
    Matrix CondensedModuli();

@@ -16,6 +16,9 @@ public:
    ~PairPotentials() {};
    
    virtual double PairPotential(double NTemp,double r2,YDeriv dy=Y0,TDeriv dt=T0) = 0;
+   virtual void Print(ostream &out) = 0;
+   friend ostream &operator<<(ostream &out,PairPotentials *PP)
+   {PP->Print(out); return out;}
 };
 
 #endif

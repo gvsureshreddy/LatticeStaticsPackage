@@ -7,6 +7,9 @@ MultiLatticeTPP::~MultiLatticeTPP()
 {
    delete [] BodyForce_;
    delete [] AtomicMass_;
+   for (int i=0;i<DOFS;++i)
+      for (int j=i;j<DOFS;++j)
+	 delete Potential_[i][j];
    delete Potential_[0];
    delete Potential_;
    delete [] A_;
@@ -45,37 +48,20 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile)
       BodyForce_[i].Resize(DIM3,0.0);
 
    // Get Potential Parameters
-   Potential_ = new RadiiMorse*[INTERNAL_ATOMS];
-   Potential_[0] = new RadiiMorse[INTERNAL_ATOMS*INTERNAL_ATOMS];
+   Potential_ = new PairPotentials**[INTERNAL_ATOMS];
+   Potential_[0] = new PairPotentials*[INTERNAL_ATOMS*INTERNAL_ATOMS];
    for (int i=1;i<INTERNAL_ATOMS;++i)
    {
       Potential_[i] = Potential_[i-1] + INTERNAL_ATOMS;
    }
 
    AtomicMass_ = new double[INTERNAL_ATOMS];
-   
-   double Tref,A0,B0,Alpha,Rref,Rtheta,Tmelt;
+
    for (int i=0;i<INTERNAL_ATOMS;++i)
    {
       for (int j=i;j<INTERNAL_ATOMS;++j)
       {
-	 sprintf(tmp,"^Tref",i,j);
-	 GetParameter(tmp,datafile,"%lf",&Tref);
-	 sprintf(tmp,"^A0_%u_%u",i,j);
-	 GetParameter(tmp,datafile,"%lf",&A0);
-	 sprintf(tmp,"^B0_%u_%u",i,j);
-	 GetParameter(tmp,datafile,"%lf",&B0);
-	 sprintf(tmp,"^Alpha_%u_%u",i,j);
-	 GetParameter(tmp,datafile,"%lf",&Alpha);
-	 sprintf(tmp,"^Rref_%u_%u",i,j);
-	 GetParameter(tmp,datafile,"%lf",&Rref);
-	 sprintf(tmp,"^Rtheta_%u_%u",i,j);
-	 GetParameter(tmp,datafile,"%lf",&Rtheta);
-	 sprintf(tmp,"^Tmelt_%u_%u",i,j);
-	 GetParameter(tmp,datafile,"%lf",&Tmelt);
-	 
-	 Potential_[i][j]=Potential_[j][i]=
-	    RadiiMorse(A0,B0,Alpha,Rref,Rtheta,Tref,Tmelt);
+	 Potential_[i][j] = Potential_[j][i] = InitializePairPotential(datafile,i,j);
       }
 
       sprintf(tmp,"^AtomicMass_%u",i);
@@ -198,7 +184,7 @@ int MultiLatticeTPP::FindLatticeSpacing(int iter,double dx)
    Pressure_=oldPressure;
 
    return 0;
-}   
+}
 
 // Lattice Routines
 
@@ -413,7 +399,7 @@ double MultiLatticeTPP::Energy()
    for (LatSum_.Reset();!LatSum_.Done();++LatSum_)
    {
       // Calculate Phi
-      Phi += Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)].PairPotential(
+      Phi += Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
 	 NTemp_,LatSum_.r2(),PairPotentials::Y0,PairPotentials::T0);
    }
 
@@ -449,7 +435,7 @@ Matrix MultiLatticeTPP::stress(PairPotentials::TDeriv dt)
       // NOTE: phi1 = d(phi)/d(r2)
       // We need d(phi)/dr = 2*r*d(phi)/d(r2)
       phi = 2.0*sqrt(LatSum_.r2())*
-	 Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)].PairPotential(
+	 Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
 	    NTemp_,LatSum_.r2(),PairPotentials::DY,PairPotentials::T0);
       if (ForceNorm < fabs(-phi/2.0))
       {
@@ -461,7 +447,7 @@ Matrix MultiLatticeTPP::stress(PairPotentials::TDeriv dt)
       }
 
       // Claculate the Stress
-      phi=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)].PairPotential(
+      phi=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
 	 NTemp_,LatSum_.r2(),PairPotentials::DY,dt);
       for (i=0;i<DIM3;i++)
       {
@@ -515,9 +501,9 @@ Matrix MultiLatticeTPP::stiffness(int moduliflag,PairPotentials::TDeriv dt)
 
    for (LatSum_.Reset();!LatSum_.Done();++LatSum_)
    {
-      phi=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)].PairPotential(
+      phi=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
 	 NTemp_,LatSum_.r2(),PairPotentials::D2Y,dt);
-      phi1=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)].PairPotential(
+      phi1=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
 	 NTemp_,LatSum_.r2(),PairPotentials::DY,dt);
       
       //Upper Diag Block (6,6)
@@ -614,11 +600,11 @@ Matrix MultiLatticeTPP::E3()
 
    for (LatSum_.Reset();!LatSum_.Done();++LatSum_)
    {
-      phi=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)].PairPotential(
+      phi=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
 	 NTemp_,LatSum_.r2(),PairPotentials::D3Y,PairPotentials::T0);
-      phi1=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)].PairPotential(
+      phi1=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
 	 NTemp_,LatSum_.r2(),PairPotentials::D2Y,PairPotentials::T0);
-      phi2=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)].PairPotential(
+      phi2=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
 	 NTemp_,LatSum_.r2(),PairPotentials::DY,PairPotentials::T0);
 	 
       // DU^3 block
@@ -757,13 +743,13 @@ Matrix MultiLatticeTPP::E4()
 
    for (LatSum_.Reset();!LatSum_.Done();++LatSum_)
    {  
-      phi=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)].PairPotential(
+      phi=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
 	 NTemp_,LatSum_.r2(),PairPotentials::D4Y,PairPotentials::T0);
-      phi1=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)].PairPotential(
+      phi1=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
 	 NTemp_,LatSum_.r2(),PairPotentials::D3Y,PairPotentials::T0);
-      phi2=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)].PairPotential(
+      phi2=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
 	 NTemp_,LatSum_.r2(),PairPotentials::D2Y,PairPotentials::T0);
-      phi3=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)].PairPotential(
+      phi3=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
 	 NTemp_,LatSum_.r2(),PairPotentials::DY,PairPotentials::T0);
       
       // DU^4 block 
@@ -1168,20 +1154,20 @@ CMatrix MultiLatticeTPP::DynamicalStiffness(Vector &Y)
 	    {
 	       Cy[DIM3*LatSum_.Atom(0)+i][DIM3*LatSum_.Atom(0)+j] +=
 		  (2.0*Del(i,j)
-		   *Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)].PairPotential(
+		   *Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
 		      NTemp_,LatSum_.r2(),PairPotentials::DY)
 		   +4.0*LatSum_.Dx(i)*LatSum_.Dx(j)
-		   *Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)].PairPotential(
+		   *Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
 		      NTemp_,LatSum_.r2(),PairPotentials::D2Y))
 		  *exp(-2.0*pi*Ic *
 		       (Y[0]*LatSum_.Dx(0) + Y[1]*LatSum_.Dx(1) + Y[2]*LatSum_.Dx(2)));
 	       
 	       Cy[DIM3*LatSum_.Atom(0)+i][DIM3*LatSum_.Atom(1)+j] +=
 		  (-2.0*Del(i,j)
-		   *Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)].PairPotential(
+		   *Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
 		      NTemp_,LatSum_.r2(),PairPotentials::DY)
 		   -4.0*LatSum_.Dx(i)*LatSum_.Dx(j)
-		   *Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)].PairPotential(
+		   *Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
 		      NTemp_,LatSum_.r2(),PairPotentials::D2Y))
 		  *exp(-2.0*pi*Ic *
 		       (Y[0]*LatSum_.Dx(0) + Y[1]*LatSum_.Dx(1) + Y[2]*LatSum_.Dx(2)));

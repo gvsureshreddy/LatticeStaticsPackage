@@ -1,16 +1,32 @@
+#!/usr/bin/perl -w
 #!/usr/um/bin/perl -w
 #
 #
 
-$DOFSize = 15;
+if (scalar(@ARGV) != 3)
+{
+  die "Usage: MultiLattice2gpl dofs output inputname\n";
+}
+
+$DOFSize = $ARGV[0];
 $StateSize = $DOFSize + 6;
 $StrSPEC = "%12s";
 $FSPEC = "%12.6f";
 
 chomp($dataset=`pwd`);
+@directories = qw(Princ
+		  NaCl
+		  Rhombo1
+		  Ortho1
+		  Ortho2
+		  Ortho3
+		  OrthoNaCl
+		  Mono1
+		  Mono2
+		  ShuffleOrtho);
 
-open(GNUPLOT,">$ARGV[0]") 
-    || die "Unable to open $ARGV[0] for write: $!";
+open(GNUPLOT,">$ARGV[2]") 
+    || die "Unable to open $ARGV[2] for write: $!";
 
 print GNUPLOT "# gnuplot data file for ${dataset}\n#\n";
 print GNUPLOT "# Index 0\n";
@@ -25,14 +41,12 @@ printf GNUPLOT $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . "\n",
 
 
 $endgnuplot = "";
-
 $bifpoints = 1;
 $index = 1;
-
-shift(@ARGV);
-foreach $dir (@ARGV)
+foreach $dir (@directories)
 {
-    $bifpoints = loaddata($dataset ,$dir,*GNUPLOT,$index,\$endgnuplot) && $bifpoints;
+    chdir $dataset;
+    $bifpoints = loaddata($dataset . "/" . $dir ,$ARGV[1],*GNUPLOT,$index,\$endgnuplot) && $bifpoints;
     $index += 2;
 }
 
@@ -42,6 +56,7 @@ if ($bifpoints)
     {
 	printf GNUPLOT $FSPEC,0.0;
     }
+    printf GNUPLOT "\n";
 }
 
 print GNUPLOT "\n\n", $endgnuplot;
@@ -69,16 +84,19 @@ sub loaddata {
        @potential,@mineigval,@noneg,@uncertainty,
        $stableflag,$stable_nodata,$unstable_nodata,$bifpoints);
     my($gnuplot,$endgnuplot);
+    $pressure = "unknown";
     $gnuplot = $_[2];
     $endgnuplot = $_[4];
     $stable = "";
     $unstable = "";
 
+    #chdir $_[0] || die "No $_[0] Directory, $!";
+    chdir $_[0];
+
     # flag to make sure there is data in the index
     $stable_nodata = 1;
     $unstable_nodata = 1;
     $bifpoints = 1;
-
 
     if (-e $_[1])
     {
@@ -145,8 +163,8 @@ sub loaddata {
     }
 
     $stable .= sprintf "# Index $_[3]\n";
-    $stable .= sprintf "# Stable sections of $_[0]/$_[1] branch at Pressure $pressure\n";
-    $stable .= sprintf "#" . $StrSPEC . $StrSPEC,"Temperature","Potential";
+    $stable .= sprintf "# Stable sections of $_[0] branch at Pressure $pressure\n";
+    $stable .= sprintf $StrSPEC . $StrSPEC,"Temperature","Potential";
     for (my $i=0;$i<$DOFSize;$i+=1)
     {
 	$stable .= sprintf $StrSPEC,"DOF $i";
@@ -154,8 +172,8 @@ sub loaddata {
     $stable .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . "\n",
     "Min EigVal","Num Neg Eig Vals","Rank 1 Convex","Uncertainty";
     $unstable .= sprintf "# Index " . ($_[3]+1) . "\n";
-    $unstable .= sprintf "# Unstable sections of $_[0]/$_[1] branch at Pressure $pressure\n";
-    $unstable .= sprintf "#" . $StrSPEC . $StrSPEC,"Temperature","Potential";
+    $unstable .= sprintf "# Unstable sections of $_[0] branch at Pressure $pressure\n";
+    $unstable .= sprintf $StrSPEC . $StrSPEC,"Temperature","Potential";
     for (my $i=0;$i<$DOFSize;$i+=1)
     {
 	$unstable .= sprintf $StrSPEC,"DOF $i";
@@ -214,7 +232,7 @@ sub loaddata {
 		$stable .= sprintf $FSPEC,$DOF[0][$i];
 	    }
 	    shift(@DOF);
-	    $stable .= sprintf $FSPEC . $FSPEC .$FSPEC . $FSPEC . "\n",
+	    $stable .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
 	    shift(@mineigval),shift(@noneg),shift(@Convex),shift(@uncertainty);
 	}
 	else
