@@ -104,7 +104,7 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile)
    }
 
    // Initiate the Unit Cell Iterator for Bloch wave calculations.
-   UCIter_(GridSize_,&RefLattice_);
+   UCIter_(GridSize_);
    
 }
 
@@ -1248,7 +1248,7 @@ int MultiLatticeTPP::BlochWave(Vector &Y)
 {
    static CMatrix A(INTERNAL_ATOMS*DIM3,INTERNAL_ATOMS*DIM3);
    static Matrix EigVals(1,INTERNAL_ATOMS*DIM3);
-   static Matrix DefGrad(DIM3,DIM3);
+   static Matrix DefGrad(DIM3,DIM3),InverseLat(DIM3,DIM3),tmp(DIM3,DIM3,0.0);
    static Vector Z(DIM3);
 
    // Setup DefGrad
@@ -1258,7 +1258,14 @@ int MultiLatticeTPP::BlochWave(Vector &Y)
    DefGrad[0][1] = DefGrad[1][0] = DOF_[3];
    DefGrad[0][2] = DefGrad[2][0] = DOF_[4];
    DefGrad[2][1] = DefGrad[1][2] = DOF_[5];
-   
+   for (int i=0;i<DIM3;++i)
+      for (int j=0;j<DIM3;++j)
+	 for (int k=0;k<DIM3;++k)
+	 {
+	    tmp[i][j] += DefGrad[i][j]*RefLattice_[j][k];
+	 }
+   InverseLat = tmp.Inverse();
+
    // Iterate over points in cubic unit cell
    for (UCIter_.Reset();!UCIter_.Done();++UCIter_)
    {
@@ -1267,7 +1274,7 @@ int MultiLatticeTPP::BlochWave(Vector &Y)
 	 Y[i] = UCIter_[i];
       }
 
-      Z = DefGrad*Y;
+      Z = InverseLat*Y;
       A = DynamicalStiffness(Z);
 
       EigVals = HermiteEigVal(A);
@@ -1300,8 +1307,6 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
    static int RankOneConvex;
    static Vector Y(DIM3);
    static int BlochWaveStable;
-   static Matrix
-      RefLatticeInv = RefLattice_.Inverse();
    
    W=out.width();
 
@@ -1334,7 +1339,6 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
    if (RankOneConvex)
    {
       BlochWaveStable = BlochWave(Y);
-      Y = RefLatticeInv.Transpose()*Y;
    }
    else
    {
