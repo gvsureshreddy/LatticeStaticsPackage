@@ -138,7 +138,7 @@ void GetMainSettings(int &Width, int &Precision,char *datafile,const char *prefi
 void InitializeOutputFile(fstream &out,char *outfile,char *datafile,const char *prefix,
 			  Lattice *Lat,int Precision,int Width)
 {
-   fstream input,devnull;
+   fstream input;
    char dataline[LINELENGTH];
 
    input.open(datafile,ios::in);
@@ -155,7 +155,6 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,const char *
 	   << endl;
       exit(-1);
    }
-   devnull.open("/dev/null",ios::out);
 
    if (!strcmp("^",prefix))
    {
@@ -187,10 +186,5 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,const char *
    out << "# Built on:               " << builddate() << endl
        << "# LinearAlgebra Build on: " << LinearAlgebraBuildDate() << endl
        << "# MyMath Built on:        " << MyMathBuildDate() << endl;
-
-   devnull << setw(Width);
-   Lat->Print(devnull,Lattice::PrintLong);
-
-   devnull.close();
 }
 
