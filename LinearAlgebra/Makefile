@@ -23,7 +23,7 @@ LIB_LOC    = ${HOME}/lib
 LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE)
 
 # Defines the source files needed #########################################
-SOURCES  = Matrix.cpp Vector.cpp
+SOURCES  = Matrix.cpp Vector.cpp Vector3D.cpp
 
 # Defines the object files to be created using the SYSTEM name ############
 OBJECTS  = $(SOURCES:$(SRC_EXT)=$(OBJ_EXT))
@@ -41,13 +41,13 @@ $(OBJECTS): Makefile
 .PHONY: install uninstall
 # Define install
 install: $(EXE)
-	ar -r $(LIB_LOC)/libLinearAlgebra.a ./lib/Vector.o ./lib/Matrix.o
-	/bin/cp Vector.h Matrix.h $(INCL_LOC)
+	ar -r $(LIB_LOC)/libLinearAlgebra.a ./lib/Vector.o ./lib/Vector3D.o ./lib/Matrix.o 
+	/bin/cp Vector.h Vector3D.h Matrix.h $(INCL_LOC)
 
 # Define uninstall
 uninstall:
-	ar -d $(LIB_LOC)/libLinearAlgebra.a Vector.o Matrix.o
-	/bin/rm -f $(INCL_LOC)/Vector.h $(INCL_LOC)/Matrix.h
+	ar -d $(LIB_LOC)/libLinearAlgebra.a Vector.o Vector3D.o Matrix.o
+	/bin/rm -f $(INCL_LOC)/Vector.h $(INCL_LOC)/Vector3D.h $(INCL_LOC)/Matrix.h
 
 
 # Removes the current systems set of object files and executable file
