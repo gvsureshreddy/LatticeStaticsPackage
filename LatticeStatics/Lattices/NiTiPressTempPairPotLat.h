@@ -42,7 +42,8 @@ public:
    virtual Matrix Moduli();
    virtual int StiffnessNulity(double *Min=NULL);
    virtual void Print(ostream &out,PrintDetail flag);
-
+   virtual void CriticalPointInfo(int Width,ostream &out);
+   
    // Functions provided by NiTiPressTempPairPotLat
    NiTiPressTempPairPotLat(char *datafile);
    ~NiTiPressTempPairPotLat() {}
