@@ -40,12 +40,19 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
       D3=E3(),
       D2=Stiffness(),
       D2T(D2.Rows(),D2.Cols()),
+      D1T(D2.Rows()),
       EigVec,
       EigVal=SymEigVal(D2,&EigVec);
    if (LoadParameter_ == Temperature)
+   {
+      D1T=StressDT();
       D2T=StiffnessDT();
+   }
    else if (LoadParameter_ == Load)
+   {
+      D1T=StressDL();
       D2T=StiffnessDL();
+   }
    
    int dofs;
    
@@ -86,6 +93,17 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
    // Print out the Eigenvectors
    cout << "EigenVectors" << endl << setw(Width) << EigVec;
    if (Echo_) out << "EigenVectors" << endl << setw(Width) << EigVec;
+
+   // Print out the critical point character test (Limit-load/Bifurcation)
+   for (int i=0;i<count;++i)
+   {
+      double z=0.0;
+      for (int j=0;dofs;++j)
+      {
+	 z+= Mode[i][j]*D1T[0][j];
+      }
+      cout << "StressDT*Mode[i] = " << setw(Width) << z << endl;
+   }
 
    // Eijk
    for (int i=0;i<count;i++)
