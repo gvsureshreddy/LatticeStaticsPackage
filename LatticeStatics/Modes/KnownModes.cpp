@@ -7,7 +7,7 @@ LatticeMode *InitializeMode(Lattice *Lat,char *datafile)
    FILE *pipe;
    char command[LINELENGTH];
 
-   enum modes {UniDefTemp2DExp};
+   enum modes {UniDefTemp2DExp,UniDefTemp3DExp,UniDefTemp3Dnacl};
    modes mode;
 
    char mod[]="^MainModeType";
@@ -18,6 +18,12 @@ LatticeMode *InitializeMode(Lattice *Lat,char *datafile)
    if ((!strcmp("UniDefTemp2DExpand",command))
        || (!strcmp("unideftemp2dexpand",command)))
       mode = UniDefTemp2DExp;
+   else if ((!strcmp("UniDefTemp3DExpand",command))
+            || (!strcmp("unideftemp3dexpand",command)))
+      mode = UniDefTemp3DExp;
+   else if ((!strcmp("UniDefTemp3DNaCl",command))
+            || (!strcmp("unideftemp3dnacl",command)))
+      mode = UniDefTemp3Dnacl;
    else
    {
       cerr << "Unknown Mode Type : " << command << endl;
@@ -31,6 +37,17 @@ LatticeMode *InitializeMode(Lattice *Lat,char *datafile)
 	 return new UniDefTemp2DExpand(Lat);
       }
       break;
+      case UniDefTemp3DExp:
+      {
+         return new UniDefTemp3DExpand(Lat);
+      }
+      break;
+      case UniDefTemp3Dnacl:
+      {
+	 return new UniDefTemp3DNaCl(Lat);
+      }
    }
+
+   return NULL;
 }
 
