@@ -102,7 +102,8 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo)
 	 RefLattice_[i][j] = LatticeBasis[i][j]*RefLen_[i];
 
    // Initiate the Lattice Sum object
-   LatSum_(&DOF_,&RefLattice_,INTERNAL_ATOMS,AtomPositions_,&InfluanceDist_);
+   LatSum_(&DOF_,&RefLattice_,INTERNAL_ATOMS,AtomPositions_,Potential_,&InfluanceDist_,
+	   &NTemp_);
 
    int err=0;
    err=FindLatticeSpacing(iter,DX);
@@ -291,7 +292,8 @@ int MultiLatticeTPP::FindLatticeSpacing(int iter,double dx)
    ShearMod_ = 0.25*fabs(Stiffness()[5][5]);
    NTemp_=oldTemp;
    Pressure_=oldPressure;
-   
+
+   LatSum_.Recalc();
    return 0;
 }
 
@@ -543,9 +545,7 @@ Matrix MultiLatticeTPP::stress(PairPotentials::TDeriv dt)
       // Calculate bodyforce
       // NOTE: phi1 = d(phi)/d(r2)
       // We need d(phi)/dr = 2*r*d(phi)/d(r2)
-      phi = 2.0*sqrt(LatSum_.r2())*
-	 Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
-	    NTemp_,LatSum_.r2(),PairPotentials::DY,PairPotentials::T0);
+      phi = 2.0*sqrt(LatSum_.r2())*LatSum_.phi1();
       if (ForceNorm < fabs(-phi/2.0))
       {
 	 ForceNorm = fabs(-phi/2.0);
@@ -556,8 +556,12 @@ Matrix MultiLatticeTPP::stress(PairPotentials::TDeriv dt)
       }
 
       // Claculate the Stress
-      phi=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
-	 NTemp_,LatSum_.r2(),PairPotentials::DY,dt);
+      if (dt == PairPotentials::T0)
+	 phi=LatSum_.phi1();
+      else
+	 phi=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
+	    NTemp_,LatSum_.r2(),PairPotentials::DY,dt);
+      
       for (i=0;i<DIM3;i++)
       {
 	 for (j=0;j<DIM3;j++)
@@ -610,10 +614,18 @@ Matrix MultiLatticeTPP::stiffness(int moduliflag,PairPotentials::TDeriv dt)
 
    for (LatSum_.Reset();!LatSum_.Done();++LatSum_)
    {
-      phi=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
-	 NTemp_,LatSum_.r2(),PairPotentials::D2Y,dt);
-      phi1=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
-	 NTemp_,LatSum_.r2(),PairPotentials::DY,dt);
+      if (dt==PairPotentials::T0)
+      {
+	 phi = LatSum_.phi2();
+	 phi1 = LatSum_.phi1();
+      }
+      else
+      {
+	 phi=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
+	    NTemp_,LatSum_.r2(),PairPotentials::D2Y,dt);
+	 phi1=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
+	    NTemp_,LatSum_.r2(),PairPotentials::DY,dt);
+      }
       
       //Upper Diag Block (6,6)
       for (i=0;i<DIM3;i++)
@@ -711,10 +723,8 @@ Matrix MultiLatticeTPP::E3()
    {
       phi=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
 	 NTemp_,LatSum_.r2(),PairPotentials::D3Y,PairPotentials::T0);
-      phi1=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
-	 NTemp_,LatSum_.r2(),PairPotentials::D2Y,PairPotentials::T0);
-      phi2=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
-	 NTemp_,LatSum_.r2(),PairPotentials::DY,PairPotentials::T0);
+      phi1=LatSum_.phi2();
+      phi2=LatSum_.phi1();
 	 
       // DU^3 block
       for (i=0;i<DIM3;i++)
@@ -856,10 +866,8 @@ Matrix MultiLatticeTPP::E4()
 	 NTemp_,LatSum_.r2(),PairPotentials::D4Y,PairPotentials::T0);
       phi1=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
 	 NTemp_,LatSum_.r2(),PairPotentials::D3Y,PairPotentials::T0);
-      phi2=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
-	 NTemp_,LatSum_.r2(),PairPotentials::D2Y,PairPotentials::T0);
-      phi3=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
-	 NTemp_,LatSum_.r2(),PairPotentials::DY,PairPotentials::T0);
+      phi2=LatSum_.phi2();
+      phi3=LatSum_.phi1();
       
       // DU^4 block 
       for (i=0;i<DIM3;i++)
@@ -1249,6 +1257,7 @@ CMatrix MultiLatticeTPP::DynamicalStiffness(Vector &Y)
    static CMatrix Cy;
    static double pi = 4.0*atan(1.0);
    static complex<double> Ic(0,1);
+   static complex<double> A = -2.0*pi*Ic;
    int i,j;
 
    Cy.Resize(INTERNAL_ATOMS*DIM3,INTERNAL_ATOMS*DIM3,0.0);
@@ -1263,23 +1272,15 @@ CMatrix MultiLatticeTPP::DynamicalStiffness(Vector &Y)
 	    {
 	       // K != K' terms (i.e., off block (3x3) diagonal terms)
 	       Cy[DIM3*LatSum_.Atom(0)+i][DIM3*LatSum_.Atom(1)+j] +=
-		  (-2.0*Del(i,j)
-		   *Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
-		      NTemp_,LatSum_.r2(),PairPotentials::DY)
-		   -4.0*LatSum_.Dx(i)*LatSum_.Dx(j)
-		   *Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
-		      NTemp_,LatSum_.r2(),PairPotentials::D2Y))
-		  *exp(-2.0*pi*Ic *
+		  (-2.0*Del(i,j)*LatSum_.phi1()
+		   -4.0*LatSum_.Dx(i)*LatSum_.Dx(j)*LatSum_.phi2())
+		  *exp(A*
 		       (Y[0]*LatSum_.Dx(0) + Y[1]*LatSum_.Dx(1) + Y[2]*LatSum_.Dx(2)));
 
 	       // K==K' components (i.e., Phi(0,k,k) term)
 	       Cy[DIM3*LatSum_.Atom(0)+i][DIM3*LatSum_.Atom(0)+j] +=
-		  (2.0*Del(i,j)
-		   *Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
-		      NTemp_,LatSum_.r2(),PairPotentials::DY)
-		   +4.0*LatSum_.Dx(i)*LatSum_.Dx(j)
-		   *Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
-		      NTemp_,LatSum_.r2(),PairPotentials::D2Y));
+		  (2.0*Del(i,j)*LatSum_.phi1()
+		   +4.0*LatSum_.Dx(i)*LatSum_.Dx(j)*LatSum_.phi2());
 	    }
       }
       else
@@ -1288,13 +1289,9 @@ CMatrix MultiLatticeTPP::DynamicalStiffness(Vector &Y)
 	    for (j=0;j<DIM3;++j)
 	    {
 	       Cy[DIM3*LatSum_.Atom(0)+i][DIM3*LatSum_.Atom(1)+j] +=
-		  (-2.0*Del(i,j)
-		   *Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
-		      NTemp_,LatSum_.r2(),PairPotentials::DY)
-		   -4.0*LatSum_.Dx(i)*LatSum_.Dx(j)
-		   *Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
-		      NTemp_,LatSum_.r2(),PairPotentials::D2Y))
-		  *(exp(-2.0*pi*Ic *
+		  (-2.0*Del(i,j)*LatSum_.phi1()
+		   -4.0*LatSum_.Dx(i)*LatSum_.Dx(j)*LatSum_.phi2())
+		  *(exp(A*
 			(Y[0]*LatSum_.Dx(0) + Y[1]*LatSum_.Dx(1)
 			 + Y[2]*LatSum_.Dx(2)))
 		    - 1.0);

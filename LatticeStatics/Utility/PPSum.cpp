@@ -1,17 +1,18 @@
 #include "PPSum.h"
 
-PPSum::PPSum(Vector *DOF,Matrix *RefLat,int InternalAtoms,
-	     Vector *InternalPOS,unsigned *InfluDist)
-   : DOF_(DOF),RefLattice_(RefLat),InternalAtoms_(InternalAtoms),
-     InternalPOS_(InternalPOS),InfluanceDist_(InfluDist),U_(3,3),V_(InternalAtoms,3),
-     Recalc_(0),CurrentPOS_(0),Pairs_(0),
+PPSum::PPSum(Vector *DOF,Matrix *RefLat,int InternalAtoms,Vector *InternalPOS,
+	     PairPotentials ***PairPot,unsigned *InfluDist,double *Ntemp)
+   : DOF_(DOF),RefLattice_(RefLat),InternalAtoms_(InternalAtoms),Ntemp_(Ntemp),
+     InternalPOS_(InternalPOS),Potential_(PairPot),InfluanceDist_(InfluDist),
+     U_(3,3),V_(InternalAtoms,3),Recalc_(0),CurrentPOS_(0),Pairs_(0),
      RelPosDATA_(int(pow(2*(*InfluDist),3)*pow(InternalAtoms,2)),DATALEN)
 {
    Initialize();
 }
 
 void PPSum::operator()(Vector *DOF,Matrix *RefLat,int InternalAtoms,
-		       Vector *InternalPOS,unsigned *InfluDist)
+		       Vector *InternalPOS,PairPotentials ***PairPot,
+		       unsigned *InfluDist,double *Ntemp)
 {
    DOF_ = DOF;
    RefLattice_ = RefLat;
@@ -23,6 +24,8 @@ void PPSum::operator()(Vector *DOF,Matrix *RefLat,int InternalAtoms,
    Recalc_ = 0;
    CurrentPOS_ = 0;
    Pairs_ = 0;
+   Potential_ = PairPot;
+   Ntemp_ = Ntemp;
    RelPosDATA_.Resize(int(pow(2*(*InfluDist),3)*pow(InternalAtoms,2)),DATALEN);
 
    Initialize();
@@ -107,7 +110,7 @@ void PPSum::Initialize()
 
    // set tmp to the number of pairs in the cube to be scanned
    tmp *= InternalAtoms_*InternalAtoms_;
-   // Vol of sphere or R=0.5 is 0.52
+   // Vol of sphere of R=0.5 is 0.52
    // make sure there is enough memory to store a sphere (which fits inside
    // the cube) of pairs.
    if (RelPosDATA_.Rows() < 0.55*tmp)
@@ -127,38 +130,46 @@ void PPSum::Initialize()
 	    {
 	       for (X[2] = Bottom[2];X[2] <= Top[2];X[2]++)
 	       {
-		  RelPosDATA_[Pairs_][7] = p;
-		  RelPosDATA_[Pairs_][8] = q;
+		  RelPosDATA_[Pairs_][ATOMSTART] = p;
+		  RelPosDATA_[Pairs_][ATOMSTART+1] = q;
 
 		  for (i=0;i<3;i++)
 		  {
-		     RelPosDATA_[Pairs_][i] = 0.0;
+		     RelPosDATA_[Pairs_][DXSTART+i] = 0.0;
 				     
 		     for (j=0;j<3;j++)
 		     {
-			RelPosDATA_[Pairs_][i] +=
+			RelPosDATA_[Pairs_][DXSTART+i] +=
 			   (X[j] + ((InternalPOS_[q][j] + V_[q][j])
 				    - (InternalPOS_[p][j] + V_[p][j])))
 			   *(*RefLattice_)[j][i];
 
 		     }
 		  }
-		  RelPosDATA_[Pairs_][6] = 0.0;
+		  RelPosDATA_[Pairs_][R2START] = 0.0;
 		  for (i=0;i<3;i++)
 		  {
-		     RelPosDATA_[Pairs_][3+i] = 0.0;
+		     RelPosDATA_[Pairs_][DxSTART+i] = 0.0;
 
 		     for (j=0;j<3;j++)
 		     {
-			RelPosDATA_[Pairs_][3+i] += U_[i][j] * RelPosDATA_[Pairs_][j];
+			RelPosDATA_[Pairs_][DxSTART+i]
+			   += U_[i][j] * RelPosDATA_[Pairs_][DXSTART+j];
 		     }
-		     RelPosDATA_[Pairs_][6]
-			+= RelPosDATA_[Pairs_][3+i]*RelPosDATA_[Pairs_][3+i];
+		     RelPosDATA_[Pairs_][R2START]
+			+= RelPosDATA_[Pairs_][DxSTART+i]*RelPosDATA_[Pairs_][DxSTART+i];
 		  }
 		  // Only use Sphere of Influance (current)
-		  if ((RelPosDATA_[Pairs_][6] != 0) &&
-		      (RelPosDATA_[Pairs_][6] <= (*InfluanceDist_)*(*InfluanceDist_)))
+		  if ((RelPosDATA_[Pairs_][R2START] != 0) &&
+		      (RelPosDATA_[Pairs_][R2START]
+		       <= (*InfluanceDist_)*(*InfluanceDist_)))
 		  {
+		     // calculate phi1 and phi2
+		     RelPosDATA_[Pairs_][PHI1START] = Potential_[p][q]->PairPotential(
+			*Ntemp_,RelPosDATA_[Pairs_][R2START],PairPotentials::DY);
+		     RelPosDATA_[Pairs_][PHI2START] = Potential_[p][q]->PairPotential(
+			*Ntemp_,RelPosDATA_[Pairs_][R2START],PairPotentials::D2Y);
+
 		     ++Pairs_;
 		  }
 	       }

@@ -64,7 +64,7 @@ public:
    Matrix StressDT() {return stress(PairPotentials::DT);}
    Matrix StiffnessDT() {return stiffness(0,PairPotentials::DT);}
    double Temp() {return NTemp_;}
-   void SetTemp(const double &Ntemp) {NTemp_ = Ntemp;}
+   void SetTemp(const double &Ntemp) {NTemp_ = Ntemp; LatSum_.Recalc();}
 
    virtual double Energy();
    virtual Matrix Stress() {return stress();}
