@@ -17,7 +17,6 @@ open(GNUPLOT,">$ARGV[1]")
     || die "Unable to open $ARGV[1] for write: $!";
 
 print GNUPLOT "# gnuplot data file for ${dataset}\n#\n";
-print GNUPLOT "# NOTE: Deformation gradient data is in cubic frame
 print GNUPLOT "# Index 0\n";
 print GNUPLOT "# Bifurcation Points\n";
 printf GNUPLOT "#%20s %20s %20s %20s %20s %20s %20s %20s %20s %20s %20s %20s %20s\n",
@@ -156,18 +155,6 @@ sub loaddata {
     $stableflag=$noneg[0];
     while(defined($temp[0]))
     {
-	$u11 = 1/2.0*($U11[0] + 2*$U12[0] + $U22[0]);
-	$u12 = 1/2.0*($U22[0] - $U11[0]);
-	$u13 = sqrt(2.0)/2.0*($U13[0] + $U23[0]);
-	$u22 = 1/2.0*($U11[0] - 2*$U12[0] + $U22[0]);
-	$u23 = sqrt(2.0)/2.0*($U23[0] - $U13[0]);
-
-	$U11[0] = $u11;
-	$U12[0] = $u12;
-	$U13[0] = $u13;
-	$U22[0] = $u22;
-	$U23[0] = $u23;
-
 	# Bifurcation Point
 	if (defined($noneg[1]) && $stableflag != $noneg[1])
 	{
