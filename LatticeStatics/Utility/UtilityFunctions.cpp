@@ -34,14 +34,14 @@ int GetStringParameter(const char *tag,const char *datafile,
 void SetPerlCommand(char *string,const char *datafile,const char *tag)
 {
    char format[]=
-      {"perl -e \"\\$R=findref(\\$ARGV[1],\\$ARGV[0]); print \\$R;"\
-       "sub findref {my(\\$tag,\\$df) = @_; my(\\$fnd); \\$fnd=1; "\
-       "open(R,\\$df); while (<R>) {if (/\\$tag/) {\\$fnd=0; "\
-       "\\$_=deref(\\$_,\\$df); split('=',\\$_); return eval(\\$_[1]);}} "\
-       "close(R); if (\\$fnd == 1) {exit \\$fnd;}} sub deref "\
-       "{my(\\$fld,\\$df)=@_; my(\\$t); while (\\$fld =~ m/\\<([^>]+)>/g) "\
-       "{\\$t=\\$1; \\$v=findref(\\\"^\\$t\\\",\\$df); "\
-       "\\$fld =~ s/<\\$t>/\\$v/} return \\$fld;}\" %s %s"};
+     {"perl -e '$R=findref($ARGV[1],$ARGV[0]); print $R;"\
+      "sub findref {my($tag,$df) = @_; my($fnd); $fnd=1; "\
+      "open(R,$df); while (<R>) {if (/$tag/) {$fnd=0; "\
+      "$_=deref($_,$df); split(\"=\",$_); return eval($_[1]);}} "\
+      "close(R); if ($fnd == 1) {exit $fnd;}} sub deref "\
+      "{my($fld,$df)=@_; my($t); while ($fld =~ m/<([^>]+)>/g) "\
+      "{$t=$1; $v=findref(\"^$t\",$df); "\
+      "$fld =~ s/<$t>/$v/} return $fld;}' %s \\%s"};
       sprintf(string,format,datafile,tag);
 }
 
