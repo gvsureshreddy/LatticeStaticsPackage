@@ -16,7 +16,7 @@ private:
    Vector LatticeVec_[DIM3];
    double ShearMod_;
    double Pressure_;
-   Vector BodyForce_;
+   Vector BodyForce_[4];
 
    //Pair Potential data
    enum YDeriv {Y0,DY,D2Y,D3Y,D4Y};
@@ -51,7 +51,7 @@ public:
    NiTiShuffleTPPLat(char *datafile);
    ~NiTiShuffleTPPLat() {}
    inline double Del(int i,int j) {return i==j;}
-   Vector BodyForce() { return BodyForce_; }
+   Vector BodyForce(int i) { return BodyForce_[i]; }
    double Pressure() const { return Pressure_;}
    double SetPressure(double &p) { Pressure_ = p;}
    double ShearMod() const { return ShearMod_;}

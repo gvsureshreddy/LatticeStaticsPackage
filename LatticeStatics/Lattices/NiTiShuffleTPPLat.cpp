@@ -19,7 +19,10 @@ NiTiShuffleTPPLat::NiTiShuffleTPPLat(char *datafile)
 
    LatticeVec_[2][2] = 1.0;
    // Setup Bodyforce_
-   BodyForce_.Resize(DIM3,0.0);
+   BodyForce_[0].Resize(DIM3,0.0);
+   BodyForce_[1].Resize(DIM3,0.0);
+   BodyForce_[2].Resize(DIM3,0.0);
+   BodyForce_[3].Resize(DIM3,0.0);
 
    // Get Potential Parameters
    GetParameter("^A0_aa",datafile,"%lf",&A0_aa);
@@ -70,7 +73,7 @@ int NiTiShuffleTPPLat::FindLatticeSpacing(int iter,double dx)
 {
    double oldPressure=Pressure_,
       oldTemp=Temp_;
-   
+
    Pressure_=0.0;
    Temp_=Tref_aa;
    ShearMod_=1.0;
@@ -519,7 +522,7 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
    static Vector DX(DIM3),Dx(DIM3);
    static Vector DXPrime(DIM3),DxPrime(DIM3),Direction(DIM3);
    static double J;
-   static int i,j,k,l,p,q,m,n,s;
+   static int i,j,k,l,p,q,m,n,s,z;
    static double r2,phi,phi1,phi2,Influancedist[DIM3],tmp;
    static int Top[DIM3],Bottom[DIM3],CurrentInfluanceDist;
    static interaction Inter;
@@ -581,7 +584,8 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
       Bottom[p] = -CurrentInfluanceDist;
 
       // misc initialization
-      BodyForce_[p] = 0.0;
+      for (z=0;z<4;z++)
+	 BodyForce_[z][p] = 0.0;
    }
 
    for (p=0;p<4;p++)
@@ -630,7 +634,7 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 		  phi1 = PairPotential(Inter,r2,DY,T0);
 		  for (i=0;i<DIM3;i++)
 		  {
-		     BodyForce_[i] += -phi1*Dx[i]/sqrt(r2);
+		     BodyForce_[p][i] += -phi1*Dx[i]/sqrt(r2);
 		  }
 		  
 		  // Calculate Phi
@@ -744,9 +748,12 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
    }
 
    // BodyForce = BodyForce / (2*Vr*ShearMod)
-   for (i=0;i<DIM3;i++)
+   for (i=0;i<4;i++)
    {
-      BodyForce_[i] *= 1.0/(2.0*(2.0*RefLen_*RefLen_*RefLen_)*ShearMod_);
+      for (j=0;j<DIM3;j++)
+      {
+	 BodyForce_[i][j] *= 1.0/(2.0*(2.0*RefLen_*RefLen_*RefLen_)*ShearMod_);
+      }
    }
    
    // Phi = Phi/(2*Vr*ShearMod)
@@ -1004,7 +1011,10 @@ void NiTiShuffleTPPLat::Print(ostream &out,PrintDetail flag)
 	     << "Pressure (Normalized): " << setw(W) << Pressure_ << endl
 	     << "DOF's :" << endl << setw(W) << DOF_ << endl
 	     << "Potential Value (Normalized):" << setw(W) << Energy() << endl
-	     << "BodyForce Value (Normalized):" << setw(W) << BodyForce_ << endl
+	     << "BodyForce Value 0 (Normalized):" << setw(W) << BodyForce_[0] << endl
+	     << "BodyForce Value 1 (Normalized):" << setw(W) << BodyForce_[1] << endl
+	     << "BodyForce Value 2 (Normalized):" << setw(W) << BodyForce_[2] << endl
+	     << "BodyForce Value 3 (Normalized):" << setw(W) << BodyForce_[3] << endl
 	     << "Stress (Normalized):" << setw(W) << Stress() << endl
 	     << "Stiffness (Normalized):" << setw(W) << stiffness
 	     << "Rank 1 Convex:" << setw(W)
