@@ -43,6 +43,14 @@ private:
    Matrix stiffness(int moduliflag=0,PairPotentials::TDeriv dt=PairPotentials::T0);
    Matrix CondensedModuli();
 
+   // Needed for DispersionCurves()
+   //
+   // find next eigval in position two based on previous two values
+   // stored in zero and one position.
+   void interpolate(Matrix *EigVals,int zero,int one,int two);
+   // compair function for qsort
+   static int comp(const void *a,const void *b);
+
 public:
    double RefLen(int i=0) {return RefLen_[i];}
 

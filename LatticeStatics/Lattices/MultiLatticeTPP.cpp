@@ -1279,37 +1279,99 @@ void MultiLatticeTPP::DispersionCurves(char *datafile,ostream &out)
 	 Tmp[i][j] = 0.0;
 	 for (int k=0;k<DIM3;++k)
 	 {
-	    Tmp[i][j] += DefGrad[i][k]*RefLattice_[k][j];
+	    Tmp[i][j] += DefGrad[i][k]*RefLattice_[j][k];
 	 }
       }
    InverseLat = Tmp.Inverse();
 
-   Matrix EigVal(1,INTERNAL_ATOMS*DIM3);
+   Matrix EigVal[3];
+   for (int i=0;i<3;++i) EigVal[i].Resize(1,INTERNAL_ATOMS*DIM3);
+   
    for (int dir=0;dir<NoDirs;++dir)
    {
       out << "# " << setw(w) << Direction[dir] << endl;
       cout << "# " << setw(w) << Direction[dir] << endl;
       Direction[dir] = InverseLat*Direction[dir];
-      for (double k=0.5/NoPTS;k<=0.5;k+=0.5/NoPTS)
+      for (int k=0;k<2;++k)
+      {
+	 Y = ((k+1)*0.5/NoPTS)*Direction[dir];
+	 EigVal[k] = HermiteEigVal(DynamicalStiffness(Y));
+	 qsort(EigVal[k][0],INTERNAL_ATOMS*DIM3,sizeof(double),&comp);
+
+	 out << setw(w) << NTemp_ << setw(w) << (k+1)*0.5/NoPTS;
+	 cout << setw(w) << NTemp_ << setw(w) << (k+1)*0.5/NoPTS;
+	 for (int i=0;i<INTERNAL_ATOMS*DIM3;++i)
+	 {
+	    out << setw(w) << EigVal[k][0][i];;
+	    cout << setw(w) << EigVal[k][0][i];;
+	 }
+	 out << endl;
+	 cout << endl;
+      }
+      int zero=0,one=1,two=2;
+      for (double k=1.5/NoPTS;k<=0.5;k+=0.5/NoPTS)
       {
 	 Y = k*Direction[dir];
-	 EigVal = HermiteEigVal(DynamicalStiffness(Y));
-
+	 EigVal[two] = HermiteEigVal(DynamicalStiffness(Y));
+	 qsort(EigVal[two][0],INTERNAL_ATOMS*DIM3,sizeof(double),&comp);
+	 interpolate(EigVal,zero,one,two);
+	 
 	 out << setw(w) << NTemp_ << setw(w) << k;
 	 cout << setw(w) << NTemp_ << setw(w) << k;
 	 for (int i=0;i<INTERNAL_ATOMS*DIM3;++i)
 	 {
-	    out << setw(w) << EigVal[0][i];;
-	    cout << setw(w) << EigVal[0][i];;
+	    out << setw(w) << EigVal[two][0][i];;
+	    cout << setw(w) << EigVal[two][0][i];;
 	 }
 	 out << endl;
 	 cout << endl;
+	 zero = (++zero)%3; one = (zero+1)%3; two = (one+1)%3;
       }
       out << endl << endl;
       cout << endl << endl;
    }
 
    delete [] Direction;
+}
+
+int MultiLatticeTPP::comp(const void *a,const void *b)
+{
+   double t;
+   if( *((double*) a) == *((double*) b)) return 0;
+   else
+   {
+      t= *((double*) a) - *((double*) b);
+      t/=fabs(t);
+      return int(t);
+   }
+}
+
+void MultiLatticeTPP::interpolate(Matrix *EigVals,int zero,int one,int two)
+{
+   // Calculate expected value for eigvals and store in zero position
+   EigVals[zero] = 2.0*EigVals[one] - EigVals[zero];
+
+   double delta,dtmp;
+   int i,j,pos;
+
+   for (i=0;i<EigVals[0].Cols();++i)
+   {
+      pos = i;
+      delta = fabs(EigVals[zero][0][i] - EigVals[two][0][i]);
+      for (j=i+1;j<EigVals[0].Cols();++j)
+      {
+	 dtmp = fabs(EigVals[zero][0][i] - EigVals[two][0][j]);
+	 if (dtmp < delta)
+	 {
+	    delta = dtmp;
+	    pos = j;
+	 }
+      }
+      // move correct eigval to current pos
+      dtmp = EigVals[two][0][i];
+      EigVals[two][0][i] = EigVals[two][0][pos];
+      EigVals[two][0][pos] = dtmp;
+   }
 }
 
 int MultiLatticeTPP::BlochWave(Vector &Y)
