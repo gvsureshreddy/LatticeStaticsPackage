@@ -345,12 +345,12 @@ void NiTiShuffleTPPLat::GetLatticeVectorInfo(double *SX,double *DXPrime,
 					     interaction &Inter,int p,int q)
 {
    static double Basis[4][DIM3] = {0.0,0.0,0.0,
-				   0.5,0.0,0.5,
 				   0.5,0.5,0.0,
+				   0.5,0.0,0.5,
 				   0.0,0.5,0.5};
    double dxprime=0;
 
-   Basis[2][0] = 0.5 + DOF_[6];
+   Basis[1][0] = 0.5 + DOF_[6];
    Basis[3][0] = DOF_[6];
 
    switch (p)
@@ -364,11 +364,11 @@ void NiTiShuffleTPPLat::GetLatticeVectorInfo(double *SX,double *DXPrime,
 	       break;
 	    case 1:
 	       dxprime = 1.0;
-	       Inter = ab;
+	       Inter = aa;
 	       break;
 	    case 2:
 	       dxprime = 0.0;
-	       Inter = aa;
+	       Inter = ab;
 	       break;
 	    case 3:
 	       dxprime = 1.0;
@@ -381,11 +381,11 @@ void NiTiShuffleTPPLat::GetLatticeVectorInfo(double *SX,double *DXPrime,
 	 {
 	    case 0:
 	       dxprime = -1.0;
-	       Inter = ab;
+	       Inter = aa;
 	       break;
 	    case 1:
 	       dxprime = 0.0;
-	       Inter = bb;
+	       Inter = aa;
 	       break;
 	    case 2:
 	       dxprime = -1.0;
@@ -393,7 +393,7 @@ void NiTiShuffleTPPLat::GetLatticeVectorInfo(double *SX,double *DXPrime,
 	       break;
 	    case 3:
 	       dxprime = 0.0;
-	       Inter = bb;
+	       Inter = ab;
 	       break;
 	 }
 	 break;
@@ -402,7 +402,7 @@ void NiTiShuffleTPPLat::GetLatticeVectorInfo(double *SX,double *DXPrime,
 	 {
 	    case 0:
 	       dxprime = 0.0;
-	       Inter = aa;
+	       Inter = ab;
 	       break;
 	    case 1:
 	       dxprime = 1.0;
@@ -410,11 +410,11 @@ void NiTiShuffleTPPLat::GetLatticeVectorInfo(double *SX,double *DXPrime,
 	       break;
 	    case 2:
 	       dxprime = 0.0;
-	       Inter = aa;
+	       Inter = bb;
 	       break;
 	    case 3:
 	       dxprime = 1.0;
-	       Inter = ab;
+	       Inter = bb;
 	       break;
 	 }
 	 break;
@@ -427,11 +427,11 @@ void NiTiShuffleTPPLat::GetLatticeVectorInfo(double *SX,double *DXPrime,
 	       break;
 	    case 1:
 	       dxprime = 0.0;
-	       Inter = bb;
+	       Inter = ab;
 	       break;
 	    case 2:
 	       dxprime = -1.0;
-	       Inter = ab;
+	       Inter = bb;
 	       break;
 	    case 3:
 	       dxprime = 0.0;
@@ -665,15 +665,15 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 				       phi*PI(Dx,DX,i,j)*PI(Dx,DX,k,l)
 				       +phi1*(0.5)*PSI(DX,i,j,k,l);
 				 }
-				 Phi[6][IND(i,j)] = Phi[IND(i,j)][6]
-				    += phi*(PI(Dx,DX,i,j)*(2.0*DxPrime[k]*Dx[k]))
-				    + phi1*(DxPrime[i]*DX[j] + Dx[i]*DXPrime[j] +
-					    DXPrime[i]*Dx[j] + DX[i]*DxPrime[j]);
 			      }
+			      Phi[6][IND(i,j)] = Phi[IND(i,j)][6]
+				 += phi*(PI(Dx,DX,i,j)*(2.0*DxPrime*Dx))
+				 + phi1*(DxPrime[i]*DX[j] + Dx[i]*DXPrime[j] +
+					       DXPrime[i]*Dx[j] + DX[i]*DxPrime[j]);
 			   }
-			   Phi[6][6] += phi*(2.0*DxPrime[i]*Dx[i])*(2.0*DxPrime[i]*Dx[i])
-			      + phi1*(2.0*DxPrime[i]*DxPrime[i]);
 			}
+			Phi[6][6] += phi*(2.0*(DxPrime*Dx))*(2.0*(DxPrime*Dx))
+			   + phi1*(2.0*DxPrime*DxPrime);
 			break;
 		     case D3Y:
 			// phi1=PairPotential(Inter,r2,D2Y,dt);
