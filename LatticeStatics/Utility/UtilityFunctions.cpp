@@ -86,6 +86,45 @@ int IND2D(int i,int j)
       return 1+i+j;
 }
 
+unsigned FullScanRank1Convex3D(Matrix K, double dx)
+{
+   Matrix A(3,3);
+   Matrix Eigvals(1,3);
+   double Pi=4.0*atan(1.0);
+   double Piby2 = Pi/2,
+      Pi2 = 2*Pi;
+   double phi,theta;
+   double n[3];
+
+   for (phi = -Piby2;phi < Piby2;phi += dx)
+   {
+      for (theta = 0;theta < Pi2;theta += dx)
+      {
+	 n[0] = cos(phi)*cos(theta);
+	 n[1] = cos(phi)*sin(theta);
+	 n[2] = sin(phi);
+
+	 // Acoustic tensor
+	 for (int i=0;i<3;i++)
+	    for (int j=0;j<3;j++)
+	    {
+	       A[i][j] = 0.0;
+	       for (int k=0;k<3;k++)
+		  for (int l=0;l<3;l++)
+		  {
+		     A[i][j] = K[IND3D(i,k)][IND3D(j,l)] * n[k] * n[l];
+		  }
+	    }
+
+	 Eigvals = SymEigVal(A);
+	 for(int i=0;i<3;i++)
+	    if (Eigvals[0][i] <= 0.0) return 0;
+      }
+   }
+
+   return 1;
+}
+
 unsigned Rank1Convex3D(Matrix K,double dx)
 {
    double Pi=4.0*atan(1.0);

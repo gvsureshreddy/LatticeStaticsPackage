@@ -213,7 +213,7 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
 	       ScanMe.FindNextSolution(good);
 	       if (good)
 	       {
-		  cout << setw(Width) << Lat;
+		  out << setw(Width) << Lat;
 		  Two = Mode->ArcLenDef();
 	       }
 	    }

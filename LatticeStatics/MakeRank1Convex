@@ -3,7 +3,7 @@
 
 VPATH = bin lib depend Lattices Modes SolutionMethods Potentials Utility
 
-EXE        = LatticeStatics
+EXE        = Rank1Convex
 SRC_EXT    = .cpp
 OBJ_EXT    = .o
 DEP_EXT    = .d
@@ -43,11 +43,7 @@ SUBDIRS    = Lattices Modes SolutionMethods Potentials Utility
 
 # Defines the source files needed #########################################
 include $(addsuffix /Makefile, $(SUBDIRS))
-SOURCES  = LatticeStatics.cpp\
-	   $(addprefix Lattices/,$(LATTICES))\
-	   $(addprefix Modes/,$(MODES))\
-	   $(addprefix SolutionMethods/,$(SOLUTIONMETHODS))\
-	   $(addprefix Potentials/,$(POTENTIALS))\
+SOURCES  = Utility/Rank1Convex.cpp\
 	   $(addprefix Utility/,$(UTILITY))
 
 
@@ -60,7 +56,6 @@ $(EXE):  $(OBJECTS)
 	 $(PURE) $(CC) $(LFLAGS) Utility/builddate.cpp \
 		 -L$(LIB_LOC) -o ./bin/$(EXE) \
 		 $(addprefix lib/,$(OBJECTS)) $(LIBS) 
-	 $(MAKE) -f MakeRank1Convex
 
 # include the dependicies
 include $(addprefix depend/,$(OBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
@@ -78,30 +73,10 @@ $(OBJECTS): Makefile
 install: $(BIN_LOC)/$(EXE) ;
 $(BIN_LOC)/$(EXE):	$(EXE)
 	/bin/cp bin/$(EXE) $(BIN_LOC)/
-	/bin/cp Utility/UniDef_Symm_Solution $(BIN_LOC)/
-	/bin/cp gpl_scripts/AddRank1Convex $(BIN_LOC)/
-	/bin/cp gpl_scripts/NiTi2gpl $(BIN_LOC)/
-	/bin/cp gpl_scripts/NiTiShuffle1togpl $(BIN_LOC)/
-	/bin/cp gpl_scripts/NiTiShuffle2togpl $(BIN_LOC)/
-	/bin/cp gpl_scripts/NiTiShuffle3togpl $(BIN_LOC)/
-	/bin/cp gpl_scripts/NiTiShuffleParam2gpl $(BIN_LOC)/
-	/bin/cp gpl_scripts/NiTi152gpl $(BIN_LOC)/
-	/bin/cp gpl_scripts/NiTi15Param2gpl $(BIN_LOC)/
-	$(MAKE) -f MakeRank1Convex install
 
 # Define uninstall
 uninstall:
 	/bin/rm -f $(BIN_LOC)/$(EXE)
-	/bin/rm -f $(BIN_LOC)/UniDef_Symm_Solution
-	/bin/rm -f $(BIN_LOC)/AddRank1Convex
-	/bin/rm -f $(BIN_LOC)/NiTi2gpl
-	/bin/rm -f $(BIN_LOC)/NiTiShuffle1togpl
-	/bin/rm -f $(BIN_LOC)/NiTiShuffle2togpl
-	/bin/rm -f $(BIN_LOC)/NiTiShuffle3togpl
-	/bin/rm -f $(BIN_LOC)/NiTiShuffleParam2gpl
-	/bin/rm -f $(BIN_LOC)/NiTi152gpl
-	/bin/rm -f $(BIN_LOC)/NiTi15Param2gpl
-	$(MAKE) -f MakeRank1Convex uninstall
 
 
 # Removes the current systems set of object files and executable file
@@ -112,7 +87,6 @@ clean:
 		  $(addsuffix /*~,$(SUBDIRS))\
                   bin/$(EXE) core *~ \
 		  depend/*.d
-	 $(MAKE) -f MakeRank1Convex clean
 
 # Define rule for dependicy files
 depend/$(notdir %).d: %$(SRC_EXT)

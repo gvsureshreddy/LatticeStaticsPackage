@@ -20,6 +20,7 @@ void SetPerlCommand(char *string,const char *datafile,const char *tag);
 void Errfun(const char *string);
 FILE *OpenPipe(const char *command,const char *mode);
 
+unsigned FullScanRank1Convex3D(Matrix K,double dx);
 unsigned Rank1Convex3D(Matrix K,double dx);
 unsigned Rank1Convex2D(Matrix K,double dx);
 
