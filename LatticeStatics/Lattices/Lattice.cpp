@@ -290,14 +290,13 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
 		<< ")a_" << j
 		<< " + ";
 	 }
-      }      
+	 cout << "(" << setw(Width) << EijT[i][count-1] << ")a_" << count-1
+	      << " ) = 0" << endl;
+	 out << "(" << setw(Width) << EijT[i][count-1] << ")a_" << count-1
+	     << " ) = 0" << endl;
+      }
    }
 
-   cout << "(" << setw(Width) << EijT[i][count-1] << ")a_" << count-1
-	<< " ) = 0" << endl;
-   out << "(" << setw(Width) << EijT[i][count-1] << ")a_" << count-1
-       << " ) = 0" << endl;
-   
    cout << endl;
    out << endl;
    for (int i=0;i<70;i++)
