@@ -1,50 +1,66 @@
-this is a test file for SquarePressPairPotLat
-
 // Main Parameters
 MainFieldWidth = 20
 MainPrecision = 12
 MainBisectCP = Yes
 
-MainLatticeType = SquarePressTempPairPotLat
-MainModeType = UniDefTemp2DExpand
+MainLatticeType = NiTiPressTempPairPotLat
+MainModeType = UniDefTemp3DExpand
 MainSolutionMethod = ArcLength
 
 
 // Lattice Parameters
 MaxIterations = 100
-InitializeStepSize = .1
-B0 = 2
-A0 = 1
-Rref= 1
-Alpha = 0.5591
-Tref = 300
-RefLen = 1
-Tmelt = 1445 + 273
+InitializeStepSize = .01
+
+B0_aa = 4
+A0_aa = 1
+Rref_aa = 1
+Alpha_aa = 0
+Tref_aa = 300
+Tmelt_aa = 1445 + 273
+
+B0_bb = 7
+A0_bb = 1943/1728
+Rref_bb = 1.445/1.246
+Alpha_bb = 0
+Tref_bb = <Tref_aa>
+Tmelt_bb = 1670 + 273
+
+B0_ab = (<B0_aa> + <B0_bb>)/2
+A0_ab = (<A0_aa> + <A0_bb>)/5
+Rref_ab = (<Rref_aa> + <Rref_bb>)/2
+Alpha_ab = 3
+Tref_ab = <Tref_aa>
+Tmelt_ab = 1300 + 273
+
+RefLen = 1.1
 InfluanceDist = 5
 Temp=300
 Pressure=0
+ConvexityDX=1.0*<DEG2RAD>
 
 // Scanning Parameters
 ScanningMaxIterations = 100
 ScanningTolerance = 1.0e-13
-ScanningNewtonTolerance = 1.0e-28
+ScanningNewtonTolerance = 1.0e-13
 ScanningFullField = No
-ScanningInitialDeformation = 0.0
+ScanningInitialDeformation = "0.0"
 ScanningDirection = Deformation
-ScanningStart = 324.6
-ScanningEnd = 324.8
-ScanningStep = 0.2
-ScanningLineStart = 1.0
-ScanningLineStep = 0.01
-ScanningLineEnd = 1.9
+ScanningStart = 259.4
+ScanningEnd = 259.9
+ScanningStep = 0.5
+ScanningLineStart = 1
+ScanningLineStep = -0.02
+ScanningLineEnd = 0.5
 
 // ArcLength Parameters
+DEG2RAD = atan2(1,1)*4/180
 ArcLenMaxIterations = 100
 ArcLenTolerance = 1.0e-13
-ArcLenDSMax = 0.2
-ArcLenDSMin = 0.2*1.0e-3
-ArcLenAngleCutoff = 25*3.14159/180
-ArcLenAngleIncrease = 10*3.14159/180
-ArcLenAspect = 62.5
-ArcLenNumSolutions = 50
+ArcLenDSMax = sqrt( 0.2**2 / <ArcLenAspect>**2 )
+ArcLenDSMin = <ArcLenDSMax>*1.0e-3
+ArcLenAngleCutoff = 25*<DEG2RAD>
+ArcLenAngleIncrease = 10*<DEG2RAD>
+ArcLenAspect = 1
+ArcLenNumSolutions = 600
 
