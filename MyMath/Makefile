@@ -45,12 +45,12 @@ $(OBJECTS): Makefile
 .PHONY: install uninstall
 # Define install
 install: $(EXE)
-	ar -r $(LIB_LOC)/libMath.a $(addprefix ./lib/,$(OBJECTS))
+	ar -r $(LIB_LOC)/libMath.a $(addprefix ./lib/,$(OBJECTS)); ranlib $(LIB_LOC)/libMath.a
 	/bin/cp Math.h $(INCL_LOC)
 
 # Define uninstall
 uninstall:
-	ar -d $(LIB_LOC)/libMath.a Math.o
+	ar -d $(LIB_LOC)/libMath.a Math.o; ranlib $(LIB_LOC)/libMath.a
 	/bin/rm -f $(INCL_LOC)/Math.h
 
 
