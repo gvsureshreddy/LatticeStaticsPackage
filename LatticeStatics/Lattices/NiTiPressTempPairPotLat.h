@@ -23,6 +23,7 @@ private:
    double A0_ab, B0_ab, Alpha_ab, Rref_ab, Tref_ab, Tmelt_ab;
 
    // Misc
+   double ConvexityDX_;
    static const double Alt[DIM3][DIM3][DIM3];
 
 public:

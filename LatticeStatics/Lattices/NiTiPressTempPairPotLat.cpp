@@ -35,7 +35,8 @@ NiTiPressTempPairPotLat::NiTiPressTempPairPotLat(char *datafile)
    GetParameter("^InfluanceDist",datafile,"%u",&InfluanceDist_);
    GetParameter("^Temp",datafile,"%lf",&Temp_);
    GetParameter("^Pressure",datafile,"%lf",&Pressure_);
-
+   GetParameter("^ConvexityDX",datafile,"%lf",&ConvexityDX_);
+   
    // needed to initialize reference length
    int iter;
    double DX;
@@ -709,6 +710,8 @@ void NiTiPressTempPairPotLat::Print(ostream &out,PrintDetail flag)
 	     << "Potential Value (Normalized):" << setw(W) << Energy() << endl
 	     << "Stress (Normalized):" << setw(W) << Stress()
 	     << "Stiffness (Normalized):" << setw(W) << stiffness
+	     << "Rank 1 Convex:"<< setw(W)
+	     << Rank1Convex3D(stiffness,ConvexityDX_) << endl
 	     << "Eigenvalue Info:"  << setw(W) << EigenValues
 	     << "Bifurcation Info:" << setw(W) << MinEigVal
 	     << setw(W) << NoNegEigVal << endl;
