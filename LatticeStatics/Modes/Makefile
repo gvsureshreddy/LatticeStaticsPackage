@@ -21,4 +21,5 @@ MODES = KnownModes.cpp\
 	FullShuffle2.cpp\
 	FullShuffle3.cpp\
 	Expand15.cpp\
-	Full15.cpp
+	Full15.cpp\
+	Ortho15Shuff.cpp

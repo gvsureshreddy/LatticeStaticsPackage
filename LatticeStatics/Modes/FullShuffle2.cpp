@@ -78,10 +78,10 @@ double FullShuffle2::ArcLenAngle(Vector Old,Vector New,double Aspect)
 
 Vector FullShuffle2::DrDt(const Vector &Diff)
 {
-   int size=Diff.Dim();
-   Vector ddt(size-1);
+   int size=Diff.Dim()-1;
+   Vector ddt(size);
 
-   for (int i=0;i<size-1;i++)
+   for (int i=0;i<size;i++)
    {
       ddt[i] = Diff[i]/Diff[size];
    }

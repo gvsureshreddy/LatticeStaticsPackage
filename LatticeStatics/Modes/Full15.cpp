@@ -111,7 +111,7 @@ Vector Full15::DrDt(const Vector &Diff)
 
    for (int i=0;i<size-1;i++)
    {
-      ddt[i] = Diff[i]/Diff[size];
+      ddt[i] = Diff[i]/Diff[size-1];
    }
 
    return ddt;

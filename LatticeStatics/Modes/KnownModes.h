@@ -21,7 +21,8 @@
 #include "FullShuffle3.h"
 #include "Expand15.h"
 #include "Full15.h"
+#include "Ortho15Shuff.h"
 
-#define KNOWNMODES 23
+#define KNOWNMODES 24
 
 LatticeMode *InitializeMode(Lattice *Lat,char *datafile);
