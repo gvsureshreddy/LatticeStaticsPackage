@@ -680,9 +680,9 @@ Matrix NiTiRadii::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 
 		  // Calculate bodyforce
 		  phi1 = PairPotential(Inter,r2,DY,T0);
-		  if (ForceNorm < fabs(-phi1/(2.0*sqrt(r2))))
+		  if (ForceNorm < fabs(-phi1/2.0))
 		  {
-		     ForceNorm = fabs(-phi1/(2.0*sqrt(r2)));
+		     ForceNorm = fabs(-phi1/2.0);
 		  }
 		  for (i=0;i<DIM3;i++)
 		  {
