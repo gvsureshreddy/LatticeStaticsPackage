@@ -91,20 +91,9 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
    }
 
    // Print out the Eigenvectors
-   cout << "EigenVectors" << endl << setw(Width) << EigVec;
-   if (Echo_) out << "EigenVectors" << endl << setw(Width) << EigVec;
-
-   // Print out the critical point character test (Limit-load/Bifurcation)
-   for (int i=0;i<count;++i)
-   {
-      double z=0.0;
-      for (int j=0;dofs;++j)
-      {
-	 z+= Mode[i][j]*D1T[0][j];
-      }
-      cout << "StressDT*Mode[" << i << "] = " << setw(Width) << z << endl;
-   }
-
+   out << "EigenVectors" << endl << setw(Width) << EigVec;
+   if (Echo_) cout << "EigenVectors" << endl << setw(Width) << EigVec;
+   
    // Eijk
    for (int i=0;i<count;i++)
       for (int j=0;j<count;j++)
@@ -138,11 +127,26 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
    // Print out results
    for (int i=0;i<70;i++)
    {
-      cout << "-";
-      if (Echo_) out << "-";
+      out << "-";
+      if (Echo_) cout << "-";
    }
-   cout << endl << endl << "2nd Order Bifurcation Equations:" << endl;
-   if (Echo_) out << endl << endl << "2nd Order Bifurcation Equations:" << endl;
+   out << endl; if (Echo_) cout << endl;
+
+   // Print out the critical point character test (Limit-load/Bifurcation)
+   for (int i=0;i<count;++i)
+   {
+      double z=0.0;
+      for (int j=0;j<dofs;++j)
+      {
+	 z+= Mode[i][j]*D1T[0][j];
+      }
+      out << "StressDT*Mode[" << i << "] = " << setw(Width) << z << endl;
+      if (Echo_) cout << "StressDT*Mode[" << i << "] = " << setw(Width) << z << endl;
+   }
+   
+   
+   out << endl << endl << "2nd Order Bifurcation Equations:" << endl;
+   if (Echo_) cout << endl << endl << "2nd Order Bifurcation Equations:" << endl;
 
    int prec = out.precision();
 
@@ -166,8 +170,8 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
 		<< " + ";
 	 }
 
-      cout << "2T_1( ";
-      if (Echo_) out << "2T_1( ";
+      out << "2T_1( ";
+      if (Echo_) cout << "2T_1( ";
       
       for (int j=0;j<count-1;j++)
       {
