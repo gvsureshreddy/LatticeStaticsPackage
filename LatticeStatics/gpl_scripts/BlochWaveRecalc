@@ -51,6 +51,10 @@ while (<DATA>)
       $newline = <PIPout>;
       print OUTPUT $newline;
     }
+    else
+    {
+      print OUTPUT $_;
+    }
   }
   else
   {
