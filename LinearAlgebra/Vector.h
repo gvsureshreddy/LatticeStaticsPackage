@@ -1,20 +1,7 @@
 #ifndef __Vector
 #define __Vector
 
-#include "Matrix.h"
-
-// ***********************************************************************************
-// $Log: Vector.h,v $
-// Revision 1.2  1999/08/16 14:49:37  elliottr
-// Added Identification (Revision) Routine
-//
-// Revision 1.1  1999/08/13 14:54:07  elliottr
-// Initial revision
-//
-// Revision 1.1  1999/07/26 16:12:11  elliottr
-// Initial revision
-//
-// ***********************************************************************************
+#include <Matrix.h>
 
 // Sentinal Value to allow conditional initialization of data
 #define SENTINAL -9999999.8888888887777788

@@ -4,19 +4,8 @@
 #include <string.h>
 #include <math.h>
 
-// ***********************************************************************************
-// $Log: Matrix.cpp,v $
-// Revision 1.2  1999/08/16 14:49:26  elliottr
-// Added Identification (Revision) Routine
-//
-// Revision 1.1  1999/07/26 17:36:21  elliottr
-// Initial revision
-//
-// ***********************************************************************************
-
-
 // Global IDString
-char MatrixID[]="$Id: Matrix.cpp,v 1.2 1999/08/16 14:49:26 elliottr Exp $";
+char MatrixID[]="$Id: Matrix.cpp,v 1.3 2000/08/01 06:26:08 elliottr Exp $";
 
 // Private Methods...
 

@@ -3,16 +3,6 @@
 
 #include <iostream.h>
 
-// ***********************************************************************************
-// $Log: Matrix.h,v $
-// Revision 1.2  1999/08/16 14:49:21  elliottr
-// Added Identification (Revision) Routine
-//
-// Revision 1.1  1999/08/13 14:53:49  elliottr
-// Initial revision
-//
-// ***********************************************************************************
-
 // Sentinal to allow for no initialization of data
 #define SENTINAL -9999999.8888888887777788
 

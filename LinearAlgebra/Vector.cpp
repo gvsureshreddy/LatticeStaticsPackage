@@ -1,21 +1,11 @@
-#include "Vector.h"
+#include <Vector.h>
 #include <string.h>
 #include <iostream.h>
 #include <iomanip.h>
 #include <math.h>
 
-// ***********************************************************************************
-// $Log: Vector.cpp,v $
-// Revision 1.2  1999/08/16 14:49:42  elliottr
-// Added Identification (Revision) Routine
-//
-// Revision 1.1  1999/07/26 17:25:55  elliottr
-// Initial revision
-//
-// ***********************************************************************************
-
 // Global IDString
-char VectorID[]="$Id: Vector.cpp,v 1.2 1999/08/16 14:49:42 elliottr Exp $";
+char VectorID[]="$Id: Vector.cpp,v 1.3 2000/08/01 06:26:08 elliottr Exp $";
 
 // Private Functions...
 
