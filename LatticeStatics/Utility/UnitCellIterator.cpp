@@ -48,9 +48,9 @@ void UnitCellIterator::Initialize(int GridSize,ScanType ScnTyp,int DoHalfOnly,
 	    {
 	       if (!(SkipZero && (i == 0) && (j == 0) && (k == 0)))
 	       {
-		  Vectors_[CurrentPOS_][0] = i;
-		  Vectors_[CurrentPOS_][1] = j;
-		  Vectors_[CurrentPOS_][2] = k;
+		  Vectors_[CurrentPOS_][0] = i/double(GridSize_-1);
+		  Vectors_[CurrentPOS_][1] = j/double(GridSize_-1);
+		  Vectors_[CurrentPOS_][2] = k/double(GridSize_-1);
 		  ++CurrentPOS_;
 	       }
 	    }
