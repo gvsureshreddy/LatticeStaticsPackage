@@ -189,8 +189,8 @@ double NiTi9TPPLat::OMEGA(const Vector &Dx,int p,int q,int i, int j)
    {
       for (int t=0;t<DIM3;t++)
       {
-	 ret += (LatticeVec_[j][s]*DOF_[INDU(s,t)]*Dx[t] +
-		 Dx[t]*DOF_[INDU(t,s)]*LatticeVec_[j][s]);
+	 ret += (LatticeBasis[j][s]*DOF_[INDU(s,t)]*Dx[t] +
+		 Dx[t]*DOF_[INDU(t,s)]*LatticeBasis[j][s]);
       }
    }
    ret *= DELTA(i,p,q);
@@ -207,8 +207,8 @@ double NiTi9TPPLat::SIGMA(int p,int q,int i,int j,int k,int l)
       {
 	 for (int r=0;r<DIM3;r++)
 	 {
-	    tmp += (LatticeVec_[j][s]*DOF_[INDU(s,t)]*DOF_[INDU(t,r)]*LatticeVec_[l][r] +
-		    LatticeVec_[l][s]*DOF_[INDU(s,t)]*DOF_[INDU(t,r)]*LatticeVec_[j][r]);
+	    tmp += (LatticeBasis[j][s]*DOF_[INDU(s,t)]*DOF_[INDU(t,r)]*LatticeBasis[l][r] +
+		    LatticeBasis[l][s]*DOF_[INDU(s,t)]*DOF_[INDU(t,r)]*LatticeBasis[j][r]);
 	 }
       }
    }
@@ -223,27 +223,27 @@ double NiTi9TPPLat::GAMMA(const Vector &Dx,const Vector &DX,
    
    for (int s=0;s<DIM3;s++)
    {
-      tmp += (LatticeVec_[l][s]*DOF_[INDU(s,i)]*DX[j] +
-	      LatticeVec_[l][s]*DOF_[INDU(s,j)]*DX[i] +
-	      DX[i]*DOF_[INDU(j,s)]*LatticeVec_[l][s] +
-	      DX[j]*DOF_[INDU(i,s)]*LatticeVec_[l][s]);
+      tmp += (LatticeBasis[l][s]*DOF_[INDU(s,i)]*DX[j] +
+	      LatticeBasis[l][s]*DOF_[INDU(s,j)]*DX[i] +
+	      DX[i]*DOF_[INDU(j,s)]*LatticeBasis[l][s] +
+	      DX[j]*DOF_[INDU(i,s)]*LatticeBasis[l][s]);
    }
    
    
-   return (0.5*DELTA(k,p,q)*(LatticeVec_[l][i]*Dx[j] + LatticeVec_[l][j]*Dx[i] + tmp));
+   return (0.5*DELTA(k,p,q)*(LatticeBasis[l][i]*Dx[j] + LatticeBasis[l][j]*Dx[i] + tmp));
 }
 
 double NiTi9TPPLat::THETA(const Vector &DX,int p,int q,int i,int j,int k,int l,
 			   int m, int n)
 {
-   return (0.5*DELTA(m,p,q)*(Del(i,k)*LatticeVec_[n][j]*DX[l]
-			     + Del(i,k)*DX[j]*LatticeVec_[n][l]
-			     + Del(i,l)*LatticeVec_[n][j]*DX[k]
-			     + Del(i,l)*DX[j]*LatticeVec_[n][k]
-			     + Del(j,k)*LatticeVec_[n][i]*DX[l]
-			     + Del(j,k)*DX[i]*LatticeVec_[n][l]
-			     + Del(j,l)*LatticeVec_[n][i]*DX[k]
-			     + Del(j,l)*DX[i]*LatticeVec_[n][k]));
+   return (0.5*DELTA(m,p,q)*(Del(i,k)*LatticeBasis[n][j]*DX[l]
+			     + Del(i,k)*DX[j]*LatticeBasis[n][l]
+			     + Del(i,l)*LatticeBasis[n][j]*DX[k]
+			     + Del(i,l)*DX[j]*LatticeBasis[n][k]
+			     + Del(j,k)*LatticeBasis[n][i]*DX[l]
+			     + Del(j,k)*DX[i]*LatticeBasis[n][l]
+			     + Del(j,l)*LatticeBasis[n][i]*DX[k]
+			     + Del(j,l)*DX[i]*LatticeBasis[n][k]));
 }
 
 double NiTi9TPPLat::XI(int p,int q,int i,int j,int k,int l,int m,int n)
@@ -252,14 +252,14 @@ double NiTi9TPPLat::XI(int p,int q,int i,int j,int k,int l,int m,int n)
 
    for (int s=0;s<DIM3;s++)
    {
-      tmp += (LatticeVec_[j][m]*DOF_[INDU(n,s)]*LatticeVec_[l][s]
-	      + LatticeVec_[j][n]*DOF_[INDU(m,s)]*LatticeVec_[l][s]
-	      + LatticeVec_[j][s]*DOF_[INDU(s,m)]*LatticeVec_[l][n]
-	      + LatticeVec_[j][s]*DOF_[INDU(s,n)]*LatticeVec_[l][m]
-	      + LatticeVec_[l][m]*DOF_[INDU(n,s)]*LatticeVec_[j][s]
-	      + LatticeVec_[l][n]*DOF_[INDU(m,s)]*LatticeVec_[j][s]
-	      + LatticeVec_[l][s]*DOF_[INDU(s,m)]*LatticeVec_[j][n]
-	      + LatticeVec_[l][s]*DOF_[INDU(s,n)]*LatticeVec_[j][m]);
+      tmp += (LatticeBasis[j][m]*DOF_[INDU(n,s)]*LatticeBasis[l][s]
+	      + LatticeBasis[j][n]*DOF_[INDU(m,s)]*LatticeBasis[l][s]
+	      + LatticeBasis[j][s]*DOF_[INDU(s,m)]*LatticeBasis[l][n]
+	      + LatticeBasis[j][s]*DOF_[INDU(s,n)]*LatticeBasis[l][m]
+	      + LatticeBasis[l][m]*DOF_[INDU(n,s)]*LatticeBasis[j][s]
+	      + LatticeBasis[l][n]*DOF_[INDU(m,s)]*LatticeBasis[j][s]
+	      + LatticeBasis[l][s]*DOF_[INDU(s,m)]*LatticeBasis[j][n]
+	      + LatticeBasis[l][s]*DOF_[INDU(s,n)]*LatticeBasis[j][m]);
    }
 
    return (0.5*DELTA(i,p,q)*DELTA(k,p,q)*tmp);
@@ -268,14 +268,14 @@ double NiTi9TPPLat::XI(int p,int q,int i,int j,int k,int l,int m,int n)
 double NiTi9TPPLat::LAMDA(int p,int q,int i,int j,int k,int l,int m,int n,int a,
 			   int b)
 {
-   return (0.5*DELTA(m,p,q)*DELTA(a,p,q)*(Del(i,k)*LatticeVec_[n][j]*LatticeVec_[b][l]
-					  + Del(i,k)*LatticeVec_[b][j]*LatticeVec_[n][l]
-					  + Del(i,l)*LatticeVec_[n][j]*LatticeVec_[b][k]
-					  + Del(i,l)*LatticeVec_[b][j]*LatticeVec_[n][k]
-					  + Del(j,k)*LatticeVec_[n][i]*LatticeVec_[b][l]
-					  + Del(j,k)*LatticeVec_[b][i]*LatticeVec_[n][l]
-					  + Del(j,l)*LatticeVec_[n][i]*LatticeVec_[b][k]
-					  + Del(j,l)*LatticeVec_[b][i]*LatticeVec_[n][k]));
+   return (0.5*DELTA(m,p,q)*DELTA(a,p,q)*(Del(i,k)*LatticeBasis[n][j]*LatticeBasis[b][l]
+					  + Del(i,k)*LatticeBasis[b][j]*LatticeBasis[n][l]
+					  + Del(i,l)*LatticeBasis[n][j]*LatticeBasis[b][k]
+					  + Del(i,l)*LatticeBasis[b][j]*LatticeBasis[n][k]
+					  + Del(j,k)*LatticeBasis[n][i]*LatticeBasis[b][l]
+					  + Del(j,k)*LatticeBasis[b][i]*LatticeBasis[n][l]
+					  + Del(j,l)*LatticeBasis[n][i]*LatticeBasis[b][k]
+					  + Del(j,l)*LatticeBasis[b][i]*LatticeBasis[n][k]));
 }
 
 double NiTi9TPPLat::pwr(const double &x,const unsigned y)
