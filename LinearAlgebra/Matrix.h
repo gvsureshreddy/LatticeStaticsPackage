@@ -5,6 +5,9 @@
 
 // ***********************************************************************************
 // $Log: Matrix.h,v $
+// Revision 1.2  1999/08/16 14:49:21  elliottr
+// Added Identification (Revision) Routine
+//
 // Revision 1.1  1999/08/13 14:53:49  elliottr
 // Initial revision
 //
@@ -108,6 +111,8 @@ public:
    // Output/Input Functions
    friend ostream& operator<<(ostream& out,const Matrix& A);
    friend istream& operator>>(istream& in, Matrix& A);
+
+   static char* Revision();
 };
 
 #endif

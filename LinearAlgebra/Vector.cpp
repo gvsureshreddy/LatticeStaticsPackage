@@ -6,11 +6,16 @@
 
 // ***********************************************************************************
 // $Log: Vector.cpp,v $
+// Revision 1.2  1999/08/16 14:49:42  elliottr
+// Added Identification (Revision) Routine
+//
 // Revision 1.1  1999/07/26 17:25:55  elliottr
 // Initial revision
 //
 // ***********************************************************************************
 
+// Global IDString
+char VectorID[]="$Id: Vector.cpp,v 1.2 1999/08/16 14:49:42 elliottr Exp $";
 
 // Private Functions...
 
@@ -391,4 +396,9 @@ istream& operator>>(istream& in,Vector& A)
       in >> A.Elements_[i];
 
    return in;
+}
+
+char* Vector::Revision()
+{
+   return VectorID;
 }

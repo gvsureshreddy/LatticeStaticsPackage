@@ -5,6 +5,9 @@
 
 // ***********************************************************************************
 // $Log: Vector.h,v $
+// Revision 1.2  1999/08/16 14:49:37  elliottr
+// Added Identification (Revision) Routine
+//
 // Revision 1.1  1999/08/13 14:54:07  elliottr
 // Initial revision
 //
@@ -86,6 +89,8 @@ public:
    // Output/Input Function
    friend ostream& operator<<(ostream& out,const Vector& A);
    friend istream& operator>>(istream& in,Vector& A);
+
+   static char* Revision();
 };
 
 #endif

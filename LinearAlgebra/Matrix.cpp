@@ -6,11 +6,17 @@
 
 // ***********************************************************************************
 // $Log: Matrix.cpp,v $
+// Revision 1.2  1999/08/16 14:49:26  elliottr
+// Added Identification (Revision) Routine
+//
 // Revision 1.1  1999/07/26 17:36:21  elliottr
 // Initial revision
 //
 // ***********************************************************************************
 
+
+// Global IDString
+char MatrixID[]="$Id: Matrix.cpp,v 1.2 1999/08/16 14:49:26 elliottr Exp $";
 
 // Private Methods...
 
@@ -643,4 +649,9 @@ istream& operator>>(istream& in,Matrix& A)
 	 in >> A.Elements_[i][j];
 
    return in;
+}
+
+char* Matrix::Revision()
+{
+   return MatrixID;
 }
