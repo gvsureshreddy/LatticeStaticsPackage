@@ -1285,7 +1285,7 @@ void MultiLatticeTPP::DispersionCurves(Vector Y,int NoPTS,const char *prefix,
    
    Vector Z(DIM3),
       DZ=Z2-Z1;
-   double dz = 1.0/NoPTS;
+   double dz = 1.0/(NoPTS-1);
    for (int k=0;k<2;++k)
    {
       Z = Z1 + (k*dz)*DZ;
@@ -1303,7 +1303,7 @@ void MultiLatticeTPP::DispersionCurves(Vector Y,int NoPTS,const char *prefix,
       cout << endl;
    }
    int zero=0,one=1,two=2;
-   for (int k=2;k<=NoPTS;++k)
+   for (int k=2;k<NoPTS;++k)
    {
       Z = Z1 + (k*dz)*DZ;
       EigVal[two] = HermiteEigVal(DynamicalStiffness(Z));
