@@ -1,0 +1,268 @@
+#!/usr/um/bin/perl -w
+#
+#
+
+$DOFSize = 15;
+$StateSize = $DOFSize + 6;
+$StrSPEC = "%12s";
+$FSPEC = "%12.6f";
+
+chomp($dataset=`pwd`);
+@directories = qw(Princ
+		  NaCl
+		  Rhombo1
+		  Ortho1
+		  Ortho2
+		  Ortho3
+		  OrthoNaCl
+		  Mono1
+		  Mono2
+		  ShuffleOrtho);
+
+open(GNUPLOT,">$ARGV[1]") 
+    || die "Unable to open $ARGV[1] for write: $!";
+
+print GNUPLOT "# gnuplot data file for ${dataset}\n#\n";
+print GNUPLOT "# Index 0\n";
+print GNUPLOT "# Bifurcation Points\n";
+printf GNUPLOT "#" . $StrSPEC . $StrSPEC,"Temperature","Potential";
+for (my $i=0;$i<$DOFSize;$i+=1)
+{
+    printf GNUPLOT $StrSPEC,"DOF $i";
+}
+printf GNUPLOT $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . "\n",
+    "Min EigVal","Num Neg Eig Vals","Rank 1 Convex","Uncertainty";
+
+
+$endgnuplot = "";
+$bifpoints = 1;
+$index = 1;
+foreach $dir (@directories)
+{
+    chdir $dataset;
+    $bifpoints = loaddata($dataset . "/" . $dir ,$ARGV[0],*GNUPLOT,$index,\$endgnuplot) && $bifpoints;
+    $index += 2;
+}
+
+if ($bifpoints)
+{
+    for (my $i=0;$i<$StateSize;$i+=1)
+    {
+	printf GNUPLOT $FSPEC,0.0;
+    }
+    printf GNUPLOT "\n";
+}
+
+print GNUPLOT "\n\n", $endgnuplot;
+
+close(GNUPLOT);
+
+
+# Subroutine loaddata.
+#    read in data file, print bifurcation points to output
+#    file, print stable sections to "stable temp file",
+#    print unstable sections to "unstable temp file".
+#
+# Note: subroutine leaves current directory changed.
+#
+# $_[0] -- Directory name
+# $_[1] -- Data file name
+# $_[2] -- Final output file handle
+# $_[3] -- Gnuplot data file Index for stable section
+#          Note (unstable section index +1)
+# $_[4] -- reference to variable holding all stable and unstable
+#          sections (indicies)
+#
+sub loaddata {
+    my(@fields,@temp,@DOF,
+       @potential,@mineigval,@noneg,@uncertainty,
+       $stableflag,$stable_nodata,$unstable_nodata,$bifpoints);
+    my($gnuplot,$endgnuplot);
+    $gnuplot = $_[2];
+    $endgnuplot = $_[4];
+    $stable = "";
+    $unstable = "";
+
+    #chdir $_[0] || die "No $_[0] Directory, $!";
+    chdir $_[0];
+
+    # flag to make sure there is data in the index
+    $stable_nodata = 1;
+    $unstable_nodata = 1;
+    $bifpoints = 1;
+
+    if (-e $_[1])
+    {
+	open(DATA,$_[1]) || die "No file, \"$_[0]\": $_[1], $!";
+
+	$_ = <DATA>;
+	while (! m/^Mode:/)
+	{
+	    $_ = <DATA>;
+	}
+
+	while (<DATA>)
+	{
+	    if ( /^Temperature/)
+	    {
+		@fields=split(/:/,$_);
+		push(@temp,$fields[1]);
+	    }
+
+	    if ( /^Pressure/)
+	    {
+		@fields=split(/:/,$_);
+		$pressure=$fields[1];
+	    }
+	    
+	    if ( /^DOF/)
+	    {
+		$_ = <DATA>;
+		@fields = split;
+		push(@DOF,[ @fields ]);
+	    }
+	    
+	    if (/^Potential/)
+	    {
+		@fields = split(/:/,$_);
+		push(@potential,$fields[1]);
+	    }
+	    
+	    if (/^Bifurcation/)
+	    {
+		@fields = split;
+		push(@mineigval,$fields[2]);
+		push(@noneg,$fields[3]);
+	    }
+
+	    if (/^Rank 1 Convex/)
+	    {
+		@fields = split(/:/,$_);
+		push(@Convex,$fields[1]);
+	    }
+
+	    if (/^Uncertainty/)
+	    {
+		@fields = split(/=/,$_);
+		push(@uncertainty,$fields[1]);
+	    }
+	}
+	
+	close(DATA);
+    }
+    else
+    {
+	print "No file, \"$_[1]\" in $_[0]!\n";
+    }
+
+    $stable .= sprintf "# Index $_[3]\n";
+    $stable .= sprintf "# Stable sections of $_[0] branch at Pressure $pressure\n";
+    $stable .= sprintf $StrSPEC . $StrSPEC,"Temperature","Potential";
+    for (my $i=0;$i<$DOFSize;$i+=1)
+    {
+	$stable .= sprintf $StrSPEC,"DOF $i";
+    }
+    $stable .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . "\n",
+    "Min EigVal","Num Neg Eig Vals","Rank 1 Convex","Uncertainty";
+    $unstable .= sprintf "# Index " . ($_[3]+1) . "\n";
+    $unstable .= sprintf "# Unstable sections of $_[0] branch at Pressure $pressure\n";
+    $unstable .= sprintf $StrSPEC . $StrSPEC,"Temperature","Potential";
+    for (my $i=0;$i<$DOFSize;$i+=1)
+    {
+	$unstable .= sprintf $StrSPEC,"DOF $i";
+    }
+    $unstable .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . "\n",
+    "Min EigVal","Num Neg Eig Vals","Rank 1 Convex","Uncertainty";
+    
+    $stableflag=$noneg[0];
+    while(defined($temp[0]))
+    {
+	# Bifurcation Point
+	if (defined($noneg[1]) && $stableflag != $noneg[1])
+	{
+	    $bifpoints = 0;
+	    printf $gnuplot $FSPEC . $FSPEC,$temp[0],$potential[0];
+	    for (my $i=0;$i<$DOFSize;$i+=1)
+	    {
+		printf $gnuplot $FSPEC,$DOF[0][$i];
+	    }
+	    printf $gnuplot $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
+	    $mineigval[0],$noneg[0],$Convex[0],$uncertainty[0];
+
+	    # Add blank line in corresponding file to seperate segments
+	    # and connecting line of data
+	    if ($noneg[1] == 0)
+	    {
+		$stable .= sprintf "\n";
+		$stable .= sprintf $FSPEC . $FSPEC,$temp[0],$potential[0];
+		for (my $i=0;$i<$DOFSize;$i+=1)
+		{
+		    $stable .= sprintf $FSPEC,$DOF[0][$i];
+		}
+		$stable .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
+		$mineigval[0],$noneg[0],$Convex[0],$uncertainty[0];
+	    }
+	    elsif ($stableflag == 0)
+	    {
+		$unstable .= sprintf "\n";
+		$unstable .= sprintf $FSPEC . $FSPEC,$temp[0],$potential[0];
+		for (my $i=0;$i<$DOFSize;$i+=1)
+		{
+		    $unstable .= sprintf $FSPEC,$DOF[0][$i];
+		}
+		$unstable .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
+		$mineigval[0],$noneg[0],$Convex[0],$uncertainty[0];
+	    }
+	}
+
+	# Print data line into correct file and continue
+	if ($stableflag == 0)
+	{
+	    $stable_nodata = 0;
+	    $stable .= sprintf $FSPEC . $FSPEC,shift(@temp),shift(@potential);
+	    for (my $i=0;$i<$DOFSize;$i+=1)
+	    {
+		$stable .= sprintf $FSPEC,$DOF[0][$i];
+	    }
+	    shift(@DOF);
+	    $stable .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
+	    shift(@mineigval),shift(@noneg),shift(@Convex),shift(@uncertainty);
+	}
+	else
+	{
+	    $unstable_nodata = 0;
+	    $unstable .= sprintf $FSPEC . $FSPEC,shift(@temp),shift(@potential);
+	    for (my $i=0;$i<$DOFSize;$i+=1)
+	    {
+		$unstable .= sprintf $FSPEC,$DOF[0][$i];
+	    }
+	    shift(@DOF);
+	    $unstable .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
+	    shift(@mineigval),shift(@noneg),shift(@Convex),shift(@uncertainty);
+	}
+
+	$stableflag = $noneg[0];
+    }
+
+    # Make sure there is at least one data point in each index
+    if ($stable_nodata)
+    {
+	for (my $i=0;$i<$StateSize;$i+=1)
+	{
+	    $stable .= sprintf $FSPEC,0.0;
+	}
+	$stable .= sprintf "\n";
+    }
+    if ($unstable_nodata)
+    {
+	for (my $i=0;$i<$StateSize;$i+=1)
+	{
+	    $unstable .= sprintf $FSPEC,0.0;
+	}
+	$unstable .= sprintf "\n";
+    }
+
+    $$endgnuplot .= $stable . "\n\n" . $unstable . "\n\n";
+
+    $bifpoints;
+}
