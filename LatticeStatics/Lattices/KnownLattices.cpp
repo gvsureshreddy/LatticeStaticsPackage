@@ -1,15 +1,13 @@
 #include "KnownLattices.h"
-#include "SquarePressTempPairPotLat.h"
-#include "TrianglePressTempPairPotLat.h"
-#include "NiTiPressTempPairPotLat.h"
 #include "UtilityFunctions.h"
 
 Lattice *InitializeLattice(char *datafile)
 {
-   const int NoLats = 3;
+   const int NoLats = 4;
    const char *Lattices[]={"SquarePressTempPairPotLat",
 		           "TrianglePressTempPairPotLat",
-		           "NiTiPressTempPairPotLat"};
+		           "NiTiPressTempPairPotLat",
+		           "NiTiShuffleTPPLat"};
    
    switch (GetStringParameter("^MainLatticeType",datafile,Lattices,NoLats))
    {
@@ -28,11 +26,16 @@ Lattice *InitializeLattice(char *datafile)
 	 return new NiTiPressTempPairPotLat(datafile);
       }
       break;
-      case -1:
+      case 3:
       {
-	 cerr << "Unknown Lattice Type " << endl;
-	 exit(-1);
+	 return new NiTiShuffleTPPLat(datafile);
       }
+      break;
+      case -1:
+	 {
+	    cerr << "Unknown Lattice Type " << endl;
+	    exit(-1);
+	 }
    }
 
    return NULL;

@@ -14,7 +14,9 @@ LatticeMode *InitializeMode(Lattice *Lat,char *datafile)
 			"UniDefTemp3D3MMono",
 			"UniDefTemp3D1PMono",
 			"UniDefTemp3D1MMono",
-                        "UniDefTemp3DFull"};
+                        "UniDefTemp3DFull",
+			"ExpandShuffle",
+			"OrthoShuffle"};
 
    switch (GetStringParameter("^MainModeType",datafile,Modes,NoModes))
    {
@@ -68,6 +70,14 @@ LatticeMode *InitializeMode(Lattice *Lat,char *datafile)
          return new UniDefTemp3DFull(Lat);
       }
       break;
+      case 10:
+      {
+	 return new ExpandShuffle(Lat);
+      }
+      case 11:
+      {
+	 return new OrthoShuffle(Lat);
+      }
       case -1:
       {
 	 cerr << "Unknown Mode Type" << endl;

@@ -8,4 +8,6 @@ MODES = KnownModes.cpp\
 	UniDefTemp3D3MMono.cpp\
 	UniDefTemp3D1PMono.cpp\
 	UniDefTemp3D1MMono.cpp\
-	UniDefTemp3DFull.cpp
+	UniDefTemp3DFull.cpp\
+	ExpandShuffle.cpp\
+	OrthoShuffle.cpp
