@@ -1062,6 +1062,7 @@ void NiTiRadii::Print(ostream &out,PrintDetail flag)
 	     << "; Alpha_aa=" << setw(W) << Alpha_aa << endl
 	     << "                       "
 	     << "Rref_aa=" << setw(W) << Rref_aa
+	     << "Rtheta_aa=" << setw(W) << Rtheta_aa
 	     << "; Tmelt_aa=" << setw(W) << Tmelt_aa << endl
 	     << "                       "
 	     << "A0_bb=  " << setw(W) << A0_bb
@@ -1069,6 +1070,7 @@ void NiTiRadii::Print(ostream &out,PrintDetail flag)
 	     << "; Alpha_bb=" << setw(W) << Alpha_bb << endl
 	     << "                       "
 	     << "Rref_bb=" << setw(W) << Rref_bb
+	     << "Rtheta_bb=" << setw(W) << Rtheta_bb
 	     << "; Tmelt_bb=" << setw(W) << Tmelt_bb << endl
 	     << "                       "
 	     << "A0_ab=  " << setw(W) << A0_ab
@@ -1076,6 +1078,7 @@ void NiTiRadii::Print(ostream &out,PrintDetail flag)
 	     << "; Alpha_ab=" << setw(W) << Alpha_ab << endl
 	     << "                       "
 	     << "Rref_ab=" << setw(W) << Rref_ab
+	     << "Rtheta_ab=" << setw(W) << Rtheta_ab
 	     << "; Tmelt_ab=" << setw(W) << Tmelt_ab << endl
 	     << "Shear Modulus : " << setw(W) << ShearMod_ << endl;
 	 // passthrough to short
