@@ -16,7 +16,7 @@ ANSI       = -pedantic
 #PROFILE    = -pg
 #DEBUG      = -g
 #BOUNDS     = -DCHECK_BOUNDS
-#SOLVE      = -DSOLVE_SVD
+SOLVE      = -DSOLVE_SVD
 OPTIMIZE   = -O
 CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS) $(SOLVE)
 
