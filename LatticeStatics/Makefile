@@ -3,6 +3,8 @@
 
 VPATH = bin lib depend Lattices Modes SolutionMethods Potentials Utility
 
+UNAME      = $(shell uname)
+
 EXE        = LatticeStatics
 SRC_EXT    = .cpp
 OBJ_EXT    = .o
@@ -13,15 +15,19 @@ BUILD_DATE = \"`date +%c`\"
 #
 gCC        = g++
 
-# gCC compiler
-#CC         = $(gCC)
-#OPTIMIZE   = -O
-#ANSI       = -pedantic
+ifeq ($(UNAME),Darwin)
+   # gCC compiler
+   CC         = $(gCC)
+   OPTIMIZE   = -O
+   ANSI       = -pedantic
+endif
 
-# PGI compiler
-CC         = pgCC
-OPTIMIZE   = -fast -Minline=levels:10 --no_exceptions
-#ANSI       = -A
+ifeq ($(UNAME),Linux)
+   # PGI compiler
+   CC         = pgCC
+   OPTIMIZE   = -fast -Minline=levels:10 --no_exceptions
+   #ANSI       = -A
+endif
 
 # general options
 #PURE       = purify
