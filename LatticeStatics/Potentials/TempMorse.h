@@ -18,10 +18,10 @@ public:
    TempMorse(double A0,double B0,double Alpha,double Rref,double Tref,double Tmelt);
    ~TempMorse() {};
    friend ostream &operator<<(ostream &out,TempMorse &A);
-   double PairPotential(double Temp,double r2,YDeriv dy=Y0,TDeriv dt=T0);
+   double PairPotential(double NTemp,double r2,YDeriv dy=Y0,TDeriv dt=T0);
 private:
-   double Beta(double Temp,TDeriv dt=T0);
-   double Rhat(double Temp,TDeriv dt=T0);   
+   double Beta(double NTemp,TDeriv dt=T0);
+   double Rhat(double NTemp,TDeriv dt=T0);   
 };
 
 #endif
