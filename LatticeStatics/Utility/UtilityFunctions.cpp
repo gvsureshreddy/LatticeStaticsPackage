@@ -1,6 +1,18 @@
 #include "UtilityFunctions.h"
 
-void SetPerlCommand(char *string,char *datafile,char *tag)
+void GetParameter(const char *tag,const char *datafile,const char *scanffmt,
+		  void *parameter)
+{
+   char command[LINELENGTH];
+   FILE *pipe;
+
+   SetPerlCommand(command,datafile,tag);
+   pipe = OpenPipe(command,"r");
+   fscanf(pipe,scanffmt,parameter);
+   if (pclose(pipe)) Errfun(tag);
+}
+
+void SetPerlCommand(char *string,const char *datafile,const char *tag)
 {
    char format[]=
       {"perl -e \"\\$R=findref(\\$ARGV[1],\\$ARGV[0]); print \\$R;"\
@@ -15,7 +27,7 @@ void SetPerlCommand(char *string,char *datafile,char *tag)
       sprintf(string,format,datafile,tag);
 }
 
-FILE *OpenPipe(char *command,char *mode)
+FILE *OpenPipe(const char *command,const char *mode)
 {
    FILE *pipe;
 
@@ -29,7 +41,7 @@ FILE *OpenPipe(char *command,char *mode)
    return pipe;
 }
 
-void Errfun(char *string)
+void Errfun(const char *string)
 {
    cerr << "Error -- Unable to find : "
 	<< string << endl;

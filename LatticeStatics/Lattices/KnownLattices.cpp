@@ -6,30 +6,25 @@
 
 Lattice *InitializeLattice(char *datafile)
 {
-   FILE *pipe;
-   char command[LINELENGTH];
+   char tmp[LINELENGTH];
 
    enum lattices {SquarePressTempPairPot,TrianglePressTempPairPot,
 		  NiTiPressTempPairPot};
    lattices lattice;
 
-   char lat[]="^MainLatticeType";
-   SetPerlCommand(command,datafile,lat);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%s",command);
-   if (pclose(pipe)) Errfun(lat);
-   if ((!strcmp("SquarePressTempPairPotLat",command))
-       || (!strcmp("squarepresstemppairpotlat",command)))
+   GetParameter("^MainLatticeType",datafile,"%s",tmp);
+   if ((!strcmp("SquarePressTempPairPotLat",tmp))
+       || (!strcmp("squarepresstemppairpotlat",tmp)))
       lattice = SquarePressTempPairPot;
-   else if ((!strcmp("TrianglePressTempPairPotLat",command))
-       || (!strcmp("trianglepresstemppairpotlat",command)))
+   else if ((!strcmp("TrianglePressTempPairPotLat",tmp))
+       || (!strcmp("trianglepresstemppairpotlat",tmp)))
       lattice = TrianglePressTempPairPot;
-   else if ((!strcmp("NiTiPressTempPairPotLat",command))
-       || (!strcmp("nitipresstemppairpotlat",command)))
+   else if ((!strcmp("NiTiPressTempPairPotLat",tmp))
+       || (!strcmp("nitipresstemppairpotlat",tmp)))
       lattice = NiTiPressTempPairPot;
    else
    {
-      cerr << "Unknown Lattice Type : " << command << endl;
+      cerr << "Unknown Lattice Type : " << tmp << endl;
       exit(-1);
    }
 

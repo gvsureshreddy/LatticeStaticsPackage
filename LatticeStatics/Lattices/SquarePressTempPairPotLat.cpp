@@ -8,89 +8,27 @@ SquarePressTempPairPotLat::SquarePressTempPairPotLat(char *datafile)
    // First Size Defgrad
    DefGrad_.SetIdentity(DIM2);
 
-   // Read Data File
-   FILE *pipe;
-   char command[LINELENGTH];
-   
    // Get Potential Parameters
-   char A0[]="^A0";
-   SetPerlCommand(command,datafile,A0);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&A0_);
-   if (pclose(pipe)) Errfun(A0);
-
-   char B0[]="^B0";
-   SetPerlCommand(command,datafile,B0);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&B0_);
-   if (pclose(pipe)) Errfun(B0);
-
-   char Alpha[]="^Alpha";
-   SetPerlCommand(command,datafile,Alpha);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&Alpha_);
-   if (pclose(pipe)) Errfun(Alpha);
-
-   char Rref[]="^Rref";
-   SetPerlCommand(command,datafile,Rref);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&Rref_);
-   if (pclose(pipe)) Errfun(Rref);
-
-   char Tref[]="^Tref";
-   SetPerlCommand(command,datafile,Tref);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&Tref_);
-   if (pclose(pipe)) Errfun(Tref);
-
-   char Tmelt[]="^Tmelt";
-   SetPerlCommand(command,datafile,Tmelt);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&Tmelt_);
-   if (pclose(pipe)) Errfun(Tmelt);
+   GetParameter("^A0",datafile,"%lf",&A0_);
+   GetParameter("^B0",datafile,"%lf",&B0_);
+   GetParameter("^Alpha",datafile,"%lf",&Alpha_);
+   GetParameter("^Rref",datafile,"%lf",&Rref_);
+   GetParameter("^Tref",datafile,"%lf",&Rref_);
+   GetParameter("^Tmelt",datafile,"%lf",&Tmelt_);
 
    // Get Lattice parameters
-
-   char RefLen[]="^RefLen";
-   SetPerlCommand(command,datafile,RefLen);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&RefLen_);
-   if (pclose(pipe)) Errfun(RefLen);
-
-   char Influ[]="^InfluanceDist";
-   SetPerlCommand(command,datafile,Influ);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%u",&InfluanceDist_);
-   if (pclose(pipe)) Errfun(Influ);
-
-   char Temp[]="^Temp";
-   SetPerlCommand(command,datafile,Temp);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&Temp_);
-   if (pclose(pipe)) Errfun(Temp);
-
-   char Press[]="^Pressure";
-   SetPerlCommand(command,datafile,Press);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&Pressure_);
-   if (pclose(pipe)) Errfun(Press);
-
+   GetParameter("^RefLen",datafile,"%lf",&RefLen_);
+   GetParameter("^InfluanceDist",datafile,"%lf",&InfluanceDist_);
+   GetParameter("^Temp",datafile,"%lf",&Temp_);
+   GetParameter("^Pressure",datafile,"%lf",&Pressure_);
 
    // needed to initialize reference length
-   char Iter[]="^MaxIterations";
-   SetPerlCommand(command,datafile,Iter);
    unsigned iter;
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%u",&iter);
-   if (pclose(pipe)) Errfun(Iter);
-
-   char dx[]="^InitializeStepSize";
-   SetPerlCommand(command,datafile,dx);
    double DX;
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&DX);
-   if (pclose(pipe)) Errfun(dx);
+   GetParameter("^MaxIterations",datafile,"%u",&iter);
+   GetParameter("^InitializeStepSize",datafile,"%lf",&DX);
 
+   
    int err=0;
    err=FindLatticeSpacing(iter,DX);
    if (err)

@@ -8,161 +8,41 @@ NiTiPressTempPairPotLat::NiTiPressTempPairPotLat(char *datafile)
    // First Size Defgrad
    DefGrad_.SetIdentity(DIM3);
 
-   // Read Data File
-   FILE *pipe;
-   char command[LINELENGTH];
-   
    // Get Potential Parameters
-   char A0aa[]="^A0_aa";
-   SetPerlCommand(command,datafile,A0aa);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&A0_aa);
-   if (pclose(pipe)) Errfun(A0aa);
+   GetParameter("^A0_aa",datafile,"%lf",&A0_aa);
+   GetParameter("^B0_aa",datafile,"%lf",&B0_aa);
+   GetParameter("^Alpha_aa",datafile,"%lf",&Alpha_aa);
+   GetParameter("^Rref_aa",datafile,"%lf",&Rref_aa);
+   GetParameter("^Tref_aa",datafile,"%lf",&Tref_aa);
+   GetParameter("Tmelt_aa",datafile,"%lf",&Tmelt_aa);
 
-   char B0aa[]="^B0_aa";
-   SetPerlCommand(command,datafile,B0aa);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&B0_aa);
-   if (pclose(pipe)) Errfun(B0aa);
+   GetParameter("^A0_bb",datafile,"%lf",&A0_bb);
+   GetParameter("^B0_bb",datafile,"%lf",&B0_bb);
+   GetParameter("^Alpha_bb",datafile,"%lf",&Alpha_bb);
+   GetParameter("^Rref_bb",datafile,"%lf",&Rref_bb);
+   GetParameter("^Tref_bb",datafile,"%lf",&Tref_bb);
+   GetParameter("Tmelt_bb",datafile,"%lf",&Tmelt_bb);
 
-   char Alphaaa[]="^Alpha_aa";
-   SetPerlCommand(command,datafile,Alphaaa);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&Alpha_aa);
-   if (pclose(pipe)) Errfun(Alphaaa);
-
-   char Rrefaa[]="^Rref_aa";
-   SetPerlCommand(command,datafile,Rrefaa);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&Rref_aa);
-   if (pclose(pipe)) Errfun(Rrefaa);
-
-   char Trefaa[]="^Tref_aa";
-   SetPerlCommand(command,datafile,Trefaa);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&Tref_aa);
-   if (pclose(pipe)) Errfun(Trefaa);
-
-   char Tmeltaa[]="^Tmelt_aa";
-   SetPerlCommand(command,datafile,Tmeltaa);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&Tmelt_aa);
-   if (pclose(pipe)) Errfun(Tmeltaa);
-
-   char A0bb[]="^A0_bb";
-   SetPerlCommand(command,datafile,A0bb);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&A0_bb);
-   if (pclose(pipe)) Errfun(A0bb);
-
-   char B0bb[]="^B0_bb";
-   SetPerlCommand(command,datafile,B0bb);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&B0_bb);
-   if (pclose(pipe)) Errfun(B0bb);
-
-   char Alphabb[]="^Alpha_bb";
-   SetPerlCommand(command,datafile,Alphabb);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&Alpha_bb);
-   if (pclose(pipe)) Errfun(Alphabb);
-
-   char Rrefbb[]="^Rref_bb";
-   SetPerlCommand(command,datafile,Rrefbb);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&Rref_bb);
-   if (pclose(pipe)) Errfun(Rrefbb);
-
-   char Trefbb[]="^Tref_bb";
-   SetPerlCommand(command,datafile,Trefbb);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&Tref_bb);
-   if (pclose(pipe)) Errfun(Trefbb);
-
-   char Tmeltbb[]="^Tmelt_bb";
-   SetPerlCommand(command,datafile,Tmeltbb);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&Tmelt_bb);
-   if (pclose(pipe)) Errfun(Tmeltbb);
-
-   char A0ab[]="^A0_ab";
-   SetPerlCommand(command,datafile,A0ab);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&A0_ab);
-   if (pclose(pipe)) Errfun(A0ab);
-
-   char B0ab[]="^B0_ab";
-   SetPerlCommand(command,datafile,B0ab);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&B0_ab);
-   if (pclose(pipe)) Errfun(B0ab);
-
-   char Alphaab[]="^Alpha_ab";
-   SetPerlCommand(command,datafile,Alphaab);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&Alpha_ab);
-   if (pclose(pipe)) Errfun(Alphaab);
-
-   char Rrefab[]="^Rref_ab";
-   SetPerlCommand(command,datafile,Rrefab);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&Rref_ab);
-   if (pclose(pipe)) Errfun(Rrefab);
-
-   char Trefab[]="^Tref_ab";
-   SetPerlCommand(command,datafile,Trefab);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&Tref_ab);
-   if (pclose(pipe)) Errfun(Trefab);
-
-   char Tmeltab[]="^Tmelt_ab";
-   SetPerlCommand(command,datafile,Tmeltab);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&Tmelt_ab);
-   if (pclose(pipe)) Errfun(Tmeltab);
-
+   GetParameter("^A0_ab",datafile,"%lf",&A0_ab);
+   GetParameter("^B0_ab",datafile,"%lf",&B0_ab);
+   GetParameter("^Alpha_ab",datafile,"%lf",&Alpha_ab);
+   GetParameter("^Rref_ab",datafile,"%lf",&Rref_ab);
+   GetParameter("^Tref_ab",datafile,"%lf",&Tref_ab);
+   GetParameter("Tmelt_ab",datafile,"%lf",&Tmelt_ab);
    
    // Get Lattice parameters
-   char RefLen[]="^RefLen";
-   SetPerlCommand(command,datafile,RefLen);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&RefLen_);
-   if (pclose(pipe)) Errfun(RefLen);
-
-   char Influ[]="^InfluanceDist";
-   SetPerlCommand(command,datafile,Influ);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%u",&InfluanceDist_);
-   if (pclose(pipe)) Errfun(Influ);
-
-   char Temp[]="^Temp";
-   SetPerlCommand(command,datafile,Temp);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&Temp_);
-   if (pclose(pipe)) Errfun(Temp);
-
-   char Press[]="^Pressure";
-   SetPerlCommand(command,datafile,Press);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&Pressure_);
-   if (pclose(pipe)) Errfun(Press);
-
+   GetParameter("^RefLen",datafile,"%lf",&RefLen_);
+   GetParameter("^InfluanceDist",datafile,"%u",&InfluanceDist_);
+   GetParameter("^Temp",datafile,"%lf",&Temp_);
+   GetParameter("^Pressure",datafile,"%lf",&Pressure_);
 
    // needed to initialize reference length
-   char Iter[]="^MaxIterations";
-   SetPerlCommand(command,datafile,Iter);
-   unsigned iter;
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%u",&iter);
-   if (pclose(pipe)) Errfun(Iter);
-
-   char dx[]="^InitializeStepSize";
-   SetPerlCommand(command,datafile,dx);
+   int iter;
    double DX;
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&DX);
-   if (pclose(pipe)) Errfun(dx);
+   GetParameter("^MaxIterations",datafile,"%u",&iter);
+   GetParameter("^InitializeStepSize",datafile,"%lf",&DX);
 
+   
    int err=0;
    err=FindLatticeSpacing(iter,DX);
    if (err)

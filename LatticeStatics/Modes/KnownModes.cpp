@@ -4,29 +4,24 @@
 
 LatticeMode *InitializeMode(Lattice *Lat,char *datafile)
 {
-   FILE *pipe;
-   char command[LINELENGTH];
+   char tmp[LINELENGTH];
 
    enum modes {UniDefTemp2DExp,UniDefTemp3DExp,UniDefTemp3Dnacl};
    modes mode;
 
-   char mod[]="^MainModeType";
-   SetPerlCommand(command,datafile,mod);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%s",command);
-   if (pclose(pipe)) Errfun(mod);
-   if ((!strcmp("UniDefTemp2DExpand",command))
-       || (!strcmp("unideftemp2dexpand",command)))
+   GetParameter("^MainModeType",datafile,"%s",tmp);
+   if ((!strcmp("UniDefTemp2DExpand",tmp))
+       || (!strcmp("unideftemp2dexpand",tmp)))
       mode = UniDefTemp2DExp;
-   else if ((!strcmp("UniDefTemp3DExpand",command))
-            || (!strcmp("unideftemp3dexpand",command)))
+   else if ((!strcmp("UniDefTemp3DExpand",tmp))
+            || (!strcmp("unideftemp3dexpand",tmp)))
       mode = UniDefTemp3DExp;
-   else if ((!strcmp("UniDefTemp3DNaCl",command))
-            || (!strcmp("unideftemp3dnacl",command)))
+   else if ((!strcmp("UniDefTemp3DNaCl",tmp))
+            || (!strcmp("unideftemp3dnacl",tmp)))
       mode = UniDefTemp3Dnacl;
    else
    {
-      cerr << "Unknown Mode Type : " << command << endl;
+      cerr << "Unknown Mode Type : " << tmp << endl;
       exit(-1);
    }
 

@@ -8,8 +8,10 @@
 #define LINELENGTH 600
 
 // Utility function definitions
-void SetPerlCommand(char *string,char *datafile,char *tag);
-void Errfun(char *string);
-FILE *OpenPipe(char *command,char *mode);
+void GetParameter(const char *tag,const char *datafile,const char *scanffmt,
+		  void *parameter);
+void SetPerlCommand(char *string,const char *datafile,const char *tag);
+void Errfun(const char *string);
+FILE *OpenPipe(const char *command,const char *mode);
 
 #endif

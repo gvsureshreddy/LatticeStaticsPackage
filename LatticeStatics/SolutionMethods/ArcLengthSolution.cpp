@@ -7,57 +7,14 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,
 				     const Vector &one,const Vector &two)
    : Mode_(Mode),Difference_(two-one), CurrentSolution_(0)
 {
-   FILE *pipe;
-   char command[LINELENGTH];
-
-   char itr[]="^ArcLenMaxIterations";
-   SetPerlCommand(command,datafile,itr);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%u",&MaxIter_);
-   if (pclose(pipe)) Errfun(itr);
-
-   char tol[]="^ArcLenTolerance";
-   SetPerlCommand(command,datafile,tol);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&Tolerance_);
-   if (pclose(pipe)) Errfun(tol);
-
-   char dsmax[]="^ArcLenDSMax";
-   SetPerlCommand(command,datafile,dsmax);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&DSMax_);
-   if (pclose(pipe)) Errfun(dsmax);
-   CurrentDS_ = DSMax_;
-
-   char dsmin[]="^ArcLenDSMin";
-   SetPerlCommand(command,datafile,dsmin);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&DSMin_);
-   if (pclose(pipe)) Errfun(dsmin);
-
-   char angle[]="^ArcLenAngleCutoff";
-   SetPerlCommand(command,datafile,angle);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&AngleCutoff_);
-   if (pclose(pipe)) Errfun(angle);
-
-   char angleinc[]="^ArcLenAngleIncrease";
-   SetPerlCommand(command,datafile,angleinc);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&AngleIncrease_);
-   if (pclose(pipe)) Errfun(angleinc);
-
-   char aspect[]="^ArcLenAspect";
-   SetPerlCommand(command,datafile,aspect);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&Aspect_);
-   if (pclose(pipe)) Errfun(aspect);
-
-   char nosol[]="^ArcLenNumSolutions";
-   SetPerlCommand(command,datafile,nosol);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%u",&NumSolutions_);
-   if (pclose(pipe)) Errfun(nosol);
+   GetParameter("^ArcLenMaxIterations",datafile,"%u",&MaxIter_);
+   GetParameter("^ArcLenTolerance",datafile,"%lf",&Tolerance_);
+   GetParameter("^ArcLenDSMax",datafile,"%lf",&DSMax_);
+   GetParameter("^ArcLenDSMin",datafile,"%lf",&DSMin_);
+   GetParameter("^ArcLenAngleCutoff",datafile,"%lf",&AngleCutoff_);
+   GetParameter("^ArcLenAngleIncrease",datafile,"%lf",&AngleIncrease_);
+   GetParameter("^ArcLenAspect",datafile,"%lf",&Aspect_);
+   GetParameter("^ArcLenNumSolutions",datafile,"%u",&NumSolutions_);
 
    // Set Lattice to solution "two"
    Mode_->ArcLenUpdate(

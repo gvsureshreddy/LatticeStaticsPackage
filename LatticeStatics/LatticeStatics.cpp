@@ -93,33 +93,19 @@ int main(int argc, char *argv[])
 
 void GetMainSettings(int &Width, int &Precision,YN &BisectCP,char *datafile)
 {
-   FILE *pipe;
-   char command[LINELENGTH];
+   char bisect[LINELENGTH];
 
-   char width[]="^MainFieldWidth";
-   SetPerlCommand(command,datafile,width);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%d",&Width);
-   if (pclose(pipe)) Errfun(width);
-
-   char prec[]="^MainPrecision";
-   SetPerlCommand(command,datafile,prec);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%d",&Precision);
-   if (pclose(pipe)) Errfun(prec);
-
-   char bisect[]="^MainBisectCP";
-   SetPerlCommand(command,datafile,bisect);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%s",command);
-   if (pclose(pipe)) Errfun(bisect);
-   if ((!strcmp("Yes",command)) || (!strcmp("yes",command)))
+   GetParameter("^MainFieldWidth",datafile,"%d",&Width);
+   GetParameter("^MainPrecision",datafile,"%d",&Precision);
+   
+   GetParameter("^MainBisectCP",datafile,"%s",bisect);
+   if ((!strcmp("Yes",bisect)) || (!strcmp("yes",bisect)))
       BisectCP = Yes;
-   else if ((!strcmp("No",command)) || (!strcmp("no",command)))
+   else if ((!strcmp("No",bisect)) || (!strcmp("no",bisect)))
       BisectCP = No;
    else
    {
-      cerr << "Unknown BisectCP option : " << command << endl;
+      cerr << "Unknown BisectCP option : " << bisect << endl;
       exit(-1);
    }
 }
@@ -167,26 +153,20 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,
 SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
 				   char *startfile,Lattice *Lat,int Width)
 {
-   FILE *pipe;
-   char command[LINELENGTH];
+   char slvmthd[LINELENGTH];
 
    enum solution {Scanning,ArcLen};
    solution solu;
 
-   
-   char solv[]="^MainSolutionMethod";
-   SetPerlCommand(command,datafile,solv);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%s",command);
-   if (pclose(pipe)) Errfun(solv);
-   if ((!strcmp("Scanning",command))
-       || (!strcmp("scanning",command)))
+   GetParameter("^MainSolutionMethod",datafile,"%s",slvmthd);
+   if ((!strcmp("Scanning",slvmthd))
+       || (!strcmp("scanning",slvmthd)))
       solu = Scanning;
-   else if ((!strcmp("ArcLength",command)) || (!strcmp("arclength",command)))
+   else if ((!strcmp("ArcLength",slvmthd)) || (!strcmp("arclength",slvmthd)))
       solu = ArcLen;
    else
    {
-      cerr << "Unknown SolutionMethod : " << command << endl;
+      cerr << "Unknown SolutionMethod : " << slvmthd << endl;
       exit(-1);
    }
 

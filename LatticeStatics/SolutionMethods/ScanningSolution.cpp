@@ -8,45 +8,25 @@ ScanningSolution::ScanningSolution(LatticeMode *Mode,char *datafile)
    : Mode_(Mode)
 {
    FILE *pipe;
-   char command[LINELENGTH];
-   
+   char tmp[LINELENGTH];
    // Get parameters
-   char Iter[]="^ScanningMaxIterations";
-   SetPerlCommand(command,datafile,Iter);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%u",&MaxIter_);
-   if (pclose(pipe)) Errfun(Iter);
-
-   char tol[]="^ScanningTolerance";
-   SetPerlCommand(command,datafile,tol);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&Tolerance_);
-   if (pclose(pipe)) Errfun(tol);
-
-   char newtol[]="^ScanningNewtonTolerance";
-   SetPerlCommand(command,datafile,newtol);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&NewtonTolerance_);
-   if (pclose(pipe)) Errfun(newtol);
-
-   char fullfield[]="^ScanningFullField";
-   SetPerlCommand(command,datafile,fullfield);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%s",command);
-   if (pclose(pipe)) Errfun(fullfield);
-   if (!strcmp("Yes",command) || !strcmp("yes",command))
+   GetParameter("^ScanningMaxIterations",datafile,"%u",&MaxIter_);
+   GetParameter("^ScanningTolerance",datafile,"%lf",&Tolerance_);
+   GetParameter("^ScanningNewtonTolerance",datafile,"%lf",&NewtonTolerance_);
+   GetParameter("^ScanningFullFiled",datafile,"%s",tmp);
+   if (!strcmp("Yes",tmp) || !strcmp("yes",tmp))
       ScanFullField_ = Yes;
-   else if (!strcmp("No",command) || !strcmp("no",command))
+   else if (!strcmp("No",tmp) || !strcmp("no",tmp))
       ScanFullField_ = No;
    else
    {
-      cerr << "Unknown answer to ScanFullField : " << command << endl;
+      cerr << "Unknown answer to ScanFullField : " << tmp << endl;
       exit(-1);
    }
 
    char inidef[]="^ScanningInitialDeformation";
-   SetPerlCommand(command,datafile,inidef);
-   pipe=OpenPipe(command,"r");
+   SetPerlCommand(tmp,datafile,inidef);
+   pipe=OpenPipe(tmp,"r");
    InitialDef_.Resize(Mode->ScanningRHS().Dim());
    InitialDef_=Mode->ScanningRHS();
    for (int i=0;i<InitialDef_.Dim();i++)
@@ -55,56 +35,23 @@ ScanningSolution::ScanningSolution(LatticeMode *Mode,char *datafile)
    }
    if (pclose(pipe)) Errfun(inidef);
 
-   char dir[]="^ScanningDirection";
-   SetPerlCommand(command,datafile,dir);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%s",command);
-   if (pclose(pipe)) Errfun(dir);
-   if (!strcmp("Loading",command))
+   GetParameter("^ScanningDirection",datafile,"%s",tmp);
+   if (!strcmp("Loading",tmp))
       Direction_ = Loading;
-   else if (!strcmp("Deformation",command))
+   else if (!strcmp("Deformation",tmp))
       Direction_ = Deformation;
    else
    {
-      cerr << "Unknown Scanning direction : " << command << endl;
+      cerr << "Unknown Scanning direction : " << tmp<< endl;
       exit(-1);
    }
 
-   char scanstart[]="^ScanningStart";
-   SetPerlCommand(command,datafile,scanstart);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&ScanStart_);
-   if (pclose(pipe)) Errfun(scanstart);
-
-   char scanend[]="^ScanningEnd";
-   SetPerlCommand(command,datafile,scanend);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&ScanEnd_);
-   if (pclose(pipe)) Errfun(scanend);
-
-   char scanstep[]="^ScanningStep";
-   SetPerlCommand(command,datafile,scanstep);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&ScanStep_);
-   if (pclose(pipe)) Errfun(scanstep);
-
-   char linestart[]="^ScanningLineStart";
-   SetPerlCommand(command,datafile,linestart);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&LineStart_);
-   if (pclose(pipe)) Errfun(linestart);
-
-   char linestep[]="^ScanningLineStep";
-   SetPerlCommand(command,datafile,linestep);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&LineStep_);
-   if (pclose(pipe)) Errfun(linestep);
-
-   char lineend[]="^ScanningLineEnd";
-   SetPerlCommand(command,datafile,lineend);
-   pipe=OpenPipe(command,"r");
-   fscanf(pipe,"%lf",&LineEnd_);
-   if (pclose(pipe)) Errfun(lineend);
+   GetParameter("^ScanningStart",datafile,"%lf",&ScanStart_);
+   GetParameter("^ScanningEnd",datafile,"%lf",&ScanEnd_);
+   GetParameter("^ScanningStep",datafile,"%lf",&ScanStep_);
+   GetParameter("^ScanningLineStart",datafile,"%lf",&LineStart_);
+   GetParameter("^ScanningLineStep",datafile,"%lf",&LineStep_);
+   GetParameter("^ScanningLineEnd",datafile,"%lf",&LineEnd_);
 
    // Initialize Lattice to be ready to
    // find a solution
