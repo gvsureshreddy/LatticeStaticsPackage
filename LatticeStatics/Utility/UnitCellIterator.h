@@ -7,26 +7,23 @@
 class UnitCellIterator
 {
 private:
-   const Matrix *LatticeVec_;
-   const double *RefLen_;
-
    // Cubic grid of size ((2^(GridSize_)) + 1)
    int GridSize_;
    int VectorsLen_;
    double **Vectors_;
    int CurrentPOS_;
 
-   void Initialize(int GridSize,Matrix *LatticeVec,int SkipZero);
+   void Initialize(int GridSize,int DoHalfOnly,int SkipZero);
 
 public:
 
-   UnitCellIterator() {}
-   UnitCellIterator(int GridSize,Matrix *LatticeVec,int SkipZero=1)
-   {Initialize(GridSize,LatticeVec,SkipZero);}
+   UnitCellIterator(): Vectors_(NULL) {}
+   UnitCellIterator(int GridSize,int DoHalfOnly=1,int SkipZero=1):Vectors_(NULL)
+   {Initialize(GridSize,DoHalfOnly,SkipZero);}
    ~UnitCellIterator();
 
-   void operator()(int GridSize,Matrix *LatticeVec,int SkipZero=1)
-   {Initialize(GridSize,LatticeVec,SkipZero);}
+   void operator()(int GridSize,int DoHalfOnly=1,int SkipZero=1)
+   {Initialize(GridSize,DoHalfOnly,SkipZero);}
 
    void Reset() {CurrentPOS_ = 0;}
 
