@@ -82,7 +82,7 @@ int NiTi15TPPLat::FindLatticeSpacing(int iter,double dx)
    NTemp_=1.0;
    ShearMod_=1.0;
    DOF_[0] = DOF_[1] = DOF_[2] = 1.0;
-   for (int i=3;i<15;i++)
+   for (int i=3;i<DOFS;i++)
    {
       DOF_[i] = 0.0;
    }
@@ -243,7 +243,7 @@ double NiTi15TPPLat::LAMDA(int p,int q,int i,int j,int k,int l,int m,int n,int a
 					  + Del(i,l)*LatticeVec_[b][j]*LatticeVec_[n][k]
 					  + Del(j,k)*LatticeVec_[n][i]*LatticeVec_[b][l]
 					  + Del(j,k)*LatticeVec_[b][i]*LatticeVec_[n][l]
-					  + Del(j,l)*LatticeVec_[n][j]*LatticeVec_[b][j]
+					  + Del(j,l)*LatticeVec_[n][i]*LatticeVec_[b][k]
 					  + Del(j,l)*LatticeVec_[b][i]*LatticeVec_[n][k]));
 }
 
@@ -377,16 +377,16 @@ Matrix NiTi15TPPLat::Phi(unsigned moduliflag,PairPotentials::YDeriv dy,
 	 Phi.Resize(1,1,0.0);
 	 break;
       case PairPotentials::DY:
-	 Phi.Resize(1,15,0.0);
+	 Phi.Resize(1,DOFS,0.0);
 	 break;
       case PairPotentials::D2Y:
-	 Phi.Resize(15,15,0.0);
+	 Phi.Resize(DOFS,DOFS,0.0);
 	 break;
       case PairPotentials::D3Y:
-	 Phi.Resize(225,15,0.0);
+	 Phi.Resize(DOFS*DOFS,DOFS,0.0);
 	 break;
       case PairPotentials::D4Y:
-	 Phi.Resize(225,225,0.0);
+	 Phi.Resize(DOFS*DOFS,DOFS*DOFS,0.0);
 	 break;
    }
 
@@ -548,7 +548,7 @@ Matrix NiTi15TPPLat::Phi(unsigned moduliflag,PairPotentials::YDeriv dy,
 			   }
 			}
 			//Lower Diag Block (9,9)
-			for (i=1;i<4;i++)
+			for (i=1;i<INTERNAL_ATOMS;i++)
 			{
 			   for (j=0;j<DIM3;j++)
 			   {

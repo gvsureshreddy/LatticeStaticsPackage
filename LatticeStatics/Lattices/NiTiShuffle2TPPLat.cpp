@@ -6,7 +6,7 @@
 NiTiShuffle2TPPLat::NiTiShuffle2TPPLat(char *datafile)
 {
    // First Size DOF
-   DOF_.Resize(8);
+   DOF_.Resize(DOFS);
    // Set LatticeVec_
    LatticeVec_[0].Resize(DIM3,0.0);
    LatticeVec_[1].Resize(DIM3,0.0);
@@ -344,16 +344,16 @@ Matrix NiTiShuffle2TPPLat::Phi(unsigned moduliflag,PairPotentials::YDeriv dy,Pai
 	 Phi.Resize(1,1,0.0);
 	 break;
       case PairPotentials::DY:
-	 Phi.Resize(1,8,0.0);
+	 Phi.Resize(1,DOFS,0.0);
 	 break;
       case PairPotentials::D2Y:
-	 Phi.Resize(8,8,0.0);
+	 Phi.Resize(DOFS,DOFS,0.0);
 	 break;
       case PairPotentials::D3Y:
-	 Phi.Resize(64,8,0.0);
+	 Phi.Resize(DOFS*DOFS,DOFS,0.0);
 	 break;
       case PairPotentials::D4Y:
-	 Phi.Resize(64,64,0.0);
+	 Phi.Resize(DOFS*DOFS,DOFS*DOFS,0.0);
 	 break;
    }
 
@@ -676,11 +676,11 @@ void NiTiShuffle2TPPLat::Print(ostream &out,PrintDetail flag)
    Matrix
       stiffness = Stiffness(),
       moduli = Moduli(),
-      EigenValues(1,8);
+      EigenValues(1,DOFS);
 
    EigenValues=SymEigVal(stiffness);
    MinEigVal = EigenValues[0][0];
-   for (int i=0;i<8;i++)
+   for (int i=0;i<DOFS;i++)
    {
       if (EigenValues[0][i] < 0)
 	 NoNegEigVal++;

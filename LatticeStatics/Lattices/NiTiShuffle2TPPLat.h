@@ -9,7 +9,8 @@ class NiTiShuffle2TPPLat : public GenericLat
 private:
    const static int DIM3 = 3;
    const static int INTERNAL_ATOMS = 4;
-
+   const static int DOFS = 8;
+   
    double RefLen_;
    unsigned InfluanceDist_;
    double NTemp_;
