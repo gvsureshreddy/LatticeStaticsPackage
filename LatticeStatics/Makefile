@@ -60,7 +60,6 @@ $(EXE):  $(OBJECTS)
 	 $(PURE) $(CC) $(LFLAGS) Utility/builddate.cpp \
 		 -L$(LIB_LOC) -o ./bin/$(EXE) \
 		 $(addprefix lib/,$(OBJECTS)) $(LIBS) 
-	 $(MAKE) -f MakeRank1Convex
 
 # include the dependicies
 include $(addprefix depend/,$(OBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
@@ -87,7 +86,6 @@ $(BIN_LOC)/$(EXE):	$(EXE)
 	/bin/cp gpl_scripts/NiTiShuffleParam2gpl $(BIN_LOC)/
 	/bin/cp gpl_scripts/NiTi152gpl $(BIN_LOC)/
 	/bin/cp gpl_scripts/NiTi15Param2gpl $(BIN_LOC)/
-	$(MAKE) -f MakeRank1Convex install
 
 # Define uninstall
 uninstall:
@@ -101,8 +99,6 @@ uninstall:
 	/bin/rm -f $(BIN_LOC)/NiTiShuffleParam2gpl
 	/bin/rm -f $(BIN_LOC)/NiTi152gpl
 	/bin/rm -f $(BIN_LOC)/NiTi15Param2gpl
-	$(MAKE) -f MakeRank1Convex uninstall
-
 
 # Removes the current systems set of object files and executable file
 .PHONY: clean
@@ -112,7 +108,6 @@ clean:
 		  $(addsuffix /*~,$(SUBDIRS))\
                   bin/$(EXE) core *~ \
 		  depend/*.d
-	 $(MAKE) -f MakeRank1Convex clean
 
 # Define rule for dependicy files
 depend/$(notdir %).d: %$(SRC_EXT)
