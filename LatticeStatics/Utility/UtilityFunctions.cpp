@@ -112,7 +112,7 @@ unsigned FullScanRank1Convex3D(Matrix K, double dx)
 	       for (int k=0;k<3;k++)
 		  for (int l=0;l<3;l++)
 		  {
-		     A[i][j] = K[IND3D(i,k)][IND3D(j,l)] * n[k] * n[l];
+		     A[i][j] += K[IND3D(k,i)][IND3D(j,l)] * n[k] * n[l];
 		  }
 	    }
 
@@ -148,7 +148,7 @@ unsigned FullScanRank1Convex2D(Matrix K, double dx)
 	    for (int k=0;k<2;k++)
 	       for (int l=0;l<2;l++)
 	       {
-		  A[i][j] = K[IND2D(i,k)][IND2D(j,l)] * n[k] * n[l];
+		  A[i][j] += K[IND2D(k,i)][IND2D(j,l)] * n[k] * n[l];
 	       }
 	 }
       
