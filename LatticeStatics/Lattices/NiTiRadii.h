@@ -1,12 +1,12 @@
-#ifndef __NiTiShuffleTPPLat
-#define __NiTiShuffleTPPLat
+#ifndef __NiTiRadii
+#define __NiTiRadii
 
 #include "GenericLat.h"
 
 #define DIM3 3
 #define INTERNAL_ATOMS 4
 
-class NiTiShuffleTPPLat : public GenericLat
+class NiTiRadii : public GenericLat
 {
 private:
    double RefLen_;
@@ -23,9 +23,9 @@ private:
    enum YDeriv {Y0,DY,D2Y,D3Y,D4Y};
    enum interaction {aa,bb,ab};
    double Tref_;
-   double A0_aa, B0_aa, Alpha_aa, Rref_aa, Tmelt_aa;
-   double A0_bb, B0_bb, Alpha_bb, Rref_bb, Tmelt_bb;
-   double A0_ab, B0_ab, Alpha_ab, Rref_ab, Tmelt_ab;
+   double A0_aa, B0_aa, Alpha_aa, Rref_aa, Rtheta_aa, Tmelt_aa;
+   double A0_bb, B0_bb, Alpha_bb, Rref_bb, Rtheta_bb, Tmelt_bb;
+   double A0_ab, B0_ab, Alpha_ab, Rref_ab, Rtheta_ab, Tmelt_ab;
 
    // Misc
    double ConvexityDX_;
@@ -48,15 +48,15 @@ public:
    virtual void Print(ostream &out,PrintDetail flag);
    virtual void CriticalPointInfo(int Width,ostream &out);
    
-   // Functions provided by NiTiShuffleTPPLat
-   NiTiShuffleTPPLat(char *datafile);
-   ~NiTiShuffleTPPLat() {}
+   // Functions provided by NiTiRadii
+   NiTiRadii(char *datafile);
+   ~NiTiRadii() {}
    inline double Del(int i,int j) {return i==j;}
    Vector BodyForce(int i) { return BodyForce_[i]; }
    double Pressure() const { return Pressure_;}
    double SetPressure(double &p) { Pressure_ = p;}
    double ShearMod() const { return ShearMod_;}
-   friend ostream &operator<<(ostream &out,NiTiShuffleTPPLat &A);
+   friend ostream &operator<<(ostream &out,NiTiRadii &A);
 private:
    double PairPotential(interaction inter,double r2,YDeriv dy=Y0,TDeriv dt=T0);
    inline double Beta(interaction inter,TDeriv dt=T0);
