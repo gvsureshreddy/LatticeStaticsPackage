@@ -54,10 +54,10 @@ public:
    friend ostream &operator<<(ostream &out,NiTiPressTempPairPotLat &A);
 private:
    double PairPotential(interaction inter,double r2,YDeriv dy=Y0,TDeriv dt=T0);
-   double Beta(interaction inter,TDeriv dt=T0);
-   double Rhat(interaction inter,TDeriv dt=T0);
-   double PI(const Vector &Dx,const Vector &DX,int r,int s);
-   double PSI(const Vector &DX,int r,int s,int t,int u);
+   inline double Beta(interaction inter,TDeriv dt=T0);
+   inline double Rhat(interaction inter,TDeriv dt=T0);
+   inline double PI(const Vector &Dx,const Vector &DX,int r,int s);
+   inline double PSI(const Vector &DX,int r,int s,int t,int u);
    double pwr(const double &x,const unsigned y);
    inline int IND(int i,int j);
    inline int IND(int k,int l,int m,int n);

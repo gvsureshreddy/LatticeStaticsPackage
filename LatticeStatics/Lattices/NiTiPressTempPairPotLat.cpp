@@ -111,7 +111,7 @@ int NiTiPressTempPairPotLat::FindLatticeSpacing(int iter,double dx)
    
 // Pair Potential Routines
 
-double NiTiPressTempPairPotLat::Beta(interaction inter,TDeriv dt)
+inline double NiTiPressTempPairPotLat::Beta(interaction inter,TDeriv dt)
 {
    double B0,Alpha,Tref;
    
@@ -148,7 +148,7 @@ double NiTiPressTempPairPotLat::Beta(interaction inter,TDeriv dt)
    exit(-1);
 }
 
-double NiTiPressTempPairPotLat::Rhat(interaction inter,TDeriv dt)
+inline double NiTiPressTempPairPotLat::Rhat(interaction inter,TDeriv dt)
 {
    double num,den,rhat;
    double B0,Tref,Tmelt,Rref;
@@ -327,14 +327,14 @@ double NiTiPressTempPairPotLat::PairPotential(interaction inter,double r2,
 
 // Lattice Routines
 
-double NiTiPressTempPairPotLat::PI(const Vector &Dx,const Vector &DX,
-				 int r, int s)
+inline double NiTiPressTempPairPotLat::PI(const Vector &Dx,const Vector &DX,
+					  int r, int s)
 {
    return (Dx[r]*DX[s] + DX[r]*Dx[s]);
 }
 
-double NiTiPressTempPairPotLat::PSI(const Vector &DX,
-				  int r, int s, int t, int u)
+inline double NiTiPressTempPairPotLat::PSI(const Vector &DX,
+					   int r, int s, int t, int u)
 {
    return (Del(r,t)*DX[s]*DX[u] +
 	   Del(r,u)*DX[s]*DX[t] +
@@ -355,7 +355,7 @@ double NiTiPressTempPairPotLat::pwr(const double &x,const unsigned y)
    }
 }
 
-int NiTiPressTempPairPotLat::IND(int i,int j)
+inline int NiTiPressTempPairPotLat::IND(int i,int j)
 {
    if (i==j)
       return i;
@@ -363,7 +363,7 @@ int NiTiPressTempPairPotLat::IND(int i,int j)
       return 2+i+j;
 }
 
-int NiTiPressTempPairPotLat::IND(int k,int l,int m,int n)
+inline int NiTiPressTempPairPotLat::IND(int k,int l,int m,int n)
 {
    if (k==l)
    {
@@ -391,7 +391,16 @@ int NiTiPressTempPairPotLat::IND(int k,int l,int m,int n)
 
 Matrix NiTiPressTempPairPotLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 {
-   Matrix Phi;
+   static double X[DIM3];
+   static Vector DX(DIM3),Dx(DIM3);
+   static Vector ABOffset(DIM3,0.5);
+   static Matrix Uinv(DIM3,DIM3),Eigvals(1,DIM3);
+   static double J;
+   static double r2,phi,phi1,phi2,Influancedist[DIM3],tmp;
+   static int i,j,k,l,m,n,p,q,s;
+   static int Top[DIM3],Bottom[DIM3],CurrentInfluanceDist;
+   static interaction Inter;
+   static Matrix Phi;
 
    switch (dy)
    {
@@ -412,27 +421,23 @@ Matrix NiTiPressTempPairPotLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 	 break;
    }
 
-   Vector X(DIM3),dummy(DIM3,0.0);
-   Vector DX(DIM3),Dx(DIM3);
-   Vector ABOffset(DIM3,0.5);
-   Matrix Uinv=DefGrad_.Inverse(),Eigvals=SymEigVal(Uinv);
-   double J=DefGrad_.Det();
-   double r2,phi,phi1,phi2,Influancedist[DIM3],tmp;
-   int k,l,Top[DIM3],Bottom[DIM3],CurrentInfluanceDist;
-   interaction Inter;
 
-
+   
    // find largest eigenvalue of the inverse transformation
    // (i.e. from current to ref) and use influence cube of
    // that size...
+   J = DefGrad_.Det();
+   Uinv = DefGrad_.Inverse();
+   Eigvals=SymEigVal(Uinv);
    tmp = 0.0;
    for (int i=0;i<DIM3;i++)
       if (Eigvals[0][i] > tmp) tmp = Eigvals[0][i];
    
    for (int i=0;i<DIM3;i++)
+   {
       Influancedist[i]=tmp*InfluanceDist_;
-
-   X=dummy;
+   }
+   
    for (int p=0;p<DIM3;p++)
    {
       // set influance distance based on cube size
@@ -456,25 +461,35 @@ Matrix NiTiPressTempPairPotLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 	       {
 		  case 0:
 		     Inter = aa;
-		     DX = X*RefLen_;
+		     for (i=0;i<DIM3;i++)
+			DX[i] = X[i]*RefLen_;
 		     break;
 		  case 1:
 		     Inter = bb;
-		     DX = X*RefLen_;
+		     for (i=0;i<DIM3;i++)
+			DX[i] = X[i]*RefLen_;
 		     break;
 		  case 2:
 		     Inter = ab;
-		     DX = (X + ABOffset)*RefLen_;
+		     for (i=0;i<DIM3;i++)
+			DX[i] = (X[i] + ABOffset[i])*RefLen_;
 		     break;
 		  case 3:
 		     Inter = ab;
-		     DX = (X - ABOffset)*RefLen_;
+		     for (i=0;i<DIM3;i++)
+			DX[i] = (X[i] - ABOffset[i])*RefLen_;
 		     break;
 	       }
-		     
-	       Dx = DefGrad_ * DX;
+
+	       r2 = 0.0;
+	       for (i=0;i<DIM3;i++)
+	       {
+		  Dx[i] = 0.0;
+		  for (j=0;j<DIM3;j++)
+		     Dx[i] += DefGrad_[i][j] * DX[j];
+		  r2 += Dx[i]*Dx[i];
+	       }
 	    
-	       r2=Dx*Dx;
 	       // Only use Sphere of Influance (current)
 	       if (r2==0 || r2 > InfluanceDist_*InfluanceDist_)
 	       {
@@ -594,7 +609,9 @@ Matrix NiTiPressTempPairPotLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 	    Phi[0][0] = Phi[0][0] - Pressure_*J;
 	    break;
 	 case DY:
-	    Phi = Phi - Pressure_*J*Uinv;
+	    for (i=0;i<DIM3;i++)
+	       for (j=i;j<DIM3;j++)
+		  Phi[i][j] = Phi[j][i] -= Pressure_*J*Uinv[i][j];
 	    break;
 	 case D2Y:
 	    for (int i=0;i<DIM3;i++)
