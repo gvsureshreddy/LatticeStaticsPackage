@@ -115,6 +115,14 @@ int main()
 
    cout << "SVD" << endl << setw(20) << B*C*D.Transpose() << endl;
 
+   // check cholesky
+   Matrix DD,UU;
+   // Make E symmetric
+   E=E*E.Transpose();
+   Cholesky(E,UU,DD);
+   cout << "Cholesky" << endl << setw(20) << E << endl;
+   cout << "result" << endl << setw(20) << UU.Transpose()*DD*UU << endl;
+
    E.Resize(3,3);
    E=A;
 
@@ -190,6 +198,9 @@ int main()
    f=Vector3D(b);
    
    cout << "A*f" << setw(20) << A*f << endl;
+
+
+   
 
    return 1;
 }
