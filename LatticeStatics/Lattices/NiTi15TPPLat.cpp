@@ -401,8 +401,11 @@ Matrix NiTi15TPPLat::Phi(unsigned moduliflag,RadiiMorse::YDeriv dy,
 		  }
 
 		  // Calculate bodyforce
-		  phi1 = Potential_[Inter].PairPotential(NTemp_,r2,RadiiMorse::DY,
-							 RadiiMorse::T0);
+		  // NOTE: phi1 = d(phi)/d(r2)
+		  // We need d(phi)/dr = 2*r*d(phi)/d(r2)
+		  phi1 = 2.0*sqrt(r2)*
+		     Potential_[Inter].PairPotential(NTemp_,r2,RadiiMorse::DY,
+						     RadiiMorse::T0);
 		  if (ForceNorm < fabs(-phi1/2.0))
 		  {
 		     ForceNorm = fabs(-phi1/2.0);
