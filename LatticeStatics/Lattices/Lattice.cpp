@@ -122,6 +122,11 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
    cout << endl << endl << "2nd Order Bifurcation Equations:" << endl;
    out << endl << endl << "2nd Order Bifurcation Equations:" << endl;
 
+   int prec = out.precision();
+
+   out << setiosflags(ios::scientific) << setprecision(prec/2);
+   cout << setiosflags(ios::scientific) << setprecision(prec/2);
+
    for (int i=0;i<count;i++)
    {
       for (int j=0;j<count;j++)
@@ -301,6 +306,9 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
    }
    cout << endl;
    out << endl;
+
+   out << setiosflags(ios::fixed) << setprecision(prec);
+   cout << setiosflags(ios::fixed) << setprecision(prec);
    
    return;
 }
