@@ -47,7 +47,7 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
    
    if (DOFMAX < (dofs=D2.Rows()))
    {
-      cerr << "Error: DOFMAX < " << dofs << " in GenericLat.h" << endl;
+      cerr << "Error: DOFMAX < " << dofs << " in Lattice.h" << endl;
       exit(-5);
    }
    

@@ -95,8 +95,6 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo)
    if(!GetParameter(prefix,"MaxIterations",datafile,"%u",&iter)) exit(-1);
    if(!GetParameter(prefix,"InitializeStepSize",datafile,"%lf",&DX)) exit(-1);
    if(!GetParameter(prefix,"BlochWaveGridSize",datafile,"%u",&GridSize_)) exit(-1);
-   if(!GetParameter(prefix,"BlochWaveCurrRef",datafile,"%u",&CurrRef_))
-      CurrRef_ = 1;
    
    // Initialize RefLattice_
    for (int i=0;i<DIM3;++i)
@@ -1313,193 +1311,6 @@ void MultiLatticeTPP::interpolate(Matrix *EigVals,int zero,int one,int two)
    }
 }
 
-CMatrix MultiLatticeTPP::CurrentDynamicalStiffness(Vector &K)
-{
-   static CMatrix Dk;
-   static double pi = 4.0*atan(1.0);
-   static complex<double> Ic(0,1);
-   static complex<double> A = 2.0*pi*Ic;
-   int i,j;
-
-   Dk.Resize(INTERNAL_ATOMS*DIM3,INTERNAL_ATOMS*DIM3,0.0);
-   
-   for (LatSum_.Reset();!LatSum_.Done();++LatSum_)
-   {
-      // Calculate Dk
-      if (LatSum_.Atom(0) != LatSum_.Atom(1))
-      {
-	 for (i=0;i<DIM3;i++)
-	    for (j=0;j<DIM3;j++)
-	    {
-	       // y != y' terms (i.e., off block (3x3) diagonal terms)
-	       Dk[DIM3*LatSum_.Atom(0)+i][DIM3*LatSum_.Atom(1)+j] +=
-		  (-2.0*Del(i,j)*LatSum_.phi1()
-		   -4.0*LatSum_.Dx(i)*LatSum_.Dx(j)*LatSum_.phi2())
-		  *exp(A*
-		       (K[0]*LatSum_.Dx(0) + K[1]*LatSum_.Dx(1) + K[2]*LatSum_.Dx(2)));
-
-	       // y==y' components (i.e., Phi(0,y,y) term)
-	       Dk[DIM3*LatSum_.Atom(0)+i][DIM3*LatSum_.Atom(0)+j] +=
-		  (2.0*Del(i,j)*LatSum_.phi1()
-		   +4.0*LatSum_.Dx(i)*LatSum_.Dx(j)*LatSum_.phi2());
-	    }
-      }
-      else
-      {
-	 for (i=0;i<DIM3;++i)
-	    for (j=0;j<DIM3;++j)
-	    {
-	       Dk[DIM3*LatSum_.Atom(0)+i][DIM3*LatSum_.Atom(1)+j] +=
-		  (-2.0*Del(i,j)*LatSum_.phi1()
-		   -4.0*LatSum_.Dx(i)*LatSum_.Dx(j)*LatSum_.phi2())
-		  *(exp(A*
-			(K[0]*LatSum_.Dx(0) + K[1]*LatSum_.Dx(1)
-			 + K[2]*LatSum_.Dx(2)))
-		    - 1.0);
-	    }
-      }
-   }
-   // Normalize through the Mass Matrix
-   for (int p=0;p<INTERNAL_ATOMS;++p)
-      for (int q=0;q<INTERNAL_ATOMS;++q)
-	 for (i=0;i<DIM3;i++)
-	    for (j=0;j<DIM3;j++)
-	    {
-	       Dk[DIM3*p+i][DIM3*q+j] /= sqrt(AtomicMass_[p]*AtomicMass_[q]);
-	    }
-   
-   return Dk;
-}
-
-void MultiLatticeTPP::CurrentDispersionCurves(Vector K,int NoPTS,const char *prefix,
-				       ostream &out)
-{
-   int w=out.width();
-   out.width(0);
-   if (Echo_) cout.width(0);
-
-   Matrix DefGrad(DIM3,DIM3),Tmp(DIM3,DIM3),InverseLat(DIM3,DIM3);
-   // Setup DefGrad
-   DefGrad[0][0] = DOF_[0];
-   DefGrad[1][1] = DOF_[1];
-   DefGrad[2][2] = DOF_[2];
-   DefGrad[0][1] = DefGrad[1][0] = DOF_[3];
-   DefGrad[0][2] = DefGrad[2][0] = DOF_[4];
-   DefGrad[2][1] = DefGrad[1][2] = DOF_[5];
-   for (int i=0;i<DIM3;++i)
-      for (int j=0;j<DIM3;++j)
-      {
-	 Tmp[i][j] = 0.0;
-	 for (int k=0;k<DIM3;++k)
-	 {
-	    Tmp[i][j] += DefGrad[i][k]*RefLattice_[j][k];
-	 }
-      }
-   InverseLat = (Tmp.Inverse()).Transpose();
-
-   Matrix EigVal[3];
-   for (int i=0;i<3;++i) EigVal[i].Resize(1,INTERNAL_ATOMS*DIM3);
-
-   Vector Z1(DIM3),Z2(DIM3);
-   for (int k=0;k<DIM3;++k)
-   {
-      Z1[k] = K[k];
-      Z2[k] = K[DIM3 + k];
-   }
-   Z1 = InverseLat*Z1;
-   Z2 = InverseLat*Z2;
-   
-   Vector Z(DIM3),
-      DZ=Z2-Z1;
-   double dz = 1.0/(NoPTS-1);
-   for (int k=0;k<2;++k)
-   {
-      Z = Z1 + (k*dz)*DZ;
-      EigVal[k] = HermiteEigVal(CurrentDynamicalStiffness(Z));
-      qsort(EigVal[k][0],INTERNAL_ATOMS*DIM3,sizeof(double),&comp);
-      
-      out << prefix << setw(w) << NTemp_ << setw(w) << k*dz;
-      if (Echo_) cout << prefix << setw(w) << NTemp_ << setw(w) << k*dz;
-      for (int i=0;i<INTERNAL_ATOMS*DIM3;++i)
-      {
-	 out << setw(w) << EigVal[k][0][i];
-	 if (Echo_) cout << setw(w) << EigVal[k][0][i];
-      }
-      out << endl;
-      if (Echo_) cout << endl;
-   }
-   int zero=0,one=1,two=2;
-   for (int k=2;k<NoPTS;++k)
-   {
-      Z = Z1 + (k*dz)*DZ;
-      EigVal[two] = HermiteEigVal(CurrentDynamicalStiffness(Z));
-      qsort(EigVal[two][0],INTERNAL_ATOMS*DIM3,sizeof(double),&comp);
-      interpolate(EigVal,zero,one,two);
-      
-      out << prefix << setw(w) << NTemp_ << setw(w) << k*dz;
-      if (Echo_) cout << prefix << setw(w) << NTemp_ << setw(w) << k*dz;
-      for (int i=0;i<INTERNAL_ATOMS*DIM3;++i)
-      {
-	 out << setw(w) << EigVal[two][0][i];;
-	 if (Echo_) cout << setw(w) << EigVal[two][0][i];;
-      }
-      out << endl;
-      if (Echo_) cout << endl;
-
-      zero = (++zero)%3; one = (zero+1)%3; two = (one+1)%3;
-   }
-}
-
-int MultiLatticeTPP::CurrentBlochWave(Vector &K)
-{
-   static CMatrix A(INTERNAL_ATOMS*DIM3,INTERNAL_ATOMS*DIM3);
-   static Matrix EigVals(1,INTERNAL_ATOMS*DIM3);
-   static Matrix DefGrad(DIM3,DIM3),InverseLat(DIM3,DIM3),Tmp(DIM3,DIM3);
-   static Vector Z(DIM3);
-
-   // Setup DefGrad
-   DefGrad[0][0] = DOF_[0];
-   DefGrad[1][1] = DOF_[1];
-   DefGrad[2][2] = DOF_[2];
-   DefGrad[0][1] = DefGrad[1][0] = DOF_[3];
-   DefGrad[0][2] = DefGrad[2][0] = DOF_[4];
-   DefGrad[2][1] = DefGrad[1][2] = DOF_[5];
-   for (int i=0;i<DIM3;++i)
-      for (int j=0;j<DIM3;++j)
-      {
-	 Tmp[i][j] = 0.0;
-	 for (int k=0;k<DIM3;++k)
-	 {
-	    Tmp[i][j] += DefGrad[i][k]*RefLattice_[j][k];
-	 }
-      }
-   InverseLat = (Tmp.Inverse()).Transpose();
-
-   // Iterate over points in cubic unit cell
-   for (UCIter_.Reset();!UCIter_.Done();++UCIter_)
-   {
-      for (int i=0;i<DIM3;++i)
-      {
-	 K[i] = UCIter_[i];
-      }
-
-      Z = InverseLat*K;
-      A = CurrentDynamicalStiffness(Z);
-
-      EigVals = HermiteEigVal(A);
-      
-      for (int i=0;i<INTERNAL_ATOMS*DIM3;++i)
-      {
-	 // if w^2 <= 0.0 --> Re(i*w*x) > 0 --> growing solutions --> unstable
-	 if ( EigVals[0][i] <= 0.0 )
-	 {
-	    return 0;
-	 }
-      }
-   }
-   return 1;
-}
-
 CMatrix MultiLatticeTPP::ReferenceDynamicalStiffness(Vector &K)
 {
    static CMatrix Dk;
@@ -2072,35 +1883,31 @@ void MultiLatticeTPP::DebugMode()
       "AtomicMass_",                   // 11
       "GridSize_",                     // 12
       "Potential_",                    // 13
-      "CurrRef_",                      // 14
-      "ConvexityDX_",                  // 15
-      "NoMovable_",                    // 16
-      "MovableAtoms_",                 // 17
-      "stress",                        // 18
-      "stiffness",                     // 19
-      "CondensedModuli",               // 20
-      "CurrentDispersionCurves",       // 21
-      "CurrentBlochWave",              // 22
-      "CurrentDynamicalStiffness",     // 23
-      "ReferenceDispersionCurves",     // 24
-      "ReferenceBlochWave",            // 25
-      "ReferenceDynamicalStiffness",   // 26
-      "SetDOF",                        // 27
-      "StressDT",                      // 28
-      "StiffnessDT",                   // 29
-      "SetTemp",                       // 30
-      "Energy",                        // 31
-      "Moduli",                        // 32
-      "E3",                            // 33
-      "E4",                            // 34
-      "SetGridSize",                   // 35
-      "NeighborDistances",             // 36
-      "Print-short",                   // 37
-      "Print-long",                    // 38
-      "SetPressure",                   // 39
-      "FindLatticeSpacing"             // 40
+      "ConvexityDX_",                  // 14
+      "NoMovable_",                    // 15
+      "MovableAtoms_",                 // 16
+      "stress",                        // 17
+      "stiffness",                     // 18
+      "CondensedModuli",               // 19
+      "ReferenceDispersionCurves",     // 20
+      "ReferenceBlochWave",            // 21
+      "ReferenceDynamicalStiffness",   // 22
+      "SetDOF",                        // 23
+      "StressDT",                      // 24
+      "StiffnessDT",                   // 25
+      "SetTemp",                       // 26
+      "Energy",                        // 27
+      "Moduli",                        // 28
+      "E3",                            // 29
+      "E4",                            // 30
+      "SetGridSize",                   // 31
+      "NeighborDistances",             // 32
+      "Print-short",                   // 33
+      "Print-long",                    // 34
+      "SetPressure",                   // 35
+      "FindLatticeSpacing"             // 36
    };
-   int NOcommands=41;
+   int NOcommands=37;
    
    char response[LINELENGTH];
    char tokens[LINELENGTH];
@@ -2172,58 +1979,19 @@ void MultiLatticeTPP::DebugMode()
 	    }
       }
       else if (!strcmp(response,Commands[14]))
-	 cout << "CurrRef_= " << CurrRef_ << endl;
-      else if (!strcmp(response,Commands[15]))
 	 cout << "ConvexityDX_= " << ConvexityDX_ << endl;
-      else if (!strcmp(response,Commands[16]))
+      else if (!strcmp(response,Commands[15]))
 	 cout << "NoMovable_= " << NoMovable_ << endl;
-      else if (!strcmp(response,Commands[17]))
+      else if (!strcmp(response,Commands[16]))
 	 for (int i=0;i<NoMovable_;++i)
 	    cout << "MovableAtoms_[" << i << "]= " << MovableAtoms_[i] << endl;
-      else if (!strcmp(response,Commands[18]))
+      else if (!strcmp(response,Commands[17]))
 	 cout << "stress= " << setw(W) << stress();
-      else if (!strcmp(response,Commands[19]))
+      else if (!strcmp(response,Commands[18]))
 	 cout << "stiffness= " << setw(W) << stiffness();
-      else if (!strcmp(response,Commands[20]))
+      else if (!strcmp(response,Commands[19]))
 	 cout << "CondensedModuli= " << setw(W) << CondensedModuli();
-      else if (!strcmp(response,Commands[21]))
-      {
-	 Vector K(DIM3,0.0);
-	 int NoPTS;
-	 char prefix[LINELENGTH];
-	 int oldEcho_=Echo_;
-	 cout << "\tK > ";
-	 cin >> K;
-	 cin.sync(); // clear input
-	 cout << "\tNoPTS > ";
-	 cin >> NoPTS;
-	 cin.sync(); // clear input
-	 cout << "\tprefix > ";
-	 cin >> prefix;
-	 cin.sync(); // clear input
-	 Echo_=0;
-	 cout << "CurrentDispersionCurves= ";
-	 CurrentDispersionCurves(K,NoPTS,prefix,cout);
-	 Echo_=oldEcho_;
-      }
-      else if (!strcmp(response,Commands[22]))
-      {
-	 Vector K(DIM3,0.0);
-	 cout << "\tK > ";
-	 cin >> K;
-	 cin.sync(); // clear input
-	 cout << "CurrentBlochWave= " << CurrentBlochWave(K);
-      }
-      else if (!strcmp(response,Commands[23]))
-      {
-	 Vector K(DIM3,0.0);
-	 cout << "\tK > ";
-	 cin >> K;
-	 cin.sync(); // clear input
-	 cout << "CurrentDynamicalStiffness= " << setw(W)
-	      << CurrentDynamicalStiffness(K);
-      }
-      else if (!strcmp(response,Commands[24]))
+      else if (!strcmp(response,Commands[20]))
       {
 	 Vector K(DIM3,0.0);
 	 int NoPTS;
@@ -2243,7 +2011,7 @@ void MultiLatticeTPP::DebugMode()
 	 ReferenceDispersionCurves(K,NoPTS,prefix,cout);
 	 Echo_=oldEcho_;
       }
-      else if (!strcmp(response,Commands[25]))
+      else if (!strcmp(response,Commands[21]))
       {
 	 Vector K(DIM3,0.0);
 	 cout << "\tK > ";
@@ -2251,7 +2019,7 @@ void MultiLatticeTPP::DebugMode()
 	 cin.sync(); // clear input
 	 cout << "ReferenceBlochWave= " << ReferenceBlochWave(K);
       }
-      else if (!strcmp(response,Commands[26]))
+      else if (!strcmp(response,Commands[22]))
       {
 	 cout << "\tK > ";
 	 Vector K(3,0.0);
@@ -2260,7 +2028,7 @@ void MultiLatticeTPP::DebugMode()
 	 cout << "ReferenceDynamicalStiffness= "
 	      << setw(W) << ReferenceDynamicalStiffness(K) << endl;
       }
-      else if (!strcmp(response,Commands[27]))
+      else if (!strcmp(response,Commands[23]))
       {
 	 Vector DOF(DOFS,0.0);
 	 cout << "\tDOF > ";
@@ -2268,11 +2036,11 @@ void MultiLatticeTPP::DebugMode()
 	 cin.sync(); // clear input
 	 SetDOF(DOF);
       }
-      else if (!strcmp(response,Commands[28]))
+      else if (!strcmp(response,Commands[24]))
 	 cout << "StressDT= " << setw(W) << StressDT();
-      else if (!strcmp(response,Commands[29]))
+      else if (!strcmp(response,Commands[25]))
 	 cout << "StiffnessDT= " << setw(W) << StiffnessDT();
-      else if (!strcmp(response,Commands[30]))
+      else if (!strcmp(response,Commands[26]))
       {
 	 double Temp;
 	 cout << "\tTemp > ";
@@ -2280,15 +2048,15 @@ void MultiLatticeTPP::DebugMode()
 	 cin.sync(); // clear input
 	 SetTemp(Temp);
       }
-      else if (!strcmp(response,Commands[31]))
+      else if (!strcmp(response,Commands[27]))
 	 cout << "Energy= " << Energy() << endl;
-      else if (!strcmp(response,Commands[32]))
+      else if (!strcmp(response,Commands[28]))
 	 cout << "Moduli= " << setw(W) << Moduli();
-      else if (!strcmp(response,Commands[33]))
+      else if (!strcmp(response,Commands[29]))
 	 cout << "E3= " << setw(W) << E3();
-      else if (!strcmp(response,Commands[34]))
+      else if (!strcmp(response,Commands[30]))
 	 cout << "E4= " << setw(W) << E4();
-      else if (!strcmp(response,Commands[35]))
+      else if (!strcmp(response,Commands[31]))
       {
 	 int GridSize;
 	 cout << "\tGridSize > ";
@@ -2296,7 +2064,7 @@ void MultiLatticeTPP::DebugMode()
 	 cin.sync(); // clear input
 	 SetGridSize(GridSize);
       }
-      else if (!strcmp(response,Commands[36]))
+      else if (!strcmp(response,Commands[32]))
       {
 	 int oldEcho_=Echo_;
 	 int cutoff;
@@ -2307,21 +2075,21 @@ void MultiLatticeTPP::DebugMode()
 	 NeighborDistances(cutoff,cout);
 	 Echo_=oldEcho_;
       }
-      else if (!strcmp(response,Commands[37]))
+      else if (!strcmp(response,Commands[33]))
       {
 	 int oldEcho_=Echo_;
 	 Echo_=0;
 	 cout << setw(W) << *this;
 	 Echo_=oldEcho_;
       }
-      else if (!strcmp(response,Commands[38]))
+      else if (!strcmp(response,Commands[34]))
       {
 	 int oldEcho_=Echo_;
 	 Echo_=0;
 	 Print(cout,PrintLong);
 	 Echo_=oldEcho_;
       }
-      else if (!strcmp(response,Commands[39]))
+      else if (!strcmp(response,Commands[35]))
       {
 	 double pressure;
 	 cout << "\tPressure > ";
@@ -2329,7 +2097,7 @@ void MultiLatticeTPP::DebugMode()
 	 cin.sync(); // clear input
 	 SetPressure(pressure);
       }
-      else if (!strcmp(response,Commands[40]))
+      else if (!strcmp(response,Commands[36]))
       {
 	 int iter;
 	 double dx;

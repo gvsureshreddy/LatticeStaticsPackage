@@ -36,7 +36,6 @@ private:
    PairPotentials ***Potential_;
 
    // Misc
-   int CurrRef_;
    double ConvexityDX_;
    Vector *AtomPositions_;
    int NoMovable_;
@@ -46,9 +45,6 @@ private:
    Matrix stiffness(int moduliflag=0,PairPotentials::TDeriv dt=PairPotentials::T0);
    Matrix CondensedModuli();
 
-   void CurrentDispersionCurves(Vector K,int NoPTS,const char *prefix,ostream &out);
-   int CurrentBlochWave(Vector &K);
-   CMatrix CurrentDynamicalStiffness(Vector &K);
    void ReferenceDispersionCurves(Vector K,int NoPTS,const char *prefix,ostream &out);
    int ReferenceBlochWave(Vector &K);
    CMatrix ReferenceDynamicalStiffness(Vector &K);
@@ -82,10 +78,9 @@ public:
    virtual Matrix E3();
    virtual Matrix E4();
    virtual void DispersionCurves(Vector K,int NoPTS,const char *prefix,ostream &out)
-   { CurrRef_? CurrentDispersionCurves(K,NoPTS,prefix,out)
-	:ReferenceDispersionCurves(K,NoPTS,prefix,out);}
+   {ReferenceDispersionCurves(K,NoPTS,prefix,out);}
    virtual int BlochWave(Vector &K)
-   { CurrRef_? CurrentBlochWave(K) : ReferenceBlochWave(K);}
+   {ReferenceBlochWave(K);}
    virtual void LongWavelengthModuli(double dk,int gridsize,const char *prefix,
 				     ostream &out);
    virtual void SetGridSize(int Grid) {GridSize_=Grid; UCIter_(GridSize_);}
