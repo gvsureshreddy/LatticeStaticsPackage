@@ -957,69 +957,120 @@ int NiTi15TPPLat::StiffnessNulity(double *Min)
    return NoNegEigVal;
 }
 
-void NiTi15TPPLat::CriticalPointInfo(int Width,ostream &out)
+void NiTi15TPPLat::CriticalPointInfo(double Tolerance,int Width,ostream &out)
 {
-   // Matrix L4 = Phi(0,D4Y,T0),
-   // 	 L3 = Phi(0,D3Y,T0),
-   // 	 L2T = Phi(0,D2Y,DT),
-   // 	 L = Stiffness();
-   // 
-   // double E,Ehat,Et1,Et2,eta,etahat,a,b,c;
-   // 
-   // E = 8.0*L3[INDU(0,1,0,2)][INDU(1,2)];
-   // 
-   // // Determine eta and etahat
-   // a = L[0][0]*L3[INDU(2,2,0,1)][INDU(0,1)] +
-   // 	 L[0][1]*(L3[INDU(2,2,0,1)][INDU(0,1)] - 2.0*L3[INDU(0,0,0,1)][INDU(0,1)]);
-   // b = (L[0][0] - L[0][1])*(L[0][0] + 2.0*L[0][1]);
-   // c = L[0][0]*L3[INDU(0,0,0,1)][INDU(0,1)] - L[0][1]*L3[INDU(2,2,0,1)][INDU(0,1)];
-   // 
-   // eta = -4.0*a/b;
-   // etahat = -4.0*c/b;
-   // //
-   // 
-   // Ehat = 16.0*L4[INDU(0,1,0,1)][INDU(0,1,0,1)] +
-   // 	 12.0*(eta*L3[INDU(2,2,0,1)][INDU(0,1)] + 2.0*etahat*L3[INDU(0,0,0,1)][INDU(0,1)]);
-   // 
-   // Et1 = 4.0*(L3[INDU(0,1,0,1)][INDU(2,2)] + 2.0*L3[INDU(0,1,0,1)][INDU(0,0)]);
-   // Et2 = 4.0*L2T[INDU(0,1)][INDU(0,1)];
-   // 
-   // // Print out results
-   // for (int i=0;i<70;i++)
-   // {
-   // 	 cout << "=";
-   // 	 out << "=";
-   // }
-   // cout << endl; out << endl;
-   // cout << "Asymptotic Results for Principal Branch" << endl;
-   // out << "Asymptotic Results for Principal Branch" << endl;
-   // cout << "E =" << setw(Width) << E << endl;
-   // out << "E =" << setw(Width) << E << endl;
-   // cout << "Ehat =" << setw(Width) << Ehat << endl;
-   // out << "Ehat =" << setw(Width) << Ehat << endl;
-   // cout << "Etheta_1 =" << setw(Width) << Et1 << endl;
-   // out << "Etheta_1 =" << setw(Width) << Et1 << endl;
-   // cout << "Etheta_2 =" << setw(Width) << Et2 << endl;
-   // out << "Etheta_2 =" << setw(Width) << Et2 << endl;
-   // for (int i=0;i<70;i++)
-   // {
-   // 	 cout << "-";
-   // 	 out << "-";
-   // }
-   // cout << endl; out << endl;
-   // cout << "Etheta = Etheta_1 * dlamda/dtheta + Etheta_2" << endl;
-   // out << "Etheta = Etheta_1 * dlamda/dtheta + Etheta_2" << endl;
-   // cout << "Rhombohedral Tangent ==> -E/Etheta" << endl;
-   // out << "Rhombohedral Tangent ==> -E/Etheta" << endl;
-   // cout << "Orthorhombic Curveature ==> -Ehat/(3*Etheta)" << endl;
-   // out << "Orthorhombic Curveature ==> -Ehat/(3*Etheta)" << endl;
-   // for (int i=0;i<70;i++)
-   // {
-   // 	 cout << "=";
-   // 	 out << "=";
-   // }
-   // cout << endl; out << endl;
-   // 
+   Matrix E3=Phi(0,PairPotentials::D3Y),
+      E2=Stiffness(),
+      E2T=Phi(0,PairPotentials::D2Y,PairPotentials::DT),
+      EigVec,
+      EigVal=SymEigVal(E2,&EigVec);
+   
+   // Matrix E4=Phi(0,PairPotential::D4Y);
+
+   Matrix Mode;
+   double Eijk[DOFS][DOFS][DOFS],
+      EijT[DOFS][DOFS];
+
+   // Find the modes
+   int count = 0,
+      Ind[DOFS];
+
+   for (int i=0;i<DOFS;i++)
+      if (fabs(EigVal[0][i]) < Tolerance)
+      {
+	 Ind[count++]=i;
+      }
+   
+   Mode.Resize(count,DOFS);
+
+   for (int i=0;i<count;i++)
+   {
+      for (int j=0;j<DOFS;j++)
+      {
+	 Mode[i][j] = EigVec[j][Ind[i]];
+      }
+   }
+
+   // Eijk
+   for (int i=0;i<count;i++)
+      for (int j=0;j<count;j++)
+	 for (int k=0;k<count;k++)
+	 {
+	    Eijk[i][j][k] = 0.0;
+	    for (int a=0;a<DOFS;a++)
+	       for (int b=0;b<DOFS;b++)
+		  for (int c=0;c<DOFS;c++)
+		  {
+		     Eijk[i][j][k] += E3[a*DOFS + b][c]*Mode[i][a]*Mode[j][b]*Mode[k][c];
+		  }
+	 }
+
+   //EijT
+   for (int i=0;i<count;i++)
+      for (int j=0;j<count;j++)
+      {
+	 EijT[i][j] = 0.0;
+	 for (int a=0;a<DOFS;a++)
+	    for (int b=0;b<DOFS;b++)
+	    {
+	       EijT[i][j] += E2T[a][b]*Mode[i][a]*Mode[j][b];
+	    }
+      }
+   
+   // Print out results
+   for (int i=0;i<70;i++)
+   {
+      cout << "-";
+      out << "-";
+   }
+   cout << endl << endl << "Bifurcation Equations:" << endl;
+   out << endl << endl << "Bifurcation Equations:" << endl;
+
+   for (int i=0;i<count;i++)
+   {
+      for (int j=0;j<count;j++)
+	 for (int k=0;k<count;k++)
+	 {
+	    cout << "("
+		 << Eijk[i][j][k]
+		 << ")a_" << j
+		 << "a_"  << k
+		 << " + ";
+	    out << "("
+		<< Eijk[i][j][k]
+		<< ")a_" << j
+		<< "a_"  << k
+		<< " + ";
+	 }
+
+      cout << "2T_1( ";
+      out << "2T_1( ";
+      
+      for (int j=0;j<count-1;j++)
+      {
+	 cout << "("
+	      << EijT[i][j]
+	      << ")a_" << j
+	      << " + ";
+	 out << "("
+	     << EijT[i][j]
+	     << ")a_" << j
+	     << " + ";
+      }
+      cout << "(" << EijT[i][count-1] << ")a_" << count-1
+	   << ") = 0" << endl;
+      out << "(" << EijT[i][count-1] << ")a_" << count-1
+	  << ") = 0" << endl;
+   }
+
+   for (int i=0;i<70;i++)
+   {
+      cout << "-";
+      out << "-";
+   }
+   cout << endl;
+   out << endl;
+   
    return;
 }
 
