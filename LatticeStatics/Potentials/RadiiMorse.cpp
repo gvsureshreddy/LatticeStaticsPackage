@@ -1,12 +1,13 @@
-#include "TempMorse.h"
+#include "RadiiMorse.h"
 
-TempMorse::TempMorse(double A0,double B0,double Alpha,double Rref,double Tref,
-		     double Tmelt):
-   A0_(A0),B0_(B0),Alpha_(Alpha),Rref_(Rref),Tref_(Tref),Tmelt_(Tmelt)
+RadiiMorse::RadiiMorse(double A0,double B0,double Alpha,double Rref,double Rtheta,
+		       double Tref,double Tmelt):
+   A0_(A0),B0_(B0),Alpha_(Alpha),Rref_(Rref),Rtheta_(Rtheta),
+   Tref_(Tref),Tmelt_(Tmelt)
 {
 }
 
-double TempMorse::Beta(double NTemp,TDeriv dt)
+double RadiiMorse::Beta(double NTemp,TDeriv dt)
 {
    switch (dt)
    {
@@ -18,35 +19,28 @@ double TempMorse::Beta(double NTemp,TDeriv dt)
 	 break;
    }
 
-   cerr << "Error in TempMorse::Beta" << endl;
+   cerr << "Error in RadiiMorse::Beta" << endl;
    exit(-1);
 }
 
-double TempMorse::Rhat(double NTemp,TDeriv dt)
+double RadiiMorse::Rhat(double NTemp,TDeriv dt)
 {
-   double num,den,rhat;
+   double rhat;
 
    switch (dt)
    {
       case T0:
-	 num = 1.0 - (1.0/(2.0*B0_))*
-	    log(1.0 - NTemp*Tref_/(4.0*Tmelt_));
+	 rhat = Rref_*(1.0 + Rtheta_*(NTemp - 1.0));
 	 break;
       case DT:
-	 num = -(1.0/(2.0*B0_))*
-	    (1.0/(1.0 - NTemp*Tref_/(4.0*Tmelt_)))*(-Tref_/(4.0*Tmelt_));
+	 rhat = Rref_*Rtheta_;
 	 break;
    }
-
-   den = 1.0 - (1.0/(2.0*B0_))*
-      log(1.0 - Tref_/(4.0*Tmelt_));
-
-   rhat = Rref_*(num/den);
 
    return rhat;
 }
 
-double TempMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
+double RadiiMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
 {
    double beta=Beta(NTemp),
       rhat=Rhat(NTemp),
@@ -159,7 +153,7 @@ double TempMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
    return val;
 }
 
-ostream &operator<<(ostream &out,TempMorse &A)
+ostream &operator<<(ostream &out,RadiiMorse &A)
 {
    int W=out.width();
 
@@ -169,6 +163,7 @@ ostream &operator<<(ostream &out,TempMorse &A)
        << "; B0=" << setw(W) << A.B0_
        << "; Alpha=" << setw(W) << A.Alpha_
        << "; Rref=" << setw(W) << A.Rref_
+       << "; Rtheta=" << setw(W) << A.Rtheta_
        << "; Tref=" << setw(W) << A.Tref_
        << "; Tmelt=" << setw(W) << A.Tmelt_;
 
