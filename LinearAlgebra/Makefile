@@ -63,7 +63,7 @@ $(OBJECTS): Makefile
 # Define install
 install: all 
 	$(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/LinearAlgebraBuildDate.o -c LinearAlgebraBuildDate.cpp
-	/usr/bin/ar -r $(LIB_LOC)/libLinearAlgebra.a $(addprefix ./lib/,$(OBJECTS)) ./lib/LinearAlgebraBuildDate.o
+	ar -r $(LIB_LOC)/libLinearAlgebra.a $(addprefix ./lib/,$(OBJECTS)) ./lib/LinearAlgebraBuildDate.o
 	/bin/rm -f ./lib/LinearAlgebraBuildDate.o
 	/usr/bin/ranlib $(LIB_LOC)/libLinearAlgebra.a 
 	/bin/cp $(SOURCES:$(SRC_EXT)=$(HDR_EXT)) $(INCL_LOC)
