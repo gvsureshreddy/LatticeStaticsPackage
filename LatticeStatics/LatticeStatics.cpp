@@ -5,7 +5,9 @@
 
 #include "UtilityFunctions.h"
 
-#include <fstream.h>
+#include <fstream>
+
+using namespace std;
 
 enum YN {No,Yes};
 void GetMainSettings(int &Width, int &Precision,YN &BisectCP,int &Echo,char *datafile);

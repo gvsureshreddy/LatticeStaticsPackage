@@ -1,7 +1,9 @@
 #include "ScanningSolution.h"
-#include <math.h>
+#include <cmath>
 
 #include "UtilityFunctions.h"
+
+using namespace std;
 
 ScanningSolution::ScanningSolution(LatticeMode *Mode,char *datafile,const char *prefix,
 				   int Echo)

@@ -1,6 +1,8 @@
 #include "KnownLattices.h"
 #include "UtilityFunctions.h"
-#include <fstream.h>
+#include <fstream>
+
+using namespace std;
 
 void GetMainSettings(int &Width,int &Presision,int &Echo,char *datafile,
 		     const char *prefix);

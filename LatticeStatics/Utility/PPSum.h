@@ -62,7 +62,7 @@ public:
    Matrix U() {return U_;}
    Matrix UInv() {return U_.Inverse();}
 
-   Matrix NeighborDistances(double cutoff,double eps);
+   Matrix NeighborDistances(int cutoff,double eps);
    
    int Pairs() {return Pairs_;}
    int Capacity() {return RelPosDATA_.Rows();}

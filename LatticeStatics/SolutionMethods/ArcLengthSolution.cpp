@@ -3,6 +3,8 @@
 
 #include "UtilityFunctions.h"
 
+using namespace std;
+
 ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char *prefix,
 				     const Vector &one,const Vector &two,int Echo)
    : Mode_(Mode),Difference_(two-one), CurrentSolution_(0), Echo_(Echo)

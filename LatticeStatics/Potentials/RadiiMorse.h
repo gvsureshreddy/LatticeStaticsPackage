@@ -3,6 +3,7 @@
 
 #include "PairPotentials.h"
 
+using namespace std;
 
 class RadiiMorse: public PairPotentials
 {

@@ -1,7 +1,9 @@
 #include "MultiLatticeTPP.h"
-#include <math.h>
+#include <cmath>
 
 #include "UtilityFunctions.h"
+
+using namespace std;
 
 MultiLatticeTPP::~MultiLatticeTPP()
 {
@@ -1669,7 +1671,8 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, int gridsize,const char *p
 
 void MultiLatticeTPP::NeighborDistances(int cutoff,ostream &out)
 {
-   Matrix NeighborDist = LatSum_.NeighborDistances(cutoff,pow(10,-(out.precision()-1)));
+   Matrix NeighborDist =
+      LatSum_.NeighborDistances(cutoff,pow(double(10),double(-(out.precision()-1))));
    
    int W=out.width();
    int types = (INTERNAL_ATOMS*(INTERNAL_ATOMS+1))/2;

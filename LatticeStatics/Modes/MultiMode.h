@@ -3,7 +3,9 @@
 #include "LatticeMode.h"
 #include "Lattice.h"
 
-#include <math.h>
+#include <cmath>
+
+using namespace std;
 
 class MultiMode : public LatticeMode
 {

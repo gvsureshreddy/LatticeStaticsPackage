@@ -7,6 +7,8 @@
 #include "KnownPairPotentials.h"
 #include <CMatrix.h>
 
+using namespace std;
+
 class MultiLatticeTPP : public Lattice
 {
 private:

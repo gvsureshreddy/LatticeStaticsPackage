@@ -1,14 +1,16 @@
 #ifndef __UtilityFunctions
 #define __UtilityFunctions
 
-#include <iostream.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <iostream>
+#include <cstdio>
+#include <cstdlib>
+#include <string>
 
 #include <Matrix.h>
 #include <Vector.h>
 #include <MyMath.h>
+
+using namespace std;
 
 #define LINELENGTH 600
 

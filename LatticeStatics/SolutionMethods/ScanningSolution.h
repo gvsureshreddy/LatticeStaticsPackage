@@ -4,6 +4,8 @@
 #include "SolutionMethod.h"
 #include "LatticeMode.h"
 
+using namespace std;
+
 class Lattice;
 
 class ScanningSolution : public SolutionMethod

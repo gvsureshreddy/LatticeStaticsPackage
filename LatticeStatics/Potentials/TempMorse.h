@@ -3,6 +3,8 @@
 
 #include "PairPotentials.h"
 
+using namespace std;
+
 
 class TempMorse: public PairPotentials
 {

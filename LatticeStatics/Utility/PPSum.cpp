@@ -2,14 +2,17 @@
 
 int comp(const void *a,const void *b);
 int IND(double i,double j);
-#include <stdlib.h>
+#include <cstdlib>
+
+using namespace std;
 
 PPSum::PPSum(Vector *DOF,Matrix *RefLat,int InternalAtoms,Vector *InternalPOS,
 	     PairPotentials ***PairPot,unsigned *InfluDist,double *Ntemp)
    : DOF_(DOF),RefLattice_(RefLat),InternalAtoms_(InternalAtoms),Ntemp_(Ntemp),
      InternalPOS_(InternalPOS),Potential_(PairPot),InfluanceDist_(InfluDist),
      U_(3,3),V_(InternalAtoms,3),Recalc_(0),CurrentPOS_(0),Pairs_(0),
-     RelPosDATA_(int(pow(2*(*InfluDist),3)*pow(InternalAtoms,2)),DATALEN)
+     RelPosDATA_(int(pow(double(2*(*InfluDist)),double(3))*pow(double(InternalAtoms),
+							       double(2))),DATALEN)
 {
    Initialize();
 }
@@ -30,7 +33,9 @@ void PPSum::operator()(Vector *DOF,Matrix *RefLat,int InternalAtoms,
    Pairs_ = 0;
    Potential_ = PairPot;
    Ntemp_ = Ntemp;
-   RelPosDATA_.Resize(int(pow(2*(*InfluDist),3)*pow(InternalAtoms,2)),DATALEN);
+   RelPosDATA_.Resize(
+      int(pow(double(2*(*InfluDist)),double(3))*pow(double(InternalAtoms),double(2))),
+      DATALEN);
 
    Initialize();
 }
@@ -119,7 +124,7 @@ void PPSum::Initialize()
    // the cube) of pairs.
    if (RelPosDATA_.Rows() < 0.55*tmp)
    {
-      RelPosDATA_.Resize(tmp,DATALEN);
+      RelPosDATA_.Resize(int(tmp),DATALEN);
       cerr << "Resizing RELPOSDATA matrix in PPSum object to " << tmp << endl;
    }
 
@@ -187,7 +192,7 @@ void PPSum::Initialize()
    CurrentPOS_ = 0;
 }
 
-Matrix PPSum::NeighborDistances(double cutoff,double eps)
+Matrix PPSum::NeighborDistances(int cutoff,double eps)
 {
    Reset();
    Matrix NeighborInfo(Pairs_,3);

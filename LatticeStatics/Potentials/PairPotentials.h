@@ -1,10 +1,12 @@
 #ifndef __PairPotentials
 #define __PairPotentials
 
-#include <stdio.h>
-#include <iostream.h>
-#include <iomanip.h>
-#include <math.h>
+#include <iostream>
+#include <iomanip>
+#include <cstdio>
+#include <cmath>
+
+using namespace std;
 
 
 class PairPotentials

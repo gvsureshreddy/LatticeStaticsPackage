@@ -1,7 +1,9 @@
 #ifndef __SolutionMethod
 #define __SolutionMethod
 
-#include <fstream.h>
+#include <fstream>
+
+using namespace std;
 
 class Lattice;
 
