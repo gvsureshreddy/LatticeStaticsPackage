@@ -1,6 +1,12 @@
 #ifndef __Math
 #define __Math
 
+#ifndef __MyMathBuildDate
+#define __MyMathBuildDate
+char *MyMathBuildDate();
+#endif
+
+
 #include <iostream.h>
 #include <complex.h>
 

@@ -6,6 +6,7 @@ VPATH = ./lib ./depend
 SRC_EXT    = .cpp
 OBJ_EXT    = .o
 DEP_EXT    = .d
+BUILD_DATE = \"`date +%c`\"
 
 # Compiling options, etc. #################################################
 #
@@ -14,13 +15,14 @@ ANSI       = -pedantic
 #PURE       = purify
 #PROFILE    = -pg
 #DEBUG      = -g
+DATE_DEF   = -DBUILD_DATE="$(BUILD_DATE)"
 OPTIMIZE   = -O
 CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE)
 
 # File Locations ##########################################################
 INCL_LOC   = ${HOME}/include
 LIB_LOC    = ${HOME}/lib
-LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE)
+LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BUILD_DATE)
 
 # Defines the source files needed #########################################
 SOURCES  = Polynomial.cpp
@@ -44,13 +46,16 @@ $(OBJECTS): Makefile
 
 .PHONY: install uninstall
 # Define install
-install: $(EXE)
-	ar -r $(LIB_LOC)/libMath.a $(addprefix ./lib/,$(OBJECTS)); ranlib $(LIB_LOC)/libMath.a
+install: all
+	$(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/MyMathBuildDate.o -c MyMathBuildDate.cpp
+	/usr/bin/ar -r $(LIB_LOC)/libMyMath.a $(addprefix ./lib/,$(OBJECTS)) ./lib/MyMathBuildDate.o
+	/bin/rm -f ./lib/MyMathBuildDate.o
+	/usr/bin/ranlib $(LIB_LOC)/libMyMath.a
 	/bin/cp MyMath.h $(INCL_LOC)
 
 # Define uninstall
 uninstall:
-	ar -d $(LIB_LOC)/libMath.a Math.o; ranlib $(LIB_LOC)/libMath.a
+	/bin/rm -f $(LIB_LOC)/libMyMath.a
 	/bin/rm -f $(INCL_LOC)/MyMath.h
 
 
