@@ -16,11 +16,17 @@ private:
    double **Vectors_;
    int CurrentPOS_;
 
+   void Initialize(int GridSize,Matrix *LatticeVec,int SkipZero);
+
 public:
 
    UnitCellIterator() {}
-   UnitCellIterator(int GridSize,Matrix *LatticeVec,double *RefLen);
+   UnitCellIterator(int GridSize,Matrix *LatticeVec,int SkipZero=1)
+   {Initialize(GridSize,LatticeVec,SkipZero);}
    ~UnitCellIterator();
+
+   void operator()(int GridSize,Matrix *LatticeVec,int SkipZero=1)
+   {Initialize(GridSize,LatticeVec,SkipZero);}
 
    void Reset() {CurrentPOS_ = 0;}
 
