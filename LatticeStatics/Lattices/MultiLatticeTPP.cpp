@@ -1235,12 +1235,13 @@ CMatrix MultiLatticeTPP::DynamicalStiffness(Vector &Y)
       }
    }
    // Normalize through the Mass Matrix
-   for (i=0;i<DIM3;i++)
-      for (j=0;j<DIM3;j++)
-      {
-	 Cy[DIM3*LatSum_.Atom(0)+i][DIM3*LatSum_.Atom(1)+j]
-	    /= sqrt(AtomicMass_[LatSum_.Atom(0)]*AtomicMass_[LatSum_.Atom(1)]);
-      }
+   for (int p=0;p<INTERNAL_ATOMS;++p)
+      for (int q=0;q<INTERNAL_ATOMS;++q)
+	 for (i=0;i<DIM3;i++)
+	    for (j=0;j<DIM3;j++)
+	    {
+	       Cy[DIM3*p+i][DIM3*q+j] /= sqrt(AtomicMass_[p]*AtomicMass_[q]);
+	    }
    
    return Cy;
 }
