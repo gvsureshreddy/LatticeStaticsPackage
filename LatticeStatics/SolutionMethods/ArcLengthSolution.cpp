@@ -150,36 +150,39 @@ int ArcLengthSolution::ArcLengthNewton()
 int ArcLengthSolution::BisectAlert(Lattice *Lat,int Width,fstream &out)
 {
    Vector OriginalDiff=Difference_;
+   Vector IntermediateDiff(Difference_.Dim(),0.0);
    double OriginalDS = CurrentDS_;
    double CurrentMinEV,OldMinEV;
    int loops = 0;
-   int CurrentNulity = Lat->StiffnessNulity(&CurrentMinEV);
-   int OriginalNulity = CurrentNulity;
-   int OldNulity;
+   int OldNulity = Lat->StiffnessNulity(&OldMinEV);
+   int CurrentNulity;
 
    // Set Lattice back to previous solution
    Mode_->ArcLenUpdate(Difference_);
-   OldNulity = Lat->StiffnessNulity(&OldMinEV);
+   CurrentNulity = Lat->StiffnessNulity(&CurrentMinEV);
    
-   cout << "\t" << setw(Width) << OldNulity << setw(Width) << OldMinEV << endl;
+   cout << "\t" << setw(Width) << OldNulity << setw(Width) << OldMinEV
+	<< " DS " << setw(Width) << CurrentDS_ << endl;
 
    while ((fabs(CurrentMinEV - OldMinEV) > Tolerance_)
 	  && (loops < MaxIter_))
    {
       cout << setw(Width) << CurrentNulity
-	   <<setw(Width) << CurrentMinEV << endl;
+	   << setw(Width) << CurrentMinEV
+	   << " DS " << setw(Width) << CurrentDS_ << endl;
 
-      loops++;
-
-      if ((OldNulity - CurrentNulity) != 0)
-	 CurrentDS_ = -CurrentDS_/2.0;
-      else
-	 CurrentDS_ = CurrentDS_/2.0;
+      CurrentDS_ /= 2.0;
+      if (((OldNulity - CurrentNulity) != 0)
+	  && (loops != 0))
+	 Difference_ = -Difference_;
 
       ArcLengthNewton();
+      IntermediateDiff += Difference_;
       OldMinEV = CurrentMinEV;
       OldNulity = CurrentNulity;
       CurrentNulity = Lat->StiffnessNulity(&CurrentMinEV);
+
+      loops++;
    }
 
    // Output Critical Point
@@ -201,7 +204,7 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,int Width,fstream &out)
    cout << endl; out << endl;
 
    // Reset Lattice and ArcLengthSolution
-   Mode_->ArcLenUpdate(-(OriginalDiff - Difference_));
+   Mode_->ArcLenUpdate(-(OriginalDiff - IntermediateDiff));
    CurrentDS_ = OriginalDS;
    Difference_ = OriginalDiff;
 
