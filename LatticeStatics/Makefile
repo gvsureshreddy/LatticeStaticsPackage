@@ -57,7 +57,8 @@ $(OBJECTS): Makefile
 
 .PHONY: install uninstall
 # Define install
-install: $(EXE)
+install: $(BIN_LOC)/$(EXE) ;
+$(BIN_LOC)/$(EXE):	$(EXE)
 	/bin/cp bin/$(EXE) $(BIN_LOC)/
 	/bin/cp Utility/UniDef_Symm_Solution $(BIN_LOC)/
 	/bin/cp gpl_scripts/NiTi2gpl $(BIN_LOC)/
