@@ -6,7 +6,7 @@
 #include <math.h>
 
 // Global IDString
-char CMatrixID[]="$Id: CMatrix.cpp,v 1.4 2003/04/02 18:45:52 elliottr Exp $";
+char CMatrixID[]="$Id: CMatrix.cpp,v 1.5 2003/04/30 16:56:35 elliottr Exp $";
 
 // Private Methods...
 
@@ -217,7 +217,7 @@ CMatrix operator*(const CMatrix& A,const CMatrix& B)
    }
    else
    {
-      CMatrix C(A.Rows_,B.Cols_,0);
+      CMatrix C(A.Rows_,B.Cols_,0.0);
       
       for (register int i=0;i<A.Rows_;i++)
       {
@@ -353,6 +353,21 @@ CMatrix CMatrix::Transpose() const
       for (register int j=0;j<Cols_;j++)
       {
 	 A.Elements_[j][i]=Elements_[i][j];
+      }
+   }
+
+   return A;
+}
+
+CMatrix CMatrix::Conjugate() const
+{
+   CMatrix A(Cols_,Rows_);
+
+   for (register int i=0;i<Rows_;++i)
+   {
+      for (register int j=0;j<Cols_;++j)
+      {
+	 A.Elements_[i][j] = conj(Elements_[i][j]);
       }
    }
 
@@ -577,7 +592,9 @@ void Cholesky(const CMatrix& A,CMatrix& U,CMatrix& D)
       {
 	 for (register int k=0;k<i;k++)
 	 {
-	    D.Elements_[i][i]-=D.Elements_[k][k]*U.Elements_[k][i]*U.Elements_[k][i];
+
+	    D.Elements_[i][i]-=
+	       D.Elements_[k][k]*U.Elements_[k][i]*conj(U.Elements_[k][i]);
 	 }
       }
       for (register int j=i+1;j<A.Rows_;j++)
@@ -587,7 +604,8 @@ void Cholesky(const CMatrix& A,CMatrix& U,CMatrix& D)
 	 {
 	    for (register int k=0;k<i;k++)
 	    {
-	       U.Elements_[i][j]-=D.Elements_[k][k]*U.Elements_[k][i]*U.Elements_[k][j];
+	       U.Elements_[i][j]-=
+		  D.Elements_[k][k]*conj(U.Elements_[k][i])*U.Elements_[k][j];
 	    }
 	 }
 	 U.Elements_[i][j]/=D.Elements_[i][i];

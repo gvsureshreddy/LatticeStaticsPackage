@@ -94,6 +94,8 @@ public:
    
    CMatrix& SetIdentity(unsigned Size=0);
    CMatrix Transpose() const;
+   CMatrix Conjugate() const;
+   CMatrix ConjTrans() {return (this->Transpose()).Conjugate();}
    CMatrix Inverse() const;
    int IsSquare() const {return Rows_==Cols_;}
    int IsNull() const {return (Rows_==0 || Cols_==0);}
@@ -111,11 +113,11 @@ public:
    friend void PLU(const CMatrix& A,CMatrix& P,CMatrix& L,CMatrix& U);
 
    // Cholesky Decomposition of CMatrix
-   // A=U.Transpose()*D*U
+   // A=U.ConjTrans()*D*U
    //
-   // D - diagonal CMatrix
+   // D - diagonal CMatrix of real values
    //
-   // Assumes Symmetric CMatrix (thus uses only Upper Diagonal part of A
+   // Assumes Hermitian CMatrix (thus uses only Upper Diagonal part of A
    // Note: will fail if A has EigenValue of 0.0
    friend void Cholesky(const CMatrix& A,CMatrix& U,CMatrix& D);
 
