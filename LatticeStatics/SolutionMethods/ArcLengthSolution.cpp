@@ -390,7 +390,7 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,char *datafile,int Width,fstream
    CurrentDS_ = OriginalDS;
    Difference_ = OriginalDiff;
 
-   // Reste Tolerance_
+   // Reset Tolerance_
    Tolerance_ *= NewtonTolFactor;
 
    return 1;
