@@ -10,11 +10,12 @@
 class TempMorse
 {
 private:
-   enum YDeriv {Y0,DY,D2Y,D3Y,D4Y};
-   enum TDeriv {T0,DT};
    double A0_, B0_, Alpha_, Rref_, Tref_, Tmelt_;
 
 public:
+   enum YDeriv {Y0,DY,D2Y,D3Y,D4Y};
+   enum TDeriv {T0,DT};
+
    TempMorse(double A0,double B0,double Alpha,double Rref,double Tref,double Tmelt);
    ~TempMorse() {};
    friend ostream &operator<<(ostream &out,TempMorse &A);
