@@ -10,11 +10,12 @@ DEP_EXT    = .d
 # Compiling options, etc. #################################################
 #
 CC         = g++
+ANSI       = -ansi -pedantic
 #PURE       = purify
 #PROFILE    = -pg
 #DEBUG      = -g
 OPTIMIZE   = -O
-CCFLAGS    = $(DEBUG) $(PROFILE) $(OPTIMIZE)
+CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE)
 
 # File Locations ##########################################################
 BIN_LOC    = ${HOME}/bin
@@ -30,6 +31,9 @@ OBJECTS  = $(SOURCES:$(SRC_EXT)=$(OBJ_EXT))
 
 all : $(OBJECTS)
 .PHONY: all
+
+matrixtest : $(OBJECTS)
+	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o matrixtest ./matrixtest.cpp ./lib/Matrix.o ./lib/Vector.o
 
 # include the dependicies
 include $(addprefix ./depend/,$(OBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
@@ -55,7 +59,7 @@ uninstall:
 
 clean:
 	 -/bin/rm -f $(addprefix ./lib/,$(OBJECTS)) core *~ \
-		  ./depend/*.d
+		  matrixtest ./depend/*.d
 
 # Define rule for dependicy files
 depend/%.d: %$(SRC_EXT)
