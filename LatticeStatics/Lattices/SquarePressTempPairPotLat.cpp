@@ -6,7 +6,7 @@
 SquarePressTempPairPotLat::SquarePressTempPairPotLat(char *datafile)
 {
    // First Size Defgrad
-   DefGrad_.SetIdentity(DIM);
+   DefGrad_.SetIdentity(DIM2);
 
    // Read Data File
    FILE *pipe;
@@ -108,7 +108,7 @@ int SquarePressTempPairPotLat::FindLatticeSpacing(int iter,double dx)
    Pressure_=0.0;
    Temp_=Tref_;
    ShearMod_=1.0;
-   DefGrad_.SetIdentity(DIM);
+   DefGrad_.SetIdentity(DIM2);
 
    double s=Stress()[0][0];
 
@@ -385,7 +385,7 @@ Matrix SquarePressTempPairPotLat::Phi(YDeriv dy,TDeriv dt)
 	 Phi.Resize(1,1,0.0);
 	 break;
       case DY:
-	 Phi.Resize(DIM,DIM,0.0);
+	 Phi.Resize(DIM2,DIM2,0.0);
 	 break;
       case D2Y:
 	 Phi.Resize(3,3,0.0);
@@ -398,19 +398,19 @@ Matrix SquarePressTempPairPotLat::Phi(YDeriv dy,TDeriv dt)
 	 break;
    }
 
-   Vector X(DIM),dummy(DIM,0.0);
-   Vector DX(DIM),Dx(DIM);
+   Vector X(DIM2),dummy(DIM2,0.0);
+   Vector DX(DIM2),Dx(DIM2);
    Matrix Uinv = DefGrad_.Inverse();
    double J=DefGrad_.Det();
-   double r2,phi,phi1,phi2,Influancedist[DIM];
-   int k,l,Top[DIM],Bottom[DIM],CurrentInfluanceDist;
+   double r2,phi,phi1,phi2,Influancedist[DIM2];
+   int k,l,Top[DIM2],Bottom[DIM2],CurrentInfluanceDist;
 
-   for (int i=0;i<DIM;i++)
+   for (int i=0;i<DIM2;i++)
       Influancedist[i]=(fabs(Uinv[0][i]) < fabs(Uinv[1][i]) ?
 			fabs(Uinv[1][i]) : fabs(Uinv[0][i]))*InfluanceDist_;
 
    X=dummy;
-   for (int p=0;p<DIM;p++)
+   for (int p=0;p<DIM2;p++)
    {
       // set influance distance based on cube size
       //
@@ -442,9 +442,9 @@ Matrix SquarePressTempPairPotLat::Phi(YDeriv dy,TDeriv dt)
 	       Phi[0][0]+=phi;
 	       break;
 	    case DY:
-	       for (int i=0;i<DIM;i++)
+	       for (int i=0;i<DIM2;i++)
 	       {
-		  for (int j=i;j<DIM;j++)
+		  for (int j=i;j<DIM2;j++)
 		  {
 		     Phi[i][j] = Phi[j][i] +=
 			phi*PI(Dx,DX,i,j);
@@ -454,10 +454,10 @@ Matrix SquarePressTempPairPotLat::Phi(YDeriv dy,TDeriv dt)
 	    case D2Y:
 	       phi1=PairPotential(r2,DY,dt);
 
-	       for (int i=0;i<DIM;i++)
-		  for (int j=i;j<DIM;j++)
-		     for (int k=0;k<DIM;k++)
-			for (int l=k;l<DIM;l++)
+	       for (int i=0;i<DIM2;i++)
+		  for (int j=i;j<DIM2;j++)
+		     for (int k=0;k<DIM2;k++)
+			for (int l=k;l<DIM2;l++)
 			{
 			   Phi[IND(i,j)][IND(k,l)]+=
 			      phi*PI(Dx,DX,i,j)*PI(Dx,DX,k,l)
@@ -467,12 +467,12 @@ Matrix SquarePressTempPairPotLat::Phi(YDeriv dy,TDeriv dt)
 	    case D3Y:
 	       phi1=PairPotential(r2,D2Y,dt);
 
-	       for (int i=0;i<DIM;i++)
-		  for (int j=i;j<DIM;j++)
-		     for (int k=0;k<DIM;k++)
-			for (int l=k;l<DIM;l++)
-			   for (int m=0;m<DIM;m++)
-			      for (int n=m;n<DIM;n++)
+	       for (int i=0;i<DIM2;i++)
+		  for (int j=i;j<DIM2;j++)
+		     for (int k=0;k<DIM2;k++)
+			for (int l=k;l<DIM2;l++)
+			   for (int m=0;m<DIM2;m++)
+			      for (int n=m;n<DIM2;n++)
 			      {
 				 Phi[IND(i,j,k,l)][IND(m,n)] +=
 				    phi*PI(Dx,DX,i,j)*PI(Dx,DX,k,l)*PI(Dx,DX,m,n)
@@ -485,14 +485,14 @@ Matrix SquarePressTempPairPotLat::Phi(YDeriv dy,TDeriv dt)
 	       phi1=PairPotential(r2,D3Y,dt);
 	       phi2=PairPotential(r2,D2Y,dt);
 
-	       for (int i=0;i<DIM;i++)
-		  for (int j=i;j<DIM;j++)
-		     for (int k=0;k<DIM;k++)
-			for (int l=k;l<DIM;l++)
-			   for (int m=0;m<DIM;m++)
-			      for (int n=m;n<DIM;n++)
-				 for (int p=0;p<DIM;p++)
-				    for (int q=p;q<DIM;q++)
+	       for (int i=0;i<DIM2;i++)
+		  for (int j=i;j<DIM2;j++)
+		     for (int k=0;k<DIM2;k++)
+			for (int l=k;l<DIM2;l++)
+			   for (int m=0;m<DIM2;m++)
+			      for (int n=m;n<DIM2;n++)
+				 for (int p=0;p<DIM2;p++)
+				    for (int q=p;q<DIM2;q++)
 				    {
 				       Phi[IND(i,j,k,l)][IND(m,n,p,q)]+=
 					  phi*(PI(Dx,DX,i,j)*PI(Dx,DX,k,l)*
@@ -529,10 +529,10 @@ Matrix SquarePressTempPairPotLat::Phi(YDeriv dy,TDeriv dt)
 	    Phi = Phi - Pressure_*J*Uinv;
 	    break;
 	 case D2Y:
-	    for (int i=0;i<DIM;i++)
-	       for (int j=i;j<DIM;j++)
-		  for (int k=0;k<DIM;k++)
-		     for (int l=k;l<DIM;l++)
+	    for (int i=0;i<DIM2;i++)
+	       for (int j=i;j<DIM2;j++)
+		  for (int k=0;k<DIM2;k++)
+		     for (int l=k;l<DIM2;l++)
 		     {
 			Phi[IND(i,j)][IND(k,l)] -=
 			   (Pressure_/8.0)*(
@@ -665,4 +665,4 @@ ostream &operator<<(ostream &out,SquarePressTempPairPotLat &A)
    return out;
 }
 
-const double SquarePressTempPairPotLat::Alt[DIM][DIM] = {0.0, 1.0, -1.0, 0.0};
+const double SquarePressTempPairPotLat::Alt[DIM2][DIM2] = {0.0, 1.0, -1.0, 0.0};

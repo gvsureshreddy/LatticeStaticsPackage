@@ -3,7 +3,7 @@
 
 #include "UniDefTempLat.h"
 
-#define DIM 2
+#define DIM2 2
 
 class SquarePressTempPairPotLat : public UniDefTempLat
 {
@@ -20,7 +20,7 @@ private:
    double A0_, B0_, Alpha_, Rref_, Tref_, Tmelt_;
 
    // Misc
-   static const double Alt[DIM][DIM];
+   static const double Alt[DIM2][DIM2];
 
 public:
    // Virtual Functions required by UniDefLat
