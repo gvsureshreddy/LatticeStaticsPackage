@@ -1,0 +1,327 @@
+\documentclass{article}
+
+\usepackage{amsmath}
+
+\newcommand{\Func}[1]{\textbf{#1}}
+\newcommand{\var}[1]{\textit{#1}}
+\newcommand{\defn}[1]{\textrm{#1}}
+\newcommand{\tild}{\ensuremath{\overset{\sim}{~}}}
+
+\newenvironment{LIST}{\begin{list}{$\bullet$}{%
+      \setlength{\leftmargin}{2\leftmargin}%
+      \setlength{\itemindent}{-1cm}}}%
+  {\end{list}}
+
+
+\begin{document}
+
+\section{Vector class}
+
+This is an arbitrary dimension vector class of type Elm (double).  The
+interface is as follows:
+
+\subsection{Data Members}
+
+\begin{LIST}
+   \item Elm \var{*Elements\_}\\
+    pointer to vector memory.
+\end{LIST}
+
+\subsection{Member Functions}
+
+\begin{LIST}
+ \item \Func{Vector}();\\
+  uninitialized vector of dimension zero
+ \item \Func{Vector}(const unsigned\& \var{Cols});\\
+  creates a vector of dimension \var{Cols} and does NOT initialize the data
+ \item \Func{Vector}(const unsigned\& \var{Cols},const Elm\& \var{InitVal});\\
+  creates a vector of dimension \var{Cols} and initializes all entries to
+  \var{InitVal}
+ \item \Func{Vector}(const Vector\& \var{A});\\
+  creates a distinct copy of the existing Vector \var{A}
+ \item \Func{Vector}(const Vector3D\& \var{A});\\
+  creates a distinct copy of the existing Vector3D \var{A}
+ \item \Func{Vector}(const Matrix\& \var{A});\\
+  creates a distinct copy of the (row or column) Matrix \var{A}
+  
+ \item \Func{\tild Vector}();\\
+  releases memory and destructs the instance of the Vector
+  class.\\[.5cm]
+
+ \item friend Vector\& \Func{operator+}(Vector\& \var{A});\\
+  Unitary plus operator
+ \item friend Vector \Func{operator+}(const Vector\& \var{A},
+  const Vector\& \var{B});\\
+  Binary addition operator
+ \item friend Vector \Func{operator-}(const Vector\& \var{A},
+  const Vector\& \var{B});\\
+  Binary subtraction operator
+ \item friend Vector \Func{operator-}(const Vector\& \var{A});\\
+  Unitary negation operator
+ \item friend Elm \Func{operator*}(const Vector\& \var{A},
+  const Vector\& \var{B});\\
+  Vector dot-product operator
+ \item friend Vector \Func{operator\%}(const Vector\& \var{A},
+  const Vector\& \var{B});\\
+  Cross product operation, only valid for Vectors of dimension 3
+ \item friend Vector \Func{operator*}(const Matrix\& \var{A},
+  const Vector\& \var{B});\\
+  Matrix right multiplication operator
+ \item friend Vector \Func{operator*}(const Vector\& \var{A},
+  const Matrix\& \var{B});\\
+  Matrix left multiplication operator
+ \item friend Vector \Func{operator*}(const Elm\& \var{A},
+  const Vector\& \var{B});\\
+  scalar left multiplication operator
+ \item friend Vector \Func{operator*}(const Vector\& \var{A},
+  const Elm\& \var{B});\\
+  scalar right multiplication operator
+ \item friend Vector \Func{operator/}(const Vector\& \var{A},
+  const Elm\& \var{B});\\
+  scalar division operator \\[.5cm]
+  
+ \item Elm\& \Func{operator[]}(const unsigned\& \var{i});\\
+  Element access operator (with or without bounds checking depending on compile
+  time option)
+ \item const Elm \Func{operator[]}(const unsigned\& \var{i}) const;\\
+  Element access operator (with or without bounds checking depending on compile
+  time option)\\[.5cm]
+
+ \item Vector\& \Func{operator=}(const Vector\& \var{B});\\
+  Assignment operator
+ \item Vector \Func{operator+=}(const Vector\& \var{B});\\
+  Incremental addition operator
+ \item Vector \Func{operator-=}(const Vector\& \var{B});\\
+  Incremental subtraction operator
+ \item Vector \Func{operator*=}(const Elm\& \var{B});\\
+  Incremental scalar multiplication operator \\[.5cm]
+
+ \item void \Func{Resize}();\\
+  change vector dimension to zero
+ \item void \Func{Resize}(const unsigned\& \var{Cols});\\
+  change vector dimension to \var{Cols}.  No initialization will be performed.
+  (Note: if \var{Cols} is equal to the current dimension of the vector then no
+  action is taken)
+ \item void \Func{Resize}(const unsigned\& \var{Cols},const Elm\& \var{InitVal});\\
+  change vector dimension to \var{Cols} and initialize to \var{InitVal}\\[.5cm]
+
+ \item unsigned \Func{Dim}() const;\\
+  returns the dimension of the vector
+ \item Elm \Func{Norm}();\\
+  returns the Euclidean norm of the vector\\[.5cm]
+  
+ \item friend Vector \Func{SolvePLU}(const Matrix\& \var{A},
+  const Vector\& \var{B});\\
+  Uses PLU decomposition with Forward and Backwards substitution to solve the
+  system of equations \var{A}*x = \var{B}
+ \item friend Vector \Func{SolveSVD}(const Matrix\& \var{A},
+  const Vector\& \var{B});\\
+  Uses SVD decomposition to solve the system of equations \var{A}*x = \var{B}
+ \item friend Vector \\Func{SolveSVD}(const Matrix\& \var{A},
+  const Vector\& \var{B},const Elm \var{MaxCond});\\
+  same as above except \var{MaxCond} sets the largest condition number above
+  which the smallest Singular Values are set to zero.  See Numerical Recipes
+ \item friend Vector \Func{SolveSVD}(const Matrix\& \var{A},
+  const Vector\& \var{B},\\const Elm \var{MaxCond}, const int \var{PrintFlag});\\
+  same as above except if \var{PrintFlag}=1 the condition number of \var{A}
+  is printed to the terminal \\[.5cm]
+  
+
+ \item friend ostream\& \Func{operator$<<$}(ostream\& \var{out},
+  const Vector\& \var{A});\\
+  output operator
+ \item friend istream\& \Func{operator$>>$}(istream\& \var{in},Vector\& \var{A});\\
+  input operator, reads \var{Cols} Elms from \var{in} stream
+\end{LIST}
+
+\section{Matrix class}
+
+This is an arbitrary dimension matrix class of type Elm (double).  The
+interface is as follows:
+
+\subsection{Constants}
+
+\begin{LIST}
+ \item define \defn{MAXCONDITION} = 10.0e12\\
+  Maximum condition number parameter.  Default value used by the SVD
+  decomposition member function
+ \item static int \var{MathematicaPrintFlag}\\
+  Flag to control stream output.  If =1 then output can be read directly into
+  Mathematica. If =0 then output is simple space delimited matrix form
+\end{LIST}
+
+\subsection{Data Members}
+
+\begin{LIST}
+ \item Elm \var{**Elements\_}\\
+  pointer to matrix data which is stored contiguously, just as in normal C
+ \item unsigned \var{Rows\_}\\
+  Number of rows in the matrix
+ \item unsigned \var{Cols\_}\\
+  Number of columns in the matrix
+\end{LIST}
+
+\subsection{Member Functions}
+
+\begin{LIST}
+ \item \Func{Matrix}();\\
+  uninitialized matrix of dimension $0 \times 0$
+ \item \Func{Matrix}(unsigned \var{Rows}, unsigned \var{Cols});\\
+  creates a matrix of dimension \var{Rows} $\times$ \var{Cols} and does NOT
+  initialize the data
+ \item \Func{Matrix}(unsigned \var{Rows}, unsigned \var{Cols}, Elm
+  \var{InitVal});\\
+  creates a matrix of dimension \var{Rows} $\times$ \var{Cols} and initializes
+  all entries to \var{InitVal}
+ \item \Func{Matrix}(const Matrix\& \var{A});\\
+  creates a distinct copy of the existing Matrix \var{A}
+ \item \Func{\tild Matrix}();\\
+  releases memory and destructs the instance of the Matrix class\\[.5cm]
+
+ \item friend Matrix\& \Func{operator+}(Matrix\& \var{A});\\
+  Unitary plus operator
+ \item friend Matrix \Func{operator+}(const Matrix\& \var{A}, const Matrix\&
+  \var{B});\\
+  Binary addition operator (safe for overwrite: A=A+B)
+ \item friend Matrix \Func{operator-}(const Matrix\& \var{A});\\
+  Binary substraction operator (safe for overwrite: A=A-B)
+ \item friend Matrix \Func{operator-}(const Matrix\& \var{A});\\
+  Unitary negation operator
+ \item friend Matrix \Func{operator*}(const Matrix\& \var{A}, const Matrix\&
+  \var{B});\\
+  Matrix multiplication (save for overwrite: A=A*B)
+  
+%   ~Matrix();
+%
+%   // Size Access...
+%   unsigned Rows() const {return Rows\_;}
+%   unsigned Cols() const {return Cols\_;}
+%   
+%   // Mathematical Operations...
+%
+%   friend Matrix operator*(const Elm& A,const Matrix& B);
+%   friend Matrix operator*(const Matrix& A,const Elm& B);
+%   // Below are defined in corresponding class --------------------
+%   friend Vector operator*(const Matrix& A,const Vector& B);
+%   friend Vector operator*(const Vector& A,const Matrix& B);
+%   friend Vector3D operator*(const Matrix& A,const Vector3D& B);
+%   friend Vector3D operator*(const Vector3D& A,const Matrix& B);
+%   // -------------------------------------------------------------
+%   friend Matrix operator/(const Matrix& A,const Elm& B);
+%
+%   // Element Access methods
+%
+%#ifdef CHECK\_BOUNDS
+%   // Note: Index checking on Rows but not on Columns....
+%   Elm* operator[](unsigned i);
+%   Elm* operator[](unsigned i) const;
+%#else
+%   // Note: NO Index checking
+%   Elm* operator[](unsigned i) {return Elements\_[i];}
+%   Elm* operator[](unsigned i) const {return Elements\_[i];}
+%#endif
+%   
+%   // Assignment Operations
+%
+%   Matrix& operator=(const Matrix& B);
+%   Matrix operator+=(const Matrix& B) {return *this=*this+B;}
+%   Matrix operator-=(const Matrix& B) {return *this=*this-B;}
+%   Matrix operator*=(const Matrix& B) {return *this=*this*B;}
+%   Matrix operator*=(const Elm& B)    {return *this=*this*B;}
+%
+%   // Misc. Matrix Operatons
+%   
+%   Matrix& SetIdentity(unsigned Size=0);
+%   Matrix Transpose() const;
+%   Matrix Inverse() const;
+%   int IsSquare() const {return Rows\_==Cols\_;}
+%   int IsNull() const {return (Rows\_==0 || Cols\_==0);}
+%
+%   // Destructively Resize Matrix
+%   // No change if size does not change
+%   void Resize(unsigned Rows=0,unsigned Cols=0,Elm InitVal=SENTINAL);
+%   
+%   // Operations & Etc...
+%
+%   // Deterimnent
+%   Elm Det() const;
+%
+%   // Set P,L,U to the corresponding matricies of the PLU
+%   //   decomposition of A
+%   friend void PLU(const Matrix& A,Matrix& P,Matrix& L,Matrix& U);
+%
+%   // Singular Value Decomposition of A -- Algorithm from Numerical Recipies
+%   //
+%   // return value - condition number of A
+%   // A - mxn matrix to decompose
+%   // U - mxn "column-orthogonal" matrix
+%   // W - nxn diagonal matrix (singular values)
+%   // V - nxn orthogonal matrix
+%   //
+%   // A = U*W*V.Transpose();
+%   //
+%   // each W[i][i] < fabs(MAX(W)) / MaxCond; will be set to 0.0
+%   // -- this most often reduces error when solving a system of equations
+%   // -- that is ill-conditioned (as compaired with a straight SVD or LU
+%   // -- decomposition).
+%   //
+%   // if (PrintFlag); then the condition number of A will be echoed on cerr
+%   //
+%   // WHENEVER a W[i][i] is explicitly set to 0.0 a message is echoed to cerr
+%   // NOTE: this situation may be detected by the calling program by compairing
+%   // -- the value of MaxCond with the returned condition number.
+%   //
+%   friend Elm SVD(const Matrix& A,Matrix& U,Matrix& W,Matrix& V,
+%                  const Elm MaxCond=MAXCONDITION,const int PrintFlag=0);
+%
+%   // SymEigVal -- determine the eigenvalues of A
+%   // Diag(eigen values) = B.Transpose()*A*B
+%   //
+%   // Use Cyclic Jacobi Method -- Ref. "Numerical Analysis" by Pratel pg 440
+%   //
+%   // Returns vector containing eigenvalues
+%   // AND-- Matrix of eigenvectors (as columns) if a pointer is passed
+%   // MaxItr - max number of iterations
+%   // Tol - tolerance for convergence
+%   //
+%   // Note: Assumes A is SYMMETRIC
+%   friend Matrix SymEigVal(Matrix A,Matrix *B=NULL,const int MaxItr=100,
+%                           const double Tol=1.0e-13);
+%   
+%   // Cholesky Decomposition of Matrix
+%   // A=U.Transpose()*D*U
+%   //
+%   // D - diagonal Matrix
+%   //
+%   // Assumes Symmetric Matrix (thus uses only Upper Diagonal part of A
+%   // Note: will fail if A has EigenValue of 0.0
+%   friend void Cholesky(const Matrix& A,Matrix& U,Matrix& D);
+%
+%   // Return solution x of the linear system A*x=B
+%   // Uses PLU decomposition and Forward and Backwards substitution
+%   friend Matrix SolvePLU(const Matrix& A,const Matrix& B);
+%   
+%   // Return solution x of the linear system A*x=B
+%   // Uses SVD decomposition
+%   //
+%   // x = V*W.Inverse()*(U.Transpose()*B);
+%   // WHERE: W.Inverse() is actually calculated by hand and any
+%   // -- W[i][i] == 0.0 has inverse component 0.0
+%   friend Matrix SolveSVD(const Matrix& A,const Matrix& B,
+%                          const Elm MaxCond=MAXCONDITION,
+%                          const int PrintFlag=0);
+%   
+%   // Output/Input Functions
+%   friend ostream& operator<<(ostream& out,const Matrix& A);
+%   friend istream& operator>>(istream& in, Matrix& A);
+%
+%   static char* Revision();
+%};
+%
+%#endif
+\end{LIST}
+
+\end{document}
+
+% LocalWords:  const Cols SolvePLU PLU SolveSVD SVD Func MaxCond int PrintFlag
+% LocalWords:  ostream istream MAXCONDITION MathematicaPrintFlag Mathematica
