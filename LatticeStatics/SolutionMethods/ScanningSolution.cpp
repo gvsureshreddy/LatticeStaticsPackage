@@ -75,7 +75,7 @@ void ScanningSolution::InitializeLine()
 	 CurrentScanLine_ - Mode_->ScanningDefParameter());
 
       Mode_->ScanningUpdate(
-	 InitialDef_ - Mode_->ScanningDef());
+	 Mode_->ScanningDef() - InitialDef_);
    }
    else
    {
@@ -86,7 +86,7 @@ void ScanningSolution::InitializeLine()
 	 LineStart_ - Mode_->ScanningDefParameter());
 
       Mode_->ScanningUpdate(
-	 InitialDef_ - Mode_->ScanningDef());
+	 Mode_->ScanningDef() - InitialDef_);
    }
 }
    
@@ -222,7 +222,8 @@ int ScanningSolution::ScanningNewton()
 {
    int good=1;
    int itr=0;
-   Vector dx(Mode_->ScanningRHS().Dim());
+   Vector RHS=Mode_->ScanningRHS();
+   Vector dx(RHS.Dim());
 
    if (Direction_ == Loading)
    {
@@ -234,7 +235,7 @@ int ScanningSolution::ScanningNewton()
    }
 
    dx = SolveSVD(Mode_->ScanningStiffness(),
-		 Mode_->ScanningRHS(),
+		 RHS,
 		 MAXCONDITION,1);
    Mode_->ScanningUpdate(dx);
 

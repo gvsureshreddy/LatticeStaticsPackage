@@ -4,10 +4,11 @@
 
 LatticeMode *InitializeMode(Lattice *Lat,char *datafile)
 {
-   const int NoModes = 3;
+   const int NoModes = 4;
    const char *Modes[]={"UniDefTemp2DExpand",
 		        "UniDefTemp3DExpand",
-		        "UniDefTemp3DNaCl"};
+		        "UniDefTemp3DNaCl",
+			"UniDefTemp3DRhombo"};
 
    switch (GetStringParameter("^MainModeType",datafile,Modes,NoModes))
    {
@@ -26,6 +27,10 @@ LatticeMode *InitializeMode(Lattice *Lat,char *datafile)
 	 return new UniDefTemp3DNaCl(Lat);
       }
       break;
+      case 3:
+      {
+	 return new UniDefTemp3DRhombo(Lat);
+      }
       case -1:
       {
 	 cerr << "Unknown Mode Type" << endl;
