@@ -32,8 +32,7 @@ ScanningSolution::ScanningSolution(LatticeMode *Mode,char *datafile,const char *
    char inidef[]="ScanningInitialDeformation";
    SetPerlCommand(tmp,datafile,prefix,inidef);
    pipe=OpenPipe(tmp,"r");
-   InitialDef_.Resize(Mode->ScanningRHS().Dim());
-   InitialDef_=Mode->ScanningRHS();
+   InitialDef_.Resize(Mode->ScanningRHS().Dim()+1);
    for (int i=0;i<InitialDef_.Dim();i++)
    {
       fscanf(pipe,"%lf",&InitialDef_[i]);
@@ -246,6 +245,7 @@ double ScanningSolution::FindNextSolution(int &good)
 double ScanningSolution::ScanningNewton(int &good)
 {
    int itr=0;
+
    Vector RHS=Mode_->ScanningRHS();
    Vector dx(RHS.Dim());
 
@@ -257,7 +257,7 @@ double ScanningSolution::ScanningNewton(int &good)
    {
       Mode_->ScanningDefParamUpdate(LineStep_);
    }
-   
+
 #ifdef SOLVE_SVD
    dx = SolveSVD(Mode_->ScanningStiffness(),
 		 RHS,
@@ -265,7 +265,7 @@ double ScanningSolution::ScanningNewton(int &good)
 #else
    dx = SolvePLU(Mode_->ScanningStiffness(),RHS);
 #endif
-   
+
    Mode_->ScanningUpdate(dx);
 
    if (Direction_ == Loading)
@@ -292,7 +292,8 @@ double ScanningSolution::ScanningNewton(int &good)
 #endif
       
       Mode_->ScanningUpdate(dx);
-      if (Echo_) cout << "ScanningNewton(dx.Norm) = " << dx.Norm() << endl;
+      if (Echo_) cout << "ScanningNewton(dx) = " << setw(20) << dx
+		      << ", RHS = " << setw(20) << Mode_->ScanningRHS() << endl;
    }
 
    if (itr >= MaxIter_)
