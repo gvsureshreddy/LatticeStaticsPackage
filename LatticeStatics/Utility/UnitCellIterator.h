@@ -12,18 +12,19 @@ private:
    int VectorsLen_;
    double **Vectors_;
    int CurrentPOS_;
-
-   void Initialize(int GridSize,int DoHalfOnly,int SkipZero);
+   enum ScanType {Simple,Volume};
+   
+   void Initialize(int GridSize,ScanType ScnTyp,int DoHalfOnly,int SkipZero);
 
 public:
 
    UnitCellIterator(): Vectors_(NULL) {}
-   UnitCellIterator(int GridSize,int DoHalfOnly=1,int SkipZero=1):Vectors_(NULL)
-   {Initialize(GridSize,DoHalfOnly,SkipZero);}
+   UnitCellIterator(int GridSize,ScanType ScnTyp=Simple,int DoHalfOnly=1,int SkipZero=1)
+      :Vectors_(NULL) {Initialize(GridSize,ScnTyp,DoHalfOnly,SkipZero);}
    ~UnitCellIterator();
 
-   void operator()(int GridSize,int DoHalfOnly=1,int SkipZero=1)
-   {Initialize(GridSize,DoHalfOnly,SkipZero);}
+   void operator()(int GridSize,ScanType ScnTyp=Simple,int DoHalfOnly=1,int SkipZero=1)
+   {Initialize(GridSize,ScnTyp,DoHalfOnly,SkipZero);}
 
    void Reset() {CurrentPOS_ = 0;}
 
