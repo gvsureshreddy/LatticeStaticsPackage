@@ -30,6 +30,7 @@ private:
 public:
    ArcLengthSolution(LatticeMode *Mode,char *datafile,
 		     const Vector &one,const Vector &two);
+   ArcLengthSolution(LatticeMode *Mode,char *datafile,char *startfile);
    ~ArcLengthSolution() {}
 
    // Functions required by SolutionMethod

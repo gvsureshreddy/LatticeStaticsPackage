@@ -19,8 +19,98 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,
 
    // Set Lattice to solution "two"
    Mode_->ArcLenUpdate(
-      two - Mode_->ArcLenDef());
+      Mode_->ArcLenDef() - two);
 }
+
+ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,char *startfile)
+   : Mode_(Mode), CurrentSolution_(0)
+{
+   FILE *pipe;
+   
+   GetParameter("^ArcLenMaxIterations",datafile,"%u",&MaxIter_);
+   GetParameter("^ArcLenTolerance",datafile,"%lf",&Tolerance_);
+   GetParameter("^ArcLenDSMax",datafile,"%lf",&DSMax_);
+   CurrentDS_ = DSMax_;
+   GetParameter("^ArcLenDSMin",datafile,"%lf",&DSMin_);
+   GetParameter("^ArcLenAngleCutoff",datafile,"%lf",&AngleCutoff_);
+   GetParameter("^ArcLenAngleIncrease",datafile,"%lf",&AngleIncrease_);
+   GetParameter("^ArcLenAspect",datafile,"%lf",&Aspect_);
+   GetParameter("^ArcLenNumSolutions",datafile,"%u",&NumSolutions_);
+
+
+   const char *StartType[] = {"Bifurcation","Continuation"};
+   switch (GetStringParameter("^StartType",startfile,StartType,2))
+   {
+      case 0:
+      {
+	 // Set Difference and Lattice state
+	 double eps;
+	 GetParameter("^Epsilon",startfile,"%lf",&eps);
+
+	 char tmp[LINELENGTH];
+	 char tang[]="^Tangent";
+	 SetPerlCommand(tmp,startfile,tang);
+	 pipe=OpenPipe(tmp,"r");
+	 Difference_.Resize(Mode_->ArcLenDef().Dim());
+	 for (int i=0;i<Difference_.Dim();i++)
+	 {
+	    fscanf(pipe,"%lf",&Difference_[i]);
+	    Difference_[i] *= eps;
+	    
+	 }
+	 if (pclose(pipe)) Errfun(tang);
+
+	 char bifpt[]="^BifurcationPoint";
+	 SetPerlCommand(tmp,startfile,bifpt);
+	 pipe=OpenPipe(tmp,"r");
+	 Vector stat(Difference_.Dim());
+	 for (int i=0;i<stat.Dim();i++)
+	 {
+	    fscanf(pipe,"%lf",&stat[i]);
+	 }
+	 if (pclose(pipe)) Errfun(bifpt);
+	 // Set Lattice state to the bifurcation point
+	 Mode_->ArcLenUpdate(Mode_->ArcLenDef() - stat);
+
+	 break;
+      }
+      case 1:
+      {
+	 // Set Difference_ to   two - one
+	 char tmp[LINELENGTH];
+	 char sol2[]="^Solution2";
+	 SetPerlCommand(tmp,startfile,sol2);
+	 pipe=OpenPipe(tmp,"r");
+	 Difference_.Resize(Mode_->ArcLenDef().Dim());
+	 for (int i=0;i<Difference_.Dim();i++)
+	 {
+	    fscanf(pipe,"%lf",&Difference_[i]);
+	 }
+	 if (pclose(pipe)) Errfun(sol2);
+	 
+         // Set Lattice state to Solution2
+	 Mode_->ArcLenUpdate(Mode_->ArcLenDef() - Difference_);
+	 
+	 // Get solution1 and set Difference
+	 char sol1[]="^Solution1";
+	 double tmpval;
+	 SetPerlCommand(tmp,startfile,sol1);
+	 pipe=OpenPipe(tmp,"r");
+	 for (int i=0;i<Difference_.Dim();i++)
+	 {
+	    fscanf(pipe,"%lf",&tmpval);
+	    Difference_[i] -= tmpval;
+	 }
+	 if (pclose(pipe)) Errfun(sol1);
+	 break;
+      }
+   }
+}
+
+
+	 
+
+   
 
 int ArcLengthSolution::AllSolutionsFound()
 {
