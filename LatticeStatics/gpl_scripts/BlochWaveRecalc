@@ -1,0 +1,63 @@
+#!/usr/um/bin/perl
+#
+# Usage: BlochWaveRecalc inputfile gridsize <outputfile>
+#
+use IPC::Open2;
+
+$pid = open2(PIPout,PIPin,"BlochWave $ARGV[0] $ARGV[1]");
+
+open(DATA,"<$ARGV[0]") 
+    || die "Unable to open $ARGV[0] for read: $!";
+if (scalar(@ARGV) == 3)
+{
+  open(OUTPUT,">$ARGV[2]") || die "Unable to open $ARGV[2] for write: $!";
+}
+else
+{
+  open(OUTPUT,">-") || die "Unable to open standard out for write: $!";
+}
+
+$_ = <DATA>;
+print OUTPUT $_;
+
+while (! m/^Mode:/)
+{
+  $_ = <DATA>;
+  print OUTPUT $_;
+}
+
+while (<DATA>)
+{
+  if (/^Temperature/)
+  {
+    @fields=split(/:/,$_);
+    $Temp = $fields[1];
+  }
+  
+  if (/^DOF/)
+  {
+    print OUTPUT $_;
+    $_ = <DATA>;
+    @DOF = split;
+  }
+
+  if (/^BlochWave/)
+  {
+    @fields=split(/:/,$_);
+    @fields=split(/,/,$fields[1]);
+    if ($fields[0] != -1)
+    {
+      print PIPin $Temp,"\n",@DOF,"\n";
+      $newline = <PIPout>;
+      print OUTPUT $newline;
+    }
+  }
+  else
+  {
+    print OUTPUT $_;
+  }
+}
+
+close(OUTPUT);
+close(DATA);
+
