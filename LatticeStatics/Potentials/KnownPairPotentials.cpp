@@ -31,7 +31,6 @@ PairPotentials* InitializePairPotential(char *datafile,const char *prefix,int i,
 	 
 	 return new RadiiMorse(A0,B0,Alpha,Rref,Rtheta,Tref);
       }
-      break;
       case 1:
       {
 	 sprintf(tmp,"Tref",i,j);
@@ -49,7 +48,6 @@ PairPotentials* InitializePairPotential(char *datafile,const char *prefix,int i,
 	 
 	 return new TempMorse(A0,B0,Alpha,Rref,Tref,Tmelt);
       }
-      break;
       case -1:
       {
 	 cerr << "Unknown Potential Type " << endl;

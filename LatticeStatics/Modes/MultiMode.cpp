@@ -211,10 +211,13 @@ void MultiMode::ScanningDefParamUpdate(const double newval)
 
 double MultiMode::ScanningLoadParameter()
 {
+   double retval;
    if (Lattice_->LoadParameter()==Lattice::Temperature)
-      return Lattice_->Temp();
+      retval = Lattice_->Temp();
    else if (Lattice_->LoadParameter()==Lattice::Load)
-      return Lattice_->Lambda();
+      retval = Lattice_->Lambda();
+
+   return retval;
 }
 
 void MultiMode::ScanningLoadParamSet(const double val)

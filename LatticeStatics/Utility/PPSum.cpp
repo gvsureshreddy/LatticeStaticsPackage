@@ -56,7 +56,6 @@ void PPSum::Initialize()
 {
    static Matrix Eigvals(1,3);
    static double X[3];
-   static double J;
    static double Influancedist[3],tmp;
    static int p,q,i,j;
    static int Top[3],Bottom[3],CurrentInfluanceDist;
@@ -91,7 +90,6 @@ void PPSum::Initialize()
    // Thus, allowing non-square unit cells....
    //
    // Use F*F^T and take sqrt of eigvecs.
-   J = U_.Det();
    Eigvals = SymEigVal(U_*(*RefLattice_)*((U_*(*RefLattice_)).Transpose()));
    tmp = sqrt(Eigvals[0][0]);
    for (i=0;i<3;i++)

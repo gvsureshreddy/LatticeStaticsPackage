@@ -290,8 +290,7 @@ unsigned FullScanRank1Convex2D(Matrix K, double dx)
    Matrix A(2,2);
    Matrix Eigvals(1,2);
    double Pi=4.0*atan(1.0);
-   double Piby2 = Pi/2,
-      Pi2 = 2*Pi;
+   double Pi2 = 2*Pi;
    double theta;
    double n[2];
 

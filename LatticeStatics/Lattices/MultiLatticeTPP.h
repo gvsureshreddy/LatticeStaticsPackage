@@ -91,7 +91,7 @@ public:
    virtual void DispersionCurves(Vector K,int NoPTS,const char *prefix,ostream &out)
    {ReferenceDispersionCurves(K,NoPTS,prefix,out);}
    virtual int BlochWave(Vector &K)
-   {ReferenceBlochWave(K);}
+   {return ReferenceBlochWave(K);}
    virtual void LongWavelengthModuli(double dk,int gridsize,const char *prefix,
 				     ostream &out);
    virtual void SetGridSize(int Grid) {GridSize_=Grid; UCIter_(GridSize_);}

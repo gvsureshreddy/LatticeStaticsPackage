@@ -9,34 +9,41 @@ RadiiMorse::RadiiMorse(double A0,double B0,double Alpha,double Rref,double Rthet
 
 double RadiiMorse::A(double NTemp,TDeriv dt)
 {
+   double retval;
    switch (dt)
    {
       case T0:
-	 return A0_;
+	 retval = A0_;
 	 break;
       case DT:
-	 return 0.0;
+	 retval = 0.0;
 	 break;
+      default:
+	 cerr << "Error in RadiiMorse::A" << endl;
+	 exit(-1);
    }
 
-   cerr << "Error in RadiiMorse::A" << endl;
-   exit(-1);
+   return retval;
 }
 
 double RadiiMorse::Beta(double NTemp,TDeriv dt)
 {
+   double retval;
+   
    switch (dt)
    {
       case T0:
-	 return B0_ + Alpha_*(NTemp-1.0);
+	 retval = B0_ + Alpha_*(NTemp-1.0);
 	 break;
       case DT:
-	 return Alpha_;
+	 retval = Alpha_;
 	 break;
+      default:
+	 cerr << "Error in RadiiMorse::Beta" << endl;
+	 exit(-1);
    }
 
-   cerr << "Error in RadiiMorse::Beta" << endl;
-   exit(-1);
+   return retval;
 }
 
 double RadiiMorse::Rhat(double NTemp,TDeriv dt)

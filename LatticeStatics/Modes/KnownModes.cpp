@@ -13,7 +13,6 @@ LatticeMode *InitializeMode(Lattice *Lat,const char *datafile,const char *prefix
       {
 	 return new MultiMode(Lat,datafile,prefix);
       }
-      break;
       case -1:
       {
 	 cerr << "Unknown Mode Type" << endl;

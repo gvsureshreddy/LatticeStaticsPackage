@@ -590,7 +590,7 @@ Matrix MultiLatticeTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
    static Matrix S;
    Matrix Uinv(DIM3,DIM3);
    double ForceNorm = 0.0;
-   double phi,J,Vr;
+   double phi,Vr;
    int i,j;
 
    S.Resize(1,DOFS,0.0);
@@ -690,7 +690,7 @@ Matrix MultiLatticeTPP::stiffness(PairPotentials::TDeriv dt,LDeriv dl)
    static Matrix Phi;
    Matrix U(DIM3,DIM3);
    double phi,phi1;
-   int i,j,k,l,q,s;
+   int i,j,k,l;
 
    Phi.Resize(DOFS,DOFS,0.0);
 
@@ -785,7 +785,7 @@ Matrix MultiLatticeTPP::E3()
 {
    static Matrix Phi;
    double phi,phi1,phi2;
-   int i,j,k,l,m,n,q,s;
+   int i,j,k,l,m,n;
 
    Phi.Resize(DOFS*DOFS,DOFS,0.0);
 

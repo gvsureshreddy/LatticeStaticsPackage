@@ -28,7 +28,7 @@ public:
    void Reset() {CurrentPOS_ = 0;}
 
    int Done() {return VectorsLen_ <= CurrentPOS_;}
-   const double operator[](int i) {return Vectors_[CurrentPOS_][i];}
+   double operator[](int i) {return Vectors_[CurrentPOS_][i];}
    void operator++() {++CurrentPOS_;}
 };
 

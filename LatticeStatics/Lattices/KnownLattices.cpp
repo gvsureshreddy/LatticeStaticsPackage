@@ -12,7 +12,6 @@ Lattice *InitializeLattice(char *datafile,const char *prefix,int Echo,int Debug)
       {
 	 return new MultiLatticeTPP(datafile,prefix,Echo,Debug);
       }
-      break;
       case -1:
 	 {
 	    cerr << "Unknown Lattice Type " << endl;

@@ -8,18 +8,21 @@ TempMorse::TempMorse(double A0,double B0,double Alpha,double Rref,double Tref,
 
 double TempMorse::Beta(double NTemp,TDeriv dt)
 {
+   double retval;
    switch (dt)
    {
       case T0:
-	 return B0_*(1.0+Alpha_*(NTemp-1.0));
+	 retval = B0_*(1.0+Alpha_*(NTemp-1.0));
 	 break;
       case DT:
-	 return B0_*Alpha_;
+	 retval = B0_*Alpha_;
 	 break;
+      default:
+	 cerr << "Error in TempMorse::Beta" << endl;
+	 exit(-1);
    }
 
-   cerr << "Error in TempMorse::Beta" << endl;
-   exit(-1);
+   return retval;
 }
 
 double TempMorse::Rhat(double NTemp,TDeriv dt)
