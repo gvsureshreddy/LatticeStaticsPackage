@@ -4,6 +4,7 @@
 #include "Lattice.h"
 
 #define DIM3 3
+#define INTERNAL_ATOMS 4
 
 class NiTiShuffleTPPLat : public Lattice
 {
@@ -11,12 +12,12 @@ private:
    double RefLen_;
    unsigned InfluanceDist_;
    double NTemp_;
-   // DOF[i] = [U11 U22 U33 U12 U13 U12 S D]
+   // DOF[i] = [U11 U22 U33 U12 U13 U12 S D A]
    Vector DOF_;
    Vector LatticeVec_[DIM3];
    double ShearMod_;
    double Pressure_;
-   Vector BodyForce_[4];
+   Vector BodyForce_[INTERNAL_ATOMS];
 
    //Pair Potential data
    enum YDeriv {Y0,DY,D2Y,D3Y,D4Y};
@@ -61,8 +62,8 @@ private:
    double PairPotential(interaction inter,double r2,YDeriv dy=Y0,TDeriv dt=T0);
    inline double Beta(interaction inter,TDeriv dt=T0);
    inline double Rhat(interaction inter,TDeriv dt=T0);
-   void GetLatticeVectorInfo(double *SX,double *DXPrimeS,double *DXPrimeD
-			     ,interaction &Inter,int p,int q);
+   void GetLatticeVectorInfo(double *SX,double *DXPrimeS,double *DXPrimeD,
+			     double *DXPrimeA,interaction &Inter,int p,int q);
    inline double PI(const Vector &Dx,const Vector &DX,int r,int s);
    inline double PSI(const Vector &DX,int r,int s,int t,int u);
    double pwr(const double &x,const unsigned y);

@@ -6,7 +6,7 @@
 NiTiShuffleTPPLat::NiTiShuffleTPPLat(char *datafile)
 {
    // First Size DOF
-   DOF_.Resize(8);
+   DOF_.Resize(9);
    // Set LatticeVec_
    LatticeVec_[0].Resize(DIM3,0.0);
    LatticeVec_[1].Resize(DIM3,0.0);
@@ -76,7 +76,7 @@ int NiTiShuffleTPPLat::FindLatticeSpacing(int iter,double dx)
    NTemp_=1.0;
    ShearMod_=1.0;
    DOF_[0] = DOF_[1] = DOF_[2] = 1.0;
-   DOF_[3] = DOF_[4] = DOF_[5] = DOF_[6] = DOF_[7] = 0.0;
+   DOF_[3] = DOF_[4] = DOF_[5] = DOF_[6] = DOF_[7] = DOF_[8] = 0.0;
 
    double s=Stress()[0][0];
 
@@ -119,7 +119,7 @@ int NiTiShuffleTPPLat::FindLatticeSpacing(int iter,double dx)
    ShearMod_ = fabs(Stiffness()[5][5]);
    NTemp_=oldTemp;
    Pressure_=oldPressure;
-   
+
    return 0;
 }
 
@@ -338,16 +338,18 @@ double NiTiShuffleTPPLat::PairPotential(interaction inter,double r2,
 // Lattice Routines
 
 void NiTiShuffleTPPLat::GetLatticeVectorInfo(double *SX,double *DXPrimeS,double *DXPrimeD,
-					     interaction &Inter,int p,int q)
+					     double *DXPrimeA,interaction &Inter,int p,int q)
 {
-   static double Basis[4][DIM3] = {0.0,0.0,0.0,
-				   0.5,0.5,0.0,
-				   0.5,0.0,0.5,
-				   0.0,0.5,0.5};
+   static double Basis[INTERNAL_ATOMS][DIM3] = {0.0,0.0,0.0,
+						0.5,0.5,0.0,
+						0.5,0.0,0.5,
+						0.0,0.5,0.5};
    double dxprimeS=0;
    double dxprimeD=0;
+   double dxprimeA=0;
 
    Basis[1][0] = 0.5 + DOF_[6] + DOF_[7];
+   Basis[2][0] = 0.5 + DOF_[8];
    Basis[3][0] = DOF_[6] - DOF_[7];
 
    switch (p)
@@ -358,21 +360,25 @@ void NiTiShuffleTPPLat::GetLatticeVectorInfo(double *SX,double *DXPrimeS,double 
 	    case 0:
 	       dxprimeS = 0.0;
 	       dxprimeD = 0.0;
+	       dxprimeA = 0.0;
 	       Inter = aa;
 	       break;
 	    case 1:
 	       dxprimeS = 1.0;
 	       dxprimeD = 1.0;
+	       dxprimeA = 0.0;
 	       Inter = aa;
 	       break;
 	    case 2:
 	       dxprimeS = 0.0;
 	       dxprimeD = 0.0;
+	       dxprimeA = 1.0;
 	       Inter = ab;
 	       break;
 	    case 3:
 	       dxprimeS = 1.0;
 	       dxprimeD = -1.0;
+	       dxprimeA = 0.0;
 	       Inter = ab;
 	       break;
 	 }
@@ -383,21 +389,25 @@ void NiTiShuffleTPPLat::GetLatticeVectorInfo(double *SX,double *DXPrimeS,double 
 	    case 0:
 	       dxprimeS = -1.0;
 	       dxprimeD = -1.0;
+	       dxprimeA = 0.0;
 	       Inter = aa;
 	       break;
 	    case 1:
 	       dxprimeS = 0.0;
 	       dxprimeD = 0.0;
+	       dxprimeA = 0.0;
 	       Inter = aa;
 	       break;
 	    case 2:
 	       dxprimeS = -1.0;
 	       dxprimeD = -1.0;
+	       dxprimeA = 1.0;
 	       Inter = ab;
 	       break;
 	    case 3:
 	       dxprimeS = 0.0;
 	       dxprimeD = -2.0;
+	       dxprimeA = 0.0;
 	       Inter = ab;
 	       break;
 	 }
@@ -408,21 +418,25 @@ void NiTiShuffleTPPLat::GetLatticeVectorInfo(double *SX,double *DXPrimeS,double 
 	    case 0:
 	       dxprimeS = 0.0;
 	       dxprimeD = 0.0;
+	       dxprimeA = -1.0;
 	       Inter = ab;
 	       break;
 	    case 1:
 	       dxprimeS = 1.0;
 	       dxprimeD = 1.0;
+	       dxprimeA = -1.0;
 	       Inter = ab;
 	       break;
 	    case 2:
 	       dxprimeS = 0.0;
 	       dxprimeD = 0.0;
+	       dxprimeA = 0.0;
 	       Inter = bb;
 	       break;
 	    case 3:
 	       dxprimeS = 1.0;
 	       dxprimeD = -1.0;
+	       dxprimeA = -1.0;
 	       Inter = bb;
 	       break;
 	 }
@@ -433,21 +447,25 @@ void NiTiShuffleTPPLat::GetLatticeVectorInfo(double *SX,double *DXPrimeS,double 
 	    case 0:
 	       dxprimeS = -1.0;
 	       dxprimeD = 1.0;
+	       dxprimeA = 0.0;
 	       Inter = ab;
 	       break;
 	    case 1:
 	       dxprimeS = 0.0;
 	       dxprimeD = 2.0;
+	       dxprimeA = 0.0;
 	       Inter = ab;
 	       break;
 	    case 2:
 	       dxprimeS = -1.0;
 	       dxprimeD = 1.0;
+	       dxprimeA = 1.0;
 	       Inter = bb;
 	       break;
 	    case 3:
 	       dxprimeS = 0.0;
 	       dxprimeD = 0.0;
+	       dxprimeA = 0.0;
 	       Inter = bb;
 	       break;
 	 }
@@ -458,9 +476,11 @@ void NiTiShuffleTPPLat::GetLatticeVectorInfo(double *SX,double *DXPrimeS,double 
       SX[i] = Basis[q][i] - Basis[p][i];
       DXPrimeS[i] = 0.0;
       DXPrimeD[i] = 0.0;
+      DXPrimeA[i] = 0.0;
    }
    DXPrimeS[0] = dxprimeS;
    DXPrimeD[0] = dxprimeD;
+   DXPrimeA[0] = dxprimeA;
 
 }
 
@@ -530,10 +550,12 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 {
    static Matrix U(3,3);
    static Matrix Eigvals(1,3);
-   static double X[3],SX[3],DXPS[3],DXPD[3];
+   static double X[3],SX[3],DXPS[3],DXPD[3],DXPA[3];
    static Vector DX(DIM3),Dx(DIM3);
-   static Vector DXPrimeS(DIM3),DxPrimeS(DIM3),DXPrimeD(DIM3),DxPrimeD(DIM3);
+   static Vector DXPrimeS(DIM3),DxPrimeS(DIM3),DXPrimeD(DIM3),DxPrimeD(DIM3),
+      DXPrimeA(DIM3),DxPrimeA(DIM3);
    static Vector Direction(DIM3);
+   static double ForceNorm[INTERNAL_ATOMS];
    static double J;
    static int i,j,k,l,p,q,m,n,s,z;
    static double r2,phi,phi1,phi2,Influancedist[DIM3],tmp;
@@ -547,16 +569,16 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 	 Phi.Resize(1,1,0.0);
 	 break;
       case DY:
-	 Phi.Resize(1,8,0.0);
+	 Phi.Resize(1,9,0.0);
 	 break;
       case D2Y:
-	 Phi.Resize(8,8,0.0);
+	 Phi.Resize(9,9,0.0);
 	 break;
       case D3Y:
-	 Phi.Resize(64,8,0.0);
+	 Phi.Resize(81,9,0.0);
 	 break;
       case D4Y:
-	 Phi.Resize(64,64,0.0);
+	 Phi.Resize(81,81,0.0);
 	 break;
    }
 
@@ -597,15 +619,18 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
       Bottom[p] = -CurrentInfluanceDist;
 
       // misc initialization
-      for (z=0;z<4;z++)
+      ForceNorm[p] = 0.0;
+      for (z=0;z<INTERNAL_ATOMS;z++)
+      {
 	 BodyForce_[z][p] = 0.0;
+      }
    }
 
-   for (p=0;p<4;p++)
+   for (p=0;p<INTERNAL_ATOMS;p++)
    {
-      for (q=0;q<4;q++)
+      for (q=0;q<INTERNAL_ATOMS;q++)
       {
-	 GetLatticeVectorInfo(SX,DXPS,DXPD,Inter,p,q);
+	 GetLatticeVectorInfo(SX,DXPS,DXPD,DXPA,Inter,p,q);
 	 for (X[0] = Bottom[0];X[0] <= Top[0];X[0]++)
 	 {
 	    for (X[1] = Bottom[1];X[1] <= Top[1];X[1]++)
@@ -617,12 +642,14 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 		     DX[i] = 0.0;
 		     DXPrimeS[i] = 0.0;
 		     DXPrimeD[i] = 0.0;
+		     DXPrimeA[i] = 0.0;
 		     
 		     for (j=0;j<DIM3;j++)
 		     {
 			DX[i] += (X[j] + SX[j])*LatticeVec_[j][i]*RefLen_;
 			DXPrimeS[i] += DXPS[j]*RefLen_*LatticeVec_[j][i];
 			DXPrimeD[i] += DXPD[j]*RefLen_*LatticeVec_[j][i];
+			DXPrimeA[i] += DXPA[j]*RefLen_*LatticeVec_[j][i];
 		     }
 		  }
 
@@ -632,12 +659,14 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 		     Dx[i] = 0.0;
 		     DxPrimeS[i] = 0.0;
 		     DxPrimeD[i] = 0.0;
+		     DxPrimeA[i] = 0.0;
 
 		     for (j=0;j<DIM3;j++)
 		     {
 			Dx[i] += U[i][j] * DX[j];
 			DxPrimeS[i] += U[i][j] * DXPrimeS[j];
 			DxPrimeD[i] += U[i][j] * DXPrimeD[j];
+			DxPrimeA[i] += U[i][j] * DXPrimeA[j];
 		     }
 		     r2 += Dx[i]*Dx[i];
 		  }
@@ -649,9 +678,13 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 
 		  // Calculate bodyforce
 		  phi1 = PairPotential(Inter,r2,DY,T0);
+		  if (ForceNorm[p] < fabs(-phi1/(2.0*sqrt(r2))))
+		  {
+		     ForceNorm[p] = fabs(-phi1/(2.0*sqrt(r2)));
+		  }
 		  for (i=0;i<DIM3;i++)
 		  {
-		     BodyForce_[p][i] += -phi1*Dx[i]/sqrt(r2);
+		     BodyForce_[p][i] += -phi1*Dx[i]/(2.0*sqrt(r2));
 		  }
 		  
 		  // Calculate Phi
@@ -670,6 +703,7 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 			   }
 			   Phi[0][6] += phi*(2.0*DxPrimeS[i]*Dx[i]);
 			   Phi[0][7] += phi*(2.0*DxPrimeD[i]*Dx[i]);
+			   Phi[0][8] += phi*(2.0*DxPrimeA[i]*Dx[i]);
 			}
 			break;
 		     case D2Y:
@@ -696,15 +730,27 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 				 += phi*(PI(Dx,DX,i,j)*(2.0*DxPrimeD*Dx))
 				 + phi1*(DxPrimeD[i]*DX[j] + Dx[i]*DXPrimeD[j] +
 					       DXPrimeD[i]*Dx[j] + DX[i]*DxPrimeD[j]);
+			      Phi[8][IND(i,j)] = Phi[IND(i,j)][8]
+				 += phi*(PI(Dx,DX,i,j)*(2.0*DxPrimeA*Dx))
+				 + phi1*(DxPrimeA[i]*DX[j] + Dx[i]*DXPrimeA[j] +
+					       DXPrimeA[i]*Dx[j] + DX[i]*DxPrimeA[j]);
 			   }
 			}
 			Phi[6][6] += phi*(2.0*(DxPrimeS*Dx))*(2.0*(DxPrimeS*Dx))
 			   + phi1*(2.0*DxPrimeS*DxPrimeS);
 			Phi[7][7] += phi*(2.0*(DxPrimeD*Dx))*(2.0*(DxPrimeD*Dx))
 			   + phi1*(2.0*DxPrimeD*DxPrimeD);
+			Phi[8][8] += phi*(2.0*(DxPrimeA*Dx))*(2.0*(DxPrimeA*Dx))
+			   + phi1*(2.0*DxPrimeA*DxPrimeA);
 			Phi[6][7] = Phi[7][6]
 			   += phi*(2.0*DxPrimeS*Dx)*(2.0*DxPrimeD*Dx)
 			   + phi1*(2.0*DxPrimeS*DxPrimeD);
+			Phi[6][8] = Phi[8][6]
+			   += phi*(2.0*DxPrimeS*Dx)*(2.0*DxPrimeA*Dx)
+			   + phi1*(2.0*DxPrimeS*DxPrimeA);
+			Phi[8][7] = Phi[7][8]
+			   += phi*(2.0*DxPrimeA*Dx)*(2.0*DxPrimeD*Dx)
+			   + phi1*(2.0*DxPrimeA*DxPrimeD);
 			break;
 		     case D3Y:
 			// phi1=PairPotential(Inter,r2,D2Y,dt);
@@ -774,12 +820,12 @@ Matrix NiTiShuffleTPPLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
       }
    }
 
-   // BodyForce = BodyForce / (2*Vr*ShearMod)
-   for (i=0;i<4;i++)
+   // BodyForce[i] = BodyForce[i] / ForceNorm[i]
+   for (i=0;i<INTERNAL_ATOMS;i++)
    {
       for (j=0;j<DIM3;j++)
       {
-	 BodyForce_[i][j] *= 1.0/(2.0*(2.0*RefLen_*RefLen_*RefLen_)*ShearMod_);
+	 BodyForce_[i][j] /= ForceNorm[i];
       }
    }
    
@@ -891,11 +937,11 @@ int NiTiShuffleTPPLat::StiffnessNulity(double *Min)
    int NoNegEigVal = 0;
    int index = 0;
 
-   Matrix EigenValues(1,8);
+   Matrix EigenValues(1,9);
 
    EigenValues=SymEigVal(Stiffness());
    if (Min != NULL) *Min = fabs(EigenValues[0][0]);
-   for (int i=0;i<8;i++)
+   for (int i=0;i<9;i++)
    {
       if (EigenValues[0][i] < 0.0) NoNegEigVal++;
       if ((Min != NULL)
@@ -988,11 +1034,11 @@ void NiTiShuffleTPPLat::Print(ostream &out,PrintDetail flag)
    Matrix
       stiffness = Stiffness(),
       moduli = Moduli(),
-      EigenValues(1,8);
+      EigenValues(1,9);
 
    EigenValues=SymEigVal(stiffness);
    MinEigVal = EigenValues[0][0];
-   for (int i=0;i<8;i++)
+   for (int i=0;i<9;i++)
    {
       if (EigenValues[0][i] < 0)
 	 NoNegEigVal++;
@@ -1032,16 +1078,16 @@ void NiTiShuffleTPPLat::Print(ostream &out,PrintDetail flag)
 	     << "Shear Modulus : " << setw(W) << ShearMod_ << endl;
 	 // passthrough to short
       case PrintShort:
-	 out << "Temperature (Normalized): " << setw(W) << NTemp_ << endl
-	     << "Pressure (Normalized): " << setw(W) << Pressure_ << endl
+	 out << "Temperature (Ref Normalized): " << setw(W) << NTemp_ << endl
+	     << "Pressure (G Normalized): " << setw(W) << Pressure_ << endl
 	     << "DOF's :" << endl << setw(W) << DOF_ << endl
-	     << "Potential Value (Normalized):" << setw(W) << Energy() << endl
-	     << "BodyForce Value 0 (Normalized):" << setw(W) << BodyForce_[0] << endl
-	     << "BodyForce Value 1 (Normalized):" << setw(W) << BodyForce_[1] << endl
-	     << "BodyForce Value 2 (Normalized):" << setw(W) << BodyForce_[2] << endl
-	     << "BodyForce Value 3 (Normalized):" << setw(W) << BodyForce_[3] << endl
-	     << "Stress (Normalized):" << setw(W) << Stress() << endl
-	     << "Stiffness (Normalized):" << setw(W) << stiffness
+	     << "Potential Value (G Normalized):" << setw(W) << Energy() << endl
+	     << "BodyForce Value 0 (Inf Normalized):" << setw(W) << BodyForce_[0] << endl
+	     << "BodyForce Value 1 (Inf Normalized):" << setw(W) << BodyForce_[1] << endl
+	     << "BodyForce Value 2 (Inf Normalized):" << setw(W) << BodyForce_[2] << endl
+	     << "BodyForce Value 3 (Inf Normalized):" << setw(W) << BodyForce_[3] << endl
+	     << "Stress (G Normalized):" << setw(W) << Stress() << endl
+	     << "Stiffness (G Normalized):" << setw(W) << stiffness
 	     << "Rank 1 Convex:" << setw(W)
 	     << Rank1Convex3D(moduli,ConvexityDX_) << endl
 	     << "Eigenvalue Info:"  << setw(W) << EigenValues
