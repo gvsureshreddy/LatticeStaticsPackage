@@ -242,34 +242,39 @@ int ArcLengthSolution::ArcLengthNewton()
 {
    int good = 1;
    int itr = 0;
+   int Dim=Mode_->ArcLenDef().Dim();
 
-   Vector Dx(Mode_->ArcLenDef().Dim());
+   Vector Dx(Dim),
+      RHS(Dim);
    
    Mode_->ArcLenUpdate(-Difference_);
 
    // Iterate until convergence
-   cout << "ArcLenNewton: Number of Iterations --\n";
+   cout << setiosflags(ios::scientific)
+	<< "ArcLenNewton: Number of Iterations --\n";
+
+   RHS = Mode_->ArcLenRHS(CurrentDS_,Difference_,Aspect_);
    do
    {
       itr++;
 
       Dx = SolveSVD(
 	 Mode_->ArcLenStiffness(Difference_,Aspect_),
-	 Mode_->ArcLenRHS(CurrentDS_,Difference_,Aspect_),
-	 MAXCONDITION,1);
+	 RHS,MAXCONDITION,1);
 
       Mode_->ArcLenUpdate(Dx);
       Difference_ -= Dx;
+      RHS = Mode_->ArcLenRHS(CurrentDS_,Difference_,Aspect_);
 
       cout << itr << "(" << setw(20)
-	   << Mode_->ScanningStressParameter() << "), ";
+	   << Mode_->ScanningStressParameter() << ","
+	   << setw(20) << RHS.Norm() << ","
+	   << setw(20) << Dx.Norm() << "), ";
    }
    while ((itr < MaxIter_)
-	  && ((fabs(Mode_->ArcLenRHS(CurrentDS_,Difference_,Aspect_).Norm())
-	       > Tolerance_)
-	      || (fabs(Dx.Norm()) > Tolerance_)));
+	  && ((fabs(RHS.Norm()) > Tolerance_) || (fabs(Dx.Norm()) > Tolerance_)));
 
-   cout << endl;
+   cout << resetiosflags(ios::scientific) << endl;
 
    if (itr >= MaxIter_)
    {
@@ -324,7 +329,7 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,int Width,fstream &out)
 
       loops++;
    }
-
+   
    // Output Critical Point
    for (int i=0;i<70;i++)
    {
