@@ -1961,9 +1961,10 @@ void MultiLatticeTPP::DebugMode()
       "RefineEqbm",                    // 40
       "EulerAng_",                     // 41
       "Rotation_",                     // 42
-      "Loading_"                       // 43
+      "Loading_",                      // 43
+      "PrintCrystal"                   // 44
    };
-   int NOcommands=44;
+   int NOcommands=45;
    
    char response[LINELENGTH];
    char prompt[] = "Debug > ";
@@ -2211,6 +2212,11 @@ void MultiLatticeTPP::DebugMode()
 	 cout << "Loading_ = "
 	      << setw(W) << Loading_ << endl;
       }
+      else if (!strcmp(response,Commands[44]))
+      {
+	 cout << setw(W);
+	 PrintCurrentCrystalParamaters(cout);
+      }
       else if (!strcmp(response,"?") ||
 	       !strcasecmp(response,"help"))
       {
@@ -2270,5 +2276,56 @@ void MultiLatticeTPP::RefineEqbm(double Tol,int MaxItr)
       Stress=stress();
 
       cout << itr << "\tdx " << dx.Norm() << "\tstress " << Stress.Norm() << endl;
+   }
+}
+
+void MultiLatticeTPP::PrintCurrentCrystalParamaters(ostream &out)
+{
+   Matrix U(DIM3,DIM3,0.0);
+   Vector CurrentLattice[DIM3];
+   int W=out.width();
+   out.width(0);
+   
+   U[0][0] = DOF_[0];
+   U[1][1] = DOF_[1];
+   U[2][2] = DOF_[2];
+   U[0][1] = U[1][0] = DOF_[3];
+   U[0][2] = U[2][0] = DOF_[4];
+   U[1][2] = U[2][1] = DOF_[5];
+
+   for (int i=0;i<DIM3;++i)
+   {
+      CurrentLattice[i].Resize(DIM3,0.0);
+      for (int j=0;j<DIM3;++j)
+	 for (int p=0;p<DIM3;++p)
+	 {
+	    CurrentLattice[i][j] += U[j][p]*RefLattice_[i][p];
+	 }
+   }
+
+   out << "a =" << setw(W) << CurrentLattice[0].Norm() << endl;
+   out << "b =" << setw(W) << CurrentLattice[1].Norm() << endl;
+   out << "c =" << setw(W) << CurrentLattice[2].Norm() << endl;
+
+   double alpha,beta,gamma;
+   double pi = 4.0*atan(1.0);
+   
+   alpha = acos(CurrentLattice[1]*CurrentLattice[2]
+		/(CurrentLattice[1].Norm()*CurrentLattice[2].Norm()));
+   beta  = acos(CurrentLattice[0]*CurrentLattice[2]
+		/(CurrentLattice[0].Norm()*CurrentLattice[2].Norm()));
+   gamma = acos(CurrentLattice[0]*CurrentLattice[1]
+		/(CurrentLattice[0].Norm()*CurrentLattice[1].Norm()));
+   out << "alpha =" << setw(W) << alpha << setw(W) << alpha*180.0/pi << endl;
+   out << "beta =" << setw(W) << beta << setw(W) << beta*180.0/pi << endl;
+   out << "gamma =" << setw(W) << gamma << setw(W) << gamma*180.0/pi << endl;
+
+   out << "Atom[0] @ " << setw(W) << AtomPositions_[0] << endl;
+   for (int i=1;i<INTERNAL_ATOMS;++i)
+   {
+      out << "Atom[" << i <<"] @ ";
+      for (int j=0;j<DIM3;++j)
+	 out << setw(W) << AtomPositions_[i][j] + DOF_[6+DIM3*(i-1)+j];
+      out << endl;
    }
 }

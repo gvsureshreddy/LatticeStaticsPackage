@@ -98,6 +98,8 @@ public:
    virtual void NeighborDistances(int cutoff,ostream &out);
    virtual void DebugMode();
    virtual void Print(ostream &out,PrintDetail flag);
+
+   void PrintCurrentCrystalParamaters(ostream &out);
    
    // Functions provided by MultiLatticeTPP
    MultiLatticeTPP(char *datafile,const char *prefix,int Echo=1,int Debug=0);
