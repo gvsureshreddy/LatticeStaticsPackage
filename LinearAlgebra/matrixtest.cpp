@@ -1,6 +1,7 @@
 #include "Matrix.h"
 #include "CMatrix.h"
 #include "Vector.h"
+#include "CVector.h"
 #include "Vector3D.h"
 #include <stdlib.h>
 #include <iomanip.h>
@@ -26,6 +27,11 @@ int main()
       b(3),
       c(6),
       d(6);
+
+   CVector ca(3),
+      cb(3),
+      cc(6),
+      cd(6);
 
    Vector3D e,f;
    
@@ -71,13 +77,17 @@ int main()
    for (int i=0;i<3;i++)
    {
       a[i] = double(rand()%10);
+      ca[i] = complex<double>(rand()%10,rand()%10);
       b[i] = double(rand()%10);
+      cb[i] = complex<double>(rand()%10,rand()%10);
    }
 
    for (int i=0;i<6;i++)
    {
       c[i] = double(rand()%10);
+      cc[i] = complex<double>(rand()%10,rand()%10);
       d[i] = double(rand()%10);
+      cd[i] = complex<double>(rand()%10,rand()%10);
    }
 
    for (int i=0;i<3;i++)
@@ -108,12 +118,20 @@ int main()
 	<< setw(20) << CD << endl
 	<< "a" << endl
 	<< setw(20) << a << endl
+	<< "ca" << endl
+	<< setw(20) << ca << endl      
 	<< "b" << endl
 	<< setw(20) << b << endl
+	<< "cb" << endl
+	<< setw(20) << cb << endl
 	<< "c" << endl
 	<< setw(20) << c << endl
+	<< "cc" << endl
+	<< setw(20) << cc << endl
 	<< "d" << endl
 	<< setw(20) << d << endl
+	<< "cd" << endl
+	<< setw(20) << cd << endl
 	<< "e" << endl
 	<< setw(20) << e << endl
 	<< "f" << endl
@@ -150,6 +168,7 @@ int main()
    cout << "A*A^-1" << setw(20) << A*A.Inverse() << endl;
 
    PLU(A,B,C,D);
+   PLU(CA,CB,CC,CD);
 
    cout << "A" << endl << setw(20) << A << endl;
 
@@ -160,6 +179,30 @@ int main()
    cout << "U" << endl << setw(20) << D << endl;
 
    cout << "PLU" << endl << setw(20) << B.Inverse()*C*D << endl;
+
+   cout << "CA" << endl << setw(20) << CA << endl;
+
+   cout << "CP" << endl << setw(20) << CB << endl;
+
+   cout << "CL" << endl << setw(20) << CC << endl;
+
+   cout << "CU" << endl << setw(20) << CD << endl;
+
+   cout << "CPLU" << endl << setw(20) << CB.Inverse()*CC*CD << endl;
+
+   cout << "E" << endl << setw(20) << E << endl;
+
+   cout << "c" << endl << setw(20) << c << endl;
+
+   cout << "x=E^-1*c" << setw(20) << SolvePLU(E,c) << endl;
+   cout << "E*x" << setw(20) << E*SolvePLU(E,c) << endl;
+
+   cout << "CE" << endl << setw(20) << CE << endl;
+
+   cout << "cc" << endl << setw(20) << cc << endl;
+
+   cout << "cx=CE^-1*cc" << setw(20) << SolvePLU(CE,cc) << endl;
+   cout << "CE*cx" << setw(20) << CE*SolvePLU(CE,cc) << endl;
 
    SVD(A,B,C,D,MAXCONDITION,1);
 
@@ -281,6 +324,29 @@ int main()
    cout << "a=b" << setw(20) << a << endl;
 
    cout << "A*b" << setw(20) << A*b << endl;
+
+
+   cout << "ca" << setw(20) << ca << endl;
+
+   cout << "cb" << setw(20) << cb << endl;
+
+   cout << "cc" << setw(20) << cc << endl;
+
+   cout << "cd" << setw(20) << cd << endl;
+
+   cout << "ca+cb" << setw(20) << ca+cb << endl;
+
+   cout << "ca.cb" << setw(20) << ca*cb << endl;
+
+   cout << "2ca" << setw(20) << complex<double>(2.0)*ca << endl;
+
+   cout << "ca/5" << setw(20) << ca/5.0 << endl;
+
+   ca=cb;
+
+   cout << "ca=cb" << setw(20) << ca << endl;
+
+   cout << "CA*cb" << setw(20) << CA*cb << endl;
 
    f=Vector3D(b);
    

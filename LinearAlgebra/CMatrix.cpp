@@ -6,10 +6,9 @@
 #include <math.h>
 
 // Global IDString
-char CMatrixID[]="$Id: CMatrix.cpp,v 1.2 2002/10/15 20:31:08 elliottr Exp $";
+char CMatrixID[]="$Id: CMatrix.cpp,v 1.3 2002/10/16 19:14:27 elliottr Exp $";
 
 // Private Methods...
-
 
 // Returns matrix of size Rows_-1 x Cols_-1 with ith row and
 //   jth column removed
@@ -360,6 +359,31 @@ CMatrix CMatrix::Transpose() const
    return A;
 }
 
+CMatrix CMatrix::Inverse() const
+{
+   if (!IsSquare() || IsNull())
+   {
+      cerr << "Error in CMatrix::Inverse() : Non-Square or Null CMatrix" << endl;
+      exit(-1);
+   }
+
+   CMatrix B(Rows_,1,0),X(Rows_,1),C(Rows_,Cols_);
+
+   B.Elements_[0][0]=1.0;
+   for (register int i=0;i<Cols_;i++)
+   {
+      X=SolvePLU(*this,B);
+
+      for (register int j=0;j<Rows_;j++)
+	 C.Elements_[j][i]=X.Elements_[j][0];
+
+      B.Elements_[i][0]=0;
+      if (i!=Cols_-1) B.Elements_[i+1][0]=1.0;
+   }
+
+   return C;
+}
+
 void CMatrix::Resize(unsigned Rows,unsigned Cols,CMatrix::Elm InitVal)
 {
    if (Rows!=Rows_ || Cols!=Cols_)
@@ -438,6 +462,114 @@ CMatrix::Elm CMatrix::Det() const
    }
 }
 
+// Decompose PA=LU using scaled partial pivoting.
+void PLU(const CMatrix& A,CMatrix& P,CMatrix& L,CMatrix& U)
+{
+   if (!A.IsSquare() || A.IsNull())
+   {
+      cerr << "Error in PLU -- Non-Square or Null CMatrix to decompose..." << endl;
+      exit(-1);
+   }
+
+   P.Resize(A.Rows_,A.Cols_,0);
+   L.SetIdentity(A.Rows_);
+   U.Resize(A.Rows_,A.Cols_,0);
+
+   CMatrix Temp=A,
+      S(A.Rows_,1,0);
+   int *Ipivot;
+   Ipivot = new int[A.Rows_];
+
+   for (register int i=0;i<A.Rows_;i++)
+   {
+      Ipivot[i]=i;
+   }
+
+   for (register int i=0;i<A.Rows_;i++)
+   {
+      for (register int j=0;j<A.Cols_;j++)
+      {
+	 if (abs(Temp.Elements_[i][j]) > abs(S.Elements_[i][0]))
+	    S.Elements_[i][0]=Temp.Elements_[i][j];
+      }
+   }
+
+   for (register int i=0;i<A.Rows_;i++)
+   {
+      CMatrix::Elm temp1;
+      temp1=Temp.Elements_[i][i]/S.Elements_[i][0];
+
+      int k=i;
+      for (register int j=i;j<A.Rows_;j++)
+      {
+	 if (abs(Temp.Elements_[j][i]) > abs(temp1))
+	 {
+	    temp1=Temp.Elements_[j][i]/S.Elements_[j][0];
+	    k=j;
+	 }
+      }
+
+      if (k>i)
+      {
+	 CMatrix::Elm *Switch;
+	 Switch = new CMatrix::Elm[A.Rows_];
+	 for (register int j=i;j<A.Rows_;j++)
+	 {
+	    Switch[j]=Temp.Elements_[i][j];
+	    Temp.Elements_[i][j]=Temp.Elements_[k][j];
+	    Temp.Elements_[k][j]=Switch[j];
+	 }
+
+	 for (register int j=0;j<i;j++)
+	 {
+	    Switch[j]=L.Elements_[i][j];
+	    L.Elements_[i][j]=L.Elements_[k][j];
+	    L.Elements_[k][j]=Switch[j];
+	 }
+
+	 delete [] Switch;
+
+	 temp1=S.Elements_[i][0];
+	 S.Elements_[i][0]=S.Elements_[k][0];
+	 S.Elements_[k][0]=temp1;
+
+	 int tempi1=Ipivot[i];
+	 Ipivot[i]=Ipivot[k];
+	 Ipivot[k]=tempi1;
+      }
+
+      for (register int j=i+1;j<A.Rows_;j++)
+      {
+	 L.Elements_[j][i]=Temp.Elements_[j][i]/Temp.Elements_[i][i];
+      }
+
+      for (register int j=i+1;j<A.Rows_;j++)
+      {
+	 for (register int k=i+1;k<A.Rows_;k++)
+	 {
+	    Temp.Elements_[j][k]=Temp.Elements_[j][k]-(L.Elements_[j][i]*Temp.Elements_[i][k]);
+	 }
+      }
+   }
+
+   for (register int i=0;i<A.Rows_;i++)
+   {
+      for (register int j=i;j<A.Rows_;j++)
+      {
+	 U.Elements_[i][j]=Temp.Elements_[i][j];
+      }
+   }
+
+   for (register int i=0;i<A.Rows_;i++)
+   {
+      P.Elements_[i][Ipivot[i]]=1;
+   }
+
+   delete [] Ipivot;
+
+   return;
+}
+
 void Cholesky(const CMatrix& A,CMatrix& U,CMatrix& D)
 {
    if (!A.IsSquare() || A.IsNull())
@@ -475,6 +607,52 @@ void Cholesky(const CMatrix& A,CMatrix& U,CMatrix& D)
    }
    
    return;
+}
+
+CMatrix SolvePLU(const CMatrix& A,const CMatrix& B)
+{
+   if (!A.IsSquare() || A.IsNull() || A.Cols_!=B.Rows_)
+   {
+      cerr << "Error in Solve() - Non-Square CMatrix, Null CMatrix, or system of != dimension"
+	   << endl;
+      exit(-1);
+   }
+   
+   CMatrix
+      P,L,U; //PLU() resizes P,L,& U thus do not waste time initializing them.
+
+   PLU(A,P,L,U);
+
+   CMatrix::Elm *Y;
+   Y = new CMatrix::Elm[B.Rows_];
+   CMatrix Temp=P*B;
+
+   Y[0]=Temp.Elements_[0][0];
+   for (register int i=1;i<B.Rows_;i++)
+   {
+      Y[i]=Temp[i][0];
+      for (register int j=0;j<i;j++)
+      {
+	 Y[i]-=Y[j]*L.Elements_[i][j];
+      }
+   }
+
+   CMatrix X(B.Rows_,1,0);
+
+   X.Elements_[B.Rows_-1][0]=Y[B.Rows_-1]/U.Elements_[A.Rows_-1][A.Cols_-1];
+   for (register int i=A.Rows_-2;i>=0;i--)
+   {
+      X.Elements_[i][0]=Y[i];
+      for (register int j=A.Rows_-1;j>i;j--)
+      {
+	 X.Elements_[i][0]-=X.Elements_[j][0]*U.Elements_[i][j];
+      }
+      X.Elements_[i][0]=X.Elements_[i][0]/U.Elements_[i][i];
+   }
+
+   delete [] Y;
+      
+   return X;
 }
 
 ostream& operator<<(ostream& out,const CMatrix& A)

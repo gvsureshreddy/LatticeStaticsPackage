@@ -6,6 +6,7 @@ VPATH = ./lib ./depend ./bin
 SRC_EXT    = .cpp
 OBJ_EXT    = .o
 DEP_EXT    = .d
+HDR_EXT    = .h
 
 # Compiling options, etc. #################################################
 #
@@ -25,7 +26,7 @@ LIB_LOC    = ${HOME}/lib
 LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE)
 
 # Defines the source files needed #########################################
-SOURCES  = Matrix.cpp Vector.cpp Vector3D.cpp CMatrix.cpp
+SOURCES  = Matrix.cpp Vector.cpp Vector3D.cpp CMatrix.cpp CVector.cpp
 
 # Defines the object files to be created using the SYSTEM name ############
 OBJECTS  = $(SOURCES:$(SRC_EXT)=$(OBJ_EXT))
@@ -50,14 +51,14 @@ $(OBJECTS): Makefile
 .PHONY: install uninstall
 # Define install
 install: $(EXE)
-	ar -r $(LIB_LOC)/libLinearAlgebra.a ./lib/Vector.o ./lib/Vector3D.o ./lib/Matrix.o ./lib/CMatrix.o; ranlib $(LIB_LOC)/libLinearAlgebra.a 
-	/bin/cp Vector.h Vector3D.h Matrix.h CMatrix.h $(INCL_LOC)
+	ar -r $(LIB_LOC)/libLinearAlgebra.a $(addprefix ./lib/,$(OBJECTS)); ranlib $(LIB_LOC)/libLinearAlgebra.a 
+	/bin/cp $(SOURCES:$(SRC_EXT)=$(HDR_EXT)) $(INCL_LOC)
 	/bin/cp bin/EigenSys $(BIN_LOC)
 
 # Define uninstall
 uninstall:
-	ar -d $(LIB_LOC)/libLinearAlgebra.a Vector.o Vector3D.o Matrix.o CMatrix.o; ranlib $(LIB_LOC)/libLinearAlgebra.a
-	/bin/rm -f $(INCL_LOC)/Vector.h $(INCL_LOC)/Vector3D.h $(INCL_LOC)/Matrix.h $(INCL_LOC)/CMatrix.h
+	ar -d $(LIB_LOC)/libLinearAlgebra.a $(OBJECTS); ranlib $(LIB_LOC)/libLinearAlgebra.a
+	/bin/rm -f $(addprefix $(INCL_LOC)/, $(SOURCES:$(SRC_EXT)=$(HDR_EXT)))
 	/bin/rm -f $(BIN_LOC)/EigenSys
 
 

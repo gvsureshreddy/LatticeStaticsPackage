@@ -88,7 +88,7 @@ public:
    
    CMatrix& SetIdentity(unsigned Size=0);
    CMatrix Transpose() const;
-   //CMatrix Inverse() const;
+   CMatrix Inverse() const;
    int IsSquare() const {return Rows_==Cols_;}
    int IsNull() const {return (Rows_==0 || Cols_==0);}
 
@@ -100,6 +100,9 @@ public:
 
    // Deterimnent
    Elm Det() const;
+   // Set P,L,U to the corresponding matricies of the PLU
+   //   decomposition of A
+   friend void PLU(const CMatrix& A,CMatrix& P,CMatrix& L,CMatrix& U);
 
    // Cholesky Decomposition of CMatrix
    // A=U.Transpose()*D*U
@@ -110,6 +113,10 @@ public:
    // Note: will fail if A has EigenValue of 0.0
    friend void Cholesky(const CMatrix& A,CMatrix& U,CMatrix& D);
 
+   // Return solution x of the linear system A*x=B
+   // Uses PLU decomposition and Forward and Backwards substitution
+   friend CMatrix SolvePLU(const CMatrix& A,const CMatrix& B);
+   
    // Output/Input Functions
    friend ostream& operator<<(ostream& out,const CMatrix& A);
    friend istream& operator>>(istream& in, CMatrix& A);
