@@ -10,7 +10,7 @@ class NiTiShuffleTPPLat : public Lattice
 private:
    double RefLen_;
    unsigned InfluanceDist_;
-   double Temp_;
+   double NTemp_;
    // DOF[i] = [U11 U22 U33 U12 U13 U12 S]
    Vector DOF_;
    Vector LatticeVec_[DIM3];
@@ -22,9 +22,10 @@ private:
    enum YDeriv {Y0,DY,D2Y,D3Y,D4Y};
    enum TDeriv {T0,DT};
    enum interaction {aa,bb,ab};
-   double A0_aa, B0_aa, Alpha_aa, Rref_aa, Tref_aa, Tmelt_aa;
-   double A0_bb, B0_bb, Alpha_bb, Rref_bb, Tref_bb, Tmelt_bb;
-   double A0_ab, B0_ab, Alpha_ab, Rref_ab, Tref_ab, Tmelt_ab;
+   double Tref_;
+   double A0_aa, B0_aa, Alpha_aa, Rref_aa, Tmelt_aa;
+   double A0_bb, B0_bb, Alpha_bb, Rref_bb, Tmelt_bb;
+   double A0_ab, B0_ab, Alpha_ab, Rref_ab, Tmelt_ab;
 
    // Misc
    double ConvexityDX_;
@@ -34,8 +35,8 @@ public:
    Vector DOF() {return DOF_;}
    Matrix StressDT();
    void SetDOF(const Vector &dof) { DOF_ = dof;}
-   double Temp() {return Temp_;}
-   void SetTemp(const double &temp) {Temp_ = temp;}
+   double Temp() {return NTemp_;}
+   void SetTemp(const double &Ntemp) {NTemp_ = Ntemp;}
    double RefLen() {return RefLen_;}
 
    // Virtual Functions required by Lattice

@@ -25,31 +25,29 @@ NiTiShuffleTPPLat::NiTiShuffleTPPLat(char *datafile)
    BodyForce_[3].Resize(DIM3,0.0);
 
    // Get Potential Parameters
+   GetParameter("^Tref",datafile,"%lf",&Tref_);
    GetParameter("^A0_aa",datafile,"%lf",&A0_aa);
    GetParameter("^B0_aa",datafile,"%lf",&B0_aa);
    GetParameter("^Alpha_aa",datafile,"%lf",&Alpha_aa);
    GetParameter("^Rref_aa",datafile,"%lf",&Rref_aa);
-   GetParameter("^Tref_aa",datafile,"%lf",&Tref_aa);
    GetParameter("Tmelt_aa",datafile,"%lf",&Tmelt_aa);
 
    GetParameter("^A0_bb",datafile,"%lf",&A0_bb);
    GetParameter("^B0_bb",datafile,"%lf",&B0_bb);
    GetParameter("^Alpha_bb",datafile,"%lf",&Alpha_bb);
    GetParameter("^Rref_bb",datafile,"%lf",&Rref_bb);
-   GetParameter("^Tref_bb",datafile,"%lf",&Tref_bb);
    GetParameter("Tmelt_bb",datafile,"%lf",&Tmelt_bb);
 
    GetParameter("^A0_ab",datafile,"%lf",&A0_ab);
    GetParameter("^B0_ab",datafile,"%lf",&B0_ab);
    GetParameter("^Alpha_ab",datafile,"%lf",&Alpha_ab);
    GetParameter("^Rref_ab",datafile,"%lf",&Rref_ab);
-   GetParameter("^Tref_ab",datafile,"%lf",&Tref_ab);
    GetParameter("Tmelt_ab",datafile,"%lf",&Tmelt_ab);
    
    // Get Lattice parameters
    GetParameter("^RefLen",datafile,"%lf",&RefLen_);
    GetParameter("^InfluanceDist",datafile,"%u",&InfluanceDist_);
-   GetParameter("^Temp",datafile,"%lf",&Temp_);
+   GetParameter("^NTemp",datafile,"%lf",&NTemp_);
    GetParameter("^Pressure",datafile,"%lf",&Pressure_);
    GetParameter("^ConvexityDX",datafile,"%lf",&ConvexityDX_);
    
@@ -72,10 +70,10 @@ NiTiShuffleTPPLat::NiTiShuffleTPPLat(char *datafile)
 int NiTiShuffleTPPLat::FindLatticeSpacing(int iter,double dx)
 {
    double oldPressure=Pressure_,
-      oldTemp=Temp_;
+      oldTemp=NTemp_;
 
    Pressure_=0.0;
-   Temp_=Tref_aa;
+   NTemp_=1.0;
    ShearMod_=1.0;
    DOF_[0] = DOF_[1] = DOF_[2] = 1.0;
    DOF_[3] = DOF_[4] = DOF_[5] = DOF_[6] = 0.0;
@@ -119,7 +117,7 @@ int NiTiShuffleTPPLat::FindLatticeSpacing(int iter,double dx)
    }
 
    ShearMod_ = fabs(Stiffness()[5][5]);
-   Temp_=oldTemp;
+   NTemp_=oldTemp;
    Pressure_=oldPressure;
    
    return 0;
@@ -130,34 +128,31 @@ int NiTiShuffleTPPLat::FindLatticeSpacing(int iter,double dx)
 
 inline double NiTiShuffleTPPLat::Beta(interaction inter,TDeriv dt)
 {
-   double B0,Alpha,Tref;
+   double B0,Alpha;
    
    switch (inter)
    {
       case aa:
 	 B0 = B0_aa;
 	 Alpha = Alpha_aa;
-	 Tref = Tref_aa;
 	 break;
       case bb:
 	 B0 = B0_bb;
 	 Alpha = Alpha_bb;
-	 Tref = Tref_bb;
 	 break;
       case ab:
 	 B0 = B0_ab;
 	 Alpha = Alpha_ab;
-	 Tref = Tref_ab;
 	 break;
    }
    
    switch (dt)
    {
       case T0:
-	 return B0*(1.0+Alpha*(Temp_-Tref)/(Tref));
+	 return B0*(1.0+Alpha*(NTemp_-1.0));
 	 break;
       case DT:
-	 return B0*Alpha/Tref;
+	 return B0*Alpha;
 	 break;
    }
 
@@ -168,19 +163,17 @@ inline double NiTiShuffleTPPLat::Beta(interaction inter,TDeriv dt)
 inline double NiTiShuffleTPPLat::Rhat(interaction inter,TDeriv dt)
 {
    double num,den,rhat;
-   double B0,Tref,Tmelt,Rref;
+   double B0,Tmelt,Rref;
 
    switch (inter)
    {
       case aa:
 	 B0 = B0_aa;
-	 Tref = Tref_aa;
 	 Tmelt = Tmelt_aa;
 	 Rref = Rref_aa;
 	 break;
       case bb:
 	 B0 = B0_bb;
-	 Tref = Tref_bb;
 	 Tmelt = Tmelt_bb;
 	 Rref = Rref_bb;
 	 break;
@@ -193,16 +186,16 @@ inline double NiTiShuffleTPPLat::Rhat(interaction inter,TDeriv dt)
    {
       case T0:
 	 num = 1.0 - (1.0/(2.0*B0))*
-	    log(1.0 - Temp_/(4.0*Tmelt));
+	    log(1.0 - NTemp_*Tref_/(4.0*Tmelt));
 	 break;
       case DT:
 	 num = -(1.0/(2.0*B0))*
-	    (1.0/(1.0 - Temp_/(4.0*Tmelt)))*(-1.0/(4.0*Tmelt));
+	    (1.0/(1.0 - NTemp_*Tref_/(4.0*Tmelt)))*(-Tref_/(4.0*Tmelt));
 	 break;
    }
 
    den = 1.0 - (1.0/(2.0*B0))*
-      log(1.0 - Tref/(4.0*Tmelt));
+      log(1.0 - Tref_/(4.0*Tmelt));
 
    rhat = Rref*(num/den);
 
@@ -242,14 +235,14 @@ double NiTiShuffleTPPLat::PairPotential(interaction inter,double r2,
 	 switch (dt)
 	 {
 	    case T0:
-	       val = A0*(1.0 - Temp_/(4.0*Tmelt))*Exp_temp*(Exp_temp - 2.0);
+	       val = A0*(1.0 - NTemp_*Tref_/(4.0*Tmelt))*Exp_temp*(Exp_temp - 2.0);
 	       break;
 	    case DT:
-	       val = -A0*(1.0/(4.0*Tmelt))*Exp_temp*(Exp_temp - 2.0)
-		  - 2.0*A0*(1.0 - Temp_/(4.0*Tmelt))*(Beta(inter,DT)
-						       *(r/rhat -1.0)
-							-beta*Rhat(inter,DT)
-							*(r/(rhat*rhat)))
+	       val = -A0*(Tref_/(4.0*Tmelt))*Exp_temp*(Exp_temp - 2.0)
+		  - 2.0*A0*(1.0 - NTemp_*Tref_/(4.0*Tmelt))*(Beta(inter,DT)
+							     *(r/rhat -1.0)
+							     -beta*Rhat(inter,DT)
+							     *(r/(rhat*rhat)))
 		  *Exp_temp*(Exp_temp - 1.0);
 	       break;
 	 }
@@ -258,14 +251,14 @@ double NiTiShuffleTPPLat::PairPotential(interaction inter,double r2,
 	 switch (dt)
 	 {
 	    case T0:
-	       val = -A0*(1.0 - Temp_/(4.0*Tmelt))
+	       val = -A0*(1.0 - NTemp_*Tref_/(4.0*Tmelt))
 		  *(beta/(r*rhat))
 		  *Exp_temp*(Exp_temp - 1.0);
 	       break;
 	    case DT:
-	       val = (A0/(4.0*Tmelt))*
+	       val = (A0*Tref_/(4.0*Tmelt))*
 		  (beta/(rhat*r))*Exp_temp*(Exp_temp - 1.0)
-		  + A0*(1.0 - Temp_/(4.0*Tmelt))*Exp_temp*
+		  + A0*(1.0 - NTemp_*Tref_/(4.0*Tmelt))*Exp_temp*
 		  (((beta*Rhat(inter,DT) - Beta(inter,DT)*rhat)/(rhat*rhat*r))*
 		   (Exp_temp - 1.0)
 		   +(beta/(rhat*r))*(Beta(inter,DT)*(r/rhat - 1.0)
@@ -278,20 +271,20 @@ double NiTiShuffleTPPLat::PairPotential(interaction inter,double r2,
 	 switch (dt)
 	 {
 	    case T0:
-	       val = A0*(1.0 -Temp_/(4.0*Tmelt))*(beta/(2.0*rhat*r2))
+	       val = A0*(1.0 - NTemp_*Tref_/(4.0*Tmelt))*(beta/(2.0*rhat*r2))
 		  *((beta/rhat + 1.0/r)*Exp_temp*(Exp_temp - 1.0)
 		    + (beta/rhat)*Exp_temp*Exp_temp);
 	       break;
 	    case DT:
-	       val = (-A0/(4.0*Tmelt))*(beta/(2*rhat*r2))
+	       val = (-A0*Tref_/(4.0*Tmelt))*(beta/(2*rhat*r2))
 		  *((beta/rhat + 1.0/r)*(Exp_temp*Exp_temp - Exp_temp)
 		    +(beta/rhat)*Exp_temp*Exp_temp)
-		  +A0*(1.0 - Temp_/(4.0*Tmelt))*((Beta(inter,DT)*rhat
-						    - beta*Rhat(inter,DT))/
-						   (2.0*rhat*rhat*r2))
+		  +A0*(1.0 - NTemp_*Tref_/(4.0*Tmelt))*((Beta(inter,DT)*rhat
+							 - beta*Rhat(inter,DT))/
+							(2.0*rhat*rhat*r2))
 		  *((beta/rhat + 1.0/r)*(Exp_temp*Exp_temp - Exp_temp)
 		    +(beta/rhat)*Exp_temp*Exp_temp)
-		  +A0*(1.0 - Temp_/(4.0*Tmelt))*(beta/(2.0*rhat*r2))
+		  +A0*(1.0 - NTemp_*Tref_/(4.0*Tmelt))*(beta/(2.0*rhat*r2))
 		  *(((Beta(inter,DT)*rhat - beta*Rhat(inter,DT))/(rhat*rhat))*
 		    (2.0*Exp_temp*Exp_temp - Exp_temp)
 		    +(beta*Rhat(inter,DT)*r/(rhat*rhat)
@@ -306,7 +299,7 @@ double NiTiShuffleTPPLat::PairPotential(interaction inter,double r2,
 	 switch (dt)
 	 {
 	    case T0:
-	       val = -A0*(1.0 - Temp_/(4.0*Tmelt))*(beta/(2.0*rhat*r2))
+	       val = -A0*(1.0 - NTemp_*Tref_/(4.0*Tmelt))*(beta/(2.0*rhat*r2))
 		  *((3.0*beta/(2.0*rhat*r2) + 3.0/(2.0*r2*r) + beta*beta
 		     /(2.0*rhat*rhat*r))*Exp_temp*(Exp_temp - 1.0)
 		    +(3.0*beta/(2.0*rhat*r2) + 3.0*beta*beta/(2.0*rhat*rhat*r))
@@ -322,7 +315,7 @@ double NiTiShuffleTPPLat::PairPotential(interaction inter,double r2,
 	 switch (dt)
 	 {
 	    case T0:
-	       val = A0*(1.0 - Temp_/(4.0*Tmelt))*(beta/(2.0*rhat*r2))
+	       val = A0*(1.0 - NTemp_*Tref_/(4.0*Tmelt))*(beta/(2.0*rhat*r2))
 		  *Exp_temp*((15.0/(4.0*r2*r2*r))*(Exp_temp - 1.0)
 			     +(15.0*beta/(4.0*rhat*r2*r2))*(2.0*Exp_temp - 1.0)
 			     +(6.0*beta*beta/(4.0*rhat*rhat*r2*r))
@@ -980,13 +973,13 @@ void NiTiShuffleTPPLat::Print(ostream &out,PrintDetail flag)
 	 out << "NiTiShuffleTPPLat:" << endl << endl
 	     << "Cell Reference Length: " << setw(W) << RefLen_ << endl
 	     << "Influance Distance   : " << setw(W) << InfluanceDist_ << endl
+	     << "Reference Temperature: " << setw(W) << Tref_ << endl
 	     << "Potential Parameters : "
 	     << "A0_aa=  " << setw(W) << A0_aa
 	     << "; B0_aa=  " << setw(W) << B0_aa
 	     << "; Alpha_aa=" << setw(W) << Alpha_aa << endl
 	     << "                       "
 	     << "Rref_aa=" << setw(W) << Rref_aa
-	     << "; Tref_aa=" << setw(W) << Tref_aa
 	     << "; Tmelt_aa=" << setw(W) << Tmelt_aa << endl
 	     << "                       "
 	     << "A0_bb=  " << setw(W) << A0_bb
@@ -994,7 +987,6 @@ void NiTiShuffleTPPLat::Print(ostream &out,PrintDetail flag)
 	     << "; Alpha_bb=" << setw(W) << Alpha_bb << endl
 	     << "                       "
 	     << "Rref_bb=" << setw(W) << Rref_bb
-	     << "; Tref_bb=" << setw(W) << Tref_bb
 	     << "; Tmelt_bb=" << setw(W) << Tmelt_bb << endl
 	     << "                       "
 	     << "A0_ab=  " << setw(W) << A0_ab
@@ -1002,12 +994,11 @@ void NiTiShuffleTPPLat::Print(ostream &out,PrintDetail flag)
 	     << "; Alpha_ab=" << setw(W) << Alpha_ab << endl
 	     << "                       "
 	     << "Rref_ab=" << setw(W) << Rref_ab
-	     << "; Tref_ab=" << setw(W) << Tref_ab
 	     << "; Tmelt_ab=" << setw(W) << Tmelt_ab << endl
 	     << "Shear Modulus : " << setw(W) << ShearMod_ << endl;
 	 // passthrough to short
       case PrintShort:
-	 out << "Temperature : " << setw(W) << Temp_ << endl
+	 out << "Temperature (Normalized): " << setw(W) << NTemp_ << endl
 	     << "Pressure (Normalized): " << setw(W) << Pressure_ << endl
 	     << "DOF's :" << endl << setw(W) << DOF_ << endl
 	     << "Potential Value (Normalized):" << setw(W) << Energy() << endl
