@@ -46,7 +46,7 @@ PairPotentials* InitializePairPotential(char *datafile,int i,int j)
 	 GetParameter(tmp,datafile,"%lf",&Alpha);
 	 sprintf(tmp,"^Rref_%u_%u",i,j);
 	 GetParameter(tmp,datafile,"%lf",&Rref);
-	 sprintf(tmp,"^Rtheta_%u_%u",i,j);
+	 sprintf(tmp,"^Tmelt_%u_%u",i,j);
 	 GetParameter(tmp,datafile,"%lf",&Tmelt);
 	 
 	 return new TempMorse(A0,B0,Alpha,Rref,Tref,Tmelt);
