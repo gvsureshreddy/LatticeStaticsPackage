@@ -278,8 +278,8 @@ double ScanningSolution::ScanningNewton(int &good)
    }
 
    // Iterate until convergence
-   while ((dx.Norm() > NewtonTolerance_*Mode_->ScanningDef().Norm()) &&
-	  (itr < MaxIter_))
+   // 1/05 changed from relative criterion to absolute stopping criterion 
+   while ((dx.Norm() > NewtonTolerance_) && (itr < MaxIter_))
    {
       itr++;
 
