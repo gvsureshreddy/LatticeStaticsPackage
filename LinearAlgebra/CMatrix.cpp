@@ -6,7 +6,7 @@
 #include <cmath>
 
 // Global IDString
-char CMatrixID[]="$Id: CMatrix.cpp,v 1.11 2004/08/24 19:38:00 elliottr Exp $";
+char CMatrixID[]="$Id: CMatrix.cpp,v 1.12 2005/03/16 22:55:18 elliott Exp $";
 
 // Private Methods...
 
@@ -152,20 +152,18 @@ CMatrix operator+(const CMatrix& A,const CMatrix& B)
 	   << endl;
       exit(-1);
    }
-   else
+
+   CMatrix C(A.Rows_,A.Cols_);
+   
+   for (register int i=0;i<A.Rows_;i++)
    {
-      CMatrix C(A.Rows_,A.Cols_);
-
-      for (register int i=0;i<A.Rows_;i++)
+      for (register int j=0;j<A.Cols_;j++)
       {
-	 for (register int j=0;j<A.Cols_;j++)
-	 {
-	    C.Elements_[i][j]=A.Elements_[i][j]+B.Elements_[i][j];
-	 }
+	 C.Elements_[i][j]=A.Elements_[i][j]+B.Elements_[i][j];
       }
-
-      return C;
    }
+   
+   return C;
 }
 
 CMatrix operator-(const CMatrix& A)
@@ -191,20 +189,18 @@ CMatrix operator-(const CMatrix& A,const CMatrix& B)
 	   << endl;
       exit(-1);
    }
-   else
+      
+   CMatrix C(A.Rows_,A.Cols_);
+   
+   for (register int i=0;i<A.Rows_;i++)
    {
-      CMatrix C(A.Rows_,A.Cols_);
-
-      for (register int i=0;i<A.Rows_;i++)
+      for (register int j=0;j<A.Cols_;j++)
       {
-	 for (register int j=0;j<A.Cols_;j++)
-	 {
-	    C.Elements_[i][j]=A.Elements_[i][j]-B.Elements_[i][j];
-	 }
+	 C.Elements_[i][j]=A.Elements_[i][j]-B.Elements_[i][j];
       }
-
-      return C;
    }
+   
+   return C;
 }
 
 CMatrix operator*(const CMatrix& A,const CMatrix& B)
@@ -215,23 +211,21 @@ CMatrix operator*(const CMatrix& A,const CMatrix& B)
 	   <<endl;
       exit(-1);
    }
-   else
+
+   CMatrix C(A.Rows_,B.Cols_,0.0);
+   
+   for (register int i=0;i<A.Rows_;i++)
    {
-      CMatrix C(A.Rows_,B.Cols_,0.0);
-      
-      for (register int i=0;i<A.Rows_;i++)
+      for (register int j=0;j<B.Cols_;j++)
       {
-	 for (register int j=0;j<B.Cols_;j++)
+	 for (register int k=0;k<A.Cols_;k++)
 	 {
-	    for (register int k=0;k<A.Cols_;k++)
-	    {
-	       C.Elements_[i][j]+=A.Elements_[i][k]*B.Elements_[k][j];
-	    }
+	    C.Elements_[i][j]+=A.Elements_[i][k]*B.Elements_[k][j];
 	 }
       }
-
-      return C;
    }
+   
+   return C;
 }
 
 CMatrix operator*(const CMatrix::Elm& A,const CMatrix& B)
@@ -289,24 +283,24 @@ CMatrix operator/(const CMatrix& A,const CMatrix::Elm& B)
 #ifdef CHECK_BOUNDS
 CMatrix::Elm* CMatrix::operator[](unsigned i)
 {
-   if (i < Rows_)
-      return Elements_[i];
-   else
+   if (i >= Rows_)
    {
       cerr << "CMatrix Index Overflow -- CMatrix::Elm* operator[]()" << endl;
       exit(-1);
    }
+
+   return Elements_[i];
 }
 
 CMatrix::Elm* CMatrix::operator[](unsigned i) const
 {
-   if (i < Rows_)
-      return Elements_[i];
-   else
+   if (i >= Rows_)
    {
       cerr << "CMatrix Index Overflow -- CMatrix::Elm* operator[]()" << endl;
       exit(-1);
    }
+
+   return Elements_[i];
 }
 #endif
    
@@ -681,15 +675,13 @@ Matrix HermiteEigVal(CMatrix A,CMatrix *B,const int MaxItr,const double Tol)
       cerr << "Error: HermiteEigVal(): Failed - No convergence!" << endl;
       exit(-1);
    }
-   else
-   {
-      for (int i=0;i<A.Cols_;i++)
-      {
-	 EigVals[0][i] = real(A.Elements_[i][i]);
-      }
 
-      return EigVals;
+   for (int i=0;i<A.Cols_;i++)
+   {
+      EigVals[0][i] = real(A.Elements_[i][i]);
    }
+   
+   return EigVals;
 }
 
 void Cholesky(const CMatrix& A,CMatrix& U,CMatrix& D)

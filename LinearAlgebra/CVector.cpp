@@ -7,7 +7,7 @@
 #include "Matrix.h"
 
 // Global IDString
-char CVectorID[]="$Id: CVector.cpp,v 1.2 2004/08/24 19:38:00 elliottr Exp $";
+char CVectorID[]="$Id: CVector.cpp,v 1.3 2005/03/16 22:55:19 elliott Exp $";
 
 // Private Functions...
 
@@ -184,17 +184,15 @@ CVector operator+(const CVector& A,const CVector& B)
 	   << endl;
       exit(-1);
    }
-   else
+
+   CVector C(A.Cols_);
+   
+   for (register int j=0;j<A.Cols_;j++)
    {
-      CVector C(A.Cols_);
-
-      for (register int j=0;j<A.Cols_;j++)
-      {
-	 C.Elements_[j]=A.Elements_[j]+B.Elements_[j];
-      }
-
-      return C;
-   }   
+      C.Elements_[j]=A.Elements_[j]+B.Elements_[j];
+   }
+   
+   return C;
 }
 
 CVector operator-(const CVector& A,const CVector& B)
@@ -205,17 +203,15 @@ CVector operator-(const CVector& A,const CVector& B)
 	   << endl;
       exit(-1);
    }
-   else
+
+   CVector C(A.Cols_);
+   
+   for (register int j=0;j<A.Cols_;j++)
    {
-      CVector C(A.Cols_);
-
-      for (register int j=0;j<A.Cols_;j++)
-      {
-	 C.Elements_[j]=A.Elements_[j]-B.Elements_[j];
-      }
-
-      return C;
+      C.Elements_[j]=A.Elements_[j]-B.Elements_[j];
    }
+   
+   return C;
 }
 
 CVector operator-(const CVector& A)
@@ -256,20 +252,18 @@ CVector operator*(const CMatrix& A,const CVector& B)
 	   <<endl;
       exit(-1);
    }
-   else
-   {
-      CVector C(A.Rows(),0);
-      
-      for (register int i=0;i<A.Rows();i++)
-      {
-	 for (register int k=0;k<B.Cols_;k++)
-	 {
-	    C.Elements_[i]+=A[i][k]*B.Elements_[k];
-	 }
-      }
 
-      return C;
+   CVector C(A.Rows(),0);
+   
+   for (register int i=0;i<A.Rows();i++)
+   {
+      for (register int k=0;k<B.Cols_;k++)
+      {
+	 C.Elements_[i]+=A[i][k]*B.Elements_[k];
+      }
    }
+   
+   return C;
 }
 
 CVector operator*(const CVector& A,const CMatrix& B)
@@ -280,20 +274,18 @@ CVector operator*(const CVector& A,const CMatrix& B)
 	   <<endl;
       exit(-1);
    }
-   else
-   {
-      CVector C(A.Cols_,0);
-      
-      for (register int i=0;i<B.Cols();i++)
-      {
-	 for (register int k=0;k<A.Cols_;k++)
-	 {
-	    C.Elements_[i]+=A.Elements_[k]*B[k][i];
-	 }
-      }
 
-      return C;
+   CVector C(A.Cols_,0);
+   
+   for (register int i=0;i<B.Cols();i++)
+   {
+      for (register int k=0;k<A.Cols_;k++)
+      {
+	 C.Elements_[i]+=A.Elements_[k]*B[k][i];
+      }
    }
+   
+   return C;
 }
 
 CVector operator*(const CVector::Elm& A,const CVector& B)
@@ -335,30 +327,26 @@ CVector operator/(const CVector& A,const CVector::Elm& B)
 #ifdef CHECK_BOUNDS
 CVector::Elm& CVector::operator[](const unsigned& i)
 {
-   if (i<Cols_)
-   {
-      return Elements_[i];
-   }
-   else
+   if (i>=Cols_)
    {
       cerr << "Error in CVector::operator[]() -- Index Overflow"
 	   << endl;
       exit(-1);
    }
+
+   return Elements_[i];
 }
 
 const CVector::Elm CVector::operator[](const unsigned& i) const
 {
-   if (i<Cols_)
-   {
-      return Elements_[i];
-   }
-   else
+   if (i>=Cols_)
    {
       cerr << "Error in CVector::operator[]() -- Index Overflow"
 	   << endl;
       exit(-1);
    }
+
+   return Elements_[i];
 }
 #endif
 

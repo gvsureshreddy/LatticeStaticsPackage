@@ -11,21 +11,31 @@ BUILD_DATE = \"`date +%c`\"
 
 # Compiling options, etc. #################################################
 #
-CC         = g++
-ANSI       = -ansi -pedantic
+gCC        = g++
+
+# gCC compiler
+#CC         = $(gCC)
+#OPTIMIZE   = -O
+#ANSI       = -pedantic
+
+# PGI compiler
+CC         = pgCC
+OPTIMIZE   = -fast -Minline=levels:10 --no_exceptions
+#ANSI       = -A
+
+# general options 
 #PURE       = purify
 #PROFILE    = -pg
 #DEBUG      = -g
 BOUNDS     = -DCHECK_BOUNDS
 DATE_DEF   = -DBUILD_DATE="$(BUILD_DATE)"
-OPTIMIZE   = -O
 CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS)
 
 # File Locations ##########################################################
 BIN_LOC    = ${HOME}/bin
 INCL_LOC   = ${HOME}/include
 LIB_LOC    = ${HOME}/lib
-LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(DATE_DEF)
+LFLAGS     = $(DATE_DEF)
 
 # Defines the source files needed #########################################
 SOURCES  = Matrix.cpp Vector.cpp Vector3D.cpp CMatrix.cpp CVector.cpp
@@ -37,14 +47,19 @@ all : $(OBJECTS) EigenSys HermiteEigenSys matrixtest
 .PHONY: all
 
 matrixtest : $(OBJECTS) matrixtest.cpp
-	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ $(LFLAGS) -o ./bin/matrixtest ./matrixtest.cpp \
-	$(addprefix ./lib/,$(OBJECTS))
+	$(CC) $(CCFLAGS) -I. -I $(INCL_LOG)/ -o ./lib/$@.o -c ./matrixtest.cpp
+	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ $(LFLAGS) -o ./bin/matrixtest \
+	./lib/matrixtest.o $(addprefix ./lib/,$(OBJECTS))
 
 EigenSys : $(OBJECTS) EigenSys.cpp
-	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ $(LFLAGS) -o ./bin/EigenSys ./EigenSys.cpp ./lib/Matrix.o
+	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o ./lib/$@.o -c ./EigenSys.cpp
+	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ $(LFLAGS) -o ./bin/EigenSys \
+	./lib/EigenSys.o ./lib/Matrix.o
 
 HermiteEigenSys : $(OBJECTS) HermiteEigenSys.cpp
-	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ $(LFLAGS) -o ./bin/HermiteEigenSys ./HermiteEigenSys.cpp ./lib/CMatrix.o ./lib/Matrix.o
+	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o ./lib/$@.o -c ./HermiteEigenSys.cpp
+	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ $(LFLAGS) -o ./bin/HermiteEigenSys \
+	./lib/HermiteEigenSys.o ./lib/CMatrix.o ./lib/Matrix.o
 
 # include the dependicies
 include $(addprefix ./depend/,$(OBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
@@ -77,12 +92,14 @@ uninstall:
 .PHONY: clean
 
 clean:
-	 -/bin/rm -f $(addprefix ./lib/,$(OBJECTS)) core *~ \
-		  bin/matrixtest bin/EigenSys bin/HermiteEigenSys ./depend/*.d
+	 -/bin/rm -f $(addprefix ./lib/,$(OBJECTS)) \
+	$(addprefix ./lib/,$(OBJECTS:$(OBJ_EXT)=.ti)) core *~ \
+	lib/matrixtest.* lib/EigenSys.* lib/HermiteEigenSys.* \
+	bin/matrixtest  bin/EigenSys bin/HermiteEigenSys ./depend/*.d
 
 # Define rule for dependicy files
 depend/%.d: %$(SRC_EXT)
-	@$(SHELL) -ec '$(CC) -MM $(CCFLAGS) -I. -I $(INCL_LOC)/ $< \
+	@$(SHELL) -ec '$(gCC) -MM -I. -I $(INCL_LOC)/ $< \
 	      | sed '\''s/\($*\)\.o[ :]*/\1.o $*.d : /g'\'' > $@; \
 	      [ -s $@ ] || rm -f $@'
 	@echo "Building $@"

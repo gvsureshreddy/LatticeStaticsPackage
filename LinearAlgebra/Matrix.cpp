@@ -6,7 +6,7 @@
 #include <cstdlib>
 
 // Global IDString
-char MatrixID[]="$Id: Matrix.cpp,v 1.13 2004/08/24 19:38:00 elliottr Exp $";
+char MatrixID[]="$Id: Matrix.cpp,v 1.14 2005/03/16 22:55:19 elliott Exp $";
 
 // Private Methods...
 
@@ -147,20 +147,18 @@ Matrix operator+(const Matrix& A,const Matrix& B)
 	   << endl;
       exit(-1);
    }
-   else
+
+   Matrix C(A.Rows_,A.Cols_);
+   
+   for (register int i=0;i<A.Rows_;i++)
    {
-      Matrix C(A.Rows_,A.Cols_);
-
-      for (register int i=0;i<A.Rows_;i++)
+      for (register int j=0;j<A.Cols_;j++)
       {
-	 for (register int j=0;j<A.Cols_;j++)
-	 {
-	    C.Elements_[i][j]=A.Elements_[i][j]+B.Elements_[i][j];
-	 }
+	 C.Elements_[i][j]=A.Elements_[i][j]+B.Elements_[i][j];
       }
-
-      return C;
    }
+   
+   return C;
 }
 
 Matrix operator-(const Matrix& A)
@@ -186,20 +184,18 @@ Matrix operator-(const Matrix& A,const Matrix& B)
 	   << endl;
       exit(-1);
    }
-   else
+
+   Matrix C(A.Rows_,A.Cols_);
+   
+   for (register int i=0;i<A.Rows_;i++)
    {
-      Matrix C(A.Rows_,A.Cols_);
-
-      for (register int i=0;i<A.Rows_;i++)
+      for (register int j=0;j<A.Cols_;j++)
       {
-	 for (register int j=0;j<A.Cols_;j++)
-	 {
-	    C.Elements_[i][j]=A.Elements_[i][j]-B.Elements_[i][j];
-	 }
+	 C.Elements_[i][j]=A.Elements_[i][j]-B.Elements_[i][j];
       }
-
-      return C;
-   }
+      }
+   
+   return C;
 }
 
 Matrix operator*(const Matrix& A,const Matrix& B)
@@ -210,23 +206,21 @@ Matrix operator*(const Matrix& A,const Matrix& B)
 	   <<endl;
       exit(-1);
    }
-   else
+
+   Matrix C(A.Rows_,B.Cols_,0);
+   
+   for (register int i=0;i<A.Rows_;i++)
    {
-      Matrix C(A.Rows_,B.Cols_,0);
-      
-      for (register int i=0;i<A.Rows_;i++)
+      for (register int j=0;j<B.Cols_;j++)
       {
-	 for (register int j=0;j<B.Cols_;j++)
+	 for (register int k=0;k<A.Cols_;k++)
 	 {
-	    for (register int k=0;k<A.Cols_;k++)
-	    {
-	       C.Elements_[i][j]+=A.Elements_[i][k]*B.Elements_[k][j];
-	    }
+	    C.Elements_[i][j]+=A.Elements_[i][k]*B.Elements_[k][j];
 	 }
       }
-
-      return C;
    }
+   
+   return C;
 }
 
 Matrix operator*(const Matrix::Elm& A,const Matrix& B)
@@ -284,24 +278,24 @@ Matrix operator/(const Matrix& A,const Matrix::Elm& B)
 #ifdef CHECK_BOUNDS
 Matrix::Elm* Matrix::operator[](unsigned i)
 {
-   if (i < Rows_)
-      return Elements_[i];
-   else
+   if (i >= Rows_)
    {
       cerr << "Matrix Index Overflow -- Matrix::Elm* operator[]()" << endl;
       exit(-1);
    }
+
+   return Elements_[i];
 }
 
 Matrix::Elm* Matrix::operator[](unsigned i) const
 {
    if (i < Rows_)
-      return Elements_[i];
-   else
    {
       cerr << "Matrix Index Overflow -- Matrix::Elm* operator[]()" << endl;
       exit(-1);
    }
+
+   return Elements_[i];
 }
 #endif
    
@@ -957,13 +951,11 @@ Matrix SymEigVal(Matrix A,Matrix *B,const int MaxItr,const double Tol)
       cerr << "Error: SymEigVal(): Failed - No convergence!" << endl;
       exit(-1);
    }
-   else
-   {
-      for (int i=0;i<A.Cols_;i++)
-	 EigVals.Elements_[0][i] = A.Elements_[i][i];
 
-      return EigVals;
-   }
+   for (int i=0;i<A.Cols_;i++)
+      EigVals.Elements_[0][i] = A.Elements_[i][i];
+   
+   return EigVals;
 }
 
 void Cholesky(const Matrix& A,Matrix& U,Matrix& D)
@@ -1059,9 +1051,7 @@ Matrix SolveSVD(const Matrix& A,const Matrix& B,
       U,W,V;
    Matrix x(B.Rows_,B.Cols_);
 
-   Matrix::Elm ConditionNumber;
-
-   ConditionNumber=SVD(A,U,W,V,MaxCond,PrintFlag);
+   SVD(A,U,W,V,MaxCond,PrintFlag);
 
    int jj,j,i;
    Matrix::Elm s,*tmp;

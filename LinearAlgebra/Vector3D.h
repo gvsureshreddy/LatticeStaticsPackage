@@ -81,7 +81,7 @@ public:
    // Element Access methods
    inline Elm& operator[](const unsigned& i) {return Elements_[i];}
       
-   inline const Elm operator[](const unsigned& i) const {return Elements_[i];}
+   inline Elm operator[](const unsigned& i) const {return Elements_[i];}
 
    // Assignment Operatons
 

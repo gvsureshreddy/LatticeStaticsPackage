@@ -65,7 +65,7 @@ public:
 #else
    // Without Bounds Checking!!!
    inline Elm& operator[](const unsigned& i) {return Elements_[i];}
-   inline const Elm operator[](const unsigned& i) const {return Elements_[i];}
+   inline Elm operator[](const unsigned& i) const {return Elements_[i];}
 #endif
    
    // Assignment Operatons

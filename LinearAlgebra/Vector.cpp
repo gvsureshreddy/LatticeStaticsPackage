@@ -5,7 +5,7 @@
 #include <cmath>
 
 // Global IDString
-char VectorID[]="$Id: Vector.cpp,v 1.11 2004/08/24 19:38:00 elliottr Exp $";
+char VectorID[]="$Id: Vector.cpp,v 1.12 2005/03/16 22:55:19 elliott Exp $";
 
 // Private Functions...
 
@@ -140,7 +140,8 @@ Vector operator+(const Vector& A,const Vector& B)
       }
 
       return C;
-   }   
+   }
+   return Vector(); // dummy statement to avoid warning
 }
 
 Vector operator-(const Vector& A,const Vector& B)
@@ -162,6 +163,7 @@ Vector operator-(const Vector& A,const Vector& B)
 
       return C;
    }
+   return Vector(); // dummy statement to avoid warning
 }
 
 Vector operator-(const Vector& A)
@@ -238,6 +240,7 @@ Vector operator*(const Matrix& A,const Vector& B)
 
       return C;
    }
+   return Vector(); // dummy statement to avoid warning
 }
 
 Vector operator*(const Vector& A,const Matrix& B)
@@ -262,6 +265,7 @@ Vector operator*(const Vector& A,const Matrix& B)
 
       return C;
    }
+   return Vector(); // dummy statement to avoid warning
 }
 
 Vector operator*(const Vector::Elm& A,const Vector& B)
@@ -303,30 +307,24 @@ Vector operator/(const Vector& A,const Vector::Elm& B)
 #ifdef CHECK_BOUNDS
 Vector::Elm& Vector::operator[](const unsigned& i)
 {
-   if (i<Cols_)
-   {
-      return Elements_[i];
-   }
-   else
+   if (i>=Cols_)
    {
       cerr << "Error in Vector::operator[]() -- Index Overflow"
 	   << endl;
       exit(-1);
    }
+   return Elements_[i];
 }
 
-const Vector::Elm Vector::operator[](const unsigned& i) const
+Vector::Elm Vector::operator[](const unsigned& i) const
 {
-   if (i<Cols_)
-   {
-      return Elements_[i];
-   }
-   else
+   if (i>=Cols_)
    {
       cerr << "Error in Vector::operator[]() -- Index Overflow"
 	   << endl;
       exit(-1);
    }
+   return Elements_[i];
 }
 #endif
 

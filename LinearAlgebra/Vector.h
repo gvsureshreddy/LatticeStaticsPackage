@@ -60,11 +60,11 @@ public:
 #ifdef CHECK_BOUNDS
    // With Bounds checking!!!
    Elm& operator[](const unsigned& i);
-   const Elm operator[](const unsigned& i) const;
+   Elm operator[](const unsigned& i) const;
 #else
    // Without Bounds Checking!!!
    inline Elm& operator[](const unsigned& i) {return Elements_[i];}
-   inline const Elm operator[](const unsigned& i) const {return Elements_[i];}
+   inline Elm operator[](const unsigned& i) const {return Elements_[i];}
 #endif
    
    // Assignment Operatons
