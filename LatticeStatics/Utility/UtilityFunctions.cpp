@@ -2,7 +2,7 @@
 
 
 int GetParameter(const char *prefix,const char *tag,const char *datafile,
-		 const char *scanffmt,void *parameter)
+		 const char *scanffmt,void *parameter,int DispErr)
 {
    char command[LINELENGTH];
    FILE *pipe;
@@ -12,7 +12,7 @@ int GetParameter(const char *prefix,const char *tag,const char *datafile,
    fscanf(pipe,scanffmt,parameter);
    if (pclose(pipe))
    {
-      Errfun(tag);
+      if (DispErr) Errfun(tag);
       return 0;
    }
    else
@@ -21,7 +21,8 @@ int GetParameter(const char *prefix,const char *tag,const char *datafile,
    }
 }
 
-int GetVectorParameter(const char *prefix,const char *tag,const char *datafile,Vector *V)
+int GetVectorParameter(const char *prefix,const char *tag,const char *datafile,Vector *V,
+		       int DispErr)
 {
    char command[LINELENGTH];
    FILE *pipe;
@@ -34,7 +35,7 @@ int GetVectorParameter(const char *prefix,const char *tag,const char *datafile,V
    }
    if (pclose(pipe))
    {
-      Errfun(tag);
+      if (DispErr) Errfun(tag);
       return 0;
    }
    else
@@ -44,7 +45,7 @@ int GetVectorParameter(const char *prefix,const char *tag,const char *datafile,V
 }
 
 int GetIntVectorParameter(const char *prefix,const char *tag,
-			  const char *datafile,int N,int *Vec)
+			  const char *datafile,int N,int *Vec,int DispErr)
 {
    char command[LINELENGTH];
    FILE *pipe;
@@ -57,7 +58,7 @@ int GetIntVectorParameter(const char *prefix,const char *tag,
    }
    if (pclose(pipe))
    {
-      Errfun(tag);
+      if (DispErr) Errfun(tag);
       return 0;
    }
    else
@@ -66,7 +67,8 @@ int GetIntVectorParameter(const char *prefix,const char *tag,
    }
 }
 
-int GetMatrixParameter(const char *prefix,const char *tag,const char *datafile,Matrix *M)
+int GetMatrixParameter(const char *prefix,const char *tag,const char *datafile,Matrix *M,
+		       int DispErr)
 {
    char command[LINELENGTH];
    FILE *pipe;
@@ -82,7 +84,7 @@ int GetMatrixParameter(const char *prefix,const char *tag,const char *datafile,M
    }
    if (pclose(pipe))
    {
-      Errfun(tag);
+      if (DispErr) Errfun(tag);
       return 0;
    }
    else
@@ -92,11 +94,11 @@ int GetMatrixParameter(const char *prefix,const char *tag,const char *datafile,M
 }
 
 int GetStringParameter(const char *prefix,const char *tag,const char *datafile,
-		       const char *choices[],const unsigned numb)
+		       const char *choices[],const unsigned numb,int DispErr)
 {
    int i;
    char strng[LINELENGTH];
-   if (!GetParameter(prefix,tag,datafile,"%s",strng)) exit(-1);
+   if (!GetParameter(prefix,tag,datafile,"%s",strng,DispErr)) exit(-1);
    for (i=numb-1;i>=0;i--)
    {
       if (!strcasecmp(strng,choices[i]))

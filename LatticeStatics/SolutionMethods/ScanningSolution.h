@@ -9,6 +9,7 @@ class Lattice;
 class ScanningSolution : public SolutionMethod
 {
 private:
+   int Echo_;
    LatticeMode *Mode_;
    unsigned MaxIter_;
    double Tolerance_;
@@ -35,7 +36,7 @@ private:
    void InitializeLine();
 
 public:
-   ScanningSolution(LatticeMode *Mode,char *datafile,const char *prefix);
+   ScanningSolution(LatticeMode *Mode,char *datafile,const char *prefix,int Echo=1);
    ~ScanningSolution() {}
 
    // Functions required by SolutionMethod

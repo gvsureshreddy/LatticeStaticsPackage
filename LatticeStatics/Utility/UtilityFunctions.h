@@ -14,15 +14,15 @@
 
 // Utility function definitions
 int GetParameter(const char *prefix,const char *tag,const char *datafile,
-		 const char *scanffmt,void *parameter);
+		 const char *scanffmt,void *parameter,int DispErr=1);
 int GetVectorParameter(const char *prefix,const char *tag,
-		       const char *datafile,Vector *V);
+		       const char *datafile,Vector *V,int DispErr=1);
 int GetIntVectorParameter(const char *prefix,const char *tag,
-			  const char *datafile,int N,int *Vec);
+			  const char *datafile,int N,int *Vec,int DispErr=1);
 int GetMatrixParameter(const char *prefix,const char *tag,
-		       const char *datafile,Matrix *M);
+		       const char *datafile,Matrix *M,int DispErr=1);
 int GetStringParameter(const char *prefix,const char *tag,const char *datafile,
-		       const char *choices[],const unsigned numb);
+		       const char *choices[],const unsigned numb,int DispErr=1);
 void SetPerlCommand(char *string,const char *datafile,const char *prefix,
 		    const char *tag);
 void Errfun(const char *string);

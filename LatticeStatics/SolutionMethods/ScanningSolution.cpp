@@ -3,8 +3,9 @@
 
 #include "UtilityFunctions.h"
 
-ScanningSolution::ScanningSolution(LatticeMode *Mode,char *datafile,const char *prefix)
-   : Mode_(Mode)
+ScanningSolution::ScanningSolution(LatticeMode *Mode,char *datafile,const char *prefix,
+				   int Echo)
+   : Mode_(Mode), Echo_(Echo)
 {
    FILE *pipe;
 
@@ -147,7 +148,7 @@ double ScanningSolution::FindNextSolution(int &good)
 	    return uncertainty;
 	 }
 	 
-	 cout << Mode_->ScanningLoadParameter();
+	 if (Echo_) cout << Mode_->ScanningLoadParameter();
       }
       else
       {
@@ -161,9 +162,9 @@ double ScanningSolution::FindNextSolution(int &good)
 	    return uncertainty;
 	 }
 	 
-	 cout << Mode_->ScanningDefParameter();
+	 if (Echo_) cout << Mode_->ScanningDefParameter();
       }
-      cout << "\t" << Mode_->ScanningStressParameter() << endl;
+      if (Echo_) cout << "\t" << Mode_->ScanningStressParameter() << endl;
 
       if (Direction_ == Loading)
 	 Mode_->ScanningLoadParamUpdate(-LineStep_);
@@ -182,11 +183,14 @@ double ScanningSolution::FindNextSolution(int &good)
    while ((fabs(Mode_->ScanningStressParameter()) > Tolerance_)
 	  && (iteration < MaxIter_))
    {
-      if (Direction_ == Loading)
-	 cout << Mode_->ScanningLoadParameter();
-      else
-	 cout << Mode_->ScanningDefParameter();
-      cout << "\t" << Mode_->ScanningStressParameter() << endl;
+      if (Echo_)
+      {
+	 if (Direction_ == Loading)
+	    cout << Mode_->ScanningLoadParameter();
+	 else
+	    cout << Mode_->ScanningDefParameter();
+	 cout << "\t" << Mode_->ScanningStressParameter() << endl;
+      }
 
       iteration++;
 
@@ -255,7 +259,7 @@ double ScanningSolution::ScanningNewton(int &good)
 #ifdef SOLVE_SVD
    dx = SolveSVD(Mode_->ScanningStiffness(),
 		 RHS,
-		 MAXCONDITION,1);
+		 MAXCONDITION,Echo_);
 #else
    dx = SolvePLU(Mode_->ScanningStiffness(),RHS);
 #endif
@@ -280,13 +284,13 @@ double ScanningSolution::ScanningNewton(int &good)
 #ifdef SOLVE_SVD
       dx=SolveSVD(Mode_->ScanningStiffness(),
 		  Mode_->ScanningRHS(),
-		  MAXCONDITION,1);
+		  MAXCONDITION,Echo_);
 #else
       dx=SolvePLU(Mode_->ScanningStiffness(),Mode_->ScanningRHS());
 #endif
       
       Mode_->ScanningUpdate(dx);
-      cout << "ScanningNewton(dx.Norm) = " << dx.Norm() << endl;
+      if (Echo_) cout << "ScanningNewton(dx.Norm) = " << dx.Norm() << endl;
    }
 
    if (itr >= MaxIter_)

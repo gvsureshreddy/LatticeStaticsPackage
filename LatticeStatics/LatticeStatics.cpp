@@ -8,11 +8,12 @@
 #include <fstream.h>
 
 enum YN {No,Yes};
-void GetMainSettings(int &Width, int &Precision,YN &BisectCP,char *datafile);
+void GetMainSettings(int &Width, int &Precision,YN &BisectCP,int &Echo,char *datafile);
 void InitializeOutputFile(fstream &out,char *outfile,char *datafile,char *startfile,
-			  Lattice *Lat,int Precision,int Width);
+			  Lattice *Lat,int Precision,int Width,int Echo);
 SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
-				   char *startfile,Lattice *Lat,fstream &out, int Width);
+				   char *startfile,Lattice *Lat,fstream &out,int Width,
+				   int Echo);
 
 int main(int argc, char *argv[])
 {
@@ -39,22 +40,22 @@ int main(int argc, char *argv[])
    LatticeMode *Mode;
    SolutionMethod *SolveMe;
 
-   int Width,Precision;
+   int Width,Precision,Echo;
    YN BisectCP;
 
    
-   GetMainSettings(Width,Precision,BisectCP,datafile);
+   GetMainSettings(Width,Precision,BisectCP,Echo,datafile);
 
-   Lat = InitializeLattice(datafile,"^");
+   Lat = InitializeLattice(datafile,"^",Echo);
 
    fstream out;
-   InitializeOutputFile(out,outputfile,datafile,startfile,Lat,Precision,Width);
+   InitializeOutputFile(out,outputfile,datafile,startfile,Lat,Precision,Width,Echo);
    
    Mode = InitializeMode(Lat,datafile,"^");
    out << "Mode: " << Mode->ModeName() << endl;
-   cout << "Mode: " << Mode->ModeName() << endl;
+   if (Echo) cout << "Mode: " << Mode->ModeName() << endl;
    
-   SolveMe = InitializeSolution(Mode,datafile,startfile,Lat,out,Width);
+   SolveMe = InitializeSolution(Mode,datafile,startfile,Lat,out,Width,Echo);
 
 
    double uncertainty;
@@ -93,12 +94,13 @@ int main(int argc, char *argv[])
 
 
 
-void GetMainSettings(int &Width, int &Precision,YN &BisectCP,char *datafile)
+void GetMainSettings(int &Width, int &Precision,YN &BisectCP,int &Echo,char *datafile)
 {
    char bisect[LINELENGTH];
 
    if(!GetParameter("^","MainFieldWidth",datafile,"%d",&Width)) exit(-1);
    if(!GetParameter("^","MainPrecision",datafile,"%d",&Precision)) exit(-1);
+   if(!GetParameter("^","MainEcho",datafile,"%d",&Echo,0)) Echo = 1;
    if(!GetParameter("^","MainBisectCP",datafile,"%s",bisect)) exit(-1);
    if ((!strcmp("Yes",bisect)) || (!strcmp("yes",bisect)))
       BisectCP = Yes;
@@ -113,7 +115,7 @@ void GetMainSettings(int &Width, int &Precision,YN &BisectCP,char *datafile)
 
 
 void InitializeOutputFile(fstream &out,char *outfile,char *datafile,char *startfile,
-			  Lattice *Lat,int Precision,int Width)
+			  Lattice *Lat,int Precision,int Width,int Echo)
 {
    fstream input,start;
    char dataline[LINELENGTH];
@@ -160,13 +162,13 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,char *startf
       start.close();
    }
    
-   cout << setiosflags(ios::fixed) << setprecision(Precision);
+   if (Echo) cout << setiosflags(ios::fixed) << setprecision(Precision);
    out  << setiosflags(ios::fixed) << setprecision(Precision);
 
-   cout << "Built on:               " << builddate() << endl
-	<< "LinearAlgebra Build on: " << LinearAlgebraBuildDate() << endl
-	<< "MyMath Built on:        " << MyMathBuildDate() << endl
-	<< setw(Width);
+   if (Echo) cout << "Built on:               " << builddate() << endl
+		  << "LinearAlgebra Build on: " << LinearAlgebraBuildDate() << endl
+		  << "MyMath Built on:        " << MyMathBuildDate() << endl
+		  << setw(Width);
    out << "Built on:               " << builddate() << endl
        << "LinearAlgebra Build on: " << LinearAlgebraBuildDate() << endl
        << "MyMath Built on:        " << MyMathBuildDate() << endl
@@ -175,10 +177,9 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,char *startf
    Lat->Print(out,Lattice::PrintLong);
 }
 
-
-
 SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
-				   char *startfile,Lattice *Lat,fstream &out,int Width)
+				   char *startfile,Lattice *Lat,fstream &out,int Width,
+				   int Echo)
 {
    char slvmthd[LINELENGTH];
 
@@ -201,7 +202,7 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
    {
       case Scanning:
       {
-	 return new ScanningSolution(Mode,datafile,"^");
+	 return new ScanningSolution(Mode,datafile,"^",Echo);
       }
       break;
       case ArcLen:
@@ -212,7 +213,7 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
 
 	 if ( startfile == NULL)
 	 {
-	    ScanningSolution ScanMe(Mode,datafile,"^");
+	    ScanningSolution ScanMe(Mode,datafile,"^",Echo);
 	    
 	    while (!ScanMe.AllSolutionsFound())
 	    {
@@ -225,11 +226,11 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
 	       }
 	    }
 
-	    return new ArcLengthSolution(Mode,datafile,"^",One,Two);
+	    return new ArcLengthSolution(Mode,datafile,"^",One,Two,Echo);
 	 }
 	 else
 	 {
-	    return new ArcLengthSolution(Mode,datafile,"^",startfile,out);
+	    return new ArcLengthSolution(Mode,datafile,"^",startfile,out,Echo);
 	 }
       }
       break;

@@ -16,8 +16,9 @@ MultiLatticeTPP::~MultiLatticeTPP()
    delete [] MovableAtoms_;
 }
 
-MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix)
+MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo)
 {
+   Echo_ = Echo;
    // Get Lattice definition
    char tmp[LINELENGTH];
    if(!GetParameter(prefix,"InternalAtoms",datafile,"%u",&INTERNAL_ATOMS)) exit(-1);
@@ -199,7 +200,7 @@ int MultiLatticeTPP::FindLatticeSpacing(int iter,double dx)
       itr++;
 
 #ifdef SOLVE_SVD
-      De = SolveSVD(Stiff,RHS,MAXCONDITION,1);
+      De = SolveSVD(Stiff,RHS,MAXCONDITION,Echo_);
 #else
       De = SolvePLU(Stiff,RHS);
 #endif
@@ -268,18 +269,21 @@ int MultiLatticeTPP::FindLatticeSpacing(int iter,double dx)
 	    Stiff[DIM3+i][DIM3+j] = stiff[MovableAtoms_[i]][MovableAtoms_[j]];
 	 }
 
-      cout << setw(10) << itr << endl
-	   << "    RHS=" << setw(20) << RHS << setw(20) << RHS.Norm() << endl
-	   << "     De=" << setw(20) << De  << setw(20) << De.Norm() << endl
-	   << "RefLen_=" << setw(20) << RefLen_[0] << setw(20) << RefLen_[1]
-	   << setw(20) << RefLen_[2] << endl;
-      if (NoMovable_) cout << "AtomPositions_=";
-      for (int i=0;i<NoMovable_;++i)
+      if (Echo_)
       {
-	 cout << setw(20)
-	      << AtomPositions_[1+(MovableAtoms_[i]-6)/3][(MovableAtoms_[i]-6)%3];
+	 cout << setw(10) << itr << endl
+	      << "    RHS=" << setw(20) << RHS << setw(20) << RHS.Norm() << endl
+	      << "     De=" << setw(20) << De  << setw(20) << De.Norm() << endl
+	      << "RefLen_=" << setw(20) << RefLen_[0] << setw(20) << RefLen_[1]
+	      << setw(20) << RefLen_[2] << endl;
+	 if (NoMovable_) cout << "AtomPositions_=";
+	 for (int i=0;i<NoMovable_;++i)
+	 {
+	    cout << setw(20)
+		 << AtomPositions_[1+(MovableAtoms_[i]-6)/3][(MovableAtoms_[i]-6)%3];
+	 }
+	 if (NoMovable_) cout << endl;
       }
-      if (NoMovable_) cout << endl;
    }
    while ((itr < iter)
 	  && ((RHS.Norm() > 1.0e-13) || (De.Norm() > 1.0e-14)));
@@ -1313,7 +1317,8 @@ void MultiLatticeTPP::DispersionCurves(Vector Y,int NoPTS,const char *prefix,
 				       ostream &out)
 {
    int w=out.width();
-   out.width(0); cout.width(0);
+   out.width(0);
+   if (Echo_) cout.width(0);
 
    Matrix DefGrad(DIM3,DIM3),Tmp(DIM3,DIM3),InverseLat(DIM3,DIM3);
    // Setup DefGrad
@@ -1356,14 +1361,14 @@ void MultiLatticeTPP::DispersionCurves(Vector Y,int NoPTS,const char *prefix,
       qsort(EigVal[k][0],INTERNAL_ATOMS*DIM3,sizeof(double),&comp);
       
       out << prefix << setw(w) << NTemp_ << setw(w) << k*dz;
-      cout << prefix << setw(w) << NTemp_ << setw(w) << k*dz;
+      if (Echo_) cout << prefix << setw(w) << NTemp_ << setw(w) << k*dz;
       for (int i=0;i<INTERNAL_ATOMS*DIM3;++i)
       {
 	 out << setw(w) << EigVal[k][0][i];
-	 cout << setw(w) << EigVal[k][0][i];
+	 if (Echo_) cout << setw(w) << EigVal[k][0][i];
       }
       out << endl;
-      cout << endl;
+      if (Echo_) cout << endl;
    }
    int zero=0,one=1,two=2;
    for (int k=2;k<NoPTS;++k)
@@ -1374,14 +1379,14 @@ void MultiLatticeTPP::DispersionCurves(Vector Y,int NoPTS,const char *prefix,
       interpolate(EigVal,zero,one,two);
       
       out << prefix << setw(w) << NTemp_ << setw(w) << k*dz;
-      cout << prefix << setw(w) << NTemp_ << setw(w) << k*dz;
+      if (Echo_) cout << prefix << setw(w) << NTemp_ << setw(w) << k*dz;
       for (int i=0;i<INTERNAL_ATOMS*DIM3;++i)
       {
 	 out << setw(w) << EigVal[two][0][i];;
-	 cout << setw(w) << EigVal[two][0][i];;
+	 if (Echo_) cout << setw(w) << EigVal[two][0][i];;
       }
       out << endl;
-      cout << endl;
+      if (Echo_) cout << endl;
 
       zero = (++zero)%3; one = (zero+1)%3; two = (one+1)%3;
    }
@@ -1494,7 +1499,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
    W=out.width();
 
    out.width(0);
-   cout.width(0);
+   if (Echo_) cout.width(0);
 
    NoNegEigVal=0;
 
@@ -1560,33 +1565,36 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 	 }
 	 out  << "Shear Modulus : " << setw(W) << ShearMod_ << endl;
 	 // also send to cout
-	 cout << "MultiLatticeTPP:" << endl << endl
-	      << "Cell Reference Length: " << setw(W) << RefLen_[0]
-	      << setw(W) << RefLen_[1] << setw(W) << RefLen_[2] << endl;
-	 cout << "Lattice Basis_0 : " << setw(W) << LatticeBasis[0] <<endl
-	      << "Lattice Basis_1 : " << setw(W) << LatticeBasis[1] <<endl
-	      << "Lattice Basis_2 : " << setw(W) << LatticeBasis[2] <<endl << endl;
-	 for (int i=0;i<INTERNAL_ATOMS;++i)
+	 if (Echo_)
 	 {
-	    cout << "Atom_" << i << " Position : "
-		 << setw(W) << AtomPositions_[i] << endl;
-	 }
-	 cout << "Influance Distance   : " << setw(W) << InfluanceDist_ << endl;
-	 for (int i=0;i<INTERNAL_ATOMS;++i)
-	 {
-	    cout << "Atomic Mass " << i << "  : "
-		 << setw(W) << AtomicMass_[i] << endl;
-	 }
-	 cout << "Potential Parameters : " << endl;
-	 for (int i=0;i<INTERNAL_ATOMS;++i)
-	 {
-	    for (int j=i;j<INTERNAL_ATOMS;j++)
+	    cout << "MultiLatticeTPP:" << endl << endl
+		 << "Cell Reference Length: " << setw(W) << RefLen_[0]
+		 << setw(W) << RefLen_[1] << setw(W) << RefLen_[2] << endl;
+	    cout << "Lattice Basis_0 : " << setw(W) << LatticeBasis[0] <<endl
+		 << "Lattice Basis_1 : " << setw(W) << LatticeBasis[1] <<endl
+		 << "Lattice Basis_2 : " << setw(W) << LatticeBasis[2] <<endl << endl;
+	    for (int i=0;i<INTERNAL_ATOMS;++i)
 	    {
-	       cout << "[" << i << "][" << j << "] -- "
-		    << setw(W) << Potential_[i][j] << endl;
+	       cout << "Atom_" << i << " Position : "
+		    << setw(W) << AtomPositions_[i] << endl;
 	    }
+	    cout << "Influance Distance   : " << setw(W) << InfluanceDist_ << endl;
+	    for (int i=0;i<INTERNAL_ATOMS;++i)
+	    {
+	       cout << "Atomic Mass " << i << "  : "
+		    << setw(W) << AtomicMass_[i] << endl;
+	    }
+	    cout << "Potential Parameters : " << endl;
+	    for (int i=0;i<INTERNAL_ATOMS;++i)
+	    {
+	       for (int j=i;j<INTERNAL_ATOMS;j++)
+	       {
+		  cout << "[" << i << "][" << j << "] -- "
+		       << setw(W) << Potential_[i][j] << endl;
+	       }
+	    }
+	    cout  << "Shear Modulus : " << setw(W) << ShearMod_ << endl;
 	 }
-	 cout  << "Shear Modulus : " << setw(W) << ShearMod_ << endl;	 
 	 // passthrough to short
       case PrintShort:
 	 out << "Temperature (Ref Normalized): " << setw(W) << NTemp_ << endl
@@ -1609,25 +1617,29 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 	     << "BlochWave Stability:" << setw(W) << BlochWaveStable << ", "
 	     << setw(W) << Y << endl;
 	 // send to cout also
-	 cout << "Temperature (Ref Normalized): " << setw(W) << NTemp_ << endl
-	      << "Pressure (G Normalized): " << setw(W) << Pressure_ << endl
-	      << "DOF's :" << endl << setw(W) << DOF_ << endl
-	      << "Potential Value (G Normalized):" << setw(W) << energy << endl;
-	 for (int i=0;i<INTERNAL_ATOMS;++i)
+	 if (Echo_)
 	 {
-	    cout << "BodyForce Value " << i << " (Inf Normalized):"
-		 << setw(W) << BodyForce_[i] << endl;
+	    cout << "Temperature (Ref Normalized): " << setw(W) << NTemp_ << endl
+		 << "Pressure (G Normalized): " << setw(W) << Pressure_ << endl
+		 << "DOF's :" << endl << setw(W) << DOF_ << endl
+		 << "Potential Value (G Normalized):" << setw(W) << energy << endl;
+	    for (int i=0;i<INTERNAL_ATOMS;++i)
+	    {
+	       cout << "BodyForce Value " << i << " (Inf Normalized):"
+		    << setw(W) << BodyForce_[i] << endl;
+	    }
+	    cout << "Stress (G Normalized):" << setw(W) << stress << endl
+		 << "Stiffness (G Normalized):" << setw(W) << stiff
+		 << "Eigenvalue Info:"  << setw(W) << EigenValues
+		 << "Bifurcation Info:" << setw(W) << MinEigVal
+		 << setw(W) << NoNegEigVal << endl
+		 << "Condensed Moduli (G Normalized):" << setw(W) << CondModuli
+		 << "CondEV Info:" << setw(W) << CondEV
+		 << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << endl
+		 << "BlochWave Stability (GridSize=" << GridSize_ << "):"
+		 << setw(W) << BlochWaveStable << ", "
+		 << setw(W) << Y << endl;
 	 }
-	 cout << "Stress (G Normalized):" << setw(W) << stress << endl
-	      << "Stiffness (G Normalized):" << setw(W) << stiff
-	      << "Eigenvalue Info:"  << setw(W) << EigenValues
-	      << "Bifurcation Info:" << setw(W) << MinEigVal
-	      << setw(W) << NoNegEigVal << endl
-	      << "Condensed Moduli (G Normalized):" << setw(W) << CondModuli
-	      << "CondEV Info:" << setw(W) << CondEV
-	      << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << endl
-	      << "BlochWave Stability:" << setw(W) << BlochWaveStable << ", "
-	      << setw(W) << Y << endl;
 	 break;
    }
 }

@@ -81,7 +81,7 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
 
    // Print out the Eigenvectors
    cout << "EigenVectors" << endl << setw(Width) << EigVec;
-   out << "EigenVectors" << endl << setw(Width) << EigVec;
+   if (Echo_) out << "EigenVectors" << endl << setw(Width) << EigVec;
 
    // Eijk
    for (int i=0;i<count;i++)
@@ -117,26 +117,26 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
    for (int i=0;i<70;i++)
    {
       cout << "-";
-      out << "-";
+      if (Echo_) out << "-";
    }
    cout << endl << endl << "2nd Order Bifurcation Equations:" << endl;
-   out << endl << endl << "2nd Order Bifurcation Equations:" << endl;
+   if (Echo_) out << endl << endl << "2nd Order Bifurcation Equations:" << endl;
 
    int prec = out.precision();
 
    out.flags(ios::scientific); out << setprecision(prec/2);
-   cout.flags(ios::scientific); cout << setprecision(prec/2);
+   if (Echo_) cout.flags(ios::scientific); cout << setprecision(prec/2);
 
    for (int i=0;i<count;i++)
    {
       for (int j=0;j<count;j++)
 	 for (int k=j;k<count;k++)
 	 {
-	    cout << "(" << setw(Width)
-		 << Eijk[i][j][k] + ( (j==k)?0.0:Eijk[i][k][j] )
-		 << ")a_" << j
-		 << "a_"  << k
-		 << " + ";
+	    if (Echo_) cout << "(" << setw(Width)
+			    << Eijk[i][j][k] + ( (j==k)?0.0:Eijk[i][k][j] )
+			    << ")a_" << j
+			    << "a_"  << k
+			    << " + ";
 	    out << "(" << setw(Width)
 		<< Eijk[i][j][k] + ( (j==k)?0.0:Eijk[i][k][j] )
 		<< ")a_" << j
@@ -145,21 +145,21 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
 	 }
 
       cout << "2T_1( ";
-      out << "2T_1( ";
+      if (Echo_) out << "2T_1( ";
       
       for (int j=0;j<count-1;j++)
       {
-	 cout << "(" << setw(Width)
-	      << EijT[i][j]
-	      << ")a_" << j
-	      << " + ";
+	 if (Echo_) cout << "(" << setw(Width)
+			 << EijT[i][j]
+			 << ")a_" << j
+			 << " + ";
 	 out << "(" << setw(Width)
 	     << EijT[i][j]
 	     << ")a_" << j
 	     << " + ";
       }
-      cout << "(" << setw(Width) << EijT[i][count-1] << ")a_" << count-1
-	   << " ) = 0" << endl;
+      if (Echo_) cout << "(" << setw(Width) << EijT[i][count-1] << ")a_" << count-1
+		      << " ) = 0" << endl;
       out << "(" << setw(Width) << EijT[i][count-1] << ")a_" << count-1
 	  << " ) = 0" << endl;
    }
@@ -206,7 +206,7 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
 		     }
 	    }
 
-	    cout << endl << "V[" << i << "][" << j << "]=";
+	    if (Echo_) cout << endl << "V[" << i << "][" << j << "]=";
 	    out << endl << "V[" << i << "][" << j << "]=";
 
 	    for (int k=0;k<dofs;k++)
@@ -217,11 +217,11 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
 		  {
 		     Vij[i][j][k] += S[l][k]*Ainv[l][m]*b[m][0];
 		  }
-	       cout << setw(Width) << Vij[i][j][k];
+	       if (Echo_) cout << setw(Width) << Vij[i][j][k];
 	       out << setw(Width) << Vij[i][j][k];
 	    }
 	 }
-      cout << endl;
+      if (Echo_) cout << endl;
       out << endl;
 
       // Eijkl
@@ -251,7 +251,7 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
 	       }
 
       // Print out results
-      cout << endl << "3rd Order Bifurcation Equations:" << endl;
+      if (Echo_) cout << endl << "3rd Order Bifurcation Equations:" << endl;
       out <<  endl << "3rd Order Bifurcation Equations:" << endl;
       
       for (int i=0;i<count;i++)
@@ -260,13 +260,13 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
 	    for (int k=j;k<count;k++)
 	       for (int l=k;l<count;l++)
 	       {
-		  cout << "(" << setw(Width)
-		       << Eijkl[i][j][k][l] + ( (j==k)?0.0:Eijkl[i][k][j][l] )
-		     + ( (j==l)?0.0:Eijkl[i][l][k][j] ) + ( (k==l)?0.0:Eijkl[i][j][l][k] )
-		       << ")a_" << j
-		       << "a_"  << k
-		       << "a_"  << l
-		       << " + ";
+		  if (Echo_) cout << "(" << setw(Width)
+				  << Eijkl[i][j][k][l] + ( (j==k)?0.0:Eijkl[i][k][j][l] )
+				+ ( (j==l)?0.0:Eijkl[i][l][k][j] ) + ( (k==l)?0.0:Eijkl[i][j][l][k] )
+				  << ")a_" << j
+				  << "a_"  << k
+				  << "a_"  << l
+				  << " + ";
 		  out << "(" << setw(Width)
 		      << Eijkl[i][j][k][l] + ( (j==k)?0.0:Eijkl[i][k][j][l] )
 		     + ( (j==l)?0.0:Eijkl[i][l][k][j] ) + ( (k==l)?0.0:Eijkl[i][j][l][k] )
@@ -276,38 +276,38 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
 		      << " + ";
 	       }
 	 
-	 cout << "3T_2( ";
+	 if (Echo_) cout << "3T_2( ";
 	 out << "3T_2( ";
 	 
 	 for (int j=0;j<count-1;j++)
 	 {
-	    cout << "(" << setw(Width)
-		 << EijT[i][j]
-		 << ")a_" << j
-		 << " + ";
+	    if (Echo_) cout << "(" << setw(Width)
+			    << EijT[i][j]
+			    << ")a_" << j
+			    << " + ";
 	    out << "(" << setw(Width)
 		<< EijT[i][j]
 		<< ")a_" << j
 		<< " + ";
 	 }
-	 cout << "(" << setw(Width) << EijT[i][count-1] << ")a_" << count-1
-	      << " ) = 0" << endl;
+	 if (Echo_) cout << "(" << setw(Width) << EijT[i][count-1] << ")a_" << count-1
+			 << " ) = 0" << endl;
 	 out << "(" << setw(Width) << EijT[i][count-1] << ")a_" << count-1
 	     << " ) = 0" << endl;
       }
    }
 
    out.flags(ios::fixed); out << setprecision(prec);
-   cout.flags(ios::fixed); cout << setprecision(prec);
+   if (Echo_) cout.flags(ios::fixed); cout << setprecision(prec);
    
-   cout << endl;
+   if (Echo_) cout << endl;
    out << endl;
    for (int i=0;i<70;i++)
    {
-      cout << "-";
+      if (Echo_) cout << "-";
       out << "-";
    }
-   cout << endl;
+   if (Echo_) cout << endl;
    out << endl;
 
    return;

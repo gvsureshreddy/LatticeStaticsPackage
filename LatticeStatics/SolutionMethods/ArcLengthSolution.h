@@ -9,6 +9,7 @@ class Lattice;
 class ArcLengthSolution : public SolutionMethod
 {
 private:
+   int Echo_;
    LatticeMode *Mode_;
    unsigned MaxIter_;
    double Tolerance_;
@@ -33,9 +34,9 @@ private:
 
 public:
    ArcLengthSolution(LatticeMode *Mode,char *datafile,const char *prefix,
-		     const Vector &one,const Vector &two);
+		     const Vector &one,const Vector &two,int Echo=1);
    ArcLengthSolution(LatticeMode *Mode,char *datafile,const char *prefix,
-		     char *startfile,fstream &out);
+		     char *startfile,fstream &out,int Echo=1);
    ~ArcLengthSolution() {}
 
    // Functions required by SolutionMethod

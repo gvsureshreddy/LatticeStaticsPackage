@@ -57,7 +57,8 @@ public:
    double RefLen(int i=0) {return RefLen_[i];}
    Vector AtomPositions(int i) {return AtomPositions_[i];}
 
-   // Virtual Functions required by GenericLat
+
+   // Virtual Functions required by Lattice
    Vector DOF() {return DOF_;}
    void SetDOF(const Vector &dof) {DOF_ = dof; LatSum_.Recalc();}
    Matrix StressDT() {return stress(PairPotentials::DT);}
@@ -65,7 +66,6 @@ public:
    double Temp() {return NTemp_;}
    void SetTemp(const double &Ntemp) {NTemp_ = Ntemp;}
 
-   // Virtual Functions required by Lattice
    virtual double Energy();
    virtual Matrix Stress() {return stress();}
    virtual Matrix Stiffness() {return stiffness();}
@@ -73,10 +73,12 @@ public:
    virtual Matrix E3();
    virtual Matrix E4();
    virtual void DispersionCurves(Vector Y,int NoPTS,const char *prefix,ostream &out);
+   virtual int BlochWave(Vector &Y);
+   virtual void SetGridSize(int Grid) {GridSize_=Grid; UCIter_(GridSize_);}
    virtual void Print(ostream &out,PrintDetail flag);
    
    // Functions provided by MultiLatticeTPP
-   MultiLatticeTPP(char *datafile,const char *prefix);
+   MultiLatticeTPP(char *datafile,const char *prefix,int Echo=1);
    ~MultiLatticeTPP();
    inline double Del(int i,int j) {return i==j;}
    Vector BodyForce(int i) {return BodyForce_[i]; }
@@ -84,7 +86,6 @@ public:
    double SetPressure(double &p) { Pressure_ = p;}
    double ShearMod() const {return ShearMod_;}
    CMatrix DynamicalStiffness(Vector &Y);
-   int BlochWave(Vector &Y);
    friend ostream &operator<<(ostream &out,MultiLatticeTPP &A);
 
 private:

@@ -4,8 +4,8 @@
 #include "UtilityFunctions.h"
 
 ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char *prefix,
-				     const Vector &one,const Vector &two)
-   : Mode_(Mode),Difference_(two-one), CurrentSolution_(0)
+				     const Vector &one,const Vector &two,int Echo)
+   : Mode_(Mode),Difference_(two-one), CurrentSolution_(0), Echo_(Echo)
 {
    if(!GetParameter(prefix,"ArcLenMaxIterations",datafile,"%u",&MaxIter_)) exit(-1);
    if(!GetParameter(prefix,"ArcLenTolerance",datafile,"%lf",&Tolerance_)) exit(-1);
@@ -23,8 +23,8 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char
 }
 
 ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char *prefix,
-				     char *startfile,fstream &out)
-   : Mode_(Mode), CurrentSolution_(0)
+				     char *startfile,fstream &out,int Echo)
+   : Mode_(Mode), CurrentSolution_(0), Echo_(Echo)
 {
    FILE *pipe;
    
@@ -158,20 +158,26 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char
 	 if(!GetParameter(prefix,"MainFieldWidth",datafile,"%i",&Width)) exit(-1);
 
 	 // Do Consistency check
-	 for (int i=0;i<70;i++) cout << "="; cout << endl;
+	 if (Echo_)
+	 {
+	    for (int i=0;i<70;i++) cout << "="; cout << endl;
+	    cout << "Consistency Check." << endl;
+	    cout << "F(U + DeltaU) * Epsilon" << endl;
+	 }
 	 for (int i=0;i<70;i++) out << "="; out << endl;
-	 cout << "Consistency Check." << endl;
 	 out << "Consistency Check." << endl;
-	 cout << "F(U + DeltaU) * Epsilon" << endl;
 	 out << "F(U + DeltaU) * Epsilon" << endl;
 	 Mode_->ArcLenUpdate(-Difference_);
 	 Force = ConsistencyEpsilon_*Mode_->ArcLenRHS(ConsistencyEpsilon_,Difference_,1.0);
-	 cout << setw(Width) << Force << endl;
+	 if (Echo_)
+	 {
+	    cout << setw(Width) << Force << endl;
+	    cout << "K(U + DeltaU) * Epsilon" << endl;
+	 }
 	 out << setw(Width) << Force << endl;
-	 cout << "K(U + DeltaU) * Epsilon" << endl;
 	 out << "K(U + DeltaU) * Epsilon" << endl;
 	 Stiff = ConsistencyEpsilon_*Mode_->ArcLenStiffness(Difference_,1.0);
-	 cout << setw(Width) << Stiff << endl;
+	 if (Echo_) cout << setw(Width) << Stiff << endl;
 	 out << setw(Width) << Stiff << endl;
 	 for (int i=0;i<Difference_.Dim();i++)
 	 {
@@ -195,13 +201,16 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char
 	 }
 
 	 // Print out the facts
-	 cout << "P(U + DeltaU) - P(U + DeltaU + Epsilon*Vj)" << endl;
-	 cout << setw(Width) << PerturbedForce << endl;
-	 cout << "Fi(U + DeltaU) - Fi(U + DeltaU + Epsilon*Vj)" << endl;
-	 cout << setw(Width) << PerturbedStiff << endl;
-	 cout << "Difference" << endl;
-	 cout << setw(Width) << Force - PerturbedForce << endl << endl;
-	 cout << setw(Width) << Stiff - PerturbedStiff << endl;
+	 if (Echo_)
+	 {
+	    cout << "P(U + DeltaU) - P(U + DeltaU + Epsilon*Vj)" << endl;
+	    cout << setw(Width) << PerturbedForce << endl;
+	    cout << "Fi(U + DeltaU) - Fi(U + DeltaU + Epsilon*Vj)" << endl;
+	    cout << setw(Width) << PerturbedStiff << endl;
+	    cout << "Difference" << endl;
+	    cout << setw(Width) << Force - PerturbedForce << endl << endl;
+	    cout << setw(Width) << Stiff - PerturbedStiff << endl;
+	 }
 
 	 out << "P(U + DeltaU) - P(U + DeltaU + Epsilon*Vj)" << endl;
 	 out << setw(Width) << PerturbedForce << endl;
@@ -210,8 +219,11 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char
 	 out << "Difference" << endl;
 	 out << setw(Width) << Force - PerturbedForce << endl << endl;
 	 out << setw(Width) << Stiff - PerturbedStiff << endl;
-	 
-	 for (int i=0;i<70;i++) cout << "="; cout << endl;
+
+	 if (Echo_)
+	 {
+	    for (int i=0;i<70;i++) cout << "="; cout << endl;
+	 }
 	 for (int i=0;i<70;i++) out << "="; out << endl;
 
 	 // We are done -- set currentsolution to numsolutions
@@ -235,13 +247,14 @@ double ArcLengthSolution::FindNextSolution(int &good)
 
    do
    {
-      cout << "DS= " << CurrentDS_ << endl;
+      if (Echo_) cout << "DS= " << CurrentDS_ << endl;
 
       uncertainty = ArcLengthNewton(good);
 
       AngleTest = Mode_->ArcLenAngle(OldDiff,Difference_,Aspect_);
 
-      cout << "AngleTest = " << AngleTest << "  Cutoff = " << AngleCutoff_ << endl;
+      if (Echo_)
+	 cout << "AngleTest = " << AngleTest << "  Cutoff = " << AngleCutoff_ << endl;
    }
    while (((AngleTest >= AngleCutoff_) || !good)
 	  && (CurrentDS_ >= DSMin_)
@@ -254,7 +267,7 @@ double ArcLengthSolution::FindNextSolution(int &good)
    {
       CurrentDS_ *= 2.0;
       if (CurrentDS_ > DSMax_) CurrentDS_ = DSMax_;
-      cout << "DS= " << CurrentDS_ << endl;
+      if (Echo_) cout << "DS= " << CurrentDS_ << endl;
    }
 
    if (!good)
@@ -283,8 +296,8 @@ double ArcLengthSolution::ArcLengthNewton(int &good)
    Mode_->ArcLenUpdate(-Difference_);
 
    // Iterate until convergence
-   cout << setiosflags(ios::scientific)
-	<< "ArcLenNewton: Number of Iterations --\n";
+   if (Echo_) cout << setiosflags(ios::scientific)
+		  << "ArcLenNewton: Number of Iterations --\n";
 
    RHS = Mode_->ArcLenRHS(CurrentDS_,Difference_,Aspect_);
    do
@@ -294,7 +307,7 @@ double ArcLengthSolution::ArcLengthNewton(int &good)
 #ifdef SOLVE_SVD
       Dx = SolveSVD(
 	 Mode_->ArcLenStiffness(Difference_,Aspect_),
-	 RHS,MAXCONDITION,1);
+	 RHS,MAXCONDITION,Echo_);
 #else
       Dx = SolvePLU(Mode_->ArcLenStiffness(Difference_,Aspect_),RHS);
 #endif
@@ -303,18 +316,18 @@ double ArcLengthSolution::ArcLengthNewton(int &good)
       Difference_ -= Dx;
       RHS = Mode_->ArcLenRHS(CurrentDS_,Difference_,Aspect_);
 
-      cout << itr << "(" << setw(20)
-	   << Mode_->ScanningStressParameter() << ","
-	   << setw(20) << RHS.Norm() << ","
-	   << setw(20) << Dx.Norm() << "), ";
+      if (Echo_) cout << itr << "(" << setw(20)
+		      << Mode_->ScanningStressParameter() << ","
+		      << setw(20) << RHS.Norm() << ","
+		      << setw(20) << Dx.Norm() << "), ";
 #ifndef SOLVE_SVD
-      cout << endl;
+      if (Echo_) cout << endl;
 #endif
    }
    while ((itr < MaxIter_)
 	  && ((fabs(RHS.Norm()) > Tolerance_) || (fabs(Dx.Norm()) > Tolerance_)));
 
-   cout << resetiosflags(ios::scientific) << endl;
+   if (Echo_) cout << resetiosflags(ios::scientific) << endl;
    uncertainty = Dx.Norm();
 
    if (itr >= MaxIter_)
@@ -352,17 +365,17 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,char *datafile,const char *prefi
    // Set Tolerance_ tighter
    Tolerance_ /= NewtonTolFactor;
    
-   cout << "\t" << setw(Width) << OldNulity << setw(Width) << OldMinEV
-	<< " DS " << setw(Width) << CurrentDS_ << endl;
+   if (Echo_) cout << "\t" << setw(Width) << OldNulity << setw(Width) << OldMinEV
+		  << " DS " << setw(Width) << CurrentDS_ << endl;
    
    // Find bifurcation point and make sure we are on the back side edge
    while (((fabs(CurrentMinEV) > ConvergenceFactor*Tolerance_)
 	   || (CurrentNulity == OriginalNulity))
 	  && (loops < MaxIter_))
    {
-      cout << setw(Width) << CurrentNulity
-	   << setw(Width) << CurrentMinEV
-	   << " DS " << setw(Width) << CurrentDS_ << endl;
+      if (Echo_) cout << setw(Width) << CurrentNulity
+		     << setw(Width) << CurrentMinEV
+		     << " DS " << setw(Width) << CurrentDS_ << endl;
 
       //CurrentDS_ /= 2.0; // Bisection Method
       CurrentDS_ /= (1.0 - (OldMinEV/CurrentMinEV)); // Secant Method
@@ -382,24 +395,25 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,char *datafile,const char *prefi
    // Output Critical Point
    for (int i=0;i<70;i++)
    {
-      cout << "=";
+      if (Echo_) cout << "=";
       out << "=";
    }
-   cout << endl; out << endl;
+   if (Echo_) cout << endl;
+   out << endl;
 
-   cout << setw(Width) << Lat
-	<< "Uncertainty = " << setw(Width) << uncertainty << endl
-	<< "Success = 1" << endl;
+   if (Echo_) cout << setw(Width) << Lat
+		  << "Uncertainty = " << setw(Width) << uncertainty << endl
+		  << "Success = 1" << endl;
    out << setw(Width) << Lat
        << "Uncertainty = " << setw(Width) << uncertainty << endl
        << "Success = 1" << endl;
       
    for (int i=0;i<70;i++)
    {
-      cout << "=";
+      if (Echo_) cout << "=";
       out << "=";
    }
-   cout << endl; out << endl;
+   if (Echo_) cout << endl; out << endl;
 
    // Call Lattice function to do any Lattice Specific things
    Lat->CriticalPointInfo(Mode_->DrDt(Difference_),ConvergenceFactor*Tolerance_,datafile,
@@ -409,7 +423,7 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,char *datafile,const char *prefi
    Mode_->ArcLenUpdate(-(OriginalDiff - IntermediateDiff));
    CurrentDS_ = OriginalDS;
    Difference_ = OriginalDiff;
-
+   
    // Reset Tolerance_
    Tolerance_ *= NewtonTolFactor;
 

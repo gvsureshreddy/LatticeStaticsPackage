@@ -2,9 +2,10 @@
 #include "UtilityFunctions.h"
 #include <fstream.h>
 
-void GetMainSettings(int &Width,int &Presision,char *datafile,const char *prefix);
+void GetMainSettings(int &Width,int &Presision,int &Echo,char *datafile,
+		     const char *prefix);
 void InitializeOutputFile(fstream &out,char *outfile,char *datafile,const char *prefix,
-			  Lattice *Lat,int Precision,int Width);
+			  Lattice *Lat,int Precision,int Width,int Echo);
 
 int main(int argc,char *argv[])
 {
@@ -23,7 +24,7 @@ int main(int argc,char *argv[])
       *outputfile = argv[2],
       prefix[LINELENGTH];
 
-   if (GetParameter("","^Input File:",datafile,"%s",prefix))
+   if (GetParameter("","^Input File:",datafile,"%s",prefix,0))
    {
       strcpy(prefix,"^Input File:");
    }
@@ -34,14 +35,14 @@ int main(int argc,char *argv[])
    
    Lattice *Lat;
 
-   int Width,Precision;
+   int Width,Precision,Echo;
 
-   GetMainSettings(Width,Precision,datafile,prefix);
+   GetMainSettings(Width,Precision,Echo,datafile,prefix);
 
-   Lat = InitializeLattice(datafile,prefix);
+   Lat = InitializeLattice(datafile,prefix,Echo);
 
    fstream out;
-   InitializeOutputFile(out,outputfile,datafile,prefix,Lat,Precision,Width);
+   InitializeOutputFile(out,outputfile,datafile,prefix,Lat,Precision,Width,Echo);
 
    int NoLines,NoPTS;
    if(!GetParameter(prefix,"DispersionLines",datafile,"%u",&NoLines)) exit(-1);
@@ -63,10 +64,10 @@ int main(int argc,char *argv[])
       for (int i=0;i<NoLines;++i)
       {
 	 out << "#" << setw(Width) << Line[i] << endl << setw(Width);
-	 cout << "#" << setw(Width) << Line[i] << endl << setw(Width);
+	 if (Echo) cout << "#" << setw(Width) << Line[i] << endl << setw(Width);
 	 Lat->DispersionCurves(Line[i],NoPTS,"",out);
 	 out << endl << endl;
-	 cout << endl << endl;
+	 if (Echo) cout << endl << endl;
       }
    }
    else
@@ -84,7 +85,7 @@ int main(int argc,char *argv[])
       for (int i=0;i<NoLines;++i)
       {
 	 out << "#" << setw(Width) << Line[i] << endl;
-	 cout << "#" << setw(Width) << Line[i] << endl;
+	 if (Echo) cout << "#" << setw(Width) << Line[i] << endl;
 	 
 	 pipe = popen(strng,"r");
 	 
@@ -104,19 +105,19 @@ int main(int argc,char *argv[])
 	    
 	    out << "#" << setw(Width) << temp << endl
 		<< "#" << setw(Width) << DOF << endl << setw(Width);
-	    cout << "#" << setw(Width) << temp << endl
-		 << "#" << setw(Width) << DOF << endl;;
+	    if (Echo) cout << "#" << setw(Width) << temp << endl
+			   << "#" << setw(Width) << DOF << endl;;
 	    
 	    Lat->DispersionCurves(Line[i],NoPTS,"",out);
 	    out << endl;
-	    cout << endl;
+	    if (Echo) cout << endl;
 	    
 	    fscanf(pipe,"%s",tmp);
 	 }
 	 pclose(pipe);
 	 
 	 out << endl;
-	 cout << endl;
+	 if (Echo) cout << endl;
       }
    }  
       
@@ -129,14 +130,16 @@ int main(int argc,char *argv[])
 
 
 
-void GetMainSettings(int &Width, int &Precision,char *datafile,const char *prefix)
+void GetMainSettings(int &Width,int &Precision,int &Echo,char *datafile,
+		     const char *prefix)
 {
    if(!GetParameter(prefix,"MainFieldWidth",datafile,"%d",&Width)) exit(-1);
-   if(!GetParameter(prefix,"MainPrecision",datafile,"%d",&Precision)) exit(-1);   
+   if(!GetParameter(prefix,"MainPrecision",datafile,"%d",&Precision)) exit(-1);
+   if(!GetParameter(prefix,"MainPrecision",datafile,"%d",&Echo,0)) Echo=1;   
 }
 
 void InitializeOutputFile(fstream &out,char *outfile,char *datafile,const char *prefix,
-			  Lattice *Lat,int Precision,int Width)
+			  Lattice *Lat,int Precision,int Width,int Echo)
 {
    fstream input;
    char dataline[LINELENGTH];
