@@ -15,6 +15,10 @@ class Lattice
 public:
    int Echo_;
 
+   enum LoadType {Temperature,Load};
+   LoadType LoadParameter_;
+   LoadType LoadParameter() {return LoadParameter_;}
+   
    virtual ~Lattice() {}
    
    virtual Vector DOF() = 0;
@@ -23,6 +27,11 @@ public:
    virtual Matrix StiffnessDT() = 0;
    virtual double Temp() = 0;
    virtual void SetTemp(const double &temp) = 0;
+   virtual Matrix StressDL() = 0;
+   virtual Matrix StiffnessDL() = 0;
+   virtual double Lambda() = 0;
+   virtual void SetLambda(const double &lambda) = 0;
+   
    
    virtual double Energy() = 0;
    double E0() {return Energy();}
@@ -30,7 +39,6 @@ public:
    Matrix E1() {return Stress();}
    virtual Matrix Stiffness() = 0;
    Matrix E2() {return Stiffness();}
-   virtual Matrix Moduli() = 0;
    virtual Matrix E3() = 0;
    virtual Matrix E4() = 0;
    virtual int StiffnessNulity(double *Min=NULL);

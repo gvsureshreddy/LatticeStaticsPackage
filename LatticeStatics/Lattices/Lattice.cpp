@@ -39,10 +39,14 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
    Matrix 
       D3=E3(),
       D2=Stiffness(),
-      D2T=StiffnessDT(),
+      D2T,
       EigVec,
       EigVal=SymEigVal(D2,&EigVec);
-
+   if (LoadParameter_ == Temperature)
+      D2T=StiffnessDT();
+   else if (LoadParameter_ == Load)
+      D2T=StiffnessDL();
+   
    int dofs;
    
    if (DOFMAX < (dofs=D2.Rows()))

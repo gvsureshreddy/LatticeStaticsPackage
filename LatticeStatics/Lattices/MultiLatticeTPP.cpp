@@ -88,8 +88,46 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo)
    
    if(!GetParameter(prefix,"InfluanceDist",datafile,"%u",&InfluanceDist_)) exit(-1);
    if(!GetParameter(prefix,"NTemp",datafile,"%lf",&NTemp_)) exit(-1);
-   if(!GetParameter(prefix,"Pressure",datafile,"%lf",&Pressure_)) exit(-1);
    if(!GetParameter(prefix,"ConvexityDX",datafile,"%lf",&ConvexityDX_)) exit(-1);
+
+   // Get Loading parameters
+   const char *loadparams[] = {"Temperature","Load"};
+   int NoParams=2;
+   switch (GetStringParameter(prefix,"LoadingParameter",datafile,loadparams,NoParams))
+   {
+      case 0: LoadParameter_ = Temperature; break;
+      case 1: LoadParameter_ = Load; break;
+      case -1: cerr << "Unknown Loading Parameter" << endl; exit(-1); break;
+   }
+   if(!GetParameter(prefix,"Lambda",datafile,"%lf",&Lambda_)) exit(-1);
+   if(!GetParameter(prefix,"EulerAngle_X",datafile,"%lf",&(EulerAng_[0]))) exit(-1);
+   if(!GetParameter(prefix,"EulerAngle_Y",datafile,"%lf",&(EulerAng_[1]))) exit(-1);
+   if(!GetParameter(prefix,"EulerAngle_Z",datafile,"%lf",&(EulerAng_[2]))) exit(-1);
+   LoadingProportions_.Resize(DIM3);
+   if(!GetVectorParameter(prefix,"LoadProportions",datafile,&LoadingProportions_)) exit(-1);
+   // Calculate Rotation and Loading
+   // Euler angles transformation Rotation_ = X*Y*Z
+   Rotation_.Resize(DIM3,DIM3,0.0);
+   Rotation_[0][0] = cos(EulerAng_[1])*cos(EulerAng_[2]);
+   Rotation_[0][1] = cos(EulerAng_[1])*sin(EulerAng_[2]);
+   Rotation_[0][2] = sin(EulerAng_[1]);
+   Rotation_[1][0] = -(cos(EulerAng_[2])*sin(EulerAng_[0])*sin(EulerAng_[1])
+		       + cos(EulerAng_[0])*sin(EulerAng_[2]));
+   Rotation_[1][1] = cos(EulerAng_[0])*cos(EulerAng_[2]) - sin(EulerAng_[0])
+      *sin(EulerAng_[1])*sin(EulerAng_[2]);
+   Rotation_[1][2] = cos(EulerAng_[1])*sin(EulerAng_[0]);
+   Rotation_[2][0] = -cos(EulerAng_[0])*cos(EulerAng_[2])*sin(EulerAng_[1])
+      +sin(EulerAng_[0])*sin(EulerAng_[2]);
+   Rotation_[2][1] = -(cos(EulerAng_[2])*sin(EulerAng_[0])
+		       + cos(EulerAng_[0])*sin(EulerAng_[1])*sin(EulerAng_[2]));
+   Rotation_[2][2] = cos(EulerAng_[0])*cos(EulerAng_[1]);
+   //
+   Loading_.Resize(DIM3,DIM3,0.0);
+   for (int i=0;i<DIM3;++i)
+      for (int j=0;j<DIM3;++j)
+	 for (int k=0;k<DIM3;++k)
+	    Loading_[i][j] += Rotation_[i][k]*LoadingProportions_[k]*Rotation_[j][k];
+   
    
    // needed to initialize reference length
    int iter;
@@ -128,10 +166,10 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo)
 // This routing assumes the lattice has fixed angles
 int MultiLatticeTPP::FindLatticeSpacing(int iter,double dx)
 {
-   double oldPressure=Pressure_,
+   double oldLambda=Lambda_,
       oldTemp=NTemp_;
 
-   Pressure_=0.0;
+   Lambda_=0.0;
    NTemp_=1.0;
    ShearMod_=1.0;
    DOF_[0] = DOF_[1] = DOF_[2] = 1.0;
@@ -298,9 +336,8 @@ int MultiLatticeTPP::FindLatticeSpacing(int iter,double dx)
 
    ShearMod_ = 0.25*fabs(Stiffness()[5][5]);
    NTemp_=oldTemp;
-   Pressure_=oldPressure;
-   //Normalize the Pressure
-   // Should be input in normalized form
+   Lambda_=oldLambda;
+   // Lambda Should be input in normalized form
 
    LatSum_.Recalc();
    return 0;
@@ -526,12 +563,15 @@ double MultiLatticeTPP::Energy()
    // Phi = Phi/(2*Vr*ShearMod)
    Phi *= 1.0/(2.0*(RefLattice_.Det()*ShearMod_));
 
-   Phi = Phi - Pressure_*LatSum_.J();;
+   // Apply loading potential
+   for (int i=0;i<DIM3;++i)
+      for (int j=0;j<DIM3;++j)
+	 Phi -= Lambda_*Loading_[i][j]*DOF_[INDU(i,j)];
 
    return Phi;
 }
 
-Matrix MultiLatticeTPP::stress(PairPotentials::TDeriv dt)
+Matrix MultiLatticeTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
 {
    static Matrix S;
    Matrix Uinv(DIM3,DIM3);
@@ -541,78 +581,87 @@ Matrix MultiLatticeTPP::stress(PairPotentials::TDeriv dt)
 
    S.Resize(1,DOFS,0.0);
 
-   for (i=0;i<INTERNAL_ATOMS;++i)
+   if (dl==L0)
    {
-      for (j=0;j<DIM3;++j)
+      for (i=0;i<INTERNAL_ATOMS;++i)
       {
-	 BodyForce_[i][j] = 0.0;
-      }
-   }
-
-   for (LatSum_.Reset();!LatSum_.Done();++LatSum_)
-   {
-      // Calculate bodyforce
-      // NOTE: phi1 = d(phi)/d(r2)
-      // We need d(phi)/dr = 2*r*d(phi)/d(r2)
-      phi = 2.0*sqrt(LatSum_.r2())*LatSum_.phi1();
-      if (ForceNorm < fabs(-phi/2.0))
-      {
-	 ForceNorm = fabs(-phi/2.0);
-      }
-      for (i=0;i<DIM3;i++)
-      {
-	 BodyForce_[LatSum_.Atom(0)][i] += -phi*LatSum_.Dx(i)/(2.0*sqrt(LatSum_.r2()));
+	 for (j=0;j<DIM3;++j)
+	 {
+	    BodyForce_[i][j] = 0.0;
+	 }
       }
 
-      // Claculate the Stress
-      if (dt == PairPotentials::T0)
-	 phi=LatSum_.phi1();
-      else
-	 phi=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
-	    NTemp_,LatSum_.r2(),PairPotentials::DY,dt);
+      for (LatSum_.Reset();!LatSum_.Done();++LatSum_)
+      {
+	 // Calculate bodyforce
+	 // NOTE: phi1 = d(phi)/d(r2)
+	 // We need d(phi)/dr = 2*r*d(phi)/d(r2)
+	 phi = 2.0*sqrt(LatSum_.r2())*LatSum_.phi1();
+	 if (ForceNorm < fabs(-phi/2.0))
+	 {
+	    ForceNorm = fabs(-phi/2.0);
+	 }
+	 for (i=0;i<DIM3;i++)
+	 {
+	    BodyForce_[LatSum_.Atom(0)][i] += -phi*LatSum_.Dx(i)/(2.0*sqrt(LatSum_.r2()));
+	 }
+
+	 // Claculate the Stress
+	 if (dt == PairPotentials::T0)
+	    phi=LatSum_.phi1();
+	 else
+	    phi=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
+	       NTemp_,LatSum_.r2(),PairPotentials::DY,dt);
       
-      for (i=0;i<DIM3;i++)
-      {
-	 for (j=0;j<DIM3;j++)
+	 for (i=0;i<DIM3;i++)
 	 {
-	    S[0][INDU(i,j)] += phi*PI(LatSum_.pDx(),LatSum_.pDX(),i,j);
+	    for (j=0;j<DIM3;j++)
+	    {
+	       S[0][INDU(i,j)] += phi*PI(LatSum_.pDx(),LatSum_.pDX(),i,j);
+	    }
+	 }
+	 for (i=1;i<INTERNAL_ATOMS;i++)
+	 {
+	    for (j=0;j<DIM3;j++)
+	    {
+	       S[0][INDV(i,j)] += phi*OMEGA(LatSum_.pDx(),LatSum_.Atom(0),
+					    LatSum_.Atom(1),i,j);
+	    }
 	 }
       }
-      for (i=1;i<INTERNAL_ATOMS;i++)
-      {
-	 for (j=0;j<DIM3;j++)
-	 {
-	    S[0][INDV(i,j)] += phi*OMEGA(LatSum_.pDx(),LatSum_.Atom(0),
-					 LatSum_.Atom(1),i,j);
-	 }
-      }
-   }
 
-   // BodyForce[i] = BodyForce[i] / ForceNorm
-   for (i=0;i<INTERNAL_ATOMS;i++)
+      // BodyForce[i] = BodyForce[i] / ForceNorm
+      for (i=0;i<INTERNAL_ATOMS;i++)
+      {
+	 for (j=0;j<DIM3;j++)
+	 {
+	    BodyForce_[i][j] /= ForceNorm;
+	 }
+      }
+
+      // S = S/(2*Vr*ShearMod)
+      S *= 1.0/(2.0*(RefLattice_.Det()*ShearMod_));
+
+      // Load terms
+      for (i=0;i<DIM3;++i)
+	 for (j=0;j<DIM3;++j)
+	 {
+	    S[0][INDU(i,j)] -= Lambda_*Loading_[i][j];
+	 }
+
+   }
+   else if (dl==DL)
    {
-      for (j=0;j<DIM3;j++)
-      {
-	 BodyForce_[i][j] /= ForceNorm;
-      }
+      // dl=DL
+      for (i=0;i<DIM3;++i)
+	 for (j=0;j<DIM3;++j)
+	    S[0][INDU(i,j)] -= Loading_[i][j];
    }
-   
-   // S = S/(2*Vr*ShearMod)
-   S *= 1.0/(2.0*(RefLattice_.Det()*ShearMod_));
 
-   // Pressure terms
-   Uinv = LatSum_.UInv();
-   J = LatSum_.J();
-   for (i=0;i<DIM3;i++)
-      for (j=0;j<DIM3;j++)
-      {
-	 S[0][INDU(i,j)] -= Pressure_*J*Uinv[i][j];
-      }
-   
    return S;
 }
       
-Matrix MultiLatticeTPP::stiffness(int moduliflag,PairPotentials::TDeriv dt)
+Matrix MultiLatticeTPP::stiffness(PairPotentials::TDeriv dt,LDeriv dl)
 {
    static Matrix Phi;
    Matrix U(DIM3,DIM3);
@@ -621,100 +670,84 @@ Matrix MultiLatticeTPP::stiffness(int moduliflag,PairPotentials::TDeriv dt)
 
    Phi.Resize(DOFS,DOFS,0.0);
 
-   for (LatSum_.Reset();!LatSum_.Done();++LatSum_)
+   if (dl==L0)
    {
-      if (dt==PairPotentials::T0)
+      for (LatSum_.Reset();!LatSum_.Done();++LatSum_)
       {
-	 phi = LatSum_.phi2();
-	 phi1 = LatSum_.phi1();
-      }
-      else
-      {
-	 phi=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
-	    NTemp_,LatSum_.r2(),PairPotentials::D2Y,dt);
-	 phi1=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
-	    NTemp_,LatSum_.r2(),PairPotentials::DY,dt);
+	 if (dt==PairPotentials::T0)
+	 {
+	    phi = LatSum_.phi2();
+	    phi1 = LatSum_.phi1();
+	 }
+	 else
+	 {
+	    phi=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
+	       NTemp_,LatSum_.r2(),PairPotentials::D2Y,dt);
+	    phi1=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
+	       NTemp_,LatSum_.r2(),PairPotentials::DY,dt);
+	 }
+      
+	 //Upper Diag Block (6,6)
+	 for (i=0;i<DIM3;i++)
+	 {
+	    for (j=0;j<DIM3;j++)
+	    {
+	       for (k=0;k<DIM3;k++)
+	       {
+		  for (l=0;l<DIM3;l++)
+		  {
+		     Phi[INDU(i,j)][INDU(k,l)]+=
+			phi*(PI(LatSum_.pDx(),LatSum_.pDX(),i,j)
+			     *PI(LatSum_.pDx(),LatSum_.pDX(),k,l))
+			+phi1*(0.5)*PSI(LatSum_.pDX(),i,j,k,l);
+		  }
+	       }
+	    }
+	 }
+	 //Lower Diag Block (3*INTERNAL_ATOMS,3*INTERNAL_ATOMS)
+	 for (i=1;i<INTERNAL_ATOMS;i++)
+	 {
+	    for (j=0;j<DIM3;j++)
+	    {
+	       for (k=1;k<INTERNAL_ATOMS;k++)
+	       {
+		  for (l=0;l<DIM3;l++)
+		  {
+		     Phi[INDV(i,j)][INDV(k,l)]+=
+			phi*(OMEGA(LatSum_.pDx(),LatSum_.Atom(0),LatSum_.Atom(1),i,j)
+			     *OMEGA(LatSum_.pDx(),LatSum_.Atom(0),LatSum_.Atom(1),k,l))
+			+phi1*SIGMA(LatSum_.Atom(0),LatSum_.Atom(1),i,j,k,l);
+		  }
+	       }
+	    }
+	 }
+	 //Off Diag Blocks
+	 for (i=0;i<DIM3;i++)
+	 {
+	    for (j=0;j<DIM3;j++)
+	    {
+	       for (k=1;k<INTERNAL_ATOMS;k++)
+	       {
+		  for (l=0;l<DIM3;l++)
+		  {
+		     Phi[INDU(i,j)][INDV(k,l)] =
+			Phi[INDV(k,l)][INDU(i,j)] +=
+			phi*(PI(LatSum_.pDx(),LatSum_.pDX(),i,j)
+			     *OMEGA(LatSum_.pDx(),LatSum_.Atom(0),LatSum_.Atom(1),k,l))
+			+phi1*GAMMA(LatSum_.pDx(),LatSum_.pDX(),
+				    LatSum_.Atom(0),LatSum_.Atom(1),i,j,k,l);
+		  }
+	       }
+	    }
+	 }
       }
       
-      //Upper Diag Block (6,6)
-      for (i=0;i<DIM3;i++)
-      {
-	 for (j=0;j<DIM3;j++)
-	 {
-	    for (k=0;k<DIM3;k++)
-	    {
-	       for (l=0;l<DIM3;l++)
-	       {
-		  Phi[INDU(i,j)][INDU(k,l)]+=
-		     phi*(PI(LatSum_.pDx(),LatSum_.pDX(),i,j)
-			  *PI(LatSum_.pDx(),LatSum_.pDX(),k,l))
-		     +phi1*(0.5)*PSI(LatSum_.pDX(),i,j,k,l);
-	       }
-	    }
-	 }
-      }
-      //Lower Diag Block (3*INTERNAL_ATOMS,3*INTERNAL_ATOMS)
-      for (i=1;i<INTERNAL_ATOMS;i++)
-      {
-	 for (j=0;j<DIM3;j++)
-	 {
-	    for (k=1;k<INTERNAL_ATOMS;k++)
-	    {
-	       for (l=0;l<DIM3;l++)
-	       {
-		  Phi[INDV(i,j)][INDV(k,l)]+=
-		     phi*(OMEGA(LatSum_.pDx(),LatSum_.Atom(0),LatSum_.Atom(1),i,j)
-			  *OMEGA(LatSum_.pDx(),LatSum_.Atom(0),LatSum_.Atom(1),k,l))
-		     +phi1*SIGMA(LatSum_.Atom(0),LatSum_.Atom(1),i,j,k,l);
-	       }
-	    }
-	 }
-      }
-      //Off Diag Blocks
-      for (i=0;i<DIM3;i++)
-      {
-	 for (j=0;j<DIM3;j++)
-	 {
-	    for (k=1;k<INTERNAL_ATOMS;k++)
-	    {
-	       for (l=0;l<DIM3;l++)
-	       {
-		  Phi[INDU(i,j)][INDV(k,l)] =
-		     Phi[INDV(k,l)][INDU(i,j)] +=
-		     phi*(PI(LatSum_.pDx(),LatSum_.pDX(),i,j)
-			  *OMEGA(LatSum_.pDx(),LatSum_.Atom(0),LatSum_.Atom(1),k,l))
-		     +phi1*GAMMA(LatSum_.pDx(),LatSum_.pDX(),
-				 LatSum_.Atom(0),LatSum_.Atom(1),i,j,k,l);
-	       }
-	    }
-	 }
-      }
+      // Phi = Phi/(2*Vr*ShearMod)
+      Phi *= 1.0/(2.0*(RefLattice_.Det()*ShearMod_));
    }
-      
-   // Phi = Phi/(2*Vr*ShearMod)
-   Phi *= 1.0/(2.0*(RefLattice_.Det()*ShearMod_));
-
-   if ((!moduliflag) && (dt == PairPotentials::T0))
+   else if (dl==DL)
    {
-      U = LatSum_.U();
-      // Pressure terms
-      for (i=0;i<DIM3;i++)
-	 for (j=0;j<DIM3;j++)
-	    for (k=0;k<DIM3;k++)
-	       for (l=0;l<DIM3;l++)
-	       {
-		  for (q=0;q<DIM3;q++)
-		     for (s=0;s<DIM3;s++)
-		     {
-			Phi[INDU(i,j)][INDU(k,l)] -=
-			   (Pressure_/8.0)*(
-			      Alt(i,k,q)*Alt(j,l,s) + Alt(j,k,q)*Alt(i,l,s) +
-			      Alt(i,l,q)*Alt(j,k,s) + Alt(j,l,q)*Alt(i,k,s) +
-			      Alt(i,q,k)*Alt(j,s,l) + Alt(j,q,k)*Alt(i,s,l) +
-			      Alt(i,q,l)*Alt(j,s,k) + Alt(j,q,l)*Alt(i,s,k)
-			      )*U[q][s];
-		     }
-	       }
+      // Nothing to do: Phi is zero
    }
    
    return Phi;
@@ -837,26 +870,6 @@ Matrix MultiLatticeTPP::E3()
    
    // Phi = Phi/(2*Vr*ShearMod)
    Phi *= 1.0/(2.0*(RefLattice_.Det()*ShearMod_));
-
-   // Pressure terms
-   for (i=0;i<DIM3;i++)
-      for (j=0;j<DIM3;j++)
-	 for (k=0;k<DIM3;k++)
-	    for (l=0;l<DIM3;l++)
-	       for (q=0;q<DIM3;q++)
-		  for (s=0;s<DIM3;s++)
-		  {
-		     Phi[INDUU(i,j,k,l)][INDU(q,s)] -=
-			(Pressure_/16.0)*(
-			   Alt(i,k,q)*Alt(j,l,s) + Alt(j,k,q)*Alt(i,l,s) +
-			   Alt(i,l,q)*Alt(j,k,s) + Alt(j,l,q)*Alt(i,k,s) +
-			   Alt(i,q,k)*Alt(j,s,l) + Alt(j,q,k)*Alt(i,s,l) +
-			   Alt(i,q,l)*Alt(j,s,k) + Alt(j,q,l)*Alt(i,s,k) +
-			   Alt(i,k,s)*Alt(j,l,q) + Alt(j,k,s)*Alt(i,l,q) +
-			   Alt(i,l,s)*Alt(j,k,q) + Alt(j,l,s)*Alt(i,k,q) +
-			   Alt(i,s,k)*Alt(j,q,l) + Alt(j,s,k)*Alt(i,q,l) +
-			   Alt(i,s,l)*Alt(j,q,k) + Alt(j,s,l)*Alt(i,q,k));
-		  }
 
    return Phi;
 }
@@ -1204,8 +1217,6 @@ Matrix MultiLatticeTPP::E4()
    // Phi = Phi/(2*Vr*ShearMod)
    Phi *= 1.0/(2.0*(RefLattice_.Det()*ShearMod_));
 
-   // Pressure terms are zero
-   
    return Phi;
 }
 
@@ -1772,7 +1783,8 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 		   << setw(W) << Potential_[i][j] << endl;
 	    }
 	 }
-	 out  << "Shear Modulus : " << setw(W) << ShearMod_ << endl;
+	 out << "Shear Modulus : " << setw(W) << ShearMod_ << endl;
+	 out << "Loading Proportions : " << setw(W) << LoadingProportions_ << endl;
 	 // also send to cout
 	 if (Echo_)
 	 {
@@ -1803,11 +1815,12 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 	       }
 	    }
 	    cout  << "Shear Modulus : " << setw(W) << ShearMod_ << endl;
+	    cout << "Loading Proportions : " << setw(W) << LoadingProportions_ << endl;
 	 }
 	 // passthrough to short
       case PrintShort:
 	 out << "Temperature (Ref Normalized): " << setw(W) << NTemp_ << endl
-	     << "Pressure (G Normalized): " << setw(W) << Pressure_ << endl
+	     << "Lambda (G Normalized): " << setw(W) << Lambda_ << endl
 	     << "DOF's :" << endl << setw(W) << DOF_ << endl
 	     << "Potential Value (G Normalized):" << setw(W) << energy << endl;
 	 for (int i=0;i<INTERNAL_ATOMS;++i)
@@ -1829,7 +1842,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 	 if (Echo_)
 	 {
 	    cout << "Temperature (Ref Normalized): " << setw(W) << NTemp_ << endl
-		 << "Pressure (G Normalized): " << setw(W) << Pressure_ << endl
+		 << "Lambda (G Normalized): " << setw(W) << Lambda_ << endl
 		 << "DOF's :" << endl << setw(W) << DOF_ << endl
 		 << "Potential Value (G Normalized):" << setw(W) << energy << endl;
 	    for (int i=0;i<INTERNAL_ATOMS;++i)
@@ -1881,7 +1894,7 @@ void MultiLatticeTPP::DebugMode()
       "LatticeBasis",                  // 6
       "RefLattice_",                   // 7
       "ShearMod_",                     // 8
-      "Pressure_",                     // 9
+      "Lambda_",                       // 9
       "BodyForce_",                    // 10
       "AtomicMass_",                   // 11
       "GridSize_",                     // 12
@@ -1900,18 +1913,19 @@ void MultiLatticeTPP::DebugMode()
       "StiffnessDT",                   // 25
       "SetTemp",                       // 26
       "Energy",                        // 27
-      "Moduli",                        // 28
-      "E3",                            // 29
-      "E4",                            // 30
-      "SetGridSize",                   // 31
-      "NeighborDistances",             // 32
-      "Print-short",                   // 33
-      "Print-long",                    // 34
-      "SetPressure",                   // 35
-      "FindLatticeSpacing",            // 36
-      "ConsistencyCheck"               // 37
+      "E3",                            // 28
+      "E4",                            // 29
+      "SetGridSize",                   // 30
+      "NeighborDistances",             // 31
+      "Print-short",                   // 32
+      "Print-long",                    // 33
+      "SetLambda",                     // 34
+      "StressDL",                      // 35
+      "StiffnessDL",                   // 36
+      "FindLatticeSpacing",            // 37
+      "ConsistencyCheck"               // 38
    };
-   int NOcommands=38;
+   int NOcommands=39;
    
    char response[LINELENGTH];
    char prompt[] = "Debug > ";
@@ -1953,7 +1967,7 @@ void MultiLatticeTPP::DebugMode()
       else if (!strcmp(response,Commands[8]))
 	 cout << "ShearMod_= " << ShearMod_ << endl;
       else if (!strcmp(response,Commands[9]))
-	 cout << "Pressure_= " << Pressure_ << endl;
+	 cout << "Lambda_= " << Lambda_ << endl;
       else if (!strcmp(response,Commands[10]))
       {
 	 for (int i=0;i<INTERNAL_ATOMS;++i)
@@ -2054,12 +2068,10 @@ void MultiLatticeTPP::DebugMode()
       else if (!strcmp(response,Commands[27]))
 	 cout << "Energy= " << Energy() << endl;
       else if (!strcmp(response,Commands[28]))
-	 cout << "Moduli= " << setw(W) << Moduli();
-      else if (!strcmp(response,Commands[29]))
 	 cout << "E3= " << setw(W) << E3();
-      else if (!strcmp(response,Commands[30]))
+      else if (!strcmp(response,Commands[29]))
 	 cout << "E4= " << setw(W) << E4();
-      else if (!strcmp(response,Commands[31]))
+      else if (!strcmp(response,Commands[30]))
       {
 	 int GridSize;
 	 cout << "\tGridSize > ";
@@ -2067,7 +2079,7 @@ void MultiLatticeTPP::DebugMode()
 	 cin.sync(); // clear input
 	 SetGridSize(GridSize);
       }
-      else if (!strcmp(response,Commands[32]))
+      else if (!strcmp(response,Commands[31]))
       {
 	 int oldEcho_=Echo_;
 	 int cutoff;
@@ -2078,29 +2090,37 @@ void MultiLatticeTPP::DebugMode()
 	 NeighborDistances(cutoff,cout);
 	 Echo_=oldEcho_;
       }
-      else if (!strcmp(response,Commands[33]))
+      else if (!strcmp(response,Commands[32]))
       {
 	 int oldEcho_=Echo_;
 	 Echo_=0;
 	 cout << setw(W) << *this;
 	 Echo_=oldEcho_;
       }
-      else if (!strcmp(response,Commands[34]))
+      else if (!strcmp(response,Commands[33]))
       {
 	 int oldEcho_=Echo_;
 	 Echo_=0;
 	 Print(cout,PrintLong);
 	 Echo_=oldEcho_;
       }
+      else if (!strcmp(response,Commands[34]))
+      {
+	 double lambda;
+	 cout << "\tLambda > ";
+	 cin >> lambda;
+	 cin.sync(); // clear input
+	 SetLambda(lambda);
+      }
       else if (!strcmp(response,Commands[35]))
       {
-	 double pressure;
-	 cout << "\tPressure > ";
-	 cin >> pressure;
-	 cin.sync(); // clear input
-	 SetPressure(pressure);
+	 cout << "StressDL= " << setw(W) << StressDL();
       }
       else if (!strcmp(response,Commands[36]))
+      {
+	 cout << "StiffnessDL= " << setw(W) << StiffnessDL();
+      }
+      else if (!strcmp(response,Commands[37]))
       {
 	 int iter;
 	 double dx;
@@ -2112,7 +2132,7 @@ void MultiLatticeTPP::DebugMode()
 	 cin.sync(); // clear input
 	 FindLatticeSpacing(iter,dx);
       }
-      else if (!strcmp(response,Commands[37]))
+      else if (!strcmp(response,Commands[38]))
       {
 	 int width;
 	 int oldEcho=Echo_;

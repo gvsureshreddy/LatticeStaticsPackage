@@ -25,7 +25,12 @@ private:
    Vector LatticeBasis[DIM3];
    Matrix RefLattice_;
    double ShearMod_;
-   double Pressure_;
+   enum LDeriv {L0,DL};
+   double Lambda_;
+   Vector LoadingProportions_;
+   double EulerAng_[DIM3];
+   Matrix Rotation_;
+   Matrix Loading_;
    Vector *BodyForce_;
    double *AtomicMass_;
 
@@ -43,8 +48,9 @@ private:
    int NoMovable_;
    int *MovableAtoms_;
    
-   Matrix stress(PairPotentials::TDeriv dt=PairPotentials::T0);
-   Matrix stiffness(int moduliflag=0,PairPotentials::TDeriv dt=PairPotentials::T0);
+   Matrix stress(PairPotentials::TDeriv dt=PairPotentials::T0,LDeriv dl=L0);
+   Matrix stiffness(PairPotentials::TDeriv dt=PairPotentials::T0,
+		    LDeriv dl=L0);
    Matrix CondensedModuli();
 
    void ReferenceDispersionCurves(Vector K,int NoPTS,const char *prefix,ostream &out);
@@ -68,15 +74,18 @@ public:
    Vector DOF() {return DOF_;}
    void SetDOF(const Vector &dof) {DOF_ = dof; LatSum_.Recalc();}
    Matrix StressDT() {return stress(PairPotentials::DT);}
-   Matrix StiffnessDT() {return stiffness(0,PairPotentials::DT);}
+   Matrix StiffnessDT() {return stiffness(PairPotentials::DT);}
    double Temp() {return NTemp_;}
    void SetTemp(const double &Ntemp) {NTemp_ = Ntemp; LatSum_.Recalc();}
+   Matrix StressDL() {return stress(PairPotentials::T0,DL);}
+   Matrix StiffnessDL() {return stiffness(PairPotentials::T0,DL);}
+   double Lambda() {return Lambda_;}
+   void SetLambda(const double &lambda) {Lambda_ = lambda;}
 
    virtual double Energy();
    virtual Matrix Stress() {return stress();}
    virtual Matrix Stiffness() {return stiffness();}
 
-   virtual Matrix Moduli() {return stiffness(1);}
    virtual Matrix E3();
    virtual Matrix E4();
    virtual void DispersionCurves(Vector K,int NoPTS,const char *prefix,ostream &out)
@@ -95,8 +104,6 @@ public:
    ~MultiLatticeTPP();
    inline double Del(int i,int j) {return i==j;}
    Vector BodyForce(int i) {return BodyForce_[i]; }
-   double Pressure() const {return Pressure_;}
-   double SetPressure(double &p) { Pressure_ = p;}
    double ShearMod() const {return ShearMod_;}
    friend ostream &operator<<(ostream &out,MultiLatticeTPP &A);
 
