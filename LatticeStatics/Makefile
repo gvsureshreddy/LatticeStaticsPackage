@@ -79,7 +79,9 @@ $(BIN_LOC)/$(EXE):	$(EXE)
 	/bin/cp bin/$(EXE) $(BIN_LOC)/
 	/bin/cp Utility/UniDef_Symm_Solution $(BIN_LOC)/
 	/bin/cp gpl_scripts/NiTi2gpl $(BIN_LOC)/
-	/bin/cp gpl_scripts/NiTiShuffle2gpl $(BIN_LOC)/
+	/bin/cp gpl_scripts/NiTiShuffle1togpl $(BIN_LOC)/
+	/bin/cp gpl_scripts/NiTiShuffle2togpl $(BIN_LOC)/
+	/bin/cp gpl_scripts/NiTiShuffle3togpl $(BIN_LOC)/
 	/bin/cp gpl_scripts/NiTiShuffleParam2gpl $(BIN_LOC)/
 	/bin/cp gpl_scripts/NiTi152gpl $(BIN_LOC)/
 	/bin/cp gpl_scripts/NiTi15Param2gpl $(BIN_LOC)/
@@ -89,7 +91,9 @@ uninstall:
 	/bin/rm -f $(BIN_LOC)/$(EXE)
 	/bin/rm -f $(BIN_LOC)/UniDef_Symm_Solution
 	/bin/rm -f $(BIN_LOC)/NiTi2gpl
-	/bin/rm -f $(BIN_LOC)/NiTiShuffle2gpl
+	/bin/rm -f $(BIN_LOC)/NiTiShuffle1togpl
+	/bin/rm -f $(BIN_LOC)/NiTiShuffle2togpl
+	/bin/rm -f $(BIN_LOC)/NiTiShuffle3togpl
 	/bin/rm -f $(BIN_LOC)/NiTiShuffleParam2gpl
 	/bin/rm -f $(BIN_LOC)/NiTi152gpl
 	/bin/rm -f $(BIN_LOC)/NiTi15Param2gpl
