@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 
 
    double uncertainty;
-   int success;
+   int success = 1;
    int Nulity=-1,
       OldNulity=Nulity;
 
