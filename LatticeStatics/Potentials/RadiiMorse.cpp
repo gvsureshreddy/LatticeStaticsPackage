@@ -28,10 +28,10 @@ double RadiiMorse::Beta(double NTemp,TDeriv dt)
    switch (dt)
    {
       case T0:
-	 return B0_*(1.0+Alpha_*(NTemp-1.0));
+	 return B0_ + Alpha_*(NTemp-1.0);
 	 break;
       case DT:
-	 return B0_*Alpha_;
+	 return Alpha_;
 	 break;
    }
 
@@ -46,10 +46,10 @@ double RadiiMorse::Rhat(double NTemp,TDeriv dt)
    switch (dt)
    {
       case T0:
-	 rhat = Rref_*(1.0 + Rtheta_*(NTemp - 1.0));
+	 rhat = Rref_ + Rtheta_*(NTemp - 1.0);
 	 break;
       case DT:
-	 rhat = Rref_*Rtheta_;
+	 rhat = Rtheta_;
 	 break;
    }
 
