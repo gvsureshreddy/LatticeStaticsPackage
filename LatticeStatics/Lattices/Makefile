@@ -1,2 +1,4 @@
 LATTICES = KnownLattices.cpp\
-	   SquarePressTempPairPotLat.cpp
+	   SquarePressTempPairPotLat.cpp\
+	   TrianglePressTempPairPotLat.cpp\
+	   NiTiPressTempPairPotLat.cpp
