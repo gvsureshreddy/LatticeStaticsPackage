@@ -3,6 +3,7 @@
 
 #include "GenericLat.h"
 #include "RadiiMorse.h"
+#include "CMatrix.h"
 
 class NiTi9TPPLat : public GenericLat
 {
@@ -20,6 +21,7 @@ private:
    double ShearMod_;
    double Pressure_;
    Vector BodyForce_[INTERNAL_ATOMS];
+   double AtomicMass_[INTERNAL_ATOMS];
 
    //Pair Potential data
    enum interaction {aa,bb,ab,NOINTERACTIONS};
@@ -61,6 +63,8 @@ public:
    double Pressure() const { return Pressure_;}
    double SetPressure(double &p) { Pressure_ = p;}
    double ShearMod() const { return ShearMod_;}
+   CMatrix DynamicalStiffness(Vector &Y);
+   int DynamicallyStable(Vector &Y);
    friend ostream &operator<<(ostream &out,NiTi9TPPLat &A);
 
 private:

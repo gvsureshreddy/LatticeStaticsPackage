@@ -50,6 +50,12 @@ NiTi9TPPLat::NiTi9TPPLat(char *datafile)
    GetParameter("^NTemp",datafile,"%lf",&NTemp_);
    GetParameter("^Pressure",datafile,"%lf",&Pressure_);
    GetParameter("^ConvexityDX",datafile,"%lf",&ConvexityDX_);
+   char temp[30];
+   for (int i=0;i<INTERNAL_ATOMS;i++)
+   {
+      sprintf(temp,"^AtomicMass_%u",i);
+      GetParameter(temp,datafile,"%lf",&(AtomicMass_[i]));
+   }
    
    // needed to initialize reference length
    int iter;
@@ -352,10 +358,10 @@ inline int NiTi9TPPLat::INDVU(int m,int n,int i,int j)
 Matrix NiTi9TPPLat::Phi(unsigned moduliflag,PairPotentials::YDeriv dy,
 			 PairPotentials::TDeriv dt)
 {
-   static Matrix U(3,3);
-   static Matrix V(2,3);
-   static Matrix Eigvals(1,3);
-   static double X[3];
+   static Matrix U(DIM3,DIM3);
+   static Matrix V(INTERNAL_ATOMS,3);
+   static Matrix Eigvals(1,DIM3);
+   static double X[DIM3];
    static Vector DX(DIM3),Dx(DIM3);
    static Vector Direction(DIM3);
    static double ForceNorm;
@@ -945,6 +951,254 @@ Matrix NiTi9TPPLat::CondensedModuli()
    return CM;
 }
 
+CMatrix NiTi9TPPLat::DynamicalStiffness(Vector &Y)
+{
+   static CMatrix Cy;
+   static Matrix U(DIM3,DIM3);
+   static Matrix V(INTERNAL_ATOMS,3);
+   static Matrix Eigvals(1,DIM3);
+   static double X[DIM3];
+   static Vector DX(DIM3),Dx(DIM3);
+   static Vector Direction(DIM3);
+   static double pi = 4.0*atan(1.0);
+   static double J;
+   static int p,q;
+   static int i,j,k,l,m,n,s,t;
+   static double r2,phi,phi1,Influancedist[DIM3],tmp;
+   static int Top[DIM3],Bottom[DIM3],CurrentInfluanceDist;
+   static interaction Inter;
+   static complex<double> Ic(0,1);
+
+   Cy.Resize(INTERNAL_ATOMS*DIM3,INTERNAL_ATOMS*DIM3,0.0);
+   
+   U[0][0] = DOF_[0];
+   U[1][1] = DOF_[1];
+   U[2][2] = DOF_[2];
+   U[0][1] = U[1][0] = DOF_[3];
+   U[0][2] = U[2][0] = DOF_[4];
+   U[1][2] = U[2][1] = DOF_[5];
+
+   V[0][0] = 0.0;
+   V[0][1] = 0.0;
+   V[0][2] = 0.0;
+   V[1][0] = DOF_[6];
+   V[1][1] = DOF_[7];
+   V[1][2] = DOF_[8];
+
+   // find largest eigenvalue of the inverse transformation
+   // (i.e. from current to ref) and use influence cube of
+   // that size...
+   //
+   // Use the fact that eigs of Uinv = 1/ eigs of U.
+   J = U.Det();
+   Eigvals = SymEigVal(U);
+   tmp = Eigvals[0][0];
+   for (i=0;i<DIM3;i++)
+      if (Eigvals[0][i] < tmp) tmp = Eigvals[0][i];
+   
+   // Set to inverse eigenvalue
+   tmp = 1.0/tmp;
+   for (i=0;i<DIM3;i++)
+   {
+      Influancedist[i]=tmp*InfluanceDist_;
+   }
+   
+   for (p=0;p<DIM3;p++)
+   {
+      // set influance distance based on cube size
+      //
+      // also setup to be large enough to encompass Eulerian sphere
+      CurrentInfluanceDist = int(ceil(Influancedist[p]));
+
+      Top[p] = CurrentInfluanceDist;
+      Bottom[p] = -CurrentInfluanceDist;
+   }
+
+   for (p=0;p<INTERNAL_ATOMS;p++)
+   {
+      for (q=0;q<INTERNAL_ATOMS;q++)
+      {
+	 Inter = INTER[p][q];
+	 
+	 for (X[0] = Bottom[0];X[0] <= Top[0];X[0]++)
+	 {
+	    for (X[1] = Bottom[1];X[1] <= Top[1];X[1]++)
+	    {
+	       for (X[2] = Bottom[2];X[2] <= Top[2];X[2]++)
+	       {
+		  for (i=0;i<DIM3;i++)
+		  {
+		     DX[i] = 0.0;
+				     
+		     for (j=0;j<DIM3;j++)
+		     {
+			DX[i] += (X[j] + A[q][j] - A[p][j] + V[q][j] - V[p][j])*
+			   LatticeVec_[j][i]*RefLen_;
+
+		     }
+		  }
+
+		  r2 = 0.0;
+		  for (i=0;i<DIM3;i++)
+		  {
+		     Dx[i] = 0.0;
+
+		     for (j=0;j<DIM3;j++)
+		     {
+			Dx[i] += U[i][j] * DX[j];
+		     }
+		     r2 += Dx[i]*Dx[i];
+		  }
+		  // Only use Sphere of Influance (current)
+		  if (r2==0 || r2 > InfluanceDist_*InfluanceDist_)
+		  {
+		     continue;
+		  }
+
+		  // Calculate Cy
+		  if (p != q)
+		  {
+		     for (i=0;i<DIM3;i++)
+			for (j=0;j<DIM3;j++)
+			{
+			   Cy[DIM3*p+i][DIM3*p+j] +=
+			      (2.0*Del(i,j)*Potential_[Inter].PairPotential(NTemp_,r2,PairPotentials::DY)
+			       +4.0*Dx[i]*Dx[j]*Potential_[Inter].PairPotential(NTemp_,r2,PairPotentials::D2Y))
+			      *exp(-2.0*pi*Ic * (Y*Dx));
+
+			   Cy[DIM3*p+i][DIM3*q+j] +=
+			      (-2.0*Del(i,j)*Potential_[Inter].PairPotential(NTemp_,r2,PairPotentials::DY)
+			       -4.0*Dx[i]*Dx[j]*Potential_[Inter].PairPotential(NTemp_,r2,PairPotentials::D2Y))
+			      *exp(-2.0*pi*Ic * (Y*Dx));
+			}
+		     }
+	       }
+	    }
+	 }
+
+	 // Normalize through the Mass Matrix
+	 for (i=0;i<DIM3;i++)
+	    for (j=0;j<DIM3;j++)
+	    {
+	       Cy[DIM3*p+i][DIM3*q+j] /= sqrt(AtomicMass_[p]*AtomicMass_[q]);
+	    }
+      }
+   }
+   return Cy;
+}
+
+#include <fstream.h>
+
+int NiTi9TPPLat::DynamicallyStable(Vector &Y)
+{
+   int Depth = 4;
+   double offset;
+   double onehalf = 0.5;
+
+   fstream out;
+
+   out.open("test.out",ios::out);
+
+   // I have changed the k values so as to only
+   // cover 1/2 of the cube (positive Z)
+
+   
+   // Place nodes at corners of cube
+   for (int k=1;k<2;k++)
+      for (int j=0;j<2;j++)
+	 for (int i=0;i<2;i++)
+	 {
+	    out << setw(20) << i-1/2.0
+		<< setw(20) << j-1/2.0
+		<< setw(20) << k-1/2.0
+		<< endl;
+	 }
+
+   for (int n=0;n<Depth;n++)
+   {
+      double twon = pow(2,n),
+	 twon1 = pow(2,n+1);
+      int twonm1 = int((n!=0) ? pow(2,n-1) : 0);
+      
+      offset = (twon-1)/twon1;
+
+      // Place nodes at centroid of n level squares.
+      for (int k=twonm1;k<twon;k++)
+      {
+	 for (int j=0;j<twon;j++)
+	 {
+	    for (int i=0;i<twon;i++)
+	    {
+	       out << setw(20) << (i/twon)-offset
+		   << setw(20) << (j/twon)-offset
+		   << setw(20) << (k/twon)-offset
+		   << endl;
+	    }
+	 }
+      }
+
+      // Place nodes at corners of n+1 level squares.
+      for (int k=twonm1;k<twon;k++)
+      {
+	 for (int j=0;j<=twon;j++)
+	 {
+	    for (int i=0;i<=twon1;i++)
+	    {
+	       out << setw(20) << (i/twon1) - onehalf
+		   << setw(20) << (j/twon) - onehalf
+		   << setw(20) << (k/twon) - offset
+		   << endl;
+	    }
+	 }
+	 
+	 for (int j=0;j<twon;j++)
+	 {
+	    for (int i=0;i<=twon;i++)
+	    {
+	       out << setw(20) << (i/twon) - onehalf
+		   << setw(20) << (j/twon) - offset
+		   << setw(20) << (k/twon) - offset
+		   << endl;
+	    }
+	 }
+      }
+
+      out << endl << endl;
+
+      if (twonm1 == 0) twonm1++;
+      for (int k=twonm1;k<=twon;k++)
+      {
+	 for (int j=0;j<twon;j++)
+	 {
+	    for (int i=0;i<=twon1;i++)
+	    {
+	       out << setw(20) << (i/twon1) - onehalf
+		   << setw(20) << (j/twon) - offset
+		   << setw(20) << (k/twon) - onehalf
+		   << endl;
+	    }
+	 }
+
+	 for (int j=0;j<=twon;j++)
+	 {
+	    for (int i=0;i<twon;i++)
+	    {
+	       out << setw(20) << (i/twon) - offset
+		   << setw(20) << (j/twon) - onehalf
+		   << setw(20) << (k/twon) - onehalf
+		   << endl;
+	    }
+	 }
+      }
+
+      out << endl << endl;
+   }
+   
+   
+   out.close();
+   return 1;
+}
+
 void NiTi9TPPLat::Print(ostream &out,PrintDetail flag)
 {
    int W=out.width();
@@ -986,6 +1240,8 @@ void NiTi9TPPLat::Print(ostream &out,PrintDetail flag)
 	 out << "NiTi9TPPLat:" << endl << endl
 	     << "Cell Reference Length: " << setw(W) << RefLen_ << endl
 	     << "Influance Distance   : " << setw(W) << InfluanceDist_ << endl
+	     << "Atomic Mass 0        : " << setw(W) << AtomicMass_[0] << endl
+	     << "Atomic Mass 1        : " << setw(W) << AtomicMass_[1] << endl
 	     << "Potential Parameters : " << endl
 	     << "AA -- " << setw(W) << Potential_[aa] << endl
 	     << "BB -- " << setw(W) << Potential_[bb] << endl
@@ -994,6 +1250,8 @@ void NiTi9TPPLat::Print(ostream &out,PrintDetail flag)
 	 cout << "NiTi9TPPLat:" << endl << endl
 	      << "Cell Reference Length: " << setw(W) << RefLen_ << endl
 	      << "Influance Distance   : " << setw(W) << InfluanceDist_ << endl
+	      << "Atomic Mass 0        : " << setw(W) << AtomicMass_[0] << endl
+	      << "Atomic Mass 1        : " << setw(W) << AtomicMass_[1] << endl
 	      << "Potential Parameters : " << endl
 	      << "AA -- " << setw(W) << Potential_[aa] << endl
 	      << "BB -- " << setw(W) << Potential_[bb] << endl
@@ -1029,6 +1287,11 @@ void NiTi9TPPLat::Print(ostream &out,PrintDetail flag)
 	      << "Condensed Moduli (G Normalized):" << setw(W) << CondModuli
 	      << "CondEV Info:" << setw(W) << CondEV
 	      << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << endl;
+	 Vector Z(DIM3,0.0);
+	 out << "Dynamical Stability" << endl << setw(W) << DynamicalStiffness(Z) << endl;
+	 cout << "Dynamical Stability" << endl << setw(W) << DynamicalStiffness(Z) << endl;
+
+	 DynamicallyStable(Z);
 	 break;
    }
 }
