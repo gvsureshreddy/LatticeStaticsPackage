@@ -507,6 +507,29 @@ Matrix NiTi6TPPLat::Phi(unsigned moduliflag,PairPotentials::YDeriv dy,
    return Phi;
 }
 
+Matrix NiTi6TPPLat::CondensedModuli()
+{
+   Matrix stiffness = Phi(1,PairPotentials::D2Y);
+   Matrix CM(6,6);
+   
+   // Remove 2's and 4's
+   for (int i=3;i<6;i++)
+   {
+      for (int j=0;j<3;j++)
+      {
+	 CM[i][j] /= 2.0;
+	 CM[j][i] /= 2.0;
+      }
+
+      for (int j=3;j<6;j++)
+      {
+	 CM[i][j] /= 4.0;
+      }
+   }
+
+   return CM;
+}
+
 void NiTi6TPPLat::Print(ostream &out,PrintDetail flag)
 {
    int W=out.width();
@@ -522,7 +545,6 @@ void NiTi6TPPLat::Print(ostream &out,PrintDetail flag)
    Matrix
       stress = Stress(),
       stiffness = Stiffness(),
-      moduli = Moduli(),
       EigenValues(1,DOFS);
 
    EigenValues=SymEigVal(stiffness);
@@ -536,7 +558,12 @@ void NiTi6TPPLat::Print(ostream &out,PrintDetail flag)
 	 MinEigVal = EigenValues[0][i];
    }
 
-   int RankOneConvex = FullScanRank1Convex3D(moduli,ConvexityDX_);
+   Matrix
+      CondModuli = CondensedModuli();
+   Vector 
+      CondEV = SymEigVal(CondModuli);
+   
+   int RankOneConvex = FullScanRank1Convex3D(CondModuli,ConvexityDX_);
 
    switch (flag)
    {
@@ -567,10 +594,12 @@ void NiTi6TPPLat::Print(ostream &out,PrintDetail flag)
 	     << "BodyForce Value 1 (Inf Normalized):" << setw(W) << BodyForce_[1] << endl
 	     << "Stress (G Normalized):" << setw(W) << stress << endl
 	     << "Stiffness (G Normalized):" << setw(W) << stiffness
-	     << "Rank 1 Convex:" << setw(W) << RankOneConvex << endl
 	     << "Eigenvalue Info:"  << setw(W) << EigenValues
 	     << "Bifurcation Info:" << setw(W) << MinEigVal
-	     << setw(W) << NoNegEigVal << endl;
+	     << setw(W) << NoNegEigVal << endl
+	     << "Condensed Moduli (G Normalized):" << setw(W) << CondModuli
+	     << "CondEV Info:" << setw(W) << CondEV
+	     << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << endl;
 	 cout << "Temperature (Ref Normalized): " << setw(W) << NTemp_ << endl
 	      << "Pressure (G Normalized): " << setw(W) << Pressure_ << endl
 	      << "DOF's :" << endl << setw(W) << DOF_ << endl
@@ -579,10 +608,12 @@ void NiTi6TPPLat::Print(ostream &out,PrintDetail flag)
 	      << "BodyForce Value 1 (Inf Normalized):" << setw(W) << BodyForce_[1] << endl
 	      << "Stress (G Normalized):" << setw(W) << stress << endl
 	      << "Stiffness (G Normalized):" << setw(W) << stiffness
-	      << "Rank 1 Convex:" << setw(W) << RankOneConvex << endl
 	      << "Eigenvalue Info:"  << setw(W) << EigenValues
 	      << "Bifurcation Info:" << setw(W) << MinEigVal
-	      << setw(W) << NoNegEigVal << endl;	 
+	      << setw(W) << NoNegEigVal << endl
+	      << "Condensed Moduli (G Normalized):" << setw(W) << CondModuli
+	      << "CondEV Info:" << setw(W) << CondEV
+	      << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << endl;
 	 break;
    }
 }

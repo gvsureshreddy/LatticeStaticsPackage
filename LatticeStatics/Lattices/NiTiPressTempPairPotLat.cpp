@@ -756,6 +756,21 @@ void NiTiPressTempPairPotLat::Print(ostream &out,PrintDetail flag)
 	 MinEigVal = EigenValues[0][i];
    }
 
+   // Remove 2's and 4's
+   for (int i=3;i<6;i++)
+   {
+      for (int j=0;j<3;j++)
+      {
+	 moduli[i][j] /= 2.0;
+	 moduli[j][i] /= 2.0;
+      }
+      
+      for (int j=3;j<6;j++)
+      {
+	 moduli[i][j] /= 4.0;
+      }
+   }
+
    int Rank1Convex = FullScanRank1Convex3D(moduli,ConvexityDX_);
 
    switch (flag)

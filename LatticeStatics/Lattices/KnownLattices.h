@@ -7,5 +7,6 @@
 #include "NiTiShuffle2TPPLat.h"
 #include "NiTiShuffle3TPPLat.h"
 #include "NiTi15TPPLat.h"
+#include "NiTi9TPPLat.h"
 
 Lattice *InitializeLattice(char *datafile);

@@ -63,6 +63,8 @@ public:
    double SetPressure(double &p) { Pressure_ = p;}
    double ShearMod() const { return ShearMod_;}
    friend ostream &operator<<(ostream &out,NiTiShuffle1TPPLat &A);
+   Matrix CondensedModuli();
+   
 private:
    void GetLatticeVectorInfo(double *SX,double *DXPrime,interaction &Inter,
 			     int p,int q);

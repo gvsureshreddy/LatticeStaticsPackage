@@ -1,27 +1,21 @@
-#include "NiTi15TPPLat.h"
+#include "NiTi9TPPLat.h"
 #include <math.h>
 
 #include "UtilityFunctions.h"
 
-NiTi15TPPLat::NiTi15TPPLat(char *datafile)
+NiTi9TPPLat::NiTi9TPPLat(char *datafile)
 {
    // First Size DOF
    DOF_.Resize(DOFS);
    // Set LatticeVec_
    LatticeVec_.Resize(DIM3,DIM3,0.0);
    LatticeVec_[0][0] = 1.0;
-   LatticeVec_[0][1] = -1.0;
-   
-   LatticeVec_[1][0] = 1.0;
    LatticeVec_[1][1] = 1.0;
-
    LatticeVec_[2][2] = 1.0;
    
    // Setup Bodyforce_
    BodyForce_[0].Resize(DIM3,0.0);
    BodyForce_[1].Resize(DIM3,0.0);
-   BodyForce_[2].Resize(DIM3,0.0);
-   BodyForce_[3].Resize(DIM3,0.0);
 
    // Get Potential Parameters
    double Tref,A0,B0,Alpha,Rref,Rtheta,Tmelt;
@@ -63,7 +57,6 @@ NiTi15TPPLat::NiTi15TPPLat(char *datafile)
    GetParameter("^MaxIterations",datafile,"%u",&iter);
    GetParameter("^InitializeStepSize",datafile,"%lf",&DX);
 
-   
    int err=0;
    err=FindLatticeSpacing(iter,DX);
    if (err)
@@ -73,7 +66,7 @@ NiTi15TPPLat::NiTi15TPPLat(char *datafile)
    }
 }
 
-int NiTi15TPPLat::FindLatticeSpacing(int iter,double dx)
+int NiTi9TPPLat::FindLatticeSpacing(int iter,double dx)
 {
    double oldPressure=Pressure_,
       oldTemp=NTemp_;
@@ -137,13 +130,13 @@ int NiTi15TPPLat::FindLatticeSpacing(int iter,double dx)
 
 // Lattice Routines
 
-double NiTi15TPPLat::PI(const Vector &Dx,const Vector &DX,
+double NiTi9TPPLat::PI(const Vector &Dx,const Vector &DX,
 			int r, int s)
 {
    return (Dx[r]*DX[s] + DX[r]*Dx[s]);
 }
 
-double NiTi15TPPLat::PSI(const Vector &DX,
+double NiTi9TPPLat::PSI(const Vector &DX,
 			 int r, int s, int t, int u)
 {
    return (Del(r,t)*DX[s]*DX[u] +
@@ -152,7 +145,7 @@ double NiTi15TPPLat::PSI(const Vector &DX,
 	   Del(s,u)*DX[r]*DX[t]);
 }
 
-double NiTi15TPPLat::OMEGA(const Vector &Dx,int p,int q,int i, int j)
+double NiTi9TPPLat::OMEGA(const Vector &Dx,int p,int q,int i, int j)
 {
    double ret=0;
    
@@ -170,7 +163,7 @@ double NiTi15TPPLat::OMEGA(const Vector &Dx,int p,int q,int i, int j)
    return ret;
 }
 
-double NiTi15TPPLat::SIGMA(int p,int q,int i,int j,int k,int l)
+double NiTi9TPPLat::SIGMA(int p,int q,int i,int j,int k,int l)
 {
    double tmp=0;
    for (int s=0;s<DIM3;s++)
@@ -188,7 +181,7 @@ double NiTi15TPPLat::SIGMA(int p,int q,int i,int j,int k,int l)
    return DELTA(i,p,q)*DELTA(k,p,q)*tmp;
 }
 
-double NiTi15TPPLat::GAMMA(const Vector &Dx,const Vector &DX,
+double NiTi9TPPLat::GAMMA(const Vector &Dx,const Vector &DX,
 			   int p,int q,int i,int j,int k,int l)
 {
    double tmp=0;
@@ -205,7 +198,7 @@ double NiTi15TPPLat::GAMMA(const Vector &Dx,const Vector &DX,
    return (0.5*DELTA(k,p,q)*(LatticeVec_[l][i]*Dx[j] + LatticeVec_[l][j]*Dx[i] + tmp));
 }
 
-double NiTi15TPPLat::THETA(const Vector &DX,int p,int q,int i,int j,int k,int l,
+double NiTi9TPPLat::THETA(const Vector &DX,int p,int q,int i,int j,int k,int l,
 			   int m, int n)
 {
    return (0.5*DELTA(m,p,q)*(Del(i,k)*LatticeVec_[n][j]*DX[l]
@@ -218,7 +211,7 @@ double NiTi15TPPLat::THETA(const Vector &DX,int p,int q,int i,int j,int k,int l,
 			     + Del(j,l)*DX[i]*LatticeVec_[n][k]));
 }
 
-double NiTi15TPPLat::XI(int p,int q,int i,int j,int k,int l,int m,int n)
+double NiTi9TPPLat::XI(int p,int q,int i,int j,int k,int l,int m,int n)
 {
    double tmp=0;
 
@@ -237,7 +230,7 @@ double NiTi15TPPLat::XI(int p,int q,int i,int j,int k,int l,int m,int n)
    return (0.5*DELTA(i,p,q)*DELTA(k,p,q)*tmp);
 }
 
-double NiTi15TPPLat::LAMDA(int p,int q,int i,int j,int k,int l,int m,int n,int a,
+double NiTi9TPPLat::LAMDA(int p,int q,int i,int j,int k,int l,int m,int n,int a,
 			   int b)
 {
    return (0.5*DELTA(m,p,q)*DELTA(a,p,q)*(Del(i,k)*LatticeVec_[n][j]*LatticeVec_[b][l]
@@ -250,7 +243,7 @@ double NiTi15TPPLat::LAMDA(int p,int q,int i,int j,int k,int l,int m,int n,int a
 					  + Del(j,l)*LatticeVec_[b][i]*LatticeVec_[n][k]));
 }
 
-double NiTi15TPPLat::pwr(const double &x,const unsigned y)
+double NiTi9TPPLat::pwr(const double &x,const unsigned y)
 {
    if (y==1)
    {
@@ -262,7 +255,7 @@ double NiTi15TPPLat::pwr(const double &x,const unsigned y)
    }
 }
 
-inline int NiTi15TPPLat::INDU(int i,int j)
+inline int NiTi9TPPLat::INDU(int i,int j)
 {
    if (i==j)
       return i;
@@ -270,7 +263,7 @@ inline int NiTi15TPPLat::INDU(int i,int j)
       return 2+i+j;
 }
 
-inline int NiTi15TPPLat::INDUU(int k,int l,int m,int n)
+inline int NiTi9TPPLat::INDUU(int k,int l,int m,int n)
 {
    if (k==l)
    {
@@ -296,7 +289,7 @@ inline int NiTi15TPPLat::INDUU(int k,int l,int m,int n)
    }
 }
 
-inline int NiTi15TPPLat::INDV(int i,int j)
+inline int NiTi9TPPLat::INDV(int i,int j)
 {
    if (!i)
    {
@@ -307,7 +300,7 @@ inline int NiTi15TPPLat::INDV(int i,int j)
    return 6 + (i-1)*3 + j;
 }
 
-inline int NiTi15TPPLat::INDVV(int k,int l,int m,int n)
+inline int NiTi9TPPLat::INDVV(int k,int l,int m,int n)
 {
    if (!k || !m)
    {
@@ -320,7 +313,7 @@ inline int NiTi15TPPLat::INDVV(int k,int l,int m,int n)
       + ( (m-1)*3 + n );
 }
 
-inline int NiTi15TPPLat::INDUV(int i,int j,int m,int n)
+inline int NiTi9TPPLat::INDUV(int i,int j,int m,int n)
 {
    if (!m)
    {
@@ -338,7 +331,7 @@ inline int NiTi15TPPLat::INDUV(int i,int j,int m,int n)
    }
 }
 
-inline int NiTi15TPPLat::INDVU(int m,int n,int i,int j)
+inline int NiTi9TPPLat::INDVU(int m,int n,int i,int j)
 {
    if (!m)
    {
@@ -356,11 +349,11 @@ inline int NiTi15TPPLat::INDVU(int m,int n,int i,int j)
    }
 }
 
-Matrix NiTi15TPPLat::Phi(unsigned moduliflag,PairPotentials::YDeriv dy,
+Matrix NiTi9TPPLat::Phi(unsigned moduliflag,PairPotentials::YDeriv dy,
 			 PairPotentials::TDeriv dt)
 {
    static Matrix U(3,3);
-   static Matrix V(4,3);
+   static Matrix V(2,3);
    static Matrix Eigvals(1,3);
    static double X[3];
    static Vector DX(DIM3),Dx(DIM3);
@@ -407,12 +400,6 @@ Matrix NiTi15TPPLat::Phi(unsigned moduliflag,PairPotentials::YDeriv dy,
    V[1][0] = DOF_[6];
    V[1][1] = DOF_[7];
    V[1][2] = DOF_[8];
-   V[2][0] = DOF_[9];
-   V[2][1] = DOF_[10];
-   V[2][2] = DOF_[11];
-   V[3][0] = DOF_[12];
-   V[3][1] = DOF_[13];
-   V[3][2] = DOF_[14];
 
    // find largest eigenvalue of the inverse transformation
    // (i.e. from current to ref) and use influence cube of
@@ -550,7 +537,7 @@ Matrix NiTi15TPPLat::Phi(unsigned moduliflag,PairPotentials::YDeriv dy,
 			      }
 			   }
 			}
-			//Lower Diag Block (9,9)
+			//Lower Diag Block (3,3)
 			for (i=1;i<INTERNAL_ATOMS;i++)
 			{
 			   for (j=0;j<DIM3;j++)
@@ -910,7 +897,7 @@ Matrix NiTi15TPPLat::Phi(unsigned moduliflag,PairPotentials::YDeriv dy,
    return Phi;
 }
 
-Matrix NiTi15TPPLat::CondensedModuli()
+Matrix NiTi9TPPLat::CondensedModuli()
 {
    Matrix stiffness = Phi(1,PairPotentials::D2Y);
    int intrn = DOFS-6;
@@ -958,7 +945,7 @@ Matrix NiTi15TPPLat::CondensedModuli()
    return CM;
 }
 
-void NiTi15TPPLat::Print(ostream &out,PrintDetail flag)
+void NiTi9TPPLat::Print(ostream &out,PrintDetail flag)
 {
    int W=out.width();
 
@@ -996,7 +983,7 @@ void NiTi15TPPLat::Print(ostream &out,PrintDetail flag)
    switch (flag)
    {
       case PrintLong:
-	 out << "NiTi15TPPLat:" << endl << endl
+	 out << "NiTi9TPPLat:" << endl << endl
 	     << "Cell Reference Length: " << setw(W) << RefLen_ << endl
 	     << "Influance Distance   : " << setw(W) << InfluanceDist_ << endl
 	     << "Potential Parameters : " << endl
@@ -1004,7 +991,7 @@ void NiTi15TPPLat::Print(ostream &out,PrintDetail flag)
 	     << "BB -- " << setw(W) << Potential_[bb] << endl
 	     << "AB -- " << setw(W) << Potential_[ab] << endl
 	     << "Shear Modulus : " << setw(W) << ShearMod_ << endl;
-	 cout << "NiTi15TPPLat:" << endl << endl
+	 cout << "NiTi9TPPLat:" << endl << endl
 	      << "Cell Reference Length: " << setw(W) << RefLen_ << endl
 	      << "Influance Distance   : " << setw(W) << InfluanceDist_ << endl
 	      << "Potential Parameters : " << endl
@@ -1020,8 +1007,6 @@ void NiTi15TPPLat::Print(ostream &out,PrintDetail flag)
 	     << "Potential Value (G Normalized):" << setw(W) << energy << endl
 	     << "BodyForce Value 0 (Inf Normalized):" << setw(W) << BodyForce_[0] << endl
 	     << "BodyForce Value 1 (Inf Normalized):" << setw(W) << BodyForce_[1] << endl
-	     << "BodyForce Value 2 (Inf Normalized):" << setw(W) << BodyForce_[2] << endl
-	     << "BodyForce Value 3 (Inf Normalized):" << setw(W) << BodyForce_[3] << endl
 	     << "Stress (G Normalized):" << setw(W) << stress << endl
 	     << "Stiffness (G Normalized):" << setw(W) << stiffness
 	     << "Eigenvalue Info:"  << setw(W) << EigenValues
@@ -1036,8 +1021,6 @@ void NiTi15TPPLat::Print(ostream &out,PrintDetail flag)
 	      << "Potential Value (G Normalized):" << setw(W) << energy << endl
 	      << "BodyForce Value 0 (Inf Normalized):" << setw(W) << BodyForce_[0] << endl
 	      << "BodyForce Value 1 (Inf Normalized):" << setw(W) << BodyForce_[1] << endl
-	      << "BodyForce Value 2 (Inf Normalized):" << setw(W) << BodyForce_[2] << endl
-	      << "BodyForce Value 3 (Inf Normalized):" << setw(W) << BodyForce_[3] << endl
 	      << "Stress (G Normalized):" << setw(W) << stress << endl
 	      << "Stiffness (G Normalized):" << setw(W) << stiffness
 	      << "Eigenvalue Info:"  << setw(W) << EigenValues
@@ -1050,29 +1033,25 @@ void NiTi15TPPLat::Print(ostream &out,PrintDetail flag)
    }
 }
 
-ostream &operator<<(ostream &out,NiTi15TPPLat &A)
+ostream &operator<<(ostream &out,NiTi9TPPLat &A)
 {
    A.Print(out,Lattice::PrintShort);
    return out;
 }
 
-const double NiTi15TPPLat::Alt[DIM3][DIM3][DIM3] = {0.0, 0.0, 0.0,
+const double NiTi9TPPLat::Alt[DIM3][DIM3][DIM3] = {0.0, 0.0, 0.0,
 						    0.0, 0.0, 1.0,
-						    0.0, -1.0,0.0,
+						    0.0, -1.0, 0.0,
 						    0.0, 0.0, -1.0,
 						    0.0, 0.0, 0.0,
 						    1.0, 0.0, 0.0,
 						    0.0, 1.0, 0.0,
-						    -1.0,0.0, 0.0,
+						    -1.0, 0.0, 0.0,
 						    0.0, 0.0, 0.0};
 
-const double NiTi15TPPLat::A[INTERNAL_ATOMS][DIM3] = {0.0, 0.0, 0.0,
-						      0.5, 0.5, 0.0,
-						      0.5, 0.0, 0.5,
-						      0.0, 0.5, 0.5};
+const double NiTi9TPPLat::A[INTERNAL_ATOMS][DIM3] = {0.0, 0.0, 0.0,
+						     0.5, 0.5, 0.5};
 
-const NiTi15TPPLat::interaction NiTi15TPPLat::INTER[INTERNAL_ATOMS][INTERNAL_ATOMS] = {
-   aa, aa, ab, ab,
-   aa, aa, ab, ab,
-   ab, ab, bb, bb,
-   ab, ab, bb, bb};
+const NiTi9TPPLat::interaction NiTi9TPPLat::INTER[INTERNAL_ATOMS][INTERNAL_ATOMS] = {
+   aa, ab,
+   ab, bb};
