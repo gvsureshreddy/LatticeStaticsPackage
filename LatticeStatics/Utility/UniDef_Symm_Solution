@@ -28,8 +28,9 @@ if ( @ARGV == 8)
 open(DATA,"<$ARGV[0]") 
     || die "Unable to open $ARGV[0] for read: $!";
 
+print "UniDef_Symm_Solution : This file created with UniDef_Symm_Solution ",
+    "thus the Stiffness matrix may not be correct\n";
 
-#$_ = <DATA>;
 while (<DATA>)
 {
     if ( /^Input File: MainFieldWidth/ )
