@@ -1510,8 +1510,8 @@ CMatrix MultiLatticeTPP::ReferenceDynamicalStiffness(Vector &K)
       // Calculate Dk
       if (LatSum_.Atom(0) != LatSum_.Atom(1))
       {
-	 for (i=0;i<DIM3;i++)
-	    for (j=0;j<DIM3;j++)
+	 for (i=0;i<DIM3;++i)
+	    for (j=0;j<DIM3;++j)
 	    {
 	       // y != y' terms (i.e., off block (3x3) diagonal terms)
 	       Dk[DIM3*LatSum_.Atom(0)+i][DIM3*LatSum_.Atom(1)+j] +=
@@ -1544,8 +1544,8 @@ CMatrix MultiLatticeTPP::ReferenceDynamicalStiffness(Vector &K)
    // Normalize through the Mass Matrix
    for (int p=0;p<INTERNAL_ATOMS;++p)
       for (int q=0;q<INTERNAL_ATOMS;++q)
-	 for (i=0;i<DIM3;i++)
-	    for (j=0;j<DIM3;j++)
+	 for (i=0;i<DIM3;++i)
+	    for (j=0;j<DIM3;++j)
 	    {
 	       Dk[DIM3*p+i][DIM3*q+j] /= sqrt(AtomicMass_[p]*AtomicMass_[q]);
 	    }
@@ -1671,10 +1671,13 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, int gridsize,const char *p
    if (Echo_) cout.width(0);
 
    Matrix
-      L = CondensedModuli(),
+      //L = CondensedModuli(),
+      Lp=CondensedModuli(),
+      L = stiffy(),
+      Ap(DIM3,DIM3),
       A(DIM3,DIM3);
 
-   Vector K(DIM3),Z(DIM3);
+   Vector K(DIM3),Z(DIM3,0.0);
    Matrix BlkEigVal(1,INTERNAL_ATOMS*DIM3);
    Matrix ModEigVal(1,DIM3);
 
@@ -1684,6 +1687,9 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, int gridsize,const char *p
    {
       Mc += AtomicMass_[i];
    }
+
+   CMatrix Q=ReferenceDynamicalStiffness(Z);
+   cout << setw(w) << Q;
 
    for (int phi=0;phi<gridsize;++phi)
    {
@@ -1695,6 +1701,11 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, int gridsize,const char *p
 
 	 Z=dk*K;
 	 BlkEigVal = HermiteEigVal(ReferenceDynamicalStiffness(Z));
+
+	 if ((phi==5) && (theta==0))
+	 {
+	    cout << setw(w) << ReferenceDynamicalStiffness(Z);
+	 }
 	 // sort by absolute value
 	 qsort(BlkEigVal[0],INTERNAL_ATOMS*DIM3,sizeof(double),&abscomp);
 
@@ -1709,14 +1720,24 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, int gridsize,const char *p
 	 for (int i=0;i<DIM3;++i)
 	    for (int j=0;j<DIM3;++j)
 	    {
-	 	 A[i][j] = 0.0;
-	 	 for (int k=0;k<DIM3;++k)
-	 	    for (int l=0;l<DIM3;++l)
-	 	    {
-	 	       A[i][j] += L[INDU(k,i)][INDU(j,l)]
-	 		  *K[k]*K[l];
-	 	    }
+	       A[i][j] = 0.0;
+	       Ap[i][j] = 0.0;
+	       for (int k=0;k<DIM3;++k)
+		  for (int l=0;l<DIM3;++l)
+		  {
+		     A[i][j] += L[3*i+k][3*j+l]
+			*K[k]*K[l];
+		     Ap[i][j] += Lp[INDU(i,k)][INDU(j,l)]
+			*K[k]*K[l];
+		  }
 	    }
+	 
+	 if ((phi==5) && (theta==0))
+	 {
+	    cout << setw(w) << Ap;
+	    cout << setw(w) << A;
+	 }
+
 	 ModEigVal = SymEigVal(A);
 	 qsort(ModEigVal[0],DIM3,sizeof(double),&abscomp);
 
@@ -1734,8 +1755,8 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, int gridsize,const char *p
 	 }
 	 for (int i=0;i<DIM3;++i)
 	 {
-	    out << setw(w) << BlkEigVal[0][i]-ModEigVal[0][i];
-	    if (Echo_) cout << setw(w) << BlkEigVal[0][i]-ModEigVal[0][i];
+	    out << setw(w) << (ModEigVal[0][i]-BlkEigVal[0][i])/ModEigVal[0][i];
+	    if (Echo_) cout << setw(w) << (ModEigVal[0][i]-BlkEigVal[0][i])/ModEigVal[0][i];
 	 }
 	 out << endl;
 	 if (Echo_) cout << endl;
@@ -1932,4 +1953,43 @@ ostream &operator<<(ostream &out,MultiLatticeTPP &A)
 {
    A.Print(out,Lattice::PrintShort);
    return out;
+}
+
+
+Matrix MultiLatticeTPP::stiffy()
+{
+   static Matrix Phi;
+   Matrix U(DIM3,DIM3);
+   double phi,phi1;
+   int i,j,k,l,q,s;
+
+   Phi.Resize(9,9,0.0);
+
+   for (LatSum_.Reset();!LatSum_.Done();++LatSum_)
+   {
+      phi = LatSum_.phi2();
+      phi1 = LatSum_.phi1();
+      
+      for (i=0;i<DIM3;i++)
+      {
+	 for (j=0;j<DIM3;j++)
+	 {
+	    for (k=0;k<DIM3;k++)
+	    {
+	       for (l=0;l<DIM3;l++)
+	       {
+		  Phi[3*i+j][3*k+l]+=
+		     4.0*phi*(LatSum_.Dx(i)*LatSum_.DX(j))
+			  *(LatSum_.Dx(k)*LatSum_.DX(l))
+		     +2*phi1*(Del(i,k)*LatSum_.DX(j)*LatSum_.DX(l));
+	       }
+	    }
+	 }
+      }
+   }
+      
+   // Phi = Phi/(2*Vr*ShearMod)
+   Phi *= 1.0/(2.0*(RefLattice_.Det()*ShearMod_));
+
+   return Phi;
 }
