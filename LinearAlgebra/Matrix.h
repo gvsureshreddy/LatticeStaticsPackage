@@ -143,7 +143,7 @@ public:
    //
    // Note: Assumes A is SYMMETRIC
    friend Matrix SymEigVal(Matrix A,Matrix *B=NULL,const int MaxItr=100,
-			   const double Tol=1.0e-12);
+			   const double Tol=1.0e-13);
    
    // Cholesky Decomposition of Matrix
    // A=U.Transpose()*D*U

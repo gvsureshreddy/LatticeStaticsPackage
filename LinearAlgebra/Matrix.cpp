@@ -5,7 +5,7 @@
 #include <math.h>
 
 // Global IDString
-char MatrixID[]="$Id: Matrix.cpp,v 1.9 2002/08/23 15:43:54 elliottr Exp $";
+char MatrixID[]="$Id: Matrix.cpp,v 1.10 2002/09/11 17:04:10 elliottr Exp $";
 
 // Private Methods...
 
@@ -894,7 +894,7 @@ Matrix SymEigVal(Matrix A,Matrix *B,const int MaxItr,const double Tol)
       {
 	 for (int j=i+1;j<A.Cols_;j++)
 	 {
-	    if (A.Elements_[i][j] == 0.0)
+	    if (fabs(A.Elements_[i][j]) < Tol )
 	       continue;
 	    
 	    if (fabs(A.Elements_[i][i] - A.Elements_[j][j]) > Tol)
