@@ -437,7 +437,7 @@ Matrix NiTiPressTempPairPotLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
    {
       // set influance distance based on cube size
       //
-      // alos setup to be large enough to encompass Eulerian sphere
+      // also setup to be large enough to encompass Eulerian sphere
       CurrentInfluanceDist = int(ceil(Influancedist[p]));
 
       Top[p] = CurrentInfluanceDist;
@@ -544,10 +544,24 @@ Matrix NiTiPressTempPairPotLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 					     Phi[IND(i,j,k,l)][IND(m,n,p,q)]+=
 						phi*(PI(Dx,DX,i,j)*PI(Dx,DX,k,l)*
 						     PI(Dx,DX,m,n)*PI(Dx,DX,p,q)) +
-						0.5*phi1*PI(Dx,DX,p,q)*(
-						   PI(Dx,DX,i,j)*PSI(DX,k,l,m,n) +
-						   PI(Dx,DX,k,l)*PSI(DX,i,j,m,n) +
-						   PI(Dx,DX,m,n)*PSI(DX,i,j,k,l)) +
+						0.5*phi1*(0.25*(
+						   PI(Dx,DX,p,q)*(
+						      PI(Dx,DX,i,j)*PSI(DX,k,l,m,n) +
+						      PI(Dx,DX,k,l)*PSI(DX,i,j,m,n) +
+						      PI(Dx,DX,m,n)*PSI(DX,i,j,k,l)) +
+						   PI(Dx,DX,m,n)*(
+						      PI(Dx,DX,i,j)*PSI(DX,k,l,p,q) +
+						      PI(Dx,DX,k,l)*PSI(DX,i,j,p,q) +
+						      PI(Dx,DX,p,q)*PSI(DX,i,j,k,l)) +
+						   PI(Dx,DX,k,l)*(
+						      PI(Dx,DX,i,j)*PSI(DX,p,q,m,n) +
+						      PI(Dx,DX,p,q)*PSI(DX,i,j,m,n) +
+						      PI(Dx,DX,m,n)*PSI(DX,i,j,p,q)) +
+						   PI(Dx,DX,i,j)*(
+						      PI(Dx,DX,p,q)*PSI(DX,k,l,m,n) +
+						      PI(Dx,DX,k,l)*PSI(DX,p,q,m,n) +
+						      PI(Dx,DX,m,n)*PSI(DX,p,q,k,l))
+						   )) +
 						0.25*phi2*(
 						   PSI(DX,i,j,m,n)*PSI(DX,k,l,p,q) +
 						   PSI(DX,k,l,m,n)*PSI(DX,i,j,p,q) +
@@ -602,12 +616,27 @@ Matrix NiTiPressTempPairPotLat::Phi(unsigned moduliflag,YDeriv dy,TDeriv dt)
 		     }
 	    break;
 	 case D3Y:
-	    cerr << "External work terms not programmed for D3Y" << endl;
-	    exit(-1);
+	    for (int i=0;i<DIM3;i++)
+	       for (int j=i;j<DIM3;j++)
+		  for (int k=0;k<DIM3;k++)
+		     for (int l=k;l<DIM3;l++)
+			for (int q=0;q<DIM3;q++)
+			   for (int s=q;s<DIM3;s++)
+			   {
+			      Phi[IND(i,j,k,l)][IND(q,s)] -=
+				 (Pressure_/16.0)*(
+				    Alt[i][k][q]*Alt[j][l][s] + Alt[j][k][q]*Alt[i][l][s] +
+				    Alt[i][l][q]*Alt[j][k][s] + Alt[j][l][q]*Alt[i][k][s] +
+				    Alt[i][q][k]*Alt[j][s][l] + Alt[j][q][k]*Alt[i][s][l] +
+				    Alt[i][q][l]*Alt[j][s][k] + Alt[j][q][l]*Alt[i][s][k] +
+				    Alt[i][k][s]*Alt[j][l][q] + Alt[j][k][s]*Alt[i][l][q] +
+				    Alt[i][l][s]*Alt[j][k][q] + Alt[j][l][s]*Alt[i][k][q] +
+				    Alt[i][s][k]*Alt[j][q][l] + Alt[j][s][k]*Alt[i][q][l] +
+				    Alt[i][s][l]*Alt[j][q][k] + Alt[j][s][l]*Alt[i][q][k]);
+			   }
 	    break;
 	 case D4Y:
-	    cerr << "External work terms not programmed for D4Y" << endl;
-	    exit(-2);
+	    // Terms are zero
 	    break;
       }
    }
@@ -663,6 +692,72 @@ int NiTiPressTempPairPotLat::StiffnessNulity(double *Min)
 
    if (Min != NULL) *Min = EigenValues[0][index];
    return NoNegEigVal;
+}
+
+void NiTiPressTempPairPotLat::CriticalPointInfo(int Width,ostream &out)
+{
+   Matrix L4 = Phi(0,D4Y,T0),
+      L3 = Phi(0,D3Y,T0),
+      L2T = Phi(0,D2Y,DT),
+      L = Stiffness();
+
+   double E,Ehat,Et1,Et2,eta,etahat,a,b,c;
+
+   E = 8.0*L3[IND(0,1,0,2)][IND(1,2)];
+
+   // Determine eta and etahat
+   a = L[0][0]*L3[IND(2,2,0,1)][IND(0,1)] +
+      L[0][1]*(L3[IND(2,2,0,1)][IND(0,1)] - 2.0*L3[IND(0,0,0,1)][IND(0,1)]);
+   b = (L[0][0] - L[0][1])*(L[0][0] + 2.0*L[0][1]);
+   c = L[0][0]*L3[IND(0,0,0,1)][IND(0,1)] - L[0][1]*L3[IND(2,2,0,1)][IND(0,1)];
+
+   eta = -4.0*a/b;
+   etahat = -4.0*c/b;
+   //
+   
+   Ehat = 16.0*L4[IND(0,1,0,1)][IND(0,1,0,1)] +
+      12.0*(eta*L3[IND(2,2,0,1)][IND(0,1)] + 2.0*etahat*L3[IND(0,0,0,1)][IND(0,1)]);
+
+   Et1 = 4.0*(L3[IND(0,1,0,1)][IND(2,2)] + 2.0*L3[IND(0,1,0,1)][IND(0,0)]);
+   Et2 = 4.0*L2T[IND(0,1)][IND(0,1)];
+
+   // Print out results
+   for (int i=0;i<70;i++)
+   {
+      cout << "=";
+      out << "=";
+   }
+   cout << endl; out << endl;
+   cout << "Asymptotic Results for Principal Branch" << endl;
+   out << "Asymptotic Results for Principal Branch" << endl;
+   cout << "E =" << setw(Width) << E << endl;
+   out << "E =" << setw(Width) << E << endl;
+   cout << "Ehat =" << setw(Width) << Ehat << endl;
+   out << "Ehat =" << setw(Width) << Ehat << endl;
+   cout << "Etheta_1 =" << setw(Width) << Et1 << endl;
+   out << "Etheta_1 =" << setw(Width) << Et1 << endl;
+   cout << "Etheta_2 =" << setw(Width) << Et2 << endl;
+   out << "Etheta_2 =" << setw(Width) << Et2 << endl;
+   for (int i=0;i<70;i++)
+   {
+      cout << "-";
+      out << "-";
+   }
+   cout << endl; out << endl;
+   cout << "Etheta = Etheta_1 * dlamda/dtheta + Etheta_2" << endl;
+   out << "Etheta = Etheta_1 * dlamda/dtheta + Etheta_2" << endl;
+   cout << "Rhombohedral Tangent ==> -E/Etheta" << endl;
+   out << "Rhombohedral Tangent ==> -E/Etheta" << endl;
+   cout << "Orthorhombic Curveature ==> -Ehat/(3*Etheta)" << endl;
+   out << "Orthorhombic Curveature ==> -Ehat/(3*Etheta)" << endl;
+   for (int i=0;i<70;i++)
+   {
+      cout << "=";
+      out << "=";
+   }
+   cout << endl; out << endl;
+   
+   return;
 }
 
 void NiTiPressTempPairPotLat::Print(ostream &out,PrintDetail flag)
