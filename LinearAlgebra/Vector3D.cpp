@@ -2,12 +2,12 @@
 #include <iostream.h>
 #include <iomanip.h>
 #include <math.h>
-#include <Vector3D.h>
-#include <Vector.h>
-#include <Matrix.h>
+#include "Vector3D.h"
+#include "Vector.h"
+#include "Matrix.h"
 
 // Global IDString
-char Vector3DID[]="$Id: Vector3D.cpp,v 1.2 2001/01/03 16:46:30 elliottr Exp $";
+char Vector3DID[]="$Id: Vector3D.cpp,v 1.3 2001/06/27 20:03:28 elliottr Exp $";
 
 // Private Functions...
 

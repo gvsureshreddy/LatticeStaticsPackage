@@ -1,8 +1,8 @@
 #ifndef __Vector
 #define __Vector
 
-#include <Matrix.h>
-#include <Vector3D.h>
+#include "Matrix.h"
+#include "Vector3D.h"
 
 // Sentinal Value to allow conditional initialization of data
 #define SENTINAL -9999999.8888888887777788
