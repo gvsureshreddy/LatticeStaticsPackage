@@ -1,15 +1,15 @@
-#include "FullShuffle.h"
+#include "OneShuffle.h"
 
-FullShuffle::FullShuffle(Lattice *M)
+OneShuffle::OneShuffle(Lattice *M)
 {
    Lattice_ = (NiTiShuffleTPPLat *) M;
 }
 
 // Functions required by LatticeMode
-Vector FullShuffle::ArcLenRHS(double DS,const Vector &Diff,
+Vector OneShuffle::ArcLenRHS(double DS,const Vector &Diff,
 				double Aspect)
 {
-   Vector rhs(10);
+   Vector rhs(8);
    Matrix Stress = Lattice_->Stress();
 
    rhs[0] = Stress[0][0];
@@ -19,25 +19,21 @@ Vector FullShuffle::ArcLenRHS(double DS,const Vector &Diff,
    rhs[4] = Stress[0][4];
    rhs[5] = Stress[0][5];
    rhs[6] = Stress[0][6];
-   rhs[7] = Stress[0][7];
-   rhs[8] = Stress[0][8];
-   rhs[9] = DS*DS - Diff[9]*Diff[9]/(Aspect*Aspect)
+   rhs[7] = DS*DS - Diff[7]*Diff[7]/(Aspect*Aspect)
       - Diff[0]*Diff[0]
       - Diff[1]*Diff[1]
       - Diff[2]*Diff[2]
       - Diff[3]*Diff[3]
       - Diff[4]*Diff[4]
       - Diff[5]*Diff[5]
-      - Diff[6]*Diff[6]
-      - Diff[7]*Diff[7]
-      - Diff[8]*Diff[8];
+      - Diff[6]*Diff[6];
 
    return rhs;
 }
 
-Vector FullShuffle::ArcLenDef()
+Vector OneShuffle::ArcLenDef()
 {
-   Vector def(10),
+   Vector def(8),
       DOF = Lattice_->DOF();
 
    def[0] = DOF[0];
@@ -47,14 +43,12 @@ Vector FullShuffle::ArcLenDef()
    def[4] = DOF[4];
    def[5] = DOF[5];
    def[6] = DOF[6];
-   def[7] = DOF[7];
-   def[8] = DOF[8];
-   def[9] = Lattice_->Temp();
+   def[7] = Lattice_->Temp();
 
    return def;
 }
 
-void FullShuffle::ArcLenUpdate(const Vector &newval)
+void OneShuffle::ArcLenUpdate(const Vector &newval)
 {
    Vector DOF=Lattice_->DOF();
 
@@ -65,24 +59,23 @@ void FullShuffle::ArcLenUpdate(const Vector &newval)
    DOF[4] -= newval[4];
    DOF[5] -= newval[5];
    DOF[6] -= newval[6];
-   DOF[7] -= newval[7];
-   DOF[8] -= newval[8];
+   DOF[7] = DOF[8] = 0.0;
    
    Lattice_->SetDOF(DOF);
-   Lattice_->SetTemp(Lattice_->Temp() - newval[9]);
+   Lattice_->SetTemp(Lattice_->Temp() - newval[7]);
 }
 
-double FullShuffle::ArcLenAngle(Vector Old,Vector New,double Aspect)
+double OneShuffle::ArcLenAngle(Vector Old,Vector New,double Aspect)
 {
-   Old[9] /= Aspect;
-   New[9] /= Aspect;
+   Old[7] /= Aspect;
+   New[7] /= Aspect;
 
    return fabs(acos( (Old*New)/(Old.Norm()*New.Norm()) ));
 }
 
-Matrix FullShuffle::ArcLenStiffness(const Vector &Diff,double Aspect)
+Matrix OneShuffle::ArcLenStiffness(const Vector &Diff,double Aspect)
 {
-   Matrix K(10,10);
+   Matrix K(8,8);
    Matrix Stiff=Lattice_->Stiffness(),
       StressDT = Lattice_->StressDT();
 
@@ -93,9 +86,7 @@ Matrix FullShuffle::ArcLenStiffness(const Vector &Diff,double Aspect)
    K[0][4] = 2.0*Stiff[0][4];
    K[0][5] = 2.0*Stiff[0][5];
    K[0][6] = Stiff[0][6];
-   K[0][7] = Stiff[0][7];
-   K[0][8] = Stiff[0][8];
-   K[0][9] = StressDT[0][0];
+   K[0][7] = StressDT[0][0];
    K[1][0] = Stiff[1][0];
    K[1][1] = Stiff[1][1];
    K[1][2] = Stiff[1][2];
@@ -103,9 +94,7 @@ Matrix FullShuffle::ArcLenStiffness(const Vector &Diff,double Aspect)
    K[1][4] = 2.0*Stiff[1][4];
    K[1][5] = 2.0*Stiff[1][5];
    K[1][6] = Stiff[1][6];
-   K[1][7] = Stiff[1][7];
-   K[1][8] = Stiff[1][8];
-   K[1][9] = StressDT[0][1];   
+   K[1][7] = StressDT[0][1];   
    K[2][0] = Stiff[2][0];
    K[2][1] = Stiff[2][1];
    K[2][2] = Stiff[2][2];
@@ -113,9 +102,7 @@ Matrix FullShuffle::ArcLenStiffness(const Vector &Diff,double Aspect)
    K[2][4] = 2.0*Stiff[2][4];
    K[2][5] = 2.0*Stiff[2][5];
    K[2][6] = Stiff[2][6];
-   K[2][7] = Stiff[2][7];
-   K[2][8] = Stiff[2][8];
-   K[2][9] = StressDT[0][2];
+   K[2][7] = StressDT[0][2];
    K[3][0] = Stiff[3][0];
    K[3][1] = Stiff[3][1];
    K[3][2] = Stiff[3][2];
@@ -123,9 +110,7 @@ Matrix FullShuffle::ArcLenStiffness(const Vector &Diff,double Aspect)
    K[3][4] = 2.0*Stiff[3][4];
    K[3][5] = 2.0*Stiff[3][5];
    K[3][6] = Stiff[3][6];
-   K[3][7] = Stiff[3][7];
-   K[3][8] = Stiff[3][8];
-   K[3][9] = StressDT[0][3];
+   K[3][7] = StressDT[0][3];
    K[4][0] = Stiff[4][0];
    K[4][1] = Stiff[4][1];
    K[4][2] = Stiff[4][2];
@@ -133,9 +118,7 @@ Matrix FullShuffle::ArcLenStiffness(const Vector &Diff,double Aspect)
    K[4][4] = 2.0*Stiff[4][4];
    K[4][5] = 2.0*Stiff[4][5];
    K[4][6] = Stiff[4][6];
-   K[4][7] = Stiff[4][7];
-   K[4][8] = Stiff[4][8];
-   K[4][9] = StressDT[0][4];
+   K[4][7] = StressDT[0][4];
    K[5][0] = Stiff[5][0];
    K[5][1] = Stiff[5][1];
    K[5][2] = Stiff[5][2];
@@ -143,9 +126,7 @@ Matrix FullShuffle::ArcLenStiffness(const Vector &Diff,double Aspect)
    K[5][4] = 2.0*Stiff[5][4];
    K[5][5] = 2.0*Stiff[5][5];
    K[5][6] = Stiff[5][6];
-   K[5][7] = Stiff[5][7];
-   K[5][8] = Stiff[5][8];
-   K[5][9] = StressDT[0][5];
+   K[5][7] = StressDT[0][5];
    K[6][0] = Stiff[6][0];
    K[6][1] = Stiff[6][1];
    K[6][2] = Stiff[6][2];
@@ -153,49 +134,25 @@ Matrix FullShuffle::ArcLenStiffness(const Vector &Diff,double Aspect)
    K[6][4] = 2.0*Stiff[6][4];
    K[6][5] = 2.0*Stiff[6][5];
    K[6][6] = Stiff[6][6];
-   K[6][7] = Stiff[6][7];
-   K[6][8] = Stiff[6][8];
-   K[6][9] = StressDT[0][6];
-   K[7][0] = Stiff[7][0];
-   K[7][1] = Stiff[7][1];
-   K[7][2] = Stiff[7][2];
-   K[7][3] = 2.0*Stiff[7][3];
-   K[7][4] = 2.0*Stiff[7][4];
-   K[7][5] = 2.0*Stiff[7][5];
-   K[7][6] = Stiff[7][6];
-   K[7][7] = Stiff[7][7];
-   K[7][8] = Stiff[7][8];
-   K[7][9] = StressDT[0][7];
-   K[8][0] = Stiff[8][0];
-   K[8][1] = Stiff[8][1];
-   K[8][2] = Stiff[8][2];
-   K[8][3] = 2.0*Stiff[8][3];
-   K[8][4] = 2.0*Stiff[8][4];
-   K[8][5] = 2.0*Stiff[8][5];
-   K[8][6] = Stiff[8][6];
-   K[8][7] = Stiff[8][7];
-   K[8][8] = Stiff[8][8];
-   K[8][9] = StressDT[0][8];
-   K[9][0] = -2.0*Diff[0];
-   K[9][1] = -2.0*Diff[1];
-   K[9][2] = -2.0*Diff[2];
-   K[9][3] = -2.0*Diff[3];
-   K[9][4] = -2.0*Diff[4];
-   K[9][5] = -2.0*Diff[5];
-   K[9][6] = -2.0*Diff[6];
-   K[9][7] = -2.0*Diff[7];
-   K[9][8] = -2.0*Diff[8];
-   K[9][9] = -2.0*Diff[9]/(Aspect*Aspect);
+   K[6][7] = StressDT[0][6];
+   K[7][0] = -2.0*Diff[0];
+   K[7][1] = -2.0*Diff[1];
+   K[7][2] = -2.0*Diff[2];
+   K[7][3] = -2.0*Diff[3];
+   K[7][4] = -2.0*Diff[4];
+   K[7][5] = -2.0*Diff[5];
+   K[7][6] = -2.0*Diff[6];
+   K[7][7] = -2.0*Diff[7]/(Aspect*Aspect);
    
    return K;
 }
 
-double FullShuffle::ScanningDefParameter()
+double OneShuffle::ScanningDefParameter()
 {
    return Lattice_->DOF()[6];
 }
 
-void FullShuffle::ScanningDefParamUpdate(const double newval)
+void OneShuffle::ScanningDefParamUpdate(const double newval)
 {
    Vector DOF=Lattice_->DOF();
 
@@ -204,25 +161,25 @@ void FullShuffle::ScanningDefParamUpdate(const double newval)
    Lattice_->SetDOF(DOF);
 }
 
-double FullShuffle::ScanningLoadParameter()
+double OneShuffle::ScanningLoadParameter()
 {
    return Lattice_->Temp();
 }
 
-void FullShuffle::ScanningLoadParamUpdate(const double newval)
+void OneShuffle::ScanningLoadParamUpdate(const double newval)
 {
    Lattice_->SetTemp(Lattice_->Temp() - newval);
 }
 
-double FullShuffle::ScanningStressParameter()
+double OneShuffle::ScanningStressParameter()
 {
    return Lattice_->Stress()[0][6];
 }
    
-Vector FullShuffle::ScanningRHS()
+Vector OneShuffle::ScanningRHS()
 {
    Matrix Stress=Lattice_->Stress();
-   Vector RHS(8);
+   Vector RHS(6);
 
    RHS[0] = Stress[0][0];
    RHS[1] = Stress[0][1];
@@ -230,16 +187,14 @@ Vector FullShuffle::ScanningRHS()
    RHS[3] = Stress[0][3];
    RHS[4] = Stress[0][4];
    RHS[5] = Stress[0][5];
-   RHS[6] = Stress[0][7];
-   RHS[7] = Stress[0][8];
 
    return RHS;
 }
 
-Vector FullShuffle::ScanningDef()
+Vector OneShuffle::ScanningDef()
 {
    Vector DOF=Lattice_->DOF();
-   Vector Def(8);
+   Vector Def(6);
 
    Def[0] = DOF[0];
    Def[1] = DOF[1];
@@ -247,13 +202,11 @@ Vector FullShuffle::ScanningDef()
    Def[3] = DOF[3];
    Def[4] = DOF[4];
    Def[5] = DOF[5];
-   Def[6] = DOF[7];
-   Def[7] = DOF[8];
 
    return Def;
 }
 
-void FullShuffle::ScanningUpdate(const Vector &newval)
+void OneShuffle::ScanningUpdate(const Vector &newval)
 {
    Vector DOF=Lattice_->DOF();
 
@@ -263,15 +216,13 @@ void FullShuffle::ScanningUpdate(const Vector &newval)
    DOF[3] -= newval[3];
    DOF[4] -= newval[4];
    DOF[5] -= newval[5];
-   DOF[7] -= newval[6];
-   DOF[8] -= newval[7];
    
    Lattice_->SetDOF(DOF);
 }
 
-Matrix FullShuffle::ScanningStiffness()
+Matrix OneShuffle::ScanningStiffness()
 {
-   Matrix K(8,8);
+   Matrix K(6,6);
    Matrix Stiff=Lattice_->Stiffness();
    
    K[0][0] = Stiff[0][0];
@@ -280,56 +231,30 @@ Matrix FullShuffle::ScanningStiffness()
    K[0][3] = 2.0*Stiff[0][3];
    K[0][4] = 2.0*Stiff[0][4];
    K[0][5] = 2.0*Stiff[0][5];
-   K[0][6] = Stiff[0][7];
-   K[0][7] = Stiff[0][8];
    K[1][0] = Stiff[1][0];
    K[1][1] = Stiff[1][1];
    K[1][2] = Stiff[1][2];
    K[1][3] = 2.0*Stiff[1][3];
    K[1][4] = 2.0*Stiff[1][4];
    K[1][5] = 2.0*Stiff[1][5];
-   K[1][6] = Stiff[1][7];
-   K[1][7] = Stiff[1][8];
    K[3][0] = Stiff[3][0];
    K[3][1] = Stiff[3][1];
    K[3][2] = Stiff[3][2];
    K[3][3] = 2.0*Stiff[3][3];
    K[3][4] = 2.0*Stiff[3][4];
    K[3][5] = 2.0*Stiff[3][5];
-   K[3][6] = Stiff[3][7];
-   K[3][7] = Stiff[3][8];
    K[4][0] = Stiff[4][0];
    K[4][1] = Stiff[4][1];
    K[4][2] = Stiff[4][2];
    K[4][3] = 2.0*Stiff[4][3];
    K[4][4] = 2.0*Stiff[4][4];
    K[4][5] = 2.0*Stiff[4][5];
-   K[4][6] = Stiff[4][7];
-   K[4][7] = Stiff[4][8];
    K[5][0] = Stiff[5][0];
    K[5][1] = Stiff[5][1];
    K[5][2] = Stiff[5][2];
    K[5][3] = 2.0*Stiff[5][3];
    K[5][4] = 2.0*Stiff[5][4];
    K[5][5] = 2.0*Stiff[5][5];
-   K[5][6] = Stiff[5][7];
-   K[5][7] = Stiff[5][8];
-   K[6][0] = Stiff[7][0];
-   K[6][1] = Stiff[7][1];
-   K[6][2] = Stiff[7][2];
-   K[6][3] = 2.0*Stiff[7][3];
-   K[6][4] = 2.0*Stiff[7][4];
-   K[6][5] = 2.0*Stiff[7][5];
-   K[6][6] = Stiff[7][7];
-   K[6][7] = Stiff[7][8];
-   K[7][0] = Stiff[8][0];
-   K[7][1] = Stiff[8][1];
-   K[7][2] = Stiff[8][2];
-   K[7][3] = 2.0*Stiff[8][3];
-   K[7][4] = 2.0*Stiff[8][4];
-   K[7][5] = 2.0*Stiff[8][5];
-   K[7][6] = Stiff[8][7];
-   K[7][7] = Stiff[8][8];
 
    return K;
 }

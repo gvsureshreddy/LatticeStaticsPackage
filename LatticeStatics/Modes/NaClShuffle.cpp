@@ -36,7 +36,7 @@ void NaClShuffle::ArcLenUpdate(const Vector &newval)
    DOF[1] = DOF[2] = DOF[0];
    DOF[3] = DOF[0]/4.0;
    DOF[4] = DOF[5] = DOF[3];
-   DOF[6]=DOF[7] = 0.0;
+   DOF[6]=DOF[7]=DOF[8] = 0.0;
 
    Lattice_->SetDOF(DOF);
    Lattice_->SetTemp(Lattice_->Temp() - newval[1]);
