@@ -107,22 +107,23 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
    LoadingProportions_.Resize(DIM3);
    if(!GetVectorParameter(prefix,"LoadProportions",datafile,&LoadingProportions_)) exit(-1);
    // Calculate Rotation and Loading
-   // Euler angles transformation Rotation_ = X*Y*Z
+   // Euler angles transformation Rotation_ = Z*Y*X
    Rotation_.Resize(DIM3,DIM3,0.0);
    Rotation_[0][0] = cos(EulerAng_[1])*cos(EulerAng_[2]);
-   Rotation_[0][1] = cos(EulerAng_[1])*sin(EulerAng_[2]);
-   Rotation_[0][2] = sin(EulerAng_[1]);
-   Rotation_[1][0] = -(cos(EulerAng_[2])*sin(EulerAng_[0])*sin(EulerAng_[1])
-		       + cos(EulerAng_[0])*sin(EulerAng_[2]));
-   Rotation_[1][1] = cos(EulerAng_[0])*cos(EulerAng_[2]) - sin(EulerAng_[0])
+   Rotation_[0][1] = cos(EulerAng_[2])*sin(EulerAng_[0])*sin(EulerAng_[1])
+      - cos(EulerAng_[0])*sin(EulerAng_[2]);
+   Rotation_[0][2] = cos(EulerAng_[0])*cos(EulerAng_[2])*sin(EulerAng_[1])
+      + sin(EulerAng_[0])*sin(EulerAng_[2]);
+   Rotation_[1][0] = cos(EulerAng_[1])*sin(EulerAng_[2]);
+   Rotation_[1][1] = cos(EulerAng_[0])*cos(EulerAng_[2]) + sin(EulerAng_[0])
       *sin(EulerAng_[1])*sin(EulerAng_[2]);
-   Rotation_[1][2] = cos(EulerAng_[1])*sin(EulerAng_[0]);
-   Rotation_[2][0] = -cos(EulerAng_[0])*cos(EulerAng_[2])*sin(EulerAng_[1])
-      +sin(EulerAng_[0])*sin(EulerAng_[2]);
-   Rotation_[2][1] = -(cos(EulerAng_[2])*sin(EulerAng_[0])
-		       + cos(EulerAng_[0])*sin(EulerAng_[1])*sin(EulerAng_[2]));
+   Rotation_[1][2] = -cos(EulerAng_[2])*sin(EulerAng_[0])
+      + cos(EulerAng_[0])*sin(EulerAng_[1])*sin(EulerAng_[2]);
+   Rotation_[2][0] = -sin(EulerAng_[1]);
+   Rotation_[2][1] = cos(EulerAng_[1])*sin(EulerAng_[0]);
    Rotation_[2][2] = cos(EulerAng_[0])*cos(EulerAng_[1]);
    //
+   // Loading_ = R*Lambda*R^T
    Loading_.Resize(DIM3,DIM3,0.0);
    for (int i=0;i<DIM3;++i)
       for (int j=0;j<DIM3;++j)
@@ -1818,7 +1819,9 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 		       << setw(W) << Potential_[i][j] << endl;
 	       }
 	    }
-	    cout  << "Shear Modulus : " << setw(W) << ShearMod_ << endl;
+	    cout << "Shear Modulus : " << setw(W) << ShearMod_ << endl;
+	    cout << "EulerAngles : " << setw(W) << EulerAng_[0]
+		 << setw(W) << EulerAng_[1] << setw(W) << EulerAng_[2] << endl;
 	    cout << "Loading Proportions : " << setw(W) << LoadingProportions_ << endl;
 	 }
 	 // passthrough to short
@@ -1932,10 +1935,12 @@ void MultiLatticeTPP::DebugMode()
       "FindLatticeSpacing",            // 37
       "ConsistencyCheck",              // 38
       "dbg_",                          // 39
-      "RefineEqbm"                     // 40
-      
+      "RefineEqbm",                    // 40
+      "EulerAng_",                     // 41
+      "Rotation_",                     // 42
+      "Loading_"                       // 43
    };
-   int NOcommands=41;
+   int NOcommands=43;
    
    char response[LINELENGTH];
    char prompt[] = "Debug > ";
@@ -2165,6 +2170,23 @@ void MultiLatticeTPP::DebugMode()
 	 cout << "\tMaxItr > ";
 	 cin >> MaxItr;
 	 RefineEqbm(Tol,MaxItr);
+      }
+      else if (!strcmp(response,Commands[41]))
+      {
+	 cout << "EulerAng_ = "
+	      << setw(W) << EulerAng_[0]
+	      << setw(W) << EulerAng_[1]
+	      << setw(W) << EulerAng_[2] << endl;
+      }
+      else if (!strcmp(response,Commands[42]))
+      {
+	 cout << "Rotation_ = "
+	      << setw(W) << Rotation_ << endl;
+      }
+      else if (!strcmp(response,Commands[43]))
+      {
+	 cout << "Loading_ = "
+	      << setw(W) << Loading_ << endl;
       }
       else if (!strcmp(response,"?") ||
 	       !strcasecmp(response,"help"))
