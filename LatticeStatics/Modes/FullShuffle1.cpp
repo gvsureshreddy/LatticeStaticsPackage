@@ -85,9 +85,7 @@ Matrix FullShuffle1::ArcLenStiffness(const Vector &Diff,double Aspect)
    K[0][4] = 2.0*Stiff[0][4];
    K[0][5] = 2.0*Stiff[0][5];
    K[0][6] = Stiff[0][6];
-   K[0][7] = Stiff[0][7];
-   K[0][8] = Stiff[0][8];
-   K[0][9] = StressDT[0][0];
+   K[0][7] = StressDT[0][0];
    K[1][0] = Stiff[1][0];
    K[1][1] = Stiff[1][1];
    K[1][2] = Stiff[1][2];
@@ -127,7 +125,7 @@ Matrix FullShuffle1::ArcLenStiffness(const Vector &Diff,double Aspect)
    K[5][4] = 2.0*Stiff[5][4];
    K[5][5] = 2.0*Stiff[5][5];
    K[5][6] = Stiff[5][6];
-   K[5][9] = StressDT[0][5];
+   K[5][7] = StressDT[0][5];
    K[6][0] = Stiff[6][0];
    K[6][1] = Stiff[6][1];
    K[6][2] = Stiff[6][2];
