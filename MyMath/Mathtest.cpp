@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <iomanip.h>
 
-#include "Math.h"
+#include "MyMath.h"
 
 int main()
 {

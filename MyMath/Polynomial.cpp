@@ -1,5 +1,5 @@
 #include <iomanip.h>
-#include "Math.h"
+#include "MyMath.h"
 
 void PolyRootsLaguerre(double_complex Coeff[],int Degree,double_complex Roots[],
 		       int Polish)

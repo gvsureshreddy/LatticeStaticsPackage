@@ -7,7 +7,7 @@
 #include <string.h>
 
 #include "Matrix.h"
-#include "Math.h"
+#include "MyMath.h"
 
 #define LINELENGTH 600
 

@@ -46,12 +46,12 @@ $(OBJECTS): Makefile
 # Define install
 install: $(EXE)
 	ar -r $(LIB_LOC)/libMath.a $(addprefix ./lib/,$(OBJECTS)); ranlib $(LIB_LOC)/libMath.a
-	/bin/cp Math.h $(INCL_LOC)
+	/bin/cp MyMath.h $(INCL_LOC)
 
 # Define uninstall
 uninstall:
 	ar -d $(LIB_LOC)/libMath.a Math.o; ranlib $(LIB_LOC)/libMath.a
-	/bin/rm -f $(INCL_LOC)/Math.h
+	/bin/rm -f $(INCL_LOC)/MyMath.h
 
 
 # Removes the current systems set of object files and executable file
