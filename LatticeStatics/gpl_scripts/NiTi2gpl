@@ -29,6 +29,7 @@ $endgnuplot = "";
 $index = 1;
 foreach $dir (@directories)
 {
+    chdir $dataset;
     loaddata($dataset . "/" . $dir ,$ARGV[0],*GNUPLOT,$index,\$endgnuplot);
     $index += 2;
 }
@@ -62,7 +63,8 @@ sub loaddata {
     $stable = "";
     $unstable = "";
 
-    chdir $_[0] || die "No $_[0] Directory, $!";
+    #chdir $_[0] || die "No $_[0] Directory, $!";
+    chdir $_[0];
 
     # flag to make sure there is data in the index
     $stable_nodata = 1;
