@@ -4,6 +4,8 @@
 
 VPATH = bin lib depend
 
+UNAME      = $(shell uname)
+
 SRC_EXT    = .cpp
 OBJ_EXT    = .o
 DEP_EXT    = .d
@@ -11,15 +13,29 @@ BUILD_DATE = \"`date +%c`\"
 
 # Compiling options, etc. #################################################
 #
-CC         = g++
-ANSI       = -pedantic
+gCC        = g++
+
+ifeq ($(UNAME),Darwin)
+   # gCC compiler
+   CC         = $(gCC)
+   OPTIMIZE   = -O
+   ANSI       = -pedantic
+endif
+
+ifeq ($(UNAME),Linux)
+   # PGI compiler
+   CC         = pgCC
+   OPTIMIZE   = -fast -Minline=levels:10 --no_exceptions
+   #ANSI       = -A
+endif
+
+# general options
 #PURE       = purify
 #PROFILE    = -pg
 #DEBUG      = -g
 #BOUNDS     = -DCHECK_BOUNDS
 DATE_DEF   = -DBUILD_DATE="$(BUILD_DATE)"
 SOLVE      = -DSOLVE_SVD
-OPTIMIZE   = -O
 CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS) $(SOLVE)
 
 
@@ -28,7 +44,7 @@ BIN_LOC    = ${HOME}/bin
 INCL_LOC   = ${HOME}/include
 LIB_LOC    = ${HOME}/lib
 LIBS       = -lLinearAlgebra -lMyMath -lm
-LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(DATE_DEF)
+LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE)
 SUBDIRS = ../Lattices ../Potentials
 #
 # Defines the source files needed #########################################
@@ -66,58 +82,68 @@ all: $(ALLPROGRAMS)
 
 # Defines the Program Target (linking command) ############################
 Rank1Convex:  $(RK1OBJECTS) $(BSCOBJECTS)
-	      $(PURE) $(CC) $(LFLAGS) builddate.cpp \
+	      $(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/builddate.o -c builddate.cpp
+	      $(PURE) $(CC) $(LFLAGS) \
 	        -L$(LIB_LOC) -o ./bin/Rank1Convex \
 	        $(addprefix lib/,$(RK1OBJECTS)) \
-		$(addprefix lib/,$(BSCOBJECTS)) $(LIBS) 
+		$(addprefix lib/,$(BSCOBJECTS)) $(LIBS) ./lib/builddate.o
+		/bin/rm -f ./lib/builddate.o
 
 # Defines the Program Target (linking command) ############################
 DispersionCurves:     $(DISPERSIONOBJECTS) $(BSCOBJECTS) \
 		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
 		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT)))
-		      $(PURE) $(CC) $(LFLAGS) builddate.cpp \
+		      $(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/builddate.o -c builddate.cpp
+		      $(PURE) $(CC) $(LFLAGS) \
 		      -L$(LIB_LOC) -o ./bin/DispersionCurves \
 		      $(addprefix lib/,$(DISPERSIONOBJECTS)) \
 		      $(addprefix lib/,$(BSCOBJECTS)) \
 		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
 		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT))) \
-		      $(LIBS)
+		      $(LIBS) ./lib/builddate.o
+		      /bin/rm -f ./lib/builddate.o
 
 # Defines the Program Target (linking command) ############################
 LongWavelengthModuli: $(WAVELENGTHOBJECTS) $(BSCOBJECTS) \
 		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
 		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT)))
-		      $(PURE) $(CC) $(LFLAGS) builddate.cpp \
+		      $(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/builddate.o -c builddate.cpp
+		      $(PURE) $(CC) $(LFLAGS) \
 		      -L$(LIB_LOC) -o ./bin/LongWavelengthModuli \
 		      $(addprefix lib/,$(WAVELENGTHOBJECTS)) \
 		      $(addprefix lib/,$(BSCOBJECTS)) \
 		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
 		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT))) \
-		      $(LIBS)
+		      $(LIBS) ./lib/builddate.o
+		      /bin/rm -f ./lib/builddate.o
 
 # Defines the Program Target (linking command) ############################
 BlochWave:	      $(BLOCHWAVEOBJECTS) $(BSCOBJECTS) \
 		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
 		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT)))
-		      $(PURE) $(CC) $(LFLAGS) builddate.cpp \
+		      $(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/builddate.o -c builddate.cpp
+		      $(PURE) $(CC) $(LFLAGS) \
 		      -L$(LIB_LOC) -o ./bin/BlochWave \
 		      $(addprefix lib/,$(BLOCHWAVEOBJECTS)) \
 		      $(addprefix lib/,$(BSCOBJECTS)) \
 		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
 		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT))) \
-		      $(LIBS)
+		      $(LIBS) ./lib/builddate.o
+		      /bin/rm -f ./lib/builddate.o
 
 # Defines the Program Target (linking command) ############################
 NeighborDistances:    $(NEIGHBORSOBJECTS) $(BSCOBJECTS) \
 		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
 		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT)))
-		      $(PURE) $(CC) $(LFLAGS) builddate.cpp \
+		      $(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/builddate.o -c builddate.cpp
+		      $(PURE) $(CC) $(LFLAGS) \
 		      -L$(LIB_LOC) -o ./bin/NeighborDistances \
 		      $(addprefix lib/,$(NEIGHBORSOBJECTS)) \
 		      $(addprefix lib/,$(BSCOBJECTS)) \
 		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
 		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT))) \
-		      $(LIBS)
+		      $(LIBS) ./lib/builddate.o
+		      /bin/rm -f ./lib/builddate.o
 
 # include the dependicies
 include $(addprefix depend/,$(BSCOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
@@ -156,22 +182,23 @@ uninstall:
 .PHONY: clean
 
 clean:
-	 -/bin/rm -f $(addprefix lib/,$(BSCOBJECTS)) \
-		  $(addprefix lib/,$(RK1OBJECTS)) \
-		  $(addprefix lib/,$(DISPERSIONOBJECTS)) \
-		  $(addprefix lib/,$(WAVELENGTHOBJECTS)) \
-		  $(addprefix lib/,$(BLOCHWAVEOBJECTS)) \
-		  $(addprefix lib/,$(NEIGHBORSOBJECTS)) \
+	 -/bin/rm -f $(addprefix lib/,$(BSCOBJECTS:$(OBJ_EXT)=.*)) \
+		  $(addprefix lib/,$(RK1OBJECTS:$(OBJ_EXT)=.*)) \
+		  $(addprefix lib/,$(DISPERSIONOBJECTS:$(OBJ_EXT)=.*)) \
+		  $(addprefix lib/,$(WAVELENGTHOBJECTS:$(OBJ_EXT)=.*)) \
+		  $(addprefix lib/,$(BLOCHWAVEOBJECTS:$(OBJ_EXT)=.*)) \
+		  $(addprefix lib/,$(NEIGHBORSOBJECTS:$(OBJ_EXT)=.*)) \
                   bin/Rank1Convex \
 		  bin/DispersionCurves \
 		  bin/LongWavelengthModuli \
 		  bin/BlochWave \
+		  bin/NeighborDistances \
 		  core *~ \
 		  depend/*.d
 
 # Define rule for dependicy files
 depend/$(notdir %).d: %$(SRC_EXT)
-	@$(SHELL) -ec '$(CC) -MM $(CCFLAGS) -I. $(addprefix -I ,$(SUBDIRS)) \
+	@$(SHELL) -ec '$(gCC) -MM -I. $(addprefix -I ,$(SUBDIRS)) \
 	      -I $(INCL_LOC)/ $< \
 	      | sed '\''s/\($*\)\.o[ :]*/\1.o $*.d : /g'\'' \
 	      > $@; [ -s $@ ] || rm -f $@'
