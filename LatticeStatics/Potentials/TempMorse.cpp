@@ -11,7 +11,7 @@ double TempMorse::Beta(double NTemp,TDeriv dt)
    switch (dt)
    {
       case T0:
-	 return B0_*(1.0+Alpha_*(NTemp-1));
+	 return B0_*(1.0+Alpha_*(NTemp-1.0));
 	 break;
       case DT:
 	 return B0_*Alpha_;
@@ -66,7 +66,7 @@ double TempMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
 	    case DT:
 	       val = -A0_*(Tref_/(4.0*Tmelt_))*Exp_temp*(Exp_temp - 2.0)
 		  - 2.0*A0_*(1.0 - NTemp*Tref_/(4.0*Tmelt_))*(Beta(NTemp,DT)
-							      *(r/rhat -1.0)
+							      *(r/rhat - 1.0)
 							      -beta*Rhat(NTemp,DT)
 							      *(r/(rhat*rhat)))
 		  *Exp_temp*(Exp_temp - 1.0);
@@ -82,7 +82,7 @@ double TempMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
 		  *Exp_temp*(Exp_temp - 1.0);
 	       break;
 	    case DT:
-	       val = (A0_/(4.0*Tmelt_))*
+	       val = (A0_*Tref_/(4.0*Tmelt_))*
 		  (beta/(rhat*r))*Exp_temp*(Exp_temp - 1.0)
 		  + A0_*(1.0 - NTemp*Tref_/(4.0*Tmelt_))*Exp_temp*
 		  (((beta*Rhat(NTemp,DT) - Beta(NTemp,DT)*rhat)/(rhat*rhat*r))*
@@ -102,7 +102,7 @@ double TempMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
 		    + (beta/rhat)*Exp_temp*Exp_temp);
 	       break;
 	    case DT:
-	       val = (A0_/(4.0*Tmelt_))*(beta/(2*rhat*r2))
+	       val = (-A0_*Tref_/(4.0*Tmelt_))*(beta/(2*rhat*r2))
 		  *((beta/rhat + 1.0/r)*(Exp_temp*Exp_temp - Exp_temp)
 		    +(beta/rhat)*Exp_temp*Exp_temp)
 		  +A0_*(1.0 - NTemp*Tref_/(4.0*Tmelt_))*((Beta(NTemp,DT)*rhat
