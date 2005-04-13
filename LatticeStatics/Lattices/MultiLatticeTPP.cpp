@@ -561,7 +561,7 @@ inline int MultiLatticeTPP::INDVU(int m,int n,int i,int j)
    }
 }
 
-double MultiLatticeTPP::Energy()
+double MultiLatticeTPP::energy(PairPotentials::TDeriv dt)
 {
    double Phi = 0.0;
    double Vr;
@@ -570,7 +570,7 @@ double MultiLatticeTPP::Energy()
    {
       // Calculate Phi
       Phi += Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
-	 NTemp_,LatSum_.r2(),PairPotentials::Y0,PairPotentials::T0);
+	 NTemp_,LatSum_.r2(),PairPotentials::Y0,dt);
    }
 
    // Phi = Phi/(2*Vr*ShearMod)
@@ -578,10 +578,13 @@ double MultiLatticeTPP::Energy()
    Phi *= 1.0/(2.0*(Vr*ShearMod_));
 
    // Apply loading potential
-   for (int i=0;i<DIM3;++i)
-      for (int j=0;j<DIM3;++j)
-	 Phi -= Lambda_*Loading_[i][j]*(DOF_[INDU(i,j)] - Del(i,j))/Vr;
-
+   if (dt == PairPotentials::T0)
+   {
+      for (int i=0;i<DIM3;++i)
+	 for (int j=0;j<DIM3;++j)
+	    Phi -= Lambda_*Loading_[i][j]*(DOF_[INDU(i,j)] - Del(i,j))/Vr;
+   }
+   
    return Phi;
 }
 
@@ -1962,9 +1965,10 @@ void MultiLatticeTPP::DebugMode()
       "EulerAng_",                     // 41
       "Rotation_",                     // 42
       "Loading_",                      // 43
-      "PrintCrystal"                   // 44
+      "PrintCrystal",                  // 44
+      "Entropy"                        // 45
    };
-   int NOcommands=45;
+   int NOcommands=46;
    
    char response[LINELENGTH];
    char prompt[] = "Debug > ";
@@ -2216,6 +2220,10 @@ void MultiLatticeTPP::DebugMode()
       {
 	 cout << setw(W);
 	 PrintCurrentCrystalParamaters(cout);
+      }
+      else if (!strcmp(response,Commands[45]))
+      {
+	 cout << "Entropy = " << setw(W) << Entropy() << endl;
       }
       else if (!strcmp(response,"?") ||
 	       !strcasecmp(response,"help"))

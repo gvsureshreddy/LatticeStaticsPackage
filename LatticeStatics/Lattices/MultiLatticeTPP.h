@@ -47,7 +47,8 @@ private:
    Vector *AtomPositions_;
    int NoMovable_;
    int *MovableAtoms_;
-   
+
+   double energy(PairPotentials::TDeriv dt=PairPotentials::T0);
    Matrix stress(PairPotentials::TDeriv dt=PairPotentials::T0,LDeriv dl=L0);
    Matrix stiffness(PairPotentials::TDeriv dt=PairPotentials::T0,
 		    LDeriv dl=L0);
@@ -73,6 +74,8 @@ public:
    // Virtual Functions required by Lattice
    Vector DOF() {return DOF_;}
    void SetDOF(const Vector &dof) {DOF_ = dof; LatSum_.Recalc();}
+   // Entropy is NEGATIVE dE/dT
+   double Entropy() {return -energy(PairPotentials::DT);}
    Matrix StressDT() {return stress(PairPotentials::DT);}
    Matrix StiffnessDT() {return stiffness(PairPotentials::DT);}
    double Temp() {return NTemp_;}
@@ -82,7 +85,7 @@ public:
    double Lambda() {return Lambda_;}
    void SetLambda(const double &lambda) {Lambda_ = lambda;}
 
-   virtual double Energy();
+   virtual double Energy() {return energy();}
    virtual Matrix Stress() {return stress();}
    virtual Matrix Stiffness() {return stiffness();}
 
