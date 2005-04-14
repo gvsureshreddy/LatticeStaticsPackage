@@ -244,6 +244,9 @@ double ArcLengthSolution::FindNextSolution(int &good)
 {
    double uncertainty;
    double AngleTest;
+   // Assume that first solution should not be strictly restricted to the
+   // adaptive steping angle constraint
+   double AngleFactor = CurrentSolution_ ? 1.0 : 5.0;
 
    Vector OldDiff = Difference_;
 
@@ -258,7 +261,7 @@ double ArcLengthSolution::FindNextSolution(int &good)
       if (Echo_)
 	 cout << "AngleTest = " << AngleTest << "  Cutoff = " << AngleCutoff_ << endl;
    }
-   while (((AngleTest >= AngleCutoff_) || !good)
+   while (((AngleTest >= AngleFactor*AngleCutoff_) || !good)
 	  && (CurrentDS_ >= DSMin_)
 	  && (Mode_->ArcLenUpdate(Difference_),
 	      Difference_ = OldDiff,
