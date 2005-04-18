@@ -9,7 +9,7 @@ if (scalar(@ARGV) != 3)
 }
 
 $DOFSize = $ARGV[0];
-$StateSize = $DOFSize + 6;
+$StateSize = $DOFSize + 7;
 $StrSPEC = "%12s";
 $FSPEC = "%12.6f";
 
@@ -36,25 +36,35 @@ for (my $i=0;$i<$DOFSize;$i+=1)
 }
 printf GNUPLOT $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . "\n",
     "Min EigVal","Num Neg Eig Vals","Rank 1 Convex","Blochwave";
+printf GNUPLOT "# name: Index_0_0\n";
+printf GNUPLOT "# type: matrix\n";
 
-
+$begingnuplot = "";
 $endgnuplot = "";
-$bifpoints = 1;
+$bifpoints = 0;
 $index = 1;
 foreach $dir (@directories)
 {
     chdir $dataset;
-    $bifpoints = loaddata($dataset . "/" . $dir ,$ARGV[1],*GNUPLOT,$index,\$endgnuplot) && $bifpoints;
+    $bifpoints += loaddata($dataset . "/" . $dir ,$ARGV[1],\$begingnuplot,$index,\$endgnuplot);
     $index += 2;
 }
 
-if ($bifpoints)
+if ($bifpoints == 0)
 {
-    for (my $i=0;$i<$StateSize;$i+=1)
-    {
-	printf GNUPLOT $FSPEC,0.0;
-    }
-    printf GNUPLOT "\n";
+  printf GNUPLOT "# rows: 1\n";
+  printf GNUPLOT "# columns: %i\n",$StateSize;
+  for (my $i=0;$i<$StateSize;$i+=1)
+  {
+    printf GNUPLOT $FSPEC,0.0;
+  }
+  printf GNUPLOT "\n";
+}
+else
+{
+  printf GNUPLOT "# rows: $bifpoints\n";
+  printf GNUPLOT "# columns: %i\n",$StateSize;
+  print GNUPLOT $begingnuplot;
 }
 
 print GNUPLOT "\n\n", $endgnuplot;
@@ -71,7 +81,7 @@ close(GNUPLOT);
 #
 # $_[0] -- Directory name
 # $_[1] -- Data file name
-# $_[2] -- Final output file handle
+# $_[2] -- reference to variable holding bif points
 # $_[3] -- Gnuplot data file Index for stable section
 #          Note (unstable section index +1)
 # $_[4] -- reference to variable holding all stable and unstable
@@ -81,11 +91,17 @@ sub loaddata {
     my(@fields,@temp,,@stress,@DOF,
        @potential,@mineigval,@noneg,@blochwave,
        $stableflag,$stable_nodata,$unstable_nodata,$bifpoints);
-    my($gnuplot,$endgnuplot);
+    my($gnuplot,$endgnuplot,$stableheader,$unstableheader);
     $gnuplot = $_[2];
     $endgnuplot = $_[4];
+    $stableheader = "";
     $stable = "";
+    $stabletmp = "";
+    $unstableheader = "";
     $unstable = "";
+    $unstabletmp = "";
+
+    my($firststable,$firstunstable);
 
     #chdir $_[0] || die "No $_[0] Directory, $!";
     chdir $_[0];
@@ -93,7 +109,7 @@ sub loaddata {
     # flag to make sure there is data in the index
     $stable_nodata = 1;
     $unstable_nodata = 1;
-    $bifpoints = 1;
+    $bifpoints = 0;
 
     if (-e $_[1])
     {
@@ -161,62 +177,102 @@ sub loaddata {
 	print "No file, \"$_[1]\" in $_[0]!\n";
     }
 
-    $stable .= sprintf "# Index $_[3]\n";
-    $stable .= sprintf "# $_[0]/$_[1] --- Stable\n";
-    $stable .= sprintf "#" . $StrSPEC . $StrSPEC . $StrSPEC,"Temperature","Stress","Potential";
+    $stableheader .= sprintf "# Index $_[3]\n";
+    $stableheader .= sprintf "# $_[0]/$_[1] --- Stable\n";
+    $stableheader .= sprintf "#" . $StrSPEC . $StrSPEC . $StrSPEC,"Temperature","Stress","Potential";
     for (my $i=0;$i<$DOFSize;$i+=1)
     {
-	$stable .= sprintf $StrSPEC,"DOF $i";
+	$stableheader .= sprintf $StrSPEC,"DOF $i";
     }
-    $stable .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . "\n",
+    $stableheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . "\n",
     "Min EigVal","Num Neg Eig Vals","Rank 1 Convex","Blochwave";
-    $unstable .= sprintf "# Index " . ($_[3]+1) . "\n";
-    $unstable .= sprintf "# $_[0]/$_[1] --- Unstable\n";
-    $unstable .= sprintf "#" . $StrSPEC . $StrSPEC . $StrSPEC,"Temperature","Stress","Potential";
+
+    $unstableheader .= sprintf "# Index " . ($_[3]+1) . "\n";
+    $unstableheader .= sprintf "# $_[0]/$_[1] --- Unstable\n";
+    $unstableheader .= sprintf "#" . $StrSPEC . $StrSPEC . $StrSPEC,"Temperature","Stress","Potential";
     for (my $i=0;$i<$DOFSize;$i+=1)
     {
-	$unstable .= sprintf $StrSPEC,"DOF $i";
+	$unstableheader .= sprintf $StrSPEC,"DOF $i";
     }
-    $unstable .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . "\n",
+    $unstableheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . "\n",
     "Min EigVal","Num Neg Eig Vals","Rank 1 Convex","Blochwave";
     
     $stableflag=$noneg[0];
+
+    $firststable=1;
+    $firstunstable=1;
+    $nostable = 0;
+    $nounstable = 0;
+    $substable = 0;
+    $subunstable = 0;
     while(defined($temp[0]))
     {
 	# Bifurcation Point
 	if (defined($noneg[1]) && $stableflag != $noneg[1])
 	{
-	    $bifpoints = 0;
-	    printf $gnuplot $FSPEC . $FSPEC . $FSPEC,$temp[0],$stress[0],$potential[0];
+	    $bifpoints += 1;
+	    $$gnuplot .= sprintf $FSPEC . $FSPEC . $FSPEC,$temp[0],$stress[0],$potential[0];
 	    for (my $i=0;$i<$DOFSize;$i+=1)
 	    {
-		printf $gnuplot $FSPEC,$DOF[0][$i];
+	      $$gnuplot .= sprintf $FSPEC,$DOF[0][$i];
 	    }
-	    printf $gnuplot $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
+	    $$gnuplot .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
 	    $mineigval[0],$noneg[0],$Convex[0],$blochwave[0];
 
 	    # Add blank line in corresponding file to seperate segments
 	    # and connecting line of data
 	    if ($noneg[1] == 0)
 	    {
-		$stable .= sprintf "\n";
-		$stable .= sprintf $FSPEC . $FSPEC . $FSPEC,$temp[0],$stress[0],$potential[0];
+	        if (!$firststable)
+		{
+		  $stable .= sprintf "# name: Index_$_[3]_$substable\n";
+		  $stable .= sprintf "# type: matrix\n";
+		  $stable .= sprintf "# rows: $nostable\n";
+		  $stable .= sprintf "# columns: %i\n",$StateSize;
+		  $stable .= $stabletmp;
+		  $stable .= sprintf "\n";
+		  $substable += 1;
+		  $stabletmp = "";
+		  $nostable = 0;
+		}
+		else
+		{
+		  $firststable=0;
+		}
+		$nostable +=1;
+		$stabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC,$temp[0],$stress[0],$potential[0];
 		for (my $i=0;$i<$DOFSize;$i+=1)
 		{
-		    $stable .= sprintf $FSPEC,$DOF[0][$i];
+		    $stabletmp .= sprintf $FSPEC,$DOF[0][$i];
 		}
-		$stable .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
+		$stabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
 		$mineigval[0],$noneg[0],$Convex[0],$blochwave[0];
 	    }
 	    elsif ($stableflag == 0)
 	    {
-		$unstable .= sprintf "\n";
-		$unstable .= sprintf $FSPEC . $FSPEC . $FSPEC,$temp[0],$stress[0],$potential[0];
+	        if (!$firstunstable)
+		{
+		  $unstable .= sprintf "# name: Index_" . ($_[3]+1). "_$subunstable\n";
+		  $unstable .= sprintf "# type: matrix\n";
+		  $unstable .= sprintf "# rows: $nounstable\n";
+		  $unstable .= sprintf "# columns: %i\n",$StateSize;
+		  $unstable .= $unstabletmp;
+		  $unstable .= sprintf "\n";
+		  $subunstable += 1;
+		  $unstabletmp = "";
+		  $nounstable = 0;
+		}
+		else
+		{
+		  $firstunstable=0;
+		}
+		$nounstable += 1;
+		$unstabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC,$temp[0],$stress[0],$potential[0];
 		for (my $i=0;$i<$DOFSize;$i+=1)
 		{
-		    $unstable .= sprintf $FSPEC,$DOF[0][$i];
+		    $unstabletmp .= sprintf $FSPEC,$DOF[0][$i];
 		}
-		$unstable .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
+		$unstabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
 		$mineigval[0],$noneg[0],$Convex[0],$blochwave[0];
 	    }
 	}
@@ -225,27 +281,31 @@ sub loaddata {
 	if ($stableflag == 0)
 	{
 	    $stable_nodata = 0;
-	    $stable .= sprintf $FSPEC . $FSPEC . $FSPEC,
+	    $firststable = 0;
+	    $nostable += 1;
+	    $stabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC,
 	      shift(@temp),shift(@stress),shift(@potential);
 	    for (my $i=0;$i<$DOFSize;$i+=1)
 	    {
-		$stable .= sprintf $FSPEC,$DOF[0][$i];
+		$stabletmp .= sprintf $FSPEC,$DOF[0][$i];
 	    }
 	    shift(@DOF);
-	    $stable .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
+	    $stabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
 	    shift(@mineigval),shift(@noneg),shift(@Convex),shift(@blochwave);
 	}
 	else
 	{
 	    $unstable_nodata = 0;
-	    $unstable .= sprintf $FSPEC . $FSPEC . $FSPEC,
+	    $firstunstable = 0;
+	    $nounstable += 1;
+	    $unstabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC,
 	      shift(@temp),shift(@stress),shift(@potential);
 	    for (my $i=0;$i<$DOFSize;$i+=1)
 	    {
-		$unstable .= sprintf $FSPEC,$DOF[0][$i];
+		$unstabletmp .= sprintf $FSPEC,$DOF[0][$i];
 	    }
 	    shift(@DOF);
-	    $unstable .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
+	    $unstabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
 	    shift(@mineigval),shift(@noneg),shift(@Convex),shift(@blochwave);
 	}
 
@@ -255,22 +315,53 @@ sub loaddata {
     # Make sure there is at least one data point in each index
     if ($stable_nodata)
     {
-	for (my $i=0;$i<$StateSize;$i+=1)
-	{
-	    $stable .= sprintf $FSPEC,0.0;
-	}
-	$stable .= sprintf "\n";
+      $stable .= sprintf "# name: Index_$_[3]_$substable\n";
+      $stable .= sprintf "# type: matrix\n";
+      $stable .= sprintf "# rows: 1\n";
+      $stable .= sprintf "# columns: %i\n",$StateSize;
+      for (my $i=0;$i<$StateSize;$i+=1)
+      {
+	$stable .= sprintf $FSPEC,0.0;
+      }
+      $stable .= sprintf "\n";
     }
-    if ($unstable_nodata)
+    else
     {
-	for (my $i=0;$i<$StateSize;$i+=1)
-	{
-	    $unstable .= sprintf $FSPEC,0.0;
-	}
-	$unstable .= sprintf "\n";
+      if ($nostable > 0)
+      {
+	$stable .= sprintf "# name: Index_$_[3]_$substable\n";
+	$stable .= sprintf "# type: matrix\n";
+	$stable .= sprintf "# rows: $nostable\n";
+	$stable .= sprintf "# columns: %i\n",$StateSize;
+	$stable .= $stabletmp;
+      }
     }
 
-    $$endgnuplot .= $stable . "\n\n" . $unstable . "\n\n";
+    if ($unstable_nodata)
+    {
+      $unstable .= sprintf "# name: Index_" . ($_[3]+1) . "_$subunstable\n";
+      $unstable .= sprintf "# type: matrix\n";
+      $unstable .= sprintf "# rows: 1\n";
+      $unstable .= sprintf "# columns: %i\n",$StateSize;
+      for (my $i=0;$i<$StateSize;$i+=1)
+      {
+	$unstable .= sprintf $FSPEC,0.0;
+      }
+      $unstable .= sprintf "\n";
+    }
+    else
+    {
+      if ($nounstable > 0)
+      {
+	$unstable .= sprintf "# name: Index_" . ($_[3]+1) . "_$subunstable\n";
+	$unstable .= sprintf "# type: matrix\n";
+	$unstable .= sprintf "# rows: $nounstable\n";
+	$unstable .= sprintf "# columns: %i\n",$StateSize;
+	$unstable .= $unstabletmp;
+      }
+    }
+
+    $$endgnuplot .= $stableheader . $stable . "\n\n" . $unstableheader . $unstable . "\n\n";
 
     $bifpoints;
 }
