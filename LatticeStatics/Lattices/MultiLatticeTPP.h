@@ -17,12 +17,10 @@ private:
    int INTERNAL_ATOMS;
    int DOFS;
 
-   double RefLen_[DIM3];
    unsigned InfluanceDist_;
    double NTemp_;
    // DOF[i] = [U11 U22 U33 U12 U13 U23 V11 V12 V13 V21... ...]
    Vector DOF_;
-   Vector LatticeBasis[DIM3];
    Matrix RefLattice_;
    double ShearMod_;
    enum LDeriv {L0,DL};
@@ -45,8 +43,6 @@ private:
    // Misc
    double ConvexityDX_;
    Vector *AtomPositions_;
-   int NoMovable_;
-   int *MovableAtoms_;
 
    double energy(PairPotentials::TDeriv dt=PairPotentials::T0);
    Matrix stress(PairPotentials::TDeriv dt=PairPotentials::T0,LDeriv dl=L0);
@@ -67,7 +63,6 @@ private:
    static int abscomp(const void *a,const void *b);
 
 public:
-   double RefLen(int i=0) {return RefLen_[i];}
    Vector AtomPositions(int i) {return AtomPositions_[i];}
 
 

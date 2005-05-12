@@ -15,7 +15,6 @@ MultiLatticeTPP::~MultiLatticeTPP()
    delete [] Potential_[0];
    delete [] Potential_;
    delete [] AtomPositions_;
-   delete [] MovableAtoms_;
 }
 
 MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int Debug)
@@ -26,18 +25,22 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
    char tmp[LINELENGTH];
    if(!GetParameter(prefix,"InternalAtoms",datafile,"%u",&INTERNAL_ATOMS)) exit(-1);
    DOFS = 6 + 3*(INTERNAL_ATOMS-1);
+   // Set RefLattice_
+   RefLattice_.Resize(DIM3,DIM3);
+   Vector hold(DIM3);
    for (int i=0;i<DIM3;++i)
    {
-      LatticeBasis[i].Resize(DIM3);
       sprintf(tmp,"LatticeBasis_%u",i);
-      if(!GetVectorParameter(prefix,tmp,datafile,&(LatticeBasis[i]))) exit(-1);
+      if(!GetVectorParameter(prefix,tmp,datafile,&hold)) exit(-1);
+      for (int j=0;j<DIM3;++j)
+      {
+	 RefLattice_[i][j] = hold[j];
+      }
    }
    
    // First Size DOF
    DOF_.Resize(DOFS,0.0);
    DOF_[0]=DOF_[1]=DOF_[2] = 1.0;
-   // Set RefLattice_
-   RefLattice_.Resize(DIM3,DIM3);
    // Set AtomPositions_
    AtomPositions_ = new Vector[INTERNAL_ATOMS];
    for (int i=0;i<INTERNAL_ATOMS;++i)
@@ -46,12 +49,6 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
       sprintf(tmp,"AtomPosition_%u",i);
       if(!GetVectorParameter(prefix,tmp,datafile,&(AtomPositions_[i]))) exit(-1);
    }
-   // Set MovableAtoms_ : atoms which can move in initialization.
-   if(!GetParameter(prefix,"NoMovableAtoms",datafile,"%u",&NoMovable_)) exit(-1);
-   MovableAtoms_ = new int[NoMovable_];
-   if((NoMovable_ > 0) &&
-      (!GetIntVectorParameter(prefix,"MovableAtoms",datafile,NoMovable_,MovableAtoms_)))
-      exit(-1);
    
    // Setup Bodyforce_
    BodyForce_ = new Vector[INTERNAL_ATOMS];
@@ -89,11 +86,6 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
 
 	 
    // Get Lattice parameters
-   
-   if(!GetParameter(prefix,"RefLen_0",datafile,"%lf",&(RefLen_[0]))) exit(-1);
-   if(!GetParameter(prefix,"RefLen_1",datafile,"%lf",&(RefLen_[1]))) exit(-1);
-   if(!GetParameter(prefix,"RefLen_2",datafile,"%lf",&(RefLen_[2]))) exit(-1);
-   
    if(!GetParameter(prefix,"InfluanceDist",datafile,"%u",&InfluanceDist_)) exit(-1);
    if(!GetParameter(prefix,"NTemp",datafile,"%lf",&NTemp_)) exit(-1);
    if(!GetParameter(prefix,"ConvexityDX",datafile,"%lf",&ConvexityDX_)) exit(-1);
@@ -145,11 +137,6 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
    if(!GetParameter(prefix,"InitializeStepSize",datafile,"%lf",&DX)) exit(-1);
    if(!GetParameter(prefix,"BlochWaveGridSize",datafile,"%u",&GridSize_)) exit(-1);
    
-   // Initialize RefLattice_
-   for (int i=0;i<DIM3;++i)
-      for (int j=0;j<DIM3;++j)
-	 RefLattice_[i][j] = LatticeBasis[i][j]*RefLen_[i];
-
    // Initiate the Lattice Sum object
    LatSum_(&DOF_,&RefLattice_,INTERNAL_ATOMS,AtomPositions_,Potential_,&InfluanceDist_,
 	   &NTemp_);
@@ -175,7 +162,6 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
    
 }
 
-// This routing assumes the lattice has fixed angles
 int MultiLatticeTPP::FindLatticeSpacing(int iter,double dx)
 {
    double oldLambda=Lambda_,
@@ -191,161 +177,40 @@ int MultiLatticeTPP::FindLatticeSpacing(int iter,double dx)
    }
 
    LatSum_.Recalc();
-
-   Vector RHS(DIM3+NoMovable_,0.0);
-   Matrix Stiff(DIM3+NoMovable_,DIM3+NoMovable_,0.0);
-   Vector De(DIM3+NoMovable_,0.0);
-   Matrix stress=Stress();
-   Matrix stiff=stiffness();
-   Vector LatBasisNorm[3];
-
-   for (int i=0;i<DIM3;++i)
-   {
-      LatBasisNorm[i].Resize(DIM3);
-      LatBasisNorm[i] = LatticeBasis[i]/LatticeBasis[i].Norm();
-   }
    
-   for (int i=0;i<DIM3;++i)
+   RefineEqbm(1.0e-13,iter);
+
+   // Clean up numerical round off (at least for zero values)
+   for (int i=0;i<DOFS;++i)
    {
-      for (int j=0;j<DIM3;++j)
-	 // Don't forget the 2's in the stress[][]
-	 for (int k=j;k<DIM3;k++)
-	 {
-	    RHS[i] += LatBasisNorm[i][j]*stress[0][INDU(j,k)]*LatBasisNorm[i][k];
-	 }
-   }
-   for (int i=0;i<NoMovable_;++i)
-   {
-      RHS[DIM3+i] = stress[0][MovableAtoms_[i]];
+      if (fabs(DOF_[i]) < 1.0e-13) DOF_[i] = 0.0;
    }
 
-   for (int i=0;i<DIM3;++i)
-      for (int j=0;j<DIM3;++j)
-      {
-	 Stiff[i][j] = 0.0;
-	 for (int k=0;k<DIM3;++k)
-	    for (int l=k;l<DIM3;++l)
-	       for (int m=0;m<DIM3;++m)
-		  for (int n=m;n<DIM3;++n)
-		  {
-		     Stiff[i][j] +=
-			LatBasisNorm[i][k]*LatBasisNorm[i][l]
-			*stiff[INDU(k,l)][INDU(m,n)]
-			*LatBasisNorm[j][m]*LatBasisNorm[j][n];
-		  }
-      }
-   for (int i=0;i<NoMovable_;++i)
-      for (int j=0;j<DIM3;++j)
-      {
-	 Stiff[DIM3+i][j] = 0.0;
-	 for (int m=0;m<DIM3;++m)
-	    for (int n=m;n<DIM3;++n)
-	    {
-	       Stiff[DIM3+i][j] += stiff[MovableAtoms_[i]][INDU(m,n)]
-		  *LatBasisNorm[j][m]*LatBasisNorm[j][n];
-	    }
-	 Stiff[j][DIM3+i] = Stiff[DIM3+i][j];
-      }
-   for (int i=0;i<NoMovable_;++i)
-      for (int j=0;j<NoMovable_;++j)
-      {
-	 Stiff[DIM3+i][DIM3+j] = stiff[MovableAtoms_[i]][MovableAtoms_[j]];
-      }
+   // Update RefLattice_
+   Matrix U(DIM3,DIM3);
+   U[0][0] = DOF_[0]; U[1][1] = DOF_[1]; U[2][2] = DOF_[2];
+   U[0][1] = U[1][0] = DOF_[3]; U[0][2] = U[2][0] = DOF_[4];
+   U[1][2] = U[2][1] = DOF_[5];
 
-   int itr=0;
-   do
+   RefLattice_ = RefLattice_*U;
+
+   // update atom pos
+   for (int i=1;i<INTERNAL_ATOMS;++i)
    {
-      itr++;
-
-#ifdef SOLVE_SVD
-      De = SolveSVD(Stiff,RHS,MAXCONDITION,Echo_);
-#else
-      De = SolvePLU(Stiff,RHS);
-#endif
-
-      for (int i=0;i<DIM3;++i)
-	 RefLen_[i] -= De[i];
-      for (int i=0;i<NoMovable_;++i)
+      for (int j=0;j<DIM3;++j)
       {
-	 AtomPositions_[1+(MovableAtoms_[i]-6)/3][(MovableAtoms_[i]-6)%3] -= De[DIM3+i];
+	 AtomPositions_[i][j] += DOF_[INDV(i,j)];
       }
+   }
+
+   // reset DOF
+   DOF_[0] = DOF_[1] = DOF_[2] = 1.0;
+   for (int i=3;i<DOFS;i++)
+   {
+      DOF_[i] = 0.0;
+   }
+   LatSum_.Recalc();
    
-      // Update RefLattice_
-      for (int p=0;p<DIM3;++p)
-	 for (int q=0;q<DIM3;++q)
-	    RefLattice_[p][q] = LatticeBasis[p][q]*RefLen_[p];
-
-      LatSum_.Recalc();
-      stress = Stress();
-      stiff = Stiffness();
-      
-      for (int i=0;i<DIM3;++i)
-      {
-	 RHS[i] = 0.0;
-	 for (int j=0;j<DIM3;++j)
-	    // Don't forget the 2's in stress[][]
-	    for (int k=j;k<DIM3;k++)
-	    {
-	       RHS[i] += LatBasisNorm[i][j]*stress[0][INDU(j,k)]*LatBasisNorm[i][k];
-	    }
-      }
-      for (int i=0;i<NoMovable_;++i)
-      {
-	 RHS[DIM3+i] = stress[0][MovableAtoms_[i]];
-      }
-      
-      for (int i=0;i<DIM3;++i)
-	 for (int j=0;j<DIM3;++j)
-	 {
-	    Stiff[i][j] = 0.0;
-	    for (int k=0;k<DIM3;++k)
-	       for (int l=k;l<DIM3;++l)
-		  for (int m=0;m<DIM3;++m)
-		     for (int n=m;n<DIM3;++n)
-		     {
-			Stiff[i][j] +=
-			   LatBasisNorm[i][k]*LatBasisNorm[i][l]
-			   *stiff[INDU(k,l)][INDU(m,n)]
-			   *LatBasisNorm[j][m]*LatBasisNorm[j][n];
-		     }
-	 }
-      for (int i=0;i<NoMovable_;++i)
-	 for (int j=0;j<DIM3;++j)
-	 {
-	    Stiff[DIM3+i][j] = 0.0;
-	    for (int m=0;m<DIM3;++m)
-	       for (int n=m;n<DIM3;++n)
-	       {
-		  Stiff[DIM3+i][j] += stiff[MovableAtoms_[i]][INDU(m,n)]
-		     *LatBasisNorm[j][m]*LatBasisNorm[j][n];
-	       }
-	    Stiff[j][DIM3+i] = Stiff[DIM3+i][j];
-	 }
-      for (int i=0;i<NoMovable_;++i)
-	 for (int j=0;j<NoMovable_;++j)
-	 {
-	    Stiff[DIM3+i][DIM3+j] = stiff[MovableAtoms_[i]][MovableAtoms_[j]];
-	 }
-
-      if (Echo_)
-      {
-	 cout << setw(10) << itr << endl
-	      << "    RHS=" << setw(20) << RHS << setw(20) << RHS.Norm() << endl
-	      << "     De=" << setw(20) << De  << setw(20) << De.Norm() << endl
-	      << "RefLen_=" << setw(20) << RefLen_[0] << setw(20) << RefLen_[1]
-	      << setw(20) << RefLen_[2] << endl;
-	 if (NoMovable_) cout << "AtomPositions_=";
-	 for (int i=0;i<NoMovable_;++i)
-	 {
-	    cout << setw(20)
-		 << AtomPositions_[1+(MovableAtoms_[i]-6)/3][(MovableAtoms_[i]-6)%3];
-	 }
-	 if (NoMovable_) cout << endl;
-      }
-   }
-   while ((itr < iter)
-	  && ((RHS.Norm() > 1.0e-13) || (De.Norm() > 1.0e-14)));
-
    ShearMod_ = 0.25*fabs(Stiffness()[5][5]);
    NTemp_=oldTemp;
    Lambda_=oldLambda;
@@ -1788,12 +1653,8 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
    switch (flag)
    {
       case PrintLong:
-	 out << "MultiLatticeTPP:" << endl << endl
-	     << "Cell Reference Length: " << setw(W) << RefLen_[0]
-	     << setw(W) << RefLen_[1] << setw(W) << RefLen_[2] << endl;
-	 out << "Lattice Basis_0 : " << setw(W) << LatticeBasis[0] <<endl
-	     << "Lattice Basis_1 : " << setw(W) << LatticeBasis[1] <<endl
-	     << "Lattice Basis_2 : " << setw(W) << LatticeBasis[2] <<endl << endl;
+	 out << "MultiLatticeTPP:" << endl << endl;
+	 out << "RefLattice_ : " << setw(W) << RefLattice_;
 	 for (int i=0;i<INTERNAL_ATOMS;++i)
 	 {
 	    out << "Atom_" << i << " Position : "
@@ -1819,12 +1680,8 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 	 // also send to cout
 	 if (Echo_)
 	 {
-	    cout << "MultiLatticeTPP:" << endl << endl
-		 << "Cell Reference Length: " << setw(W) << RefLen_[0]
-		 << setw(W) << RefLen_[1] << setw(W) << RefLen_[2] << endl;
-	    cout << "Lattice Basis_0 : " << setw(W) << LatticeBasis[0] <<endl
-		 << "Lattice Basis_1 : " << setw(W) << LatticeBasis[1] <<endl
-		 << "Lattice Basis_2 : " << setw(W) << LatticeBasis[2] <<endl << endl;
+	    cout << "MultiLatticeTPP:" << endl << endl;
+	    cout << "RefLattice_ : " << setw(W) << RefLattice_;
 	    for (int i=0;i<INTERNAL_ATOMS;++i)
 	    {
 	       cout << "Atom_" << i << " Position : "
@@ -1923,52 +1780,48 @@ void MultiLatticeTPP::DebugMode()
    char *Commands[] = {
       "INTERNAL_ATOMS",                // 0
       "DOFS",                          // 1
-      "RefLen_",                       // 2
-      "InfluanceDist_",                // 3
-      "NTemp_",                        // 4
-      "DOF_",                          // 5
-      "LatticeBasis",                  // 6
-      "RefLattice_",                   // 7
-      "ShearMod_",                     // 8
-      "Lambda_",                       // 9
-      "BodyForce_",                    // 10
-      "AtomicMass_",                   // 11
-      "GridSize_",                     // 12
-      "Potential_",                    // 13
-      "ConvexityDX_",                  // 14
-      "NoMovable_",                    // 15
-      "MovableAtoms_",                 // 16
-      "stress",                        // 17
-      "stiffness",                     // 18
-      "CondensedModuli",               // 19
-      "ReferenceDispersionCurves",     // 20
-      "ReferenceBlochWave",            // 21
-      "ReferenceDynamicalStiffness",   // 22
-      "SetDOF",                        // 23
-      "StressDT",                      // 24
-      "StiffnessDT",                   // 25
-      "SetTemp",                       // 26
-      "Energy",                        // 27
-      "E3",                            // 28
-      "E4",                            // 29
-      "SetGridSize",                   // 30
-      "NeighborDistances",             // 31
-      "Print-short",                   // 32
-      "Print-long",                    // 33
-      "SetLambda",                     // 34
-      "StressDL",                      // 35
-      "StiffnessDL",                   // 36
-      "FindLatticeSpacing",            // 37
-      "ConsistencyCheck",              // 38
-      "dbg_",                          // 39
-      "RefineEqbm",                    // 40
-      "EulerAng_",                     // 41
-      "Rotation_",                     // 42
-      "Loading_",                      // 43
-      "PrintCrystal",                  // 44
-      "Entropy"                        // 45
+      "InfluanceDist_",                // 2
+      "NTemp_",                        // 3
+      "DOF_",                          // 4
+      "RefLattice_",                   // 5
+      "ShearMod_",                     // 6
+      "Lambda_",                       // 7
+      "BodyForce_",                    // 8
+      "AtomicMass_",                   // 9
+      "GridSize_",                     // 10
+      "Potential_",                    // 11
+      "ConvexityDX_",                  // 12
+      "stress",                        // 13
+      "stiffness",                     // 14
+      "CondensedModuli",               // 15
+      "ReferenceDispersionCurves",     // 16
+      "ReferenceBlochWave",            // 17
+      "ReferenceDynamicalStiffness",   // 18
+      "SetDOF",                        // 19
+      "StressDT",                      // 20
+      "StiffnessDT",                   // 21
+      "SetTemp",                       // 22
+      "Energy",                        // 23
+      "E3",                            // 24
+      "E4",                            // 25
+      "SetGridSize",                   // 26
+      "NeighborDistances",             // 27
+      "Print-short",                   // 28
+      "Print-long",                    // 29
+      "SetLambda",                     // 30
+      "StressDL",                      // 31
+      "StiffnessDL",                   // 32
+      "FindLatticeSpacing",            // 33
+      "ConsistencyCheck",              // 34
+      "dbg_",                          // 35
+      "RefineEqbm",                    // 36
+      "EulerAng_",                     // 37
+      "Rotation_",                     // 38
+      "Loading_",                      // 39
+      "PrintCrystal",                  // 40
+      "Entropy"                        // 41
    };
-   int NOcommands=46;
+   int NOcommands=42;
    
    char response[LINELENGTH];
    char prompt[] = "Debug > ";
@@ -1987,31 +1840,21 @@ void MultiLatticeTPP::DebugMode()
       else if (!strcmp(response,Commands[1]))
 	 cout << "DOFS = " << DOFS << endl;
       else if (!strcmp(response,Commands[2]))
-	 cout << "RefLen_[0] = " << RefLen_[0] << endl
-	      << "RefLen_[1] = " << RefLen_[1] << endl
-	      << "RefLen_[2] = " << RefLen_[2] << endl;
-      else if (!strcmp(response,Commands[3]))
 	 cout << "InfluanceDist_ = " << InfluanceDist_ << endl;
-      else if (!strcmp(response,Commands[4]))
+      else if (!strcmp(response,Commands[3]))
 	 cout << "NTemp_ = " << NTemp_ << endl;
-      else if (!strcmp(response,Commands[5]))
+      else if (!strcmp(response,Commands[4]))
       {
 	 for (int i=0;i<DOFS;++i)
 	    cout << "DOF_[" << i << "] = " << DOF_[i] << endl;
       }
-      else if (!strcmp(response,Commands[6]))
-      {
-	 cout << "LatticeBasis[0]= " << setw(W) << LatticeBasis[0] << endl;
-	 cout << "LatticeBasis[1]= " << setw(W) << LatticeBasis[1] << endl;
-	 cout << "LatticeBasis[2]= " << setw(W) << LatticeBasis[2] << endl;
-      }
-      else if (!strcmp(response,Commands[7]))
+      else if (!strcmp(response,Commands[5]))
 	 cout << "RefLattice_= " << setw(W) << RefLattice_;
-      else if (!strcmp(response,Commands[8]))
+      else if (!strcmp(response,Commands[6]))
 	 cout << "ShearMod_= " << ShearMod_ << endl;
-      else if (!strcmp(response,Commands[9]))
+      else if (!strcmp(response,Commands[7]))
 	 cout << "Lambda_= " << Lambda_ << endl;
-      else if (!strcmp(response,Commands[10]))
+      else if (!strcmp(response,Commands[8]))
       {
 	 for (int i=0;i<INTERNAL_ATOMS;++i)
 	 {
@@ -2019,7 +1862,7 @@ void MultiLatticeTPP::DebugMode()
 		 << BodyForce_[i] << endl;
 	 }
       }
-      else if (!strcmp(response,Commands[11]))
+      else if (!strcmp(response,Commands[9]))
       {
 	 for (int i=0;i<INTERNAL_ATOMS;++i)
 	 {
@@ -2027,9 +1870,9 @@ void MultiLatticeTPP::DebugMode()
 		 << AtomicMass_[i] << endl;
 	 }
       }
-      else if (!strcmp(response,Commands[12]))
+      else if (!strcmp(response,Commands[10]))
 	 cout << "GridSize_= " << GridSize_ << endl;
-      else if (!strcmp(response,Commands[13]))
+      else if (!strcmp(response,Commands[11]))
       {
 	 for (int i=0;i<INTERNAL_ATOMS;++i)
 	    for (int j=i;j<INTERNAL_ATOMS;++j)
@@ -2038,20 +1881,15 @@ void MultiLatticeTPP::DebugMode()
 		    << setw(W) << Potential_[i][j] << endl;
 	    }
       }
-      else if (!strcmp(response,Commands[14]))
+      else if (!strcmp(response,Commands[12]))
 	 cout << "ConvexityDX_= " << ConvexityDX_ << endl;
-      else if (!strcmp(response,Commands[15]))
-	 cout << "NoMovable_= " << NoMovable_ << endl;
-      else if (!strcmp(response,Commands[16]))
-	 for (int i=0;i<NoMovable_;++i)
-	    cout << "MovableAtoms_[" << i << "]= " << MovableAtoms_[i] << endl;
-      else if (!strcmp(response,Commands[17]))
+      else if (!strcmp(response,Commands[13]))
 	 cout << "stress= " << setw(W) << stress();
-      else if (!strcmp(response,Commands[18]))
+      else if (!strcmp(response,Commands[14]))
 	 cout << "stiffness= " << setw(W) << stiffness();
-      else if (!strcmp(response,Commands[19]))
+      else if (!strcmp(response,Commands[15]))
 	 cout << "CondensedModuli= " << setw(W) << CondensedModuli();
-      else if (!strcmp(response,Commands[20]))
+      else if (!strcmp(response,Commands[16]))
       {
 	 Vector K(DIM3,0.0);
 	 int NoPTS;
@@ -2071,12 +1909,12 @@ void MultiLatticeTPP::DebugMode()
 	 ReferenceDispersionCurves(K,NoPTS,prefix,cout);
 	 Echo_=oldEcho_;
       }
-      else if (!strcmp(response,Commands[21]))
+      else if (!strcmp(response,Commands[17]))
       {
 	 Vector K(DIM3,0.0);
 	 cout << "ReferenceBlochWave= " << ReferenceBlochWave(K) << "\t" << K << endl;
       }
-      else if (!strcmp(response,Commands[22]))
+      else if (!strcmp(response,Commands[18]))
       {
 	 cout << "\tK > ";
 	 Vector K(3,0.0);
@@ -2085,7 +1923,7 @@ void MultiLatticeTPP::DebugMode()
 	 cout << "ReferenceDynamicalStiffness= "
 	      << setw(W) << ReferenceDynamicalStiffness(K) << endl;
       }
-      else if (!strcmp(response,Commands[23]))
+      else if (!strcmp(response,Commands[19]))
       {
 	 Vector DOF(DOFS,0.0);
 	 cout << "\tDOF > ";
@@ -2093,11 +1931,11 @@ void MultiLatticeTPP::DebugMode()
 	 cin.sync(); // clear input
 	 SetDOF(DOF);
       }
-      else if (!strcmp(response,Commands[24]))
+      else if (!strcmp(response,Commands[20]))
 	 cout << "StressDT= " << setw(W) << StressDT();
-      else if (!strcmp(response,Commands[25]))
+      else if (!strcmp(response,Commands[21]))
 	 cout << "StiffnessDT= " << setw(W) << StiffnessDT();
-      else if (!strcmp(response,Commands[26]))
+      else if (!strcmp(response,Commands[22]))
       {
 	 double Temp;
 	 cout << "\tTemp > ";
@@ -2105,13 +1943,13 @@ void MultiLatticeTPP::DebugMode()
 	 cin.sync(); // clear input
 	 SetTemp(Temp);
       }
-      else if (!strcmp(response,Commands[27]))
+      else if (!strcmp(response,Commands[23]))
 	 cout << "Energy= " << Energy() << endl;
-      else if (!strcmp(response,Commands[28]))
+      else if (!strcmp(response,Commands[24]))
 	 cout << "E3= " << setw(W) << E3();
-      else if (!strcmp(response,Commands[29]))
+      else if (!strcmp(response,Commands[25]))
 	 cout << "E4= " << setw(W) << E4();
-      else if (!strcmp(response,Commands[30]))
+      else if (!strcmp(response,Commands[26]))
       {
 	 int GridSize;
 	 cout << "\tGridSize > ";
@@ -2119,7 +1957,7 @@ void MultiLatticeTPP::DebugMode()
 	 cin.sync(); // clear input
 	 SetGridSize(GridSize);
       }
-      else if (!strcmp(response,Commands[31]))
+      else if (!strcmp(response,Commands[27]))
       {
 	 int oldEcho_=Echo_;
 	 int cutoff;
@@ -2130,21 +1968,21 @@ void MultiLatticeTPP::DebugMode()
 	 NeighborDistances(cutoff,cout);
 	 Echo_=oldEcho_;
       }
-      else if (!strcmp(response,Commands[32]))
+      else if (!strcmp(response,Commands[28]))
       {
 	 int oldEcho_=Echo_;
 	 Echo_=0;
 	 cout << setw(W) << *this;
 	 Echo_=oldEcho_;
       }
-      else if (!strcmp(response,Commands[33]))
+      else if (!strcmp(response,Commands[29]))
       {
 	 int oldEcho_=Echo_;
 	 Echo_=0;
 	 Print(cout,PrintLong);
 	 Echo_=oldEcho_;
       }
-      else if (!strcmp(response,Commands[34]))
+      else if (!strcmp(response,Commands[30]))
       {
 	 double lambda;
 	 cout << "\tLambda > ";
@@ -2152,15 +1990,15 @@ void MultiLatticeTPP::DebugMode()
 	 cin.sync(); // clear input
 	 SetLambda(lambda);
       }
-      else if (!strcmp(response,Commands[35]))
+      else if (!strcmp(response,Commands[31]))
       {
 	 cout << "StressDL= " << setw(W) << StressDL();
       }
-      else if (!strcmp(response,Commands[36]))
+      else if (!strcmp(response,Commands[32]))
       {
 	 cout << "StiffnessDL= " << setw(W) << StiffnessDL();
       }
-      else if (!strcmp(response,Commands[37]))
+      else if (!strcmp(response,Commands[33]))
       {
 	 int iter;
 	 double dx;
@@ -2172,7 +2010,7 @@ void MultiLatticeTPP::DebugMode()
 	 cin.sync(); // clear input
 	 FindLatticeSpacing(iter,dx);
       }
-      else if (!strcmp(response,Commands[38]))
+      else if (!strcmp(response,Commands[34]))
       {
 	 int width;
 	 int oldEcho=Echo_;
@@ -2185,11 +2023,11 @@ void MultiLatticeTPP::DebugMode()
 	 ConsistencyCheck(epsilon,width,cout);
 	 Echo_=oldEcho;
       }
-      else if (!strcmp(response,Commands[39]))
+      else if (!strcmp(response,Commands[35]))
       {
 	 cout << "dbg_ = " << dbg_ << endl;
       }
-      else if (!strcmp(response,Commands[40]))
+      else if (!strcmp(response,Commands[36]))
       {
 	 double Tol;
 	 int MaxItr;
@@ -2199,29 +2037,29 @@ void MultiLatticeTPP::DebugMode()
 	 cin >> MaxItr;
 	 RefineEqbm(Tol,MaxItr);
       }
-      else if (!strcmp(response,Commands[41]))
+      else if (!strcmp(response,Commands[37]))
       {
 	 cout << "EulerAng_ = "
 	      << setw(W) << EulerAng_[0]
 	      << setw(W) << EulerAng_[1]
 	      << setw(W) << EulerAng_[2] << endl;
       }
-      else if (!strcmp(response,Commands[42]))
+      else if (!strcmp(response,Commands[38]))
       {
 	 cout << "Rotation_ = "
 	      << setw(W) << Rotation_ << endl;
       }
-      else if (!strcmp(response,Commands[43]))
+      else if (!strcmp(response,Commands[39]))
       {
 	 cout << "Loading_ = "
 	      << setw(W) << Loading_ << endl;
       }
-      else if (!strcmp(response,Commands[44]))
+      else if (!strcmp(response,Commands[40]))
       {
 	 cout << setw(W);
 	 PrintCurrentCrystalParamaters(cout);
       }
-      else if (!strcmp(response,Commands[45]))
+      else if (!strcmp(response,Commands[41]))
       {
 	 cout << "Entropy = " << setw(W) << Entropy() << endl;
       }
@@ -2282,6 +2120,8 @@ void MultiLatticeTPP::RefineEqbm(double Tol,int MaxItr)
       SetDOF(DOF_-dx);
 
       Stress=stress();
+
+      cout << setw(20) << Stress;
 
       cout << itr << "\tdx " << dx.Norm() << "\tstress " << Stress.Norm() << endl;
    }
