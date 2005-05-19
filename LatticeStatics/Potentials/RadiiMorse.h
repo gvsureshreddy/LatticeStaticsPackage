@@ -8,12 +8,13 @@ using namespace std;
 class RadiiMorse: public PairPotentials
 {
 private:
-   double A0_, B0_, Alpha_, Rref_, Rtheta_, Tref_;
+   double A0_, B0_, Alpha_, Rref1_, Rref2_, Rtheta1_, Rtheta2_, Tref_;
 
 public:
 
    RadiiMorse() {};
-   RadiiMorse(double A0,double B0,double Alpha,double Rref,double Rtheta,double Tref);
+   RadiiMorse(double A0,double B0,double Alpha,double Rref1,double Rref2,
+	      double Rtheta1,double Rtheta2,double Tref);
    ~RadiiMorse() {};
    friend ostream &operator<<(ostream &out,RadiiMorse &A);
    double PairPotential(double NTemp,double r2,YDeriv dy=Y0,TDeriv dt=T0);

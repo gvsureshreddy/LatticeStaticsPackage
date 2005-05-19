@@ -1,9 +1,9 @@
 #include "RadiiMorse.h"
 
-RadiiMorse::RadiiMorse(double A0,double B0,double Alpha,double Rref,double Rtheta,
-		       double Tref):
-   A0_(A0),B0_(B0),Alpha_(Alpha),Rref_(Rref),Rtheta_(Rtheta),
-   Tref_(Tref)
+RadiiMorse::RadiiMorse(double A0,double B0,double Alpha,double Rref1,double Rref2,
+		       double Rtheta1,double Rtheta2,double Tref):
+   A0_(A0),B0_(B0),Alpha_(Alpha),Rref1_(Rref1),Rref2_(Rref2),
+   Rtheta1_(Rtheta1),Rtheta2_(Rtheta2),Tref_(Tref)
 {
 }
 
@@ -53,10 +53,11 @@ double RadiiMorse::Rhat(double NTemp,TDeriv dt)
    switch (dt)
    {
       case T0:
-	 rhat = Rref_ + Rtheta_*(NTemp - 1.0);
+	 rhat = (Rref1_ + Rtheta1_*(NTemp - 1.0))*(Rref2_ + Rtheta2_*(NTemp - 1.0));
 	 break;
       case DT:
-	 rhat = Rtheta_;
+	 rhat = Rtheta1_*(Rref2_ + Rtheta2_*(NTemp - 1.0))
+	    + Rtheta2_*(Rref1_ + Rtheta1_*(NTemp - 1.0));
 	 break;
    }
 
@@ -182,8 +183,10 @@ void RadiiMorse::Print(ostream &out)
    out << "A0=" << setw(W) << A0_
        << "; B0=" << setw(W) << B0_
        << "; Alpha=" << setw(W) << Alpha_
-       << "; Rref=" << setw(W) << Rref_
-       << "; Rtheta=" << setw(W) << Rtheta_
+       << "; Rref1=" << setw(W) << Rref1_
+       << "; Rtheta1=" << setw(W) << Rtheta1_
+       << "; Rref2=" << setw(W) << Rref2_
+       << "; Rtheta2=" << setw(W) << Rtheta2_
        << "; Tref=" << setw(W) << Tref_;
 }
 
