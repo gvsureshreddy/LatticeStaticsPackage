@@ -1674,7 +1674,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 		   << setw(W) << Potential_[i][j] << endl;
 	    }
 	 }
-	 out << "Shear Modulus : " << setw(W) << NormModulus_ << endl;
+	 out << "Normalization Modulus : " << setw(W) << NormModulus_ << endl;
 	 out << "Loading Proportions : " << setw(W) << LoadingProportions_ << endl;
 	 // also send to cout
 	 if (Echo_)
