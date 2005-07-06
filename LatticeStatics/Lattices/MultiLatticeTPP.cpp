@@ -88,6 +88,7 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
    // Get Lattice parameters
    if(!GetParameter(prefix,"InfluanceDist",datafile,"%u",&InfluanceDist_)) exit(-1);
    if(!GetParameter(prefix,"NTemp",datafile,"%lf",&NTemp_)) exit(-1);
+   if(!GetParameter(prefix,"NormModulus",datafile,"%lf",&NormModulus_)) exit(-1);
    if(!GetParameter(prefix,"ConvexityDX",datafile,"%lf",&ConvexityDX_)) exit(-1);
 
    // Get Loading parameters
@@ -169,7 +170,6 @@ int MultiLatticeTPP::FindLatticeSpacing(int iter,double dx)
 
    Lambda_=0.0;
    NTemp_=1.0;
-   ShearMod_=1.0;
    DOF_[0] = DOF_[1] = DOF_[2] = 1.0;
    for (int i=3;i<DOFS;i++)
    {
@@ -211,7 +211,6 @@ int MultiLatticeTPP::FindLatticeSpacing(int iter,double dx)
    }
    LatSum_.Recalc();
    
-   ShearMod_ = 0.25*fabs(Stiffness()[5][5]);
    NTemp_=oldTemp;
    Lambda_=oldLambda;
    // Lambda Should be input in normalized form
@@ -438,9 +437,9 @@ double MultiLatticeTPP::energy(PairPotentials::TDeriv dt)
 	 NTemp_,LatSum_.r2(),PairPotentials::Y0,dt);
    }
 
-   // Phi = Phi/(2*Vr*ShearMod)
+   // Phi = Phi/(2*Vr*NormModulus)
    Vr = RefLattice_.Det();
-   Phi *= 1.0/(2.0*(Vr*ShearMod_));
+   Phi *= 1.0/(2.0*(Vr*NormModulus_));
 
    // Apply loading potential
    if (dt == PairPotentials::T0)
@@ -523,8 +522,8 @@ Matrix MultiLatticeTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
 	 }
       }
 
-      // S = S/(2*Vr*ShearMod)
-      S *= 1.0/(2.0*(Vr*ShearMod_));
+      // S = S/(2*Vr*NormModulus)
+      S *= 1.0/(2.0*(Vr*NormModulus_));
 
       // Load terms
       if (dt == PairPotentials::T0)
@@ -634,8 +633,8 @@ Matrix MultiLatticeTPP::stiffness(PairPotentials::TDeriv dt,LDeriv dl)
 	 }
       }
       
-      // Phi = Phi/(2*Vr*ShearMod)
-      Phi *= 1.0/(2.0*(RefLattice_.Det()*ShearMod_));
+      // Phi = Phi/(2*Vr*NormModulus)
+      Phi *= 1.0/(2.0*(RefLattice_.Det()*NormModulus_));
    }
    else if (dl==DL)
    {
@@ -764,8 +763,8 @@ Matrix MultiLatticeTPP::E3()
    }
 
    
-   // Phi = Phi/(2*Vr*ShearMod)
-   Phi *= 1.0/(2.0*(RefLattice_.Det()*ShearMod_));
+   // Phi = Phi/(2*Vr*NormModulus)
+   Phi *= 1.0/(2.0*(RefLattice_.Det()*NormModulus_));
 
    return Phi;
 }
@@ -1110,8 +1109,8 @@ Matrix MultiLatticeTPP::E4()
    }
 
    
-   // Phi = Phi/(2*Vr*ShearMod)
-   Phi *= 1.0/(2.0*(RefLattice_.Det()*ShearMod_));
+   // Phi = Phi/(2*Vr*NormModulus)
+   Phi *= 1.0/(2.0*(RefLattice_.Det()*NormModulus_));
 
    return Phi;
 }
@@ -1476,8 +1475,8 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, int gridsize,const char *p
 
    // Condense moduli.
    Phi -= (Dfp.Transpose())*(Dpp.Inverse())*Dfp;
-   // Phi = Phi/(2*Vr*ShearMod)
-   Phi *= 1.0/(2.0*(RefLattice_.Det()*ShearMod_));
+   // Phi = Phi/(2*Vr*NormModulus)
+   Phi *= 1.0/(2.0*(RefLattice_.Det()*NormModulus_));
    
    //-----------------------------------------------------------------------------
 
@@ -1547,7 +1546,7 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, int gridsize,const char *p
 	 for (int i=0;i<3;++i)
 	 {
 	    // normalize by G/(Mc/Vc)
-	    ModEigVal[0][i] *= ShearMod_/(Mc/Vc);
+	    ModEigVal[0][i] *= NormModulus_/(Mc/Vc);
 	 }
 
 	 out << prefix << setw(w/2) << phi << setw(w/2) << theta;
@@ -1675,7 +1674,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 		   << setw(W) << Potential_[i][j] << endl;
 	    }
 	 }
-	 out << "Shear Modulus : " << setw(W) << ShearMod_ << endl;
+	 out << "Shear Modulus : " << setw(W) << NormModulus_ << endl;
 	 out << "Loading Proportions : " << setw(W) << LoadingProportions_ << endl;
 	 // also send to cout
 	 if (Echo_)
@@ -1702,7 +1701,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 		       << setw(W) << Potential_[i][j] << endl;
 	       }
 	    }
-	    cout << "Shear Modulus : " << setw(W) << ShearMod_ << endl;
+	    cout << "Normalization Modulus : " << setw(W) << NormModulus_ << endl;
 	    cout << "EulerAngles : " << setw(W) << EulerAng_[0]
 		 << setw(W) << EulerAng_[1] << setw(W) << EulerAng_[2] << endl;
 	    cout << "Loading Proportions : " << setw(W) << LoadingProportions_ << endl;
@@ -1784,7 +1783,7 @@ void MultiLatticeTPP::DebugMode()
       "NTemp_",                        // 3
       "DOF_",                          // 4
       "RefLattice_",                   // 5
-      "ShearMod_",                     // 6
+      "NormModulus_",                     // 6
       "Lambda_",                       // 7
       "BodyForce_",                    // 8
       "AtomicMass_",                   // 9
@@ -1851,7 +1850,7 @@ void MultiLatticeTPP::DebugMode()
       else if (!strcmp(response,Commands[5]))
 	 cout << "RefLattice_= " << setw(W) << RefLattice_;
       else if (!strcmp(response,Commands[6]))
-	 cout << "ShearMod_= " << ShearMod_ << endl;
+	 cout << "NormModulus_= " << NormModulus_ << endl;
       else if (!strcmp(response,Commands[7]))
 	 cout << "Lambda_= " << Lambda_ << endl;
       else if (!strcmp(response,Commands[8]))

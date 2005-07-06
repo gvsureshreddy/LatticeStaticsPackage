@@ -22,7 +22,7 @@ private:
    // DOF[i] = [U11 U22 U33 U12 U13 U23 V11 V12 V13 V21... ...]
    Vector DOF_;
    Matrix RefLattice_;
-   double ShearMod_;
+   double NormModulus_;
    enum LDeriv {L0,DL};
    double Lambda_;
    Vector LoadingProportions_;
@@ -104,7 +104,7 @@ public:
    ~MultiLatticeTPP();
    inline double Del(int i,int j) {return i==j;}
    Vector BodyForce(int i) {return BodyForce_[i]; }
-   double ShearMod() const {return ShearMod_;}
+   double NormModulus() const {return NormModulus_;}
    friend ostream &operator<<(ostream &out,MultiLatticeTPP &A);
 
 private:
