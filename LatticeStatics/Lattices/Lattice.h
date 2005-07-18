@@ -25,6 +25,7 @@ public:
    virtual Vector DOF() = 0;
    virtual void SetDOF(const Vector &dof) = 0;
    virtual double Entropy() = 0;
+   virtual double HeatCapacity() = 0;
    virtual Matrix StressDT() = 0;
    virtual Matrix StiffnessDT() = 0;
    virtual double Temp() = 0;

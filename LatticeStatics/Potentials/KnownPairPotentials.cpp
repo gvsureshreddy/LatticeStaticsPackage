@@ -16,8 +16,6 @@ PairPotentials* InitializePairPotential(char *datafile,const char *prefix,int i,
    {
       case 0:
       {
-	 sprintf(tmp,"Tref",i,j);
-	 if(!GetParameter(prefix,tmp,datafile,"%lf",&Tref)) exit(-1);
 	 sprintf(tmp,"A0_%u_%u",i,j);
 	 if(!GetParameter(prefix,tmp,datafile,"%lf",&A0)) exit(-1);
 	 sprintf(tmp,"B0_%u_%u",i,j);
@@ -33,7 +31,7 @@ PairPotentials* InitializePairPotential(char *datafile,const char *prefix,int i,
 	 sprintf(tmp,"Rtheta2_%u_%u",i,j);
 	 if(!GetParameter(prefix,tmp,datafile,"%lf",&Rtheta2)) exit(-1);
 	 
-	 return new RadiiMorse(A0,B0,Alpha,Rref1,Rref2,Rtheta1,Rtheta2,Tref);
+	 return new RadiiMorse(A0,B0,Alpha,Rref1,Rref2,Rtheta1,Rtheta2);
       }
       case 1:
       {

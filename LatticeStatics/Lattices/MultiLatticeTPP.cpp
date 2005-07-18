@@ -65,6 +65,12 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
 
    AtomicMass_ = new double[INTERNAL_ATOMS];
 
+   // Get Thermo parameters
+   if (!GetParameter(prefix,"Tref",datafile,"%lf",&Tref_)) exit(-1);
+   //if (!GetParameter(prefix,"PhiRef",datafile,"%lf",&PhiRef_)) exit(-1);
+   //if (!GetParameter(prefix,"EntropyRef",datafile,"%lf",&EntropyRef_)) exit(-1);
+   //if (!GetParameter(prefix,"HeatCapacityRef",datafile,"%lf",&HeatCapacityRef_)) exit(-1);
+
    int AtomSpecies[100]; // Max number of atoms in unit cell. might need to be changed...
    if (!GetIntVectorParameter(prefix,"AtomSpecies",datafile,INTERNAL_ATOMS,AtomSpecies)) exit(-1);
 
@@ -441,12 +447,38 @@ double MultiLatticeTPP::energy(PairPotentials::TDeriv dt)
    Vr = RefLattice_.Det();
    Phi *= 1.0/(2.0*(Vr*NormModulus_));
 
-   // Apply loading potential
+   // Apply loading potential and Thermal term
    if (dt == PairPotentials::T0)
    {
+      // Loading
       for (int i=0;i<DIM3;++i)
 	 for (int j=0;j<DIM3;++j)
 	    Phi -= Lambda_*Loading_[i][j]*(DOF_[INDU(i,j)] - Del(i,j))/Vr;
+
+      // Thermal term
+      //Phi += (PhiRef_ -
+      //	      (NTemp_*Tref_)*EntropyRef_ -
+      //	      HeatCapacityRef_*(NTemp_*Tref_)*(log(NTemp_*Tref_) - 1.0)
+      //	 )/NormModulus_;
+   }
+   else if (dt == PairPotentials::DT)
+   {
+      // Loading
+      
+      // Thermal term
+      //Phi += (-EntropyRef_ - HeatCapacityRef_*log(NTemp_*Tref_))/NormModulus_;
+   }
+   else if (dt == PairPotentials::D2T)
+   {
+      // Loading
+
+      // Thermal term
+      //Phi += (-HeatCapacityRef_/(NTemp_*Tref_))/NormModulus_;
+   }
+   else
+   {
+      cerr << "Error in MultiLatticeTPP::energy" << endl;
+      exit(-1);
    }
    
    return Phi;
@@ -492,10 +524,15 @@ Matrix MultiLatticeTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
 	 // Claculate the Stress
 	 if (dt == PairPotentials::T0)
 	    phi=LatSum_.phi1();
-	 else
+	 else if (dt == PairPotentials::DT)
 	    phi=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
 	       NTemp_,LatSum_.r2(),PairPotentials::DY,dt);
-      
+	 else
+	 {
+	    cerr << "Error in MultiLatticeTPP::stress" << endl;
+	    exit(-1);
+	 }
+	 
 	 for (i=0;i<DIM3;i++)
 	 {
 	    for (j=0;j<DIM3;j++)
@@ -570,12 +607,17 @@ Matrix MultiLatticeTPP::stiffness(PairPotentials::TDeriv dt,LDeriv dl)
 	    phi = LatSum_.phi2();
 	    phi1 = LatSum_.phi1();
 	 }
-	 else
+	 else if (dt==PairPotentials::DT)
 	 {
 	    phi=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
 	       NTemp_,LatSum_.r2(),PairPotentials::D2Y,dt);
 	    phi1=Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
 	       NTemp_,LatSum_.r2(),PairPotentials::DY,dt);
+	 }
+	 else
+	 {
+	    cerr << "Error in MultiLatticeTPP::stiffness" << endl;
+	    exit(-1);
 	 }
       
 	 //Upper Diag Block (6,6)
@@ -1599,7 +1641,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
    static int W;
    static int NoNegEigVal;
    static double MinEigVal;
-   static double energy;
+   static double energy,entropy,heatcapacity;
    static Matrix
       stress(1,DOFS),
       stiff(DOFS,DOFS),
@@ -1619,6 +1661,8 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
    NoNegEigVal=0;
 
    energy = Energy();
+   entropy = Entropy();
+   heatcapacity = HeatCapacity();
    stress = Stress();
    stiff = Stiffness();
    
@@ -1665,6 +1709,10 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 	    out << "Atomic Mass " << i << "  : "
 		<< setw(W) << AtomicMass_[i] << endl;
 	 }
+	 out << "Tref = " << setw(W) << Tref_ << endl;
+	     //<< "PhiRef = " << setw(W) << PhiRef_ << "; "
+	     //<< "EntropyRef = " << setw(W) << EntropyRef_ << "; "
+	     //<< "HeatCapacityRef = " << setw(W) << HeatCapacityRef_ << endl;
 	 out << "Potential Parameters : " << endl;
 	 for (int i=0;i<INTERNAL_ATOMS;++i)
 	 {
@@ -1692,6 +1740,10 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 	       cout << "Atomic Mass " << i << "  : "
 		    << setw(W) << AtomicMass_[i] << endl;
 	    }
+	    cout << "Tref = " << setw(W) << Tref_ << endl;
+		 //<< "PhiRef = " << setw(W) << PhiRef_ << "; "
+		 //<< "EntropyRef = " << setw(W) << EntropyRef_ << "; "
+		 //<< "HeatCapacityRef = " << setw(W) << HeatCapacityRef_ << endl;
 	    cout << "Potential Parameters : " << endl;
 	    for (int i=0;i<INTERNAL_ATOMS;++i)
 	    {
@@ -1709,20 +1761,22 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 	 // passthrough to short
       case PrintShort:
 	 out << "Temperature (Ref Normalized): " << setw(W) << NTemp_ << endl
-	     << "Lambda (G Normalized): " << setw(W) << Lambda_ << endl
+	     << "Lambda (Normalized): " << setw(W) << Lambda_ << endl
 	     << "DOF's :" << endl << setw(W) << DOF_ << endl
-	     << "Potential Value (G Normalized):" << setw(W) << energy << endl;
+	     << "Potential Value (Normalized):" << setw(W) << energy << endl
+	     << "Entropy:" << setw(W) << entropy << endl
+	     << "HeatCapacity:" << setw(W) << heatcapacity << endl;
 	 for (int i=0;i<INTERNAL_ATOMS;++i)
 	 {
 	    out << "BodyForce Value " << i << " (Inf Normalized):"
 		<< setw(W) << BodyForce_[i] << endl;
 	 }
-	 out << "Stress (G Normalized):" << setw(W) << stress << endl
-	     << "Stiffness (G Normalized):" << setw(W) << stiff
+	 out << "Stress (Normalized):" << setw(W) << stress << endl
+	     << "Stiffness (Normalized):" << setw(W) << stiff
 	     << "Eigenvalue Info:"  << setw(W) << EigenValues
 	     << "Bifurcation Info:" << setw(W) << MinEigVal
 	     << setw(W) << NoNegEigVal << endl
-	     << "Condensed Moduli (G Normalized):" << setw(W) << CondModuli
+	     << "Condensed Moduli (Normalized):" << setw(W) << CondModuli
 	     << "CondEV Info:" << setw(W) << CondEV
 	     << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << endl
 	     << "BlochWave Stability:" << setw(W) << BlochWaveStable << ", "
@@ -1731,20 +1785,22 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 	 if (Echo_)
 	 {
 	    cout << "Temperature (Ref Normalized): " << setw(W) << NTemp_ << endl
-		 << "Lambda (G Normalized): " << setw(W) << Lambda_ << endl
+		 << "Lambda (Normalized): " << setw(W) << Lambda_ << endl
 		 << "DOF's :" << endl << setw(W) << DOF_ << endl
-		 << "Potential Value (G Normalized):" << setw(W) << energy << endl;
+		 << "Potential Value (Normalized):" << setw(W) << energy << endl
+		 << "Entropy:" << setw(W) << entropy << endl
+		 << "HeatCapacity:" << setw(W) << heatcapacity << endl;
 	    for (int i=0;i<INTERNAL_ATOMS;++i)
 	    {
 	       cout << "BodyForce Value " << i << " (Inf Normalized):"
 		    << setw(W) << BodyForce_[i] << endl;
 	    }
-	    cout << "Stress (G Normalized):" << setw(W) << stress << endl
-		 << "Stiffness (G Normalized):" << setw(W) << stiff
+	    cout << "Stress (Normalized):" << setw(W) << stress << endl
+		 << "Stiffness (Normalized):" << setw(W) << stiff
 		 << "Eigenvalue Info:"  << setw(W) << EigenValues
 		 << "Bifurcation Info:" << setw(W) << MinEigVal
 		 << setw(W) << NoNegEigVal << endl
-		 << "Condensed Moduli (G Normalized):" << setw(W) << CondModuli
+		 << "Condensed Moduli (Normalized):" << setw(W) << CondModuli
 		 << "CondEV Info:" << setw(W) << CondEV
 		 << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << endl
 		 << "BlochWave Stability (GridSize=" << GridSize_ << "):"

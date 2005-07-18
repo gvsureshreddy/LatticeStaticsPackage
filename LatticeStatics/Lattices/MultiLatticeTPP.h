@@ -23,6 +23,10 @@ private:
    Vector DOF_;
    Matrix RefLattice_;
    double NormModulus_;
+   double Tref_;
+   double PhiRef_;
+   double EntropyRef_;
+   double HeatCapacityRef_;
    enum LDeriv {L0,DL};
    double Lambda_;
    Vector LoadingProportions_;
@@ -71,6 +75,7 @@ public:
    void SetDOF(const Vector &dof) {DOF_ = dof; LatSum_.Recalc();}
    // Entropy is NEGATIVE dE/dT
    double Entropy() {return -energy(PairPotentials::DT);}
+   double HeatCapacity() {return -(NTemp_*Tref_)*energy(PairPotentials::D2T);}
    Matrix StressDT() {return stress(PairPotentials::DT);}
    Matrix StiffnessDT() {return stiffness(PairPotentials::DT);}
    double Temp() {return NTemp_;}

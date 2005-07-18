@@ -1,9 +1,9 @@
 #include "RadiiMorse.h"
 
 RadiiMorse::RadiiMorse(double A0,double B0,double Alpha,double Rref1,double Rref2,
-		       double Rtheta1,double Rtheta2,double Tref):
+		       double Rtheta1,double Rtheta2):
    A0_(A0),B0_(B0),Alpha_(Alpha),Rref1_(Rref1),Rref2_(Rref2),
-   Rtheta1_(Rtheta1),Rtheta2_(Rtheta2),Tref_(Tref)
+   Rtheta1_(Rtheta1),Rtheta2_(Rtheta2)
 {
 }
 
@@ -16,6 +16,9 @@ double RadiiMorse::A(double NTemp,TDeriv dt)
 	 retval = A0_;
 	 break;
       case DT:
+	 retval = 0.0;
+	 break;
+      case D2T:
 	 retval = 0.0;
 	 break;
       default:
@@ -38,6 +41,9 @@ double RadiiMorse::Beta(double NTemp,TDeriv dt)
       case DT:
 	 retval = Alpha_;
 	 break;
+      case D2T:
+	 retval = 0.0;
+	 break;
       default:
 	 cerr << "Error in RadiiMorse::Beta" << endl;
 	 exit(-1);
@@ -59,6 +65,12 @@ double RadiiMorse::Rhat(double NTemp,TDeriv dt)
 	 rhat = Rtheta1_*(Rref2_ + Rtheta2_*(NTemp - 1.0))
 	    + Rtheta2_*(Rref1_ + Rtheta1_*(NTemp - 1.0));
 	 break;
+      case D2T:
+	 rhat = Rtheta1_*Rtheta2_ + Rtheta2_*Rtheta1_;
+	 break;
+      default:
+	 cerr << "Error in RadiiMorse::Rhat" << endl;
+	 exit(-1);
    }
 
    return rhat;
@@ -88,7 +100,20 @@ double RadiiMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
 		  - 2.0*At*(Beta(NTemp,DT)*(r/rhat - 1.0)-beta*Rhat(NTemp,DT)*(r/(rhat*rhat)))
 		  *Exp_temp*(Exp_temp - 1.0);
 	       break;
-	 }
+	    case D2T:
+	       val = A(NTemp,D2T)*Exp_temp*(Exp_temp-2.0)
+		  - At*(Beta(NTemp,DT)*(r/rhat - 1.0) - (beta*Rhat(NTemp,DT)*r)/(rhat*rhat))
+		  *(Beta(NTemp,DT)*(r/rhat - 1.0) - (beta*Rhat(NTemp,DT)*r)/(rhat*rhat))
+		  *Exp_temp*(4.0*Exp_temp - 2.0)
+		  - At*(Beta(NTemp,D2T)*(r/rhat - 1.0)
+			- Beta(NTemp,DT)*(2.0*r*Rhat(NTemp,DT)/(rhat*rhat))
+			- beta*(r*Rhat(NTemp,D2T)/(rhat*rhat)
+				- 2.0*r*Rhat(NTemp,DT)*Rhat(NTemp,DT)/(rhat*rhat*rhat)))
+		  *Exp_temp*(2.0*Exp_temp - 2.0);
+	       break;
+	    default:
+	       cerr << "Error in RadiiMorese::PairPotential" << endl;
+	       exit(-1);}
 	 break;
       case DY:
 	 switch (dt)
@@ -106,6 +131,9 @@ double RadiiMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
 				     - beta*r*Rhat(NTemp,DT)/(rhat*rhat))
 		   *(2.0*Exp_temp - 1.0));
 	       break;
+	    default:
+	       cerr << "Error in RadiiMorse::PairPotential -- DY,D2T not programmed" << endl;
+	       exit(-1);
 	 }
 	 break;
       case D2Y:
@@ -134,6 +162,9 @@ double RadiiMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
 		      (beta/rhat + 1.0/r)
 		      *(2.0*Exp_temp*Exp_temp - Exp_temp)));
 	       break;
+	    default:
+	       cerr << "Error in RadiiMorse::PairPotential -- D2Y,D2T not programmed" << endl;
+	       exit(-1);
 	 }
 	 break;
       case D3Y:
@@ -150,6 +181,9 @@ double RadiiMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
 	       cerr << "D4phi/Dy3DT Not Coded... " << endl;
 	       exit(-1);
 	       break;
+	    default:
+	       cerr << "Error in RadiiMorse::PairPotential -- D3Y,D2T not programmed" << endl;
+	       exit(-1);
 	 }
 	 break;
       case D4Y:
@@ -168,6 +202,9 @@ double RadiiMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
 	       cerr << "D5phi/Dy4DT Not Coded... " << endl;
 	       exit(-1);
 	       break;
+	    default:
+	       cerr << "Error in RadiiMorse::PairPotential -- D4Y,D2T not programmed" << endl;
+	       exit(-1);
 	 }
 	 break;
    }
@@ -186,8 +223,7 @@ void RadiiMorse::Print(ostream &out)
        << "; Rref1=" << setw(W) << Rref1_
        << "; Rtheta1=" << setw(W) << Rtheta1_
        << "; Rref2=" << setw(W) << Rref2_
-       << "; Rtheta2=" << setw(W) << Rtheta2_
-       << "; Tref=" << setw(W) << Tref_;
+       << "; Rtheta2=" << setw(W) << Rtheta2_;
 }
 
 ostream &operator<<(ostream &out,RadiiMorse &A)
