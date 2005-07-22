@@ -9,9 +9,9 @@ if (scalar(@ARGV) != 3)
 }
 
 $DOFSize = $ARGV[0];
-$StateSize = $DOFSize + 7;
+$StateSize = $DOFSize + 9;
 $StrSPEC = "%12s";
-$FSPEC = "%12.6f";
+$FSPEC = "%14.6f";
 
 chomp($dataset=`pwd`);
 @dir = glob("./*");
@@ -29,7 +29,8 @@ open(GNUPLOT,">$ARGV[2]")
 print GNUPLOT "# gnuplot data file for ${dataset}\n#\n";
 print GNUPLOT "# Index 0\n";
 print GNUPLOT "# Bifurcation Points\n";
-printf GNUPLOT "#" . $StrSPEC . $StrSPEC . $StrSPEC,"Temperature","Stress","Potential";
+printf GNUPLOT "#" . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
+    "Temperature","Stress","Potential","Entropy","HeatCapacity";
 for (my $i=0;$i<$DOFSize;$i+=1)
 {
     printf GNUPLOT $StrSPEC,"DOF $i";
@@ -89,7 +90,7 @@ close(GNUPLOT);
 #
 sub loaddata {
     my(@fields,@temp,,@stress,@DOF,
-       @potential,@mineigval,@noneg,@blochwave,
+       @potential,@entropy,@heatcapacity,@mineigval,@noneg,@blochwave,
        $stableflag,$stable_nodata,$unstable_nodata,$bifpoints);
     my($gnuplot,$endgnuplot,$stableheader,$unstableheader);
     $gnuplot = $_[2];
@@ -147,6 +148,18 @@ sub loaddata {
 		@fields = split(/:/,$_);
 		push(@potential,$fields[1]);
 	    }
+
+	    if ( /^Entropy/)
+	    {
+		@fields=split(/:/,$_);
+		push(@entropy,$fields[1]);
+	    }
+
+	    if ( /^HeatCapacity/)
+	    {
+		@fields=split(/:/,$_);
+		push(@heatcapacity,$fields[1]);
+	    }
 	    
 	    if (/^Bifurcation/)
 	    {
@@ -179,7 +192,8 @@ sub loaddata {
 
     $stableheader .= sprintf "# Index $_[3]\n";
     $stableheader .= sprintf "# $_[0]/$_[1] --- Stable\n";
-    $stableheader .= sprintf "#" . $StrSPEC . $StrSPEC . $StrSPEC,"Temperature","Stress","Potential";
+    $stableheader .= sprintf "#" . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
+    "Temperature","Stress","Potential","Entropy","HeatCapacity";
     for (my $i=0;$i<$DOFSize;$i+=1)
     {
 	$stableheader .= sprintf $StrSPEC,"DOF $i";
@@ -189,7 +203,8 @@ sub loaddata {
 
     $unstableheader .= sprintf "# Index " . ($_[3]+1) . "\n";
     $unstableheader .= sprintf "# $_[0]/$_[1] --- Unstable\n";
-    $unstableheader .= sprintf "#" . $StrSPEC . $StrSPEC . $StrSPEC,"Temperature","Stress","Potential";
+    $unstableheader .= sprintf "#" . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
+    "Temperature","Stress","Potential","Entropy","HeatCapacity";
     for (my $i=0;$i<$DOFSize;$i+=1)
     {
 	$unstableheader .= sprintf $StrSPEC,"DOF $i";
@@ -211,7 +226,8 @@ sub loaddata {
 	if (defined($noneg[1]) && $stableflag != $noneg[1])
 	{
 	    $bifpoints += 1;
-	    $$gnuplot .= sprintf $FSPEC . $FSPEC . $FSPEC,$temp[0],$stress[0],$potential[0];
+	    $$gnuplot .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
+	    $temp[0],$stress[0],$potential[0],$entropy[0],$heatcapacity[0];
 	    for (my $i=0;$i<$DOFSize;$i+=1)
 	    {
 	      $$gnuplot .= sprintf $FSPEC,$DOF[0][$i];
@@ -240,7 +256,8 @@ sub loaddata {
 		  $firststable=0;
 		}
 		$nostable +=1;
-		$stabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC,$temp[0],$stress[0],$potential[0];
+		$stabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
+		$temp[0],$stress[0],$potential[0],$entropy[0],$heatcapacity[0];
 		for (my $i=0;$i<$DOFSize;$i+=1)
 		{
 		    $stabletmp .= sprintf $FSPEC,$DOF[0][$i];
@@ -267,7 +284,8 @@ sub loaddata {
 		  $firstunstable=0;
 		}
 		$nounstable += 1;
-		$unstabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC,$temp[0],$stress[0],$potential[0];
+		$unstabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
+		$temp[0],$stress[0],$potential[0],$entropy[0],$heatcapacity[0];
 		for (my $i=0;$i<$DOFSize;$i+=1)
 		{
 		    $unstabletmp .= sprintf $FSPEC,$DOF[0][$i];
@@ -283,8 +301,8 @@ sub loaddata {
 	    $stable_nodata = 0;
 	    $firststable = 0;
 	    $nostable += 1;
-	    $stabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC,
-	      shift(@temp),shift(@stress),shift(@potential);
+	    $stabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
+	    shift(@temp),shift(@stress),shift(@potential),shift(@entropy),shift(@heatcapacity);
 	    for (my $i=0;$i<$DOFSize;$i+=1)
 	    {
 		$stabletmp .= sprintf $FSPEC,$DOF[0][$i];
@@ -298,8 +316,8 @@ sub loaddata {
 	    $unstable_nodata = 0;
 	    $firstunstable = 0;
 	    $nounstable += 1;
-	    $unstabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC,
-	      shift(@temp),shift(@stress),shift(@potential);
+	    $unstabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
+	    shift(@temp),shift(@stress),shift(@potential),shift(@entropy),shift(@heatcapacity);
 	    for (my $i=0;$i<$DOFSize;$i+=1)
 	    {
 		$unstabletmp .= sprintf $FSPEC,$DOF[0][$i];
