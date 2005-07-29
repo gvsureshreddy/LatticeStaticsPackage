@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
    
    GetMainSettings(Width,Precision,BisectCP,Echo,datafile);
 
-   Lat = InitializeLattice(datafile,"^",Echo,Debug);
+   Lat = InitializeLattice(datafile,"^",Echo,Width,Debug);
 
    fstream out;
    InitializeOutputFile(out,outputfile,datafile,startfile,Lat,Precision,Width,Echo);

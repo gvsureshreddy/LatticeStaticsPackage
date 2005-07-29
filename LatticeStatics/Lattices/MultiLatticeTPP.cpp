@@ -17,7 +17,7 @@ MultiLatticeTPP::~MultiLatticeTPP()
    delete [] AtomPositions_;
 }
 
-MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int Debug)
+MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int Width,int Debug)
 {
    Echo_ = Echo;
    dbg_ = Debug;
@@ -162,7 +162,7 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
    {
       if (EnterDebugMode())
       {
-	 cout << setw(15);
+	 cout << setw(Width);
 	 DebugMode();
       }
    }
@@ -1814,7 +1814,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
    {
       if (EnterDebugMode())
       {
-	 cout << setw(15);
+	 cout << setw(W);
 	 DebugMode();
       }
    }
@@ -2034,6 +2034,7 @@ void MultiLatticeTPP::DebugMode()
       {
 	 int oldEcho_=Echo_;
 	 Echo_=0;
+	 cout << setw(W);
 	 Print(cout,PrintLong);
 	 Echo_=oldEcho_;
       }

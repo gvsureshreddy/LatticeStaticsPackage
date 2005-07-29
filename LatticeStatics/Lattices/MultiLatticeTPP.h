@@ -105,7 +105,7 @@ public:
    void PrintCurrentCrystalParamaters(ostream &out);
    
    // Functions provided by MultiLatticeTPP
-   MultiLatticeTPP(char *datafile,const char *prefix,int Echo=1,int Debug=0);
+   MultiLatticeTPP(char *datafile,const char *prefix,int Echo=1,int Width=20,int Debug=0);
    ~MultiLatticeTPP();
    inline double Del(int i,int j) {return i==j;}
    Vector BodyForce(int i) {return BodyForce_[i]; }
