@@ -1,0 +1,8 @@
+BlochWave.o
+DispersionCurves.o
+LongWavelengthModuli.o
+NeighborDistances.o
+PPSum.o
+Rank1Convex.o
+UnitCellIterator.o
+UtilityFunctions.o

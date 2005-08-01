@@ -1,0 +1,8 @@
+CMatrix.o
+CVector.o
+EigenSys.o
+HermiteEigenSys.o
+Matrix.o
+Vector.o
+Vector3D.o
+matrixtest.o
