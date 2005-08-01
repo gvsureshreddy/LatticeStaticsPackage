@@ -65,7 +65,7 @@ OBJECTS  = $(STRIPEDSOURCES:$(SRC_EXT)=$(OBJ_EXT))
 all:     $(EXE) Utilities
 
 Utilities:
-	$(MAKE) -C ./Utility  -f MakeUtilityProgs
+	$(MAKE) -e -C ./Utility  -f MakeUtilityProgs
 
 
 $(EXE):  $(OBJECTS)
@@ -89,7 +89,7 @@ $(OBJECTS): Makefile
 .PHONY: install uninstall
 # Define install
 install: $(BIN_LOC)/$(EXE) Utilities
-	$(MAKE) -C ./Utility -f MakeUtilityProgs install
+	$(MAKE) -e -C ./Utility -f MakeUtilityProgs install
 
 $(BIN_LOC)/$(EXE):	$(EXE)
 	/bin/cp bin/$(EXE) $(BIN_LOC)
@@ -105,7 +105,7 @@ uninstall:
 	/bin/rm -f $(BIN_LOC)/MultiLattice2gpl
 	/bin/rm -f $(BIN_LOC)/BlochWaveRecalc
 	/bin/rm -f $(BIN_LOC)/CoarsenOutput
-	$(MAKE) -C ./Utility -f MakeUtilityProgs uninstall
+	$(MAKE) -e -C ./Utility -f MakeUtilityProgs uninstall
 
 
 # Removes the current systems set of object files and executable file
@@ -117,7 +117,7 @@ clean:
 		  $(addprefix lib/,$(OBJECTS:$(OBJ_EXT)=.ti))\
                   lib/$(EXE).* bin/$(EXE) core *~ \
 		  depend/*.d
-	$(MAKE) -C ./Utility -f MakeUtilityProgs clean
+	$(MAKE) -e -C ./Utility -f MakeUtilityProgs clean
 
 # Define rule for dependicy files
 depend/$(notdir %).d: %$(SRC_EXT)
