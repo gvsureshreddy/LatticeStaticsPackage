@@ -245,15 +245,18 @@ double MultiLatticeTPP::OMEGA(double *Dx,int p,int q,int i, int j)
    double ret=0;
    
    ret=0;
-   for (int s=0;s<DIM3;s++)
+   if (DELTA(i,p,q))
    {
-      for (int t=0;t<DIM3;t++)
+      for (int s=0;s<DIM3;s++)
       {
-	 ret += (RefLattice_[j][s]*DOF_[INDU(s,t)]*Dx[t] +
-		 Dx[t]*DOF_[INDU(t,s)]*RefLattice_[j][s]);
+	 for (int t=0;t<DIM3;t++)
+	 {
+	    ret += (RefLattice_[j][s]*DOF_[INDU(s,t)]*Dx[t] +
+		    Dx[t]*DOF_[INDU(t,s)]*RefLattice_[j][s]);
+	 }
       }
+      ret *= DELTA(i,p,q);
    }
-   ret *= DELTA(i,p,q);
 
    return ret;
 }
@@ -261,35 +264,43 @@ double MultiLatticeTPP::OMEGA(double *Dx,int p,int q,int i, int j)
 double MultiLatticeTPP::SIGMA(int p,int q,int i,int j,int k,int l)
 {
    double tmp=0;
-   for (int s=0;s<DIM3;s++)
+   if (DELTA(i,p,q)*DELTA(k,p,q))
    {
-      for (int t=0;t<DIM3;t++)
+      for (int s=0;s<DIM3;s++)
       {
-	 for (int r=0;r<DIM3;r++)
+	 for (int t=0;t<DIM3;t++)
 	 {
-	    tmp += (RefLattice_[j][s]*DOF_[INDU(s,t)]*DOF_[INDU(t,r)]*RefLattice_[l][r] +
-		    RefLattice_[l][s]*DOF_[INDU(s,t)]*DOF_[INDU(t,r)]*RefLattice_[j][r]);
+	    for (int r=0;r<DIM3;r++)
+	    {
+	       tmp += (RefLattice_[j][s]*DOF_[INDU(s,t)]*DOF_[INDU(t,r)]*RefLattice_[l][r] +
+		       RefLattice_[l][s]*DOF_[INDU(s,t)]*DOF_[INDU(t,r)]*RefLattice_[j][r]);
+	    }
 	 }
       }
+      tmp *= DELTA(i,p,q)*DELTA(k,p,q);
    }
    
-   return DELTA(i,p,q)*DELTA(k,p,q)*tmp;
+   return tmp;
 }
 
 double MultiLatticeTPP::GAMMA(double *Dx,double *DX,int p,int q,int i,int j,int k,int l)
 {
    double tmp=0;
-   
-   for (int s=0;s<DIM3;s++)
+
+   if (DELTA(k,p,q))
    {
-      tmp += (RefLattice_[l][s]*DOF_[INDU(s,i)]*DX[j] +
-	      RefLattice_[l][s]*DOF_[INDU(s,j)]*DX[i] +
-	      DX[i]*DOF_[INDU(j,s)]*RefLattice_[l][s] +
-	      DX[j]*DOF_[INDU(i,s)]*RefLattice_[l][s]);
+      for (int s=0;s<DIM3;s++)
+      {
+	 tmp += (RefLattice_[l][s]*DOF_[INDU(s,i)]*DX[j] +
+		 RefLattice_[l][s]*DOF_[INDU(s,j)]*DX[i] +
+		 DX[i]*DOF_[INDU(j,s)]*RefLattice_[l][s] +
+		 DX[j]*DOF_[INDU(i,s)]*RefLattice_[l][s]);
+      }
+      tmp = (0.5*DELTA(k,p,q)*(
+		2.0*RefLattice_[l][i]*Dx[j] + 2.0*RefLattice_[l][j]*Dx[i] + tmp));
    }
-   
-   
-   return (0.5*DELTA(k,p,q)*(2.0*RefLattice_[l][i]*Dx[j] + 2.0*RefLattice_[l][j]*Dx[i] + tmp));
+
+   return tmp;
 }
 
 double MultiLatticeTPP::THETA(double *DX,int p,int q,int i,int j,int k,int l,int m, int n)
@@ -308,19 +319,23 @@ double MultiLatticeTPP::XI(int p,int q,int i,int j,int k,int l,int m,int n)
 {
    double tmp=0;
 
-   for (int s=0;s<DIM3;s++)
+   if (DELTA(i,p,q)*DELTA(k,p,q))
    {
-      tmp += (RefLattice_[j][m]*DOF_[INDU(n,s)]*RefLattice_[l][s]
-	      + RefLattice_[j][n]*DOF_[INDU(m,s)]*RefLattice_[l][s]
-	      + RefLattice_[j][s]*DOF_[INDU(s,m)]*RefLattice_[l][n]
-	      + RefLattice_[j][s]*DOF_[INDU(s,n)]*RefLattice_[l][m]
-	      + RefLattice_[l][m]*DOF_[INDU(n,s)]*RefLattice_[j][s]
-	      + RefLattice_[l][n]*DOF_[INDU(m,s)]*RefLattice_[j][s]
-	      + RefLattice_[l][s]*DOF_[INDU(s,m)]*RefLattice_[j][n]
-	      + RefLattice_[l][s]*DOF_[INDU(s,n)]*RefLattice_[j][m]);
+      for (int s=0;s<DIM3;s++)
+      {
+	 tmp += (RefLattice_[j][m]*DOF_[INDU(n,s)]*RefLattice_[l][s]
+		 + RefLattice_[j][n]*DOF_[INDU(m,s)]*RefLattice_[l][s]
+		 + RefLattice_[j][s]*DOF_[INDU(s,m)]*RefLattice_[l][n]
+		 + RefLattice_[j][s]*DOF_[INDU(s,n)]*RefLattice_[l][m]
+		 + RefLattice_[l][m]*DOF_[INDU(n,s)]*RefLattice_[j][s]
+		 + RefLattice_[l][n]*DOF_[INDU(m,s)]*RefLattice_[j][s]
+		 + RefLattice_[l][s]*DOF_[INDU(s,m)]*RefLattice_[j][n]
+		 + RefLattice_[l][s]*DOF_[INDU(s,n)]*RefLattice_[j][m]);
+      }
+      tmp *= 0.5*DELTA(i,p,q)*DELTA(k,p,q);
    }
 
-   return (0.5*DELTA(i,p,q)*DELTA(k,p,q)*tmp);
+   return tmp;
 }
 
 double MultiLatticeTPP::LAMDA(int p,int q,int i,int j,int k,int l,int m,int n,int a,
