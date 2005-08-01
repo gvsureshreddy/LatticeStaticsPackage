@@ -16,16 +16,13 @@ all:
 	$(MAKE) -e -C MyMath
 	$(MAKE) -e -C LinearAlgebra
 	$(MAKE) -e -C LatticeStatics
-	$(MAKE) -e -C LatticeStatics/Utility -f MakeUtilityProgs
 
 install: 
 	$(MAKE) -e -C MyMath install
 	$(MAKE) -e -C LinearAlgebra install
 	$(MAKE) -e -C LatticeStatics install
-	$(MAKE) -e -C LatticeStatics/Utility -f MakeUtilityProgs install
 
 clean: 
 	$(MAKE) -e -C MyMath clean
 	$(MAKE) -e -C LinearAlgebra clean
 	$(MAKE) -e -C LatticeStatics clean
-	$(MAKE) -e -C LatticeStatics/Utility -f MakeUtilityProgs clean

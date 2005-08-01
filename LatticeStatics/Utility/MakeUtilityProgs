@@ -165,7 +165,7 @@ $(ALLOBJECTS): Makefile MakeUtilityProgs
 # Define install
 install: $(addprefix $(BIN_LOC)/,$(ALLPROGRAMS))
 
-$(addprefix $(BIN_LOC)/,$(ALLPROGRAMS)): $(ALLPROGRAMS)
+$(addprefix $(BIN_LOC)/,$(ALLPROGRAMS)): $(BIN_LOC)/%: %
 	/bin/cp bin/$(notdir $@) $(BIN_LOC)
 
 # Define uninstall

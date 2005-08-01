@@ -63,14 +63,17 @@ include $(addprefix ./depend/,$(OBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 $(OBJECTS): Makefile
 	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o ./lib/$@ -c $*$(SRC_EXT)
 
-.PHONY: install uninstall
+.PHONY: uninstall
 # Define install
-install: all
+install: $(LIB_LOC)/libMyMath.a $(INCL_LOC)/MyMath.h
+
+$(INCL_LOC)/MyMath.h: MyMath.h
+	/bin/cp MyMath.h $(INCL_LOC)/
+$(LIB_LOC)/libMyMath.a: $(OBJECTS)
 	$(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/MyMathBuildDate.o -c MyMathBuildDate.cpp
 	ar -r $(LIB_LOC)/libMyMath.a $(addprefix ./lib/,$(OBJECTS)) ./lib/MyMathBuildDate.o
 	/bin/rm -f ./lib/MyMathBuildDate.o
 	ranlib $(LIB_LOC)/libMyMath.a
-	/bin/cp MyMath.h $(INCL_LOC)/
 
 # Define uninstall
 uninstall:
