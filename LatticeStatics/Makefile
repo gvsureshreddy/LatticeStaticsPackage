@@ -62,6 +62,12 @@ STRIPEDSOURCES = $(notdir $(SOURCES))
 OBJECTS  = $(STRIPEDSOURCES:$(SRC_EXT)=$(OBJ_EXT))
 
 # Defines the Program Target (linking command) ############################
+all:     $(EXE) Utilities
+
+Utilities:
+	$(MAKE) -C ./Utility  -f MakeUtilityProgs
+
+
 $(EXE):  $(OBJECTS)
 	 $(CC) $(CCFLAGS) $(DATE_DEF) -o lib/builddate.o -c Utility/builddate.cpp
 	 $(PURE) $(CC) $(LFLAGS) lib/builddate.o \
@@ -82,7 +88,9 @@ $(OBJECTS): Makefile
 
 .PHONY: install uninstall
 # Define install
-install: $(BIN_LOC)/$(EXE) ;
+install: $(BIN_LOC)/$(EXE) Utilities
+	$(MAKE) -C ./Utility -f MakeUtilityProgs install
+
 $(BIN_LOC)/$(EXE):	$(EXE)
 	/bin/cp bin/$(EXE) $(BIN_LOC)
 	/bin/cp gpl_scripts/AddRank1Convex $(BIN_LOC)
@@ -97,6 +105,7 @@ uninstall:
 	/bin/rm -f $(BIN_LOC)/MultiLattice2gpl
 	/bin/rm -f $(BIN_LOC)/BlochWaveRecalc
 	/bin/rm -f $(BIN_LOC)/CoarsenOutput
+	$(MAKE) -C ./Utility -f MakeUtilityProgs uninstall
 
 
 # Removes the current systems set of object files and executable file
@@ -108,6 +117,7 @@ clean:
 		  $(addprefix lib/,$(OBJECTS:$(OBJ_EXT)=.ti))\
                   lib/$(EXE).* bin/$(EXE) core *~ \
 		  depend/*.d
+	$(MAKE) -C ./Utility -f MakeUtilityProgs clean
 
 # Define rule for dependicy files
 depend/$(notdir %).d: %$(SRC_EXT)

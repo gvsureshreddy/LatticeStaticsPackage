@@ -161,14 +161,12 @@ $(ALLOBJECTS): Makefile MakeUtilityProgs
 
 
 
-.PHONY: install uninstall
+.PHONY: uninstall
 # Define install
-install: $(ALLPROGRAMS)
-	/bin/cp bin/Rank1Convex $(BIN_LOC)/
-	/bin/cp bin/DispersionCurves $(BIN_LOC)/
-	/bin/cp bin/LongWavelengthModuli $(BIN_LOC)/
-	/bin/cp bin/BlochWave $(BIN_LOC)/
-	/bin/cp bin/NeighborDistances $(BIN_LOC)/
+install: $(addprefix $(BIN_LOC)/,$(ALLPROGRAMS))
+
+$(addprefix $(BIN_LOC)/,$(ALLPROGRAMS)): $(ALLPROGRAMS)
+	/bin/cp bin/$(notdir $@) $(BIN_LOC)
 
 # Define uninstall
 uninstall:
