@@ -8,7 +8,8 @@
 
 using namespace std;
 
-#define DOFMAX 30
+#define DOFMAX 256
+#define BIFMAX 25
 
 class Lattice
 {

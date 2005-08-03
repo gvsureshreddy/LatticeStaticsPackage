@@ -25,6 +25,12 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
    char tmp[LINELENGTH];
    if(!GetParameter(prefix,"InternalAtoms",datafile,"%u",&INTERNAL_ATOMS)) exit(-1);
    DOFS = 6 + 3*(INTERNAL_ATOMS-1);
+   if (DOFMAX < DOFS)
+   {
+      cerr << "Error (MultiLatticeTPP()): DOFMAX < " << DOFS << " in Lattice.h" << endl;
+      exit(-5);
+   }
+   
    // Set RefLattice_
    RefLattice_.Resize(DIM3,DIM3);
    Vector hold(DIM3);

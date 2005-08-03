@@ -64,8 +64,8 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
    
    Matrix Mode;
    double
-      Eijk[DOFMAX][DOFMAX][DOFMAX],
-      EijT[DOFMAX][DOFMAX];
+      Eijk[BIFMAX][BIFMAX][BIFMAX],
+      EijT[BIFMAX][BIFMAX];
 
    // Find the modes
    int count = 0,
@@ -78,6 +78,12 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
       {
 	 Ind[count++]=i;
       }
+   }
+
+   if (BIFMAX < count)
+   {
+      cerr << "Error: BIFMAX < " << count << " in Lattice.h" << endl;
+      exit(-6);
    }
    
    Mode.Resize(count,dofs);
@@ -228,8 +234,8 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
 
    if (thirdorder)
    {
-      double Eijkl[DOFMAX][DOFMAX][DOFMAX][DOFMAX],
-	 Vij[DOFMAX][DOFMAX][DOFMAX];
+      double Eijkl[BIFMAX][BIFMAX][BIFMAX][BIFMAX],
+	 Vij[BIFMAX][BIFMAX][DOFMAX];
       Matrix D4=E4(),
 	 S(dofs-count,dofs);
 
