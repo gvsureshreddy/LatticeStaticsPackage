@@ -330,7 +330,7 @@ double ArcLengthSolution::ArcLengthNewton(int &good)
 #endif
    }
    while ((itr < MaxIter_)
-	  && ((fabs(RHS.Norm()) > Tolerance_) || (fabs(Dx.Norm()) > Tolerance_)));
+	  && ((fabs(RHS.Norm()) > Tolerance_) || (fabs(Dx.Norm()) > 10.0*Tolerance_)));
 
    if (Echo_) cout << resetiosflags(ios::scientific) << endl;
    uncertainty = Dx.Norm();
