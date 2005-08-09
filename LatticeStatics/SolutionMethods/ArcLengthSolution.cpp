@@ -348,8 +348,8 @@ double ArcLengthSolution::ArcLengthNewton(int &good)
 int ArcLengthSolution::BisectAlert(Lattice *Lat,char *datafile,const char *prefix,
 				   int Width,fstream &out)
 {
-   double NewtonTolFactor = 10.0,
-      ConvergenceFactor = 100;
+   double NewtonTolFactor = 1.0,
+      ConvergenceFactor = 10;
    
    Vector OriginalDiff=Difference_;
    Vector IntermediateDiff(Difference_.Dim(),0.0);
