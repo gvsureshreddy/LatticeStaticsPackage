@@ -323,14 +323,12 @@ double ArcLengthSolution::ArcLengthNewton(int &good)
 
       if (Echo_) cout << itr << "(" << setw(20)
 		      << Mode_->ScanningStressParameter() << ","
-		      << setw(20) << RHS.Norm() << ","
-		      << setw(20) << Dx.Norm() << "), ";
+		      << setw(20) << RHS.Norm() << "), ";
 #ifdef SOLVE_SVD
       if (Echo_) cout << endl;
 #endif
    }
-   while ((itr < MaxIter_)
-	  && ((fabs(RHS.Norm()) > Tolerance_) || (fabs(Dx.Norm()) > 10.0*Tolerance_)));
+   while ((itr < MaxIter_) && (fabs(RHS.Norm()) > Tolerance_));
 
    if (Echo_) cout << resetiosflags(ios::scientific) << endl;
    uncertainty = Dx.Norm();
@@ -348,8 +346,7 @@ double ArcLengthSolution::ArcLengthNewton(int &good)
 int ArcLengthSolution::BisectAlert(Lattice *Lat,char *datafile,const char *prefix,
 				   int Width,fstream &out)
 {
-   double NewtonTolFactor = 1.0,
-      ConvergenceFactor = 10;
+   double ConvergenceFactor = 10;
    
    Vector OriginalDiff=Difference_;
    Vector IntermediateDiff(Difference_.Dim(),0.0);
@@ -367,9 +364,6 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,char *datafile,const char *prefi
    Mode_->ArcLenUpdate(Difference_);
    CurrentNulity = Lat->StiffnessNulity(&CurrentMinEV);
 
-   // Set Tolerance_ tighter
-   Tolerance_ /= NewtonTolFactor;
-   
    if (Echo_) cout << "\t" << setw(Width) << OldNulity << setw(Width) << OldMinEV
 		  << " DS " << setw(Width) << CurrentDS_ << endl;
    
@@ -436,8 +430,5 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,char *datafile,const char *prefi
    CurrentDS_ = OriginalDS;
    Difference_ = OriginalDiff;
    
-   // Reset Tolerance_
-   Tolerance_ *= NewtonTolFactor;
-
    return 1;
 }
