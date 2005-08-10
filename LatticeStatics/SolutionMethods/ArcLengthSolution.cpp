@@ -323,12 +323,13 @@ double ArcLengthSolution::ArcLengthNewton(int &good)
 
       if (Echo_) cout << itr << "(" << setw(20)
 		      << Mode_->ScanningStressParameter() << ","
-		      << setw(20) << RHS.Norm() << "), ";
+		      << setw(20) << RHS.Norm() << ","
+		      << setw(20) << Dx.Norm()  << "), ";
 #ifdef SOLVE_SVD
       if (Echo_) cout << endl;
 #endif
    }
-   while ((itr < MaxIter_) && (fabs(RHS.Norm()) > Tolerance_));
+   while ((itr < MaxIter_) && ((RHS.Norm() > Tolerance_) || (Dx.Norm() > Tolerance_)));
 
    if (Echo_) cout << resetiosflags(ios::scientific) << endl;
    uncertainty = Dx.Norm();
@@ -352,7 +353,7 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,char *datafile,const char *prefi
    Vector IntermediateDiff(Difference_.Dim(),0.0);
    double OriginalDS = CurrentDS_;
    double CurrentMinEV,OldMinEV;
-   double uncertainty;
+   double uncertainty, increment;
    int dummy;
    int loops = 0;
    int OldNulity = Lat->StiffnessNulity(&OldMinEV);
@@ -381,8 +382,14 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,char *datafile,const char *prefi
       if (loops < 4)
 	 CurrentDS_ /= 2.0; // Bisection Method
       else
+      {
 	 // added fabs to keep DS positive.
-	 CurrentDS_ /= fabs(1.0 - (OldMinEV/CurrentMinEV)); // Secant Method
+	 increment = fabs(1.0 - (OldMinEV/CurrentMinEV));
+	 if (increment > 2.0)
+	    CurrentDS_ /= fabs(1.0 - (OldMinEV/CurrentMinEV)); // Secant Method
+	 else
+	    CurrentDS_ /= 2.0; // Bisection if Secant is having problems
+      }
       // this takes care of the direction that needs to be searched (thus the positive DS)
       if (((OldNulity - CurrentNulity) != 0)
 	  && (loops != 0))
