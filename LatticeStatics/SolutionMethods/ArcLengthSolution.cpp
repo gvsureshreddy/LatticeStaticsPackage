@@ -353,7 +353,7 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,char *datafile,const char *prefi
    Vector IntermediateDiff(Difference_.Dim(),0.0);
    double OriginalDS = CurrentDS_;
    double CurrentMinEV,OldMinEV;
-   double uncertainty, increment;
+   double uncertainty;
    int dummy;
    int loops = 0;
    int OldNulity = Lat->StiffnessNulity(&OldMinEV);
@@ -384,11 +384,7 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,char *datafile,const char *prefi
       else
       {
 	 // added fabs to keep DS positive.
-	 increment = fabs(1.0 - (OldMinEV/CurrentMinEV));
-	 if (increment > 2.0)
-	    CurrentDS_ /= fabs(1.0 - (OldMinEV/CurrentMinEV)); // Secant Method
-	 else
-	    CurrentDS_ /= 2.0; // Bisection if Secant is having problems
+	 CurrentDS_ /= fabs(1.0 - (OldMinEV/CurrentMinEV)); // Secant Method
       }
       // this takes care of the direction that needs to be searched (thus the positive DS)
       if (((OldNulity - CurrentNulity) != 0)
