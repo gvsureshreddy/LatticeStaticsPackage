@@ -189,8 +189,11 @@ int MultiLatticeTPP::FindLatticeSpacing(int iter,double dx)
    }
 
    LatSum_.Recalc();
-   
-   RefineEqbm(1.0e-13,iter);
+
+   if (Echo_)
+      RefineEqbm(1.0e-13,iter,&cout);
+   else
+      RefineEqbm(1.0e-13,iter,NULL);
 
    // Clean up numerical round off (at least for zero values)
    for (int i=0;i<DOFS;++i)
@@ -2112,7 +2115,7 @@ void MultiLatticeTPP::DebugMode()
 	 cin >> Tol;
 	 cout << "\tMaxItr > ";
 	 cin >> MaxItr;
-	 RefineEqbm(Tol,MaxItr);
+	 RefineEqbm(Tol,MaxItr,&cout);
       }
       else if (!strcmp(response,Commands[37]))
       {
@@ -2178,7 +2181,7 @@ void MultiLatticeTPP::DebugMode()
 }
 
 
-void MultiLatticeTPP::RefineEqbm(double Tol,int MaxItr)
+void MultiLatticeTPP::RefineEqbm(double Tol,int MaxItr,ostream *out)
 {
    Vector dx(DOFS,0.0);
    Vector Stress=stress();
@@ -2198,9 +2201,12 @@ void MultiLatticeTPP::RefineEqbm(double Tol,int MaxItr)
 
       Stress=stress();
 
-      cout << setw(20) << Stress;
-
-      cout << itr << "\tdx " << dx.Norm() << "\tstress " << Stress.Norm() << endl;
+      if (out != NULL)
+      {
+	 *out << setw(20) << Stress;
+	 
+	 *out << itr << "\tdx " << dx.Norm() << "\tstress " << Stress.Norm() << endl;
+      }
    }
 }
 
