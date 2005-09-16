@@ -7,7 +7,7 @@ use IO::Handle;
 
 if (scalar(@ARGV) < 2)
 {
-  die "Usage: BlochWaveRecalc inputfile skip <outputfile>";
+  die "Usage: CoarsenOutput inputfile skip <outputfile>";
 }
 
 open(DATA,"<$ARGV[0]") 

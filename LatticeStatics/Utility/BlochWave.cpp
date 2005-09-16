@@ -40,13 +40,15 @@ int main(int argc,char *argv[])
 
    Vector DOF((Lat->DOF()).Dim()),K(3);
    int BlochWaveStable;
-   double Temp;
+   double Temp,Lambda;
    
    while (cin >> Temp)
    {
+      cin >> Lambda;
       cin >> DOF;
 
       Lat->SetTemp(Temp);
+      Lat->SetLambda(Lambda);
       Lat->SetDOF(DOF);
 
       BlochWaveStable = Lat->BlochWave(K);
