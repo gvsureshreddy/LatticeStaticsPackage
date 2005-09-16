@@ -74,11 +74,18 @@ while (<DATA>)
     @DOF = split;
   }
 
+  if (/^Bifurcation/)
+  {
+    @fields=split(/:/,$_);
+    @fields=split(" ",fields[1]);
+    $CB=fields[1];
+  }
+
   if (/^BlochWave/)
   {
     @fields=split(/:/,$_);
     @fields=split(/,/,$fields[1]);
-    if ($fields[0] == 1)
+    if (($fields[0] == 1) && ($CB == 0))
     {
       if ($count == 0)
       {
