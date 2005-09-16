@@ -65,6 +65,7 @@ while (<DATA>)
   {
     @fields=split(/:/,$_);
     $Lambda = $fields[1];
+  }
   
   if (/^DOF/)
   {
