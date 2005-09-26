@@ -77,29 +77,28 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
    //if (!GetParameter(prefix,"EntropyRef",datafile,"%lf",&EntropyRef_)) exit(-1);
    //if (!GetParameter(prefix,"HeatCapacityRef",datafile,"%lf",&HeatCapacityRef_)) exit(-1);
 
-   int AtomSpecies[100]; // Max number of atoms in unit cell. might need to be changed...
-   if (!GetIntVectorParameter(prefix,"AtomSpecies",datafile,INTERNAL_ATOMS,AtomSpecies)) exit(-1);
+   if (!GetIntVectorParameter(prefix,"AtomSpecies",datafile,INTERNAL_ATOMS,AtomSpecies_)) exit(-1);
 
    for (int i=0;i<INTERNAL_ATOMS;++i)
    {
       for (int j=i;j<INTERNAL_ATOMS;++j)
       {
-	 if (AtomSpecies[i] < AtomSpecies[j])
+	 if (AtomSpecies_[i] < AtomSpecies_[j])
 	    Potential_[i][j] = Potential_[j][i]
-	       = InitializePairPotential(datafile,prefix,AtomSpecies[i],AtomSpecies[j]);
+	       = InitializePairPotential(datafile,prefix,AtomSpecies_[i],AtomSpecies_[j]);
 	 else
 	    Potential_[i][j] = Potential_[j][i]
-	       = InitializePairPotential(datafile,prefix,AtomSpecies[j],AtomSpecies[i]);
+	       = InitializePairPotential(datafile,prefix,AtomSpecies_[j],AtomSpecies_[i]);
       }
 
-      sprintf(tmp,"AtomicMass_%u",AtomSpecies[i]);
+      sprintf(tmp,"AtomicMass_%u",AtomSpecies_[i]);
       if(!GetParameter(prefix,tmp,datafile,"%lf",&(AtomicMass_[i]))) exit(-1);
    }
 
 	 
    // Get Lattice parameters
+   NTemp_ = 1.0;
    if(!GetParameter(prefix,"InfluanceDist",datafile,"%u",&InfluanceDist_)) exit(-1);
-   if(!GetParameter(prefix,"NTemp",datafile,"%lf",&NTemp_)) exit(-1);
    if(!GetParameter(prefix,"NormModulus",datafile,"%lf",&NormModulus_)) exit(-1);
    if(!GetParameter(prefix,"ConvexityDX",datafile,"%lf",&ConvexityDX_)) exit(-1);
 
@@ -112,7 +111,7 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
       case 1: LoadParameter_ = Load; break;
       case -1: cerr << "Unknown Loading Parameter" << endl; exit(-1); break;
    }
-   if(!GetParameter(prefix,"Lambda",datafile,"%lf",&Lambda_)) exit(-1);
+   Lambda_ = 0.0;
    if(!GetParameter(prefix,"EulerAngle_X",datafile,"%lf",&(EulerAng_[0]))) exit(-1);
    if(!GetParameter(prefix,"EulerAngle_Y",datafile,"%lf",&(EulerAng_[1]))) exit(-1);
    if(!GetParameter(prefix,"EulerAngle_Z",datafile,"%lf",&(EulerAng_[2]))) exit(-1);
@@ -155,12 +154,29 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
 	   &NTemp_);
 
    int err=0;
-   err=FindLatticeSpacing(iter,DX);
+   err=FindLatticeSpacing(datafile,prefix,iter,DX);
    if (err)
    {
       cerr << "unable to find initial lattice spacing!" << endl;
       exit(-1);
    }
+
+   // Setup initial status for parameters
+   if(!GetParameter(prefix,"NTemp",datafile,"%lf",&NTemp_)) exit(-1);
+   if(!GetParameter(prefix,"Lambda",datafile,"%lf",&Lambda_)) exit(-1);
+   // Make any changes to atomic potentials that might be required
+   strcpy(tmp,prefix); strcat(tmp,"Update-");
+   for (int i=0;i<INTERNAL_ATOMS;++i)
+   {
+      for (int j=i;j<INTERNAL_ATOMS;++j)
+      {
+	 if (AtomSpecies_[i] < AtomSpecies_[j])
+	    UpdatePairPotential(datafile,tmp,AtomSpecies_[i],AtomSpecies_[j],Potential_[i][j]);
+	 else
+	    UpdatePairPotential(datafile,tmp,AtomSpecies_[j],AtomSpecies_[i],Potential_[j][i]);
+      }
+   }
+   LatSum_.Recalc();
 
    // Initiate the Unit Cell Iterator for Bloch wave calculations.
    UCIter_(GridSize_);
@@ -175,11 +191,8 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
    
 }
 
-int MultiLatticeTPP::FindLatticeSpacing(int iter,double dx)
+int MultiLatticeTPP::FindLatticeSpacing(char *datafile,const char *prefix,int iter,double dx)
 {
-   double oldLambda=Lambda_,
-      oldTemp=NTemp_;
-
    Lambda_=0.0;
    NTemp_=1.0;
    DOF_[0] = DOF_[1] = DOF_[2] = 1.0;
@@ -224,11 +237,6 @@ int MultiLatticeTPP::FindLatticeSpacing(int iter,double dx)
    {
       DOF_[i] = 0.0;
    }
-   LatSum_.Recalc();
-   
-   NTemp_=oldTemp;
-   Lambda_=oldLambda;
-   // Lambda Should be input in normalized form
 
    LatSum_.Recalc();
    return 0;
@@ -2082,13 +2090,20 @@ void MultiLatticeTPP::DebugMode()
       {
 	 int iter;
 	 double dx;
+	 char datafl[265],prefix[265];
+	 cout << "\tdatafile > ";
+	 cin >> datafl;
+	 cin.sync(); // clear input
+	 cout << "\tprefix > ";
+	 cin >> prefix;
+	 cin.sync(); // clear input
 	 cout << "\titer > ";
 	 cin >> iter;
 	 cin.sync(); // clear input
 	 cout << "\tdx > ";
 	 cin >> dx;
 	 cin.sync(); // clear input
-	 FindLatticeSpacing(iter,dx);
+	 FindLatticeSpacing(datafl,prefix,iter,dx);
       }
       else if (!strcmp(response,Commands[34]))
       {

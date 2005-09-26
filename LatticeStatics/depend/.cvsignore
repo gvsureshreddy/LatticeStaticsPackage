@@ -2,6 +2,7 @@ ArcLengthSolution.d
 KnownLattices.d
 KnownModes.d
 KnownPairPotentials.d
+KnownSolutionMethods.d
 Lattice.d
 LatticeStatics.d
 MultiLatticeTPP.d
