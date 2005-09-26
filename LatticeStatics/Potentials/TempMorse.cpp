@@ -167,14 +167,14 @@ double TempMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
 			     +(beta*beta*beta/(4.0*rhat*rhat*rhat*r2))
 			     *(8.0*Exp_temp - 1.0));
 	       break;
-	    case DT:
-	       cerr << "D5phi/Dy4DT Not Coded... " << endl;
+	    default:
+	       cerr << "Error in TempMorse::PairPotential -- Dy4,D2T Not Coded... " << endl;
 	       exit(-1);
 	       break;
 	 }
 	 break;
       default:
-	 cerr << "Error in TempMorse::PairPotential -- D4Y,D2T not programmed" << endl;
+	 cerr << "Error in TempMorse::PairPotential -- Unknown dy" << endl;
 	 exit(-1);
    }
    return val;

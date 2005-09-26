@@ -15,7 +15,7 @@ public:
    enum YDeriv {Y0,DY,D2Y,D3Y,D4Y};
    enum TDeriv {T0,DT,D2T};
 
-   ~PairPotentials() {};
+   virtual ~PairPotentials() {};
    
    virtual double PairPotential(double NTemp,double r2,YDeriv dy=Y0,TDeriv dt=T0) = 0;
    virtual const char* Type() = 0;

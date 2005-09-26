@@ -34,7 +34,7 @@ PairPotentials* InitializePairPotential(char *datafile,const char *prefix,int i,
       }
       case 1:
       {
-	 sprintf(tmp,"Tref",i,j);
+	 sprintf(tmp,"Tref");
 	 if(!GetParameter(prefix,tmp,datafile,"%lf",&Tref)) exit(-1);
 	 sprintf(tmp,"A0_%u_%u",i,j);
 	 if(!GetParameter(prefix,tmp,datafile,"%lf",&A0)) exit(-1);
@@ -103,7 +103,7 @@ void UpdatePairPotential(char *datafile,const char *prefix,int i,int j,
       TempMorse *TM;
       TM = dynamic_cast<TempMorse *>(Potential);
       
-      sprintf(tmp,"Tref",i,j);
+      sprintf(tmp,"Tref");
       if(GetParameter(prefix,tmp,datafile,"%lf",&Tref,0))
 	 TM->SetTref(Tref);
       

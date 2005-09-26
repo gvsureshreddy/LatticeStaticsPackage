@@ -27,12 +27,12 @@ public:
    double Tref() {return Tref_;}
    double Tmelt() {return Tmelt_;}
 
-   double SetA0(double A0) {A0_=A0;}
-   double SetB0(double B0) {B0_=B0;}
-   double SetAlpha(double Alpha) {Alpha_=Alpha;}
-   double SetRref(double Rref) {Rref_=Rref;}
-   double SetTref(double Tref) {Tref_=Tref;}
-   double SetTmelt(double Tmelt) {Tmelt_=Tmelt;}
+   void SetA0(double A0) {A0_=A0;}
+   void SetB0(double B0) {B0_=B0;}
+   void SetAlpha(double Alpha) {Alpha_=Alpha;}
+   void SetRref(double Rref) {Rref_=Rref;}
+   void SetTref(double Tref) {Tref_=Tref;}
+   void SetTmelt(double Tmelt) {Tmelt_=Tmelt;}
 
 private:
    double Beta(double NTemp,TDeriv dt=T0);
