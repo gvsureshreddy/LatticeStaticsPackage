@@ -377,15 +377,8 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,char *datafile,const char *prefi
 		     << setw(Width) << CurrentMinEV
 		     << " DS " << setw(Width) << CurrentDS_ << endl;
 
-      // do 4 iterations of bisection to keep away from other "close" bifurcation points
-      // -- 4 iterations of bisection reduces DS by an order of magnitude.  this should do
-      if (loops < 4)
-	 CurrentDS_ /= 2.0; // Bisection Method
-      else
-      {
-	 // added fabs to keep DS positive.
-	 CurrentDS_ /= fabs(1.0 - (OldMinEV/CurrentMinEV)); // Secant Method
-      }
+      // stick with bisection --- secant method proves problematic.
+      CurrentDS_ /= 2.0; // Bisection Method
       // this takes care of the direction that needs to be searched (thus the positive DS)
       if (((OldNulity - CurrentNulity) != 0)
 	  && (loops != 0))
