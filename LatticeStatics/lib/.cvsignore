@@ -6,6 +6,8 @@ KnownModes.o
 KnownModes.ti
 KnownPairPotentials.o
 KnownPairPotentials.ti
+KnownSolutionMethods.o
+KnownSolutionMethods.ti
 Lattice.o
 Lattice.ti
 LatticeStatics.ii
