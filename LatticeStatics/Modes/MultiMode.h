@@ -12,12 +12,13 @@ class MultiMode : public LatticeMode
 private:
    Lattice *Lattice_;
 
-   int DOFS;
-   int DOFindlen[DOFMAX];
-   int DOFindex[DOFMAX][DOFMAX];
-   Vector DOFMult[DOFMAX];
+   int DOFS_;
+   int DOFindlen_[DOFMAX];
+   int DOFindex_[DOFMAX][DOFMAX];
+   Vector DOFMult_[DOFMAX];
+   Vector ModeDOF_;
 
-   int ScnDefParam;   
+   int ScnDefParam_;   
 
 public:
    MultiMode(Lattice *M,const char *datafile,const char *prefix);

@@ -5,22 +5,23 @@ MultiMode::MultiMode(Lattice *M,const char *datafile,const char *prefix)
 {
    char tmp[LINELENGTH];
    
-   if (!GetParameter(prefix,"MultiMode_DOFS",datafile,"%u",&DOFS)) exit(-1);
+   if (!GetParameter(prefix,"MultiMode_DOFS",datafile,"%u",&DOFS_)) exit(-1);
+   ModeDOF_.Resize(DOFS_,0.0);
    
-   for (int i=0;i<DOFS;++i)
+   for (int i=0;i<DOFS_;++i)
    {
       sprintf(tmp,"MultiMode_DOF_%u_Len",i);
-      if (!GetParameter(prefix,tmp,datafile,"%u",&(DOFindlen[i]))) exit(-1);
+      if (!GetParameter(prefix,tmp,datafile,"%u",&(DOFindlen_[i]))) exit(-1);
       sprintf(tmp,"MultiMode_DOF_%u_Val",i);
-      if (!GetIntVectorParameter(prefix,tmp,datafile,DOFindlen[i],DOFindex[i])) exit(-1);
-      DOFMult[i].Resize(DOFMAX);
+      if (!GetIntVectorParameter(prefix,tmp,datafile,DOFindlen_[i],DOFindex_[i])) exit(-1);
+      DOFMult_[i].Resize(DOFMAX);
       sprintf(tmp,"MultiMode_DOF_%u_Mul",i);
-      if (!GetVectorParameter(prefix,tmp,datafile,&(DOFMult[i]))) exit(-1);
+      if (!GetVectorParameter(prefix,tmp,datafile,&(DOFMult_[i]))) exit(-1);
    }
 
-   if (!GetParameter(prefix,"MultiMode_ScnDefParam",datafile,"%u",&ScnDefParam))
+   if (!GetParameter(prefix,"MultiMode_ScnDefParam",datafile,"%u",&ScnDefParam_))
       exit(-1);
-   if ((ScnDefParam < 0) || (ScnDefParam >= DOFS))
+   if ((ScnDefParam_ < 0) || (ScnDefParam_ >= DOFS_))
    {
       cerr << "MultiMode: ScnDefParam too small or too big!" << endl;
       exit(-1);
@@ -33,24 +34,24 @@ MultiMode::MultiMode(Lattice *M,const char *datafile,const char *prefix)
 Vector MultiMode::ArcLenRHS(double DS,const Vector &Diff,
 			  double Aspect)
 {
-   static Vector rhs(DOFS+1);
+   static Vector rhs(DOFS_+1);
    static Matrix stress(1,(Lattice_->DOF()).Dim());
 
    stress = Lattice_->Stress();
 
-   for (int i=0;i<DOFS;++i)
+   for (int i=0;i<DOFS_;++i)
    {
       rhs[i] = 0.0;
-      for (int j=0;j<DOFindlen[i];j++)
+      for (int j=0;j<DOFindlen_[i];j++)
       {
-	 rhs[i] += DOFMult[i][j]*stress[0][DOFindex[i][j]];
+	 rhs[i] += DOFMult_[i][j]*stress[0][DOFindex_[i][j]];
       }
    }
    
-   rhs[DOFS] = DS*DS - Diff[DOFS]*Diff[DOFS]/(Aspect*Aspect);
-   for (int i=0;i<DOFS;++i)
+   rhs[DOFS_] = DS*DS - Diff[DOFS_]*Diff[DOFS_]/(Aspect*Aspect);
+   for (int i=0;i<DOFS_;++i)
    {
-      rhs[DOFS] -= Diff[i]*Diff[i];
+      rhs[DOFS_] -= Diff[i]*Diff[i];
    }
 
    return rhs;
@@ -58,19 +59,17 @@ Vector MultiMode::ArcLenRHS(double DS,const Vector &Diff,
 
 Vector MultiMode::ArcLenDef()
 {
-   static Vector def(DOFS+1);
-   static Vector dof((Lattice_->DOF()).Dim());
-   dof = Lattice_->DOF();
+   static Vector def(DOFS_+1);
 
-   for (int i=0;i<DOFS;++i)
+   for (int i=0;i<DOFS_;++i)
    {
-      def[i] = dof[DOFindex[i][0]]/DOFMult[i][0];
+      def[i] = ModeDOF_[i];
    }
 
    if (Lattice_->LoadParameter()==Lattice::Temperature)
-      def[DOFS] = Lattice_->Temp();
+      def[DOFS_] = Lattice_->Temp();
    else if (Lattice_->LoadParameter()==Lattice::Load)
-      def[DOFS] = Lattice_->Lambda();
+      def[DOFS_] = Lattice_->Lambda();
 
    
    return def;
@@ -80,46 +79,46 @@ void MultiMode::ArcLenSet(const Vector &val)
 {
    Vector DOF((Lattice_->DOF()).Dim(),0.0);
    
-   for (int i=0;i<DOFS;++i)
+   for (int i=0;i<DOFS_;++i)
    {
-      for (int j=0;j<DOFindlen[i];++j)
+      ModeDOF_[i] = val[i];
+      for (int j=0;j<DOFindlen_[i];++j)
       {
-	 DOF[DOFindex[i][j]] += DOFMult[i][j]*val[i];
+	 DOF[DOFindex_[i][j]] += DOFMult_[i][j]*ModeDOF_[i];
       }
    }
 
    Lattice_->SetDOF(DOF);
    if (Lattice_->LoadParameter()==Lattice::Temperature)
-      Lattice_->SetTemp(val[DOFS]);
+      Lattice_->SetTemp(val[DOFS_]);
    else if (Lattice_->LoadParameter()==Lattice::Load)
-      Lattice_->SetLambda(val[DOFS]);
+      Lattice_->SetLambda(val[DOFS_]);
 }
    
 void MultiMode::ArcLenUpdate(const Vector &newval)
 {
-   static Vector DOF((Lattice_->DOF()).Dim());
-
-   DOF = Lattice_->DOF();
-
-   for (int i=0;i<DOFS;++i)
+   Vector DOF((Lattice_->DOF()).Dim(),0.0);
+   
+   for (int i=0;i<DOFS_;++i)
    {
-      for (int j=0;j<DOFindlen[i];++j)
+      ModeDOF_[i] -= newval[i];
+      for (int j=0;j<DOFindlen_[i];++j)
       {
-	 DOF[DOFindex[i][j]] -= DOFMult[i][j]*newval[i];
+	 DOF[DOFindex_[i][j]] += DOFMult_[i][j]*ModeDOF_[i];
       }
    }
 
    Lattice_->SetDOF(DOF);
    if (Lattice_->LoadParameter()==Lattice::Temperature)
-      Lattice_->SetTemp(Lattice_->Temp() - newval[DOFS]);
+      Lattice_->SetTemp(Lattice_->Temp() - newval[DOFS_]);
    else if (Lattice_->LoadParameter()==Lattice::Load)
-      Lattice_->SetLambda(Lattice_->Lambda() - newval[DOFS]);
+      Lattice_->SetLambda(Lattice_->Lambda() - newval[DOFS_]);
 }
 
 double MultiMode::ArcLenAngle(Vector Old,Vector New,double Aspect)
 {
-   Old[DOFS] /= Aspect;
-   New[DOFS] /= Aspect;
+   Old[DOFS_] /= Aspect;
+   New[DOFS_] /= Aspect;
 
    return fabs(acos( (Old*New)/(Old.Norm()*New.Norm()) ));
 }
@@ -128,11 +127,11 @@ Vector MultiMode::DrDt(const Vector &Diff)
 {
    Vector ddt((Lattice_->DOF()).Dim(),0.0);
 
-   for (int i=0;i<DOFS;++i)
+   for (int i=0;i<DOFS_;++i)
    {
-      for (int j=0;j<DOFindlen[i];++j)
+      for (int j=0;j<DOFindlen_[i];++j)
       {
-	 ddt[DOFindex[i][j]] += DOFMult[i][j]*(Diff[i]/Diff[DOFS]);
+	 ddt[DOFindex_[i][j]] += DOFMult_[i][j]*(Diff[i]/Diff[DOFS_]);
       }
    }
    
@@ -141,57 +140,59 @@ Vector MultiMode::DrDt(const Vector &Diff)
 
 Matrix MultiMode::ArcLenStiffness(const Vector &Diff,double Aspect)
 {
-   static Matrix K(DOFS+1,DOFS+1);
+   static Matrix K(DOFS_+1,DOFS_+1);
    static Matrix Stiff((Lattice_->DOF()).Dim(),(Lattice_->DOF()).Dim());
    static Matrix stressdt(1,(Lattice_->DOF()).Dim());
 
-   K.Resize(DOFS+1,DOFS+1,0.0);
+   K.Resize(DOFS_+1,DOFS_+1,0.0);
    Stiff = Lattice_->Stiffness();
    if (Lattice_->LoadParameter()==Lattice::Temperature)
       stressdt = Lattice_->StressDT();
    else if (Lattice_->LoadParameter()==Lattice::Load)
       stressdt = Lattice_->StressDL();
 
-   for (int i=0;i<DOFS;++i)
+   for (int i=0;i<DOFS_;++i)
    {
-      for (int j=0;j<DOFindlen[i];++j)
+      for (int j=0;j<DOFindlen_[i];++j)
       {
-	 for (int k=0;k<DOFS;++k)
+	 for (int k=0;k<DOFS_;++k)
 	 {
-	    for (int l=0;l<DOFindlen[k];++l)
+	    for (int l=0;l<DOFindlen_[k];++l)
 	    {
 	       K[i][k] +=
-		  DOFMult[i][j]*(Stiff[DOFindex[i][j]][DOFindex[k][l]])*DOFMult[k][l];
+		  DOFMult_[i][j]*(Stiff[DOFindex_[i][j]][DOFindex_[k][l]])*DOFMult_[k][l];
 	    }
 	 }
 
-	 K[i][DOFS] += DOFMult[i][j]*stressdt[0][DOFindex[i][j]];
+	 K[i][DOFS_] += DOFMult_[i][j]*stressdt[0][DOFindex_[i][j]];
       }
    }
 
-   for (int i=0;i<DOFS;++i)
+   for (int i=0;i<DOFS_;++i)
    {
-      K[DOFS][i] = -2.0*Diff[i];
+      K[DOFS_][i] = -2.0*Diff[i];
    }
-   K[DOFS][DOFS] = -2.0*Diff[DOFS]/(Aspect*Aspect);
+   K[DOFS_][DOFS_] = -2.0*Diff[DOFS_]/(Aspect*Aspect);
 
    return K;
 }
 
 double MultiMode::ScanningDefParameter()
 {
-   Vector DOF = Lattice_->DOF();
-
-   return DOF[DOFindex[ScnDefParam][0]]/DOFMult[ScnDefParam][0];
+   return ModeDOF_[ScnDefParam_];
 }
 
 void MultiMode::ScanningDefParamSet(const double val)
 {
-   Vector DOF=Lattice_->DOF();
+   Vector DOF((Lattice_->DOF()).Dim(),0.0);
+   ModeDOF_[ScnDefParam_] = val;
 
-   for (int i=0;i<DOFindlen[ScnDefParam];++i)
+   for (int i=0;i<DOFS_;++i)
    {
-      DOF[DOFindex[ScnDefParam][i]] += DOFMult[ScnDefParam][i]*val;
+      for (int j=0;j<DOFindlen_[i];++j)
+      {
+	 DOF[DOFindex_[i][j]] += DOFMult_[i][j]*ModeDOF_[i];
+      }
    }
 
    Lattice_->SetDOF(DOF);
@@ -199,11 +200,15 @@ void MultiMode::ScanningDefParamSet(const double val)
 
 void MultiMode::ScanningDefParamUpdate(const double newval)
 {
-   Vector DOF=Lattice_->DOF();
+   Vector DOF((Lattice_->DOF()).Dim(),0.0);
+   ModeDOF_[ScnDefParam_] -= newval;
 
-   for (int i=0;i<DOFindlen[ScnDefParam];++i)
+   for (int i=0;i<DOFS_;++i)
    {
-      DOF[DOFindex[ScnDefParam][i]] -= DOFMult[ScnDefParam][i]*newval;
+      for (int j=0;j<DOFindlen_[i];++j)
+      {
+	 DOF[DOFindex_[i][j]] += DOFMult_[i][j]*ModeDOF_[i];
+      }
    }
 
    Lattice_->SetDOF(DOF);
@@ -241,9 +246,9 @@ double MultiMode::ScanningStressParameter()
    double str = 0.0;
    Matrix stress = Lattice_->Stress();
 
-   for (int i=0;i<DOFindlen[ScnDefParam];++i)
+   for (int i=0;i<DOFindlen_[ScnDefParam_];++i)
    {
-      str += DOFMult[ScnDefParam][i]*stress[0][DOFindex[ScnDefParam][i]];
+      str += DOFMult_[ScnDefParam_][i]*stress[0][DOFindex_[ScnDefParam_][i]];
    }
    
    return str;
@@ -252,18 +257,18 @@ double MultiMode::ScanningStressParameter()
 Vector MultiMode::ScanningRHS()
 {
    Matrix stress = Lattice_->Stress();
-   Vector RHS(DOFS-1,0.0);
+   Vector RHS(DOFS_-1,0.0);
    int a=0;
 
-   if (DOFS != 1)
+   if (DOFS_ != 1)
    {
-      for (int i=0;i<DOFS;++i)
+      for (int i=0;i<DOFS_;++i)
       {
-	 if (i != ScnDefParam)
+	 if (i != ScnDefParam_)
 	 {
-	    for (int j=0;j<DOFindlen[i];++j)
+	    for (int j=0;j<DOFindlen_[i];++j)
 	    {
-	       RHS[a] += DOFMult[i][j]*stress[0][DOFindex[i][j]];
+	       RHS[a] += DOFMult_[i][j]*stress[0][DOFindex_[i][j]];
 	    }
 	    ++a;
 	 }
@@ -278,17 +283,16 @@ Vector MultiMode::ScanningRHS()
 
 Vector MultiMode::ScanningDef()
 {
-   Vector DOF = Lattice_->DOF();
-   Vector DEF(DOFS-1,0.0);
+   Vector DEF(DOFS_-1,0.0);
    int a=0;
 
-   if (DOFS != 1)
+   if (DOFS_ != 1)
    {
-      for (int i=0;i<DOFS;++i)
+      for (int i=0;i<DOFS_;++i)
       {
-	 if (i != ScnDefParam)
+	 if (i != ScnDefParam_)
 	 {
-	    DEF[a] = DOF[DOFindex[i][0]]/DOFMult[i][0];
+	    DEF[a] = ModeDOF_[i];
 	    ++a;
 	 }
       }
@@ -303,13 +307,14 @@ void MultiMode::ScanningSet(const Vector &val)
 {
    Vector DOF((Lattice_->DOF()).Dim(),0.0);
    
-   for (int i=0;i<DOFS;++i)
+   for (int i=0;i<DOFS_;++i)
    {
-      if (i != ScnDefParam)
+      if (i != ScnDefParam_)
       {
-	 for (int j=0;j<DOFindlen[i];++j)
+	 ModeDOF_[i] = val[i];
+	 for (int j=0;j<DOFindlen_[i];++j)
 	 {
-	    DOF[DOFindex[i][j]] += DOFMult[i][j]*val[i];
+	    DOF[DOFindex_[i][j]] += DOFMult_[i][j]*val[i];
 	 }
       }
    }
@@ -321,13 +326,14 @@ void MultiMode::ScanningUpdate(const Vector &newval)
 {
    Vector dof=Lattice_->DOF();
 
-   for (int i=0;i<DOFS;++i)
+   for (int i=0;i<DOFS_;++i)
    {
-      if (i != ScnDefParam)
+      if (i != ScnDefParam_)
       {
-	 for (int j=0;j<DOFindlen[i];++j)
+	 ModeDOF_[i] -= newval[i];
+	 for (int j=0;j<DOFindlen_[i];++j)
 	 {
-	    dof[DOFindex[i][j]] -= DOFMult[i][j]*newval[i>ScnDefParam?i-1:i];
+	    dof[DOFindex_[i][j]] -= DOFMult_[i][j]*newval[i>ScnDefParam_?i-1:i];
 	 }
       }
    }
@@ -338,26 +344,26 @@ void MultiMode::ScanningUpdate(const Vector &newval)
 Matrix MultiMode::ScanningStiffness()
 {
    Matrix stiff = Lattice_->Stiffness();
-   Matrix K(DOFS-1,DOFS-1,0.0);
+   Matrix K(DOFS_-1,DOFS_-1,0.0);
    int a=0,b=0;
 
-   if (DOFS != 1)
+   if (DOFS_ != 1)
    {
-      for (int i=0;i<DOFS;++i)
+      for (int i=0;i<DOFS_;++i)
       {
-	 if (i != ScnDefParam)
+	 if (i != ScnDefParam_)
 	 {
-	    for (int j=0;j<DOFindlen[i];++j)
+	    for (int j=0;j<DOFindlen_[i];++j)
 	    {
 	       b=0;
-	       for (int k=0;k<DOFS;++k)
+	       for (int k=0;k<DOFS_;++k)
 	       {
-		  if (k != ScnDefParam)
+		  if (k != ScnDefParam_)
 		  {
-		     for (int l=0;l<DOFindlen[k];++l)
+		     for (int l=0;l<DOFindlen_[k];++l)
 		     {
-			K[a][b] += DOFMult[i][j]
-			   *(stiff[DOFindex[i][j]][DOFindex[k][l]])*DOFMult[k][l];
+			K[a][b] += DOFMult_[i][j]
+			   *(stiff[DOFindex_[i][j]][DOFindex_[k][l]])*DOFMult_[k][l];
 		     }
 		     ++b;
 		  }
