@@ -146,7 +146,6 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
    int iter;
    double DX;
    if(!GetParameter(prefix,"MaxIterations",datafile,"%u",&iter)) exit(-1);
-   if(!GetParameter(prefix,"InitializeStepSize",datafile,"%lf",&DX)) exit(-1);
    if(!GetParameter(prefix,"BlochWaveGridSize",datafile,"%u",&GridSize_)) exit(-1);
    
    // Initiate the Lattice Sum object
@@ -154,7 +153,7 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
 	   &NTemp_);
 
    int err=0;
-   err=FindLatticeSpacing(datafile,prefix,iter,DX);
+   err=FindLatticeSpacing(datafile,prefix,iter);
    if (err)
    {
       cerr << "unable to find initial lattice spacing!" << endl;
@@ -191,7 +190,7 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
    
 }
 
-int MultiLatticeTPP::FindLatticeSpacing(char *datafile,const char *prefix,int iter,double dx)
+int MultiLatticeTPP::FindLatticeSpacing(char *datafile,const char *prefix,int iter)
 {
    Lambda_=0.0;
    NTemp_=1.0;
@@ -2089,7 +2088,6 @@ void MultiLatticeTPP::DebugMode()
       else if (!strcmp(response,Commands[33]))
       {
 	 int iter;
-	 double dx;
 	 char datafl[265],prefix[265];
 	 cout << "\tdatafile > ";
 	 cin >> datafl;
@@ -2100,10 +2098,7 @@ void MultiLatticeTPP::DebugMode()
 	 cout << "\titer > ";
 	 cin >> iter;
 	 cin.sync(); // clear input
-	 cout << "\tdx > ";
-	 cin >> dx;
-	 cin.sync(); // clear input
-	 FindLatticeSpacing(datafl,prefix,iter,dx);
+	 FindLatticeSpacing(datafl,prefix,iter);
       }
       else if (!strcmp(response,Commands[34]))
       {

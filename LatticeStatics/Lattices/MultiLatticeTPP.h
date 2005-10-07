@@ -130,7 +130,7 @@ private:
    inline int INDUV(int i,int j,int m,int n);
    inline int INDVU(int m,int n,int i,int j);
    inline double DELTA(int s,int p,int q) {return Del(s,q) - Del(s,p);}
-   int FindLatticeSpacing(char *datafile,const char *prefix,int iter,double dx);
+   int FindLatticeSpacing(char *datafile,const char *prefix,int iter);
    void RefineEqbm(double Tol,int MaxItr,ostream *out);
    
 };
