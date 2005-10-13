@@ -483,7 +483,7 @@ double MultiLatticeTPP::energy(PairPotentials::TDeriv dt)
       // Loading
       for (int i=0;i<DIM3;++i)
 	 for (int j=0;j<DIM3;++j)
-	    Phi -= Lambda_*Loading_[i][j]*(DOF_[INDU(i,j)] - Del(i,j))/Vr;
+	    Phi -= Lambda_*Loading_[i][j]*(DOF_[INDU(i,j)] - Del(i,j));
 
       // Thermal term
       //Phi += (PhiRef_ -
@@ -598,7 +598,7 @@ Matrix MultiLatticeTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
 	 for (i=0;i<DIM3;++i)
 	    for (j=0;j<DIM3;++j)
 	    {
-	       S[0][INDU(i,j)] -= Lambda_*Loading_[i][j]/Vr;
+	       S[0][INDU(i,j)] -= Lambda_*Loading_[i][j];
 	    }
       }
 
@@ -608,7 +608,7 @@ Matrix MultiLatticeTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
       // dl=DL
       for (i=0;i<DIM3;++i)
 	 for (j=0;j<DIM3;++j)
-	    S[0][INDU(i,j)] -= Loading_[i][j]/Vr;
+	    S[0][INDU(i,j)] -= Loading_[i][j];
    }
    else
    {
