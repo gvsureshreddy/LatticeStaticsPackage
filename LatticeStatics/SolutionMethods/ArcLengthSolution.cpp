@@ -347,7 +347,12 @@ double ArcLengthSolution::ArcLengthNewton(int &good)
 int ArcLengthSolution::BisectAlert(Lattice *Lat,char *datafile,const char *prefix,
 				   int Width,fstream &out)
 {
-   double ConvergenceFactor = 10;
+   double BisectTolerance;
+   if(!GetParameter(prefix,"ArcLenBisectTolerance",datafile,"%lf",&BisectTolerance))
+   {
+      // Default to 10*Tolerance_
+      BisectTolerance = 10*Tolerance_;
+   }
    
    Vector OriginalDiff=Difference_;
    Vector IntermediateDiff(Difference_.Dim(),0.0);
@@ -369,7 +374,7 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,char *datafile,const char *prefi
 		  << " DS " << setw(Width) << CurrentDS_ << endl;
    
    // Find bifurcation point and make sure we are on the back side edge
-   while (((fabs(CurrentMinEV) > ConvergenceFactor*Tolerance_)
+   while (((fabs(CurrentMinEV) > BisectTolerance)
 	   || (CurrentNulity == OriginalNulity))
 	  && (loops < MaxIter_))
    {
@@ -415,7 +420,7 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,char *datafile,const char *prefi
    if (Echo_) cout << endl; out << endl;
 
    // Call Lattice function to do any Lattice Specific things
-   Lat->CriticalPointInfo(Mode_->DrDt(Difference_),ConvergenceFactor*Tolerance_,datafile,
+   Lat->CriticalPointInfo(Mode_->DrDt(Difference_),BisectTolerance,datafile,
 			  prefix,Width,out);
 
    if (Echo_) cout << "Success = 1" << endl;

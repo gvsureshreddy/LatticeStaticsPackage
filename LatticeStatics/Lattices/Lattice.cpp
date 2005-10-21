@@ -80,6 +80,25 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
       }
    }
 
+   // Check for zero modes
+   if (count == 0)
+   {
+      count = 1;
+      Ind[0] = 0;
+      for (int i=1;i<dofs;++i)
+      {
+	 if (fabs(EigVal[0][i]) < fabs(EigVal[0][Ind[0]]))
+	    Ind[0] = i;
+      }
+      
+      out << "NOTE: No zero eigenvalues found. "
+	  << "Assuming single mode with minimum (abs) eigenvalue : "
+	  << setw(Width) << EigVal[0][Ind[0]] << endl;
+      if (Echo_) cout<< "NOTE: No zero eigenvalues found. "
+		     << "Assuming single mode with minimum (abs) eigenvalue : "
+		     << setw(Width) << EigVal[0][Ind[0]] << endl;
+   }
+
    if (BIFMAX < count)
    {
       cerr << "Error: BIFMAX < " << count << " in Lattice.h" << endl;
