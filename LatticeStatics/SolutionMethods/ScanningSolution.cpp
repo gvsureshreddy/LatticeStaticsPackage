@@ -9,7 +9,6 @@ ScanningSolution::ScanningSolution(LatticeMode *Mode,char *datafile,const char *
 				   int Echo)
    : Mode_(Mode), Echo_(Echo)
 {
-   FILE *pipe;
 
    const char *yn[]={"No","Yes"};
    int ans;

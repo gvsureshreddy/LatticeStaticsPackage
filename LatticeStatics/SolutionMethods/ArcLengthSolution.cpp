@@ -37,7 +37,6 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char
 				     char *startfile,fstream &out,int Echo)
    : Mode_(Mode), CurrentSolution_(0), Echo_(Echo)
 {
-   FILE *pipe;
    
    if(!GetParameter(prefix,"ArcLenMaxIterations",datafile,"%u",&MaxIter_)) exit(-1);
    if(!GetParameter(prefix,"ArcLenTolerance",datafile,"%lf",&Tolerance_)) exit(-1);
