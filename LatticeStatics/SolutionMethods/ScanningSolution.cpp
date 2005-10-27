@@ -28,16 +28,8 @@ ScanningSolution::ScanningSolution(LatticeMode *Mode,char *datafile,const char *
       exit(-1);
    }
 
-   char tmp[LINELENGTH];
-   char inidef[]="ScanningInitialDeformation";
-   SetPerlCommand(tmp,datafile,prefix,inidef);
-   pipe=OpenPipe(tmp,"r");
    InitialDef_.Resize(Mode->ScanningRHS().Dim()+1);
-   for (int i=0;i<InitialDef_.Dim();i++)
-   {
-      fscanf(pipe,"%lf",&InitialDef_[i]);
-   }
-   if (pclose(pipe)) Errfun(inidef);
+   if(!GetVectorParameter(prefix,"ScanningInitialDeformation",datafile,&InitialDef_)) exit(-1);
 
    const char *dir[]={"Loading","Deformation"};
    ans=GetStringParameter(prefix,"ScanningDirection",datafile,dir,2);
