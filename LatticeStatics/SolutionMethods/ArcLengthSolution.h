@@ -25,7 +25,9 @@ private:
 
    unsigned NumSolutions_;
    unsigned CurrentSolution_;
-
+   int ClosedLoopStart_;
+   Vector FirstSolution_;
+   
    Vector Difference_;
 
    // Consistency Check data
