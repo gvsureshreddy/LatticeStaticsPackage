@@ -94,7 +94,7 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char
 	 Mode_->ArcLenSet(two);
 	 
 	 // Get solution1
-	 Vector one(Difference_.Dim());
+	 Vector one(two.Dim());
 	 if(!GetVectorParameter(prefix,"Solution1",startfile,&one)) exit(-1);
 	 // Set Difference_ to   two - one
 	 Difference_.Resize(two.Dim());
