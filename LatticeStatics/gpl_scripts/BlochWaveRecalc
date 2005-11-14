@@ -77,8 +77,8 @@ while (<DATA>)
   if (/^Bifurcation/)
   {
     @fields=split(/:/,$_);
-    @fields=split(" ",fields[1]);
-    $CB=fields[1];
+    @fields=split(" ",$fields[1]);
+    $CB=$fields[1];
   }
 
   if (/^BlochWave/)
