@@ -292,6 +292,10 @@ double ScanningSolution::ScanningNewton(int &good)
       cerr << "Convergence Not Reached -- ScanningNewton" << endl;
       good = 0;
    }
+   else
+   {
+      good = 1;
+   }
 
    return dx.Norm();
 }
