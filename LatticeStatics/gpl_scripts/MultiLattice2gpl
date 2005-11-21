@@ -10,7 +10,7 @@ if (scalar(@ARGV) < 3)
 
 $DOFSize = $ARGV[0];
 $StateSize = $DOFSize + 9;
-$StrSPEC = "%12s";
+$StrSPEC = "%14s";
 $FSPEC = "%14.6f";
 
 if (scalar(@ARGV) == 4)
@@ -55,9 +55,9 @@ $bifpoints = 0;
 $index = 1;
 foreach $dir (@directories)
 {
-    chdir $dataset;
-    $bifpoints += loaddata($dataset . "/" . $dir ,$ARGV[1],\$begingnuplot,$index,\$endgnuplot);
-    $index += 2;
+  chdir $dataset;
+  $bifpoints += loaddata($dataset . "/" . $dir ,$ARGV[1],\$begingnuplot,$index,\$endgnuplot);
+  $index += 2;
 }
 
 if ($bifpoints == 0)
@@ -203,7 +203,7 @@ sub loaddata {
 	      }
 	      else
 	      {
-		if (($noneg[@noneg-1]==0) && ($fields[0]==1))
+		if (($noneg[@noneg-1]==0) && ($fields[0]==1) && defined($BWrecalc))
 		{
 		  push(@blochwave,$BWrecalc);
 		}
