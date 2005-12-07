@@ -49,7 +49,7 @@ SOURCES  = Matrix.cpp Vector.cpp Vector3D.cpp CMatrix.cpp CVector.cpp
 # Defines the object files to be created using the SYSTEM name ############
 OBJECTS  = $(SOURCES:$(SRC_EXT)=$(OBJ_EXT))
 
-all : $(OBJECTS) EigenSys HermiteEigenSys matrixtest
+all : $(OBJECTS) EigenSys HermiteEigenSys PrincipalSys matrixtest
 .PHONY: all
 
 matrixtest : $(OBJECTS) matrixtest.cpp
@@ -66,6 +66,11 @@ HermiteEigenSys : $(OBJECTS) HermiteEigenSys.cpp
 	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o ./lib/$@.o -c ./HermiteEigenSys.cpp
 	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ $(LFLAGS) -o ./bin/HermiteEigenSys \
 	./lib/HermiteEigenSys.o ./lib/CMatrix.o ./lib/Matrix.o
+
+PrincipalSys : $(OBJECTS) PrincipalSys.cpp
+	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o ./lib/$@.o -c ./PrincipalSys.cpp
+	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ $(LFLAGS) -o ./bin/PrincipalSys \
+	./lib/PrincipalSys.o ./lib/Matrix.o ./lib/Vector.o
 
 # include the dependicies
 include $(addprefix ./depend/,$(OBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
@@ -86,6 +91,7 @@ $(LIB_LOC)/libLinearAlgebra.a: $(OBJECTS)
 	/bin/cp $(SOURCES:$(SRC_EXT)=$(HDR_EXT)) $(INCL_LOC)
 	/bin/cp ./bin/EigenSys $(BIN_LOC)
 	/bin/cp ./bin/HermiteEigenSys $(BIN_LOC)
+	/bin/cp ./bin/PrincipalSys $(BIN_LOC)
 
 # Define uninstall
 uninstall:
@@ -93,6 +99,7 @@ uninstall:
 	/bin/rm -f $(addprefix $(INCL_LOC)/, $(SOURCES:$(SRC_EXT)=$(HDR_EXT)))
 	/bin/rm -f $(BIN_LOC)/EigenSys
 	/bin/rm -f $(BIN_LOC)/HermiteEigenSys
+	/bin/rm -f $(BIN_LOC)/PrincipalSys
 
 
 # Removes the current systems set of object files and executable file
@@ -101,8 +108,8 @@ uninstall:
 clean:
 	 -/bin/rm -f $(addprefix ./lib/,$(OBJECTS)) \
 	$(addprefix ./lib/,$(OBJECTS:$(OBJ_EXT)=.ti)) core *~ \
-	lib/matrixtest.* lib/EigenSys.* lib/HermiteEigenSys.* \
-	bin/matrixtest  bin/EigenSys bin/HermiteEigenSys ./depend/*.d
+	lib/matrixtest.* lib/EigenSys.* lib/HermiteEigenSys.* lib/PrincipalSys.* \
+	bin/matrixtest  bin/EigenSys bin/HermiteEigenSys bin/PrincipalSys ./depend/*.d
 
 # Define rule for dependicy files
 depend/%.d: %$(SRC_EXT)
