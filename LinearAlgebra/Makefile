@@ -49,7 +49,9 @@ SOURCES  = Matrix.cpp Vector.cpp Vector3D.cpp CMatrix.cpp CVector.cpp
 # Defines the object files to be created using the SYSTEM name ############
 OBJECTS  = $(SOURCES:$(SRC_EXT)=$(OBJ_EXT))
 
-all : $(OBJECTS) EigenSys HermiteEigenSys PrincipalSys matrixtest
+PROGRAMS = EigenSys HermiteEigenSys PrincipalSys
+
+all : $(OBJECTS) $(PROGRAMS) matrixtest
 .PHONY: all
 
 matrixtest : $(OBJECTS) matrixtest.cpp
@@ -79,19 +81,19 @@ include $(addprefix ./depend/,$(OBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 $(OBJECTS): Makefile
 	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o ./lib/$@ -c $*$(SRC_EXT)
 
-.PHONY: install uninstall
+.PHONY: uninstall
 # Define install
-install: all $(LIB_LOC)/libLinearAlgebra.a;
+install: all $(LIB_LOC)/libLinearAlgebra.a $(addprefix $(BIN_LOC)/,$(PROGRAMS))
+
 $(LIB_LOC)/libLinearAlgebra.a: $(OBJECTS)
 	$(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/LinearAlgebraBuildDate.o -c LinearAlgebraBuildDate.cpp
 	ar -r $(LIB_LOC)/libLinearAlgebra.a $(addprefix ./lib/,$(OBJECTS)) ./lib/LinearAlgebraBuildDate.o
 	/bin/rm -f ./lib/LinearAlgebraBuildDate.o
 	ranlib $(LIB_LOC)/libLinearAlgebra.a 
-
 	/bin/cp $(SOURCES:$(SRC_EXT)=$(HDR_EXT)) $(INCL_LOC)
-	/bin/cp ./bin/EigenSys $(BIN_LOC)
-	/bin/cp ./bin/HermiteEigenSys $(BIN_LOC)
-	/bin/cp ./bin/PrincipalSys $(BIN_LOC)
+
+$(addprefix $(BIN_LOC)/,$(PROGRAMS)): $(BIN_LOC)/%: %
+	/bin/cp ./bin/$(notdir $@) $(BIN_LOC)
 
 # Define uninstall
 uninstall:
