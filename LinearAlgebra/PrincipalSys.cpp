@@ -6,19 +6,20 @@
 
 int main(int argc, char *argv[])
 {
-   if (argc != 10)
+   if (argc != 7)
    {
-      cerr << "Usage: " << argv[0] << " A11 A12 A13 A21 A22 A23 A31 A32 A33" << endl;
+      cerr << "Usage: " << argv[0] << " A11 A22 A33 A12 A13 A23" << endl;
       exit(-1);
    }
 
    int size=3;
    Matrix A(size,size);
-   for (int i=0;i<size;++i)
-      for (int j=0;j<size;++j)
-      {
-	 A[i][j] = atof(argv[size*i + j + 1]);
-      }
+   A[0][0] = atof(argv[1]);
+   A[1][1] = atof(argv[2]);
+   A[2][2] = atof(argv[3]);
+   A[0][1] = A[1][0] = atof(argv[4]);
+   A[0][2] = A[2][0] = atof(argv[5]);
+   A[1][2] = A[2][1] = atof(argv[6]);
 
    Matrix EigVec(size,size),EigVals=SymEigVal(A,&EigVec);
 
