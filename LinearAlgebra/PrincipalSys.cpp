@@ -23,6 +23,45 @@ int main(int argc, char *argv[])
 
    Matrix EigVec(size,size),EigVals=SymEigVal(A,&EigVec);
 
+   double tmp;
+   if (EigVals[0][1] > EigVals[0][0])
+   {
+      tmp=EigVals[0][0];
+      EigVals[0][0]=EigVals[0][1];
+      EigVals[0][1]=tmp;
+      for (int i=0;i<size;++i)
+      {
+	 tmp = EigVec[i][0];
+	 EigVec[i][0] = EigVec[i][1];
+	 EigVec[i][1] = tmp;
+      }
+   }
+   if (EigVals[0][2] > EigVals[0][0])
+   {
+      tmp=EigVals[0][0];
+      EigVals[0][0]=EigVals[0][2];
+      EigVals[0][2]=tmp;
+      for (int i=0;i<size;++i)
+      {
+	 tmp = EigVec[i][0];
+	 EigVec[i][0] = EigVec[i][2];
+	 EigVec[i][2] = tmp;
+      }
+   }
+   if (EigVals[0][2] > EigVals[0][1])
+   {
+      tmp=EigVals[0][1];
+      EigVals[0][1]=EigVals[0][2];
+      EigVals[0][2]=tmp;
+      for (int i=0;i<size;++i)
+      {
+	 tmp = EigVec[i][1];
+	 EigVec[i][1] = EigVec[i][2];
+	 EigVec[i][2] = tmp;
+      }
+   }
+   
+
    Vector X(size,0.0),
       Z(size,0.0),
       Xp(size,0.0),
