@@ -2,11 +2,12 @@
 
 #include "UtilityFunctions.h"
 
-const char *POTENTIALNAMES[] = {"RadiiMorse","TempMorse"};
+const char *POTENTIALNAMES[] = {"LJ","RadiiMorse","TempMorse"};
 
 PairPotentials* InitializePairPotential(char *datafile,const char *prefix,int i,int j)
 {
    char tmp[LINELENGTH];
+   double Eps0,Eps1,Sigma0,Sigma1;
    double Tref,A0,B0,Alpha,Rref1,Rref2,Tmelt;
    double Rtheta1,Rtheta2;
    
@@ -15,6 +16,19 @@ PairPotentials* InitializePairPotential(char *datafile,const char *prefix,int i,
    {
       case 0:
       {
+	 sprintf(tmp,"Eps0_%u_%u",i,j);
+	 if(!GetParameter(prefix,tmp,datafile,"%lf",&Eps0)) exit(-1);
+	 sprintf(tmp,"Eps1_%u_%u",i,j);
+	 if(!GetParameter(prefix,tmp,datafile,"%lf",&Eps1)) exit(-1);
+	 sprintf(tmp,"Sigma0_%u_%u",i,j);
+	 if(!GetParameter(prefix,tmp,datafile,"%lf",&Sigma0)) exit(-1);
+	 sprintf(tmp,"Sigma1_%u_%u",i,j);
+	 if(!GetParameter(prefix,tmp,datafile,"%lf",&Sigma1)) exit(-1);
+	 
+	 return new LJ(Eps0,Eps1,Sigma0,Sigma1);
+      }
+      case 1:
+	 {
 	 sprintf(tmp,"A0_%u_%u",i,j);
 	 if(!GetParameter(prefix,tmp,datafile,"%lf",&A0)) exit(-1);
 	 sprintf(tmp,"B0_%u_%u",i,j);
@@ -32,7 +46,7 @@ PairPotentials* InitializePairPotential(char *datafile,const char *prefix,int i,
 	 
 	 return new RadiiMorse(A0,B0,Alpha,Rref1,Rref2,Rtheta1,Rtheta2);
       }
-      case 1:
+      case 2:
       {
 	 sprintf(tmp,"Tref");
 	 if(!GetParameter(prefix,tmp,datafile,"%lf",&Tref)) exit(-1);
@@ -63,13 +77,36 @@ void UpdatePairPotential(char *datafile,const char *prefix,int i,int j,
 			 PairPotentials *Potential)
 {
    char tmp[LINELENGTH];
+   double Eps0,Eps1,Sigma0,Sigma1;
    double Tref,A0,B0,Alpha,Rref1,Rref2,Tmelt;
    double Rtheta1,Rtheta2;
 
-   RadiiMorse *RM;
-   RM = dynamic_cast<RadiiMorse *>(Potential);
-   if (!strcmp(RM->Type(),"RadiiMorse"))
+   if (!strcmp(Potential->Type(),"LJ"))
    {
+      LJ *LJp;
+      LJp = dynamic_cast<LJ *>(Potential);
+      
+      sprintf(tmp,"Eps0_%u_%u",i,j);
+      if(GetParameter(prefix,tmp,datafile,"%lf",&Eps0,0))
+	 LJp->SetEps0(Eps0);
+      
+      sprintf(tmp,"Eps1_%u_%u",i,j);
+      if(GetParameter(prefix,tmp,datafile,"%lf",&Eps1,0))
+	 LJp->SetEps1(Eps1);
+
+      sprintf(tmp,"Sigma0_%u_%u",i,j);
+      if(GetParameter(prefix,tmp,datafile,"%lf",&Sigma0,0))
+	 LJp->SetSigma0(Sigma0);
+
+      sprintf(tmp,"Sigma1_%u_%u",i,j);
+      if(GetParameter(prefix,tmp,datafile,"%lf",&Sigma1,0))
+	 LJp->SetSigma1(Sigma1);
+   }
+   else if (!strcmp(Potential->Type(),"RadiiMorse"))
+   {
+      RadiiMorse *RM;
+      RM = dynamic_cast<RadiiMorse *>(Potential);
+      
       sprintf(tmp,"A0_%u_%u",i,j);
       if(GetParameter(prefix,tmp,datafile,"%lf",&A0,0))
 	 RM->SetA0(A0);

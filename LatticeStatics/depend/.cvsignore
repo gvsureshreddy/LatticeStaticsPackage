@@ -5,6 +5,7 @@ KnownPairPotentials.d
 KnownSolutionMethods.d
 Lattice.d
 LatticeStatics.d
+LJ.d
 MultiLatticeTPP.d
 MultiMode.d
 PPSum.d

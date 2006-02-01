@@ -1,3 +1,4 @@
 POTENTIALS = KnownPairPotentials.cpp\
-	     TempMorse.cpp\
-	     RadiiMorse.cpp
+	     LJ.cpp\
+	     RadiiMorse.cpp\
+	     TempMorse.cpp
