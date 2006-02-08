@@ -1753,6 +1753,8 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 	    }
 	 }
 	 out << "Normalization Modulus : " << setw(W) << NormModulus_ << endl;
+	 cout << "EulerAngles : " << setw(W) << EulerAng_[0]
+	      << setw(W) << EulerAng_[1] << setw(W) << EulerAng_[2] << endl;
 	 out << "Loading Proportions : " << setw(W) << LoadingProportions_ << endl;
 	 // also send to cout
 	 if (Echo_)
