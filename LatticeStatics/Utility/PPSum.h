@@ -5,14 +5,14 @@
 #include <Vector.h>
 #include "KnownPairPotentials.h"
 
+#define PPSUMdatalen 11
+#define PPSUMatomstart 0
+#define PPSUMdXstart 2
+#define PPSUMdxstart 5
+#define PPSUMr2start 8
+#define PPSUMphi1start 9
+#define PPSUMphi2start 10
 
-#define DATALEN 11
-#define ATOMSTART 0
-#define DXSTART 2
-#define DxSTART 5
-#define R2START 8
-#define PHI1START 9
-#define PHI2START 10
 
 class PPSum
 {
@@ -50,14 +50,14 @@ public:
    int Done() {return CurrentPOS_ >= Pairs_;}
    void operator++() {++CurrentPOS_;}
    
-   double DX(int i) {return RelPosDATA_[CurrentPOS_][DXSTART+i];}
-   double *pDX() {return &(RelPosDATA_[CurrentPOS_][DXSTART]);}
-   double Dx(int i) {return RelPosDATA_[CurrentPOS_][DxSTART+i];}
-   double *pDx() {return &(RelPosDATA_[CurrentPOS_][DxSTART]);}
-   double r2() {return RelPosDATA_[CurrentPOS_][R2START];}
-   int Atom(int i) {return int(RelPosDATA_[CurrentPOS_][ATOMSTART+i]);}
-   double phi1() {return RelPosDATA_[CurrentPOS_][PHI1START];}
-   double phi2() {return RelPosDATA_[CurrentPOS_][PHI2START];}
+   double DX(int i) {return RelPosDATA_[CurrentPOS_][PPSUMdXstart+i];}
+   double *pDX() {return &(RelPosDATA_[CurrentPOS_][PPSUMdXstart]);}
+   double Dx(int i) {return RelPosDATA_[CurrentPOS_][PPSUMdxstart+i];}
+   double *pDx() {return &(RelPosDATA_[CurrentPOS_][PPSUMdxstart]);}
+   double r2() {return RelPosDATA_[CurrentPOS_][PPSUMr2start];}
+   int Atom(int i) {return int(RelPosDATA_[CurrentPOS_][PPSUMatomstart+i]);}
+   double phi1() {return RelPosDATA_[CurrentPOS_][PPSUMphi1start];}
+   double phi2() {return RelPosDATA_[CurrentPOS_][PPSUMphi2start];}
    double J() {return U_.Det();}
    Matrix U() {return U_;}
    Matrix UInv() {return U_.Inverse();}

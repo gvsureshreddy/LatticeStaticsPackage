@@ -1,7 +1,7 @@
 #include "PPSum.h"
 
-int comp(const void *a,const void *b);
-int IND(double i,double j);
+int PPSUMcomp(const void *a,const void *b);
+int PPSUMind(double i,double j);
 #include <cstdlib>
 
 using namespace std;
@@ -12,7 +12,7 @@ PPSum::PPSum(Vector *DOF,Matrix *RefLat,int InternalAtoms,Vector *InternalPOS,
      InternalPOS_(InternalPOS),Potential_(PairPot),InfluanceDist_(InfluDist),
      U_(3,3),V_(InternalAtoms,3),Recalc_(0),CurrentPOS_(0),Pairs_(0),
      RelPosDATA_(int(pow(double(2*(*InfluDist)),double(3))*pow(double(InternalAtoms),
-							       double(2))),DATALEN)
+							       double(2))),PPSUMdatalen)
 {
    Initialize();
 }
@@ -35,7 +35,7 @@ void PPSum::operator()(Vector *DOF,Matrix *RefLat,int InternalAtoms,
    Ntemp_ = Ntemp;
    RelPosDATA_.Resize(
       int(pow(double(2*(*InfluDist)),double(3))*pow(double(InternalAtoms),double(2))),
-      DATALEN);
+      PPSUMdatalen);
 
    Initialize();
 }
@@ -122,7 +122,7 @@ void PPSum::Initialize()
    // the cube) of pairs.
    if (RelPosDATA_.Rows() < 0.55*tmp)
    {
-      RelPosDATA_.Resize(int(tmp),DATALEN);
+      RelPosDATA_.Resize(int(tmp),PPSUMdatalen);
       cerr << "Resizing RELPOSDATA matrix in PPSum object to " << tmp << endl;
    }
 
@@ -137,46 +137,46 @@ void PPSum::Initialize()
 	    {
 	       for (X[2] = Bottom[2];X[2] <= Top[2];X[2]++)
 	       {
-		  RelPosDATA_[Pairs_][ATOMSTART] = p;
-		  RelPosDATA_[Pairs_][ATOMSTART+1] = q;
+		  RelPosDATA_[Pairs_][PPSUMatomstart] = p;
+		  RelPosDATA_[Pairs_][PPSUMatomstart+1] = q;
 
 		  for (i=0;i<3;i++)
 		  {
-		     RelPosDATA_[Pairs_][DXSTART+i] = 0.0;
+		     RelPosDATA_[Pairs_][PPSUMdXstart+i] = 0.0;
 
 		     // "SHIFTED reference position"
 		     for (j=0;j<3;j++)
 		     {
-			RelPosDATA_[Pairs_][DXSTART+i] +=
+			RelPosDATA_[Pairs_][PPSUMdXstart+i] +=
 			   (X[j] + ((InternalPOS_[q][j] + V_[q][j])
 				    - (InternalPOS_[p][j] + V_[p][j])))
 			   *(*RefLattice_)[j][i];
 
 		     }
 		  }
-		  RelPosDATA_[Pairs_][R2START] = 0.0;
+		  RelPosDATA_[Pairs_][PPSUMr2start] = 0.0;
 		  for (i=0;i<3;i++)
 		  {
-		     RelPosDATA_[Pairs_][DxSTART+i] = 0.0;
+		     RelPosDATA_[Pairs_][PPSUMdxstart+i] = 0.0;
 
 		     for (j=0;j<3;j++)
 		     {
-			RelPosDATA_[Pairs_][DxSTART+i]
-			   += U_[i][j] * RelPosDATA_[Pairs_][DXSTART+j];
+			RelPosDATA_[Pairs_][PPSUMdxstart+i]
+			   += U_[i][j] * RelPosDATA_[Pairs_][PPSUMdXstart+j];
 		     }
-		     RelPosDATA_[Pairs_][R2START]
-			+= RelPosDATA_[Pairs_][DxSTART+i]*RelPosDATA_[Pairs_][DxSTART+i];
+		     RelPosDATA_[Pairs_][PPSUMr2start]
+			+= RelPosDATA_[Pairs_][PPSUMdxstart+i]*RelPosDATA_[Pairs_][PPSUMdxstart+i];
 		  }
 		  // Only use Sphere of Influance (current)
-		  if ((RelPosDATA_[Pairs_][R2START] != 0) &&
-		      (RelPosDATA_[Pairs_][R2START]
+		  if ((RelPosDATA_[Pairs_][PPSUMr2start] != 0) &&
+		      (RelPosDATA_[Pairs_][PPSUMr2start]
 		       <= (*InfluanceDist_)*(*InfluanceDist_)))
 		  {
 		     // calculate phi1 and phi2
-		     RelPosDATA_[Pairs_][PHI1START] = Potential_[p][q]->PairPotential(
-			*Ntemp_,RelPosDATA_[Pairs_][R2START],PairPotentials::DY);
-		     RelPosDATA_[Pairs_][PHI2START] = Potential_[p][q]->PairPotential(
-			*Ntemp_,RelPosDATA_[Pairs_][R2START],PairPotentials::D2Y);
+		     RelPosDATA_[Pairs_][PPSUMphi1start] = Potential_[p][q]->PairPotential(
+			*Ntemp_,RelPosDATA_[Pairs_][PPSUMr2start],PairPotentials::DY);
+		     RelPosDATA_[Pairs_][PPSUMphi2start] = Potential_[p][q]->PairPotential(
+			*Ntemp_,RelPosDATA_[Pairs_][PPSUMr2start],PairPotentials::D2Y);
 
 		     ++Pairs_;
 		  }
@@ -197,11 +197,11 @@ Matrix PPSum::NeighborDistances(int cutoff,double eps)
 
    for (int i=0;i<Pairs_;++i)
    {
-      NeighborInfo[i][0] = RelPosDATA_[i][R2START];
-      NeighborInfo[i][1] = RelPosDATA_[i][ATOMSTART];
-      NeighborInfo[i][2] = RelPosDATA_[i][ATOMSTART+1];
+      NeighborInfo[i][0] = RelPosDATA_[i][PPSUMr2start];
+      NeighborInfo[i][1] = RelPosDATA_[i][PPSUMatomstart];
+      NeighborInfo[i][2] = RelPosDATA_[i][PPSUMatomstart+1];
    }
-   qsort(&(NeighborInfo[0][0]),Pairs_,3*sizeof(double),&comp);
+   qsort(&(NeighborInfo[0][0]),Pairs_,3*sizeof(double),&PPSUMcomp);
 
    Matrix NeighborDist(cutoff,(InternalAtoms_*(InternalAtoms_+1))/2 + 1,0.0);
    int i=0,j=0;
@@ -212,7 +212,7 @@ Matrix PPSum::NeighborDistances(int cutoff,double eps)
       NeighborDist[i][0] = sqrt(CurrentDist);
       while (fabs(CurrentDist - NeighborInfo[j][0]) < eps)
       {
-	 ++NeighborDist[i][IND(NeighborInfo[j][1],NeighborInfo[j][2])];
+	 ++NeighborDist[i][PPSUMind(NeighborInfo[j][1],NeighborInfo[j][2])];
 	 ++j;
       }
       ++i;
@@ -222,7 +222,7 @@ Matrix PPSum::NeighborDistances(int cutoff,double eps)
 }
 
 
-int comp(const void *a,const void *b)
+int PPSUMcomp(const void *a,const void *b)
 {
    double t;
    if( *((double*) a) == *((double*) b) ) return 0;
@@ -234,7 +234,7 @@ int comp(const void *a,const void *b)
    }
 }
 
-int IND(double i,double j)
+int PPSUMind(double i,double j)
 {
    int I=int(i+1),J=int(j+1);
 

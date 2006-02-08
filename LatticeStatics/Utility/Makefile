@@ -1,3 +1,5 @@
 UTILITY  = UtilityFunctions.cpp\
 	 UnitCellIterator.cpp\
-	 PPSum.cpp
+	 ChainIterator.cpp\
+	 PPSum.cpp\
+	 ChainSum.cpp
