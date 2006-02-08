@@ -33,7 +33,7 @@ MultiChainTPP::MultiChainTPP(char *datafile,const char *prefix,int Echo,int Widt
    
    // Set RefLattice_
    RefLattice_.Resize(DIM1,DIM1);
-   if(!GetParameter(prefix,"LatticeBasis",datafile,&(RefLattice_[0][0]))) exit(-1);
+   if(!GetParameter(prefix,"LatticeBasis",datafile,"%lf",&(RefLattice_[0][0]))) exit(-1);
    
    // First Size DOF
    DOF_.Resize(DOFS,0.0);
@@ -44,7 +44,7 @@ MultiChainTPP::MultiChainTPP(char *datafile,const char *prefix,int Echo,int Widt
    {
       AtomPositions_[i].Resize(DIM1);
       sprintf(tmp,"AtomPosition_%u",i);
-      if(!GetParameter(prefix,tmp,datafile,&(AtomPositions_[i][0]))) exit(-1);
+      if(!GetParameter(prefix,tmp,datafile,"%lf",&(AtomPositions_[i][0]))) exit(-1);
    }
    
    // Setup Bodyforce_
@@ -195,42 +195,42 @@ int MultiChainTPP::FindLatticeSpacing(char *datafile,const char *prefix,int iter
 
 // Lattice Routines
 
-double MultiLatticeTPP::PI(double *Dx,double *DX)
+double MultiChainTPP::PI(double *Dx,double *DX)
 {
    return 2.0*Dx[0]*DX[0];
 }
 
-double MultiLatticeTPP::PSI(double *DX)
+double MultiChainTPP::PSI(double *DX)
 {
    return DX[0]*DX[0];
 }
 
-double MultiLatticeTPP::OMEGA(double *Dx,int p,int q,int i)
+double MultiChainTPP::OMEGA(double *Dx,int p,int q,int i)
 {
-   return 2.0*DOF_[0]*DELTA(i,p,q)*Dx[0]
+   return 2.0*DOF_[0]*DELTA(i,p,q)*Dx[0];
 }
 
-double MultiLatticeTPP::SIGMA(int p,int q,int i,int j)
+double MultiChainTPP::SIGMA(int p,int q,int i,int j)
 {
    return 2.0*DOF_[0]*DOF_[0]*DELTA(i,p,q)*DELTA(j,p,q);
 }
 
-double MultiLatticeTPP::GAMMA(double *Dx,int p,int q,int i)
+double MultiChainTPP::GAMMA(double *Dx,int p,int q,int i)
 {
-   return 4.0*DELTA(i,p,q)*Dx;
+   return 4.0*DELTA(i,p,q)*Dx[0];
 }
 
-double MultiLatticeTPP::THETA(double *DX,int p,int q,int i)
+double MultiChainTPP::THETA(double *DX,int p,int q,int i)
 {
    return 4.0*DELTA(i,p,q)*DX[0];
 }
 
-double MultiLatticeTPP::XI(int p,int q,int i,int j)
+double MultiChainTPP::XI(int p,int q,int i,int j)
 {
    return 4.0*DOF_[0]*DELTA(i,p,q)*DELTA(j,p,q);
 }
 
-double MultiLatticeTPP::LAMDA(int p,int q,int i,int j)
+double MultiChainTPP::LAMDA(int p,int q,int i,int j)
 {
    return 4.0*DELTA(i,p,q)*DELTA(j,p,q);
 }
@@ -311,7 +311,7 @@ Matrix MultiChainTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
 	 {
 	    ForceNorm = fabs(-phi/2.0);
 	 }
-	 BodyForce_[ChainSum_.Atom(0)][0] += -phi*ChainSum_.Dx()/(2.0*sqrt(ChainSum_.r2()));
+	 BodyForce_[ChainSum_.Atom(0)][0] += -phi*ChainSum_.Dx(0)/(2.0*sqrt(ChainSum_.r2()));
 
 
 	 // Claculate the Stress
@@ -326,10 +326,10 @@ Matrix MultiChainTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
 	    exit(-1);
 	 }
 	 
-	 S[0][0] += phi*PI(ChainSum_.Dx(),ChainSum_DX());
+	 S[0][0] += phi*PI(ChainSum_.pDx(),ChainSum_.pDX());
 	 for (i=1;i<INTERNAL_ATOMS;i++)
 	 {
-	    S[0][i] += phi*OMEGA(ChainSum_.Dx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i);
+	    S[0][i] += phi*OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i);
 	 }
       }
 
@@ -463,7 +463,7 @@ Matrix MultiChainTPP::E3()
 	       Phi[i*DOFS + j][k] +=
 		  phi*(OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
 		       *OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),j)
-		       *OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1)),k)
+		       *OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),k))
 		  +phi1*(OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
 			 *SIGMA(ChainSum_.Atom(0),ChainSum_.Atom(1),j,k)
 			 + OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),j)
@@ -589,7 +589,7 @@ Matrix MultiChainTPP::E4()
 	       PI(ChainSum_.pDx(),ChainSum_.pDX())
 	       *PI(ChainSum_.pDx(),ChainSum_.pDX())
 	       *PI(ChainSum_.pDx(),ChainSum_.pDX())
-	       *OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1)i))
+	       *OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i))
 	    +phi1*(
 	       3.0*PI(ChainSum_.pDx(),ChainSum_.pDX())
 	       *PI(ChainSum_.pDx(),ChainSum_.pDX())
@@ -688,11 +688,11 @@ Matrix MultiChainTPP::E4()
 		  +phi3*LAMDA(ChainSum_.Atom(0),ChainSum_.Atom(1),i,j));
 	 }
    }
-
+   
    
    // Phi = Phi/(2*Vr*NormModulus)
    Phi *= 1.0/(2.0*(RefLattice_.Det()*NormModulus_));
-
+   
    return Phi;
 }
 
@@ -840,12 +840,13 @@ void MultiChainTPP::ReferenceDispersionCurves(Vector K,int NoPTS,const char *pre
    Z1 = InverseLat*Z1;
    Z2 = InverseLat*Z2;
    
-   double Z,
+   Vector Z(1);
+   double
       DZ=Z2-Z1;
    double dz = 1.0/(NoPTS-1);
    for (int k=0;k<2;++k)
    {
-      Z = Z1 + (k*dz)*DZ;
+      Z[0] = Z1 + (k*dz)*DZ;
       EigVal[k] = HermiteEigVal(ReferenceDynamicalStiffness(Z));
       qsort(EigVal[k][0],INTERNAL_ATOMS,sizeof(double),&comp);
       
@@ -862,7 +863,7 @@ void MultiChainTPP::ReferenceDispersionCurves(Vector K,int NoPTS,const char *pre
    int zero=0,one=1,two=2;
    for (int k=2;k<NoPTS;++k)
    {
-      Z = Z1 + (k*dz)*DZ;
+      Z[0] = Z1 + (k*dz)*DZ;
       EigVal[two] = HermiteEigVal(ReferenceDynamicalStiffness(Z));
       qsort(EigVal[two][0],INTERNAL_ATOMS,sizeof(double),&comp);
       interpolate(EigVal,zero,one,two);
@@ -885,16 +886,17 @@ int MultiChainTPP::ReferenceBlochWave(Vector &K)
 {
    static CMatrix A(INTERNAL_ATOMS,INTERNAL_ATOMS);
    static Matrix EigVals(1,INTERNAL_ATOMS);
-   static double InverseLat,Z;
+   static double InverseLat;
+   static Vector Z(1);
 
    for (int i=0;i<K.Dim();++i) K[i]=0.0;
 
    InverseLat = 1.0/RefLattice_[0][0];
 
    // Iterate over points in linear unit cell
-   for (UCIter_.Reset();!UCIter_.Done();++UCIter_)
+   for (ChainIter_.Reset();!ChainIter_.Done();++ChainIter_)
    {
-      K[0] = UCIter_[0];
+      K[0] = ChainIter_[0];
       
       Z = InverseLat*K;
       A = ReferenceDynamicalStiffness(Z);
@@ -980,8 +982,8 @@ void MultiChainTPP::Print(ostream &out,PrintDetail flag)
 
    CondModuli = CondensedModuli();
 
-   CondEV=CondModuli[0][0];
-   RankOneConvex = (CondEV > 0) ? 0 : 1;
+   CondEV=CondModuli;
+   RankOneConvex = (CondEV[0][0] > 0) ? 0 : 1;
 
    K.Resize(1,0.0);
    if (RankOneConvex)

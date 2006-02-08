@@ -74,7 +74,7 @@ public:
    Matrix StressDT() {return stress(PairPotentials::DT);}
    Matrix StiffnessDT() {return stiffness(PairPotentials::DT);}
    double Temp() {return NTemp_;}
-   void SetTemp(const double &Ntemp) {NTemp_ = Ntemp; LatSum_.Recalc();}
+   void SetTemp(const double &Ntemp) {NTemp_ = Ntemp; ChainSum_.Recalc();}
    Matrix StressDL() {return stress(PairPotentials::T0,DL);}
    Matrix StiffnessDL() {return stiffness(PairPotentials::T0,DL);}
    double Lambda() {return Lambda_;}
@@ -83,7 +83,8 @@ public:
    virtual double Energy() {return energy();}
    virtual Matrix Stress() {return stress();}
    virtual Matrix Stiffness() {return stiffness();}
-
+   Matrix CondensedModuli();
+   
    virtual Matrix E3();
    virtual Matrix E4();
    virtual void DispersionCurves(Vector K,int NoPTS,const char *prefix,ostream &out)
@@ -92,7 +93,7 @@ public:
    {return ReferenceBlochWave(K);}
    virtual void LongWavelengthModuli(double dk,int gridsize,const char *prefix,
 				     ostream &out);
-   virtual void SetGridSize(int Grid) {GridSize_=Grid; UCIter_(GridSize_);}
+   virtual void SetGridSize(int Grid) {GridSize_=Grid; ChainIter_(GridSize_);}
    virtual void NeighborDistances(int cutoff,ostream &out);
    virtual void DebugMode();
    virtual void Print(ostream &out,PrintDetail flag);
