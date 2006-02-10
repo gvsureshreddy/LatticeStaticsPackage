@@ -983,7 +983,7 @@ void MultiChainTPP::Print(ostream &out,PrintDetail flag)
    CondModuli = CondensedModuli();
 
    CondEV=CondModuli;
-   RankOneConvex = (CondEV[0][0] > 0) ? 0 : 1;
+   RankOneConvex = (CondEV[0][0] > 0) ? 1 : 0;
 
    K.Resize(1,0.0);
    if (RankOneConvex)
