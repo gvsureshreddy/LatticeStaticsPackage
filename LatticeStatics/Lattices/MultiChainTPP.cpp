@@ -835,7 +835,7 @@ void MultiChainTPP::ReferenceDispersionCurves(Vector K,int NoPTS,const char *pre
 
    double Z1,Z2;
    Z1 = K[0];
-   Z2 = K[1];
+   Z2 = K[3];
 
    Z1 = InverseLat*Z1;
    Z2 = InverseLat*Z2;
@@ -850,8 +850,8 @@ void MultiChainTPP::ReferenceDispersionCurves(Vector K,int NoPTS,const char *pre
       EigVal[k] = HermiteEigVal(ReferenceDynamicalStiffness(Z));
       qsort(EigVal[k][0],INTERNAL_ATOMS,sizeof(double),&comp);
       
-      out << prefix << setw(w) << NTemp_ << setw(w) << k*dz;
-      if (Echo_) cout << prefix << setw(w) << NTemp_ << setw(w) << k*dz;
+      out << prefix << setw(w) << k*dz;
+      if (Echo_) cout << prefix << setw(w) << k*dz;
       for (int i=0;i<INTERNAL_ATOMS;++i)
       {
 	 out << setw(w) << EigVal[k][0][i];
@@ -868,8 +868,8 @@ void MultiChainTPP::ReferenceDispersionCurves(Vector K,int NoPTS,const char *pre
       qsort(EigVal[two][0],INTERNAL_ATOMS,sizeof(double),&comp);
       interpolate(EigVal,zero,one,two);
       
-      out << prefix << setw(w) << NTemp_ << setw(w) << k*dz;
-      if (Echo_) cout << prefix << setw(w) << NTemp_ << setw(w) << k*dz;
+      out << prefix << setw(w) << k*dz;
+      if (Echo_) cout << prefix << setw(w) << k*dz;
       for (int i=0;i<INTERNAL_ATOMS;++i)
       {
 	 out << setw(w) << EigVal[two][0][i];;
@@ -1238,7 +1238,7 @@ void MultiChainTPP::DebugMode()
 	 cout << "CondensedModuli= " << setw(W) << CondensedModuli();
       else if (!strcmp(response,Commands[15]))
       {
-	 Vector K(2,0.0);
+	 Vector K(6,0.0);
 	 int NoPTS;
 	 char prefix[LINELENGTH];
 	 int oldEcho_=Echo_;
