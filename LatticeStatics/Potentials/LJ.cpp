@@ -72,9 +72,11 @@ double LJ::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
 	       break;
 	    case D2T:
 	       val = 4.0*Eps(NTemp,D2T)*(pow(S/r,12.0) - pow(S/r,6.0))
-		  + (24.0/r)*(2.0*Eps(NTemp,DT)*Sigma(NTemp,DT) + E*Sigma(NTemp,D2T))
+		  + (24.0/r)*(2.0*Eps(NTemp,DT)*Sigma(NTemp,DT)
+			      + Eps(NTemp,DT)*Sigma(NTemp,D2T))
 		  *(2.0*pow(S/r,11.0) - pow(S/r,5.0))
-		  + (24*E*pow(Sigma(NTemp,DT),2.0)/r2)*(22.0*pow(S/r,10) - 5.0*pow(S/r,4));
+		  + (24*E*pow(Sigma(NTemp,DT),2.0)/r2)
+		  *(22.0*pow(S/r,10.0) - 5.0*pow(S/r,4.0));
 	       break;
 	    default:
 	       cerr << "Error in LJ::PairPotential" << endl;
@@ -88,9 +90,9 @@ double LJ::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
 	       break;
 	    case DT:
 	       val = -(12.0/pow(r2,1.5))*(Eps(NTemp,DT)*S + E*Sigma(NTemp,DT))
-		  *(2.0*pow(S/r,11) - pow(S/r,5))
+		  *(2.0*pow(S/r,11.0) - pow(S/r,5.0))
 		  - (12.0*E*S*Sigma(NTemp,DT)/pow(r2,2.0))
-		  *(22.0*pow(S/r,10) - 5.0*pow(S/r,4.0));
+		  *(22.0*pow(S/r,10.0) - 5.0*pow(S/r,4.0));
 	       break;
 	    default:
 	       cerr << "Error in LJ::PairPotential -- DY,D2T not programmed" << endl;
@@ -102,14 +104,14 @@ double LJ::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
 	 {
 	    case T0:
 	       val = (18.0*E*S/pow(r2,2.5))*(2.0*pow(S/r,11.0) - pow(S/r,5.0))
-		  +(12.0*E*S*S/pow(r2,3.0))*(22.0*pow(S/r,10.0) - pow(S/r,4.0));
+		  +(6.0*E*S*S/pow(r2,3.0))*(22.0*pow(S/r,10.0) - 5.0*pow(S/r,4.0));
 	       break;
 	    case DT:
 	       val = (18.0/pow(r2,2.5))*(Eps(NTemp,DT)*S + E*Sigma(NTemp,DT))
 		  *(2.0*pow(S/r,11.0) - pow(S/r,5.0))
-		  +(6.0/pow(r2,3.0))*(2.0*Eps(NTemp,DT)*S*S + 7.0*E*S*Sigma(NTemp,DT))
-		  *(22.0*pow(S/r,10) - 5.0*pow(S/r,4))
-		  +(240.0*E*S*S*Sigma(NTemp,DT)/pow(r2,3.5))
+		  +(6.0/pow(r2,3.0))*(Eps(NTemp,DT)*S*S + 5.0*E*S*Sigma(NTemp,DT))
+		  *(22.0*pow(S/r,10.0) - 5.0*pow(S/r,4.0))
+		  +(120.0*E*S*S*Sigma(NTemp,DT)/pow(r2,3.5))
 		  *(11.0*pow(S/r,9.0) - pow(S/r,3.0));
 	       break;
 	    default:
@@ -122,8 +124,8 @@ double LJ::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
 	 {
 	    case T0:
 	       val = (-45.0*E*S/pow(r2,3.5))*(2.0*pow(S/r,11.0) - pow(S/r,5.0))
-		  -(45.0*E*S*S/pow(r2,4.0))*(22.0*pow(S/r,10.0) - 5.0*pow(S/r,4.0))
-		  -(120.0*E*S*S*S/pow(r2,4.5))*(11.0*pow(S/r,9.0) - pow(S/r,3.0));
+		  -(27.0*E*S*S/pow(r2,4.0))*(22.0*pow(S/r,10.0) - 5.0*pow(S/r,4.0))
+		  -(60.0*E*S*S*S/pow(r2,4.5))*(11.0*pow(S/r,9.0) - pow(S/r,3.0));
 	       break;
 	    case DT:
 	       cerr << "D4phi/Dy3DT Not Coded... " << endl;
@@ -139,8 +141,8 @@ double LJ::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
 	 {
 	    case T0:
 	       val = (315.0*E*S/(2.0*pow(r2,4.5)))*(2.0*pow(S/r,11.0) - pow(S/r,5.0))
-		  +(405.0*E*S*S/(2.0*pow(r2,5.0)))*(22.0*pow(S/r,10.0) - 5.0*pow(S/r,4.0))
-		  +(990.0*E*S*S*S/pow(r2,5.5))*(11.0*pow(S/r,9.0) - pow(S/r,3.0))
+		  +(261.0*E*S*S/(2.0*pow(r2,5.0)))*(22.0*pow(S/r,10.0) - 5.0*pow(S/r,4.0))
+		  +(540.0*E*S*S*S/pow(r2,5.5))*(11.0*pow(S/r,9.0) - pow(S/r,3.0))
 		  +(180.0*E*S*S*S*S/pow(r2,6.0))*(33.0*pow(S/r,8.0) - pow(S/r,2.0));
 	       break;
 	    case DT:
