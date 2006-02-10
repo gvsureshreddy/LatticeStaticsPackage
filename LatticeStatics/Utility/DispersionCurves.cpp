@@ -77,8 +77,8 @@ int main(int argc,char *argv[])
       FILE *pipe;
       char format[]=
       {"perl -e '$_=<>;while(! m/^Mode:/){$_=<>;}while(<>){if(/^Temperature/){"\
-       "@fld=split(/:/,$_);print $fld[1];}if(/^DOF/){$_=<>;print $_;}}print"\
-       "\"DONE\\n\";' %s"};
+       "@fld=split(/:/,$_);print $fld[1];}if(/^Lambda/){@fld=split(/:/,$_);print $fld[1];}"\
+       "if(/^DOF/){$_=<>;print $_;}}print \"DONE\\n\";' %s"};
       
       char strng[LINELENGTH];
       char tmp[LINELENGTH];
@@ -91,28 +91,32 @@ int main(int argc,char *argv[])
 	 
 	 pipe = popen(strng,"r");
 	 
-	 double temp;
+	 double temp,lambda;
 	 Vector DOF((Lat->DOF()).Dim());
 	 fscanf(pipe,"%s",tmp);
 	 while (strcmp("DONE",tmp))
 	 {
 	    temp = atof(tmp);
+	    fscanf(pipe,"%lf",&lambda);
 	    for (int j=0;j<DOF.Dim();++j)
 	    {
 	       fscanf(pipe,"%lf",&(DOF[j]));
 	    }
 	    
 	    Lat->SetTemp(temp);
+	    Lat->SetLambda(lambda);
 	    Lat->SetDOF(DOF);
 	    
-	    out << "#" << setw(Width) << temp << endl
+	    out << "# Temp= " << setw(Width) << temp << " Lambda= "
+		<< setw(Width) << lambda << endl
 		<< "#" << setw(Width) << DOF << endl << setw(Width);
-	    if (Echo) cout << "#" << setw(Width) << temp << endl
+	    if (Echo) cout << "# Temp= " << setw(Width) << temp << " Lambda= "
+			   << setw(Width) << lambda << endl
 			   << "#" << setw(Width) << DOF << endl;;
 	    
 	    Lat->DispersionCurves(Line[i],NoPTS,"",out);
-	    out << endl;
-	    if (Echo) cout << endl;
+	    out << endl << endl;
+	    if (Echo) cout << endl << endl;
 	    
 	    fscanf(pipe,"%s",tmp);
 	 }
