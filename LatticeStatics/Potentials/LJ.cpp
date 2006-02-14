@@ -73,7 +73,7 @@ double LJ::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
 	    case D2T:
 	       val = 4.0*Eps(NTemp,D2T)*(pow(S/r,12.0) - pow(S/r,6.0))
 		  + (24.0/r)*(2.0*Eps(NTemp,DT)*Sigma(NTemp,DT)
-			      + Eps(NTemp,DT)*Sigma(NTemp,D2T))
+			      + E*Sigma(NTemp,D2T))
 		  *(2.0*pow(S/r,11.0) - pow(S/r,5.0))
 		  + (24*E*pow(Sigma(NTemp,DT),2.0)/r2)
 		  *(22.0*pow(S/r,10.0) - 5.0*pow(S/r,4.0));
@@ -143,7 +143,7 @@ double LJ::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
 	       val = (315.0*E*S/(2.0*pow(r2,4.5)))*(2.0*pow(S/r,11.0) - pow(S/r,5.0))
 		  +(261.0*E*S*S/(2.0*pow(r2,5.0)))*(22.0*pow(S/r,10.0) - 5.0*pow(S/r,4.0))
 		  +(540.0*E*S*S*S/pow(r2,5.5))*(11.0*pow(S/r,9.0) - pow(S/r,3.0))
-		  +(180.0*E*S*S*S*S/pow(r2,6.0))*(33.0*pow(S/r,8.0) - pow(S/r,2.0));
+		  +(90.0*E*S*S*S*S/pow(r2,6.0))*(33.0*pow(S/r,8.0) - pow(S/r,2.0));
 	       break;
 	    case DT:
 	       cerr << "D5phi/Dy4DT Not Coded... " << endl;

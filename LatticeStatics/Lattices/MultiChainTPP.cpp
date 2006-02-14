@@ -202,7 +202,7 @@ double MultiChainTPP::PI(double *Dx,double *DX)
 
 double MultiChainTPP::PSI(double *DX)
 {
-   return DX[0]*DX[0];
+   return 2.0*DX[0]*DX[0];
 }
 
 double MultiChainTPP::OMEGA(double *Dx,int p,int q,int i)
