@@ -31,7 +31,8 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
       }
       case ArcLen:
       {
-	 int good;
+	 int good = 1;
+	 int count = 0;
 	 Vector One = Mode->ArcLenDef(),
 	    Two = Mode->ArcLenDef();
 
@@ -45,12 +46,22 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
 	       ScanMe.FindNextSolution(good);
 	       if (good)
 	       {
+		  count++;
 		  out << setw(Width) << Lat << "Success = 1" << endl;
 		  Two = Mode->ArcLenDef();
 	       }
 	    }
 
-	    return new ArcLengthSolution(Mode,datafile,"^",One,Two,Echo);
+	    if (count < 2)
+	    {
+	       cout << "Did not find two solutions with Scanning Solutions with "
+		    << "which to initialize ArcLengthSolution." << endl;
+	       exit(-55);
+	    }
+	    else
+	    {
+	       return new ArcLengthSolution(Mode,datafile,"^",One,Two,Echo);
+	    }
 	 }
 	 else
 	 {

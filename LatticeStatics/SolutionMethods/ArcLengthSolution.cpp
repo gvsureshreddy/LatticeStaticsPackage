@@ -245,8 +245,7 @@ double ArcLengthSolution::FindNextSolution(int &good)
 	  && (CurrentDS_ >= DSMin_)
 	  && (Mode_->ArcLenUpdate(Difference_),
 	      Difference_ = OldDiff,
-	      CurrentDS_=CurrentDS_/2.0,
-	      good=1));
+	      CurrentDS_=CurrentDS_/2.0));
 
    if ((AngleTest <= AngleIncrease_) && (CurrentDS_ < DSMax_))
    {
@@ -273,7 +272,8 @@ double ArcLengthSolution::FindNextSolution(int &good)
    {
       CurrentSolution_++;
    }
-   
+
+   // Always have the current "solution" state printed as a solution point
    good = 1;
    
    return uncertainty;
@@ -281,7 +281,6 @@ double ArcLengthSolution::FindNextSolution(int &good)
 
 double ArcLengthSolution::ArcLengthNewton(int &good)
 {
-   int loc_good = 1;
    double uncertainty;
    
    int itr = 0;
@@ -329,10 +328,13 @@ double ArcLengthSolution::ArcLengthNewton(int &good)
    if (itr >= MaxIter_)
    {
       cerr << "Convergence Not Reached!!! -- ArcLengthNewton" << endl;
-      loc_good = 0;
+      good = 0;
+   }
+   else
+   {
+      good = 1;
    }
 
-   good = good && loc_good;
    return uncertainty;
 }
 
@@ -351,7 +353,7 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,char *datafile,const char *prefi
    double OriginalDS = CurrentDS_;
    double CurrentMinEV,OldMinEV;
    double uncertainty;
-   int dummy;
+   int dummy = 1;
    int loops = 0;
    int OldNulity = Lat->StiffnessNulity(&OldMinEV);
    // OriginalNulity is the nulity on the front side of the path being traced

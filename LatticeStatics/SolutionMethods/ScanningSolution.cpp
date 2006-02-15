@@ -216,6 +216,7 @@ double ScanningSolution::FindNextSolution(int &good)
 
    if (iteration >= MaxIter_)
    {
+      good = 0;
       cerr << "Final Convergence Not Reached -- ScanningSolution" << endl;
    }
 
