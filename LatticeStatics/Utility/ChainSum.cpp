@@ -58,6 +58,7 @@ void ChainSum::Initialize()
    F_ = (*DOF_)[0];
 
    V_[0] = 0.0;
+
    for (q=1;q<InternalAtoms_;++q)
    {
       V_[q] = (*DOF_)[q];
@@ -96,10 +97,8 @@ void ChainSum::Initialize()
 	    RelPosDATA_[Pairs_][CHAINSUMatomstart] = p;
 	    RelPosDATA_[Pairs_][CHAINSUMatomstart+1] = q;
 
-	    RelPosDATA_[Pairs_][CHAINSUMdXstart] = 0.0;
-
 	    // "SHIFTED reference position"
-	    RelPosDATA_[Pairs_][CHAINSUMdXstart] +=
+	    RelPosDATA_[Pairs_][CHAINSUMdXstart] =
 	       (X + ((InternalPOS_[q][0] + V_[q])
 		     - (InternalPOS_[p][0] + V_[p])))
 	       *(*RefLattice_)[0][0];

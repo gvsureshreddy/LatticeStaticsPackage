@@ -207,32 +207,34 @@ double MultiChainTPP::PSI(double *DX)
 
 double MultiChainTPP::OMEGA(double *Dx,int p,int q,int i)
 {
-   return 2.0*DOF_[0]*DELTA(i,p,q)*Dx[0];
+   return 2.0*DOF_[0]*RefLattice_[0][0]*DELTA(i,p,q)*Dx[0];
 }
 
 double MultiChainTPP::SIGMA(int p,int q,int i,int j)
 {
-   return 2.0*DOF_[0]*DOF_[0]*DELTA(i,p,q)*DELTA(j,p,q);
+   return 2.0*DOF_[0]*DOF_[0]*RefLattice_[0][0]*DELTA(i,p,q)
+      *RefLattice_[0][0]*DELTA(j,p,q);
 }
 
 double MultiChainTPP::GAMMA(double *Dx,int p,int q,int i)
 {
-   return 4.0*DELTA(i,p,q)*Dx[0];
+   return 4.0*RefLattice_[0][0]*DELTA(i,p,q)*Dx[0];
 }
 
 double MultiChainTPP::THETA(double *DX,int p,int q,int i)
 {
-   return 4.0*DELTA(i,p,q)*DX[0];
+   return 4.0*RefLattice_[0][0]*DELTA(i,p,q)*DX[0];
 }
 
 double MultiChainTPP::XI(int p,int q,int i,int j)
 {
-   return 4.0*DOF_[0]*DELTA(i,p,q)*DELTA(j,p,q);
+   return 4.0*DOF_[0]*RefLattice_[0][0]*DELTA(i,p,q)
+      *RefLattice_[0][0]*DELTA(j,p,q);
 }
 
 double MultiChainTPP::LAMDA(int p,int q,int i,int j)
 {
-   return 4.0*DELTA(i,p,q)*DELTA(j,p,q);
+   return 4.0*RefLattice_[0][0]*DELTA(i,p,q)*RefLattice_[0][0]*DELTA(j,p,q);
 }
 
 
