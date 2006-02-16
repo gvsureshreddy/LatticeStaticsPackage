@@ -52,7 +52,7 @@ void ChainSum::Initialize()
 {
    static double X;
    static double Influancedist,tmp;
-   static int p,q,i,j;
+   static int p,q;
    static int Top,Bottom,CurrentInfluanceDist;
 
    F_ = (*DOF_)[0];

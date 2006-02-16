@@ -1,13 +1,14 @@
 // FCC lattice
 
 // Main Parameters
-MainFieldWidth = 15
+MainFieldWidth = 20
 MainPrecision = 10
-MainBisectCP = No
+MainBisectCP = Yes
 CriticalPoint_T2 = No
+MainEcho = 1
 
 MainLatticeType = MultiLatticeTPP
-MainModeType = ML_Expand
+MainModeType = MultiMode
 MainSolutionMethod = ArcLength
 
 // Lattice Definition
@@ -22,8 +23,7 @@ AtomPosition_2 = "0.5 0.0 0.5"
 AtomPosition_3 = "0.0 0.5 0.5"
 
 // Lattice Parameters
-MaxIterations = 100
-InitializeStepSize = .01
+MaxIterations = 40
 
 Tref = 300
 

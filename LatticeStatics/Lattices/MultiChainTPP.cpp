@@ -290,7 +290,7 @@ Matrix MultiChainTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
    static Matrix S;
    double ForceNorm = 0.0;
    double phi,Vr;
-   int i,j;
+   int i;
 
    S.Resize(1,DOFS,0.0);
 
@@ -518,7 +518,7 @@ Matrix MultiChainTPP::E4()
 {
    static Matrix Phi;
    double phi,phi1,phi2,phi3;
-   int i,j,k,l,m,n,s,t;
+   int i,j,k,m;
 
    Phi.Resize(DOFS*DOFS,DOFS*DOFS,0.0);
 
@@ -785,7 +785,6 @@ CMatrix MultiChainTPP::ReferenceDynamicalStiffness(Vector &K)
    static double pi = 4.0*atan(1.0);
    static complex<double> Ic(0,1);
    static complex<double> A = 2.0*pi*Ic;
-   int i,j;
 
    Dk.Resize(INTERNAL_ATOMS,INTERNAL_ATOMS,0.0);
    
