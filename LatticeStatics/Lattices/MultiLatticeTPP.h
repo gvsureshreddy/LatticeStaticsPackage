@@ -3,6 +3,8 @@
 
 #include "Lattice.h"
 #include "UnitCellIterator.h"
+#include "CBKinematics.h"
+#include "LagrangeCB.h"
 #include "PPSum.h"
 #include "KnownPairPotentials.h"
 #include <CMatrix.h>
@@ -17,7 +19,7 @@ private:
    int INTERNAL_ATOMS;
    int DOFS;
 
-   unsigned InfluanceDist_;
+   unsigned InfluenceDist_;
    double NTemp_;
    // DOF[i] = [U11 U22 U33 U12 U13 U23 V11 V12 V13 V21... ...]
    Vector DOF_;
@@ -36,6 +38,7 @@ private:
    Vector *BodyForce_;
    double *AtomicMass_;
 
+   CBKinematics *CBK_;
    PPSum LatSum_;
 
    UnitCellIterator UCIter_;
@@ -114,22 +117,12 @@ public:
    friend ostream &operator<<(ostream &out,MultiLatticeTPP &A);
 
 private:
-   double PI(double *Dx,double *DX,int r,int s);
-   double PSI(double *DX,int r,int s,int t,int u);
-   double OMEGA(double *Dx,int p,int q,int i, int j);
-   double SIGMA(int p,int q,int i,int j,int k,int l);
-   double GAMMA(double *Dx,double *DX,int p,int q,int i,int j,int k,int l);
-   double THETA(double *DX,int p,int q,int i,int j,int k,int l,int m, int n);
-   double XI(int p,int q,int i,int j,int k,int l,int m,int n);
-   double LAMDA(int p,int q,int i,int j,int k,int l,int m,int n,int a,int b);
-   
    inline int INDU(int i,int j);
    inline int INDV(int i,int j);
    inline int INDUU(int k,int l,int m,int n);
    inline int INDVV(int k,int l,int m,int n);
    inline int INDUV(int i,int j,int m,int n);
    inline int INDVU(int m,int n,int i,int j);
-   inline double DELTA(int s,int p,int q) {return Del(s,q) - Del(s,p);}
    int FindLatticeSpacing(char *datafile,const char *prefix,int iter);
    void RefineEqbm(double Tol,int MaxItr,ostream *out);
    
