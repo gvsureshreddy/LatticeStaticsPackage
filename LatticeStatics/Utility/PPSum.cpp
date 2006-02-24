@@ -6,28 +6,22 @@ int PPSUMind(double i,double j);
 
 using namespace std;
 
-PPSum::PPSum(Vector *DOF,Matrix *RefLat,int InternalAtoms,Vector *InternalPOS,
-	     PairPotentials ***PairPot,unsigned *InfluDist,double *Ntemp)
-   : DOF_(DOF),RefLattice_(RefLat),InternalAtoms_(InternalAtoms),Ntemp_(Ntemp),
-     InternalPOS_(InternalPOS),Potential_(PairPot),InfluanceDist_(InfluDist),
-     U_(3,3),V_(InternalAtoms,3),Recalc_(0),CurrentPOS_(0),Pairs_(0),
+PPSum::PPSum(CBKinematics *CBK,int InternalAtoms,PairPotentials ***PairPot,unsigned *InfluDist,
+	     double *Ntemp)
+   : CBK_(CBK),InternalAtoms_(InternalAtoms),Ntemp_(Ntemp),Potential_(PairPot),
+     InfluenceDist_(InfluDist),Recalc_(0),CurrentPOS_(0),Pairs_(0),
      RelPosDATA_(int(pow(double(2*(*InfluDist)),double(3))*pow(double(InternalAtoms),
 							       double(2))),PPSUMdatalen)
 {
    Initialize();
 }
 
-void PPSum::operator()(Vector *DOF,Matrix *RefLat,int InternalAtoms,
-		       Vector *InternalPOS,PairPotentials ***PairPot,
+void PPSum::operator()(CBKinematics *CBK,int InternalAtoms,PairPotentials ***PairPot,
 		       unsigned *InfluDist,double *Ntemp)
 {
-   DOF_ = DOF;
-   RefLattice_ = RefLat;
+   CBK_=CBK;
    InternalAtoms_= InternalAtoms;
-   InternalPOS_ = InternalPOS;
-   InfluanceDist_ = InfluDist;
-   U_.Resize(3,3);
-   V_.Resize(InternalAtoms,3);
+   InfluenceDist_ = InfluDist;
    Recalc_ = 0;
    CurrentPOS_ = 0;
    Pairs_ = 0;
@@ -54,52 +48,15 @@ void PPSum::Reset()
 
 void PPSum::Initialize()
 {
-   static Matrix Eigvals(1,3);
    static double X[3];
-   static double Influancedist[3],tmp;
-   static int p,q,i,j;
-   static int Top[3],Bottom[3],CurrentInfluanceDist;
+   static double Influencedist[3],tmp;
+   static int p,q,i;
+   static int Top[3],Bottom[3],CurrentInfluenceDist;
 
-   U_[0][0] = (*DOF_)[0];
-   U_[1][1] = (*DOF_)[1];
-   U_[2][2] = (*DOF_)[2];
-   U_[0][1] = U_[1][0] = (*DOF_)[3];
-   U_[0][2] = U_[2][0] = (*DOF_)[4];
-   U_[1][2] = U_[2][1] = (*DOF_)[5];
-
-   V_[0][0] = 0.0;
-   V_[0][1] = 0.0;
-   V_[0][2] = 0.0;
-   i=6;
-   for (q=1;q<InternalAtoms_;++q)
-   {
-      for (p=0;p<3;p++)
-      {
-	 V_[q][p] = (*DOF_)[i++];
-      }
-   }
-
-   // find largest eigenvalue of the inverse transformation
-   // (i.e. from current to ref) and use influence cube of
-   // that size...
-   //
-   // Use the fact that eigs of Uinv = 1/ eigs of U.
-   //
-   // Use U_*RefLattice_ as def grad.  This takes an
-   // orthonormal lattice to the current config.
-   // Thus, allowing non-square unit cells....
-   //
-   // Use F*F^T and take sqrt of eigvecs.
-   Eigvals = SymEigVal(U_*(*RefLattice_)*((U_*(*RefLattice_)).Transpose()));
-   tmp = sqrt(Eigvals[0][0]);
-   for (i=0;i<3;i++)
-      if (sqrt(Eigvals[0][i]) < tmp) tmp = sqrt(Eigvals[0][i]);
-   
-   // Set to inverse eigenvalue
-   tmp = 1.0/tmp;
+   CBK_->InfluenceRegion(Influencedist);
    for (i=0;i<3;i++)
    {
-      Influancedist[i]=tmp*(*InfluanceDist_);
+      Influencedist[i] *= (*InfluenceDist_);
    }
 
    tmp = 1;
@@ -108,11 +65,11 @@ void PPSum::Initialize()
       // set influance distance based on cube size
       //
       // also setup to be large enough to encompass Eulerian sphere
-      CurrentInfluanceDist = int(ceil(Influancedist[p]));
-      tmp *= 2.0*CurrentInfluanceDist;
+      CurrentInfluenceDist = int(ceil(Influencedist[p]));
+      tmp *= 2.0*CurrentInfluenceDist;
 
-      Top[p] = CurrentInfluanceDist;
-      Bottom[p] = -CurrentInfluanceDist;
+      Top[p] = CurrentInfluenceDist;
+      Bottom[p] = -CurrentInfluenceDist;
    }
 
    // set tmp to the number of pairs in the cube to be scanned
@@ -142,35 +99,19 @@ void PPSum::Initialize()
 
 		  for (i=0;i<3;i++)
 		  {
-		     RelPosDATA_[Pairs_][PPSUMdXstart+i] = 0.0;
-
-		     // "SHIFTED reference position"
-		     for (j=0;j<3;j++)
-		     {
-			RelPosDATA_[Pairs_][PPSUMdXstart+i] +=
-			   (X[j] + ((InternalPOS_[q][j] + V_[q][j])
-				    - (InternalPOS_[p][j] + V_[p][j])))
-			   *(*RefLattice_)[j][i];
-
-		     }
+		     RelPosDATA_[Pairs_][PPSUMdXstart+i] = CBK_->DX(X,p,q,i);
 		  }
 		  RelPosDATA_[Pairs_][PPSUMr2start] = 0.0;
 		  for (i=0;i<3;i++)
 		  {
-		     RelPosDATA_[Pairs_][PPSUMdxstart+i] = 0.0;
-
-		     for (j=0;j<3;j++)
-		     {
-			RelPosDATA_[Pairs_][PPSUMdxstart+i]
-			   += U_[i][j] * RelPosDATA_[Pairs_][PPSUMdXstart+j];
-		     }
+		     RelPosDATA_[Pairs_][PPSUMdxstart+i] = CBK_->Dx(X,p,q,i);
 		     RelPosDATA_[Pairs_][PPSUMr2start]
 			+= RelPosDATA_[Pairs_][PPSUMdxstart+i]*RelPosDATA_[Pairs_][PPSUMdxstart+i];
 		  }
-		  // Only use Sphere of Influance (current)
+		  // Only use Sphere of Influence (current)
 		  if ((RelPosDATA_[Pairs_][PPSUMr2start] != 0) &&
 		      (RelPosDATA_[Pairs_][PPSUMr2start]
-		       <= (*InfluanceDist_)*(*InfluanceDist_)))
+		       <= (*InfluenceDist_)*(*InfluenceDist_)))
 		  {
 		     // calculate phi1 and phi2
 		     RelPosDATA_[Pairs_][PPSUMphi1start] = Potential_[p][q]->PairPotential(

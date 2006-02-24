@@ -6,3 +6,7 @@ PPSum.d
 Rank1Convex.d
 UnitCellIterator.d
 UtilityFunctions.d
+CBKinematics.d
+ChainIterator.d
+ChainSum.d
+LagrangeCB.d
