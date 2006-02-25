@@ -149,9 +149,19 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
    if(!GetParameter(prefix,"MaxIterations",datafile,"%u",&iter)) exit(-1);
    if(!GetParameter(prefix,"BlochWaveGridSize",datafile,"%u",&GridSize_)) exit(-1);
 
-   // Initiate the CBK object
-   CBK_=new LagrangeCB(&DOF_,&RefLattice_,INTERNAL_ATOMS,AtomPositions_);
-
+   // Initiate the CBK object (default to LagrangeCB)
+   const char *CBKin[] = {"LagrangeCB","EulerCB"};
+   switch (GetStringParameter(prefix,"CBKinematics",datafile,CBKin,2,0))
+   {
+      case 1:
+	 CBK_ = new EulerCB(&DOF_,&RefLattice_,INTERNAL_ATOMS,AtomPositions_);
+	 break;
+      case 0:
+      default:
+	 CBK_ = new LagrangeCB(&DOF_,&RefLattice_,INTERNAL_ATOMS,AtomPositions_);
+	 break;
+   }
+   
    // Initiate the Lattice Sum object
    LatSum_(CBK_,INTERNAL_ATOMS,Potential_,&InfluenceDist_,&NTemp_);
 
@@ -1607,6 +1617,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
    {
       case PrintLong:
 	 out << "MultiLatticeTPP:" << endl << endl;
+	 out << "Using: " << (*CBK_) << " Kinematics" << endl;
 	 out << "RefLattice_ : " << setw(W) << RefLattice_;
 	 for (int i=0;i<INTERNAL_ATOMS;++i)
 	 {
@@ -1633,13 +1644,14 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 	    }
 	 }
 	 out << "Normalization Modulus : " << setw(W) << NormModulus_ << endl;
-	 cout << "EulerAngles : " << setw(W) << EulerAng_[0]
-	      << setw(W) << EulerAng_[1] << setw(W) << EulerAng_[2] << endl;
+	 out << "EulerAngles : " << setw(W) << EulerAng_[0]
+	     << setw(W) << EulerAng_[1] << setw(W) << EulerAng_[2] << endl;
 	 out << "Loading Proportions : " << setw(W) << LoadingProportions_ << endl;
 	 // also send to cout
 	 if (Echo_)
 	 {
 	    cout << "MultiLatticeTPP:" << endl << endl;
+	    cout << "Using: " << (*CBK_) << " Kinematics" << endl;
 	    cout << "RefLattice_ : " << setw(W) << RefLattice_;
 	    for (int i=0;i<INTERNAL_ATOMS;++i)
 	    {

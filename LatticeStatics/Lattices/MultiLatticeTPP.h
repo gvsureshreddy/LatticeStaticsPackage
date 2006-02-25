@@ -5,6 +5,7 @@
 #include "UnitCellIterator.h"
 #include "CBKinematics.h"
 #include "LagrangeCB.h"
+#include "EulerCB.h"
 #include "PPSum.h"
 #include "KnownPairPotentials.h"
 #include <CMatrix.h>
