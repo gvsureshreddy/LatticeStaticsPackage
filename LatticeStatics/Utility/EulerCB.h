@@ -26,6 +26,9 @@ public:
    virtual double D3yDUUS(double *DX,int p,int q,int i,int j,int k,int l,int m,int n);
    virtual double D3yDUSS(int p,int q,int i,int j,int k,int l,int m,int n);
    virtual double D4yDUUSS(int p,int q,int i,int j,int k,int l,int m,int n,int a,int b);
+
+   virtual char *IDString() {return "EulerCB";}
+
 };
 
 #endif

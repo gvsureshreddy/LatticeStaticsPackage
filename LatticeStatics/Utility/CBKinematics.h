@@ -18,7 +18,7 @@ public:
    Vector *InternalPOS_;
 
    Matrix U_;
-   Matrix V_;
+   Matrix S_;
    
    virtual ~CBKinematics() {};
 
@@ -40,6 +40,10 @@ public:
 
    inline double Del(int i,int j) {return i==j;}
    inline double DELTA(int s,int p,int q) {return Del(s,q) - Del(s,p);}
+
+   virtual char *IDString() = 0;
+   friend ostream &operator<<(ostream &out,CBKinematics &CBK)
+   {out << CBK.IDString(); return out;}
 };
 
 #endif

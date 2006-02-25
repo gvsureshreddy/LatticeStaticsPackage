@@ -7,7 +7,7 @@ LagrangeCB::LagrangeCB(Vector *DOF,Matrix *RefLat,int InternalAtoms,Vector *Inte
    InternalAtoms_=InternalAtoms;
    InternalPOS_=InternalPOS;
    U_.Resize(DIM3,DIM3);
-   V_.Resize(InternalAtoms,DIM3);
+   S_.Resize(InternalAtoms,DIM3);
    Reset();
 }
 
@@ -17,8 +17,8 @@ double LagrangeCB::DX(double *X,int p,int q,int i)
 
    for (int j=0;j<DIM3;++j)
    {
-      tmp += (X[j] + ((InternalPOS_[q][j] + V_[q][j])
-		      - (InternalPOS_[p][j] + V_[p][j])))
+      tmp += (X[j] + ((InternalPOS_[q][j] + S_[q][j])
+		      - (InternalPOS_[p][j] + S_[p][j])))
 	 *(*RefLattice_)[j][i];
    }
 
@@ -30,12 +30,9 @@ double LagrangeCB::Dx(double *X,int p,int q,int i)
    double tmp=0.0;
 
    for (int k=0;k<DIM3;++k)
-      for (int j=0;j<DIM3;++j)
-      {
-	 tmp += U_[i][k]*(X[j] + ((InternalPOS_[q][j] + V_[q][j])
-				  - (InternalPOS_[p][j] + V_[p][j])))
-	    *(*RefLattice_)[j][k];
-      }
+   {
+      tmp += U_[i][k]*DX(X,p,q,k);
+   }
    
    return tmp;
 }
