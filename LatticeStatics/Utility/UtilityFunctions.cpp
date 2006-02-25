@@ -179,7 +179,7 @@ int GetStringParameter(const char *prefix,const char *tag,const char *datafile,
 {
    int i;
    char strng[LINELENGTH];
-   if (!GetParameter(prefix,tag,datafile,"%s",strng,DispErr)) exit(-1);
+   if (!GetParameter(prefix,tag,datafile,"%s",strng,DispErr)) return -1;
    for (i=numb-1;i>=0;i--)
    {
       if (!strcasecmp(strng,choices[i]))
