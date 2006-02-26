@@ -49,17 +49,17 @@ double EulerCB::D2yDUU(double *DX,int r, int s, int t, int u)
 
 double EulerCB::DyDS(double *Dx,int p,int q,int i, int j)
 {
-   return DELTA(i,p,q)*Dx[j];
+   return 2.0*DELTA(i,p,q)*Dx[j];
 }
 
 double EulerCB::D2yDSS(int p,int q,int i,int j,int k,int l)
 {
-   return DELTA(i,p,q)*DELTA(k,p,q)*Del(j,l);
+   return 2.0*DELTA(i,p,q)*DELTA(k,p,q)*Del(j,l);
 }
 
 double EulerCB::D2yDUS(double *Dx,double *DX,int p,int q,int i,int j,int k,int l)
 {
-   return DELTA(k,p,q)*(Del(i,l)*Dx[j] + Del(j,l)*Dx[i]);
+   return DELTA(k,p,q)*(Del(i,l)*DX[j] + Del(j,l)*DX[i]);
 }
 
 double EulerCB::D3yDUUS(double *DX,int p,int q,int i,int j,int k,int l,int m, int n)
