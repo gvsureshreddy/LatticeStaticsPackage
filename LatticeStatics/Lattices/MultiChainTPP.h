@@ -21,6 +21,7 @@ private:
    double NTemp_;
    // DOF[i] = [F S1 S2 S3 ...]
    Vector DOF_;
+   int LagrangeCB_;
    Matrix RefLattice_;
    double NormModulus_;
    double Tref_;
@@ -111,7 +112,7 @@ private:
    double PSI(double *DX);
    double OMEGA(double *Dx,int p,int q,int i);
    double SIGMA(int p,int q,int i,int j);
-   double GAMMA(double *Dx,int p,int q,int i);
+   double GAMMA(double *Dx,double *DX,int p,int q,int i);
    double THETA(double *DX,int p,int q,int i);
    double XI(int p,int q,int i,int j);
    double LAMDA(int p,int q,int i,int j);

@@ -6,21 +6,23 @@ int CHAINSUMind(double i,double j);
 
 using namespace std;
 
-ChainSum::ChainSum(Vector *DOF,Matrix *RefLat,int InternalAtoms,Vector *InternalPOS,
-	     PairPotentials ***PairPot,unsigned *InfluDist,double *Ntemp)
-   : DOF_(DOF),RefLattice_(RefLat),InternalAtoms_(InternalAtoms),Ntemp_(Ntemp),
-     InternalPOS_(InternalPOS),Potential_(PairPot),InfluanceDist_(InfluDist),
+ChainSum::ChainSum(Vector *DOF,int LagrangeCB,Matrix *RefLat,int InternalAtoms,
+		   Vector *InternalPOS,PairPotentials ***PairPot,unsigned *InfluDist,
+		   double *Ntemp)
+   : DOF_(DOF),LagrangeCB_(LagrangeCB),RefLattice_(RefLat),InternalAtoms_(InternalAtoms),
+     Ntemp_(Ntemp),InternalPOS_(InternalPOS),Potential_(PairPot),InfluanceDist_(InfluDist),
      V_(InternalAtoms),Recalc_(0),CurrentPOS_(0),Pairs_(0),
      RelPosDATA_(int(2*(*InfluDist)*InternalAtoms*InternalAtoms),CHAINSUMdatalen)
 {
    Initialize();
 }
 
-void ChainSum::operator()(Vector *DOF,Matrix *RefLat,int InternalAtoms,
+void ChainSum::operator()(Vector *DOF,int LagrangeCB,Matrix *RefLat,int InternalAtoms,
 		       Vector *InternalPOS,PairPotentials ***PairPot,
 		       unsigned *InfluDist,double *Ntemp)
 {
    DOF_ = DOF;
+   LagrangeCB_ = LagrangeCB;
    RefLattice_ = RefLat;
    InternalAtoms_= InternalAtoms;
    InternalPOS_ = InternalPOS;
@@ -97,13 +99,29 @@ void ChainSum::Initialize()
 	    RelPosDATA_[Pairs_][CHAINSUMatomstart] = p;
 	    RelPosDATA_[Pairs_][CHAINSUMatomstart+1] = q;
 
-	    // "SHIFTED reference position"
-	    RelPosDATA_[Pairs_][CHAINSUMdXstart] =
-	       (X + ((InternalPOS_[q][0] + V_[q])
-		     - (InternalPOS_[p][0] + V_[p])))
-	       *(*RefLattice_)[0][0];
-	    
-	    RelPosDATA_[Pairs_][CHAINSUMdxstart] = F_ * RelPosDATA_[Pairs_][CHAINSUMdXstart];
+	    // reference position
+	    if (LagrangeCB_)
+	    {
+	       RelPosDATA_[Pairs_][CHAINSUMdXstart] =
+		  (X + ((InternalPOS_[q][0] + V_[q])
+			- (InternalPOS_[p][0] + V_[p])))
+		  *(*RefLattice_)[0][0];
+	    }
+	    else
+	    {
+	       RelPosDATA_[Pairs_][CHAINSUMdXstart] =
+		  (X + InternalPOS_[q][0] - InternalPOS_[p][0])*(*RefLattice_)[0][0];
+	    }
+
+	    if (LagrangeCB_)
+	    {
+	       RelPosDATA_[Pairs_][CHAINSUMdxstart] = F_ * RelPosDATA_[Pairs_][CHAINSUMdXstart];
+	    }
+	    else
+	    {
+	       RelPosDATA_[Pairs_][CHAINSUMdxstart] = F_ * RelPosDATA_[Pairs_][CHAINSUMdXstart]
+		  + V_[q] - V_[p];
+	    }
 	    RelPosDATA_[Pairs_][CHAINSUMr2start] =
 	       RelPosDATA_[Pairs_][CHAINSUMdxstart]*RelPosDATA_[Pairs_][CHAINSUMdxstart];
 

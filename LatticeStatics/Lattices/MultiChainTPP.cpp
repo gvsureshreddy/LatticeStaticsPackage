@@ -107,10 +107,23 @@ MultiChainTPP::MultiChainTPP(char *datafile,const char *prefix,int Echo,int Widt
    int iter;
    if(!GetParameter(prefix,"MaxIterations",datafile,"%u",&iter)) exit(-1);
    if(!GetParameter(prefix,"BlochWaveGridSize",datafile,"%u",&GridSize_)) exit(-1);
+
+   //set LagrangeCB_
+   const char *CBKin[] = {"LagrangeCB","EulerCB"};
+   switch (GetStringParameter(prefix,"CBKinematics",datafile,CBKin,2,0))
+   {
+      case 1:
+	 LagrangeCB_ = 0;
+	 break;
+      case 0:
+      default:
+	 LagrangeCB_ = 1;
+	 break;
+   }
    
    // Initiate the Lattice Sum object
-   ChainSum_(&DOF_,&RefLattice_,INTERNAL_ATOMS,AtomPositions_,Potential_,&InfluanceDist_,
-	   &NTemp_);
+   ChainSum_(&DOF_,LagrangeCB_,&RefLattice_,INTERNAL_ATOMS,AtomPositions_,Potential_,
+	     &InfluanceDist_,&NTemp_);
 
    int err=0;
    err=FindLatticeSpacing(datafile,prefix,iter);
@@ -207,34 +220,44 @@ double MultiChainTPP::PSI(double *DX)
 
 double MultiChainTPP::OMEGA(double *Dx,int p,int q,int i)
 {
-   return 2.0*DOF_[0]*RefLattice_[0][0]*DELTA(i,p,q)*Dx[0];
+   return LagrangeCB_ ?
+      2.0*DOF_[0]*RefLattice_[0][0]*DELTA(i,p,q)*Dx[0] :
+      2.0*DELTA(i,p,q)*Dx[0];
 }
 
 double MultiChainTPP::SIGMA(int p,int q,int i,int j)
 {
-   return 2.0*DOF_[0]*DOF_[0]*RefLattice_[0][0]*DELTA(i,p,q)
-      *RefLattice_[0][0]*DELTA(j,p,q);
+   return LagrangeCB_ ?
+      2.0*DOF_[0]*DOF_[0]*RefLattice_[0][0]*DELTA(i,p,q)*RefLattice_[0][0]*DELTA(j,p,q) :
+      2.0*DELTA(i,p,q)*DELTA(j,p,q);
 }
 
-double MultiChainTPP::GAMMA(double *Dx,int p,int q,int i)
+double MultiChainTPP::GAMMA(double *Dx,double *DX,int p,int q,int i)
 {
-   return 4.0*RefLattice_[0][0]*DELTA(i,p,q)*Dx[0];
+   return LagrangeCB_ ?
+      4.0*RefLattice_[0][0]*DELTA(i,p,q)*Dx[0] :
+      2.0*DELTA(i,p,q)*DX[0];
 }
 
 double MultiChainTPP::THETA(double *DX,int p,int q,int i)
 {
-   return 4.0*RefLattice_[0][0]*DELTA(i,p,q)*DX[0];
+   return LagrangeCB_ ?
+      4.0*RefLattice_[0][0]*DELTA(i,p,q)*DX[0] :
+      0.0;
 }
 
 double MultiChainTPP::XI(int p,int q,int i,int j)
 {
-   return 4.0*DOF_[0]*RefLattice_[0][0]*DELTA(i,p,q)
-      *RefLattice_[0][0]*DELTA(j,p,q);
+   return LagrangeCB_ ?
+      4.0*DOF_[0]*RefLattice_[0][0]*DELTA(i,p,q)*RefLattice_[0][0]*DELTA(j,p,q) :
+      0.0;
 }
 
 double MultiChainTPP::LAMDA(int p,int q,int i,int j)
 {
-   return 4.0*RefLattice_[0][0]*DELTA(i,p,q)*RefLattice_[0][0]*DELTA(j,p,q);
+   return LagrangeCB_ ?
+      4.0*RefLattice_[0][0]*DELTA(i,p,q)*RefLattice_[0][0]*DELTA(j,p,q) :
+      0.0;
 }
 
 
@@ -418,7 +441,8 @@ Matrix MultiChainTPP::stiffness(PairPotentials::TDeriv dt,LDeriv dl)
 	    Phi[0][i] = Phi[i][0] +=
 	       phi*(PI(ChainSum_.pDx(),ChainSum_.pDX())
 		    *OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i))
-	       +phi1*GAMMA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i);
+	       +phi1*GAMMA(ChainSum_.pDx(),ChainSum_.pDX(),
+			   ChainSum_.Atom(0),ChainSum_.Atom(1),i);
 	 }
       }
       Phi *= 1.0/(2.0*(RefLattice_.Det()*NormModulus_));
@@ -481,9 +505,9 @@ Matrix MultiChainTPP::E3()
 		 *PI(ChainSum_.pDx(),ChainSum_.pDX())
 		 *OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i))
 	    +phi1*(PI(ChainSum_.pDx(),ChainSum_.pDX())
-		   *GAMMA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
+		   *GAMMA(ChainSum_.pDx(),ChainSum_.pDX(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
 		   + PI(ChainSum_.pDx(),ChainSum_.pDX())
-		   *GAMMA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
+		   *GAMMA(ChainSum_.pDx(),ChainSum_.pDX(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
 		   + OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
 		   *PSI(ChainSum_.pDX()))
 	    +phi2*THETA(ChainSum_.pDX(),ChainSum_.Atom(0),ChainSum_.Atom(1),i));
@@ -498,9 +522,11 @@ Matrix MultiChainTPP::E3()
 		       *OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),j)
 		       *PI(ChainSum_.pDx(),ChainSum_.pDX()))
 		  +phi1*(OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
-			 *GAMMA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),j)
+			 *GAMMA(ChainSum_.pDx(),ChainSum_.pDX(),
+				ChainSum_.Atom(0),ChainSum_.Atom(1),j)
 			 + OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),j)
-			 *GAMMA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
+			 *GAMMA(ChainSum_.pDx(),ChainSum_.pDX(),
+				ChainSum_.Atom(0),ChainSum_.Atom(1),i)
 			 + PI(ChainSum_.pDx(),ChainSum_.pDX())
 			 *SIGMA(ChainSum_.Atom(0),ChainSum_.Atom(1),i,j))
 		  +phi2*XI(ChainSum_.Atom(0),ChainSum_.Atom(1),i,j));
@@ -595,14 +621,14 @@ Matrix MultiChainTPP::E4()
 	    +phi1*(
 	       3.0*PI(ChainSum_.pDx(),ChainSum_.pDX())
 	       *PI(ChainSum_.pDx(),ChainSum_.pDX())
-	       *GAMMA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
+	       *GAMMA(ChainSum_.pDx(),ChainSum_.pDX(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
 	       +3.0*PI(ChainSum_.pDx(),ChainSum_.pDX())
 	       *OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
 	       *PSI(ChainSum_.pDX()))
 	    +phi2*(
 	       3.0*PI(ChainSum_.pDx(),ChainSum_.pDX())
 	       *THETA(ChainSum_.pDX(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
-	       +3.0*GAMMA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
+	       +3.0*GAMMA(ChainSum_.pDx(),ChainSum_.pDX(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
 	       *PSI(ChainSum_.pDX())));
       }
       // DV^3DU blocks
@@ -620,13 +646,16 @@ Matrix MultiChainTPP::E4()
 		     +phi1*(
 			OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
 			*OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),j)
-			*GAMMA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),k)
+			*GAMMA(ChainSum_.pDx(),ChainSum_.pDX(),
+			       ChainSum_.Atom(0),ChainSum_.Atom(1),k)
 			+ OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
 			*OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),k)
-			*GAMMA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),j)
+			*GAMMA(ChainSum_.pDx(),ChainSum_.pDX(),
+			       ChainSum_.Atom(0),ChainSum_.Atom(1),j)
 			+ OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),j)
 			*OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),k)
-			*GAMMA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
+			*GAMMA(ChainSum_.pDx(),ChainSum_.pDX(),
+			       ChainSum_.Atom(0),ChainSum_.Atom(1),i)
 			+ OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
 			*PI(ChainSum_.pDx(),ChainSum_.pDX())
 			*SIGMA(ChainSum_.Atom(0),ChainSum_.Atom(1),j,k)
@@ -644,11 +673,14 @@ Matrix MultiChainTPP::E4()
 			+ OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),k)
 			*XI(ChainSum_.Atom(0),ChainSum_.Atom(1),i,j)
 			+ SIGMA(ChainSum_.Atom(0),ChainSum_.Atom(1),i,j)
-			*GAMMA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),k)
+			*GAMMA(ChainSum_.pDx(),ChainSum_.pDX(),
+			       ChainSum_.Atom(0),ChainSum_.Atom(1),k)
 			+ SIGMA(ChainSum_.Atom(0),ChainSum_.Atom(1),i,k)
-			*GAMMA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),j)
+			*GAMMA(ChainSum_.pDx(),ChainSum_.pDX(),
+			       ChainSum_.Atom(0),ChainSum_.Atom(1),j)
 			+ SIGMA(ChainSum_.Atom(0),ChainSum_.Atom(1),j,k)
-			*GAMMA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)));
+			*GAMMA(ChainSum_.pDx(),ChainSum_.pDX(),
+			       ChainSum_.Atom(0),ChainSum_.Atom(1),i)));
 	    }
       // DU^2DV^2 blocks
       for (i=1;i<INTERNAL_ATOMS;i++)
@@ -669,10 +701,12 @@ Matrix MultiChainTPP::E4()
 		     *SIGMA(ChainSum_.Atom(0),ChainSum_.Atom(1),i,j)
 		     + 2.0*PI(ChainSum_.pDx(),ChainSum_.pDX())
 		     *OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
-		     *GAMMA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),j)
+		     *GAMMA(ChainSum_.pDx(),ChainSum_.pDX(),
+			    ChainSum_.Atom(0),ChainSum_.Atom(1),j)
 		     + 2.0*PI(ChainSum_.pDx(),ChainSum_.pDX())
 		     *OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),j)
-		     *GAMMA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
+		     *GAMMA(ChainSum_.pDx(),ChainSum_.pDX(),
+			    ChainSum_.Atom(0),ChainSum_.Atom(1),i)
 		     + OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
 		     *OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),j)
 		     *PSI(ChainSum_.pDX()))
@@ -683,8 +717,10 @@ Matrix MultiChainTPP::E4()
 		     *THETA(ChainSum_.pDX(),ChainSum_.Atom(0),ChainSum_.Atom(1),j)
 		     + OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),j)
 		     *THETA(ChainSum_.pDX(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
-		     + 2.0*GAMMA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
-		     *GAMMA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),j)
+		     + 2.0*GAMMA(ChainSum_.pDx(),ChainSum_.pDX(),
+				 ChainSum_.Atom(0),ChainSum_.Atom(1),i)
+		     *GAMMA(ChainSum_.pDx(),ChainSum_.pDX(),
+			    ChainSum_.Atom(0),ChainSum_.Atom(1),j)
 		     + SIGMA(ChainSum_.Atom(0),ChainSum_.Atom(1),i,j)
 		     *PSI(ChainSum_.pDX()))
 		  +phi3*LAMDA(ChainSum_.Atom(0),ChainSum_.Atom(1),i,j));
@@ -1001,6 +1037,7 @@ void MultiChainTPP::Print(ostream &out,PrintDetail flag)
    {
       case PrintLong:
 	 out << "MultiChainTPP:" << endl << endl;
+	 out << "LagrangeCB: " << LagrangeCB_ << endl;
 	 out << "RefLattice_ : " << setw(W) << RefLattice_;
 	 for (int i=0;i<INTERNAL_ATOMS;++i)
 	 {
@@ -1031,6 +1068,7 @@ void MultiChainTPP::Print(ostream &out,PrintDetail flag)
 	 if (Echo_)
 	 {
 	    cout << "MultiChainTPP:" << endl << endl;
+	    cout << "LagrangeCB: " << LagrangeCB_ << endl;
 	    cout << "RefLattice_ : " << setw(W) << RefLattice_;
 	    for (int i=0;i<INTERNAL_ATOMS;++i)
 	    {

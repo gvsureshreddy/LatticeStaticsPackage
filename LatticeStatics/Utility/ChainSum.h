@@ -20,6 +20,7 @@ private:
    int Recalc_;
    unsigned *InfluanceDist_;
    Vector *DOF_;
+   int LagrangeCB_;
    Matrix *RefLattice_;
    int InternalAtoms_;
    Vector *InternalPOS_;
@@ -37,11 +38,12 @@ private:
    
 public:
    ChainSum() {}
-   ChainSum(Vector *DOF,Matrix *RefLat,int InternalAtoms,Vector *InternalPOS,
-	 PairPotentials ***PairPot,unsigned *InfluDist,double *Ntemp);
+   ChainSum(Vector *DOF,int LagrangeCB,Matrix *RefLat,int InternalAtoms,
+	    Vector *InternalPOS,PairPotentials ***PairPot,unsigned *InfluDist,
+	    double *Ntemp);
    ~ChainSum() {}
 
-   void operator()(Vector *DOF,Matrix *RefLat,int InternalAtoms,
+   void operator()(Vector *DOF,int LagrangeCB,Matrix *RefLat,int InternalAtoms,
 		   Vector *InternalPOS,PairPotentials ***PairPot,
 		   unsigned *InfluDist,double *Ntemp);
 
