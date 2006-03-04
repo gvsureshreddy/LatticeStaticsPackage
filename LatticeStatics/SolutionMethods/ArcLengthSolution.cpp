@@ -356,20 +356,22 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,char *datafile,const char *prefi
    int dummy = 1;
    int loops = 0;
    int OldNulity = Lat->StiffnessNulity(&OldMinEV);
-   // OriginalNulity is the nulity on the front side of the path being traced
-   int OriginalNulity = OldNulity; 
+   // RigthhandNulity is the nulity on the front side of the path being traced
+   int RighthandNulity = OldNulity; 
    int CurrentNulity;
 
    // Set Lattice back to previous solution
    Mode_->ArcLenUpdate(Difference_);
    CurrentNulity = Lat->StiffnessNulity(&CurrentMinEV);
+   // LefthandNulity is the nulity on the back side of the path being traced
+   int LefthandNulity = CurrentNulity;
 
    if (Echo_) cout << "\t" << setw(Width) << OldNulity << setw(Width) << OldMinEV
 		  << " DS " << setw(Width) << CurrentDS_ << endl;
    
    // Find bifurcation point and make sure we are on the back side edge
    while (((fabs(CurrentMinEV) > BisectTolerance)
-	   || (CurrentNulity == OriginalNulity))
+	   || (CurrentNulity == RighthandNulity))
 	  && (loops < MaxIter_))
    {
       if (Echo_) cout << setw(Width) << CurrentNulity
@@ -414,8 +416,10 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,char *datafile,const char *prefi
    if (Echo_) cout << endl; out << endl;
 
    // Call Lattice function to do any Lattice Specific things
-   Lat->CriticalPointInfo(Mode_->DrDt(Difference_),BisectTolerance,datafile,
-			  prefix,Width,out);
+   //  abs(RighthandNulity - LefthandNulity) is the number of zero eigenvalues
+   //  in a perfect situation. should check to see if this is found to be true.
+   Lat->CriticalPointInfo(Mode_->DrDt(Difference_),abs(RighthandNulity-LefthandNulity),
+			  BisectTolerance,datafile,prefix,Width,out);
 
    if (Echo_) cout << "Success = 1" << endl;
    out << "Success = 1" << endl;

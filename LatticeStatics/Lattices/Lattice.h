@@ -52,8 +52,8 @@ public:
 				     ostream &out) {};
    virtual void SetGridSize(int Grid) = 0;
    virtual void NeighborDistances(int cutoff,ostream &out) {};
-   virtual void CriticalPointInfo(const Vector &DrDt,double Tolerance,
-				  char *datafile,const char *prefix,
+   virtual void CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
+				  double Tolerance,char *datafile,const char *prefix,
 				  int Width,ostream &out);
    void ConsistencyCheck(double ConsistencyEpsilon,int Width,ostream &out);
    virtual void DebugMode() {};

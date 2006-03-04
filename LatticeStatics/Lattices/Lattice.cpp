@@ -26,8 +26,8 @@ int Lattice::StiffnessNulity(double *Min)
    return NoNegEigVal;
 }
 
-void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
-				char *datafile,const char *prefix,
+void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
+				double Tolerance,char *datafile,const char *prefix,
 				int Width,ostream &out)
 {
 
@@ -80,23 +80,55 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,double Tolerance,
       }
    }
 
-   // Check for zero modes
-   if (count == 0)
+   // Check for incorrect number of modes
+   if (count != NumZeroEigenVals)
    {
-      count = 1;
-      Ind[0] = 0;
-      for (int i=1;i<dofs;++i)
+      int originalcount = count;
+      int skp;
+      for (int j=count;j<NumZeroEigenVals;++j)
       {
-	 if (fabs(EigVal[0][i]) < fabs(EigVal[0][Ind[0]]))
-	    Ind[0] = i;
+	 Ind[count] = 0;
+	 int a=0;
+	 while ((Ind[count] == Ind[a]) && (a < j))
+	 {
+	    (Ind[count])++;
+	    a++;
+	 }
+	 
+	 for (int i=1;i<dofs;++i)
+	 {
+	    skp=0;
+	    for (int k=0;k<count;++k)
+	    {
+	       if (Ind[k] == i) skp=1;
+	    }
+	    cout << i << "  " << skp << endl;
+	    if (!skp)
+	    {
+	       if (fabs(EigVal[0][i]) < fabs(EigVal[0][Ind[count]]))
+		  Ind[count] = i;
+	    }
+	 }
+	 count++;
       }
       
-      out << "NOTE: No zero eigenvalues found. "
-	  << "Assuming single mode with minimum (abs) eigenvalue : "
-	  << setw(Width) << EigVal[0][Ind[0]] << endl;
-      if (Echo_) cout<< "NOTE: No zero eigenvalues found. "
-		     << "Assuming single mode with minimum (abs) eigenvalue : "
-		     << setw(Width) << EigVal[0][Ind[0]] << endl;
+      out << "NOTE: Incorrect number of zero eigenvalues found. "
+	  << "Modes with smallest abs. value used." << endl;
+      if (Echo_)
+      {
+	 cout << "NOTE: Incorrect number of zero eigenvalues found. "
+	      << "Modes with smallest abs. value used." << endl;
+      }
+   }
+
+   for (int i=0;i<count;++i)
+      out << "Mode[" << i << "] DOF: " << Ind[i] << ",  ";
+   out << endl;
+   if (Echo_)
+   {
+      for (int i=0;i<count;++i)
+	 cout << "Mode[" << i << "] DOF: " << Ind[i] << ",  ";
+      cout << endl;
    }
 
    if (BIFMAX < count)
