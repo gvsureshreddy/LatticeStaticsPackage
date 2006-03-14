@@ -102,7 +102,7 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
 	    {
 	       if (Ind[k] == i) skp=1;
 	    }
-	    cout << i << "  " << skp << endl;
+
 	    if (!skp)
 	    {
 	       if (fabs(EigVal[0][i]) < fabs(EigVal[0][Ind[count]]))
