@@ -2137,9 +2137,11 @@ void MultiLatticeTPP::PrintCurrentCrystalParamaters(ostream &out)
 	 }
    }
 
-   out << "a =" << setw(W) << CurrentLattice[0].Norm() << endl;
-   out << "b =" << setw(W) << CurrentLattice[1].Norm() << endl;
-   out << "c =" << setw(W) << CurrentLattice[2].Norm() << endl;
+   out << "TITLE LatticeStatics crystal structure scaled by 10.0" << endl;
+   out << "DIMENSION 3" << endl;
+   out << "CELL" << setw(W) << 10.0*CurrentLattice[0].Norm()
+       << setw(W) << 10.0*CurrentLattice[1].Norm()
+       << setw(W) << 10.0*CurrentLattice[2].Norm();
 
    double alpha,beta,gamma;
    double pi = 4.0*atan(1.0);
@@ -2150,16 +2152,25 @@ void MultiLatticeTPP::PrintCurrentCrystalParamaters(ostream &out)
 		/(CurrentLattice[0].Norm()*CurrentLattice[2].Norm()));
    gamma = acos(CurrentLattice[0]*CurrentLattice[1]
 		/(CurrentLattice[0].Norm()*CurrentLattice[1].Norm()));
-   out << "alpha =" << setw(W) << alpha << setw(W) << alpha*180.0/pi << endl;
-   out << "beta =" << setw(W) << beta << setw(W) << beta*180.0/pi << endl;
-   out << "gamma =" << setw(W) << gamma << setw(W) << gamma*180.0/pi << endl;
+   
+   out << setw(W) << alpha*180.0/pi
+       << setw(W) << beta*180.0/pi
+       << setw(W) << gamma*180.0/pi << endl;
 
-   out << "Atom[0] @ " << setw(W) << AtomPositions_[0] << endl;
+   out << "SYMMETRY  NUMBER 1  LABEL P1  " << endl;
+   out << "SYM MAT  1.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  1.0 0.0000 0.0000 0.0000" << endl;
+   out << endl << "ATOMS" << endl
+       << "NAME" << setw(W) << "X" << setw(W) << "Y" << setw(W) << "Z" << endl;
+   char const *species[] = {"Ni","Ti","C"};
+   out << setw(4) << species[(AtomSpecies_[0] > 3)?3:AtomSpecies_[0]]
+       << setw(W) << 0.0 << setw(W) << 0.0 << setw(W) << 0.0 << endl;
    for (int i=1;i<INTERNAL_ATOMS;++i)
    {
-      out << "Atom[" << i <<"] @ ";
+      out << setw(4) << species[(AtomSpecies_[i] > 3)?3:AtomSpecies_[i]];
       for (int j=0;j<DIM3;++j)
 	 out << setw(W) << AtomPositions_[i][j] + DOF_[6+DIM3*(i-1)+j];
       out << endl;
    }
+
+   out << "EOF" << endl;
 }
