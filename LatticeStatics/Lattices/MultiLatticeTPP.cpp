@@ -8,7 +8,13 @@ using namespace std;
 MultiLatticeTPP::~MultiLatticeTPP()
 {
    delete [] BodyForce_;
+   delete [] SpeciesMass_;
    delete [] AtomicMass_;
+   for (int i=0;i<NumberofSpecies_;++i)
+      for (int j=i;j<NumberofSpecies_;++j)
+	 delete SpeciesPotential_[i][j];
+   delete [] SpeciesPotential_[0];
+   delete [] SpeciesPotential_;
    for (int i=0;i<INTERNAL_ATOMS;++i)
       for (int j=i;j<INTERNAL_ATOMS;++j)
 	 delete Potential_[i][j];
@@ -62,16 +68,6 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
    for (int i=0;i<INTERNAL_ATOMS;++i)
       BodyForce_[i].Resize(DIM3,0.0);
 
-   // Get Potential Parameters
-   Potential_ = new PairPotentials**[INTERNAL_ATOMS];
-   Potential_[0] = new PairPotentials*[INTERNAL_ATOMS*INTERNAL_ATOMS];
-   for (int i=1;i<INTERNAL_ATOMS;++i)
-   {
-      Potential_[i] = Potential_[i-1] + INTERNAL_ATOMS;
-   }
-
-   AtomicMass_ = new double[INTERNAL_ATOMS];
-
    // Get Thermo parameters
    if (!GetParameter(prefix,"Tref",datafile,"%lf",&Tref_)) exit(-1);
    //if (!GetParameter(prefix,"PhiRef",datafile,"%lf",&PhiRef_)) exit(-1);
@@ -80,23 +76,50 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
 
    if (!GetIntVectorParameter(prefix,"AtomSpecies",datafile,INTERNAL_ATOMS,AtomSpecies_))
       exit(-1);
+   NumberofSpecies_ = AtomSpecies_[0];
+   for (int i=1;i<INTERNAL_ATOMS;++i)
+      if (NumberofSpecies_ < AtomSpecies_[i])
+	 NumberofSpecies_ = AtomSpecies_[i];
+   NumberofSpecies_++;
 
+   // Get Potential Parameters
+   SpeciesPotential_ = new PairPotentials**[NumberofSpecies_];
+   SpeciesPotential_[0] = new PairPotentials*[NumberofSpecies_*NumberofSpecies_];
+   for (int i=1;i<NumberofSpecies_;++i)
+   {
+      SpeciesPotential_[i] = SpeciesPotential_[i-1] + NumberofSpecies_;
+   }
+   Potential_ = new PairPotentials**[INTERNAL_ATOMS];
+   Potential_[0] = new PairPotentials*[INTERNAL_ATOMS*INTERNAL_ATOMS];
+   for (int i=1;i<INTERNAL_ATOMS;++i)
+   {
+      Potential_[i] = Potential_[i-1] + INTERNAL_ATOMS;
+   }
+
+   SpeciesMass_ = new double[NumberofSpecies_];
+   AtomicMass_ = new double[INTERNAL_ATOMS];
+
+   for (int i=0;i<NumberofSpecies_;++i)
+   {
+      for (int j=i;j<NumberofSpecies_;++j)
+      {
+	 SpeciesPotential_[i][j] = SpeciesPotential_[j][i]
+	    = InitializePairPotential(datafile,prefix,i,j);
+      }
+      sprintf(tmp,"AtomicMass_%u",i);
+      if (!GetParameter(prefix,tmp,datafile,"%lf",&(SpeciesMass_[i]))) exit(-1);
+   }
+   
    for (int i=0;i<INTERNAL_ATOMS;++i)
    {
       for (int j=i;j<INTERNAL_ATOMS;++j)
       {
-	 if (AtomSpecies_[i] < AtomSpecies_[j])
-	    Potential_[i][j] = Potential_[j][i]
-	       = InitializePairPotential(datafile,prefix,AtomSpecies_[i],AtomSpecies_[j]);
-	 else
-	    Potential_[i][j] = Potential_[j][i]
-	       = InitializePairPotential(datafile,prefix,AtomSpecies_[j],AtomSpecies_[i]);
+	 Potential_[i][j] = Potential_[j][i]
+	    = SpeciesPotential_[AtomSpecies_[i]][AtomSpecies_[j]];
       }
 
-      sprintf(tmp,"AtomicMass_%u",AtomSpecies_[i]);
-      if(!GetParameter(prefix,tmp,datafile,"%lf",&(AtomicMass_[i]))) exit(-1);
+      AtomicMass_[i] = SpeciesMass_[AtomSpecies_[i]];
    }
-
 	 
    // Get Lattice parameters
    NTemp_ = 1.0;
@@ -1621,26 +1644,27 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 	 out << "RefLattice_ : " << setw(W) << RefLattice_;
 	 for (int i=0;i<INTERNAL_ATOMS;++i)
 	 {
-	    out << "Atom_" << i << " Position : "
-		<< setw(W) << AtomPositions_[i] << endl;
+	    out << "Atom_" << i << "          "
+		<< "Species : " << setw(5) << AtomSpecies_[i]
+		<< "          Position : " << setw(W) << AtomPositions_[i] << endl;
 	 }
 	 out << "Influence Distance   : " << setw(W) << InfluenceDist_ << endl;
-	 for (int i=0;i<INTERNAL_ATOMS;++i)
+	 for (int i=0;i<NumberofSpecies_;++i)
 	 {
 	    out << "Atomic Mass " << i << "  : "
-		<< setw(W) << AtomicMass_[i] << endl;
+		<< setw(W) << SpeciesMass_[i] << endl;
 	 }
 	 out << "Tref = " << setw(W) << Tref_ << endl;
 	 //<< "PhiRef = " << setw(W) << PhiRef_ << "; "
 	 //<< "EntropyRef = " << setw(W) << EntropyRef_ << "; "
 	 //<< "HeatCapacityRef = " << setw(W) << HeatCapacityRef_ << endl;
 	 out << "Potential Parameters : " << endl;
-	 for (int i=0;i<INTERNAL_ATOMS;++i)
+	 for (int i=0;i<NumberofSpecies_;++i)
 	 {
-	    for (int j=i;j<INTERNAL_ATOMS;j++)
+	    for (int j=i;j<NumberofSpecies_;j++)
 	    {
 	       out << "[" << i << "][" << j << "] -- "
-		   << setw(W) << Potential_[i][j] << endl;
+		   << setw(W) << SpeciesPotential_[i][j] << endl;
 	    }
 	 }
 	 out << "Normalization Modulus : " << setw(W) << NormModulus_ << endl;
@@ -1655,26 +1679,27 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 	    cout << "RefLattice_ : " << setw(W) << RefLattice_;
 	    for (int i=0;i<INTERNAL_ATOMS;++i)
 	    {
-	       cout << "Atom_" << i << " Position : "
-		    << setw(W) << AtomPositions_[i] << endl;
+	       cout << "Atom_" << i
+		    << "Species : " <<setw(5) << AtomSpecies_[i]
+		    << " Position : " << setw(W) << AtomPositions_[i] << endl;
 	    }
 	    cout << "Influence Distance   : " << setw(W) << InfluenceDist_ << endl;
-	    for (int i=0;i<INTERNAL_ATOMS;++i)
+	    for (int i=0;i<NumberofSpecies_;++i)
 	    {
 	       cout << "Atomic Mass " << i << "  : "
-		    << setw(W) << AtomicMass_[i] << endl;
+		    << setw(W) << SpeciesMass_[i] << endl;
 	    }
 	    cout << "Tref = " << setw(W) << Tref_ << endl;
 	    //<< "PhiRef = " << setw(W) << PhiRef_ << "; "
 	    //<< "EntropyRef = " << setw(W) << EntropyRef_ << "; "
 	    //<< "HeatCapacityRef = " << setw(W) << HeatCapacityRef_ << endl;
 	    cout << "Potential Parameters : " << endl;
-	    for (int i=0;i<INTERNAL_ATOMS;++i)
+	    for (int i=0;i<NumberofSpecies_;++i)
 	    {
-	       for (int j=i;j<INTERNAL_ATOMS;j++)
+	       for (int j=i;j<NumberofSpecies_;j++)
 	       {
 		  cout << "[" << i << "][" << j << "] -- "
-		       << setw(W) << Potential_[i][j] << endl;
+		       << setw(W) << SpeciesPotential_[i][j] << endl;
 	       }
 	    }
 	    cout << "Normalization Modulus : " << setw(W) << NormModulus_ << endl;

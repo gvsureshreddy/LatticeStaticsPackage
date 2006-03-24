@@ -37,6 +37,7 @@ private:
    Matrix Rotation_;
    Matrix Loading_;
    Vector *BodyForce_;
+   double *SpeciesMass_;
    double *AtomicMass_;
 
    CBKinematics *CBK_;
@@ -46,7 +47,9 @@ private:
    int GridSize_;
 
    //Pair Potential data
+   int NumberofSpecies_;
    int AtomSpecies_[100]; // Max number of atoms in unit cell. might need to be changed...
+   PairPotentials ***SpeciesPotential_;
    PairPotentials ***Potential_;
 
    // Misc
