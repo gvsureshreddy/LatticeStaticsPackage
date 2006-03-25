@@ -31,6 +31,7 @@ private:
    enum LDeriv {L0,DL};
    double Lambda_;
    Vector *BodyForce_;
+   double *SpeciesMass_;
    double *AtomicMass_;
 
    ChainSum ChainSum_;
@@ -39,7 +40,9 @@ private:
    int GridSize_;
 
    //Pair Potential data
+   int NumberofSpecies_;
    int AtomSpecies_[100]; // Max number of atoms in unit cell. might need to be changed...
+   PairPotentials ***SpeciesPotential_;
    PairPotentials ***Potential_;
 
    // Misc
