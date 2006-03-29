@@ -2195,4 +2195,9 @@ void MultiLatticeTPP::PrintCurrentCrystalParamaters(ostream &out)
    }
 
    out << "EOF" << endl;
+
+   out << endl
+       << "Temperature : " << setw(W) << NTemp_ << endl
+       << "Lambda : " << setw(W) << Lambda_ << endl
+       << "DOFs : " << setw(W) << DOF_ << endl;
 }
