@@ -15,9 +15,6 @@ MultiChainTPP::~MultiChainTPP()
 	 delete SpeciesPotential_[i][j];
    delete [] SpeciesPotential_[0];
    delete [] SpeciesPotential_;
-   for (int i=0;i<INTERNAL_ATOMS;++i)
-      for (int j=i;j<INTERNAL_ATOMS;++j)
-	 delete Potential_[i][j];
    delete [] Potential_[0];
    delete [] Potential_;
    delete [] AtomPositions_;
