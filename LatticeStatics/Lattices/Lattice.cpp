@@ -83,7 +83,6 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
    // Check for incorrect number of modes
    if (count != NumZeroEigenVals)
    {
-      int originalcount = count;
       int skp;
       for (int j=count;j<NumZeroEigenVals;++j)
       {
