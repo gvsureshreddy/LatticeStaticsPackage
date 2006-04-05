@@ -593,7 +593,7 @@ Matrix MultiChainTPP::E4()
 	    *PSI(ChainSum_.pDX()));      
       // DV^4 block
       for (i=1;i<INTERNAL_ATOMS;i++)
-	 for (j=1;j<INTERNAL_ATOMS;k++)
+	 for (j=1;j<INTERNAL_ATOMS;j++)
 	    for (k=1;k<INTERNAL_ATOMS;k++)
 	       for (m=1;m<INTERNAL_ATOMS;m++)
 	       {
