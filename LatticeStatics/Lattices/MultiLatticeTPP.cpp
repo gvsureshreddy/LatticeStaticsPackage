@@ -1676,9 +1676,9 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 	    cout << "RefLattice_ : " << setw(W) << RefLattice_;
 	    for (int i=0;i<INTERNAL_ATOMS;++i)
 	    {
-	       cout << "Atom_" << i
+	       cout << "Atom_" << i << "          "
 		    << "Species : " <<setw(5) << AtomSpecies_[i]
-		    << " Position : " << setw(W) << AtomPositions_[i] << endl;
+		    << "          Position : " << setw(W) << AtomPositions_[i] << endl;
 	    }
 	    cout << "Influence Distance   : " << setw(W) << InfluenceDist_ << endl;
 	    for (int i=0;i<NumberofSpecies_;++i)
