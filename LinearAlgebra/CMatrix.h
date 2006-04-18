@@ -8,7 +8,7 @@ char *LinearAlgebraBuildDate();
 
 
 #include <iostream>
-#include <complex>
+#include <MyComplexDouble.h>
 #include <Matrix.h>
 
 using namespace std;
@@ -22,7 +22,7 @@ class Vector3D;
 class CMatrix
 {
 protected:
-   typedef complex<double> Elm;
+   typedef MyComplexDouble Elm;
 
    Elm **Elements_;
    unsigned Rows_;

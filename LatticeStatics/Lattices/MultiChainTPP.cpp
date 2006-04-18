@@ -840,8 +840,8 @@ CMatrix MultiChainTPP::ReferenceDynamicalStiffness(Vector &K)
 {
    static CMatrix Dk;
    static double pi = 4.0*atan(1.0);
-   static complex<double> Ic(0,1);
-   static complex<double> A = 2.0*pi*Ic;
+   static MyComplexDouble Ic(0,1);
+   static MyComplexDouble A = 2.0*pi*Ic;
 
    Dk.Resize(INTERNAL_ATOMS,INTERNAL_ATOMS,0.0);
    

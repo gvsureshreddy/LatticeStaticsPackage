@@ -20,7 +20,7 @@ class Matrix;
 class CVector
 {
 protected:
-   typedef complex<double> Elm;
+   typedef MyComplexDouble Elm;
    unsigned Cols_;
    Elm *Elements_;
    

@@ -44,51 +44,51 @@ int main()
       for (int j=0;j<3;j++)
       {
 	 A[i][j] = double(rand()%10);
-	 CA[i][j] = complex<double>(rand()%10,rand()%10);
+	 CA[i][j] = MyComplexDouble(rand()%10,rand()%10);
       }
 
    for (int i=0;i<3;i++)
       for (int j=0;j<3;j++)
       {
 	 B[i][j] = double(rand()%10);
-	 CB[i][j] = complex<double>(rand()%10,rand()%10);
+	 CB[i][j] = MyComplexDouble(rand()%10,rand()%10);
       }
 
    for (int i=0;i<3;i++)
       for (int j=0;j<6;j++)
       {
 	 C[i][j] = double(rand()%10);
-	 CC[i][j] = complex<double>(rand()%10,rand()%10);
+	 CC[i][j] = MyComplexDouble(rand()%10,rand()%10);
       }
    
    for (int i=0;i<6;i++)
       for (int j=0;j<3;j++)
       {
 	 D[i][j] = double(rand()%10);
-	 CD[i][j] = complex<double>(rand()%10,rand()%10);
+	 CD[i][j] = MyComplexDouble(rand()%10,rand()%10);
       }
    
    for (int i=0;i<6;i++)
       for (int j=0;j<6;j++)
       {
 	 E[i][j] = double(rand()%10);
-	 CE[i][j] = complex<double>(rand()%10,rand()%10);
+	 CE[i][j] = MyComplexDouble(rand()%10,rand()%10);
       }
    
    for (int i=0;i<3;i++)
    {
       a[i] = double(rand()%10);
-      ca[i] = complex<double>(rand()%10,rand()%10);
+      ca[i] = MyComplexDouble(rand()%10,rand()%10);
       b[i] = double(rand()%10);
-      cb[i] = complex<double>(rand()%10,rand()%10);
+      cb[i] = MyComplexDouble(rand()%10,rand()%10);
    }
 
    for (int i=0;i<6;i++)
    {
       c[i] = double(rand()%10);
-      cc[i] = complex<double>(rand()%10,rand()%10);
+      cc[i] = MyComplexDouble(rand()%10,rand()%10);
       d[i] = double(rand()%10);
-      cd[i] = complex<double>(rand()%10,rand()%10);
+      cd[i] = MyComplexDouble(rand()%10,rand()%10);
    }
 
    for (int i=0;i<3;i++)
@@ -359,7 +359,7 @@ int main()
 
    cout << "ca.cb" << setw(20) << ca*cb << endl;
 
-   cout << "2ca" << setw(20) << complex<double>(2.0)*ca << endl;
+   cout << "2ca" << setw(20) << MyComplexDouble(2.0)*ca << endl;
 
    cout << "ca/5" << setw(20) << ca/5.0 << endl;
 

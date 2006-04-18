@@ -41,6 +41,7 @@ CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS)
 BIN_LOC    = ${HOME}/bin
 INCL_LOC   = ${HOME}/include
 LIB_LOC    = ${HOME}/lib
+LIBS       = -lMyMath -lm
 LFLAGS     = $(DATE_DEF)
 
 # Defines the source files needed #########################################
@@ -55,19 +56,19 @@ all : $(OBJECTS) $(PROGRAMS) matrixtest
 .PHONY: all
 
 matrixtest : $(OBJECTS) matrixtest.cpp
-	$(CC) $(CCFLAGS) -I. -I $(INCL_LOG)/ -o ./lib/$@.o -c ./matrixtest.cpp
-	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ $(LFLAGS) -o ./bin/matrixtest \
-	./lib/matrixtest.o $(addprefix ./lib/,$(OBJECTS))
+	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o ./lib/$@.o -c ./matrixtest.cpp
+	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ $(LFLAGS) -L$(LIB_LOC) -o ./bin/matrixtest \
+	./lib/matrixtest.o $(addprefix ./lib/,$(OBJECTS)) $(LIBS)
 
 EigenSys : $(OBJECTS) EigenSys.cpp
 	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o ./lib/$@.o -c ./EigenSys.cpp
 	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ $(LFLAGS) -o ./bin/EigenSys \
-	./lib/EigenSys.o ./lib/Matrix.o
+	./lib/EigenSys.o ./lib/Matrix.o 
 
 HermiteEigenSys : $(OBJECTS) HermiteEigenSys.cpp
 	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o ./lib/$@.o -c ./HermiteEigenSys.cpp
-	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ $(LFLAGS) -o ./bin/HermiteEigenSys \
-	./lib/HermiteEigenSys.o ./lib/CMatrix.o ./lib/Matrix.o
+	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ $(LFLAGS) -L$(LIB_LOC) -o ./bin/HermiteEigenSys \
+	./lib/HermiteEigenSys.o ./lib/CMatrix.o ./lib/Matrix.o $(LIBS)
 
 PrincipalSys : $(OBJECTS) PrincipalSys.cpp
 	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o ./lib/$@.o -c ./PrincipalSys.cpp

@@ -322,7 +322,7 @@ unsigned FullScanRank1Convex2D(Matrix K, double dx)
 unsigned Rank1Convex3D(Matrix K,double dx)
 {
    double Pi=4.0*atan(1.0);
-   complex<double> A[3][3][3];
+   MyComplexDouble A[3][3][3];
    double n[2];
    
    for (double theta=0;theta<2.0*Pi;theta += dx)
@@ -333,7 +333,7 @@ unsigned Rank1Convex3D(Matrix K,double dx)
       for (int i=0;i<3;i++)
 	 for (int j=0;j<3;j++)
 	    for (int k=0;k<3;k++)
-	       A[i][j][k] = complex<double>(0.0,0.0);
+	       A[i][j][k] = MyComplexDouble(0.0,0.0);
 
 
       // Calculate Aij Polynomials
@@ -355,8 +355,8 @@ unsigned Rank1Convex3D(Matrix K,double dx)
       }
 
 
-      complex<double> Roots[6];
-      complex<double> SolveMe[7], PA[5], PB[5];
+      MyComplexDouble Roots[6];
+      MyComplexDouble SolveMe[7], PA[5], PB[5];
 
       PolyRootsLaguerre(A[0][0],2,Roots,1);
       for (int i=0;i<2;i++) if (Roots[i].imag() == 0.0) return 0;
@@ -389,7 +389,7 @@ unsigned Rank1Convex3D(Matrix K,double dx)
       //PolyRootsLaguerre(SolveMe,4,Roots,1);
       //for (int i=0;i<4;i++) if (Roots[i].imag() == 0.0) return 0;
 
-      complex<double> DA[7],DB[7],DC[7];
+      MyComplexDouble DA[7],DB[7],DC[7];
 
       
       PolyMult(A[1][1],2,A[2][2],2,PA);

@@ -1,12 +1,10 @@
 #include "CMatrix.h"
-#include "Matrix.h"
-#include <iostream>
 #include <iomanip>
 #include <string>
 #include <cmath>
 
 // Global IDString
-char CMatrixID[]="$Id: CMatrix.cpp,v 1.12 2005/03/16 22:55:18 elliott Exp $";
+char CMatrixID[]="$Id: CMatrix.cpp,v 1.13 2006/04/18 14:27:21 elliott Exp $";
 
 // Private Methods...
 
@@ -361,7 +359,7 @@ CMatrix CMatrix::Conjugate() const
    {
       for (register int j=0;j<Cols_;++j)
       {
-	 A.Elements_[i][j] = conj(Elements_[i][j]);
+	 A.Elements_[i][j] = Elements_[i][j].conj();
       }
    }
 
@@ -572,7 +570,7 @@ Matrix HermiteEigVal(CMatrix A,CMatrix *B,const int MaxItr,const double Tol)
    int count=0,
       converged=0;
    Matrix EigVals(1,A.Cols_);
-   complex<double> tau,t1,t2,t,c,s,cc,ss,cs,ssbar,csbar,
+   MyComplexDouble tau,t1,t2,t,c,s,cc,ss,cs,ssbar,csbar,
       aij1,aii1,ajj1,aki1,akj1,tmp;
 
    if (B != NULL)
@@ -591,21 +589,21 @@ Matrix HermiteEigVal(CMatrix A,CMatrix *B,const int MaxItr,const double Tol)
 	    else
 	    {
 	       tau = (A.Elements_[i][i] - A.Elements_[j][j])
-		  /(2.0*conj(A.Elements_[i][j]));
+		  /(2.0*(A.Elements_[i][j].conj()));
 
 	       // take care to make the sqrt well conditioned! (not overflow)
 	       if (abs(tau) > 1.0)
 	       {
 		  t1 = tau*(-1.0 - sqrt( 1.0 + (A.Elements_[i][j]
-						/(conj(A.Elements_[i][j])*tau*tau))));
+						/((A.Elements_[i][j].conj())*tau*tau))));
 		  t2 = tau*(-1.0 + sqrt( 1.0 + (A.Elements_[i][j]
-						/(conj(A.Elements_[i][j])*tau*tau))));
+						/((A.Elements_[i][j].conj())*tau*tau))));
 	       }
 	       else
 	       {
-		  t1 = -tau - sqrt( A.Elements_[i][j]/conj(A.Elements_[i][j])
+		  t1 = -tau - sqrt( A.Elements_[i][j]/(A.Elements_[i][j].conj())
 				    + tau*tau);
-		  t2 = -tau + sqrt( A.Elements_[i][j]/conj(A.Elements_[i][j])
+		  t2 = -tau + sqrt( A.Elements_[i][j]/(A.Elements_[i][j].conj())
 				    + tau*tau);
 	       }
 
@@ -614,28 +612,28 @@ Matrix HermiteEigVal(CMatrix A,CMatrix *B,const int MaxItr,const double Tol)
 	       else
 		  t = t1;
 	       
-	       c = 1.0/sqrt(1.0 + real(t*conj(t)));
+	       c = 1.0/sqrt(1.0 + (t*(t.conj())).real());
 	       s = t * c;
 	       cc = c*c;
 	       ss = s*s;
-	       ssbar = real(s*conj(s));
+	       ssbar =(s*(s.conj())).real();
 	       cs = c*s;
-	       csbar = c*conj(s);
+	       csbar = c*(s.conj());
 	       aij1 = A.Elements_[i][j];
 	       aii1 = A.Elements_[i][i];
 	       ajj1 = A.Elements_[j][j];
 	       
-	       A.Elements_[i][i] = real(aii1*cc + cs*conj(aij1)
-					+ csbar*aij1 + ssbar*ajj1);
-	       A.Elements_[j][j] = real(aii1*ssbar - cs*conj(aij1)
-					- csbar*aij1 + cc*ajj1);
+	       A.Elements_[i][i] = (aii1*cc + cs*(aij1.conj())
+				    + csbar*aij1 + ssbar*ajj1).real();
+	       A.Elements_[j][j] = (aii1*ssbar - cs*(aij1.conj())
+				    - csbar*aij1 + cc*ajj1).real();
 	       A.Elements_[i][j] = A.Elements_[j][i] = 0.0;
 	       
 	       for (int k=0;k<A.Cols_;k++)
 	       {
 		  if (B != NULL)
 		  {
-		     tmp = B->Elements_[k][i]*c + B->Elements_[k][j]*conj(s);
+		     tmp = B->Elements_[k][i]*c + B->Elements_[k][j]*(s.conj());
 		     B->Elements_[k][j] = -B->Elements_[k][i]*s + B->Elements_[k][j]*c;
 		     B->Elements_[k][i] = tmp;
 		  }
@@ -649,10 +647,10 @@ Matrix HermiteEigVal(CMatrix A,CMatrix *B,const int MaxItr,const double Tol)
 		  aki1 = A.Elements_[k][i];
 		  akj1 = A.Elements_[k][j];
 		  
-		  A.Elements_[k][i] = aki1*c + akj1*conj(s);
-		  A.Elements_[i][k] = conj(A.Elements_[k][i]);
+		  A.Elements_[k][i] = aki1*c + akj1*(s.conj());
+		  A.Elements_[i][k] = (A.Elements_[k][i].conj());
 		  A.Elements_[k][j] = -aki1*s + akj1*c;
-		  A.Elements_[j][k] = conj(A.Elements_[k][j]);
+		  A.Elements_[j][k] = (A.Elements_[k][j].conj());
 	       }
 	    }
 	 }
@@ -678,7 +676,7 @@ Matrix HermiteEigVal(CMatrix A,CMatrix *B,const int MaxItr,const double Tol)
 
    for (int i=0;i<A.Cols_;i++)
    {
-      EigVals[0][i] = real(A.Elements_[i][i]);
+      EigVals[0][i] = (A.Elements_[i][i]).real();
    }
    
    return EigVals;
@@ -705,7 +703,7 @@ void Cholesky(const CMatrix& A,CMatrix& U,CMatrix& D)
 	 {
 
 	    D.Elements_[i][i]-=
-	       D.Elements_[k][k]*U.Elements_[k][i]*conj(U.Elements_[k][i]);
+	       D.Elements_[k][k]*U.Elements_[k][i]*(U.Elements_[k][i].conj());
 	 }
       }
       for (register int j=i+1;j<A.Rows_;j++)
@@ -716,7 +714,7 @@ void Cholesky(const CMatrix& A,CMatrix& U,CMatrix& D)
 	    for (register int k=0;k<i;k++)
 	    {
 	       U.Elements_[i][j]-=
-		  D.Elements_[k][k]*conj(U.Elements_[k][i])*U.Elements_[k][j];
+		  D.Elements_[k][k]*(U.Elements_[k][i].conj())*U.Elements_[k][j];
 	    }
 	 }
 	 U.Elements_[i][j]/=D.Elements_[i][i];

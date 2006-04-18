@@ -7,7 +7,7 @@
 #include "Matrix.h"
 
 // Global IDString
-char CVectorID[]="$Id: CVector.cpp,v 1.3 2005/03/16 22:55:19 elliott Exp $";
+char CVectorID[]="$Id: CVector.cpp,v 1.4 2006/04/18 14:27:21 elliott Exp $";
 
 // Private Functions...
 
@@ -238,7 +238,7 @@ CVector::Elm operator*(const CVector& A,const CVector& B)
 
    for (register int i=0;i<A.Cols_;i++)
    {
-      sum+=A.Elements_[i]*conj(B.Elements_[i]);
+      sum+=A.Elements_[i]*(B.Elements_[i].conj());
    }
 
    return sum;
