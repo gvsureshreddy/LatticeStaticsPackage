@@ -43,7 +43,7 @@ LIB_LOC    = ${HOME}/lib
 LFLAGS     = $(DATE_DEF)
 
 # Defines the source files needed #########################################
-SOURCES  = Polynomial.cpp
+SOURCES  = Polynomial.cpp MyComplexDouble.cpp
 
 # Defines the object files to be created using the SYSTEM name ############
 OBJECTS  = $(SOURCES:$(SRC_EXT)=$(OBJ_EXT))
@@ -54,7 +54,7 @@ all : $(OBJECTS)
 Mathtest : $(OBJECTS) Mathtest.cpp
 	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o ./lib/$@.o -c ./Mathtest.cpp
 	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o ./bin/Mathtest ./lib/Mathtest.o \
-		./lib/Polynomial.o 
+		./lib/Polynomial.o ./lib/MyComplexDouble.o
 
 # include the dependicies
 include $(addprefix ./depend/,$(OBJECTS:$(OBJ_EXT)=$(DEP_EXT)))

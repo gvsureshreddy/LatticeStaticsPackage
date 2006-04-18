@@ -8,7 +8,7 @@ char *MyMathBuildDate();
 
 
 #include <iostream>
-#include <complex>
+#include "MyComplexDouble.h"
 
 using namespace std;
 
@@ -25,13 +25,13 @@ using namespace std;
 #define EPS 2.0e-12
 //
 // Coeff[0..Degree] define the poly sum(i=0)(m) Coeff[i]x^i
-void PolyRootsLaguerre(complex<double> Coeff[],int Degree,complex<double> Roots[],
+void PolyRootsLaguerre(MyComplexDouble Coeff[],int Degree,MyComplexDouble Roots[],
 		       int Polish);
 // Lagurre's method to find a root of a polynomial near X
-int Laguerre(complex<double> Coeff[],int Degree,complex<double> *X);
+int Laguerre(MyComplexDouble Coeff[],int Degree,MyComplexDouble *X);
 
 // Multiply polynomials A and B with resulting poly of degree DegA+DegB
-void PolyMult(complex<double> A[],int DegA,complex<double> B[],int DegB,
-	      complex<double> Result[]);
+void PolyMult(MyComplexDouble A[],int DegA,MyComplexDouble B[],int DegB,
+	      MyComplexDouble Result[]);
 
 #endif

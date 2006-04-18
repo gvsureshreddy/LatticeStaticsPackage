@@ -1,11 +1,11 @@
 #include <iomanip>
 #include "MyMath.h"
 
-void PolyRootsLaguerre(complex<double> Coeff[],int Degree,complex<double> Roots[],
+void PolyRootsLaguerre(MyComplexDouble Coeff[],int Degree,MyComplexDouble Roots[],
 		       int Polish)
 {
    int i,j,jj;
-   complex<double> x,b,c,ad[MAXDEGREE];
+   MyComplexDouble x,b,c,ad[MAXDEGREE];
 
    // Copy of coefficients for successive deflation.
    for (j=0;j<=Degree;j++) ad[j] = Coeff[j];
@@ -14,10 +14,10 @@ void PolyRootsLaguerre(complex<double> Coeff[],int Degree,complex<double> Roots[
    {
       // start at zero to favor convergence to smallest
       // remaining root
-      x = complex<double>(0.0,0.0);
+      x = MyComplexDouble(0.0,0.0);
       // find the root
       Laguerre(ad,j,&x);
-      if (fabs(x.imag()) <= 2.0*EPS*fabs(x.real())) x=complex<double>(x.real());
+      if (fabs(x.imag()) <= 2.0*EPS*fabs(x.real())) x=MyComplexDouble(x.real());
       Roots[j-1] = x;
       b = ad[j];  // forward deflation.
       for (jj=j-1;jj>=0;jj--)
@@ -53,18 +53,18 @@ void PolyRootsLaguerre(complex<double> Coeff[],int Degree,complex<double> Roots[
 #define EPSS 1.0e-14
 #define FMAX(a,b) (a >= b ? a : b)
 
-int Laguerre(complex<double> Coeff[],int Degree,complex<double> *X)
+int Laguerre(MyComplexDouble Coeff[],int Degree,MyComplexDouble *X)
 {
    int iter,j;
    double abx,abp,abm,err;
-   complex<double> dx,x1,b,d,f,g,h,sq,gp,gm,g2;
+   MyComplexDouble dx,x1,b,d,f,g,h,sq,gp,gm,g2;
    // static double frac[MR+1] = {0.0,0.5,0.25,0.75,0.13,0.38,0.62,0.88,1.0};
 
    for (iter=1;iter<=MAXIT;iter++)
    {
       b = Coeff[Degree];
       err = abs(b);
-      d=f = complex<double>(0.0,0.0);
+      d=f = MyComplexDouble(0.0,0.0);
       abx = abs(*X);
 
       // Efficient computation of the polynomial and its first two derivatives
@@ -78,7 +78,6 @@ int Laguerre(complex<double> Coeff[],int Degree,complex<double> *X)
 
       // Estimate of roundoff error in evaluating polynomial
       err *= EPSS;
-
       // we are on the root
       if (abs(b) <= err) return iter;
       // the generic case: use Laguerre's formula
@@ -86,14 +85,14 @@ int Laguerre(complex<double> Coeff[],int Degree,complex<double> *X)
       g = d/b;
       g2 = g*g;
       h = g2 - (2.0*(f/b));
-      sq = sqrt((complex<double>(Degree-1,0))*(complex<double>(Degree,0)*h - g2));
+      sq = sqrt((MyComplexDouble(Degree-1,0))*(MyComplexDouble(Degree,0)*h - g2));
       gp = g + sq;
       gm = g - sq;
       abp = abs(gp);
       abm = abs(gm);
       if (abp < abm) gp = gm;
-      dx = (( FMAX(abp,abm) > 0.0 ? complex<double>(Degree,0.0)/gp
-	      : (1.0 + abx)*(complex<double>(cos(double(iter)),sin(double(iter))))));
+      dx = (( FMAX(abp,abm) > 0.0 ? MyComplexDouble(Degree,0.0)/gp
+	      : (1.0 + abx)*(MyComplexDouble(cos(double(iter)),sin(double(iter))))));
       x1 = *X - dx;
 
       if (X->real() == x1.real() && X->imag() == x1.imag()) return iter;
@@ -107,12 +106,12 @@ int Laguerre(complex<double> Coeff[],int Degree,complex<double> *X)
    return iter;
 }
       
-void PolyMult(complex<double> A[],int DegA,complex<double> B[],int DegB,
-	      complex<double> Result[])
+void PolyMult(MyComplexDouble A[],int DegA,MyComplexDouble B[],int DegB,
+	      MyComplexDouble Result[])
 {
    int DegC = DegA + DegB;
 
-   for (int i=0;i<=DegC;i++) Result[i] = complex<double>(0.0,0.0);
+   for (int i=0;i<=DegC;i++) Result[i] = MyComplexDouble(0.0,0.0);
    for (int i=0;i<=DegA;i++)
       for (int j=0;j<=DegB;j++)
       {
