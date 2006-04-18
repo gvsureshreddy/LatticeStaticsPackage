@@ -1725,7 +1725,8 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 	     << "Condensed Moduli (Normalized):" << setw(W) << CondModuli
 	     << "CondEV Info:" << setw(W) << CondEV
 	     << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << endl
-	     << "BlochWave Stability:" << setw(W) << BlochWaveStable << ", "
+	     << "BlochWave Stability (GridSize=" << GridSize_ << "):"
+	     << setw(W) << BlochWaveStable << ", "
 	     << setw(W) << K << endl;
 	 // send to cout also
 	 if (Echo_)
