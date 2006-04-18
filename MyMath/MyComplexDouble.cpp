@@ -1,7 +1,7 @@
 #include "MyComplexDouble.h"
 
 // Global IDString
-char MyComplexDoubleID[]="$Id: MyComplexDouble.cpp,v 1.1 2006/04/18 13:25:46 elliott Exp $";
+char MyComplexDoubleID[]="$Id: MyComplexDouble.cpp,v 1.2 2006/04/18 14:26:51 elliott Exp $";
 
 // Private Functions...
 
@@ -33,6 +33,16 @@ MyComplexDouble operator-(const MyComplexDouble& A,const MyComplexDouble& B)
 MyComplexDouble operator*(const MyComplexDouble& A,const MyComplexDouble& B)
 {
    return MyComplexDouble(A.Re_*B.Re_-A.Im_*B.Im_, A.Im_*B.Re_+A.Re_*B.Im_);
+}
+
+MyComplexDouble operator*(const double& A,const MyComplexDouble& B)
+{
+   return MyComplexDouble(A*B.Re_, A*B.Im_);
+}
+
+MyComplexDouble operator*(const MyComplexDouble& A,const double& B)
+{
+   return MyComplexDouble(A.Re_*B, A.Im_*B);
 }
 
 MyComplexDouble operator/(const MyComplexDouble& A,const MyComplexDouble& B)

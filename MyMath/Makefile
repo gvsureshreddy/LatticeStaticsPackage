@@ -65,10 +65,12 @@ $(OBJECTS): Makefile
 
 .PHONY: uninstall
 # Define install
-install: $(LIB_LOC)/libMyMath.a $(INCL_LOC)/MyMath.h
+install: $(LIB_LOC)/libMyMath.a $(INCL_LOC)/MyMath.h $(INCL_LOC)/MyComplexDouble.h
 
 $(INCL_LOC)/MyMath.h: MyMath.h
 	/bin/cp MyMath.h $(INCL_LOC)/
+$(INCL_LOC)/MyComplexDouble.h: MyComplexDouble.h
+	/bin/cp MyComplexDouble.h $(INCL_LOC)/
 $(LIB_LOC)/libMyMath.a: $(OBJECTS)
 	$(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/MyMathBuildDate.o -c MyMathBuildDate.cpp
 	ar -r $(LIB_LOC)/libMyMath.a $(addprefix ./lib/,$(OBJECTS)) ./lib/MyMathBuildDate.o

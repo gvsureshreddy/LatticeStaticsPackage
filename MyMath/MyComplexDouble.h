@@ -36,19 +36,32 @@ public:
    Elm imag() { return Im_;}
    Elm mod() { return sqrt(Re_*Re_ + Im_*Im_);}
    Elm arg() { return (Re_>0.0)?atan(Re_/Im_):4.0*atan(1.0)-atan(Re_/Im_);}
-   
+
+   // Comparison methods...
+
+   int operator==(const MyComplexDouble &right) const
+   {return ((Re_==right.Re_) && (Im_==right.Im_));}
+   int operator!=(const MyComplexDouble &right) const
+   {return ((Re_!=right.Re_) || (Im_!=right.Im_));}
 
    // Algebraic Operators...
 
+   MyComplexDouble conj() { return MyComplexDouble(Re_,-Im_);}
    const friend MyComplexDouble& operator+(const MyComplexDouble& A) {return A;}
    friend MyComplexDouble operator-(const MyComplexDouble& A);
    friend MyComplexDouble operator+(const MyComplexDouble& A,const MyComplexDouble& B);
    friend MyComplexDouble operator-(const MyComplexDouble& A,const MyComplexDouble& B);
    friend MyComplexDouble operator*(const MyComplexDouble& A,const MyComplexDouble& B);
+   friend MyComplexDouble operator*(const double& A,const MyComplexDouble& B);
+   friend MyComplexDouble operator*(const MyComplexDouble& A,const double& B);
    friend MyComplexDouble operator/(const MyComplexDouble& A,const MyComplexDouble& B);
    friend MyComplexDouble operator/(const MyComplexDouble& A,const double& B);
    friend double abs(MyComplexDouble& A) {return A.mod();}
    friend MyComplexDouble sqrt(MyComplexDouble A);
+
+   // Elementary Functions...
+   friend MyComplexDouble exp(const MyComplexDouble &A)
+   {return MyComplexDouble(exp(A.Re_)*cos(A.Im_),exp(A.Re_)*sin(A.Im_));}
 
    // Assignment Operators
    MyComplexDouble& operator=(const MyComplexDouble& B);
