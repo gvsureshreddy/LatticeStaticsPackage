@@ -10,3 +10,4 @@ CBKinematics.d
 ChainIterator.d
 ChainSum.d
 LagrangeCB.d
+EulerCB.d

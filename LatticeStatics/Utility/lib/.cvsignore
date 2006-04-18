@@ -19,3 +19,9 @@ UnitCellIterator.o
 UnitCellIterator.ti
 UtilityFunctions.o
 UtilityFunctions.ti
+CBKinematics.ti
+ChainIterator.ti
+ChainSum.ti
+EulerCB.ti
+LagrangeCB.ti
+
