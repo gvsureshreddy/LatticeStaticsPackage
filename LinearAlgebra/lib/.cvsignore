@@ -6,3 +6,17 @@ Matrix.o
 Vector.o
 Vector3D.o
 matrixtest.o
+CMatrix.ti
+CVector.ti
+EigenSys.ii
+EigenSys.ti
+HermiteEigenSys.ii
+HermiteEigenSys.ti
+Matrix.ti
+PrincipalSys.ii
+PrincipalSys.ti
+Vector.ti
+Vector3D.ti
+matrixtest.ii
+matrixtest.ti
+
