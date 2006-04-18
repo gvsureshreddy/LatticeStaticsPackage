@@ -1,7 +1,7 @@
 #include "MyComplexDouble.h"
 
 // Global IDString
-char MyComplexDoubleID[]="$Id: MyComplexDouble.cpp,v 1.2 2006/04/18 14:26:51 elliott Exp $";
+char MyComplexDoubleID[]="$Id: MyComplexDouble.cpp,v 1.3 2006/04/18 16:30:35 elliott Exp $";
 
 // Private Functions...
 
@@ -70,28 +70,26 @@ MyComplexDouble operator/(const MyComplexDouble& A,const double& B)
    return MyComplexDouble(A.Re_/B,A.Im_/B);
 }
 
-MyComplexDouble sqrt(MyComplexDouble A)
+MyComplexDouble sqrt(const MyComplexDouble& A)
 {
-   double y,x;
-   if (fabs(A.imag()) <= 2.0*EPS*fabs(A.real())) 
+   double
+      x=A.Re_,
+      y=A.Im_;
+
+   if (x == double())
    {
-      if (A.Re_ >= 0.0)
-      {
-	 return MyComplexDouble(sqrt(A.Re_),0.0);
-      }
-      else
-      {
-	 return MyComplexDouble(0.0,sqrt(-A.Re_));
-      }
+      double t = sqrt(abs(y)/2.0);
+      return MyComplexDouble(t,y<double()?-t:t);
    }
    else
    {
-      y = sqrt((A.mod() - A.Re_)/2.0);
-      x = A.Im_/(2.0*y);
-      return MyComplexDouble(x,y);
+      double t = sqrt(2.0*(abs(A) + abs(x)));
+      double u = t/2.0;
+      return x>double()
+	 ? MyComplexDouble(u,y/t)
+	 : MyComplexDouble(abs(y)/t, y < double() ? -u : u);
    }
 }
-
 
 ostream& operator<<(ostream& out, const MyComplexDouble& A)
 {

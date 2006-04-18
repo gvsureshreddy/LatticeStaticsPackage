@@ -11,8 +11,6 @@ char *MyMathBuildDate();
 #include <iomanip>
 #include <cmath>
 
-#define EPS 2.0e-12
-
 using namespace std;
 
 class MyComplexDouble
@@ -56,8 +54,8 @@ public:
    friend MyComplexDouble operator*(const MyComplexDouble& A,const double& B);
    friend MyComplexDouble operator/(const MyComplexDouble& A,const MyComplexDouble& B);
    friend MyComplexDouble operator/(const MyComplexDouble& A,const double& B);
-   friend double abs(MyComplexDouble& A) {return A.mod();}
-   friend MyComplexDouble sqrt(MyComplexDouble A);
+   friend double abs(MyComplexDouble A) {return A.mod();}
+   friend MyComplexDouble sqrt(const MyComplexDouble& A);
 
    // Elementary Functions...
    friend MyComplexDouble exp(const MyComplexDouble &A)
@@ -68,7 +66,9 @@ public:
    MyComplexDouble operator+=(const MyComplexDouble& B) {return *this = *this+B;}
    MyComplexDouble operator-=(const MyComplexDouble& B) {return *this = *this-B;}
    MyComplexDouble operator*=(const MyComplexDouble& B) {return *this = *this*B;}
+   MyComplexDouble operator*=(const double& B) {return *this = *this*B;}
    MyComplexDouble operator/=(const MyComplexDouble& B) {return *this = *this/B;}
+   MyComplexDouble operator/=(const double& B) {return *this = *this/B;}
 
    // Output/Input Functions
    friend ostream& operator<<(ostream& out,const MyComplexDouble& A);
