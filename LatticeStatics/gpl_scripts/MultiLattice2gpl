@@ -111,7 +111,8 @@ close(GNUPLOT);
 sub loaddata {
     my(@fields,@temp,,@stress,@DOF,
        @potential,@entropy,@heatcapacity,@mineigval,@noneg,@blochwave,
-       $stableflag,$stable_nodata,$unstable_nodata,$bifpoints);
+       $stableflag,$stable_nodata,$unstable_nodata,$bifpoints,$gridsize,
+       $recalc,$BWrecalc);
     my($gnuplot,$endgnuplot,$stableheader,$unstableheader);
     $gnuplot = $_[2];
     $endgnuplot = $_[4];
@@ -139,6 +140,11 @@ sub loaddata {
 	$_ = <DATA>;
 	while (! m/^Mode:/)
 	{
+	  if (/^Input File:BlochWaveGridSize/)
+	  {
+	    @fields=split(/=/,$_);
+	    $gridsize = $fields[1];
+	  }
 	    $_ = <DATA>;
 	}
 
@@ -213,9 +219,16 @@ sub loaddata {
 	    if (/^BlochWave/)
 	    {
 	      @fields = split(/:/,$_);
-	      if ($fields[0] =~ /\([^\)]*\)/)
+	      if ($fields[0] =~ /\(GridSize=([0-9]*)\)/)
 	      {
-		$recalc=1;
+		if ($1 != $gridsize)
+		{
+		  $recalc=1;
+		}
+		else
+		{
+		  $recalc=0;
+		}
 	      }
 	      else
 	      {
