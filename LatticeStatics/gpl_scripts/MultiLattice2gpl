@@ -7,7 +7,7 @@ use Math::Trig;
 
 if (scalar(@ARGV) < 3)
 {
-  die "Usage: MultiLattice2gpl dofs dataname gplfilename [crystalline|CB|phonon] [cartesian|euler] [directorie list]\n";
+  die "Usage: MultiLattice2gpl dofs dataname gplfilename [crystalline|CB|phonon] [cartesian|euler] [directory list]\n";
 }
 
 $DOFSize = $ARGV[0];
