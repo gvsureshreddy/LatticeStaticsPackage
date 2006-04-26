@@ -97,6 +97,7 @@ $(BIN_LOC)/$(EXE):	$(EXE)
 	/bin/cp gpl_scripts/MultiLattice2gpl $(BIN_LOC)
 	/bin/cp gpl_scripts/BlochWaveRecalc $(BIN_LOC)
 	/bin/cp gpl_scripts/CoarsenOutput $(BIN_LOC)
+	/bin/cp gpl_scripts/CoarsenGPL $(BIN_LOC)
 
 # Define uninstall
 uninstall:
@@ -105,6 +106,7 @@ uninstall:
 	/bin/rm -f $(BIN_LOC)/MultiLattice2gpl
 	/bin/rm -f $(BIN_LOC)/BlochWaveRecalc
 	/bin/rm -f $(BIN_LOC)/CoarsenOutput
+	/bin/rm -f $(BIN_LOC)/CoarsenGPL
 	$(MAKE) -e -C ./Utility -f MakeUtilityProgs uninstall
 
 
