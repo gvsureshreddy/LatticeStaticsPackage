@@ -17,7 +17,14 @@ $FSPEC = "%14.6f";
 
 if (scalar(@ARGV) >= 4)
 {
-  $StabType = $ARGV[3];
+  if ($ARGV[3] eq "crystalline" || $ARGV[3] eq "CB" || $ARGV[3] eq "phonon")
+  {
+    $StabType = $ARGV[3];
+  }
+  else
+  {
+    die "Unknown option of crystallline|CB|phonon : $ARGV[3]\n";
+  }
 }
 else
 {
@@ -26,13 +33,17 @@ else
 
 if (scalar(@ARGV) >= 5)
 {
-  if ($ARGV[4] eq "cartesian" || $ARGV[4] eq "Cartesian")
+  if ($ARGV[4] eq "euler" || $ARGV[4] eq "Euler")
   {
     $Euler = 1;
   }
-  else
+  elsif ($ARGV[4] eq "cartesian" || $ARGV[4] eq "Cartesian")
   {
     $Euler = 0;
+  }
+  else
+  {
+    die "Unknown option for cartesian|euler : $ARGV[4]\n";
   }
 }
 else
