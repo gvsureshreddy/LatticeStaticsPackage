@@ -1,0 +1,70 @@
+#!/usr/bin/perl
+#
+# Usage: CoarsenGPL gpl_file skip <outputfile>
+#
+use IPC::Open2;
+use IO::Handle;
+
+if (scalar(@ARGV) < 2)
+{
+  die "Usage: CoarsenGPL gpl_file skip <outputfile>";
+}
+
+open(DATA,"<$ARGV[0]") 
+    || die "Unable to open $ARGV[0] for read: $!";
+if (scalar(@ARGV) == 3)
+{
+  open(OUTPUT,">$ARGV[2]") || die "Unable to open $ARGV[2] for write: $!";
+}
+else
+{
+  open(OUTPUT,">-") || die "Unable to open standard out for write: $!";
+}
+
+$skip = $ARGV[1];
+
+if ($skip <= 0)
+{
+  die "skip must be greater than zero!";
+}
+
+$_ = <DATA>;
+print OUTPUT $_;
+
+while (! m/^\# Index 1/)
+{
+  $_ = <DATA>;
+  print OUTPUT $_;
+}
+
+$count = 0;
+
+while (<DATA>)
+{
+  if ((/^\#/) || (/^$/))
+  {
+    if ($count > 1)
+    {
+      print OUTPUT $hold;
+    }
+    print OUTPUT $_;
+    $count = 0;
+  }
+  else
+  {
+    if ($count == 0)
+    {
+      print OUTPUT $_;
+      $count += 1;
+    }
+    else
+    {
+      $count += 1;
+      $count %= $skip;
+    }
+  }
+  $hold = $_;
+}
+
+close(OUTPUT);
+close(DATA);
