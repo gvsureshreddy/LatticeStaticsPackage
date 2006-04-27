@@ -67,81 +67,49 @@ for (my $i=0;$i<@dir;$i+=1)
   {
     push @directories, $dir[$i];
   }
+  else
+  {
+    print "Directory $dir[$i] does not exist! --- ignoring.\n";
+  }
 }
 
 open(GNUPLOT,">$ARGV[2]") 
     || die "Unable to open $ARGV[2] for write: $!";
 
 print GNUPLOT "# gnuplot data file for ${dataset}\n#\n";
-print GNUPLOT "# Index 0\n";
-print GNUPLOT "# Bifurcation Points\n";
-printf GNUPLOT "#" . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
-    "Temperature","Stress","Potential","Entropy","HeatCapacity";
-for (my $i=0;$i<$DOFSize;$i+=1)
-{
-    printf GNUPLOT $StrSPEC,"DOF $i";
-}
-printf GNUPLOT $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . "\n",
-    "Min EigVal","Num Neg Eig Vals","Rank 1 Convex","Blochwave";
-printf GNUPLOT "# name: Index_0_0\n";
-printf GNUPLOT "# type: matrix\n";
 
-$begingnuplot = "";
-$endgnuplot = "";
-$bifpoints = 0;
-$index = 1;
+$index = 0;
 foreach $dir (@directories)
 {
   chdir $dataset;
-  $bifpoints += loaddata($dataset . "/" . $dir ,$ARGV[1],\$begingnuplot,$index,\$endgnuplot);
-  $index += 2;
+  loaddata($dataset . "/" . $dir ,$ARGV[1],$index,*GNUPLOT);
+  $index += 3;
 }
-
-if ($bifpoints == 0)
-{
-  printf GNUPLOT "# rows: 1\n";
-  printf GNUPLOT "# columns: %i\n",$StateSize;
-  for (my $i=0;$i<$StateSize;$i+=1)
-  {
-    printf GNUPLOT $FSPEC,0.0;
-  }
-  printf GNUPLOT "\n";
-}
-else
-{
-  printf GNUPLOT "# rows: $bifpoints\n";
-  printf GNUPLOT "# columns: %i\n",$StateSize;
-  print GNUPLOT $begingnuplot;
-}
-
-print GNUPLOT "\n\n", $endgnuplot;
 
 close(GNUPLOT);
 
 
 # Subroutine loaddata.
-#    read in data file, print bifurcation points to output
-#    file, print stable sections to "stable temp file",
-#    print unstable sections to "unstable temp file".
+#    read in data file, print bifurcation points,
+#    stable sections, and unstable sections to output file
 #
 # Note: subroutine leaves current directory changed.
 #
 # $_[0] -- Directory name
 # $_[1] -- Data file name
-# $_[2] -- reference to variable holding bif points
-# $_[3] -- Gnuplot data file Index for stable section
-#          Note (unstable section index +1)
-# $_[4] -- reference to variable holding all stable and unstable
-#          sections (indicies)
+# $_[2] -- Gnuplot data file Index for critical point section
+#          Note (stable section is index+1, unstable section index+2)
+# $_[3] -- reference to output file
 #
 sub loaddata {
     my(@fields,@temp,,@stress,@DOF,
        @potential,@entropy,@heatcapacity,@mineigval,@noneg,@blochwave,
        $stableflag,$stable_nodata,$unstable_nodata,$bifpoints,$gridsize,
-       $recalc,$BWrecalc);
-    my($gnuplot,$endgnuplot,$stableheader,$unstableheader);
-    $gnuplot = $_[2];
-    $endgnuplot = $_[4];
+       $recalc,$BWrecalc,$outputfl);
+    $outputfl = $_[3];
+    $bifheader = "";
+    $bif = "";
+    $biftmp = "";
     $stableheader = "";
     $stable = "";
     $stabletmp = "";
@@ -287,8 +255,19 @@ sub loaddata {
     {
 	print "No file, \"$_[1]\" in $_[0]!\n";
     }
+
+    $bifheader .= sprintf "# Index $_[2]\n";
+    $bifheader .= sprintf "# $_[0]/$_[1] --- Critical Points\n";
+    $bifheader .= sprintf "#" . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
+    "Temperature","Stress","Potential","Entropy","HeatCapacity";
+    for (my $i=0;$i<$DOFSize;$i+=1)
+    {
+	$bifheader .= sprintf $StrSPEC,"DOF $i";
+    }
+    $bifheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . "\n",
+    "Min EigVal","Num Neg Eig Vals","Rank 1 Convex","Blochwave";
     
-    $stableheader .= sprintf "# Index $_[3]\n";
+    $stableheader .= sprintf "# Index " . ($_[2]+1) . "\n";
     $stableheader .= sprintf "# $_[0]/$_[1] --- Stable\n";
     $stableheader .= sprintf "#" . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
     "Temperature","Stress","Potential","Entropy","HeatCapacity";
@@ -299,7 +278,7 @@ sub loaddata {
     $stableheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . "\n",
     "Min EigVal","Num Neg Eig Vals","Rank 1 Convex","Blochwave";
 
-    $unstableheader .= sprintf "# Index " . ($_[3]+1) . "\n";
+    $unstableheader .= sprintf "# Index " . ($_[2]+2) . "\n";
     $unstableheader .= sprintf "# $_[0]/$_[1] --- Unstable\n";
     $unstableheader .= sprintf "#" . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
     "Temperature","Stress","Potential","Entropy","HeatCapacity";
@@ -340,13 +319,13 @@ sub loaddata {
       if (defined($noneg[1]) && $CBflag != $noneg[1])
       {
 	$bifpoints += 1;
-	$$gnuplot .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
+	$biftmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
 	$temp[0],$stress[0],$potential[0],$entropy[0],$heatcapacity[0];
 	for (my $i=0;$i<$DOFSize;$i+=1)
 	{
-	  $$gnuplot .= sprintf $FSPEC,$DOF[0][$i];
+	  $biftmp .= sprintf $FSPEC,$DOF[0][$i];
 	}
-	$$gnuplot .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
+	$biftmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
 	$mineigval[0],$noneg[0],$Convex[0],$blochwave[0];
       }
       
@@ -358,7 +337,7 @@ sub loaddata {
 	{
 	  if (!$firststable)
 	  {
-	    $stable .= sprintf "# name: Index_$_[3]_$substable\n";
+	    $stable .= sprintf "# name: Index_" . ($_[2]+1) . "_$substable\n";
 	    $stable .= sprintf "# type: matrix\n";
 	    $stable .= sprintf "# rows: $nostable\n";
 	    $stable .= sprintf "# columns: %i\n",$StateSize;
@@ -386,7 +365,7 @@ sub loaddata {
 	{
 	  if (!$firstunstable)
 	  {
-	    $unstable .= sprintf "# name: Index_" . ($_[3]+1). "_$subunstable\n";
+	    $unstable .= sprintf "# name: Index_" . ($_[2]+2). "_$subunstable\n";
 	    $unstable .= sprintf "# type: matrix\n";
 	    $unstable .= sprintf "# rows: $nounstable\n";
 	    $unstable .= sprintf "# columns: %i\n",$StateSize;
@@ -446,9 +425,34 @@ sub loaddata {
     }
     
     # Make sure there is at least one data point in each index
+    if ($bifpoints == 0)
+    {
+      $bif .= sprintf "# name: Index_$_[2]_0\n";
+      $bif .= sprintf "# type: matrix\n";
+      $bif .= sprintf "# rows: 1\n";
+      $bif .= sprintf "# columns: %i\n",$StateSize;
+      for (my $i=0;$i<$StateSize;$i+=1)
+      {
+	$bif .= sprintf $FSPEC,0.0;
+      }
+      $bif .= sprintf "\n";
+    }
+    else
+    {
+      if ($bifpoints > 0)
+      {
+	$bif .= sprintf "# name: Index_$_[2]_0\n";
+	$bif .= sprintf "# type: matrix\n";
+	$bif .= sprintf "# rows: $bifpoints\n";
+	$bif .= sprintf "# columns: %i\n",$StateSize;
+	$bif .= $biftmp;
+      }
+    }
+
+
     if ($stable_nodata)
     {
-      $stable .= sprintf "# name: Index_$_[3]_$substable\n";
+      $stable .= sprintf "# name: Index_" . ($_[2]+1) . "_$substable\n";
       $stable .= sprintf "# type: matrix\n";
       $stable .= sprintf "# rows: 1\n";
       $stable .= sprintf "# columns: %i\n",$StateSize;
@@ -462,7 +466,7 @@ sub loaddata {
     {
       if ($nostable > 0)
       {
-	$stable .= sprintf "# name: Index_$_[3]_$substable\n";
+	$stable .= sprintf "# name: Index_" . ($_[2]+1) . "_$substable\n";
 	$stable .= sprintf "# type: matrix\n";
 	$stable .= sprintf "# rows: $nostable\n";
 	$stable .= sprintf "# columns: %i\n",$StateSize;
@@ -472,7 +476,7 @@ sub loaddata {
 
     if ($unstable_nodata)
     {
-      $unstable .= sprintf "# name: Index_" . ($_[3]+1) . "_$subunstable\n";
+      $unstable .= sprintf "# name: Index_" . ($_[2]+2) . "_$subunstable\n";
       $unstable .= sprintf "# type: matrix\n";
       $unstable .= sprintf "# rows: 1\n";
       $unstable .= sprintf "# columns: %i\n",$StateSize;
@@ -486,7 +490,7 @@ sub loaddata {
     {
       if ($nounstable > 0)
       {
-	$unstable .= sprintf "# name: Index_" . ($_[3]+1) . "_$subunstable\n";
+	$unstable .= sprintf "# name: Index_" . ($_[2]+2) . "_$subunstable\n";
 	$unstable .= sprintf "# type: matrix\n";
 	$unstable .= sprintf "# rows: $nounstable\n";
 	$unstable .= sprintf "# columns: %i\n",$StateSize;
@@ -494,7 +498,5 @@ sub loaddata {
       }
     }
 
-    $$endgnuplot .= $stableheader . $stable . "\n\n" . $unstableheader . $unstable . "\n\n";
-
-    $bifpoints;
+    printf $outputfl $bifheader . $bif . "\n\n" . $stableheader . $stable . "\n\n" . $unstableheader . $unstable . "\n\n";
 }

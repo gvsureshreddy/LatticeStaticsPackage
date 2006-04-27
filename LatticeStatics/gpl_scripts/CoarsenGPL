@@ -31,18 +31,28 @@ if ($skip <= 0)
 $_ = <DATA>;
 print OUTPUT $_;
 
-while (! m/^\# Index 1/)
-{
-  $_ = <DATA>;
-  print OUTPUT $_;
-}
-
 $count = 0;
 
 while (<DATA>)
 {
   if ((/^\#/) || (/^$/))
   {
+    # skip Critical point index
+    if (/^\# Index ([0-9]+)/)
+    {
+      print $1, "     ", $1%3,  "\n";
+      if ($1%3 == 0)
+      {
+	print OUTPUT $_;
+	$_ = <DATA>;
+	while (! m/^$/)
+	{
+	  print OUTPUT $_;
+	  $_ = <DATA>;
+	}
+      }
+    }
+
     if ($count > 1)
     {
       print OUTPUT $hold;
