@@ -58,9 +58,10 @@ DISPERSIONSOURCES = DispersionCurves.cpp
 LONGWAVELENGTH = LongWavelengthModuli.cpp
 BLOCHWAVESOURCES = BlochWave.cpp
 NEIGHBORSSOURCES = NeighborDistances.cpp
+PRINTPOTENTIALS = PrintPotentials.cpp
 #
 ALLSOURCES  = $(BSCSOURCES) $(RK1SOURCES) $(DISPERSIONSOURCES) \
-	      $(BLOCHWAVESOURCES) $(NEIGHBORSSOURCES) $(LONGWAVELENGTH)
+	      $(BLOCHWAVESOURCES) $(NEIGHBORSSOURCES) $(LONGWAVELENGTH) $(PRINTPOTENTIALS)
 
 
 # Defines the object files to be created using the SYSTEM name ############
@@ -71,12 +72,13 @@ DISPERSIONOBJECTS = $(DISPERSIONSOURCES:$(SRC_EXT)=$(OBJ_EXT))
 WAVELENGTHOBJECTS = $(LONGWAVELENGTH:$(SRC_EXT)=$(OBJ_EXT))
 BLOCHWAVEOBJECTS = $(BLOCHWAVESOURCES:$(SRC_EXT)=$(OBJ_EXT))
 NEIGHBORSOBJECTS = $(NEIGHBORSSOURCES:$(SRC_EXT)=$(OBJ_EXT))
+PRINTPOTSOBJECTS = $(PRINTPOTENTIALS:$(SRC_EXT)=$(OBJ_EXT))
 #
 ALLOBJECTS = $(BSCOBJECTS) $(RK1OBJECTS) $(DISPERSIONOBJECTS) \
-	     $(BLOCHWAVEOBJECTS) $(NEIGHBORSOBJECTS) $(WAVELENGTHOBJECTS)
+	     $(BLOCHWAVEOBJECTS) $(NEIGHBORSOBJECTS) $(WAVELENGTHOBJECTS) $(PRINTPOTSOBJECTS)
 
 ALLPROGRAMS = Rank1Convex DispersionCurves BlochWave NeighborDistances\
-              LongWavelengthModuli
+              LongWavelengthModuli PrintPotentials
 
 all: $(ALLPROGRAMS)
 
@@ -145,6 +147,16 @@ NeighborDistances:    $(NEIGHBORSOBJECTS) $(BSCOBJECTS) \
 		      $(LIBS) ./lib/builddate.o
 		      /bin/rm -f ./lib/builddate.o
 
+# Defines the Program Target (linking command) ############################
+PrintPotentials:      $(PRINTPOTSOBJECTS) $(BSCOBJECTS) \
+		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT)))
+		      $(PURE) $(CC) $(LFLAGS) \
+		      -L$(LIB_LOC) -o ./bin/PrintPotentials \
+		      $(addprefix lib/,$(PRINTPOTSOBJECTS)) \
+		      $(addprefix lib/,$(BSCOBJECTS)) \
+		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT))) \
+		      $(LIBS)
+
 # include the dependicies
 include $(addprefix depend/,$(BSCOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 include $(addprefix depend/,$(RK1OBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
@@ -152,6 +164,7 @@ include $(addprefix depend/,$(DISPERSIONOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 include $(addprefix depend/,$(WAVELENGTHOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 include $(addprefix depend/,$(BLOCHWAVEOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 include $(addprefix depend/,$(NEIGHBORSOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
+include $(addprefix depend/,$(PRINTPOTSOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 
 # Define object file dependicies and make rule
 $(ALLOBJECTS): Makefile MakeUtilityProgs
@@ -175,6 +188,7 @@ uninstall:
 	/bin/rm -f $(BIN_LOC)/LongWavelengthModuli
 	/bin/rm -f $(BIN_LOC)/BlochWave
 	/bin/rm -f $(BIN_LOC)/NeighborDistances
+	/bin/rm -f $(BIN_LOC)/PrintPotentials
 
 # Removes the current systems set of object files and executable file
 .PHONY: clean
@@ -186,11 +200,13 @@ clean:
 		  $(addprefix lib/,$(WAVELENGTHOBJECTS:$(OBJ_EXT)=.*)) \
 		  $(addprefix lib/,$(BLOCHWAVEOBJECTS:$(OBJ_EXT)=.*)) \
 		  $(addprefix lib/,$(NEIGHBORSOBJECTS:$(OBJ_EXT)=.*)) \
+		  $(addprefix lib/,$(PRINTPOTSOBJECTS:$(OBJ_EXT)=.*)) \
                   bin/Rank1Convex \
 		  bin/DispersionCurves \
 		  bin/LongWavelengthModuli \
 		  bin/BlochWave \
 		  bin/NeighborDistances \
+		  bin/PrintPotentials \
 		  core *~ \
 		  depend/*.d
 
