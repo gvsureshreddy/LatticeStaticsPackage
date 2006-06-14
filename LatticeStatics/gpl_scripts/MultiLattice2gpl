@@ -102,7 +102,7 @@ close(GNUPLOT);
 # $_[3] -- reference to output file
 #
 sub loaddata {
-    my(@fields,@temp,,@stress,@DOF,
+    my(@fields,@temp,@bifpt,@stress,@DOF,
        @potential,@entropy,@heatcapacity,@mineigval,@noneg,@blochwave,
        $stableflag,$stable_nodata,$unstable_nodata,$bifpoints,$gridsize,
        $recalc,$BWrecalc,$outputfl);
@@ -144,10 +144,27 @@ sub loaddata {
 
 	while (<DATA>)
 	{
-	    if ( /^Temperature/)
+	    if ( /^===========/)
 	    {
+	      if ( $#bifpt < 0 || $bifpt[$#bifpt] == 0 )
+	      {
+		push(@bifpt,1);
+	      }
+	      $_=<DATA>;
+	      if ( /^Temperature/)
+	      {
 		@fields=split(/:/,$_);
 		push(@temp,$fields[1]);
+	      }
+	      $_=<DATA>;
+	    }
+
+	    if ( /^Temperature/)
+	    {
+	      push(@bifpt,0);
+
+	      @fields=split(/:/,$_);
+	      push(@temp,$fields[1]);
 	    }
 
 	    if ( /^Lambda/)
@@ -297,7 +314,6 @@ sub loaddata {
     $subunstable = 0;
     while(defined($temp[0]))
     {
-      $CBflag=$noneg[0];
       if ($StabType eq "CB")
       {
 	$stableflag = $noneg[0];
@@ -316,7 +332,7 @@ sub loaddata {
 
 
       # Bifurcation Point
-      if (defined($noneg[1]) && $CBflag != $noneg[1])
+      if ($bifpt[0] == 1)
       {
 	$bifpoints += 1;
 	$biftmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
@@ -328,6 +344,7 @@ sub loaddata {
 	$biftmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
 	$mineigval[0],$noneg[0],$Convex[0],$blochwave[0];
       }
+      shift(@bifpt);
       
       if ($stableflag != $NxtStableflag)
       {
