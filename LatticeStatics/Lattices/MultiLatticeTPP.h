@@ -83,7 +83,7 @@ public:
    void SetDOF(const Vector &dof) {DOF_ = dof; LatSum_.Recalc();}
    // Entropy is NEGATIVE dE/dT
    double Entropy() {return -energy(PairPotentials::DT);}
-   double HeatCapacity() {return -(NTemp_*Tref_)*energy(PairPotentials::D2T);}
+   double HeatCapacity() {return -(NTemp_)*energy(PairPotentials::D2T);}
    Matrix StressDT() {return stress(PairPotentials::DT);}
    Matrix StiffnessDT() {return stiffness(PairPotentials::DT);}
    double Temp() {return NTemp_;}
