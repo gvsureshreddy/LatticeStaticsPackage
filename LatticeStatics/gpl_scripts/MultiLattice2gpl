@@ -104,8 +104,9 @@ close(GNUPLOT);
 sub loaddata {
     my(@fields,@temp,@bifpt,@stress,@DOF,
        @potential,@entropy,@heatcapacity,@mineigval,@noneg,@blochwave,
-       $stableflag,$stable_nodata,$unstable_nodata,$bifpoints,$turnpoints,$reconstturnpts,
-       $gridsize,$loadparam,$loadgrad,$oldloadgrad,$recalc,$BWrecalc,$outputfl);
+       $stableflag,$stable_nodata,$unstable_nodata,$bifflag,$bifpoints,$turnpoints,
+       $reconstturnpts,$gridsize,$loadparam,$loadgrad,$oldloadgrad,$recalc,$BWrecalc,
+       $outputfl);
     $outputfl = $_[3];
     $bifheader = "";
     $bif = "";
@@ -139,6 +140,7 @@ sub loaddata {
     {
 	open(DATA,"zcat -f $_[1]|") || die "No file, \"$_[0]\": $_[1], $!";
 
+	$bifflag=0;
 	$_ = <DATA>;
 	while (! m/^Mode:/)
 	{
@@ -168,10 +170,16 @@ sub loaddata {
 	{
 	    if ( /^===========/)
 	    {
-	      if ( $#bifpt < 0 || $bifpt[$#bifpt] == 0 )
+	      if ( $#bifpt < 0 || $bifflag==0 )
 	      {
 		push(@bifpt,1);
+		$bifflag=1;
 	      }
+	      else
+	      {
+		$bifflag=0;
+	      }
+
 	      $_=<DATA>;
 	      if ( /^Temperature/)
 	      {
