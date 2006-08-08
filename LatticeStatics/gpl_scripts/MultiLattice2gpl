@@ -83,7 +83,7 @@ foreach $dir (@directories)
 {
   chdir $dataset;
   loaddata($dataset . "/" . $dir ,$ARGV[1],$index,*GNUPLOT);
-  $index += 3;
+  $index += 5;
 }
 
 close(GNUPLOT);
@@ -104,12 +104,18 @@ close(GNUPLOT);
 sub loaddata {
     my(@fields,@temp,@bifpt,@stress,@DOF,
        @potential,@entropy,@heatcapacity,@mineigval,@noneg,@blochwave,
-       $stableflag,$stable_nodata,$unstable_nodata,$bifpoints,$gridsize,
-       $recalc,$BWrecalc,$outputfl);
+       $stableflag,$stable_nodata,$unstable_nodata,$bifpoints,$turnpoints,$reconstturnpts,
+       $gridsize,$loadparam,$loadgrad,$oldloadgrad,$recalc,$BWrecalc,$outputfl);
     $outputfl = $_[3];
     $bifheader = "";
     $bif = "";
     $biftmp = "";
+    $turnheader = "";
+    $turn = "";
+    $turntmp = "";
+    $reconstturnheader = "";
+    $reconstturn = "";
+    $reconstturntmp = "";
     $stableheader = "";
     $stable = "";
     $stabletmp = "";
@@ -126,6 +132,8 @@ sub loaddata {
     $stable_nodata = 1;
     $unstable_nodata = 1;
     $bifpoints = 0;
+    $turnpoints = 0;
+    $reconstturnpts = 0;
 
     if (-e $_[1])
     {
@@ -134,6 +142,20 @@ sub loaddata {
 	$_ = <DATA>;
 	while (! m/^Mode:/)
 	{
+	  if (/^Input File:LoadingParameter/)
+	  {
+	    @fields=split(/=/,$_);
+	    $fields[1] =~ s/\s+//g;
+	    if ($fields[1] eq "Temperature")
+	    {
+	      $loadparam=1;
+	    }
+	    elsif ($fields[1] eq "Load")
+	    {
+	      $loadparam=2;
+	    }
+	  }
+
 	  if (/^Input File:BlochWaveGridSize/)
 	  {
 	    @fields=split(/=/,$_);
@@ -274,7 +296,7 @@ sub loaddata {
     }
 
     $bifheader .= sprintf "# Index $_[2]\n";
-    $bifheader .= sprintf "# $_[0]/$_[1] --- Critical Points\n";
+    $bifheader .= sprintf "# $_[0]/$_[1] --- Bifurcation Points\n";
     $bifheader .= sprintf "#" . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
     "Temperature","Stress","Potential","Entropy","HeatCapacity";
     for (my $i=0;$i<$DOFSize;$i+=1)
@@ -283,8 +305,30 @@ sub loaddata {
     }
     $bifheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . "\n",
     "Min EigVal","Num Neg Eig Vals","Rank 1 Convex","Blochwave";
+
+    $turnheader .= sprintf "# Index " . ($_[2]+1) . "\n";
+    $turnheader .= sprintf "# $_[0]/$_[1] --- Turning Points\n";
+    $turnheader .= sprintf "#" . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
+    "Temperature","Stress","Potential","Entropy","HeatCapacity";
+    for (my $i=0;$i<$DOFSize;$i+=1)
+    {
+	$turnheader .= sprintf $StrSPEC,"DOF $i";
+    }
+    $turnheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . "\n",
+    "Min EigVal","Num Neg Eig Vals","Rank 1 Convex","Blochwave";
+
+    $reconstturnheader .= sprintf "# Index " . ($_[2]+2) . "\n";
+    $reconstturnheader .= sprintf "# $_[0]/$_[1] --- Reconstructive Turning Points\n";
+    $reconstturnheader .= sprintf "#" . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
+    "Temperature","Stress","Potential","Entropy","HeatCapacity";
+    for (my $i=0;$i<$DOFSize;$i+=1)
+    {
+	$reconstturnheader .= sprintf $StrSPEC,"DOF $i";
+    }
+    $reconstturnheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . "\n",
+    "Min EigVal","Num Neg Eig Vals","Rank 1 Convex","Blochwave";
     
-    $stableheader .= sprintf "# Index " . ($_[2]+1) . "\n";
+    $stableheader .= sprintf "# Index " . ($_[2]+3) . "\n";
     $stableheader .= sprintf "# $_[0]/$_[1] --- Stable\n";
     $stableheader .= sprintf "#" . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
     "Temperature","Stress","Potential","Entropy","HeatCapacity";
@@ -295,7 +339,7 @@ sub loaddata {
     $stableheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . "\n",
     "Min EigVal","Num Neg Eig Vals","Rank 1 Convex","Blochwave";
 
-    $unstableheader .= sprintf "# Index " . ($_[2]+2) . "\n";
+    $unstableheader .= sprintf "# Index " . ($_[2]+4) . "\n";
     $unstableheader .= sprintf "# $_[0]/$_[1] --- Unstable\n";
     $unstableheader .= sprintf "#" . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
     "Temperature","Stress","Potential","Entropy","HeatCapacity";
@@ -312,6 +356,15 @@ sub loaddata {
     $nounstable = 0;
     $substable = 0;
     $subunstable = 0;
+    if ($loadparam == 1)
+    {
+      $loadgrad = ($temp[1]-$temp[0])/abs($temp[1]-$temp[0]);
+    }
+    elsif ($loadparam == 2)
+    {
+      $loadgrad = ($stress[1]-$stress[0])/abs($stress[1]-$stress[0]);
+    }
+
     while(defined($temp[0]))
     {
       if ($StabType eq "CB")
@@ -331,18 +384,61 @@ sub loaddata {
       }
 
 
+      $oldloadgrad = $loadgrad;
+      if ($#temp > 0)
+      {
+	if ($loadparam == 1)
+	{
+	  $loadgrad = ($temp[1]-$temp[0])/abs($temp[1]-$temp[0]);
+	}
+	elsif ($loadparam == 2)
+	{
+	  $loadgrad = ($stress[1]-$stress[0])/abs($stress[1]-$stress[0]);
+	}
+      }
+
       # Bifurcation Point
       if ($bifpt[0] == 1)
       {
-	$bifpoints += 1;
-	$biftmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
-	$temp[0],$stress[0],$potential[0],$entropy[0],$heatcapacity[0];
-	for (my $i=0;$i<$DOFSize;$i+=1)
+	if ($loadgrad == $oldloadgrad)
 	{
-	  $biftmp .= sprintf $FSPEC,$DOF[0][$i];
+	  $bifpoints += 1;
+	  $biftmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
+	  $temp[0],$stress[0],$potential[0],$entropy[0],$heatcapacity[0];
+	  for (my $i=0;$i<$DOFSize;$i+=1)
+	  {
+	    $biftmp .= sprintf $FSPEC,$DOF[0][$i];
+	  }
+	  $biftmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
+	  $mineigval[0],$noneg[0],$Convex[0],$blochwave[0];
 	}
-	$biftmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
-	$mineigval[0],$noneg[0],$Convex[0],$blochwave[0];
+	else
+	{
+	  $turnpoints += 1;
+	  $turntmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
+	  $temp[0],$stress[0],$potential[0],$entropy[0],$heatcapacity[0];
+	  for (my $i=0;$i<$DOFSize;$i+=1)
+	  {
+	    $turntmp .= sprintf $FSPEC,$DOF[0][$i];
+	  }
+	  $turntmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
+	  $mineigval[0],$noneg[0],$Convex[0],$blochwave[0];
+	}
+      }
+      else
+      {
+	if ($loadgrad != $oldloadgrad)
+	{
+	  $reconstturnpts += 1;
+	  $reconstturntmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
+	  $temp[0],$stress[0],$potential[0],$entropy[0],$heatcapacity[0];
+	  for (my $i=0;$i<$DOFSize;$i+=1)
+	  {
+	    $reconstturntmp .= sprintf $FSPEC,$DOF[0][$i];
+	  }
+	  $reconstturntmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
+	  $mineigval[0],$noneg[0],$Convex[0],$blochwave[0];
+	}
       }
       shift(@bifpt);
       
@@ -354,7 +450,7 @@ sub loaddata {
 	{
 	  if (!$firststable)
 	  {
-	    $stable .= sprintf "# name: Index_" . ($_[2]+1) . "_$substable\n";
+	    $stable .= sprintf "# name: Index_" . ($_[2]+3) . "_$substable\n";
 	    $stable .= sprintf "# type: matrix\n";
 	    $stable .= sprintf "# rows: $nostable\n";
 	    $stable .= sprintf "# columns: %i\n",$StateSize;
@@ -382,7 +478,7 @@ sub loaddata {
 	{
 	  if (!$firstunstable)
 	  {
-	    $unstable .= sprintf "# name: Index_" . ($_[2]+2). "_$subunstable\n";
+	    $unstable .= sprintf "# name: Index_" . ($_[2]+4). "_$subunstable\n";
 	    $unstable .= sprintf "# type: matrix\n";
 	    $unstable .= sprintf "# rows: $nounstable\n";
 	    $unstable .= sprintf "# columns: %i\n",$StateSize;
@@ -466,10 +562,57 @@ sub loaddata {
       }
     }
 
+    if ($turnpoints == 0)
+    {
+      $turn .= sprintf "# name: Index_" . ($_[2]+1) ,"_0\n";
+      $turn .= sprintf "# type: matrix\n";
+      $turn .= sprintf "# rows: 1\n";
+      $turn .= sprintf "# columns: %i\n",$StateSize;
+      for (my $i=0;$i<$StateSize;$i+=1)
+      {
+	$turn .= sprintf $FSPEC,0.0;
+      }
+      $turn .= sprintf "\n";
+    }
+    else
+    {
+      if ($turnpoints > 0)
+      {
+	$turn .= sprintf "# name: Index_" . ($_[2]+1) . "_0\n";
+	$turn .= sprintf "# type: matrix\n";
+	$turn .= sprintf "# rows: $turnpoints\n";
+	$turn .= sprintf "# columns: %i\n",$StateSize;
+	$turn .= $turntmp;
+      }
+    }
+
+    if ($reconstturnpts == 0)
+    {
+      $reconstturn .= sprintf "# name: Index_" . ($_[2]+2) . "_0\n";
+      $reconstturn .= sprintf "# type: matrix\n";
+      $reconstturn .= sprintf "# rows: 1\n";
+      $reconstturn .= sprintf "# columns: %i\n",$StateSize;
+      for (my $i=0;$i<$StateSize;$i+=1)
+      {
+	$reconstturn .= sprintf $FSPEC,0.0;
+      }
+      $reconstturn .= sprintf "\n";
+    }
+    else
+    {
+      if ($reconstturnpts > 0)
+      {
+	$reconstturn .= sprintf "# name: Index_" . ($_[2]+2) . "_0\n";
+	$reconstturn .= sprintf "# type: matrix\n";
+	$reconstturn .= sprintf "# rows: $reconstturnpts\n";
+	$reconstturn .= sprintf "# columns: %i\n",$StateSize;
+	$reconstturn .= $reconstturntmp;
+      }
+    }
 
     if ($stable_nodata)
     {
-      $stable .= sprintf "# name: Index_" . ($_[2]+1) . "_$substable\n";
+      $stable .= sprintf "# name: Index_" . ($_[2]+3) . "_$substable\n";
       $stable .= sprintf "# type: matrix\n";
       $stable .= sprintf "# rows: 1\n";
       $stable .= sprintf "# columns: %i\n",$StateSize;
@@ -483,7 +626,7 @@ sub loaddata {
     {
       if ($nostable > 0)
       {
-	$stable .= sprintf "# name: Index_" . ($_[2]+1) . "_$substable\n";
+	$stable .= sprintf "# name: Index_" . ($_[2]+3) . "_$substable\n";
 	$stable .= sprintf "# type: matrix\n";
 	$stable .= sprintf "# rows: $nostable\n";
 	$stable .= sprintf "# columns: %i\n",$StateSize;
@@ -493,7 +636,7 @@ sub loaddata {
 
     if ($unstable_nodata)
     {
-      $unstable .= sprintf "# name: Index_" . ($_[2]+2) . "_$subunstable\n";
+      $unstable .= sprintf "# name: Index_" . ($_[2]+4) . "_$subunstable\n";
       $unstable .= sprintf "# type: matrix\n";
       $unstable .= sprintf "# rows: 1\n";
       $unstable .= sprintf "# columns: %i\n",$StateSize;
@@ -507,7 +650,7 @@ sub loaddata {
     {
       if ($nounstable > 0)
       {
-	$unstable .= sprintf "# name: Index_" . ($_[2]+2) . "_$subunstable\n";
+	$unstable .= sprintf "# name: Index_" . ($_[2]+4) . "_$subunstable\n";
 	$unstable .= sprintf "# type: matrix\n";
 	$unstable .= sprintf "# rows: $nounstable\n";
 	$unstable .= sprintf "# columns: %i\n",$StateSize;
@@ -515,5 +658,5 @@ sub loaddata {
       }
     }
 
-    printf $outputfl $bifheader . $bif . "\n\n" . $stableheader . $stable . "\n\n" . $unstableheader . $unstable . "\n\n";
+    printf $outputfl $bifheader . $bif . "\n\n" . $turnheader . $turn . "\n\n" . $reconstturnheader . $reconstturn . "\n\n" . $stableheader . $stable . "\n\n" . $unstableheader . $unstable . "\n\n";
 }
