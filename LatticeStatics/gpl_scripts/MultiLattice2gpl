@@ -389,11 +389,17 @@ sub loaddata {
       {
 	if ($loadparam == 1)
 	{
-	  $loadgrad = ($temp[1]-$temp[0])/abs($temp[1]-$temp[0]);
+	  if ($temp[1] != $temp[0])
+	  {
+	    $loadgrad = ($temp[1]-$temp[0])/abs($temp[1]-$temp[0]);
+	  }
 	}
 	elsif ($loadparam == 2)
 	{
-	  $loadgrad = ($stress[1]-$stress[0])/abs($stress[1]-$stress[0]);
+	  if ($stress[1] != $stress[0])
+	  {
+	    $loadgrad = ($stress[1]-$stress[0])/abs($stress[1]-$stress[0]);
+	  }
 	}
       }
 
