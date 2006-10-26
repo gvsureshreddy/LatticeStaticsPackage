@@ -17,7 +17,7 @@ double EulerCB::DX(double *X,int p,int q,int i)
 
    for (int j=0;j<DIM3;++j)
    {
-      tmp += (X[j] + InternalPOS_[q][j] - InternalPOS_[p][j])*(*RefLattice_)[j][i];
+      tmp += X[j]*(*RefLattice_)[j][i];
    }
 
    return tmp;
@@ -30,6 +30,7 @@ double EulerCB::Dx(double *X,int p,int q,int i)
    for (int j=0;j<DIM3;++j)
    {
       tmp += U_[i][j]*DX(X,p,q,j);
+      tmp += (InternalPOS_[q][j] - InternalPOS_[p][j])*(*RefLattice_)[j][i];
    }
    tmp += S_[q][i] - S_[p][i];
 

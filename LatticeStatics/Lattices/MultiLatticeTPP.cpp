@@ -170,11 +170,14 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
    if(!GetParameter(prefix,"BlochWaveGridSize",datafile,"%u",&GridSize_)) exit(-1);
 
    // Initiate the CBK object (default to LagrangeCB)
-   const char *CBKin[] = {"LagrangeCB","EulerCB"};
-   switch (GetStringParameter(prefix,"CBKinematics",datafile,CBKin,2,0))
+   const char *CBKin[] = {"LagrangeCB","MixedCB","EulerCB"};
+   switch (GetStringParameter(prefix,"CBKinematics",datafile,CBKin,3,0))
    {
-      case 1:
+      case 2:
 	 CBK_ = new EulerCB(&DOF_,&RefLattice_,INTERNAL_ATOMS,AtomPositions_);
+	 break;
+      case 1:
+	 CBK_ = new MixedCB(&DOF_,&RefLattice_,INTERNAL_ATOMS,AtomPositions_);
 	 break;
       case 0:
       default:

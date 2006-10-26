@@ -10,5 +10,6 @@ CBKinematics.d
 ChainIterator.d
 ChainSum.d
 LagrangeCB.d
+MixedCB.d
 EulerCB.d
 PrintPotentials.d
