@@ -246,22 +246,26 @@ int MultiLatticeTPP::FindLatticeSpacing(char *datafile,const char *prefix,int it
       if (fabs(DOF_[i]) < 1.0e-13) DOF_[i] = 0.0;
    }
 
-   // Update RefLattice_
-   Matrix U(DIM3,DIM3);
+   // update atom pos
+   Matrix U(DIM3,DIM3), TmpRefLat(DIM3,DIM3);
    U[0][0] = DOF_[0]; U[1][1] = DOF_[1]; U[2][2] = DOF_[2];
    U[0][1] = U[1][0] = DOF_[3]; U[0][2] = U[2][0] = DOF_[4];
    U[1][2] = U[2][1] = DOF_[5];
-
-   RefLattice_ = RefLattice_*U;
-
-   // update atom pos
+   TmpRefLat = RefLattice_*U;
+   
+   double zero[] = {0.0,0.0,0.0};
+   Vector tmp(3);
    for (int i=1;i<INTERNAL_ATOMS;++i)
    {
       for (int j=0;j<DIM3;++j)
       {
-	 AtomPositions_[i][j] += DOF_[INDV(i,j)];
+	 tmp[j] = CBK_->Dx(zero,0,i,j);
       }
+      AtomPositions_[i] = tmp * TmpRefLat.Inverse();
    }
+
+   // Update RefLattice_
+   RefLattice_ = TmpRefLat;
 
    // reset DOF
    DOF_[0] = DOF_[1] = DOF_[2] = 1.0;
