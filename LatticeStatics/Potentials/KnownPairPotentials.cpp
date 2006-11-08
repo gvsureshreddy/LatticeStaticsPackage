@@ -2,12 +2,12 @@
 
 #include "UtilityFunctions.h"
 
-const char *POTENTIALNAMES[] = {"LJ","RadiiMorse","TempMorse"};
+const char *POTENTIALNAMES[] = {"LJ","RadiiMorse","TempMorse","Dobson"};
 
 PairPotentials* InitializePairPotential(char *datafile,const char *prefix,int i,int j)
 {
    char tmp[LINELENGTH];
-   double Eps0,Eps1,Sigma0,Sigma1;
+   double Eps0,Eps1,Sigma0,Sigma1,rcut;
    double Tref,A0,B0,Alpha,Rref1,Rref2,Tmelt;
    double Rtheta1,Rtheta2;
    
@@ -63,6 +63,21 @@ PairPotentials* InitializePairPotential(char *datafile,const char *prefix,int i,
 	 
 	 return new TempMorse(A0,B0,Alpha,Rref1,Tref,Tmelt);
       }
+      case 3:
+      {
+	 sprintf(tmp,"Eps0_%u_%u",i,j);
+	 if(!GetParameter(prefix,tmp,datafile,"%lf",&Eps0)) exit(-1);
+	 sprintf(tmp,"Eps1_%u_%u",i,j);
+	 if(!GetParameter(prefix,tmp,datafile,"%lf",&Eps1)) exit(-1);
+	 sprintf(tmp,"Sigma0_%u_%u",i,j);
+	 if(!GetParameter(prefix,tmp,datafile,"%lf",&Sigma0)) exit(-1);
+	 sprintf(tmp,"Sigma1_%u_%u",i,j);
+	 if(!GetParameter(prefix,tmp,datafile,"%lf",&Sigma1)) exit(-1);
+	 sprintf(tmp,"rcut_%u_%u",i,j);
+	 if(!GetParameter(prefix,tmp,datafile,"%lf",&rcut)) exit(-1);
+	 
+	 return new Dobson(Eps0,Eps1,Sigma0,Sigma1,rcut);
+      }
       case -1:
       {
 	 cerr << "Unknown Potential Type " << endl;
@@ -77,7 +92,7 @@ void UpdatePairPotential(char *datafile,const char *prefix,int i,int j,
 			 PairPotentials *Potential)
 {
    char tmp[LINELENGTH];
-   double Eps0,Eps1,Sigma0,Sigma1;
+   double Eps0,Eps1,Sigma0,Sigma1,rcut;
    double Tref,A0,B0,Alpha,Rref1,Rref2,Tmelt;
    double Rtheta1,Rtheta2;
 
@@ -163,6 +178,31 @@ void UpdatePairPotential(char *datafile,const char *prefix,int i,int j,
       sprintf(tmp,"Tmelt_%u_%u",i,j);
       if(GetParameter(prefix,tmp,datafile,"%lf",&Tmelt,0))
 	 TM->SetTmelt(Tmelt);
+   }
+   else if (!strcmp(Potential->Type(),"Dobson"))
+   {
+      Dobson *Dobsonp;
+      Dobsonp = dynamic_cast<Dobson *>(Potential);
+      
+      sprintf(tmp,"Eps0_%u_%u",i,j);
+      if(GetParameter(prefix,tmp,datafile,"%lf",&Eps0,0))
+	 Dobsonp->SetEps0(Eps0);
+      
+      sprintf(tmp,"Eps1_%u_%u",i,j);
+      if(GetParameter(prefix,tmp,datafile,"%lf",&Eps1,0))
+	 Dobsonp->SetEps1(Eps1);
+
+      sprintf(tmp,"Sigma0_%u_%u",i,j);
+      if(GetParameter(prefix,tmp,datafile,"%lf",&Sigma0,0))
+	 Dobsonp->SetSigma0(Sigma0);
+
+      sprintf(tmp,"Sigma1_%u_%u",i,j);
+      if(GetParameter(prefix,tmp,datafile,"%lf",&Sigma1,0))
+	 Dobsonp->SetSigma1(Sigma1);
+
+      sprintf(tmp,"rcut_%u_%u",i,j);
+      if(GetParameter(prefix,tmp,datafile,"%lf",&rcut,0))
+	 Dobsonp->Setrcut(rcut);
    }
    else
    {

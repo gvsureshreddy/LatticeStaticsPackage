@@ -20,7 +20,7 @@ double LJ::Eps(double NTemp,TDeriv dt)
 	 retval = 0.0;
 	 break;
       default:
-	 cerr << "Error in LJ::A" << endl;
+	 cerr << "Error in LJ::Eps" << endl;
 	 exit(-1);
    }
 
@@ -43,7 +43,7 @@ double LJ::Sigma(double NTemp,TDeriv dt)
 	 retval = 0.0;
 	 break;
       default:
-	 cerr << "Error in LJ::Beta" << endl;
+	 cerr << "Error in LJ::Sigma" << endl;
 	 exit(-1);
    }
 
