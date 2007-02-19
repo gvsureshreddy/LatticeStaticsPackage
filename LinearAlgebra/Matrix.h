@@ -164,6 +164,9 @@ public:
    //
    // Assumes Symmetric Matrix (thus uses only Upper Diagonal part of A
    // Note: will fail if A has EigenValue of 0.0
+   friend void QR(const Matrix& A,Matrix& Q,Matrix& R);
+   // QR decomposition of A
+
    friend void Cholesky(const Matrix& A,Matrix& U,Matrix& D);
 
    // Return solution x of the linear system A*x=B

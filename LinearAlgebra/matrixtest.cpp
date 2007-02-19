@@ -377,6 +377,48 @@ int main()
    zz[0][0] = 4.0;
    cout << "zz.Inverse()" << setw(20) << zz.Inverse() << endl;
 
+   Matrix AA(3,4),
+   Q(3,3),R(3,4),Z(3,4),I(3,3);
+   Matrix BB(4,3),BQ(4,4),BR(4,3),BZ(4,3),BI(4,4);
+
+   AA[0][0]=12.0;AA[0][1]=-51.0;AA[0][2]=4.0;AA[0][3]=0.0;
+   AA[1][0]=6.0;AA[1][1]=167.0;AA[1][2]=-68.0;AA[1][3]=1.0;
+   AA[2][0]=-4.0;AA[2][1]=24.0;AA[2][2]=-41.0;AA[2][3]=2.0;
+
+   BB=AA.Transpose();
+
+   QR(AA,Q,R);
+
+   cout << "A" << endl << setw(20) << AA << endl;
+
+   cout << "Q" << endl << setw(20) << Q  << endl;
+
+   cout << "R" << endl << setw(20) << R << endl;
+   
+   Z = Q*R;
+
+   cout << "A=Q*R" << endl << setw(20) << Z << endl;
+  
+   I=Q*Q.Transpose();
+  
+   cout << "I=Q*Q^T" << endl << setw(20) << I << endl;
+
+   QR(BB,BQ,BR);
+
+   cout << "BB" << endl << setw(20) << BB << endl;
+
+   cout << "BQ" << endl << setw(20) << BQ  << endl;
+
+   cout << "BR" << endl << setw(20) << BR << endl;
+   
+   BZ = BQ*BR;
+
+   cout << "BA=BQ*BR" << endl << setw(20) << BZ << endl;
+  
+   BI=BQ*BQ.Transpose();
+  
+   cout << "BI=BQ*BQ^T" << endl << setw(20) << BI << endl;
+
    return 1;
 }
 
