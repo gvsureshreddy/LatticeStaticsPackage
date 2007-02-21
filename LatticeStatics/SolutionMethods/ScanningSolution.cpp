@@ -54,7 +54,7 @@ ScanningSolution::ScanningSolution(LatticeMode *Mode,char *datafile,const char *
    CurrentScanLine_ = ScanStart_;
    OnSolution_ = No;
    InitializeLine();
-};
+}
 
 void ScanningSolution::InitializeLine()
 {
