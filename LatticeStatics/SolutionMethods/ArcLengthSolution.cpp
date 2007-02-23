@@ -111,110 +111,121 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char
       }
       case 2:
       {
-	 double potential;
-	 int Width;
-	 int Dim=Mode_->ArcLenDef().Dim();
-	 Matrix
-	    Stiff(Dim,Dim),
-	    PerturbedStiff(Dim,Dim);
-	 Vector
-	    Force(Dim),
-	    PerturbedForce(Dim),
-	    Solution1(Dim),
-	    Solution2(Dim),
-	    pert(Dim,0.0),
-	    RHS(Dim);
-	 
-	 Difference_.Resize(Dim);
-	 if(!GetVectorParameter(prefix,"Solution2",startfile,&Solution2)) exit(-1);
-	 if(!GetVectorParameter(prefix,"Solution1",startfile,&Solution2)) exit(-1);
+	 double ConsistencyEpsilon;
+	 int Width,
+	    Dim=Mode_->ArcLenDef().Dim();
+	 Vector Solution1(Dim),
+	    Solution2(Dim);
 
-	 // Set Lattice state to Solution2
-	 Mode_->ArcLenSet(Solution2);
-	 // Set Difference to Solution2 - Solution1
-	 Difference_ = Solution2 - Solution1;
-	 
+	 if(!GetVectorParameter(prefix,"Solution2",startfile,&Solution2)) exit(-1);
+	 if(!GetVectorParameter(prefix,"Solution1",startfile,&Solution1)) exit(-1);
 	 // Get Epsilon and Width
-	 if(!GetParameter(prefix,"ConsistencyEpsilon",startfile,"%lf",&ConsistencyEpsilon_)) exit(-1);
+	 if(!GetParameter(prefix,"ConsistencyEpsilon",startfile,"%lf",&ConsistencyEpsilon)) exit(-1);
 	 if(!GetParameter(prefix,"MainFieldWidth",datafile,"%i",&Width)) exit(-1);
 
-	 // Do Consistency check
-	 if (Echo_)
-	 {
-	    for (int i=0;i<70;i++) cout << "="; cout << endl;
-	    cout << "Consistency Check." << endl;
-	    cout << "F(U + DeltaU) * Epsilon" << endl;
-	 }
-	 for (int i=0;i<70;i++) out << "="; out << endl;
-	 out << "Consistency Check." << endl;
-	 out << "F(U + DeltaU) * Epsilon" << endl;
-	 Mode_->ArcLenUpdate(Difference_);
-	 Force = ConsistencyEpsilon_*Mode_->ArcLenForce(ConsistencyEpsilon_,Difference_,1.0);
-	 if (Echo_)
-	 {
-	    cout << setw(Width) << Force << endl;
-	    cout << "K(U + DeltaU) * Epsilon" << endl;
-	 }
-	 out << setw(Width) << Force << endl;
-	 out << "K(U + DeltaU) * Epsilon" << endl;
-	 Stiff = ConsistencyEpsilon_*Mode_->ArcLenStiffness(Difference_,1.0);
-	 if (Echo_) cout << setw(Width) << Stiff << endl;
-	 out << setw(Width) << Stiff << endl;
-	 for (int i=0;i<Difference_.Dim();i++)
-	 {
-	    // Get RHS
-	    Difference_ = Solution2 - Solution1;
-	    Mode_->ArcLenSet(Solution2 + Difference_);
-	    potential = Mode_->ModeEnergy();
-	    RHS = Mode_->ArcLenForce(ConsistencyEpsilon_,Difference_,1.0);
-	    
-	    // Perturb the lattice state
-	    pert=Vector(pert.Dim(),0.0);
-	    pert[i]=1.0;
-	    Difference_ = Solution2 - Solution1 + ConsistencyEpsilon_*pert;
-	    Mode_->ArcLenSet(Solution2 + Difference_);
-	    // Get Check
-	    potential = Mode_->ModeEnergy() - potential;
-	    // fix-up the arclength equation part of PerturbedForce
-	    if (i == RHS.Dim()-1) potential = ConsistencyEpsilon_*RHS[i];
-	    PerturbedForce[i] = potential;
-	    RHS = Mode_->ArcLenForce(ConsistencyEpsilon_,Difference_,1.0) - RHS;
-	    for (int j=0;j<Dim;j++)
-	       PerturbedStiff[j][i] = RHS[j];
-	 }
 
-	 // Print out the facts
-	 if (Echo_)
-	 {
-	    cout << "P(U + DeltaU) - P(U + DeltaU + Epsilon*Vj)" << endl;
-	    cout << setw(Width) << PerturbedForce << endl;
-	    cout << "Fi(U + DeltaU) - Fi(U + DeltaU + Epsilon*Vj)" << endl;
-	    cout << setw(Width) << PerturbedStiff << endl;
-	    cout << "Difference" << endl;
-	    cout << setw(Width) << Force - PerturbedForce << endl << endl;
-	    cout << setw(Width) << Stiff - PerturbedStiff << endl;
-	 }
-
-	 out << "P(U + DeltaU) - P(U + DeltaU + Epsilon*Vj)" << endl;
-	 out << setw(Width) << PerturbedForce << endl;
-	 out << "Fi(U + DeltaU) - Fi(U + DeltaU + Epsilon*Vj)" << endl;
-	 out << setw(Width) << PerturbedStiff << endl;
-	 out << "Difference" << endl;
-	 out << setw(Width) << Force - PerturbedForce << endl << endl;
-	 out << setw(Width) << Stiff - PerturbedStiff << endl;
-
-	 if (Echo_)
-	 {
-	    for (int i=0;i<70;i++) cout << "="; cout << endl;
-	 }
-	 for (int i=0;i<70;i++) out << "="; out << endl;
-
-	 // We are done -- set currentsolution to numsolutions
-	 CurrentSolution_ = NumSolutions_;
+	 ConsistencyCheck(Solution1,Solution2,ConsistencyEpsilon,Width,out);
 	 break;
       }
    }
-}   
+}
+
+
+void ArcLengthSolution::ConsistencyCheck(Vector &Solution1,Vector &Solution2,
+					 double ConsistencyEpsilon,int Width,fstream &out)
+{
+   double potential;
+   int Dim=Mode_->ArcLenDef().Dim();
+   Matrix
+      Stiff(Dim,Dim),
+      PerturbedStiff(Dim,Dim);
+   Vector
+      Force(Dim),
+      PerturbedForce(Dim),
+      pert(Dim,0.0),
+      RHS(Dim);
+   
+   Difference_.Resize(Dim);
+   
+   // Set Lattice state to Solution2
+   Mode_->ArcLenSet(Solution2);
+   // Set Difference to Solution2 - Solution1
+   Difference_ = Solution2 - Solution1;
+	 
+   // Do Consistency check
+   if (Echo_)
+   {
+      for (int i=0;i<70;i++) cout << "="; cout << endl;
+      cout << "Consistency Check." << endl;
+      cout << "F(U + DeltaU) * Epsilon" << endl;
+   }
+   for (int i=0;i<70;i++) out << "="; out << endl;
+   out << "Consistency Check." << endl;
+   out << "F(U + DeltaU) * Epsilon" << endl;
+   Mode_->ArcLenUpdate(Difference_);
+   Force = ConsistencyEpsilon*Mode_->ArcLenForce(ConsistencyEpsilon,Difference_,1.0);
+   if (Echo_)
+   {
+      cout << setw(Width) << Force << endl;
+      cout << "K(U + DeltaU) * Epsilon" << endl;
+   }
+   out << setw(Width) << Force << endl;
+   out << "K(U + DeltaU) * Epsilon" << endl;
+   Stiff = ConsistencyEpsilon*Mode_->ArcLenStiffness(Difference_,1.0);
+   if (Echo_) cout << setw(Width) << Stiff << endl;
+   out << setw(Width) << Stiff << endl;
+   for (int i=0;i<Difference_.Dim();i++)
+   {
+      // Get RHS
+      Difference_ = Solution2 - Solution1;
+      Mode_->ArcLenSet(Solution2 + Difference_);
+      potential = Mode_->ModeEnergy();
+      RHS = Mode_->ArcLenForce(ConsistencyEpsilon,Difference_,1.0);
+	    
+      // Perturb the lattice state
+      pert=Vector(pert.Dim(),0.0);
+      pert[i]=1.0;
+      Difference_ = Solution2 - Solution1 + ConsistencyEpsilon*pert;
+      Mode_->ArcLenSet(Solution2 + Difference_);
+      // Get Check
+      potential = Mode_->ModeEnergy() - potential;
+      // fix-up the arclength equation part of PerturbedForce
+      if (i == RHS.Dim()-1) potential = ConsistencyEpsilon*RHS[i];
+      PerturbedForce[i] = potential;
+      RHS = Mode_->ArcLenForce(ConsistencyEpsilon,Difference_,1.0) - RHS;
+      for (int j=0;j<Dim;j++)
+	 PerturbedStiff[j][i] = RHS[j];
+   }
+
+   // Print out the facts
+   if (Echo_)
+   {
+      cout << "P(U + DeltaU) - P(U + DeltaU + Epsilon*Vj)" << endl;
+      cout << setw(Width) << PerturbedForce << endl;
+      cout << "Fi(U + DeltaU) - Fi(U + DeltaU + Epsilon*Vj)" << endl;
+      cout << setw(Width) << PerturbedStiff << endl;
+      cout << "Difference" << endl;
+      cout << setw(Width) << Force - PerturbedForce << endl << endl;
+      cout << setw(Width) << Stiff - PerturbedStiff << endl;
+   }
+
+   out << "P(U + DeltaU) - P(U + DeltaU + Epsilon*Vj)" << endl;
+   out << setw(Width) << PerturbedForce << endl;
+   out << "Fi(U + DeltaU) - Fi(U + DeltaU + Epsilon*Vj)" << endl;
+   out << setw(Width) << PerturbedStiff << endl;
+   out << "Difference" << endl;
+   out << setw(Width) << Force - PerturbedForce << endl << endl;
+   out << setw(Width) << Stiff - PerturbedStiff << endl;
+
+   if (Echo_)
+   {
+      for (int i=0;i<70;i++) cout << "="; cout << endl;
+   }
+   for (int i=0;i<70;i++) out << "="; out << endl;
+
+   // We are done -- set currentsolution to numsolutions
+   CurrentSolution_ = NumSolutions_;
+}
 
 int ArcLengthSolution::AllSolutionsFound()
 {

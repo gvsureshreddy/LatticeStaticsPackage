@@ -30,11 +30,9 @@ private:
    
    Vector Difference_;
 
-   // Consistency Check data
-   double ConsistencyEpsilon_;
-
    double ArcLengthNewton(int &good);
-   int ConsistencyCheck();
+   void ConsistencyCheck(Vector &Solution1,Vector &Solution2,
+			 double ConsistencyEpsilon,int Width,fstream &out);
 
 public:
    ArcLengthSolution(LatticeMode *Mode,char *datafile,const char *prefix,
