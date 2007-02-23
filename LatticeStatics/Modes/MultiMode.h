@@ -27,14 +27,24 @@ public:
 
    // Functions required by LatticeMode
    virtual double ModeEnergy() {return Lattice_->Energy();}
-   virtual Vector ArcLenRHS(double DS,const Vector &Diff,double Aspect);
-   virtual Vector ArcLenDef();
    virtual Vector DrDt(const Vector &Diff);
-   virtual void ArcLenSet(const Vector &val);
-   virtual void ArcLenUpdate(const Vector &newval);
+
+   //----------------------------------------------------------------
+   virtual Vector ModeForce();
+   virtual Matrix ModeStiffness();
+   virtual Vector ModeDOF() {return ModeDOF_;}
+   virtual void SetModeDOF(const Vector &dof);
+   virtual void UpdateModeDOF(const Vector &dr);
+
+   //----------------------------------------------------------------
+   virtual Vector ArcLenForce(double DS,const Vector &Diff,double Aspect);
+   virtual Vector ArcLenDef() {return ModeDOF();}
+   virtual void ArcLenSet(const Vector &val) {SetModeDOF(val);}
+   virtual void ArcLenUpdate(const Vector &newval) {UpdateModeDOF(newval);}
    virtual double ArcLenAngle(Vector Old,Vector New,double Aspect);
    virtual Matrix ArcLenStiffness(const Vector &Diff,double Aspect);
 
+   //----------------------------------------------------------------
    virtual double ScanningDefParameter();
    virtual void ScanningDefParamSet(const double val);
    virtual void ScanningDefParamUpdate(const double newval);
@@ -43,12 +53,13 @@ public:
    virtual void ScanningLoadParamUpdate(const double newval);
    virtual double ScanningStressParameter();
    
-   virtual Vector ScanningRHS();
+   virtual Vector ScanningForce();
    virtual Vector ScanningDef();
    virtual void ScanningSet(const Vector &val);
    virtual void ScanningUpdate(const Vector &newval);
    virtual Matrix ScanningStiffness();
 
+   //----------------------------------------------------------------
    virtual char *ModeName() {return "MultiMode";}
 
 };

@@ -27,7 +27,7 @@ ScanningSolution::ScanningSolution(LatticeMode *Mode,char *datafile,const char *
       exit(-1);
    }
 
-   InitialDef_.Resize(Mode->ScanningRHS().Dim()+1);
+   InitialDef_.Resize(Mode->ScanningForce().Dim()+1);
    if(!GetVectorParameter(prefix,"ScanningInitialDeformation",datafile,&InitialDef_)) exit(-1);
 
    const char *dir[]={"Loading","Deformation"};
@@ -60,25 +60,19 @@ void ScanningSolution::InitializeLine()
 {
    if (Direction_ == Loading)
    {
-      Mode_->ScanningLoadParamUpdate(
-	 Mode_->ScanningLoadParameter() - LineStart_);
+      Mode_->ScanningLoadParamSet(LineStart_);
       
       Mode_->ScanningSet(InitialDef_);
 
-      Mode_->ScanningDefParamUpdate(
-	 Mode_->ScanningDefParameter() - CurrentScanLine_);
-
+      Mode_->ScanningDefParamSet(CurrentScanLine_);
    }
    else
    {
-      Mode_->ScanningLoadParamUpdate(
-	 Mode_->ScanningLoadParameter() - CurrentScanLine_);
+      Mode_->ScanningLoadParamSet(CurrentScanLine_);
 
       Mode_->ScanningSet(InitialDef_);
 
-      Mode_->ScanningDefParamUpdate(
-	 Mode_->ScanningDefParameter() - LineStart_);
-
+      Mode_->ScanningDefParamSet(LineStart_);
    }
 }
    
@@ -103,9 +97,9 @@ double ScanningSolution::FindNextSolution(int &good)
       else
       {
 	 if (Direction_ == Loading)
-	    Mode_->ScanningLoadParamUpdate(-LineStep_);
+	    Mode_->ScanningLoadParamUpdate(LineStep_);
 	 else
-	    Mode_->ScanningDefParamUpdate(-LineStep_);
+	    Mode_->ScanningDefParamUpdate(LineStep_);
       }
    }
 
@@ -159,9 +153,9 @@ double ScanningSolution::FindNextSolution(int &good)
       if (Echo_) cout << "\t" << Mode_->ScanningStressParameter() << endl;
 
       if (Direction_ == Loading)
-	 Mode_->ScanningLoadParamUpdate(-LineStep_);
+	 Mode_->ScanningLoadParamUpdate(LineStep_);
       else
-	 Mode_->ScanningDefParamUpdate(-LineStep_);
+	 Mode_->ScanningDefParamUpdate(LineStep_);
 
       uncertainty = ScanningNewton(good);
 
@@ -194,7 +188,7 @@ double ScanningSolution::FindNextSolution(int &good)
 
 	 // Secant Method
 	 stepsize /= -(1.0 - oldval/val);
-	 Mode_->ScanningLoadParamUpdate(-stepsize);
+	 Mode_->ScanningLoadParamUpdate(stepsize);
       }
       else
       {
@@ -204,7 +198,7 @@ double ScanningSolution::FindNextSolution(int &good)
 
 	 // Secant Method
 	 stepsize /= -(1.0 - oldval/val);
-	 Mode_->ScanningDefParamUpdate(-stepsize);
+	 Mode_->ScanningDefParamUpdate(stepsize);
       }
 
       uncertainty = ScanningNewton(good);
@@ -238,16 +232,16 @@ double ScanningSolution::ScanningNewton(int &good)
 {
    int itr=0;
 
-   Vector RHS=Mode_->ScanningRHS();
+   Vector RHS=-Mode_->ScanningForce();
    Vector dx(RHS.Dim());
 
    if (Direction_ == Loading)
    {
-      Mode_->ScanningLoadParamUpdate(LineStep_);
+      Mode_->ScanningLoadParamUpdate(-LineStep_);
    }
    else
    {
-      Mode_->ScanningDefParamUpdate(LineStep_);
+      Mode_->ScanningDefParamUpdate(-LineStep_);
    }
 
 #ifdef SOLVE_SVD
@@ -262,11 +256,11 @@ double ScanningSolution::ScanningNewton(int &good)
 
    if (Direction_ == Loading)
    {
-      Mode_->ScanningLoadParamUpdate(-LineStep_);
+      Mode_->ScanningLoadParamUpdate(LineStep_);
    }
    else
    {
-      Mode_->ScanningDefParamUpdate(-LineStep_);
+      Mode_->ScanningDefParamUpdate(LineStep_);
    }
 
    // Iterate until convergence
@@ -277,15 +271,15 @@ double ScanningSolution::ScanningNewton(int &good)
 
 #ifdef SOLVE_SVD
       dx=SolveSVD(Mode_->ScanningStiffness(),
-		  Mode_->ScanningRHS(),
+		  -Mode_->ScanningForce(),
 		  MAXCONDITION,Echo_);
 #else
-      dx=SolvePLU(Mode_->ScanningStiffness(),Mode_->ScanningRHS());
+      dx=SolvePLU(Mode_->ScanningStiffness(),-Mode_->ScanningForce());
 #endif
       
       Mode_->ScanningUpdate(dx);
       if (Echo_) cout << "ScanningNewton(dx) = " << setw(20) << dx
-		      << ", RHS = " << setw(20) << Mode_->ScanningRHS() << endl;
+		      << ", RHS = " << setw(20) << Mode_->ScanningForce() << endl;
    }
 
    if (itr >= MaxIter_)

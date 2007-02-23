@@ -29,8 +29,7 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char
    FirstSolution_ = one;
    
    // Set Lattice to solution "two"
-   Mode_->ArcLenUpdate(
-      Mode_->ArcLenDef() - two);
+   Mode_->ArcLenSet(two);
 }
 
 ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char *prefix,
@@ -149,8 +148,8 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char
 	 for (int i=0;i<70;i++) out << "="; out << endl;
 	 out << "Consistency Check." << endl;
 	 out << "F(U + DeltaU) * Epsilon" << endl;
-	 Mode_->ArcLenUpdate(-Difference_);
-	 Force = ConsistencyEpsilon_*Mode_->ArcLenRHS(ConsistencyEpsilon_,Difference_,1.0);
+	 Mode_->ArcLenUpdate(Difference_);
+	 Force = ConsistencyEpsilon_*Mode_->ArcLenForce(ConsistencyEpsilon_,Difference_,1.0);
 	 if (Echo_)
 	 {
 	    cout << setw(Width) << Force << endl;
@@ -165,21 +164,23 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char
 	 {
 	    // Get RHS
 	    Difference_ = Solution2 - Solution1;
-	    Mode_->ArcLenUpdate(Mode_->ArcLenDef() - (Solution2 + Difference_));
+	    Mode_->ArcLenSet(Solution2 + Difference_);
 	    potential = Mode_->ModeEnergy();
-	    RHS = Mode_->ArcLenRHS(ConsistencyEpsilon_,Difference_,1.0);
+	    RHS = Mode_->ArcLenForce(ConsistencyEpsilon_,Difference_,1.0);
 	    
 	    // Perturb the lattice state
 	    pert=Vector(pert.Dim(),0.0);
 	    pert[i]=1.0;
 	    Difference_ = Solution2 - Solution1 + ConsistencyEpsilon_*pert;
-	    Mode_->ArcLenUpdate(Mode_->ArcLenDef() - (Solution2 + Difference_));
+	    Mode_->ArcLenSet(Solution2 + Difference_);
 	    // Get Check
-	    potential = potential - Mode_->ModeEnergy();
-	    PerturbedForce[i] = -potential;
-	    RHS = RHS - Mode_->ArcLenRHS(ConsistencyEpsilon_,Difference_,1.0);
+	    potential = Mode_->ModeEnergy() - potential;
+	    // fix-up the arclength equation part of PerturbedForce
+	    if (i == RHS.Dim()-1) potential = ConsistencyEpsilon_*RHS[i];
+	    PerturbedForce[i] = potential;
+	    RHS = Mode_->ArcLenForce(ConsistencyEpsilon_,Difference_,1.0) - RHS;
 	    for (int j=0;j<Dim;j++)
-	       PerturbedStiff[j][i] = -RHS[j];
+	       PerturbedStiff[j][i] = RHS[j];
 	 }
 
 	 // Print out the facts
@@ -243,7 +244,7 @@ double ArcLengthSolution::FindNextSolution(int &good)
    }
    while (((AngleTest >= AngleFactor*AngleCutoff_) || !good)
 	  && (CurrentDS_ >= DSMin_)
-	  && (Mode_->ArcLenUpdate(Difference_),
+	  && (Mode_->ArcLenUpdate(-Difference_),// back to previous solution
 	      Difference_ = OldDiff,
 	      CurrentDS_=CurrentDS_/2.0));
 
@@ -288,14 +289,15 @@ double ArcLengthSolution::ArcLengthNewton(int &good)
 
    Vector Dx(Dim),
       RHS(Dim);
-   
-   Mode_->ArcLenUpdate(-Difference_);
+
+   // Predictor step
+   Mode_->ArcLenUpdate(Difference_);
 
    // Iterate until convergence
    if (Echo_) cout << setiosflags(ios::scientific)
 		  << "ArcLenNewton: Number of Iterations --\n";
 
-   RHS = Mode_->ArcLenRHS(CurrentDS_,Difference_,Aspect_);
+   RHS = -Mode_->ArcLenForce(CurrentDS_,Difference_,Aspect_);
    do
    {
       itr++;
@@ -309,8 +311,8 @@ double ArcLengthSolution::ArcLengthNewton(int &good)
 #endif
 
       Mode_->ArcLenUpdate(Dx);
-      Difference_ -= Dx;
-      RHS = Mode_->ArcLenRHS(CurrentDS_,Difference_,Aspect_);
+      Difference_ += Dx;
+      RHS = -Mode_->ArcLenForce(CurrentDS_,Difference_,Aspect_);
 
       if (Echo_) cout << itr << "(" << setw(20)
 		      << Mode_->ScanningStressParameter() << ","
@@ -361,7 +363,7 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,char *datafile,const char *prefi
    int CurrentNulity;
 
    // Set Lattice back to previous solution
-   Mode_->ArcLenUpdate(Difference_);
+   Mode_->ArcLenUpdate(-Difference_);
    CurrentNulity = Lat->StiffnessNulity(&CurrentMinEV);
    // LefthandNulity is the nulity on the back side of the path being traced
    int LefthandNulity = CurrentNulity;
@@ -425,7 +427,7 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,char *datafile,const char *prefi
    out << "Success = 1" << endl;
    
    // Reset Lattice and ArcLengthSolution
-   Mode_->ArcLenUpdate(-(OriginalDiff - IntermediateDiff));
+   Mode_->ArcLenUpdate(OriginalDiff - IntermediateDiff);
    CurrentDS_ = OriginalDS;
    Difference_ = OriginalDiff;
    
