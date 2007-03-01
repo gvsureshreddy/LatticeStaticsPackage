@@ -337,7 +337,7 @@ void MultiMode::ScanningUpdate(const Vector &newval)
    {
       if (i != ScnDefParam_)
       {
-	 ModeDOF_[i] += newval[i];
+	 ModeDOF_[i] += newval[(i>ScnDefParam_)?i-1:i];
       }
       for (int j=0;j<DOFindlen_[i];++j)
       {
