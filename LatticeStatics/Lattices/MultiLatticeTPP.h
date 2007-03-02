@@ -21,7 +21,7 @@ private:
    int INTERNAL_ATOMS;
    int DOFS;
 
-   unsigned InfluenceDist_;
+   double InfluenceDist_;
    double NTemp_;
    // DOF[i] = [U11 U22 U33 U12 U13 U23 V11 V12 V13 V21... ...]
    Vector DOF_;

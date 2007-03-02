@@ -19,7 +19,7 @@ class PPSum
 {
 private:
    int Recalc_;
-   unsigned *InfluenceDist_;
+   double *InfluenceDist_;
    int InternalAtoms_;
    PairPotentials ***Potential_;
    double *Ntemp_;
@@ -34,12 +34,12 @@ private:
    
 public:
    PPSum() {}
-   PPSum(CBKinematics *CBK,int InternalAtoms,PairPotentials ***PairPot,unsigned *InfluDist,
+   PPSum(CBKinematics *CBK,int InternalAtoms,PairPotentials ***PairPot,double *InfluDist,
 	 double *Ntemp);
    ~PPSum() {}
 
    void operator()(CBKinematics *CBK,int InternalAtoms,PairPotentials ***PairPot,
-		   unsigned *InfluDist,double *Ntemp);
+		   double *InfluDist,double *Ntemp);
 
    void Reset();
    void Recalc() {CBK_->Reset(); Recalc_ = 1;}

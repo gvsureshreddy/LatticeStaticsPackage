@@ -6,18 +6,18 @@ int PPSUMind(double i,double j);
 
 using namespace std;
 
-PPSum::PPSum(CBKinematics *CBK,int InternalAtoms,PairPotentials ***PairPot,unsigned *InfluDist,
+PPSum::PPSum(CBKinematics *CBK,int InternalAtoms,PairPotentials ***PairPot,double *InfluDist,
 	     double *Ntemp)
    : CBK_(CBK),InternalAtoms_(InternalAtoms),Ntemp_(Ntemp),Potential_(PairPot),
      InfluenceDist_(InfluDist),Recalc_(0),CurrentPOS_(0),Pairs_(0),
-     RelPosDATA_(int(pow(double(2*(*InfluDist)),double(3))*pow(double(InternalAtoms),
+     RelPosDATA_(int(pow(2*(*InfluDist),double(3))*pow(double(InternalAtoms),
 							       double(2))),PPSUMdatalen)
 {
    Initialize();
 }
 
 void PPSum::operator()(CBKinematics *CBK,int InternalAtoms,PairPotentials ***PairPot,
-		       unsigned *InfluDist,double *Ntemp)
+		       double *InfluDist,double *Ntemp)
 {
    CBK_=CBK;
    InternalAtoms_= InternalAtoms;
@@ -28,7 +28,7 @@ void PPSum::operator()(CBKinematics *CBK,int InternalAtoms,PairPotentials ***Pai
    Potential_ = PairPot;
    Ntemp_ = Ntemp;
    RelPosDATA_.Resize(
-      int(pow(double(2*(*InfluDist)),double(3))*pow(double(InternalAtoms),double(2))),
+      int(pow(2*(*InfluDist),double(3))*pow(double(InternalAtoms),double(2))),
       PPSUMdatalen);
 
    Initialize();

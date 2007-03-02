@@ -120,7 +120,7 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
 	 
    // Get Lattice parameters
    NTemp_ = 1.0;
-   if(!GetParameter(prefix,"InfluanceDist",datafile,"%u",&InfluenceDist_)) exit(-1);
+   if(!GetParameter(prefix,"InfluanceDist",datafile,"%lf",&InfluenceDist_)) exit(-1);
    if(!GetParameter(prefix,"NormModulus",datafile,"%lf",&NormModulus_)) exit(-1);
    if(!GetParameter(prefix,"ConvexityDX",datafile,"%lf",&ConvexityDX_)) exit(-1);
 
@@ -1974,6 +1974,7 @@ void MultiLatticeTPP::DebugMode()
 	 cin >> cutoff;
 	 cin.sync(); // clear input
 	 Echo_ = 0;
+	 cout << setw(W);
 	 NeighborDistances(cutoff,cout);
 	 Echo_=oldEcho_;
       }
