@@ -7,7 +7,7 @@ using namespace std;
 
 class RadiiMorse: public PairPotentials
 {
-private:
+protected:
    double A0_, B0_, Alpha_, Rref1_, Rref2_, Rtheta1_, Rtheta2_;
 
 public:

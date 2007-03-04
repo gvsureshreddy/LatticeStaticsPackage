@@ -7,7 +7,7 @@ using namespace std;
 
 class LJ: public PairPotentials
 {
-private:
+protected:
    double Eps0_,Eps1_,Sigma0_,Sigma1_;
 
 public:
