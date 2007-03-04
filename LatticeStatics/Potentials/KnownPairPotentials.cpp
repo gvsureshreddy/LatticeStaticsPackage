@@ -131,8 +131,8 @@ void UpdatePairPotential(char *datafile,const char *prefix,int i,int j,
    char tmp[LINELENGTH];
    double Eps0,Eps1,Sigma0,Sigma1,rcut;
    double Tref,A0,B0,Alpha,Rref1,Rref2,Tmelt;
-   double Rtheta1,Rtheta2;
-
+   double Rtheta1,Rtheta2,Cutoff;
+   
    if (!strcmp(Potential->Type(),"LJ"))
    {
       LJ *LJp;
@@ -145,14 +145,39 @@ void UpdatePairPotential(char *datafile,const char *prefix,int i,int j,
       sprintf(tmp,"Eps1_%u_%u",i,j);
       if(GetParameter(prefix,tmp,datafile,"%lf",&Eps1,0))
 	 LJp->SetEps1(Eps1);
-
+      
       sprintf(tmp,"Sigma0_%u_%u",i,j);
       if(GetParameter(prefix,tmp,datafile,"%lf",&Sigma0,0))
 	 LJp->SetSigma0(Sigma0);
-
+      
       sprintf(tmp,"Sigma1_%u_%u",i,j);
       if(GetParameter(prefix,tmp,datafile,"%lf",&Sigma1,0))
 	 LJp->SetSigma1(Sigma1);
+   }
+   else if (!strcmp(Potential->Type(),"LJCutoff"))
+   {
+      LJCutoff *LJCutoffp;
+      LJCutoffp = dynamic_cast<LJCutoff *>(Potential);
+      
+      sprintf(tmp,"Eps0_%u_%u",i,j);
+      if(GetParameter(prefix,tmp,datafile,"%lf",&Eps0,0))
+	 LJCutoffp->SetEps0(Eps0);
+      
+      sprintf(tmp,"Eps1_%u_%u",i,j);
+      if(GetParameter(prefix,tmp,datafile,"%lf",&Eps1,0))
+	 LJCutoffp->SetEps1(Eps1);
+      
+      sprintf(tmp,"Sigma0_%u_%u",i,j);
+      if(GetParameter(prefix,tmp,datafile,"%lf",&Sigma0,0))
+	 LJCutoffp->SetSigma0(Sigma0);
+      
+      sprintf(tmp,"Sigma1_%u_%u",i,j);
+      if(GetParameter(prefix,tmp,datafile,"%lf",&Sigma1,0))
+	 LJCutoffp->SetSigma1(Sigma1);
+      
+      sprintf(tmp,"Cutoff_%u_%u",i,j);
+      if(GetParameter(prefix,tmp,datafile,"%lf",&Cutoff,0))
+	 LJCutoffp->SetCutoff(Cutoff);
    }
    else if (!strcmp(Potential->Type(),"RadiiMorse"))
    {
@@ -186,6 +211,43 @@ void UpdatePairPotential(char *datafile,const char *prefix,int i,int j,
       sprintf(tmp,"Rtheta2_%u_%u",i,j);
       if(GetParameter(prefix,tmp,datafile,"%lf",&Rtheta2,0))
 	 RM->SetRtheta2(Rtheta2);
+   }
+   else if (!strcmp(Potential->Type(),"RadiiMorseCutoff"))
+   {
+      RadiiMorseCutoff *RM;
+      RM = dynamic_cast<RadiiMorseCutoff *>(Potential);
+      
+      sprintf(tmp,"A0_%u_%u",i,j);
+      if(GetParameter(prefix,tmp,datafile,"%lf",&A0,0))
+	 RM->SetA0(A0);
+      
+      sprintf(tmp,"B0_%u_%u",i,j);
+      if(GetParameter(prefix,tmp,datafile,"%lf",&B0,0))
+	 RM->SetB0(B0);
+      
+      sprintf(tmp,"Alpha_%u_%u",i,j);
+      if(GetParameter(prefix,tmp,datafile,"%lf",&Alpha,0))
+	 RM->SetAlpha(Alpha);
+      
+      sprintf(tmp,"Rref1_%u_%u",i,j);
+      if(GetParameter(prefix,tmp,datafile,"%lf",&Rref1,0))
+	 RM->SetRref1(Rref1);
+      
+      sprintf(tmp,"Rtheta1_%u_%u",i,j);
+      if(GetParameter(prefix,tmp,datafile,"%lf",&Rtheta1,0))
+	 RM->SetRtheta1(Rtheta1);
+      
+      sprintf(tmp,"Rref2_%u_%u",i,j);
+      if(GetParameter(prefix,tmp,datafile,"%lf",&Rref2,0))
+	 RM->SetRref2(Rref2);
+      
+      sprintf(tmp,"Rtheta2_%u_%u",i,j);
+      if(GetParameter(prefix,tmp,datafile,"%lf",&Rtheta2,0))
+	 RM->SetRtheta2(Rtheta2);
+
+      sprintf(tmp,"Cutoff_%u_%u",i,j);
+      if(GetParameter(prefix,tmp,datafile,"%lf",&Cutoff,0))
+	 RM->SetCutoff(Cutoff);
    }
    else if (!strcmp(Potential->Type(),"TempMorse"))
    {
