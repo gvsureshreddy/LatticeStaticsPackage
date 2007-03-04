@@ -7,7 +7,7 @@ int CHAINSUMind(double i,double j);
 using namespace std;
 
 ChainSum::ChainSum(Vector *DOF,int LagrangeCB,Matrix *RefLat,int InternalAtoms,
-		   Vector *InternalPOS,PairPotentials ***PairPot,unsigned *InfluDist,
+		   Vector *InternalPOS,PairPotentials ***PairPot,double *InfluDist,
 		   double *Ntemp)
    : DOF_(DOF),LagrangeCB_(LagrangeCB),RefLattice_(RefLat),InternalAtoms_(InternalAtoms),
      Ntemp_(Ntemp),InternalPOS_(InternalPOS),Potential_(PairPot),InfluanceDist_(InfluDist),
@@ -19,7 +19,7 @@ ChainSum::ChainSum(Vector *DOF,int LagrangeCB,Matrix *RefLat,int InternalAtoms,
 
 void ChainSum::operator()(Vector *DOF,int LagrangeCB,Matrix *RefLat,int InternalAtoms,
 		       Vector *InternalPOS,PairPotentials ***PairPot,
-		       unsigned *InfluDist,double *Ntemp)
+		       double *InfluDist,double *Ntemp)
 {
    DOF_ = DOF;
    LagrangeCB_ = LagrangeCB;

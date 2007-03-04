@@ -17,7 +17,7 @@ private:
    int INTERNAL_ATOMS;
    int DOFS;
 
-   unsigned InfluanceDist_;
+   double InfluenceDist_;
    double NTemp_;
    // DOF[i] = [F S1 S2 S3 ...]
    Vector DOF_;
@@ -105,6 +105,10 @@ public:
    // Functions provided by MultiChainTPP
    MultiChainTPP(char *datafile,const char *prefix,int Echo=1,int Width=20,int Debug=0);
    ~MultiChainTPP();
+
+   double InfluenceDist() {return InfluenceDist_;}
+   void SetInfluenceDist(double InfluenceDist) {InfluenceDist_=InfluenceDist;}
+   
    inline double Del(int i,int j) {return i==j;}
    Vector BodyForce(int i) {return BodyForce_[i]; }
    double NormModulus() const {return NormModulus_;}

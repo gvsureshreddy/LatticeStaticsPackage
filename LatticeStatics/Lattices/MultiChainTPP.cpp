@@ -110,7 +110,7 @@ MultiChainTPP::MultiChainTPP(char *datafile,const char *prefix,int Echo,int Widt
 	 
    // Get Lattice parameters
    NTemp_ = 1.0;
-   if(!GetParameter(prefix,"InfluanceDist",datafile,"%u",&InfluanceDist_)) exit(-1);
+   if(!GetParameter(prefix,"InfluenceDist",datafile,"%u",&InfluenceDist_)) exit(-1);
    if(!GetParameter(prefix,"NormModulus",datafile,"%lf",&NormModulus_)) exit(-1);
 
    // Get Loading parameters
@@ -144,7 +144,7 @@ MultiChainTPP::MultiChainTPP(char *datafile,const char *prefix,int Echo,int Widt
    
    // Initiate the Lattice Sum object
    ChainSum_(&DOF_,LagrangeCB_,&RefLattice_,INTERNAL_ATOMS,AtomPositions_,Potential_,
-	     &InfluanceDist_,&NTemp_);
+	     &InfluenceDist_,&NTemp_);
 
    int err=0;
    err=FindLatticeSpacing(datafile,prefix,iter);
@@ -1066,7 +1066,7 @@ void MultiChainTPP::Print(ostream &out,PrintDetail flag)
 		<< "Species : " << setw(5) << AtomSpecies_[i]
 		<< "          Position : " << setw(W) << AtomPositions_[i] << endl;
 	 }
-	 out << "Influance Distance   : " << setw(W) << InfluanceDist_ << endl;
+	 out << "Influence Distance   : " << setw(W) << InfluenceDist_ << endl;
 	 for (int i=0;i<NumberofSpecies_;++i)
 	 {
 	    out << "Atomic Mass " << i << "  : "
@@ -1098,7 +1098,7 @@ void MultiChainTPP::Print(ostream &out,PrintDetail flag)
 		<< "Species : " << setw(5) << AtomSpecies_[i]
 		<< "          Position : " << setw(W) << AtomPositions_[i] << endl;
 	    }
-	    cout << "Influance Distance   : " << setw(W) << InfluanceDist_ << endl;
+	    cout << "Influence Distance   : " << setw(W) << InfluenceDist_ << endl;
 	    for (int i=0;i<NumberofSpecies_;++i)
 	    {
 	       cout << "Atomic Mass " << i << "  : "
@@ -1196,7 +1196,7 @@ void MultiChainTPP::DebugMode()
    char *Commands[] = {
       "INTERNAL_ATOMS",                // 0
       "DOFS",                          // 1
-      "InfluanceDist_",                // 2
+      "InfluenceDist_",                // 2
       "NTemp_",                        // 3
       "DOF_",                          // 4
       "RefLattice_",                   // 5
@@ -1216,23 +1216,24 @@ void MultiChainTPP::DebugMode()
       "StressDT",                      // 19
       "StiffnessDT",                   // 20
       "SetTemp",                       // 21
-      "Energy",                        // 22
-      "E3",                            // 23
-      "E4",                            // 24
-      "SetGridSize",                   // 25
-      "NeighborDistances",             // 26
-      "Print-short",                   // 27
-      "Print-long",                    // 28
-      "SetLambda",                     // 29
-      "StressDL",                      // 30
-      "StiffnessDL",                   // 31
-      "FindLatticeSpacing",            // 32
-      "ConsistencyCheck",              // 33
-      "dbg_",                          // 34
-      "RefineEqbm",                    // 35
-      "Entropy"                        // 36
+      "SetInfluenceDist",              // 22
+      "Energy",                        // 23
+      "E3",                            // 24
+      "E4",                            // 25
+      "SetGridSize",                   // 26
+      "NeighborDistances",             // 27
+      "Print-short",                   // 28
+      "Print-long",                    // 29
+      "SetLambda",                     // 30
+      "StressDL",                      // 31
+      "StiffnessDL",                   // 32
+      "FindLatticeSpacing",            // 33
+      "ConsistencyCheck",              // 34
+      "dbg_",                          // 35
+      "RefineEqbm",                    // 36
+      "Entropy"                        // 37
    };
-   int NOcommands=37;
+   int NOcommands=38;
    
    char response[LINELENGTH];
    char prompt[] = "Debug > ";
@@ -1242,30 +1243,32 @@ void MultiChainTPP::DebugMode()
 
    cin.getline(response,LINELENGTH);
 
+   int indx;
    while (strcasecmp(response,"q") &&
 	  strcasecmp(response,"quit") &&
 	  strcasecmp(response,"exit"))
    {
-      if (!strcmp(response,Commands[0]))
+      indx=0;
+      if (!strcmp(response,Commands[indx++]))
 	 cout << "INTERNAL_ATOMS = " << INTERNAL_ATOMS << endl;
-      else if (!strcmp(response,Commands[1]))
+      else if (!strcmp(response,Commands[indx++]))
 	 cout << "DOFS = " << DOFS << endl;
-      else if (!strcmp(response,Commands[2]))
-	 cout << "InfluanceDist_ = " << InfluanceDist_ << endl;
-      else if (!strcmp(response,Commands[3]))
+      else if (!strcmp(response,Commands[indx++]))
+	 cout << "InfluenceDist_ = " << InfluenceDist_ << endl;
+      else if (!strcmp(response,Commands[indx++]))
 	 cout << "NTemp_ = " << NTemp_ << endl;
-      else if (!strcmp(response,Commands[4]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 for (int i=0;i<DOFS;++i)
 	    cout << "DOF_[" << i << "] = " << DOF_[i] << endl;
       }
-      else if (!strcmp(response,Commands[5]))
+      else if (!strcmp(response,Commands[indx++]))
 	 cout << "RefLattice_= " << setw(W) << RefLattice_;
-      else if (!strcmp(response,Commands[6]))
+      else if (!strcmp(response,Commands[indx++]))
 	 cout << "NormModulus_= " << NormModulus_ << endl;
-      else if (!strcmp(response,Commands[7]))
+      else if (!strcmp(response,Commands[indx++]))
 	 cout << "Lambda_= " << Lambda_ << endl;
-      else if (!strcmp(response,Commands[8]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 for (int i=0;i<INTERNAL_ATOMS;++i)
 	 {
@@ -1273,7 +1276,7 @@ void MultiChainTPP::DebugMode()
 		 << BodyForce_[i] << endl;
 	 }
       }
-      else if (!strcmp(response,Commands[9]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 for (int i=0;i<INTERNAL_ATOMS;++i)
 	 {
@@ -1281,9 +1284,9 @@ void MultiChainTPP::DebugMode()
 		 << AtomicMass_[i] << endl;
 	 }
       }
-      else if (!strcmp(response,Commands[10]))
+      else if (!strcmp(response,Commands[indx++]))
 	 cout << "GridSize_= " << GridSize_ << endl;
-      else if (!strcmp(response,Commands[11]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 for (int i=0;i<INTERNAL_ATOMS;++i)
 	    for (int j=i;j<INTERNAL_ATOMS;++j)
@@ -1292,13 +1295,13 @@ void MultiChainTPP::DebugMode()
 		    << setw(W) << Potential_[i][j] << endl;
 	    }
       }
-      else if (!strcmp(response,Commands[12]))
+      else if (!strcmp(response,Commands[indx++]))
 	 cout << "stress= " << setw(W) << stress();
-      else if (!strcmp(response,Commands[13]))
+      else if (!strcmp(response,Commands[indx++]))
 	 cout << "stiffness= " << setw(W) << stiffness();
-      else if (!strcmp(response,Commands[14]))
+      else if (!strcmp(response,Commands[indx++]))
 	 cout << "CondensedModuli= " << setw(W) << CondensedModuli();
-      else if (!strcmp(response,Commands[15]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 Vector K(6,0.0);
 	 int NoPTS;
@@ -1318,12 +1321,12 @@ void MultiChainTPP::DebugMode()
 	 ReferenceDispersionCurves(K,NoPTS,prefix,cout);
 	 Echo_=oldEcho_;
       }
-      else if (!strcmp(response,Commands[16]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 Vector K(1,0.0);
 	 cout << "ReferenceBlochWave= " << ReferenceBlochWave(K) << "\t" << K << endl;
       }
-      else if (!strcmp(response,Commands[17]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 cout << "\tK > ";
 	 Vector K(1,0.0);
@@ -1332,7 +1335,7 @@ void MultiChainTPP::DebugMode()
 	 cout << "ReferenceDynamicalStiffness= "
 	      << setw(W) << ReferenceDynamicalStiffness(K) << endl;
       }
-      else if (!strcmp(response,Commands[18]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 Vector DOF(DOFS,0.0);
 	 cout << "\tDOF > ";
@@ -1340,11 +1343,11 @@ void MultiChainTPP::DebugMode()
 	 cin.sync(); // clear input
 	 SetDOF(DOF);
       }
-      else if (!strcmp(response,Commands[19]))
+      else if (!strcmp(response,Commands[indx++]))
 	 cout << "StressDT= " << setw(W) << StressDT();
-      else if (!strcmp(response,Commands[20]))
+      else if (!strcmp(response,Commands[indx++]))
 	 cout << "StiffnessDT= " << setw(W) << StiffnessDT();
-      else if (!strcmp(response,Commands[21]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 double Temp;
 	 cout << "\tTemp > ";
@@ -1352,13 +1355,21 @@ void MultiChainTPP::DebugMode()
 	 cin.sync(); // clear input
 	 SetTemp(Temp);
       }
-      else if (!strcmp(response,Commands[22]))
+      else if (!strcmp(response,Commands[indx++]))
+      {
+	 double dist;
+	 cout << "\tInfluenceDist > ";
+	 cin >> dist;
+	 cin.sync(); // clear input
+	 SetInfluenceDist(dist);
+      }
+      else if (!strcmp(response,Commands[indx++]))
 	 cout << "Energy= " << Energy() << endl;
-      else if (!strcmp(response,Commands[23]))
+      else if (!strcmp(response,Commands[indx++]))
 	 cout << "E3= " << setw(W) << E3();
-      else if (!strcmp(response,Commands[24]))
+      else if (!strcmp(response,Commands[indx++]))
 	 cout << "E4= " << setw(W) << E4();
-      else if (!strcmp(response,Commands[25]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 int GridSize;
 	 cout << "\tGridSize > ";
@@ -1366,7 +1377,7 @@ void MultiChainTPP::DebugMode()
 	 cin.sync(); // clear input
 	 SetGridSize(GridSize);
       }
-      else if (!strcmp(response,Commands[26]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 int oldEcho_=Echo_;
 	 int cutoff;
@@ -1377,14 +1388,14 @@ void MultiChainTPP::DebugMode()
 	 NeighborDistances(cutoff,cout);
 	 Echo_=oldEcho_;
       }
-      else if (!strcmp(response,Commands[27]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 int oldEcho_=Echo_;
 	 Echo_=0;
 	 cout << setw(W) << *this;
 	 Echo_=oldEcho_;
       }
-      else if (!strcmp(response,Commands[28]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 int oldEcho_=Echo_;
 	 Echo_=0;
@@ -1392,7 +1403,7 @@ void MultiChainTPP::DebugMode()
 	 Print(cout,PrintLong);
 	 Echo_=oldEcho_;
       }
-      else if (!strcmp(response,Commands[29]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 double lambda;
 	 cout << "\tLambda > ";
@@ -1400,15 +1411,15 @@ void MultiChainTPP::DebugMode()
 	 cin.sync(); // clear input
 	 SetLambda(lambda);
       }
-      else if (!strcmp(response,Commands[30]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 cout << "StressDL= " << setw(W) << StressDL();
       }
-      else if (!strcmp(response,Commands[31]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 cout << "StiffnessDL= " << setw(W) << StiffnessDL();
       }
-      else if (!strcmp(response,Commands[32]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 int iter;
 	 char datafl[265],prefix[265];
@@ -1423,7 +1434,7 @@ void MultiChainTPP::DebugMode()
 	 cin.sync(); // clear input
 	 FindLatticeSpacing(datafl,prefix,iter);
       }
-      else if (!strcmp(response,Commands[33]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 int width;
 	 int oldEcho=Echo_;
@@ -1436,11 +1447,11 @@ void MultiChainTPP::DebugMode()
 	 ConsistencyCheck(epsilon,width,cout);
 	 Echo_=oldEcho;
       }
-      else if (!strcmp(response,Commands[34]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 cout << "dbg_ = " << dbg_ << endl;
       }
-      else if (!strcmp(response,Commands[35]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 double Tol;
 	 int MaxItr;
@@ -1450,7 +1461,7 @@ void MultiChainTPP::DebugMode()
 	 cin >> MaxItr;
 	 RefineEqbm(Tol,MaxItr,&cout);
       }
-      else if (!strcmp(response,Commands[36]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 cout << "Entropy = " << setw(W) << Entropy() << endl;
       }

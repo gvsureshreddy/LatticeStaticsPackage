@@ -18,7 +18,7 @@ class ChainSum
 {
 private:
    int Recalc_;
-   unsigned *InfluanceDist_;
+   double *InfluanceDist_;
    Vector *DOF_;
    int LagrangeCB_;
    Matrix *RefLattice_;
@@ -39,13 +39,13 @@ private:
 public:
    ChainSum() {}
    ChainSum(Vector *DOF,int LagrangeCB,Matrix *RefLat,int InternalAtoms,
-	    Vector *InternalPOS,PairPotentials ***PairPot,unsigned *InfluDist,
+	    Vector *InternalPOS,PairPotentials ***PairPot,double *InfluDist,
 	    double *Ntemp);
    ~ChainSum() {}
 
    void operator()(Vector *DOF,int LagrangeCB,Matrix *RefLat,int InternalAtoms,
 		   Vector *InternalPOS,PairPotentials ***PairPot,
-		   unsigned *InfluDist,double *Ntemp);
+		   double *InfluDist,double *Ntemp);
 
    void Reset();
    void Recalc() {Recalc_ = 1;}
