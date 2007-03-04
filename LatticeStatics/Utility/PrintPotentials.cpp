@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 	   << setw(20) << q
 	   << setw(20) << pot->PairPotential(temp,q*q)
 	   << setw(20) << pot->PairPotential(temp,q*q,PairPotentials::DY)*(2.0*q)
-	   << setw(20) << pot->PairPotential(temp,q*q,PairPotentials::D2Y)*(4.0*q)
+	   << setw(20) << pot->PairPotential(temp,q*q,PairPotentials::D2Y)*(4.0*q*q)
 	 + pot->PairPotential(temp,q*q,PairPotentials::DY)*(2.0)
 	   << endl;
    }
