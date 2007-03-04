@@ -1793,7 +1793,7 @@ void MultiLatticeTPP::DebugMode()
       "NTemp_",                        // 3
       "DOF_",                          // 4
       "RefLattice_",                   // 5
-      "NormModulus_",                     // 6
+      "NormModulus_",                  // 6
       "Lambda_",                       // 7
       "BodyForce_",                    // 8
       "AtomicMass_",                   // 9
@@ -1810,27 +1810,28 @@ void MultiLatticeTPP::DebugMode()
       "StressDT",                      // 20
       "StiffnessDT",                   // 21
       "SetTemp",                       // 22
-      "Energy",                        // 23
-      "E3",                            // 24
-      "E4",                            // 25
-      "SetGridSize",                   // 26
-      "NeighborDistances",             // 27
-      "Print-short",                   // 28
-      "Print-long",                    // 29
-      "SetLambda",                     // 30
-      "StressDL",                      // 31
-      "StiffnessDL",                   // 32
-      "FindLatticeSpacing",            // 33
-      "ConsistencyCheck",              // 34
-      "dbg_",                          // 35
-      "RefineEqbm",                    // 36
-      "EulerAng_",                     // 37
-      "Rotation_",                     // 38
-      "Loading_",                      // 39
-      "PrintCrystal",                  // 40
-      "Entropy"                        // 41
+      "SetInfluenceDist",              // 23
+      "Energy",                        // 24
+      "E3",                            // 25
+      "E4",                            // 26
+      "SetGridSize",                   // 27
+      "NeighborDistances",             // 28
+      "Print-short",                   // 29
+      "Print-long",                    // 30
+      "SetLambda",                     // 31
+      "StressDL",                      // 32
+      "StiffnessDL",                   // 33
+      "FindLatticeSpacing",            // 34
+      "ConsistencyCheck",              // 35
+      "dbg_",                          // 36
+      "RefineEqbm",                    // 37
+      "EulerAng_",                     // 38
+      "Rotation_",                     // 39
+      "Loading_",                      // 40
+      "PrintCrystal",                  // 41
+      "Entropy"                        // 42
    };
-   int NOcommands=42;
+   int NOcommands=43;
    
    char response[LINELENGTH];
    char prompt[] = "Debug > ";
@@ -1840,30 +1841,32 @@ void MultiLatticeTPP::DebugMode()
 
    cin.getline(response,LINELENGTH);
 
+   int indx;
    while (strcasecmp(response,"q") &&
 	  strcasecmp(response,"quit") &&
 	  strcasecmp(response,"exit"))
    {
-      if (!strcmp(response,Commands[0]))
+      indx=0;
+      if (!strcmp(response,Commands[indx++]))
 	 cout << "INTERNAL_ATOMS = " << INTERNAL_ATOMS << endl;
-      else if (!strcmp(response,Commands[1]))
+      else if (!strcmp(response,Commands[indx++]))
 	 cout << "DOFS = " << DOFS << endl;
-      else if (!strcmp(response,Commands[2]))
+      else if (!strcmp(response,Commands[indx++]))
 	 cout << "InfluenceDist_ = " << InfluenceDist_ << endl;
-      else if (!strcmp(response,Commands[3]))
+      else if (!strcmp(response,Commands[indx++]))
 	 cout << "NTemp_ = " << NTemp_ << endl;
-      else if (!strcmp(response,Commands[4]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 for (int i=0;i<DOFS;++i)
 	    cout << "DOF_[" << i << "] = " << DOF_[i] << endl;
       }
-      else if (!strcmp(response,Commands[5]))
+      else if (!strcmp(response,Commands[indx++]))
 	 cout << "RefLattice_= " << setw(W) << RefLattice_;
-      else if (!strcmp(response,Commands[6]))
+      else if (!strcmp(response,Commands[indx++]))
 	 cout << "NormModulus_= " << NormModulus_ << endl;
-      else if (!strcmp(response,Commands[7]))
+      else if (!strcmp(response,Commands[indx++]))
 	 cout << "Lambda_= " << Lambda_ << endl;
-      else if (!strcmp(response,Commands[8]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 for (int i=0;i<INTERNAL_ATOMS;++i)
 	 {
@@ -1871,7 +1874,7 @@ void MultiLatticeTPP::DebugMode()
 		 << BodyForce_[i] << endl;
 	 }
       }
-      else if (!strcmp(response,Commands[9]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 for (int i=0;i<INTERNAL_ATOMS;++i)
 	 {
@@ -1879,9 +1882,9 @@ void MultiLatticeTPP::DebugMode()
 		 << AtomicMass_[i] << endl;
 	 }
       }
-      else if (!strcmp(response,Commands[10]))
+      else if (!strcmp(response,Commands[indx++]))
 	 cout << "GridSize_= " << GridSize_ << endl;
-      else if (!strcmp(response,Commands[11]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 for (int i=0;i<INTERNAL_ATOMS;++i)
 	    for (int j=i;j<INTERNAL_ATOMS;++j)
@@ -1890,15 +1893,15 @@ void MultiLatticeTPP::DebugMode()
 		    << setw(W) << Potential_[i][j] << endl;
 	    }
       }
-      else if (!strcmp(response,Commands[12]))
+      else if (!strcmp(response,Commands[indx++]))
 	 cout << "ConvexityDX_= " << ConvexityDX_ << endl;
-      else if (!strcmp(response,Commands[13]))
+      else if (!strcmp(response,Commands[indx++]))
 	 cout << "stress= " << setw(W) << stress();
-      else if (!strcmp(response,Commands[14]))
+      else if (!strcmp(response,Commands[indx++]))
 	 cout << "stiffness= " << setw(W) << stiffness();
-      else if (!strcmp(response,Commands[15]))
+      else if (!strcmp(response,Commands[indx++]))
 	 cout << "CondensedModuli= " << setw(W) << CondensedModuli();
-      else if (!strcmp(response,Commands[16]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 Vector K(DIM3,0.0);
 	 int NoPTS;
@@ -1918,12 +1921,12 @@ void MultiLatticeTPP::DebugMode()
 	 ReferenceDispersionCurves(K,NoPTS,prefix,cout);
 	 Echo_=oldEcho_;
       }
-      else if (!strcmp(response,Commands[17]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 Vector K(DIM3,0.0);
 	 cout << "ReferenceBlochWave= " << ReferenceBlochWave(K) << "\t" << K << endl;
       }
-      else if (!strcmp(response,Commands[18]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 cout << "\tK > ";
 	 Vector K(3,0.0);
@@ -1932,7 +1935,7 @@ void MultiLatticeTPP::DebugMode()
 	 cout << "ReferenceDynamicalStiffness= "
 	      << setw(W) << ReferenceDynamicalStiffness(K) << endl;
       }
-      else if (!strcmp(response,Commands[19]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 Vector DOF(DOFS,0.0);
 	 cout << "\tDOF > ";
@@ -1940,11 +1943,11 @@ void MultiLatticeTPP::DebugMode()
 	 cin.sync(); // clear input
 	 SetDOF(DOF);
       }
-      else if (!strcmp(response,Commands[20]))
+      else if (!strcmp(response,Commands[indx++]))
 	 cout << "StressDT= " << setw(W) << StressDT();
-      else if (!strcmp(response,Commands[21]))
+      else if (!strcmp(response,Commands[indx++]))
 	 cout << "StiffnessDT= " << setw(W) << StiffnessDT();
-      else if (!strcmp(response,Commands[22]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 double Temp;
 	 cout << "\tTemp > ";
@@ -1952,13 +1955,21 @@ void MultiLatticeTPP::DebugMode()
 	 cin.sync(); // clear input
 	 SetTemp(Temp);
       }
-      else if (!strcmp(response,Commands[23]))
+      else if (!strcmp(response,Commands[indx++]))
+      {
+	 double dist;
+	 cout << "\tInfluenceDist > ";
+	 cin >> dist;
+	 cin.sync(); // clear input
+	 SetInfluenceDist(dist);
+      }
+      else if (!strcmp(response,Commands[indx++]))
 	 cout << "Energy= " << Energy() << endl;
-      else if (!strcmp(response,Commands[24]))
+      else if (!strcmp(response,Commands[indx++]))
 	 cout << "E3= " << setw(W) << E3();
-      else if (!strcmp(response,Commands[25]))
+      else if (!strcmp(response,Commands[indx++]))
 	 cout << "E4= " << setw(W) << E4();
-      else if (!strcmp(response,Commands[26]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 int GridSize;
 	 cout << "\tGridSize > ";
@@ -1966,7 +1977,7 @@ void MultiLatticeTPP::DebugMode()
 	 cin.sync(); // clear input
 	 SetGridSize(GridSize);
       }
-      else if (!strcmp(response,Commands[27]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 int oldEcho_=Echo_;
 	 int cutoff;
@@ -1978,14 +1989,14 @@ void MultiLatticeTPP::DebugMode()
 	 NeighborDistances(cutoff,cout);
 	 Echo_=oldEcho_;
       }
-      else if (!strcmp(response,Commands[28]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 int oldEcho_=Echo_;
 	 Echo_=0;
 	 cout << setw(W) << *this;
 	 Echo_=oldEcho_;
       }
-      else if (!strcmp(response,Commands[29]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 int oldEcho_=Echo_;
 	 Echo_=0;
@@ -1993,7 +2004,7 @@ void MultiLatticeTPP::DebugMode()
 	 Print(cout,PrintLong);
 	 Echo_=oldEcho_;
       }
-      else if (!strcmp(response,Commands[30]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 double lambda;
 	 cout << "\tLambda > ";
@@ -2001,15 +2012,15 @@ void MultiLatticeTPP::DebugMode()
 	 cin.sync(); // clear input
 	 SetLambda(lambda);
       }
-      else if (!strcmp(response,Commands[31]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 cout << "StressDL= " << setw(W) << StressDL();
       }
-      else if (!strcmp(response,Commands[32]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 cout << "StiffnessDL= " << setw(W) << StiffnessDL();
       }
-      else if (!strcmp(response,Commands[33]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 int iter;
 	 char datafl[265],prefix[265];
@@ -2024,7 +2035,7 @@ void MultiLatticeTPP::DebugMode()
 	 cin.sync(); // clear input
 	 FindLatticeSpacing(datafl,prefix,iter);
       }
-      else if (!strcmp(response,Commands[34]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 int width;
 	 int oldEcho=Echo_;
@@ -2037,11 +2048,11 @@ void MultiLatticeTPP::DebugMode()
 	 ConsistencyCheck(epsilon,width,cout);
 	 Echo_=oldEcho;
       }
-      else if (!strcmp(response,Commands[35]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 cout << "dbg_ = " << dbg_ << endl;
       }
-      else if (!strcmp(response,Commands[36]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 double Tol;
 	 int MaxItr;
@@ -2051,29 +2062,29 @@ void MultiLatticeTPP::DebugMode()
 	 cin >> MaxItr;
 	 RefineEqbm(Tol,MaxItr,&cout);
       }
-      else if (!strcmp(response,Commands[37]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 cout << "EulerAng_ = "
 	      << setw(W) << EulerAng_[0]
 	      << setw(W) << EulerAng_[1]
 	      << setw(W) << EulerAng_[2] << endl;
       }
-      else if (!strcmp(response,Commands[38]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 cout << "Rotation_ = "
 	      << setw(W) << Rotation_ << endl;
       }
-      else if (!strcmp(response,Commands[39]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 cout << "Loading_ = "
 	      << setw(W) << Loading_ << endl;
       }
-      else if (!strcmp(response,Commands[40]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 cout << setw(W);
 	 PrintCurrentCrystalParamaters(cout);
       }
-      else if (!strcmp(response,Commands[41]))
+      else if (!strcmp(response,Commands[indx++]))
       {
 	 cout << "Entropy = " << setw(W) << Entropy() << endl;
       }

@@ -116,6 +116,8 @@ public:
    // Functions provided by MultiLatticeTPP
    MultiLatticeTPP(char *datafile,const char *prefix,int Echo=1,int Width=20,int Debug=0);
    ~MultiLatticeTPP();
+   double InfluenceDist() {return InfluenceDist_;}
+   void SetInfluenceDist(double InfluenceDist) {InfluenceDist_=InfluenceDist;}
    inline double Del(int i,int j) {return i==j;}
    Vector BodyForce(int i) {return BodyForce_[i]; }
    double NormModulus() const {return NormModulus_;}
