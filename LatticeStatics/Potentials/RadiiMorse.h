@@ -8,6 +8,17 @@ using namespace std;
 class RadiiMorse: public PairPotentials
 {
 protected:
+   int Achk_[DTmax],
+      Bchk_[DTmax],
+      Rchk_[DTmax],
+      Gchk_[DYmax][DTmax],
+      Ichk_[DTmax];
+   double Aval_[DTmax],
+      Bval_[DTmax],
+      Rval_[DTmax],
+      Gval_[DYmax][DTmax],
+      Ival_[DTmax];
+   
    double A0_, B0_, Alpha_, Rref1_, Rref2_, Rtheta1_, Rtheta2_;
 
 public:
@@ -38,9 +49,24 @@ public:
    void SetRtheta2(double Rtheta2) {Rtheta2_=Rtheta2;}
 private:
    double A(double NTemp,TDeriv dt=T0);
+   inline double a(double NTemp,TDeriv dt=T0)
+   {return (Achk_[dt])? Aval_[dt] : Aval_[dt]=A(NTemp,dt);}
+   
    double Beta(double NTemp,TDeriv dt=T0);
+   inline double b(double NTemp,TDeriv dt=T0)
+   {return (Bchk_[dt])? Bval_[dt] : Bval_[dt]=Beta(NTemp,dt);}
+   
    double Rhat(double NTemp,TDeriv dt=T0);
+   inline double rhat(double NTemp,TDeriv dt=T0)
+   {return (Rchk_[dt])? Rval_[dt] : Rval_[dt]=Rhat(NTemp,dt);}
 
+   double G(double NTemp,double r2,YDeriv dy,TDeriv dt);
+   inline double g(double NTemp,double r2,YDeriv dy,TDeriv dt)
+   {return (Gchk_[dy][dt])? Gval_[dy][dt] : Gval_[dy][dt]=G(NTemp,r2,dy,dt);}
+
+   double I(double NTemp,TDeriv dt=T0);
+   inline double i(double NTemp,TDeriv dt=T0)
+   {return (Ichk_[dt])? Ival_[dt] : Ival_[dt]=I(NTemp,dt);}
 };
 
 #endif

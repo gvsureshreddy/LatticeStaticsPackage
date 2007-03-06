@@ -78,14 +78,656 @@ double RadiiMorse::Rhat(double NTemp,TDeriv dt)
 
 double RadiiMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
 {
-   double At=A(NTemp),
-      //double At(NTemp),
-      beta=Beta(NTemp),
-      rhat=Rhat(NTemp),
-      r = sqrt(r2),
-      Exp_temp=exp(-beta*(r/rhat - 1.0));
+   for (int i=0;i<DTmax;++i)
+   {
+      Achk_[i]=
+	 Bchk_[i]=
+	 Rchk_[i]=
+	 Ichk_[i]=0;
+      for (int j=0;j<DYmax;++j)
+	 Gchk_[j][i] = 0;
+   }
 
-   double val=0;
+   double val=0.0;
+   switch (dy)
+   {
+      case Y0:
+	 switch (dt)
+	 {
+	    case T0:
+	       val = a(NTemp)*g(NTemp,r2,Y0,T0)*(g(NTemp,r2,Y0,T0)-2.0);
+	       break;
+	    case DT:
+	       val = a(NTemp,DT)*g(NTemp,r2,Y0,T0)*(g(NTemp,r2,Y0,T0)-2.0)
+		  +  a(NTemp)*g(NTemp,r2,Y0,DT)*(g(NTemp,r2,Y0,T0)-2.0)
+		  +  a(NTemp)*g(NTemp,r2,Y0,T0)*g(NTemp,r2,Y0,DT);
+	       break;
+	    case D2T:
+	       val = (a(NTemp,D2T)*g(NTemp,r2,Y0,T0)*(g(NTemp,r2,Y0,T0)-2.0)
+		      + a(NTemp,DT)*g(NTemp,r2,Y0,DT)*(g(NTemp,r2,Y0,T0)-2.0)
+		      + a(NTemp,DT)*g(NTemp,r2,Y0,T0)*g(NTemp,r2,Y0,DT))
+		  +  (a(NTemp,DT)*g(NTemp,r2,Y0,DT)*(g(NTemp,r2,Y0,T0)-2.0)
+		      + a(NTemp)*g(NTemp,r2,Y0,D2T)*(g(NTemp,r2,Y0,T0)-2.0)
+		      + a(NTemp)*g(NTemp,r2,Y0,DT)*g(NTemp,r2,Y0,DT))
+		  +  (a(NTemp,DT)*g(NTemp,r2,Y0,T0)*g(NTemp,r2,Y0,DT)
+		      + a(NTemp)*g(NTemp,r2,Y0,DT)*g(NTemp,r2,Y0,DT)
+		      + a(NTemp)*g(NTemp,r2,Y0,T0)*g(NTemp,r2,Y0,D2T));
+	       break;
+	    default:
+	       cerr << "Error in RadiiMorse::PairPotential -- Y0,D3T" << endl;
+	       exit(-1);
+	       break;
+	 }
+	 break;
+      case DY:
+	 switch (dt)
+	 {
+	    case T0:
+	       val = a(NTemp)*g(NTemp,r2,DY,T0)*(g(NTemp,r2,Y0,T0)-2.0)
+		  +  a(NTemp)*g(NTemp,r2,Y0,T0)*g(NTemp,r2,DY,T0);
+	       break;
+	    case DT:
+	       val = (a(NTemp,DT)*g(NTemp,r2,DY,T0)*(g(NTemp,r2,Y0,T0)-2.0)
+		      + a(NTemp)*g(NTemp,r2,DY,DT)*(g(NTemp,r2,Y0,T0)-2.0)
+		      + a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,Y0,DT))
+		  +  (a(NTemp,DT)*g(NTemp,r2,Y0,T0)*g(NTemp,r2,DY,T0)
+		      + a(NTemp)*g(NTemp,r2,Y0,DT)*g(NTemp,r2,DY,T0)
+		      + a(NTemp)*g(NTemp,r2,Y0,T0)*g(NTemp,r2,DY,DT));
+	       break;
+	    case D2T:
+	       val = ((a(NTemp,D2T)*g(NTemp,r2,DY,T0)*(g(NTemp,r2,Y0,T0)-2.0)
+		       + a(NTemp,DT)*g(NTemp,r2,DY,DT)*(g(NTemp,r2,Y0,T0)-2.0)
+		       + a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,Y0,DT))
+		      + (a(NTemp,DT)*g(NTemp,r2,DY,DT)*(g(NTemp,r2,Y0,T0)-2.0)
+			 + a(NTemp,T0)*g(NTemp,r2,DY,D2T)*(g(NTemp,r2,Y0,T0)-2.0)
+			 + a(NTemp,T0)*g(NTemp,r2,DY,DT)*g(NTemp,r2,Y0,DT))
+		      + (a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,Y0,DT)
+			 + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,Y0,DT)
+			 + a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,Y0,D2T)))
+		  + ((a(NTemp,D2T)*g(NTemp,r2,Y0,T0)*g(NTemp,r2,DY,T0)
+		      + a(NTemp,DT)*g(NTemp,r2,Y0,DT)*g(NTemp,r2,DY,T0)
+		      + a(NTemp,DT)*g(NTemp,r2,Y0,T0)*g(NTemp,r2,DY,DT))
+		     + (a(NTemp,DT)*g(NTemp,r2,Y0,DT)*g(NTemp,r2,DY,T0)
+			+ a(NTemp)*g(NTemp,r2,Y0,D2T)*g(NTemp,r2,DY,T0)
+			+ a(NTemp)*g(NTemp,r2,Y0,DT)*g(NTemp,r2,DY,DT))
+		     + (a(NTemp,DT)*g(NTemp,r2,Y0,T0)*g(NTemp,r2,DY,DT)
+			+ a(NTemp)*g(NTemp,r2,Y0,DT)*g(NTemp,r2,DY,DT)
+			+ a(NTemp)*g(NTemp,r2,Y0,T0)*g(NTemp,r2,DY,D2T)));
+		  break;
+	    default:
+	       cerr << "Error in RadiiMorse::PairPotential -- DY,D3T" << endl;
+	       exit(-1);
+	       break;
+	 }
+	 break;
+      case D2Y:
+	 switch (dt)
+	 {
+	    case T0:
+	       val = (a(NTemp)*g(NTemp,r2,D2Y,T0)*(g(NTemp,r2,Y0,T0)-2.0)
+		      + a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,DY,T0))
+		  
+		  +  (a(NTemp)*g(NTemp,r2,Y0,T0)*g(NTemp,r2,D2Y,T0)
+		      + a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,DY,T0));
+	       break;
+	    case DT:
+	       val = ((a(NTemp,DT)*g(NTemp,r2,D2Y,T0)*(g(NTemp,r2,Y0,T0)-2.0)
+		       + a(NTemp)*g(NTemp,r2,D2Y,DT)*(g(NTemp,r2,Y0,T0)-2.0)
+		       + a(NTemp)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,Y0,DT))
+		      
+		      + (a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,DY,T0)
+			 + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,DY,T0)
+			 + a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,DY,DT)))
+		  
+		  +  ((a(NTemp,DT)*g(NTemp,r2,Y0,T0)*g(NTemp,r2,D2Y,T0)
+		       + a(NTemp)*g(NTemp,r2,Y0,DT)*g(NTemp,r2,D2Y,T0)
+		       + a(NTemp)*g(NTemp,r2,Y0,T0)*g(NTemp,r2,D2Y,DT))
+		      
+		      + (a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,DY,T0)
+			 + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,DY,T0)
+			 + a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,DY,DT)));
+	       break;
+	    case D2T:
+	       val = (((a(NTemp,D2T)*g(NTemp,r2,D2Y,T0)*(g(NTemp,r2,Y0,T0)-2.0)
+			+ a(NTemp,DT)*g(NTemp,r2,D2Y,DT)*(g(NTemp,r2,Y0,T0)-2.0)
+			+ a(NTemp,DT)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,Y0,DT))
+		       
+		       + (a(NTemp,DT)*g(NTemp,r2,D2Y,DT)*(g(NTemp,r2,Y0,T0)-2.0)
+			  + a(NTemp)*g(NTemp,r2,D2Y,D2T)*(g(NTemp,r2,Y0,T0)-2.0)
+			  + a(NTemp)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,Y0,DT))
+		       
+		       + (a(NTemp,DT)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,Y0,DT)
+			  + a(NTemp)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,Y0,DT)
+			  + a(NTemp)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,Y0,D2T)))
+		      
+		      + ((a(NTemp,D2T)*g(NTemp,r2,DY,T0)*g(NTemp,r2,DY,T0)
+			  + a(NTemp,DT)*g(NTemp,r2,DY,DT)*g(NTemp,r2,DY,T0)
+			  + a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,DY,DT))
+			 
+			 + (a(NTemp,DT)*g(NTemp,r2,DY,DT)*g(NTemp,r2,DY,T0)
+			    + a(NTemp)*g(NTemp,r2,DY,D2T)*g(NTemp,r2,DY,T0)
+			    + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,DY,DT))
+			 
+			 + (a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,DY,DT)
+			    + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,DY,DT)
+			    + a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,DY,D2T))))
+		      
+		  + (((a(NTemp,D2T)*g(NTemp,r2,Y0,T0)*g(NTemp,r2,D2Y,T0)
+		       + a(NTemp,DT)*g(NTemp,r2,Y0,DT)*g(NTemp,r2,D2Y,T0)
+		       + a(NTemp,DT)*g(NTemp,r2,Y0,T0)*g(NTemp,r2,D2Y,DT))
+
+		      + (a(NTemp,DT)*g(NTemp,r2,Y0,DT)*g(NTemp,r2,D2Y,T0)
+			 + a(NTemp)*g(NTemp,r2,Y0,D2T)*g(NTemp,r2,D2Y,T0)
+			 + a(NTemp)*g(NTemp,r2,Y0,DT)*g(NTemp,r2,D2Y,DT))
+
+		      + (a(NTemp,DT)*g(NTemp,r2,Y0,T0)*g(NTemp,r2,D2Y,DT)
+			 + a(NTemp)*g(NTemp,r2,Y0,DT)*g(NTemp,r2,D2Y,DT)
+			 + a(NTemp)*g(NTemp,r2,Y0,T0)*g(NTemp,r2,D2Y,D2T)))
+
+		     + ((a(NTemp,D2T)*g(NTemp,r2,DY,T0)*g(NTemp,r2,DY,T0)
+			 + a(NTemp,DT)*g(NTemp,r2,DY,DT)*g(NTemp,r2,DY,T0)
+			 + a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,DY,DT))
+
+			+ (a(NTemp,DT)*g(NTemp,r2,DY,DT)*g(NTemp,r2,DY,T0)
+			   + a(NTemp)*g(NTemp,r2,DY,D2T)*g(NTemp,r2,DY,T0)
+			   + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,DY,DT))
+
+			+ (a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,DY,DT)
+			   + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,DY,DT)
+			   + a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,DY,D2T))));
+	       break;
+	    default:
+	       cerr << "Error in RadiiMorse::PairPotential -- D2Y,D3T" << endl;
+	       exit(-1);
+	       break;
+	 }
+	 break;
+      case D3Y:
+	 switch (dt)
+	 {
+	    case T0:
+	       val = ((a(NTemp)*g(NTemp,r2,D3Y,T0)*(g(NTemp,r2,Y0,T0)-2.0)
+		       + a(NTemp)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,DY,T0))
+		      
+		      + (a(NTemp)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,DY,T0)
+			 + a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D2Y,T0)))
+		  
+		  +  ((a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D2Y,T0)
+		       + a(NTemp)*g(NTemp,r2,Y0,T0)*g(NTemp,r2,D3Y,T0))
+		      
+		      + (a(NTemp)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,DY,T0)
+			 + a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D2Y,T0)));
+	       break;
+	    case DT:
+	       val = (((a(NTemp,DT)*g(NTemp,r2,D3Y,T0)*(g(NTemp,r2,Y0,T0)-2.0)
+			+ a(NTemp)*g(NTemp,r2,D3Y,DT)*(g(NTemp,r2,Y0,T0)-2.0)
+			+ a(NTemp)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,Y0,DT))
+		       
+		       + (a(NTemp,DT)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,DY,T0)
+			  + a(NTemp)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,DY,T0)
+			  + a(NTemp)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,DY,DT)))
+		      
+		      + ((a(NTemp,DT)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,DY,T0)
+			  + a(NTemp)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,DY,T0)
+			  + a(NTemp)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,DY,DT))
+			 
+			 + (a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D2Y,T0)
+			    + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D2Y,T0)
+			    + a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D2Y,DT))))
+		  
+		  + (((a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D2Y,T0)
+		       + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D2Y,T0)
+		       + a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D2Y,DT))
+		      
+		      + (a(NTemp,DT)*g(NTemp,r2,Y0,T0)*g(NTemp,r2,D3Y,T0)
+			 + a(NTemp)*g(NTemp,r2,Y0,DT)*g(NTemp,r2,D3Y,T0)
+			 + a(NTemp)*g(NTemp,r2,Y0,T0)*g(NTemp,r2,D3Y,DT)))
+		     
+		     +((a(NTemp,DT)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,DY,T0)
+			+ a(NTemp)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,DY,T0)
+			+ a(NTemp)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,DY,DT))
+		       
+		       + (a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D2Y,T0)
+			  + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D2Y,T0)
+			  + a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D2Y,DT))));
+	       break;
+	    case D2T:
+	       val = ((((a(NTemp,D2T)*g(NTemp,r2,D3Y,T0)*(g(NTemp,r2,Y0,T0)-2.0)
+			 + a(NTemp,DT)*g(NTemp,r2,D3Y,DT)*(g(NTemp,r2,Y0,T0)-2.0)
+			 + a(NTemp,DT)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,Y0,DT))
+
+			+ (a(NTemp,DT)*g(NTemp,r2,D3Y,DT)*(g(NTemp,r2,Y0,T0)-2.0)
+			   + a(NTemp)*g(NTemp,r2,D3Y,D2T)*(g(NTemp,r2,Y0,T0)-2.0)
+			   + a(NTemp)*g(NTemp,r2,D3Y,DT)*g(NTemp,r2,Y0,DT))
+
+			+ (a(NTemp,DT)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,Y0,DT)
+			   + a(NTemp)*g(NTemp,r2,D3Y,DT)*g(NTemp,r2,Y0,DT)
+			   + a(NTemp)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,Y0,D2T)))
+
+		       + ((a(NTemp,D2T)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,DY,T0)
+			   + a(NTemp,DT)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,DY,T0)
+			   + a(NTemp,DT)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,DY,DT))
+
+			  + (a(NTemp,DT)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,DY,T0)
+			     + a(NTemp)*g(NTemp,r2,D2Y,D2T)*g(NTemp,r2,DY,T0)
+			     + a(NTemp)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,DY,DT))
+
+			  + (a(NTemp,DT)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,DY,DT)
+			     + a(NTemp)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,DY,DT)
+			     + a(NTemp)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,DY,D2T))))
+
+		      + (((a(NTemp,D2T)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,DY,T0)
+			   + a(NTemp,DT)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,DY,T0)
+			   + a(NTemp,DT)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,DY,DT))
+			  
+			  + (a(NTemp,DT)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,DY,T0)
+			     + a(NTemp)*g(NTemp,r2,D2Y,D2T)*g(NTemp,r2,DY,T0)
+			     + a(NTemp)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,DY,DT))
+
+			  + (a(NTemp,DT)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,DY,DT)
+			     + a(NTemp)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,DY,DT)
+			     + a(NTemp)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,DY,D2T)))
+
+			 + (a(NTemp,D2T)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D2Y,T0)
+			    + a(NTemp,DT)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D2Y,T0)
+			    + a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D2Y,DT))
+
+			 + (a(NTemp,DT)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D2Y,T0)
+			    + a(NTemp)*g(NTemp,r2,DY,D2T)*g(NTemp,r2,D2Y,T0)
+			    + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D2Y,DT))
+
+			 + (a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D2Y,DT)
+			    + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D2Y,DT)
+			    + a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D2Y,D2T))))
+
+		  + ((((a(NTemp,D2T)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D2Y,T0)
+			+ a(NTemp,DT)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D2Y,T0)
+			+ a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D2Y,DT))
+
+		       + (a(NTemp,DT)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D2Y,T0)
+			  + a(NTemp)*g(NTemp,r2,DY,D2T)*g(NTemp,r2,D2Y,T0)
+			  + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D2Y,DT))
+
+		       + (a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D2Y,DT)
+			  + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D2Y,DT)
+			  + a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D2Y,D2T)))
+
+		      + (a(NTemp,D2T)*g(NTemp,r2,Y0,T0)*g(NTemp,r2,D3Y,T0)
+			 + a(NTemp,DT)*g(NTemp,r2,Y0,DT)*g(NTemp,r2,D3Y,T0)
+			 + a(NTemp,DT)*g(NTemp,r2,Y0,T0)*g(NTemp,r2,D3Y,DT))
+
+		      + (a(NTemp,DT)*g(NTemp,r2,Y0,DT)*g(NTemp,r2,D3Y,T0)
+			 + a(NTemp)*g(NTemp,r2,Y0,D2T)*g(NTemp,r2,D3Y,T0)
+			 + a(NTemp)*g(NTemp,r2,Y0,DT)*g(NTemp,r2,D3Y,DT))
+
+		      + (a(NTemp,DT)*g(NTemp,r2,Y0,T0)*g(NTemp,r2,D3Y,DT)
+			 + a(NTemp)*g(NTemp,r2,Y0,DT)*g(NTemp,r2,D3Y,DT)
+			 + a(NTemp)*g(NTemp,r2,Y0,T0)*g(NTemp,r2,D3Y,D2T)))
+
+		     + (((a(NTemp,D2T)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,DY,T0)
+			  + a(NTemp,DT)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,DY,T0)
+			  + a(NTemp,DT)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,DY,DT))
+
+			 + (a(NTemp,DT)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,DY,T0)
+			    + a(NTemp)*g(NTemp,r2,D2Y,D2T)*g(NTemp,r2,DY,T0)
+			    + a(NTemp)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,DY,DT))
+
+			 + (a(NTemp,DT)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,DY,DT)
+			    + a(NTemp)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,DY,DT)
+			    + a(NTemp)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,DY,D2T)))
+
+			+ ((a(NTemp,D2T)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D2Y,T0)
+			    + a(NTemp,DT)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D2Y,T0)
+			    + a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D2Y,DT))
+
+			   + (a(NTemp,DT)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D2Y,T0)
+			      + a(NTemp)*g(NTemp,r2,DY,D2T)*g(NTemp,r2,D2Y,T0)
+			      + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D2Y,DT))
+
+			   + (a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D2Y,DT)
+			      + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D2Y,DT)
+			      + a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D2Y,D2T)))));
+	       break;
+	    default:
+	       cerr << "Error in RadiiMorse::PairPotential -- D3Y,D3T" << endl;
+	       exit(-1);
+	       break;
+	 }
+	 break;
+      case D4Y:
+	 switch (dt)
+	 {
+	    case T0:
+	       val = (((a(NTemp)*g(NTemp,r2,D4Y,T0)*(g(NTemp,r2,Y0,T0)-2.0)
+			+ a(NTemp)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,DY,T0))
+
+		       + (a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,DY,T0)
+			  + a(NTemp)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,T0)))
+
+		      + ((a(NTemp)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,DY,T0)
+			  + a(NTemp)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,T0))
+
+			 + (a(NTemp)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,T0)
+			    + a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D3Y,T0))))
+
+		  + (((a(NTemp)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,T0)
+		       + a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D3Y,T0))
+
+		      + (a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D3Y,T0)
+			 + a(NTemp)*g(NTemp,r2,Y0,T0)*g(NTemp,r2,D4Y,T0)))
+
+		     + ((a(NTemp)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,DY,T0)
+			 + a(NTemp)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,T0))
+			
+			+ (a(NTemp)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,T0)
+			   + a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D3Y,T0))));
+	       break;
+	    case DT:
+	       val = ((((a(NTemp,DT)*g(NTemp,r2,D4Y,T0)*(g(NTemp,r2,Y0,T0)-2.0)
+			 + a(NTemp)*g(NTemp,r2,D4Y,DT)*(g(NTemp,r2,Y0,T0)-2.0)
+			 + a(NTemp)*g(NTemp,r2,D4Y,T0)*g(NTemp,r2,Y0,DT))
+
+			+ (a(NTemp,DT)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,DY,T0)
+			   + a(NTemp)*g(NTemp,r2,D3Y,DT)*g(NTemp,r2,DY,T0)
+			   + a(NTemp)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,DY,DT)))
+
+		       + ((a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,DY,T0)
+			   + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,DY,T0)
+			   + a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,DY,DT))
+
+			  + (a(NTemp,DT)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,T0)
+			     + a(NTemp)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,D2Y,T0)
+			     + a(NTemp)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,DT))))
+
+		      + (((a(NTemp,DT)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,DY,T0)
+			   + a(NTemp)*g(NTemp,r2,D3Y,DT)*g(NTemp,r2,DY,T0)
+			   + a(NTemp)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,DY,DT))
+
+			  + (a(NTemp,DT)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,T0)
+			     + a(NTemp)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,D2Y,T0)
+			     + a(NTemp)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,DT)))
+
+			 + ((a(NTemp,DT)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,T0)
+			     + a(NTemp)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,D2Y,T0)
+			     + a(NTemp)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,DT))
+
+			    + (a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D3Y,T0)
+			       + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D3Y,T0)
+			       + a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D3Y,DT)))))
+		  
+		  + ((((a(NTemp,DT)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,T0)
+			+ a(NTemp)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,D2Y,T0)
+			+ a(NTemp)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,DT))
+
+		       + (a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D3Y,T0)
+			  + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D3Y,T0)
+			  + a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D3Y,DT)))
+
+		      + ((a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D3Y,T0)
+			  + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D3Y,T0)
+			  + a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D3Y,DT))
+
+			 + (a(NTemp,DT)*g(NTemp,r2,Y0,T0)*g(NTemp,r2,D4Y,T0)
+			    + a(NTemp)*g(NTemp,r2,Y0,DT)*g(NTemp,r2,D4Y,T0)
+			    + a(NTemp)*g(NTemp,r2,Y0,T0)*g(NTemp,r2,D4Y,DT))))
+
+		     + (((a(NTemp,DT)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,DY,T0)
+			  + a(NTemp)*g(NTemp,r2,D3Y,DT)*g(NTemp,r2,DY,T0)
+			  + a(NTemp)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,DY,DT))
+
+			 + (a(NTemp,DT)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,T0)
+			    + a(NTemp)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,D2Y,T0)
+			    + a(NTemp)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,DT)))
+
+			+ ((a(NTemp,DT)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,T0)
+			    + a(NTemp)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,D2Y,T0)
+			    + a(NTemp)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,DT))
+
+			   + (a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D3Y,T0)
+			      + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D3Y,T0)
+			      + a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D3Y,DT)))));
+	       break;
+	    case D2T:
+	       val = (((((a(NTemp,D2T)*g(NTemp,r2,D4Y,T0)*(g(NTemp,r2,Y0,T0)-2.0)
+			  + a(NTemp,DT)*g(NTemp,r2,D4Y,DT)*(g(NTemp,r2,Y0,T0)-2.0)
+			  + a(NTemp,DT)*g(NTemp,r2,D4Y,T0)*g(NTemp,r2,Y0,DT))
+
+			 + (a(NTemp,DT)*g(NTemp,r2,D4Y,DT)*(g(NTemp,r2,Y0,T0)-2.0)
+			    + a(NTemp)*g(NTemp,r2,D4Y,D2T)*(g(NTemp,r2,Y0,T0)-2.0)
+			    + a(NTemp)*g(NTemp,r2,D4Y,DT)*g(NTemp,r2,Y0,DT))
+
+			 + (a(NTemp,DT)*g(NTemp,r2,D4Y,T0)*g(NTemp,r2,Y0,DT)
+			    + a(NTemp)*g(NTemp,r2,D4Y,DT)*g(NTemp,r2,Y0,DT)
+			    + a(NTemp)*g(NTemp,r2,D4Y,T0)*g(NTemp,r2,Y0,D2T)))
+
+			+ ((a(NTemp,D2T)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,DY,T0)
+			    + a(NTemp,DT)*g(NTemp,r2,D3Y,DT)*g(NTemp,r2,DY,T0)
+			    + a(NTemp,DT)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,DY,DT))
+
+			   + (a(NTemp,DT)*g(NTemp,r2,D3Y,DT)*g(NTemp,r2,DY,T0)
+			      + a(NTemp)*g(NTemp,r2,D3Y,D2T)*g(NTemp,r2,DY,T0)
+			      + a(NTemp)*g(NTemp,r2,D3Y,DT)*g(NTemp,r2,DY,DT))
+
+			   + (a(NTemp,DT)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,DY,DT)
+			      + a(NTemp)*g(NTemp,r2,D3Y,DT)*g(NTemp,r2,DY,DT)
+			      + a(NTemp)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,DY,D2T))))
+
+		       + (((a(NTemp,D2T)*g(NTemp,r2,DY,T0)*g(NTemp,r2,DY,T0)
+			    + a(NTemp,DT)*g(NTemp,r2,DY,DT)*g(NTemp,r2,DY,T0)
+			    + a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,DY,DT))
+
+			   + (a(NTemp,DT)*g(NTemp,r2,DY,DT)*g(NTemp,r2,DY,T0)
+			      + a(NTemp)*g(NTemp,r2,DY,D2T)*g(NTemp,r2,DY,T0)
+			      + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,DY,DT))
+
+			   + (a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,DY,DT)
+			      + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,DY,DT)
+			      + a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,DY,D2T)))
+
+			  + ((a(NTemp,D2T)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,T0)
+			      + a(NTemp,DT)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,D2Y,T0)
+			      + a(NTemp,DT)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,DT))
+
+			     + (a(NTemp,DT)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,D2Y,T0)
+				+ a(NTemp)*g(NTemp,r2,D2Y,D2T)*g(NTemp,r2,D2Y,T0)
+				+ a(NTemp)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,D2Y,DT))
+
+			     + (a(NTemp,DT)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,DT)
+				+ a(NTemp)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,D2Y,DT)
+				+ a(NTemp)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,D2T)))))
+
+		      + ((((a(NTemp,D2T)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,DY,T0)
+			    + a(NTemp,DT)*g(NTemp,r2,D3Y,DT)*g(NTemp,r2,DY,T0)
+			    + a(NTemp,DT)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,DY,DT))
+
+			   + (a(NTemp,DT)*g(NTemp,r2,D3Y,DT)*g(NTemp,r2,DY,T0)
+			      + a(NTemp)*g(NTemp,r2,D3Y,D2T)*g(NTemp,r2,DY,T0)
+			      + a(NTemp)*g(NTemp,r2,D3Y,DT)*g(NTemp,r2,DY,DT))
+
+			   + (a(NTemp,DT)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,DY,DT)
+			      + a(NTemp)*g(NTemp,r2,D3Y,DT)*g(NTemp,r2,DY,DT)
+			      + a(NTemp)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,DY,D2T)))
+
+			  + ((a(NTemp,D2T)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,T0)
+			      + a(NTemp,DT)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,D2Y,T0)
+			      + a(NTemp,DT)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,DT))
+
+			     + (a(NTemp,DT)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,D2Y,T0)
+				+ a(NTemp)*g(NTemp,r2,D2Y,D2T)*g(NTemp,r2,D2Y,T0)
+				+ a(NTemp)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,D2Y,DT))
+
+			     + (a(NTemp,DT)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,DT)
+				+ a(NTemp)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,D2Y,DT)
+				+ a(NTemp)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,D2T))))
+
+			 + (((a(NTemp,D2T)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,T0)
+			      + a(NTemp,DT)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,D2Y,T0)
+			      + a(NTemp,DT)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,DT))
+			     
+			     + (a(NTemp,DT)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,D2Y,T0)
+				+ a(NTemp)*g(NTemp,r2,D2Y,D2T)*g(NTemp,r2,D2Y,T0)
+				+ a(NTemp)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,D2Y,DT))
+			     
+			     + (a(NTemp,DT)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,DT)
+				+ a(NTemp)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,D2Y,DT)
+				+ a(NTemp)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,D2T)))
+			    
+			    + ((a(NTemp,D2T)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D3Y,T0)
+				+ a(NTemp,DT)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D3Y,T0)
+				+ a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D3Y,DT))
+			       
+			       + (a(NTemp,DT)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D3Y,T0)
+				  + a(NTemp)*g(NTemp,r2,DY,D2T)*g(NTemp,r2,D3Y,T0)
+				  + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D3Y,DT))
+			       
+			       + (a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D3Y,DT)
+				  + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D3Y,DT)
+				  + a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D3Y,D2T))))))
+		  + (((((a(NTemp,D2T)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,T0)
+			 + a(NTemp,DT)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,D2Y,T0)
+			 + a(NTemp,DT)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,DT))
+
+			+ (a(NTemp,DT)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,D2Y,T0)
+			   + a(NTemp)*g(NTemp,r2,D2Y,D2T)*g(NTemp,r2,D2Y,T0)
+			   + a(NTemp)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,D2Y,DT))
+
+			+ (a(NTemp,DT)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,DT)
+			   + a(NTemp)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,D2Y,DT)
+			   + a(NTemp)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,D2T)))
+
+		       + ((a(NTemp,D2T)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D3Y,T0)
+			   + a(NTemp,DT)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D3Y,T0)
+			   + a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D3Y,DT))
+
+			  + (a(NTemp,DT)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D3Y,T0)
+			     + a(NTemp)*g(NTemp,r2,DY,D2T)*g(NTemp,r2,D3Y,T0)
+			     + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D3Y,DT))
+
+			  + (a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D3Y,DT)
+			     + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D3Y,DT)
+			     + a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D3Y,D2T))))
+
+		      + (((a(NTemp,D2T)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D3Y,T0)
+			   + a(NTemp,DT)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D3Y,T0)
+			   + a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D3Y,DT))
+
+			  + (a(NTemp,DT)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D3Y,T0)
+			     + a(NTemp)*g(NTemp,r2,DY,D2T)*g(NTemp,r2,D3Y,T0)
+			     + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D3Y,DT))
+
+			  + (a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D3Y,DT)
+			     + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D3Y,DT)
+			     + a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D3Y,D2T)))
+
+			 + ((a(NTemp,D2T)*g(NTemp,r2,Y0,T0)*g(NTemp,r2,D4Y,T0)
+			     + a(NTemp,DT)*g(NTemp,r2,Y0,DT)*g(NTemp,r2,D4Y,T0)
+			     + a(NTemp,DT)*g(NTemp,r2,Y0,T0)*g(NTemp,r2,D4Y,DT))
+
+			    + (a(NTemp,DT)*g(NTemp,r2,Y0,DT)*g(NTemp,r2,D4Y,T0)
+			       + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D3Y,DT)
+			       + a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D3Y,D2T))
+
+			    + (a(NTemp,DT)*g(NTemp,r2,Y0,T0)*g(NTemp,r2,D4Y,DT)
+			       + a(NTemp)*g(NTemp,r2,Y0,DT)*g(NTemp,r2,D4Y,DT)
+			       + a(NTemp)*g(NTemp,r2,Y0,T0)*g(NTemp,r2,D4Y,D2T)))))
+
+		     + ((((a(NTemp,D2T)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,DY,T0)
+			   + a(NTemp,DT)*g(NTemp,r2,D3Y,DT)*g(NTemp,r2,DY,T0)
+			   + a(NTemp,DT)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,DY,DT))
+
+			  + (a(NTemp,DT)*g(NTemp,r2,D3Y,DT)*g(NTemp,r2,DY,T0)
+			     + a(NTemp)*g(NTemp,r2,D3Y,D2T)*g(NTemp,r2,DY,T0)
+			     + a(NTemp)*g(NTemp,r2,D3Y,DT)*g(NTemp,r2,DY,DT))
+
+			  + (a(NTemp,DT)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,DY,DT)
+			     + a(NTemp)*g(NTemp,r2,D3Y,DT)*g(NTemp,r2,DY,DT)
+			     + a(NTemp)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,DY,D2T)))
+
+			 + ((a(NTemp,D2T)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,T0)
+			     + a(NTemp,DT)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,D2Y,T0)
+			     + a(NTemp,DT)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,DT))
+
+			    + (a(NTemp,DT)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,D2Y,T0)
+			       + a(NTemp)*g(NTemp,r2,D2Y,D2T)*g(NTemp,r2,D2Y,T0)
+			       + a(NTemp)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,D2Y,DT))
+
+			    + (a(NTemp,DT)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,DT)
+			       + a(NTemp)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,D2Y,DT)
+			       + a(NTemp)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,D2T))))
+
+			+ (((a(NTemp,D2T)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,T0)
+			     + a(NTemp,DT)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,D2Y,T0)
+			     + a(NTemp,DT)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,DT))
+
+			    + (a(NTemp,DT)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,D2Y,T0)
+			       + a(NTemp)*g(NTemp,r2,D2Y,D2T)*g(NTemp,r2,D2Y,T0)
+			       + a(NTemp)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,D2Y,DT))
+
+			    + (a(NTemp,DT)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,DT)
+			       + a(NTemp)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,D2Y,DT)
+			       + a(NTemp)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,D2T)))
+
+			   + ((a(NTemp,D2T)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D3Y,T0)
+			       + a(NTemp,DT)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D3Y,T0)
+			       + a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D3Y,DT))
+
+			      + (a(NTemp,DT)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D3Y,T0)
+				 + a(NTemp)*g(NTemp,r2,DY,D2T)*g(NTemp,r2,D3Y,T0)
+				 + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D3Y,DT))
+
+			      + (a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D3Y,DT)
+				 + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D3Y,DT)
+				 + a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D3Y,D2T))))));
+	       break;
+	    default:
+	       cerr << "Error in RadiiMorse::PairPotential -- D4Y,D3T" << endl;
+	       exit(-1);
+	       break;
+	 }
+	 break;
+      default:
+	 cerr << "Error in RadiiMorse::PairPotential -- D5Y" << endl;
+	 exit(-1);
+	 break;
+   }
+
+   return val;
+}
+
+double RadiiMorse::I(double NTemp,TDeriv dt)
+{
+   double val;
+
+   switch (dt)
+   {
+      case T0:
+	 val = - b(NTemp)/(2.0*rhat(NTemp));
+	 break;
+      case DT:
+	 val = -(rhat(NTemp)*b(NTemp,DT) - rhat(NTemp,DT)*b(NTemp))
+	    /(2.0*rhat(NTemp)*rhat(NTemp));
+	 break;
+      case D2T:
+	 val = -((b(NTemp,D2T)/(2.0*rhat(NTemp)))
+		 - (b(NTemp,DT)*rhat(NTemp,DT))/(rhat(NTemp)*rhat(NTemp))
+		 - (b(NTemp)*rhat(NTemp,D2T))/(2.0*rhat(NTemp)*rhat(NTemp))
+		 + ((b(NTemp)*rhat(NTemp,DT)*rhat(NTemp,DT))
+		    /(rhat(NTemp)*rhat(NTemp)*rhat(NTemp)))
+	    );
+	 break;
+      default:
+	 cerr << "Error in RadiiMorse::I -- D3T" << endl;
+	 exit(-1);
+	 break;
+   }
+
+   return val;
+}
+
+double RadiiMorse::G(double NTemp,double r2,YDeriv dy,TDeriv dt)
+{
+   double val;
+   double r=sqrt(r2);
 
    switch (dy)
    {
@@ -93,46 +735,41 @@ double RadiiMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
 	 switch (dt)
 	 {
 	    case T0:
-	       val = At*Exp_temp*(Exp_temp - 2.0);
+	       val = exp(-b(NTemp)*(r/rhat(NTemp) - 1.0));
 	       break;
 	    case DT:
-	       val = A(NTemp,DT)*Exp_temp*(Exp_temp - 2.0)
-		  - 2.0*At*(Beta(NTemp,DT)*(r/rhat - 1.0)-beta*Rhat(NTemp,DT)*(r/(rhat*rhat)))
-		  *Exp_temp*(Exp_temp - 1.0);
+	       val = ((b(NTemp)*rhat(NTemp,DT)*r)/(rhat(NTemp)*rhat(NTemp))
+		      - (b(NTemp,DT)*(r/rhat(NTemp) - 1.0)))*G(NTemp,r2,Y0,T0);
 	       break;
 	    case D2T:
-	       val = A(NTemp,D2T)*Exp_temp*(Exp_temp-2.0)
-		  - At*(Beta(NTemp,DT)*(r/rhat - 1.0) - (beta*Rhat(NTemp,DT)*r)/(rhat*rhat))
-		  *(Beta(NTemp,DT)*(r/rhat - 1.0) - (beta*Rhat(NTemp,DT)*r)/(rhat*rhat))
-		  *Exp_temp*(4.0*Exp_temp - 2.0)
-		  - At*(Beta(NTemp,D2T)*(r/rhat - 1.0)
-			- Beta(NTemp,DT)*(2.0*r*Rhat(NTemp,DT)/(rhat*rhat))
-			- beta*(r*Rhat(NTemp,D2T)/(rhat*rhat)
-				- 2.0*r*Rhat(NTemp,DT)*Rhat(NTemp,DT)/(rhat*rhat*rhat)))
-		  *Exp_temp*(2.0*Exp_temp - 2.0);
+	       val = ((b(NTemp)*rhat(NTemp,DT)*r)/(rhat(NTemp)*rhat(NTemp))
+		      - (b(NTemp,DT)*(r/rhat(NTemp) - 1.0)))*G(NTemp,r2,Y0,DT)
+		  + ((r/rhat(NTemp)*rhat(NTemp))*(2.0*b(NTemp,DT)*rhat(NTemp,DT)
+						  + b(NTemp)*rhat(NTemp,D2T))
+		     - ((2.0*b(NTemp)*r*rhat(NTemp)*rhat(NTemp))
+			/(rhat(NTemp)*rhat(NTemp)*rhat(NTemp)))
+		     - b(NTemp,D2T)*(r/rhat(NTemp) - 1.0))*G(NTemp,r2,Y0,T0);
 	       break;
 	    default:
-	       cerr << "Error in RadiiMorese::PairPotential" << endl;
-	       exit(-1);}
+	       cerr << "Error in RadiiMorse::G -- Y0,D3T" << endl;
+	       exit(-1);
+	 }
 	 break;
       case DY:
 	 switch (dt)
 	 {
 	    case T0:
-	       val = -At*(beta/(r*rhat))*Exp_temp*(Exp_temp - 1.0);
+	       val = i(NTemp)*(G(NTemp,r2,Y0,T0)/r);
 	       break;
 	    case DT:
-	       val = -A(NTemp,DT)*
-		  (beta/(rhat*r))*Exp_temp*(Exp_temp - 1.0)
-		  + At*Exp_temp*
-		  (((beta*Rhat(NTemp,DT) - Beta(NTemp,DT)*rhat)/(rhat*rhat*r))*
-		   (Exp_temp - 1.0)
-		   +(beta/(rhat*r))*(Beta(NTemp,DT)*(r/rhat - 1.0)
-				     - beta*r*Rhat(NTemp,DT)/(rhat*rhat))
-		   *(2.0*Exp_temp - 1.0));
+	       val = (i(NTemp,DT)*G(NTemp,r2,Y0,T0) + i(NTemp)*G(NTemp,r2,Y0,DT))/r;
+	       break;
+	    case D2T:
+	       val = (i(NTemp,D2T)*G(NTemp,r2,Y0,T0) + 2.0*i(NTemp,DT)*G(NTemp,r2,Y0,DT)
+		      + i(NTemp)*G(NTemp,r2,Y0,D2T))/r;	       
 	       break;
 	    default:
-	       cerr << "Error in RadiiMorse::PairPotential -- DY,D2T not programmed" << endl;
+	       cerr << "Error in RadiiMorse::G -- DY,D3T" << endl;
 	       exit(-1);
 	 }
 	 break;
@@ -140,30 +777,19 @@ double RadiiMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
 	 switch (dt)
 	 {
 	    case T0:
-	       val = At*(beta/(2.0*rhat*r2))
-		  *((beta/rhat + 1.0/r)*Exp_temp*(Exp_temp - 1.0)
-		    + (beta/rhat)*Exp_temp*Exp_temp);
+	       val = i(NTemp)*(G(NTemp,r2,DY,T0)/r - G(NTemp,r2,Y0,T0)/(2.0*r2*r));
 	       break;
 	    case DT:
-	       val = (A(NTemp,DT))*(beta/(2*rhat*r2))
-		  *((beta/rhat + 1.0/r)*(Exp_temp*Exp_temp - Exp_temp)
-		    +(beta/rhat)*Exp_temp*Exp_temp)
-		  +At*((Beta(NTemp,DT)*rhat
-			- beta*Rhat(NTemp,DT))/
-		       (2.0*rhat*rhat*r2))
-		  *((beta/rhat + 1.0/r)*(Exp_temp*Exp_temp - Exp_temp)
-		    +(beta/rhat)*Exp_temp*Exp_temp)
-		  +At*(beta/(2.0*rhat*r2))
-		  *(((Beta(NTemp,DT)*rhat - beta*Rhat(NTemp,DT))/(rhat*rhat))*
-		    (2.0*Exp_temp*Exp_temp - Exp_temp)
-		    +(beta*Rhat(NTemp,DT)*r/(rhat*rhat)
-		      - Beta(NTemp,DT)*(r/rhat - 1.0))
-		    *(2.0*beta/rhat*Exp_temp*Exp_temp +
-		      (beta/rhat + 1.0/r)
-		      *(2.0*Exp_temp*Exp_temp - Exp_temp)));
+	       val = (i(NTemp,DT)*(G(NTemp,r2,DY,T0)/r - G(NTemp,r2,Y0,T0)/(2.0*r2*r))
+		      + i(NTemp)*(G(NTemp,r2,DY,DT)/r - G(NTemp,r2,Y0,DT)/(2.0*r2*r)))/r;
+	       break;
+	    case D2T:
+	       val = (i(NTemp,D2T)*(G(NTemp,r2,DY,T0)/r - G(NTemp,r2,Y0,T0)/(2.0*r2*r))
+		      + 2.0*i(NTemp,DT)*(G(NTemp,r2,DY,DT)/r - G(NTemp,r2,Y0,DT)/(2.0*r2*r))
+		      + i(NTemp)*(G(NTemp,r2,DY,D2T)/r - G(NTemp,r2,Y0,D2T)/(2.0*r2*r)))/r;
 	       break;
 	    default:
-	       cerr << "Error in RadiiMorse::PairPotential -- D2Y,D2T not programmed" << endl;
+	       cerr << "Error in RadiiMorse::G -- D2Y,D3T" << endl;
 	       exit(-1);
 	 }
 	 break;
@@ -171,43 +797,67 @@ double RadiiMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
 	 switch (dt)
 	 {
 	    case T0:
-	       val = -At*(beta/(2.0*rhat*r2))
-		  *((3.0*beta/(2.0*rhat*r2) + 3.0/(2.0*r2*r) + beta*beta
-		     /(2.0*rhat*rhat*r))*Exp_temp*(Exp_temp - 1.0)
-		    +(3.0*beta/(2.0*rhat*r2) + 3.0*beta*beta/(2.0*rhat*rhat*r))
-		    *Exp_temp*Exp_temp);
+	       val = i(NTemp)*(G(NTemp,r2,D2Y,T0)/r - G(NTemp,r2,DY,T0)/(r2*r)
+			       + 3.0*G(NTemp,r2,Y0,T0)/(4.0*r2*r2*r));
 	       break;
 	    case DT:
-	       cerr << "D4phi/Dy3DT Not Coded... " << endl;
-	       exit(-1);
+	       val = (i(NTemp,DT)*(G(NTemp,r2,D2Y,T0)/r - G(NTemp,r2,DY,T0)/(r2*r)
+				   + 3.0*G(NTemp,r2,Y0,T0)/(4.0*r2*r2*r))
+		      + i(NTemp)*(G(NTemp,r2,D2Y,DT)/r - G(NTemp,r2,DY,DT)/(r2*r)
+				  + 3.0*G(NTemp,r2,Y0,DT)/(4.0*r2*r2*r)))/r;
+	       break;
+	    case D2T:
+	       val = (i(NTemp,D2T)*(G(NTemp,r2,D2Y,T0)/r - G(NTemp,r2,DY,T0)/(r2*r)
+				   + 3.0*G(NTemp,r2,Y0,T0)/(4.0*r2*r2*r))
+		      + 2.0*i(NTemp,DT)*(G(NTemp,r2,D2Y,DT)/r - G(NTemp,r2,DY,DT)/(r2*r)
+				  + 3.0*G(NTemp,r2,Y0,DT)/(4.0*r2*r2*r))
+		      + i(NTemp)*(G(NTemp,r2,D2Y,D2T)/r - G(NTemp,r2,DY,D2T)/(r2*r)
+				  + 3.0*G(NTemp,r2,Y0,D2T)/(3.0*r2*r2*r)))/r;
 	       break;
 	    default:
-	       cerr << "Error in RadiiMorse::PairPotential -- D3Y,D2T not programmed" << endl;
+	       cerr << "Error in RadiiMorse::G -- D3Y,D3T" << endl;
 	       exit(-1);
 	 }
 	 break;
+
       case D4Y:
 	 switch (dt)
 	 {
 	    case T0:
-	       val = At*(beta/(2.0*rhat*r2))
-		  *Exp_temp*((15.0/(4.0*r2*r2*r))*(Exp_temp - 1.0)
-			     +(15.0*beta/(4.0*rhat*r2*r2))*(2.0*Exp_temp - 1.0)
-			     +(6.0*beta*beta/(4.0*rhat*rhat*r2*r))
-			     *(4.0*Exp_temp - 1.0)
-			     +(beta*beta*beta/(4.0*rhat*rhat*rhat*r2))
-			     *(8.0*Exp_temp - 1.0));
+	       val = i(NTemp)*(G(NTemp,r2,D3Y,T0)/r - 3.0*G(NTemp,r2,D2Y,T0)/(2.0*r2*r)
+			       + 9.0*G(NTemp,r2,DY,T0)/(4.0*r2*r2*r)
+			       - 15.0*G(NTemp,r2,Y0,T0)/(8.0*r2*r2*r2*r));
 	       break;
 	    case DT:
-	       cerr << "D5phi/Dy4DT Not Coded... " << endl;
-	       exit(-1);
+	       val = (i(NTemp,DT)*(G(NTemp,r2,D3Y,T0)/r - 3.0*G(NTemp,r2,D2Y,T0)/(2.0*r2*r)
+				   + 9.0*G(NTemp,r2,DY,T0)/(4.0*r2*r2*r)
+				   - 15.0*G(NTemp,r2,Y0,T0)/(8.0*r2*r2*r2*r))
+		      + i(NTemp)*(G(NTemp,r2,D3Y,DT)/r - 3.0*G(NTemp,r2,D2Y,DT)/(2.0*r2*r)
+				  + 9.0*G(NTemp,r2,DY,DT)/(4.0*r2*r2*r)
+				  - 15.0*G(NTemp,r2,Y0,DT)/(8.0*r2*r2*r2*r)))/r;
+	       break;
+	    case D2T:
+	       val = (i(NTemp,D2T)*(G(NTemp,r2,D3Y,T0)/r - 3.0*G(NTemp,r2,D2Y,T0)/(2.0*r2*r)
+				   + 9.0*G(NTemp,r2,DY,T0)/(4.0*r2*r2*r)
+				   - 15.0*G(NTemp,r2,Y0,T0)/(8.0*r2*r2*r2*r))
+		      + 2.0*i(NTemp,DT)*(G(NTemp,r2,D3Y,DT)/r
+					 - 3.0*G(NTemp,r2,D2Y,DT)/(2.0*r2*r)
+					 + 9.0*G(NTemp,r2,DY,DT)/(4.0*r2*r2*r)
+					 - 15.0*G(NTemp,r2,Y0,DT)/(8.0*r2*r2*r2*r))
+		      + i(NTemp)*(G(NTemp,r2,D3Y,D2T)/r - 3.0*G(NTemp,r2,D2Y,D2T)/(2.0*r2*r)
+				  + 9.0*G(NTemp,r2,DY,D2T)/(4.0*r2*r2*r)
+				  - 15.0*G(NTemp,r2,Y0,D2T)/(8.0*r2*r2*r2*r)))/r;
 	       break;
 	    default:
-	       cerr << "Error in RadiiMorse::PairPotential -- D4Y,D2T not programmed" << endl;
+	       cerr << "Error in RadiiMorse::G -- D4Y,D3T" << endl;
 	       exit(-1);
 	 }
 	 break;
+      default:
+	 cerr << "Error in RadiiMorse::G -- D5Y" << endl;
+	 exit(-1);
    }
+   
    return val;
 }
 
