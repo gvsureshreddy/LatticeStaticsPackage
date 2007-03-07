@@ -110,7 +110,7 @@ MultiChainTPP::MultiChainTPP(char *datafile,const char *prefix,int Echo,int Widt
 	 
    // Get Lattice parameters
    NTemp_ = 1.0;
-   if(!GetParameter(prefix,"InfluenceDist",datafile,"%u",&InfluenceDist_)) exit(-1);
+   if(!GetParameter(prefix,"InfluenceDist",datafile,"%lf",&InfluenceDist_)) exit(-1);
    if(!GetParameter(prefix,"NormModulus",datafile,"%lf",&NormModulus_)) exit(-1);
 
    // Get Loading parameters
