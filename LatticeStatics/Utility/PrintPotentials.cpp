@@ -5,7 +5,7 @@ int main(int argc, char *argv[])
 {
    if (argc < 10)
    {
-      cerr << "Usage: " << argv[0] << " inputfile Aatom Batom Tempstart Tempend temppts Rstart Rend points [print numerical derivatives?(1/0)]" <<endl;
+      cerr << "Usage: " << argv[0] << " inputfile Aatom Batom Tempstart Tempend temppts ystart yend points [print numerical derivatives?(1/0)]" <<endl;
       exit(-1);
    }
 
@@ -23,8 +23,8 @@ int main(int argc, char *argv[])
       tempst=atof(argv[4]),
       tempend=atof(argv[5]),
       temppts=atof(argv[6]),
-      rstart=atof(argv[7]),
-      rend=atof(argv[8]),
+      ystart=atof(argv[7]),
+      yend=atof(argv[8]),
       pts=atof(argv[9]);
    int deriv;
    if (argc == 11)
@@ -35,15 +35,15 @@ int main(int argc, char *argv[])
    pot = InitializePairPotential(argv[1],"^",i,j);
 
    cout << setiosflags(ios::fixed) << setprecision(10);
-   double inc=(rend-rstart)/pts,
+   double inc=(yend-ystart)/pts,
       tempinc=(tempend-tempst)/temppts;
 
    cout << "#" << setw(19) << "Temperature"
-	<< setw(20) << "Radius2"
+	<< setw(20) << "Y"
 	<< setw(20) << "Potential"
-	<< setw(20) << "Force";
+	<< setw(20) << "DY";
    if (deriv) cout << setw(20) << "numerical";
-   cout << setw(20) << "Stiffness";
+   cout << setw(20) << "D2Y";
    if (deriv) cout << setw(20) << "numerical";
    cout << setw(20) << "D3Y";
    if (deriv) cout << setw(20) << "numerical";
@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
    
    for (double t=tempst;t<=tempend;t+=tempinc)
    {
-      for (double q=rstart;q<=rend;q+=inc)
+      for (double q=ystart;q<=yend;q+=inc)
       {
 	 cout << setw(20) << t
 	      << setw(20) << q
