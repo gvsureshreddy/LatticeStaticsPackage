@@ -401,7 +401,7 @@ double RadiiMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
 	       val = (((a(NTemp)*g(NTemp,r2,D4Y,T0)*(g(NTemp,r2,Y0,T0)-2.0)
 			+ a(NTemp)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,DY,T0))
 
-		       + (a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,DY,T0)
+		       + (a(NTemp)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,DY,T0)
 			  + a(NTemp)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,T0)))
 
 		      + ((a(NTemp)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,DY,T0)
@@ -431,9 +431,9 @@ double RadiiMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
 			   + a(NTemp)*g(NTemp,r2,D3Y,DT)*g(NTemp,r2,DY,T0)
 			   + a(NTemp)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,DY,DT)))
 
-		       + ((a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,DY,T0)
-			   + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,DY,T0)
-			   + a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,DY,DT))
+		       + ((a(NTemp,DT)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,DY,T0)
+			   + a(NTemp)*g(NTemp,r2,D3Y,DT)*g(NTemp,r2,DY,T0)
+			   + a(NTemp)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,DY,DT))
 
 			  + (a(NTemp,DT)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,T0)
 			     + a(NTemp)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,D2Y,T0)
@@ -512,17 +512,17 @@ double RadiiMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
 			      + a(NTemp)*g(NTemp,r2,D3Y,DT)*g(NTemp,r2,DY,DT)
 			      + a(NTemp)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,DY,D2T))))
 
-		       + (((a(NTemp,D2T)*g(NTemp,r2,DY,T0)*g(NTemp,r2,DY,T0)
-			    + a(NTemp,DT)*g(NTemp,r2,DY,DT)*g(NTemp,r2,DY,T0)
-			    + a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,DY,DT))
+		       + (((a(NTemp,D2T)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,DY,T0)
+			    + a(NTemp,DT)*g(NTemp,r2,D3Y,DT)*g(NTemp,r2,DY,T0)
+			    + a(NTemp,DT)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,DY,DT))
 
-			   + (a(NTemp,DT)*g(NTemp,r2,DY,DT)*g(NTemp,r2,DY,T0)
-			      + a(NTemp)*g(NTemp,r2,DY,D2T)*g(NTemp,r2,DY,T0)
-			      + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,DY,DT))
+			   + (a(NTemp,DT)*g(NTemp,r2,D3Y,DT)*g(NTemp,r2,DY,T0)
+			      + a(NTemp)*g(NTemp,r2,D3Y,D2T)*g(NTemp,r2,DY,T0)
+			      + a(NTemp)*g(NTemp,r2,D3Y,DT)*g(NTemp,r2,DY,DT))
 
-			   + (a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,DY,DT)
-			      + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,DY,DT)
-			      + a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,DY,D2T)))
+			   + (a(NTemp,DT)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,DY,DT)
+			      + a(NTemp)*g(NTemp,r2,D3Y,DT)*g(NTemp,r2,DY,DT)
+			      + a(NTemp)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,DY,D2T)))
 
 			  + ((a(NTemp,D2T)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,T0)
 			      + a(NTemp,DT)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,D2Y,T0)
@@ -583,6 +583,7 @@ double RadiiMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
 			       + (a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D3Y,DT)
 				  + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D3Y,DT)
 				  + a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D3Y,D2T))))))
+		  
 		  + (((((a(NTemp,D2T)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,T0)
 			 + a(NTemp,DT)*g(NTemp,r2,D2Y,DT)*g(NTemp,r2,D2Y,T0)
 			 + a(NTemp,DT)*g(NTemp,r2,D2Y,T0)*g(NTemp,r2,D2Y,DT))
@@ -624,8 +625,8 @@ double RadiiMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
 			     + a(NTemp,DT)*g(NTemp,r2,Y0,T0)*g(NTemp,r2,D4Y,DT))
 
 			    + (a(NTemp,DT)*g(NTemp,r2,Y0,DT)*g(NTemp,r2,D4Y,T0)
-			       + a(NTemp)*g(NTemp,r2,DY,DT)*g(NTemp,r2,D3Y,DT)
-			       + a(NTemp)*g(NTemp,r2,DY,T0)*g(NTemp,r2,D3Y,D2T))
+			       + a(NTemp)*g(NTemp,r2,Y0,D2T)*g(NTemp,r2,D4Y,T0)
+			       + a(NTemp)*g(NTemp,r2,Y0,DT)*g(NTemp,r2,D4Y,DT))
 
 			    + (a(NTemp,DT)*g(NTemp,r2,Y0,T0)*g(NTemp,r2,D4Y,DT)
 			       + a(NTemp)*g(NTemp,r2,Y0,DT)*g(NTemp,r2,D4Y,DT)
@@ -746,7 +747,7 @@ double RadiiMorse::G(double NTemp,double r2,YDeriv dy,TDeriv dt)
 		      - (b(NTemp,DT)*(r/rhat(NTemp) - 1.0)))*G(NTemp,r2,Y0,DT)
 		  + ((r/rhat(NTemp)*rhat(NTemp))*(2.0*b(NTemp,DT)*rhat(NTemp,DT)
 						  + b(NTemp)*rhat(NTemp,D2T))
-		     - ((2.0*b(NTemp)*r*rhat(NTemp)*rhat(NTemp))
+		     - ((2.0*b(NTemp)*r*rhat(NTemp,DT)*rhat(NTemp,DT))
 			/(rhat(NTemp)*rhat(NTemp)*rhat(NTemp)))
 		     - b(NTemp,D2T)*(r/rhat(NTemp) - 1.0))*G(NTemp,r2,Y0,T0);
 	       break;
@@ -781,12 +782,12 @@ double RadiiMorse::G(double NTemp,double r2,YDeriv dy,TDeriv dt)
 	       break;
 	    case DT:
 	       val = (i(NTemp,DT)*(G(NTemp,r2,DY,T0)/r - G(NTemp,r2,Y0,T0)/(2.0*r2*r))
-		      + i(NTemp)*(G(NTemp,r2,DY,DT)/r - G(NTemp,r2,Y0,DT)/(2.0*r2*r)))/r;
+		      + i(NTemp)*(G(NTemp,r2,DY,DT)/r - G(NTemp,r2,Y0,DT)/(2.0*r2*r)));
 	       break;
 	    case D2T:
 	       val = (i(NTemp,D2T)*(G(NTemp,r2,DY,T0)/r - G(NTemp,r2,Y0,T0)/(2.0*r2*r))
 		      + 2.0*i(NTemp,DT)*(G(NTemp,r2,DY,DT)/r - G(NTemp,r2,Y0,DT)/(2.0*r2*r))
-		      + i(NTemp)*(G(NTemp,r2,DY,D2T)/r - G(NTemp,r2,Y0,D2T)/(2.0*r2*r)))/r;
+		      + i(NTemp)*(G(NTemp,r2,DY,D2T)/r - G(NTemp,r2,Y0,D2T)/(2.0*r2*r)));
 	       break;
 	    default:
 	       cerr << "Error in RadiiMorse::G -- D2Y,D3T" << endl;
@@ -804,7 +805,7 @@ double RadiiMorse::G(double NTemp,double r2,YDeriv dy,TDeriv dt)
 	       val = (i(NTemp,DT)*(G(NTemp,r2,D2Y,T0)/r - G(NTemp,r2,DY,T0)/(r2*r)
 				   + 3.0*G(NTemp,r2,Y0,T0)/(4.0*r2*r2*r))
 		      + i(NTemp)*(G(NTemp,r2,D2Y,DT)/r - G(NTemp,r2,DY,DT)/(r2*r)
-				  + 3.0*G(NTemp,r2,Y0,DT)/(4.0*r2*r2*r)))/r;
+				  + 3.0*G(NTemp,r2,Y0,DT)/(4.0*r2*r2*r)));
 	       break;
 	    case D2T:
 	       val = (i(NTemp,D2T)*(G(NTemp,r2,D2Y,T0)/r - G(NTemp,r2,DY,T0)/(r2*r)
@@ -812,7 +813,7 @@ double RadiiMorse::G(double NTemp,double r2,YDeriv dy,TDeriv dt)
 		      + 2.0*i(NTemp,DT)*(G(NTemp,r2,D2Y,DT)/r - G(NTemp,r2,DY,DT)/(r2*r)
 				  + 3.0*G(NTemp,r2,Y0,DT)/(4.0*r2*r2*r))
 		      + i(NTemp)*(G(NTemp,r2,D2Y,D2T)/r - G(NTemp,r2,DY,D2T)/(r2*r)
-				  + 3.0*G(NTemp,r2,Y0,D2T)/(3.0*r2*r2*r)))/r;
+				  + 3.0*G(NTemp,r2,Y0,D2T)/(4.0*r2*r2*r)));
 	       break;
 	    default:
 	       cerr << "Error in RadiiMorse::G -- D3Y,D3T" << endl;
@@ -834,19 +835,19 @@ double RadiiMorse::G(double NTemp,double r2,YDeriv dy,TDeriv dt)
 				   - 15.0*G(NTemp,r2,Y0,T0)/(8.0*r2*r2*r2*r))
 		      + i(NTemp)*(G(NTemp,r2,D3Y,DT)/r - 3.0*G(NTemp,r2,D2Y,DT)/(2.0*r2*r)
 				  + 9.0*G(NTemp,r2,DY,DT)/(4.0*r2*r2*r)
-				  - 15.0*G(NTemp,r2,Y0,DT)/(8.0*r2*r2*r2*r)))/r;
+				  - 15.0*G(NTemp,r2,Y0,DT)/(8.0*r2*r2*r2*r)));
 	       break;
 	    case D2T:
 	       val = (i(NTemp,D2T)*(G(NTemp,r2,D3Y,T0)/r - 3.0*G(NTemp,r2,D2Y,T0)/(2.0*r2*r)
-				   + 9.0*G(NTemp,r2,DY,T0)/(4.0*r2*r2*r)
-				   - 15.0*G(NTemp,r2,Y0,T0)/(8.0*r2*r2*r2*r))
+				    + 9.0*G(NTemp,r2,DY,T0)/(4.0*r2*r2*r)
+				    - 15.0*G(NTemp,r2,Y0,T0)/(8.0*r2*r2*r2*r))
 		      + 2.0*i(NTemp,DT)*(G(NTemp,r2,D3Y,DT)/r
 					 - 3.0*G(NTemp,r2,D2Y,DT)/(2.0*r2*r)
 					 + 9.0*G(NTemp,r2,DY,DT)/(4.0*r2*r2*r)
 					 - 15.0*G(NTemp,r2,Y0,DT)/(8.0*r2*r2*r2*r))
 		      + i(NTemp)*(G(NTemp,r2,D3Y,D2T)/r - 3.0*G(NTemp,r2,D2Y,D2T)/(2.0*r2*r)
 				  + 9.0*G(NTemp,r2,DY,D2T)/(4.0*r2*r2*r)
-				  - 15.0*G(NTemp,r2,Y0,D2T)/(8.0*r2*r2*r2*r)))/r;
+				  - 15.0*G(NTemp,r2,Y0,D2T)/(8.0*r2*r2*r2*r)));
 	       break;
 	    default:
 	       cerr << "Error in RadiiMorse::G -- D4Y,D3T" << endl;
