@@ -1,3 +1,4 @@
+#include "UtilityFunctions.h"
 #include "KnownPairPotentials.h"
 
 
@@ -34,39 +35,43 @@ int main(int argc, char *argv[])
 
    pot = InitializePairPotential(argv[1],"^",i,j);
 
-   cout << setiosflags(ios::fixed) << setprecision(10);
+   int Width,Precision;
+   if(!GetParameter("^","MainFieldWidth",argv[1],"%d",&Width)) Width=20;
+   if(!GetParameter("^","MainPrecision",argv[1],"%d",&Precision)) Precision=10;
+
+   cout << setiosflags(ios::fixed) << setprecision(Precision);
    double inc=(yend-ystart)/pts,
       tempinc=(tempend-tempst)/temppts;
 
-   cout << "#" << setw(19) << "Temperature"
-	<< setw(20) << "Y"
-	<< setw(20) << "Potential"
-	<< setw(20) << "DY";
-   if (deriv) cout << setw(20) << "numerical";
-   cout << setw(20) << "D2Y";
-   if (deriv) cout << setw(20) << "numerical";
-   cout << setw(20) << "D3Y";
-   if (deriv) cout << setw(20) << "numerical";
-   cout << setw(20) << "D4Y";
-   if (deriv) cout << setw(20) << "numerical";
-   cout	<< setw(20) << "DT";
-   if (deriv) cout << setw(20) << "numerical";
-   cout << setw(20) << "D2T";
-   if (deriv) cout << setw(20) << "numerical";
-   cout	<< setw(20) << "DYDT";
-   if (deriv) cout << setw(20) << "numerical";
-   cout << setw(20) << "D2YDT";
-   if (deriv) cout << setw(20) << "numerical";
-   cout << setw(20) << "D2YD2T";
-   if (deriv) cout << setw(20) << "numerical";
-   cout	<< setw(20) << "D3YDT";
-   if (deriv) cout << setw(20) << "numerical";
-   cout << setw(20) << "D3YD2T";
-   if (deriv) cout << setw(20) << "numerical";
-   cout << setw(20) << "D4YDT";
-   if (deriv) cout << setw(20) << "numerical";
-   cout << setw(20) << "D4YD2T";
-   if (deriv) cout << setw(20) << "numerical";
+   cout << "#" << setw(Width) << "Temperature"
+	<< setw(Width) << "Y"
+	<< setw(Width) << "Potential"
+	<< setw(Width) << "DY";
+   if (deriv) cout << setw(Width) << "numerical";
+   cout << setw(Width) << "D2Y";
+   if (deriv) cout << setw(Width) << "numerical";
+   cout << setw(Width) << "D3Y";
+   if (deriv) cout << setw(Width) << "numerical";
+   cout << setw(Width) << "D4Y";
+   if (deriv) cout << setw(Width) << "numerical";
+   cout	<< setw(Width) << "DT";
+   if (deriv) cout << setw(Width) << "numerical";
+   cout << setw(Width) << "D2T";
+   if (deriv) cout << setw(Width) << "numerical";
+   cout	<< setw(Width) << "DYDT";
+   if (deriv) cout << setw(Width) << "numerical";
+   cout << setw(Width) << "D2YDT";
+   if (deriv) cout << setw(Width) << "numerical";
+   cout << setw(Width) << "D2YD2T";
+   if (deriv) cout << setw(Width) << "numerical";
+   cout	<< setw(Width) << "D3YDT";
+   if (deriv) cout << setw(Width) << "numerical";
+   cout << setw(Width) << "D3YD2T";
+   if (deriv) cout << setw(Width) << "numerical";
+   cout << setw(Width) << "D4YDT";
+   if (deriv) cout << setw(Width) << "numerical";
+   cout << setw(Width) << "D4YD2T";
+   if (deriv) cout << setw(Width) << "numerical";
    cout << endl;
    
    
@@ -74,84 +79,84 @@ int main(int argc, char *argv[])
    {
       for (double q=ystart;q<=yend;q+=inc)
       {
-	 cout << setw(20) << t
-	      << setw(20) << q
-	      << setw(20) << pot->PairPotential(t,q)
-	      << setw(20) << pot->PairPotential(t,q,PairPotentials::DY);
+	 cout << setw(Width) << t
+	      << setw(Width) << q
+	      << setw(Width) << pot->PairPotential(t,q)
+	      << setw(Width) << pot->PairPotential(t,q,PairPotentials::DY);
 	 if (deriv)
-	    cout << setw(20)
+	    cout << setw(Width)
 		 << (pot->PairPotential(t,q+inc,PairPotentials::Y0,PairPotentials::T0)
 		     -pot->PairPotential(t,q-inc,PairPotentials::Y0,PairPotentials::T0))
 	       /(2.0*inc);
-	 cout << setw(20) << pot->PairPotential(t,q,PairPotentials::D2Y);
+	 cout << setw(Width) << pot->PairPotential(t,q,PairPotentials::D2Y);
 	 if (deriv)
-	    cout << setw(20)
+	    cout << setw(Width)
 		 << (pot->PairPotential(t,q+inc,PairPotentials::DY,PairPotentials::T0)
 		     -pot->PairPotential(t,q-inc,PairPotentials::DY,PairPotentials::T0))
 	       /(2.0*inc);
-	 cout << setw(20) << pot->PairPotential(t,q,PairPotentials::D3Y);
+	 cout << setw(Width) << pot->PairPotential(t,q,PairPotentials::D3Y);
 	 if (deriv)
-	    cout << setw(20)
+	    cout << setw(Width)
 		 << (pot->PairPotential(t,q+inc,PairPotentials::D2Y,PairPotentials::T0)
 		     -pot->PairPotential(t,q-inc,PairPotentials::D2Y,PairPotentials::T0))
 	       /(2.0*inc);
-	 cout << setw(20) << pot->PairPotential(t,q,PairPotentials::D4Y);
+	 cout << setw(Width) << pot->PairPotential(t,q,PairPotentials::D4Y);
 	 if (deriv)
-	    cout << setw(20)
+	    cout << setw(Width)
 		 << (pot->PairPotential(t,q+inc,PairPotentials::D3Y,PairPotentials::T0)
 		     -pot->PairPotential(t,q-inc,PairPotentials::D3Y,PairPotentials::T0))
 	       /(2.0*inc);
-	 cout << setw(20) << pot->PairPotential(t,q,PairPotentials::Y0,PairPotentials::DT);
+	 cout << setw(Width) << pot->PairPotential(t,q,PairPotentials::Y0,PairPotentials::DT);
 	 if (deriv)
-	    cout << setw(20)
+	    cout << setw(Width)
 		 << (pot->PairPotential(t+tempinc,q,PairPotentials::Y0,PairPotentials::T0)
 		     -pot->PairPotential(t-tempinc,q,PairPotentials::Y0,PairPotentials::T0))
 	       /(2.0*tempinc);
-	 cout << setw(20) << pot->PairPotential(t,q,PairPotentials::Y0,PairPotentials::D2T);
+	 cout << setw(Width) << pot->PairPotential(t,q,PairPotentials::Y0,PairPotentials::D2T);
 	 if (deriv)
-	    cout << setw(20)
+	    cout << setw(Width)
 		 << (pot->PairPotential(t+tempinc,q,PairPotentials::Y0,PairPotentials::DT)
 		     -pot->PairPotential(t-tempinc,q,PairPotentials::Y0,PairPotentials::DT))
 	       /(2.0*tempinc);
-	 cout << setw(20) << pot->PairPotential(t,q,PairPotentials::DY,PairPotentials::DT);
+	 cout << setw(Width) << pot->PairPotential(t,q,PairPotentials::DY,PairPotentials::DT);
 	 if (deriv)
-	    cout << setw(20)
+	    cout << setw(Width)
 		 << (pot->PairPotential(t+tempinc,q,PairPotentials::DY,PairPotentials::T0)
 		     -pot->PairPotential(t-tempinc,q,PairPotentials::DY,PairPotentials::T0))
 	       /(2.0*tempinc);
-	 cout << setw(20) << pot->PairPotential(t,q,PairPotentials::D2Y,PairPotentials::DT);
+	 cout << setw(Width) << pot->PairPotential(t,q,PairPotentials::D2Y,PairPotentials::DT);
 	 if (deriv)
-	    cout << setw(20)
+	    cout << setw(Width)
 		 << (pot->PairPotential(t+tempinc,q,PairPotentials::D2Y,PairPotentials::T0)
 		     -pot->PairPotential(t-tempinc,q,PairPotentials::D2Y,PairPotentials::T0))
 	       /(2.0*tempinc);
-	 cout << setw(20) << pot->PairPotential(t,q,PairPotentials::D2Y,PairPotentials::D2T);
+	 cout << setw(Width) << pot->PairPotential(t,q,PairPotentials::D2Y,PairPotentials::D2T);
 	 if (deriv)
-	    cout << setw(20)
+	    cout << setw(Width)
 		<< (pot->PairPotential(t+tempinc,q,PairPotentials::D2Y,PairPotentials::DT)
 		    -pot->PairPotential(t-tempinc,q,PairPotentials::D2Y,PairPotentials::DT))
 	       /(2.0*tempinc);
-	 cout << setw(20) << pot->PairPotential(t,q,PairPotentials::D3Y,PairPotentials::DT);
+	 cout << setw(Width) << pot->PairPotential(t,q,PairPotentials::D3Y,PairPotentials::DT);
 	 if (deriv)
-	    cout << setw(20)
+	    cout << setw(Width)
 		 << (pot->PairPotential(t+tempinc,q,PairPotentials::D3Y,PairPotentials::T0)
 		     -pot->PairPotential(t-tempinc,q,PairPotentials::D3Y,PairPotentials::T0))
 	       /(2.0*tempinc);
-	 cout << setw(20) << pot->PairPotential(t,q,PairPotentials::D3Y,PairPotentials::D2T);
+	 cout << setw(Width) << pot->PairPotential(t,q,PairPotentials::D3Y,PairPotentials::D2T);
 	 if (deriv)
-	    cout << setw(20)
+	    cout << setw(Width)
 		 << (pot->PairPotential(t+tempinc,q,PairPotentials::D3Y,PairPotentials::DT)
 		     -pot->PairPotential(t-tempinc,q,PairPotentials::D3Y,PairPotentials::DT))
 	       /(2.0*tempinc);
-	 cout << setw(20) << pot->PairPotential(t,q,PairPotentials::D4Y,PairPotentials::DT);
+	 cout << setw(Width) << pot->PairPotential(t,q,PairPotentials::D4Y,PairPotentials::DT);
 	 if (deriv)
-	    cout << setw(20)
+	    cout << setw(Width)
 		 << (pot->PairPotential(t+tempinc,q,PairPotentials::D4Y,PairPotentials::T0)
 		     -pot->PairPotential(t-tempinc,q,PairPotentials::D4Y,PairPotentials::T0))
 	       /(2.0*tempinc);
-	 cout << setw(20) << pot->PairPotential(t,q,PairPotentials::D4Y,PairPotentials::D2T);
+	 cout << setw(Width) << pot->PairPotential(t,q,PairPotentials::D4Y,PairPotentials::D2T);
 	 if (deriv)
-	    cout << setw(20)
+	    cout << setw(Width)
 		 << (pot->PairPotential(t+tempinc,q,PairPotentials::D4Y,PairPotentials::DT)
 		     -pot->PairPotential(t-tempinc,q,PairPotentials::D4Y,PairPotentials::DT))
 	       /(2.0*tempinc);
