@@ -30,7 +30,6 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
       case Scanning:
       {
 	 return new ScanningSolution(Mode,datafile,"^",Echo);
-	 break;
       }
       case ArcLen:
       {
@@ -70,12 +69,10 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
 	 {
 	    return new ArcLengthSolution(Mode,datafile,"^",startfile,out,Echo);
 	 }
-	 break;
       }
       case NewtonPC:
       {
 	 return new NewtonPCSolution(Mode,datafile,"^",Echo);
-	 break;
       }
    }
 

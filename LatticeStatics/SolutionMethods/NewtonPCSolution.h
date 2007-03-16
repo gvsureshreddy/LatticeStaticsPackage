@@ -1,5 +1,5 @@
-#ifndef __NetwonPCSolution
-#define __NetwonPCSolution
+#ifndef __NewtonPCSolution
+#define __NewtonPCSolution
 
 #include "SolutionMethod.h"
 #include "LatticeMode.h"
@@ -8,16 +8,18 @@ using namespace std;
 
 class Lattice;
 
-class NetwonPCSolution : public SolutionMethod
+class NewtonPCSolution : public SolutionMethod
 {
 private:
+   LatticeMode *Mode_;
+   
    int CurrentSolution_;
    int Echo_;
    int NumSolutions_;
 
 public:
-   NetwonPCSolution(LatticeMode *Mode,char *datafile,const char *prefix,int Echo=1);
-   ~NetwonPCSolution() {}
+   NewtonPCSolution(LatticeMode *Mode,char *datafile,const char *prefix,int Echo=1);
+   ~NewtonPCSolution() {}
 
    // Functions required by SolutionMethod
    virtual int AllSolutionsFound();
