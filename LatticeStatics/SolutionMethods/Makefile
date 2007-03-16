@@ -1,3 +1,4 @@
 SOLUTIONMETHODS  = KnownSolutionMethods.cpp\
 	           ScanningSolution.cpp\
-	           ArcLengthSolution.cpp
+	           ArcLengthSolution.cpp\
+	           NewtonPCSolution.cpp

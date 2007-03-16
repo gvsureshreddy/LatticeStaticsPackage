@@ -8,7 +8,7 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
 {
    char slvmthd[LINELENGTH];
 
-   enum solution {Scanning,ArcLen};
+   enum solution {Scanning,ArcLen,NewtonPC};
    solution solu;
 
    if(!GetParameter("^","MainSolutionMethod",datafile,"%s",slvmthd)) exit(-1);
@@ -17,6 +17,8 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
       solu = Scanning;
    else if ((!strcmp("ArcLength",slvmthd)) || (!strcmp("arclength",slvmthd)))
       solu = ArcLen;
+   else if ((!strcmp("NewtonPC",slvmthd)) || (!strcmp("newtonpc",slvmthd)))
+      solu = NewtonPC;
    else
    {
       cerr << "Unknown SolutionMethod : " << slvmthd << endl;
@@ -28,6 +30,7 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
       case Scanning:
       {
 	 return new ScanningSolution(Mode,datafile,"^",Echo);
+	 break;
       }
       case ArcLen:
       {
@@ -67,6 +70,12 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
 	 {
 	    return new ArcLengthSolution(Mode,datafile,"^",startfile,out,Echo);
 	 }
+	 break;
+      }
+      case NewtonPC:
+      {
+	 return new NewtonPCSolution(Mode,datafile,"^",Echo);
+	 break;
       }
    }
 

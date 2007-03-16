@@ -3,8 +3,9 @@
 
 #include "ArcLengthSolution.h"
 #include "ScanningSolution.h"
+#include "NewtonPCSolution.h"
 
-#define KNOWNSOLUTIONMETHODS 2
+#define KNOWNSOLUTIONMETHODS 3
 
 
 SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
