@@ -128,6 +128,8 @@ int main(int argc,char *argv[])
    }  
       
    delete [] Line;
+
+   delete Lat;
    
    out.close();
    return 1;
