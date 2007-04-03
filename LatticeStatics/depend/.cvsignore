@@ -21,3 +21,8 @@ LagrangeCB.d
 MultiChainTPP.d
 MixedCB.d
 EulerCB.d
+Dobson.d
+LJCutoff.d
+RadiiMorse2.d
+RadiiMorseCutoff.d
+
