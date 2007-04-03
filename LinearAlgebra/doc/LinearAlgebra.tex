@@ -136,192 +136,87 @@ interface is as follows:
 
 \section{Matrix class}
 
-This is an arbitrary dimension matrix class of type Elm (double).  The
-interface is as follows:
-
 \subsection{Constants}
 
 \begin{LIST}
+ \item define \defn{SENTINAL} = -9999999.8888888887777788\\
  \item define \defn{MAXCONDITION} = 10.0e12\\
-  Maximum condition number parameter.  Default value used by the SVD
-  decomposition member function
  \item static int \var{MathematicaPrintFlag}\\
-  Flag to control stream output.  If =1 then output can be read directly into
-  Mathematica. If =0 then output is simple space delimited matrix form
 \end{LIST}
 
 \subsection{Data Members}
 
 \begin{LIST}
  \item Elm \var{**Elements\_}\\
-  pointer to matrix data which is stored contiguously, just as in normal C
  \item unsigned \var{Rows\_}\\
-  Number of rows in the matrix
  \item unsigned \var{Cols\_}\\
-  Number of columns in the matrix
 \end{LIST}
 
 \subsection{Member Functions}
 
 \begin{LIST}
- \item \Func{Matrix}();\\
-  uninitialized matrix of dimension $0 \times 0$
+ \item \Func{Minor}(unsigned \var{i}, unsigned \var{j}) const;\\
  \item \Func{Matrix}(unsigned \var{Rows}, unsigned \var{Cols});\\
-  creates a matrix of dimension \var{Rows} $\times$ \var{Cols} and does NOT
-  initialize the data
- \item \Func{Matrix}(unsigned \var{Rows}, unsigned \var{Cols}, Elm
-  \var{InitVal});\\
-  creates a matrix of dimension \var{Rows} $\times$ \var{Cols} and initializes
-  all entries to \var{InitVal}
+ \item \Func{Matrix}(unsigned \var{Rows}, unsigned \var{Cols}, Elm \var{InitVal});\\
  \item \Func{Matrix}(const Matrix\& \var{A});\\
-  creates a distinct copy of the existing Matrix \var{A}
  \item \Func{\tild Matrix}();\\
-  releases memory and destructs the instance of the Matrix class\\[.5cm]
 
- \item friend Matrix\& \Func{operator+}(Matrix\& \var{A});\\
-  Unitary plus operator
- \item friend Matrix \Func{operator+}(const Matrix\& \var{A}, const Matrix\&
-  \var{B});\\
-  Binary addition operator (safe for overwrite: A=A+B)
- \item friend Matrix \Func{operator-}(const Matrix\& \var{A});\\
-  Binary substraction operator (safe for overwrite: A=A-B)
- \item friend Matrix \Func{operator-}(const Matrix\& \var{A});\\
-  Unitary negation operator
- \item friend Matrix \Func{operator*}(const Matrix\& \var{A}, const Matrix\&
-  \var{B});\\
-  Matrix multiplication (save for overwrite: A=A*B)
+ \item unsigned \Func{Rows}();\\
+ \item unsigned \Func{Cols}();\\
   
-%   ~Matrix();
-%
-%   // Size Access...
-%   unsigned Rows() const {return Rows\_;}
-%   unsigned Cols() const {return Cols\_;}
-%   
-%   // Mathematical Operations...
-%
-%   friend Matrix operator*(const Elm& A,const Matrix& B);
-%   friend Matrix operator*(const Matrix& A,const Elm& B);
-%   // Below are defined in corresponding class --------------------
-%   friend Vector operator*(const Matrix& A,const Vector& B);
-%   friend Vector operator*(const Vector& A,const Matrix& B);
-%   friend Vector3D operator*(const Matrix& A,const Vector3D& B);
-%   friend Vector3D operator*(const Vector3D& A,const Matrix& B);
-%   // -------------------------------------------------------------
-%   friend Matrix operator/(const Matrix& A,const Elm& B);
-%
-%   // Element Access methods
-%
-%#ifdef CHECK\_BOUNDS
-%   // Note: Index checking on Rows but not on Columns....
-%   Elm* operator[](unsigned i);
-%   Elm* operator[](unsigned i) const;
-%#else
-%   // Note: NO Index checking
-%   Elm* operator[](unsigned i) {return Elements\_[i];}
-%   Elm* operator[](unsigned i) const {return Elements\_[i];}
-%#endif
-%   
-%   // Assignment Operations
-%
-%   Matrix& operator=(const Matrix& B);
-%   Matrix operator+=(const Matrix& B) {return *this=*this+B;}
-%   Matrix operator-=(const Matrix& B) {return *this=*this-B;}
-%   Matrix operator*=(const Matrix& B) {return *this=*this*B;}
-%   Matrix operator*=(const Elm& B)    {return *this=*this*B;}
-%
-%   // Misc. Matrix Operatons
-%   
-%   Matrix& SetIdentity(unsigned Size=0);
-%   Matrix Transpose() const;
-%   Matrix Inverse() const;
-%   int IsSquare() const {return Rows\_==Cols\_;}
-%   int IsNull() const {return (Rows\_==0 || Cols\_==0);}
-%
-%   // Destructively Resize Matrix
-%   // No change if size does not change
-%   void Resize(unsigned Rows=0,unsigned Cols=0,Elm InitVal=SENTINAL);
-%   
-%   // Operations & Etc...
-%
-%   // Deterimnent
-%   Elm Det() const;
-%
-%   // Set P,L,U to the corresponding matricies of the PLU
-%   //   decomposition of A
-%   friend void PLU(const Matrix& A,Matrix& P,Matrix& L,Matrix& U);
-%
-%   // Singular Value Decomposition of A -- Algorithm from Numerical Recipies
-%   //
-%   // return value - condition number of A
-%   // A - mxn matrix to decompose
-%   // U - mxn "column-orthogonal" matrix
-%   // W - nxn diagonal matrix (singular values)
-%   // V - nxn orthogonal matrix
-%   //
-%   // A = U*W*V.Transpose();
-%   //
-%   // each W[i][i] < fabs(MAX(W)) / MaxCond; will be set to 0.0
-%   // -- this most often reduces error when solving a system of equations
-%   // -- that is ill-conditioned (as compaired with a straight SVD or LU
-%   // -- decomposition).
-%   //
-%   // if (PrintFlag); then the condition number of A will be echoed on cerr
-%   //
-%   // WHENEVER a W[i][i] is explicitly set to 0.0 a message is echoed to cerr
-%   // NOTE: this situation may be detected by the calling program by compairing
-%   // -- the value of MaxCond with the returned condition number.
-%   //
-%   friend Elm SVD(const Matrix& A,Matrix& U,Matrix& W,Matrix& V,
-%                  const Elm MaxCond=MAXCONDITION,const int PrintFlag=0);
-%
-%   // SymEigVal -- determine the eigenvalues of A
-%   // Diag(eigen values) = B.Transpose()*A*B
-%   //
-%   // Use Cyclic Jacobi Method -- Ref. "Numerical Analysis" by Pratel pg 440
-%   //
-%   // Returns vector containing eigenvalues
-%   // AND-- Matrix of eigenvectors (as columns) if a pointer is passed
-%   // MaxItr - max number of iterations
-%   // Tol - tolerance for convergence
-%   //
-%   // Note: Assumes A is SYMMETRIC
-%   friend Matrix SymEigVal(Matrix A,Matrix *B=NULL,const int MaxItr=100,
-%                           const double Tol=1.0e-13);
-%   
-%   // Cholesky Decomposition of Matrix
-%   // A=U.Transpose()*D*U
-%   //
-%   // D - diagonal Matrix
-%   //
-%   // Assumes Symmetric Matrix (thus uses only Upper Diagonal part of A
-%   // Note: will fail if A has EigenValue of 0.0
-%   friend void Cholesky(const Matrix& A,Matrix& U,Matrix& D);
-%
-%   // Return solution x of the linear system A*x=B
-%   // Uses PLU decomposition and Forward and Backwards substitution
-%   friend Matrix SolvePLU(const Matrix& A,const Matrix& B);
-%   
-%   // Return solution x of the linear system A*x=B
-%   // Uses SVD decomposition
-%   //
-%   // x = V*W.Inverse()*(U.Transpose()*B);
-%   // WHERE: W.Inverse() is actually calculated by hand and any
-%   // -- W[i][i] == 0.0 has inverse component 0.0
-%   friend Matrix SolveSVD(const Matrix& A,const Matrix& B,
-%                          const Elm MaxCond=MAXCONDITION,
-%                          const int PrintFlag=0);
-%   
-%   // Output/Input Functions
-%   friend ostream& operator<<(ostream& out,const Matrix& A);
-%   friend istream& operator>>(istream& in, Matrix& A);
-%
-%   static char* Revision();
-%};
-%
-%#endif
-\end{LIST}
+ \item friend Matrix\& \Func{operator+}(Matrix\& \var{A});\\
+ \item friend Matrix \Func{operator+}(const Matrix\& \var{A}, const Matrix\& \var{B});\\
+ \item friend Matrix \Func{operator-}(const Matrix\& \var{A});\\
+ \item friend Matrix \Func{operator-}(const Matrix\& \var{A});\\
+ \item friend Matrix \Func{operator*}(const Matrix\& \var{A}, const Matrix\& \var{B});\\
+ \item friend Matrix \Func{operator*}(const Elm\& \var{A}, const Matrix\& \var{B});\\
+ \item friend Matrix \Func{operator*}(const Matrix\& \var{A}, const Elm\& \var{B});\\
+ \item friend Vector \Func{operator*}(const Matrix\& \var{A}, const Vector\& \var{B});\\
+ \item friend Vector \Func{operator*}(const Vector\& \var{A}, const Matrix\& \var{B});\\
+ \item friend Vector3D \Func{operator*}(const Matrix\& \var{A}, const Vector3D\& \var{B});\\
+ \item friend Vector3D \Func{operator*}(const Vector3D\& \var{A}, const Matrix\& \var{B});\\
+ \item friend Matrix \Func{operator/}(const Matrix\& \var{A}, const  Elm\& \var{B});\\
+
+ \item Elm* \Func{operator[]}(unsigned \var{i});\\
+ \item Elm* \Func{operator[]}(unsigned \var{i}) const;\\
+  
+  
+ \item Matrix\& \Func{operator=}(const Matrix\& \var{B});\\
+ \item Matrix \Func{operator+=}(const Matrix\& \var{B});\\
+ \item Matrix \Func{operator-=}(const Matrix\& \var{B});\\
+ \item Matrix \Func{operator*=}(const Matrix\& \var{B});\\
+ \item Matrix \Func{operator*=}(const Elm\& \var{B});\\
+
+ \item Matrix\& \Func{SetIdentity}(unsigned \var{Size}=0);\\
+ \item Matrix \Func{Transpose}() const;\\
+ \item Matrix \Func{Inverse}() const;\\
+ \item int \Func{IsSquare}() const;\\
+
+ \item void \Func{Resize}(unsigned \var{Rows}=0, unsigned \var{Cols}=0, Elm \var{InitVal}=SENTINAL);\\
+ \item Elm \Func{Det}() const;
+
+ \item friend void \Func{PLU}(const Matrix\& \var{A}, Matrix\& \var{P}, Matrix\& \var{L}, Matrix\& \var{U});\\
+
+  \item friend Elm \Func{SVD}(const Matrix\& \var{A}, Matrix\& \var{U},
+   Matrix\& \var{W}, Matrix\& \var{V}, const Elm \var{MaxCond}=MAXCONDITION,
+   const int \var{PrintFlag}=0);\\
+
+  \item friend Matrix \Func{SymEigVal}(Matrix \var{A}, Matrix *\var{B}=NULL,
+   const int \var{MaxItr}=100, const double \var{Tol}=1.0e-13);\\
+
+  \item friend void \Func{Cholesky}(const Matrix\& \var{A}, Matrix\& \var{U}, Matrix\& \var{D});\\
+
+  \item friend Matrix \Func{SolvePLU}(const Matrix\& \var{A}, const Matrix\& \var{B});\\
+
+  \item friend Matrix \Func{SolveSVD}(const Matrix\& \var{A}, const Matrix\&
+   \var{B}, const Elm \var{MaxCond}=MAXCONDITION, const int
+   \var{PrintFlag}=0);\\
+
+  \item friend ostream\& \Func{operator$<<$}(ostream\& \var{out}, const Matrix\& \var{A});\\
+  \item friend ostream\& \Func{operator$>>$}(ostream\& \var{in}, const Matrix\& \var{A});\\
+
+  \item static char* \Func{Revision}();
+ \end{LIST}
 
 \end{document}
 
-% LocalWords:  const Cols SolvePLU PLU SolveSVD SVD Func MaxCond int PrintFlag
-% LocalWords:  ostream istream MAXCONDITION MathematicaPrintFlag Mathematica
