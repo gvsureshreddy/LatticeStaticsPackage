@@ -45,11 +45,12 @@ INCL_LOC   = ${HOME}/include
 LIB_LOC    = ${HOME}/lib
 LIBS       = -lLinearAlgebra -lMyMath -lm
 LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE)
-SUBDIRS = ../Lattices ../Potentials
+SUBDIRS = ../Lattices ../Modes ../Potentials
 #
 # Defines the source files needed #########################################
 include Makefile
 include ../Lattices/Makefile
+include ../Modes/Makefile
 include ../Potentials/Makefile
 
 BSCSOURCES  = $(UTILITY)
@@ -59,9 +60,11 @@ LONGWAVELENGTH = LongWavelengthModuli.cpp
 BLOCHWAVESOURCES = BlochWave.cpp
 NEIGHBORSSOURCES = NeighborDistances.cpp
 PRINTPOTENTIALS = PrintPotentials.cpp
+ENERGYLANDSCAPE = EnergyLandscape.cpp
 #
 ALLSOURCES  = $(BSCSOURCES) $(RK1SOURCES) $(DISPERSIONSOURCES) \
-	      $(BLOCHWAVESOURCES) $(NEIGHBORSSOURCES) $(LONGWAVELENGTH) $(PRINTPOTENTIALS)
+	      $(BLOCHWAVESOURCES) $(NEIGHBORSSOURCES) $(LONGWAVELENGTH) $(PRINTPOTENTIALS) \
+	      $(ENERGYLANDSCAPE)
 
 
 # Defines the object files to be created using the SYSTEM name ############
@@ -73,12 +76,14 @@ WAVELENGTHOBJECTS = $(LONGWAVELENGTH:$(SRC_EXT)=$(OBJ_EXT))
 BLOCHWAVEOBJECTS = $(BLOCHWAVESOURCES:$(SRC_EXT)=$(OBJ_EXT))
 NEIGHBORSOBJECTS = $(NEIGHBORSSOURCES:$(SRC_EXT)=$(OBJ_EXT))
 PRINTPOTSOBJECTS = $(PRINTPOTENTIALS:$(SRC_EXT)=$(OBJ_EXT))
+ENERGYLANDOBJECTS = $(ENERGYLANDSCAPE:$(SRC_EXT)=$(OBJ_EXT))
 #
 ALLOBJECTS = $(BSCOBJECTS) $(RK1OBJECTS) $(DISPERSIONOBJECTS) \
-	     $(BLOCHWAVEOBJECTS) $(NEIGHBORSOBJECTS) $(WAVELENGTHOBJECTS) $(PRINTPOTSOBJECTS)
+	     $(BLOCHWAVEOBJECTS) $(NEIGHBORSOBJECTS) $(WAVELENGTHOBJECTS) $(PRINTPOTSOBJECTS) \
+	     $(ENERGYLANDOBJECTS)
 
 ALLPROGRAMS = Rank1Convex DispersionCurves BlochWave NeighborDistances\
-              LongWavelengthModuli PrintPotentials
+              LongWavelengthModuli PrintPotentials EnergyLandscape
 
 all: $(ALLPROGRAMS)
 
@@ -157,6 +162,22 @@ PrintPotentials:      $(PRINTPOTSOBJECTS) $(BSCOBJECTS) \
 		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT))) \
 		      $(LIBS)
 
+# Defines the Program Target (linking command) ############################
+EnergyLandscape:      $(ENERGYLANDOBJECTS) $(BSCOBJECTS) \
+		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
+		      $(addprefix ../lib/,$(MODES:$(SRC_EXT)=$(OBJ_EXT))) \
+		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT)))
+		      $(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/builddate.o -c builddate.cpp
+		      $(PURE) $(CC) $(LFLAGS) \
+		      -L$(LIB_LOC) -o ./bin/EnergyLandscape \
+		      $(addprefix lib/,$(ENERGYLANDOBJECTS)) \
+		      $(addprefix lib/,$(BSCOBJECTS)) \
+		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
+		      $(addprefix ../lib/,$(MODES:$(SRC_EXT)=$(OBJ_EXT))) \
+		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT))) \
+		      $(LIBS) ./lib/builddate.o
+		      /bin/rm -f ./lib/builddate.o
+
 # include the dependicies
 include $(addprefix depend/,$(BSCOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 include $(addprefix depend/,$(RK1OBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
@@ -165,6 +186,7 @@ include $(addprefix depend/,$(WAVELENGTHOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 include $(addprefix depend/,$(BLOCHWAVEOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 include $(addprefix depend/,$(NEIGHBORSOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 include $(addprefix depend/,$(PRINTPOTSOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
+include $(addprefix depend/,$(ENERGYLANDOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 
 # Define object file dependicies and make rule
 $(ALLOBJECTS): Makefile MakeUtilityProgs
@@ -189,6 +211,7 @@ uninstall:
 	/bin/rm -f $(BIN_LOC)/BlochWave
 	/bin/rm -f $(BIN_LOC)/NeighborDistances
 	/bin/rm -f $(BIN_LOC)/PrintPotentials
+	/bin/rm -f $(BIN_LOC)/EnergyLandscape
 
 # Removes the current systems set of object files and executable file
 .PHONY: clean
@@ -201,12 +224,14 @@ clean:
 		  $(addprefix lib/,$(BLOCHWAVEOBJECTS:$(OBJ_EXT)=.*)) \
 		  $(addprefix lib/,$(NEIGHBORSOBJECTS:$(OBJ_EXT)=.*)) \
 		  $(addprefix lib/,$(PRINTPOTSOBJECTS:$(OBJ_EXT)=.*)) \
+		  $(addprefix lib/,$(ENERGYLANDOBJECTS:$(OBJ_EXT)=.*)) \
                   bin/Rank1Convex \
 		  bin/DispersionCurves \
 		  bin/LongWavelengthModuli \
 		  bin/BlochWave \
 		  bin/NeighborDistances \
 		  bin/PrintPotentials \
+		  bin/EnergyLandscape \
 		  core *~ \
 		  depend/*.d
 
