@@ -20,7 +20,7 @@ using namespace std;
 // MAXCONDITION is used by SVD.
 #define MAXCONDITION 10.0e12
 
-
+class SparseMatrix;
 class Vector;
 class Vector3D;
 
@@ -70,6 +70,8 @@ public:
    friend Matrix operator*(const Matrix& A,const Matrix& B);
    friend Matrix operator*(const Elm& A,const Matrix& B);
    friend Matrix operator*(const Matrix& A,const Elm& B);
+   friend Matrix operator*(const SparseMatrix& A, const Matrix& B);
+   friend Matrix operator*(const Matrix& A, const SparseMatrix& B);
    // Below are defined in corresponding class --------------------
    friend Vector operator*(const Matrix& A,const Vector& B);
    friend Vector operator*(const Vector& A,const Matrix& B);

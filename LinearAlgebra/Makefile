@@ -45,7 +45,7 @@ LIBS       = -lMyMath -lm
 LFLAGS     = $(DATE_DEF)
 
 # Defines the source files needed #########################################
-SOURCES  = Matrix.cpp Vector.cpp Vector3D.cpp CMatrix.cpp CVector.cpp
+SOURCES  = Matrix.cpp Vector.cpp Vector3D.cpp CMatrix.cpp CVector.cpp SparseMatrix.cpp
 
 # Defines the object files to be created using the SYSTEM name ############
 OBJECTS  = $(SOURCES:$(SRC_EXT)=$(OBJ_EXT))

@@ -13,6 +13,7 @@ using namespace std;
 
 #define V3DLEN 3
 
+class SparseMatrix;
 class Matrix;
 class Vector;
 
@@ -77,6 +78,8 @@ public:
    // Matrix Products
    friend Vector3D operator*(const Vector3D& A,const Matrix& B);
    friend Vector3D operator*(const Matrix& A,const Vector3D& B);
+   friend Vector3D operator*(const SparseMatrix& A,const Vector3D& B);
+   friend Vector3D operator*(const Vector3D& A,const SparseMatrix& B);	
    
    // Element Access methods
    inline Elm& operator[](const unsigned& i) {return Elements_[i];}

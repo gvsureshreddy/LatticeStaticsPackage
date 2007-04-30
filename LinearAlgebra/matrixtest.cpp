@@ -3,9 +3,13 @@
 #include "Vector.h"
 #include "CVector.h"
 #include "Vector3D.h"
+#include "SparseMatrix.h"
 #include <cstdlib>
 #include <iomanip>
 #include <ctime>
+
+void sparsematrixtest();
+Matrix project(int N);
 
 int main()
 {
@@ -419,7 +423,238 @@ int main()
   
    cout << "BI=BQ*BQ^T" << endl << setw(20) << BI << endl;
 
+
+   // sparse matrix stuff
+   sparsematrixtest();
+
    return 1;
 }
 
+
+void sparsematrixtest()
+{
+   int count=0;
+   int N = 4;
    
+   Matrix u(N+1,N,0);	
+   u=project(N);
+   
+   SparseMatrix A(u);	
+   Matrix C(N+1,N,1);
+   Matrix G(N,N,1);
+   Matrix H(N,N+1,1);
+   SparseMatrix I(H);
+   SparseMatrix D(C);
+   SparseMatrix B(G);
+   SparseMatrix F(10, A.Rows(), A.Cols());
+   Vector V1(N,1);	
+   Vector V2(N+1,1);
+   Vector3D Z(1);
+   Matrix M(3,3,1);
+   SparseMatrix Y(M);
+	
+   cout << "u = " << endl << setw(20) << u << endl;
+	
+   //ADDITION AND SUBTRACTION TEST
+   cout << "+A = u" << setw(20) << +A << endl;
+   cout << "-A = -u" << setw(20) << -A << endl;
+	
+   cout << "C = " <<endl << setw(20) << C << endl;
+   cout << "D = C" << endl << setw(20) << D <<endl;
+	
+   // SparseMatrix A + Matrix C + Matrix C
+   cout << "A+C+C = " << endl << setw(20) << A+C+C << endl;
+	
+   // SparseMatrix D + SparseMatrix A + SparseMatrix D
+   cout << "D+A+D = " << endl << setw(20) << D+A+D << endl;
+	
+   // SparseMatrix D + SparseMatrix A - Matrix C 
+   cout << "D+A-C = " << endl << setw(20) << D+A-C << endl;
+	
+   // SparseMatrix D + SparseMatrix A - Matrix C 
+   cout << "-C+A+D = " << endl << setw(20) << -C+A+D << endl;
+	
+   // -SparseMatrix A + SparseMatrix D
+   cout << "-A+D  = " << endl << setw(20) << -A+D << endl;
+	
+   // -SparseMatrix + Matrix C
+   cout << "-A+C  = " << endl << setw(20) << -A+C << endl;
+	
+   // -SparseMatrix A - SparseMatrix D
+   cout << "-A-D  = " << endl << setw(20) << -A-D << endl;
+	
+   // -SparseMatrix - Matrix C
+   cout << "-A-C  = " << endl << setw(20) << -A-C << endl;
+	
+
+	
+   //MATRIX MULTIPLICATION TEST
+	
+   //SparseMatrix A, Matrix H, SparseMatrix I
+   cout << "N = " << N << endl<< endl;
+   cout << "A = " << endl << setw(20) << A <<endl;
+   cout << "A = u" << endl << setw(20) << ReverseSparse(A) <<endl;
+   cout << "I = H " << endl << setw(20) <<I<< endl;
+   cout << "H = I" << endl << setw (20) <<H << endl;
+
+   //SparseMatrix A * Double N
+   cout << "N*A = " << endl << setw(20) << N*A <<endl;
+   cout << "A*N = " << endl << setw(20) << A*N <<endl;
+	
+   //SparseMatrix A * SparseMatrix I
+   cout << "A*I = " << endl <<setw(20) << A*I << endl;
+   //SparseMatrix A * Matrix H 
+   cout << "A*H = " << endl <<setw(20) << A*H << endl;
+   //SparseMatrix I * SparseMatrix A
+   cout << "I*A = " << endl <<setw(20) << I*A << endl;
+   //Matrix H * SparseMatrix A
+   cout << "H*A = " << endl <<setw(20) << H*A << endl;
+	
+   //SparseMatrix B * SparseMatrix B
+   cout << "B*B = " << endl <<setw(20) << B*B << endl;
+   cout << "B*G = " << endl << setw(20) << B*G <<endl;
+   cout << "G*B = " << endl << setw(20) << G*B <<endl;
+	
+	
+   //VECTOR MULTIPLICATION TEST
+   cout << "A = u " << endl <<setw(20) << u << endl;
+   cout << "V1 = " << endl << setw(20) << V1 << endl<<endl<<endl<<endl;
+   cout << "V2 = " << endl << setw(20) << V2 << endl<<endl<<endl<<endl;	
+   cout << "A * V1 = " <<endl << setw(20) << A*V1 << endl<<endl<<endl<<endl;
+   cout << "V2 * A = " <<endl << setw(20) << V2*A << endl<<endl<<endl<<endl;
+   cout << "Y = " << endl << setw(20) << ReverseSparse(Y) << endl<<endl<<endl<<endl;
+   cout << "Z = " << endl << setw(20) << Z << endl<<endl<<endl<<endl;
+   cout << "Y*Z = " <<endl << setw(20) << Y*Z << endl<<endl<<endl<<endl;
+   cout << "Z*Y = " <<endl << setw(20) << Z*Y << endl<<endl<<endl<<endl;	
+	
+   //TRANSPOSE AND REVERSESPARSE TEST
+   cout << "A = " << endl <<setw(20) << A << endl<< endl
+	<< "A.Transpose = " << endl << setw(20) << A.Transpose() <<endl;
+   cout << "A = " << endl <<setw(20) << ReverseSparse(A) << endl << endl
+	<< "A.Transpose = " << endl << setw(20) << ReverseSparse(A.Transpose())<<endl;
+	
+   //Identity SparseMatrix
+   cout << "Identity SparseMatrix= " <<endl << setw(20)<<SparseIdentity(6)<< endl;
+   cout << "Identity Matrix= " << endl << setw(20) << ReverseSparse(SparseIdentity(6)) <<endl;
+}
+
+int pow(int a,int b)
+{
+   int c=1;
+   for (int i=0;i<b;i++)
+   {
+      c *= a;
+   }
+   return c;
+}
+
+//Returns matrix of size Rows_ x Cols_
+//Function does not take arguments. Size of array determined by Rows_ and Cols_
+Matrix project(int N)
+{
+   int k=0;
+   int l=0;
+   int h,i, j, p, q, g, t;
+   double m, sum, x, y, R;
+   int count=0;	
+   
+   Matrix u(N+1,N, 0);
+   
+   // The following generates first column vector [1 0 0 0...0]
+   u[0][k]=1;
+   for (h=1; h < N+1; h++)              
+   {
+      u[h][k]=0;
+   }
+   k=k+1;                               //Finishes first vector
+   
+	
+   // The following generates floor(log2(N)) vectors with floor(double(N)/pow(2,(i+1)))
+   // entry pairs
+	
+   // Generates floor(log2(N)) entry pairs
+   for (i=0; i < floor((log10(double(N))/log10(2.0)));i++)
+   {
+      m =  floor(double(N)/pow(2,(i+1)));
+      q=0;
+
+      for (j=0; j<m;j++)  //generates floor(double(N)/pow(2,(i+1))) column vectors
+      {
+	 if (j==0)
+	 {
+	    sum=0;
+	    u[0][k]=0;
+	    q=2*j+1;
+	    for (p=0;p<pow(2,i);p++)
+	    {
+	       u[q][k]=1;
+	       sum = sum +pow(u[q][k],2);
+	       q=q+1;
+	    }
+	    for (p=0;p<pow(2,i);p++)
+	    {
+	       u[q][k]=-1;
+	       sum = sum +pow(u[q][k],2);
+	       q=q+1;
+	    }				
+	    sum = sqrt(sum);
+	    for(h=0;h<N+1;h++)
+	    {
+	       u[h][k]=u[h][k]/sum;
+	    }
+
+	    k=k+1;
+	 }
+	 else
+	 {
+	    sum =0; 
+	    for (p=0; p<pow(2,i);p++)
+	    {
+	       u[q][k]=1;
+	       sum = sum +pow(u[q][k],2);
+	       q=q+1;
+	    }
+	    for (p=0; p<pow(2,i);p++)
+	    {
+	       u[q][k]=-1;
+	       sum = sum +pow(u[q][k],2);
+	       q=q+1;
+	    }
+	    sum = sqrt(sum);
+	    for(h=0;h<N+1;h++)
+	    {
+	       u[h][k]=u[h][k]/sum;
+	    }		
+	    k=k+1;
+	 }
+	 
+	 //Generates remainder column vectors
+	 R= N - ((floor(double(N)/(pow(2,(i+1)))))*pow(2,(i+1)));
+	 if (j==m-1 & R >= pow(2,i))
+	 {
+	    u[0][k]=0;
+	    sum = 0;
+	    for (g=0;g<(((pow(2,i))*2*(m)));g++)
+	    {
+	       u[g+1][k]=1;
+	       sum = sum +pow(u[g+1][k],2);
+	    }
+	    y=-(g)/pow(2,i);
+	    for (t=0;t<(pow(2,(i)));t++)
+	    {
+	       u[g+1][k]=y;
+	       sum = sum +pow(u[g+1][k],2);
+	       g=g+1;
+	    }
+	    sum = sqrt(sum);
+	    for(h=0;h<N+1;h++)
+	    {
+	       u[h][k]=u[h][k]/sum;
+	    }
+	    k=k+1;
+	 }
+      } // closes column vector (j) index
+   } //closes entry pair (i) index
+
+   return u;
+}     

@@ -14,6 +14,8 @@ using namespace std;
 // Sentinal Value to allow conditional initialization of data
 #define SENTINAL -9999999.8888888887777788
 
+class SparseMatrix;
+
 class Vector
 {
 protected:
@@ -55,6 +57,9 @@ public:
    friend Vector operator*(const Elm& A,const Vector& B);
    friend Vector operator*(const Vector& A,const Elm& B);
    friend Vector operator/(const Vector& A,const Elm& B);
+   friend Vector operator*(const SparseMatrix& A, const Vector& B);
+   friend Vector operator*(const Vector& A, const SparseMatrix& B);
+   
    
    // Element Access methods
 #ifdef CHECK_BOUNDS
