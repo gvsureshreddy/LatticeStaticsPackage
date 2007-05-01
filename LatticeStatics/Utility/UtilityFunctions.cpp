@@ -195,15 +195,16 @@ void SetPerlCommand(char *string,const char *datafile,const char *prefix,const c
 {
    char format[]=
      {"perl -e 'use Math::Trig;"\
-      "@R=findref($ARGV[1],$ARGV[2],$ARGV[0]);for $i(0..@R){print ($R[$i],\"\n\");};"\
-      "sub findref {my($prfx,$tag,$df) = @_; my($fnd,$reg); $fnd=1;"\
-      "$reg = $prfx . $tag;"\
-      "open(R,$df); while (<R>) {if (/$reg/) {$fnd=0; "\
-      "$_=deref($prfx,$_,$df); split(\"=\",$_); return eval($_[1]);}} "\
-      "close(R); if ($fnd == 1) {exit $fnd;}} sub deref "\
-      "{my($prfx,$fld,$df)=@_; my($t); while ($fld =~ m/<([^>]+)>/g) "\
-      "{$t=$1; $v=findref($prfx,\"$t\",$df); "\
-      "$fld =~ s/<$t>/$v/} return $fld;}' %s '%s' '%s'"};
+      "@__R=__findref($ARGV[1],$ARGV[2],$ARGV[0]);"\
+      "for $__i(0..@__R-1){print ($__R[$__i],\"\n\");};"\
+      "sub __findref {my($__prfx,$__tag,$__df) = @_; my($__fnd,$__reg); $__fnd=1;"\
+      "$__reg = $__prfx . $__tag;"\
+      "open(__R,$__df); while (<__R>) {if (/$__reg/) {$__fnd=0; "\
+      "$_=__deref($__prfx,$_,$__df); $_=~s/$__tag\\s*=\\s*//; return eval($_);}} "\
+      "close(__R); if ($__fnd == 1) {exit $__fnd;}} sub __deref "\
+      "{my($__prfx,$__fld,$__df)=@_; my($__t); while ($__fld =~ m/<([^>]+)>/g) "\
+      "{$__t=$1; $__v=__findref($__prfx,\"$__t\",$__df); "\
+      "$__fld =~ s/<$__t>/$__v/} return $__fld;}' %s '%s' '%s'"};
       sprintf(string,format,datafile,prefix,tag);
 }
 
