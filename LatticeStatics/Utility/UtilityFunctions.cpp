@@ -1,5 +1,6 @@
 #include "UtilityFunctions.h"
 
+#include <fstream>
 #include <termios.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -82,6 +83,54 @@ int EnterDebugMode()
    return 0;
 }
 
+char UTILITYechocommand[LINELENGTH];
+char *UTILITYechocmd = NULL;
+int Getcmdline(const char *prefix,const char *tag,const char *datafile,int DispErr=1)
+{
+   char command[LINELENGTH];
+   char cmd[LINELENGTH];
+   FILE *pipe;
+   fstream out;
+   char format[]=
+      {"perl -e '"\
+       "@__R=__findref($ARGV[1],$ARGV[2],$ARGV[0]);"\
+       "for $__i(0..@__R-1){print ($__R[$__i],\"\n\");};"\
+       "sub __findref {my($__prfx,$__tag,$__df) = @_; my($__fnd,$__reg); $__fnd=1;"\
+       "$__reg = $__prfx . $__tag;"\
+       "open(__R,$__df); while (<__R>) {if (/$__reg/) {$__fnd=0; chomp($_);"\
+       "unshift(@__cmd,$_); __deref($__prfx,$_,$__df); return(@__cmd);}} "\
+       "close(__R); if ($__fnd == 1) {exit $__fnd;}} sub __deref "\
+       "{my($__prfx,$__fld,$__df)=@_; my($__t); while ($__fld =~ m/<([^>]+)>/g) "\
+       "{$__t=$1;__findref($__prfx,\"$__t\",$__df);}}' %s '%s' '%s'"};
+   sprintf(command,format,datafile,prefix,tag);
+
+   out.open(UTILITYechocmd,ios::out | ios::app);
+   if (out.fail())
+   {
+      cerr << "Error: Unable to open file : " << UTILITYechocmd << " for write"
+	   << endl;
+      exit(-1);
+   }
+   
+   pipe = OpenPipe(command,"r");
+   while (fgets(cmd,LINELENGTH-1,pipe) != NULL)
+   {
+      out << cmd;
+   }
+
+   if (pclose(pipe))
+   {
+      if (DispErr) Errfun(tag);
+      return 0;
+   }
+   else
+   {
+      return 1;
+   }
+
+   out.close();
+}
+
 int GetParameter(const char *prefix,const char *tag,const char *datafile,
 		 const char *scanffmt,void *parameter,int DispErr)
 {
@@ -98,6 +147,8 @@ int GetParameter(const char *prefix,const char *tag,const char *datafile,
    }
    else
    {
+      if (UTILITYechocmd != NULL)
+	 Getcmdline(prefix,tag,datafile);
       return 1;
    }
 }
@@ -121,12 +172,14 @@ int GetVectorParameter(const char *prefix,const char *tag,const char *datafile,V
    }
    else
    {
+      if (UTILITYechocmd != NULL)
+	 Getcmdline(prefix,tag,datafile);
       return 1;
    }
 }
 
-int GetIntVectorParameter(const char *prefix,const char *tag,
-			  const char *datafile,int N,int *Vec,int DispErr)
+int GetIntVectorParameter(const char *prefix,const char *tag,const char *datafile,int N,
+			  int *Vec,int DispErr)
 {
    char command[LINELENGTH];
    FILE *pipe;
@@ -144,6 +197,8 @@ int GetIntVectorParameter(const char *prefix,const char *tag,
    }
    else
    {
+      if (UTILITYechocmd != NULL)
+	 Getcmdline(prefix,tag,datafile);
       return 1;
    }
 }
@@ -170,6 +225,8 @@ int GetMatrixParameter(const char *prefix,const char *tag,const char *datafile,M
    }
    else
    {
+      if (UTILITYechocmd != NULL)
+	 Getcmdline(prefix,tag,datafile);
       return 1;
    }
 }
@@ -194,18 +251,18 @@ int GetStringParameter(const char *prefix,const char *tag,const char *datafile,
 void SetPerlCommand(char *string,const char *datafile,const char *prefix,const char *tag)
 {
    char format[]=
-     {"perl -e 'use Math::Trig;"\
-      "@__R=__findref($ARGV[1],$ARGV[2],$ARGV[0]);"\
-      "for $__i(0..@__R-1){print ($__R[$__i],\"\n\");};"\
-      "sub __findref {my($__prfx,$__tag,$__df) = @_; my($__fnd,$__reg); $__fnd=1;"\
-      "$__reg = $__prfx . $__tag;"\
-      "open(__R,$__df); while (<__R>) {if (/$__reg/) {$__fnd=0; "\
-      "$_=__deref($__prfx,$_,$__df); $_=~s/$__tag\\s*=\\s*//; return eval($_);}} "\
-      "close(__R); if ($__fnd == 1) {exit $__fnd;}} sub __deref "\
-      "{my($__prfx,$__fld,$__df)=@_; my($__t); while ($__fld =~ m/<([^>]+)>/g) "\
-      "{$__t=$1; $__v=__findref($__prfx,\"$__t\",$__df); "\
-      "$__fld =~ s/<$__t>/$__v/} return $__fld;}' %s '%s' '%s'"};
-      sprintf(string,format,datafile,prefix,tag);
+      {"perl -e 'use Math::Trig;"\
+       "@__R=__findref($ARGV[1],$ARGV[2],$ARGV[0]);"\
+       "for $__i(0..@__R-1){print ($__R[$__i],\"\n\");};"\
+       "sub __findref {my($__prfx,$__tag,$__df) = @_; my($__fnd,$__reg); $__fnd=1;"\
+       "$__reg = $__prfx . $__tag;"\
+       "open(__R,$__df); while (<__R>) {if (/$__reg/) {$__fnd=0; "\
+       "$_=__deref($__prfx,$_,$__df); $_=~s/$__tag\\s*=\\s*//; return eval($_);}} "\
+       "close(__R); if ($__fnd == 1) {exit $__fnd;}} sub __deref "\
+       "{my($__prfx,$__fld,$__df)=@_; my($__t); while ($__fld =~ m/<([^>]+)>/g) "\
+       "{$__t=$1; $__v=__findref($__prfx,\"$__t\",$__df); "\
+       "$__fld =~ s/<$__t>/$__v/} return $__fld;}' %s '%s' '%s'"};
+   sprintf(string,format,datafile,prefix,tag);
 }
 
 FILE *OpenPipe(const char *command,const char *mode)
@@ -215,7 +272,7 @@ FILE *OpenPipe(const char *command,const char *mode)
    pipe=popen(command,mode);
    if (!pipe)
    {
-      cerr << "popen failed! -- " << endl;
+      cerr << "popen failed! -- " << command << endl;
       exit(-1);
    }
 

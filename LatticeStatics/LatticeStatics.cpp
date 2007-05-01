@@ -37,6 +37,7 @@ int main(int argc, char *argv[])
    char *datafile = argv[1+Debug],
       *outputfile = argv[2+Debug],
       *startfile;
+   
    if (argc == 4+Debug)
       startfile = argv[3+Debug];
    else
@@ -50,7 +51,10 @@ int main(int argc, char *argv[])
    int Width,Precision,Echo;
    YN BisectCP;
 
-   
+   if (GetParameter("^","CommandFile",datafile,"%s",UTILITYechocommand,0))
+   {
+      UTILITYechocmd = UTILITYechocommand;
+   }
    GetMainSettings(Width,Precision,BisectCP,Echo,datafile);
 
    Lat = InitializeLattice(datafile,"^",Echo,Width,Debug);
