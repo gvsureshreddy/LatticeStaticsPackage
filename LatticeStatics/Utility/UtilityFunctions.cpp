@@ -194,7 +194,8 @@ int GetStringParameter(const char *prefix,const char *tag,const char *datafile,
 void SetPerlCommand(char *string,const char *datafile,const char *prefix,const char *tag)
 {
    char format[]=
-     {"perl -e 'use Math::Trig; $R=findref($ARGV[1],$ARGV[2],$ARGV[0]); print $R;"\
+     {"perl -e 'use Math::Trig;"\
+      "@R=findref($ARGV[1],$ARGV[2],$ARGV[0]);for $i(0..@R){print ($R[$i],\"\n\");};"\
       "sub findref {my($prfx,$tag,$df) = @_; my($fnd,$reg); $fnd=1;"\
       "$reg = $prfx . $tag;"\
       "open(R,$df); while (<R>) {if (/$reg/) {$fnd=0; "\
