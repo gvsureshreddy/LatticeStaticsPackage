@@ -94,7 +94,7 @@ int Getcmdline(const char *prefix,const char *tag,const char *datafile,int DispE
    char format[]=
       {"perl -e '"\
        "@__R=__findref($ARGV[1],$ARGV[2],$ARGV[0]);"\
-       "for $__i(0..@__R-1){print ($__R[$__i],\"\n\");};"\
+       "for $__i(0..@__R-1){print ($__R[$__i],\"\\n\");};"\
        "sub __findref {my($__prfx,$__tag,$__df) = @_; my($__fnd,$__reg); $__fnd=1;"\
        "$__reg = $__prfx . $__tag;"\
        "open(__R,$__df); while (<__R>) {if (/$__reg/) {$__fnd=0; chomp($_);"\
@@ -121,14 +121,14 @@ int Getcmdline(const char *prefix,const char *tag,const char *datafile,int DispE
    if (pclose(pipe))
    {
       if (DispErr) Errfun(tag);
+      out.close();
       return 0;
    }
    else
    {
+      out.close();
       return 1;
    }
-
-   out.close();
 }
 
 int GetParameter(const char *prefix,const char *tag,const char *datafile,
@@ -253,11 +253,11 @@ void SetPerlCommand(char *string,const char *datafile,const char *prefix,const c
    char format[]=
       {"perl -e 'use Math::Trig;"\
        "@__R=__findref($ARGV[1],$ARGV[2],$ARGV[0]);"\
-       "for $__i(0..@__R-1){print ($__R[$__i],\"\n\");};"\
+       "for $__i(0..@__R-1){print ($__R[$__i],\"\\n\");};"\
        "sub __findref {my($__prfx,$__tag,$__df) = @_; my($__fnd,$__reg); $__fnd=1;"\
        "$__reg = $__prfx . $__tag;"\
        "open(__R,$__df); while (<__R>) {if (/$__reg/) {$__fnd=0; "\
-       "$_=__deref($__prfx,$_,$__df); $_=~s/$__tag\\s*=\\s*//; return eval($_);}} "\
+       "$_=__deref($__prfx,$_,$__df); $_=~s/$__reg\\s*=\\s*//; return eval($_);}} "\
        "close(__R); if ($__fnd == 1) {exit $__fnd;}} sub __deref "\
        "{my($__prfx,$__fld,$__df)=@_; my($__t); while ($__fld =~ m/<([^>]+)>/g) "\
        "{$__t=$1; $__v=__findref($__prfx,\"$__t\",$__df); "\
