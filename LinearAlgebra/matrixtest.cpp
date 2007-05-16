@@ -433,7 +433,6 @@ int main()
 
 void sparsematrixtest()
 {
-   int count=0;
    int N = 4;
    
    Matrix u(N+1,N,0);	
@@ -538,25 +537,13 @@ void sparsematrixtest()
    cout << "Identity Matrix= " << endl << setw(20) << ReverseSparse(SparseIdentity(6)) <<endl;
 }
 
-int pow(int a,int b)
-{
-   int c=1;
-   for (int i=0;i<b;i++)
-   {
-      c *= a;
-   }
-   return c;
-}
-
 //Returns matrix of size Rows_ x Cols_
 //Function does not take arguments. Size of array determined by Rows_ and Cols_
 Matrix project(int N)
 {
    int k=0;
-   int l=0;
    int h,i, j, p, q, g, t;
-   double m, sum, x, y, R;
-   int count=0;	
+   double m, sum, y, R;
    
    Matrix u(N+1,N, 0);
    
@@ -575,7 +562,7 @@ Matrix project(int N)
    // Generates floor(log2(N)) entry pairs
    for (i=0; i < floor((log10(double(N))/log10(2.0)));i++)
    {
-      m =  floor(double(N)/pow(2,(i+1)));
+      m =  floor(double(N)/pow(2.0,(i+1)));
       q=0;
 
       for (j=0; j<m;j++)  //generates floor(double(N)/pow(2,(i+1))) column vectors
@@ -585,16 +572,16 @@ Matrix project(int N)
 	    sum=0;
 	    u[0][k]=0;
 	    q=2*j+1;
-	    for (p=0;p<pow(2,i);p++)
+	    for (p=0;p<pow(2.0,i);p++)
 	    {
 	       u[q][k]=1;
-	       sum = sum +pow(u[q][k],2);
+	       sum = sum +pow(u[q][k],2.0);
 	       q=q+1;
 	    }
-	    for (p=0;p<pow(2,i);p++)
+	    for (p=0;p<pow(2.0,i);p++)
 	    {
 	       u[q][k]=-1;
-	       sum = sum +pow(u[q][k],2);
+	       sum = sum +pow(u[q][k],2.0);
 	       q=q+1;
 	    }				
 	    sum = sqrt(sum);
@@ -608,16 +595,16 @@ Matrix project(int N)
 	 else
 	 {
 	    sum =0; 
-	    for (p=0; p<pow(2,i);p++)
+	    for (p=0; p<pow(2.0,i);p++)
 	    {
 	       u[q][k]=1;
-	       sum = sum +pow(u[q][k],2);
+	       sum = sum +pow(u[q][k],2.0);
 	       q=q+1;
 	    }
-	    for (p=0; p<pow(2,i);p++)
+	    for (p=0; p<pow(2.0,i);p++)
 	    {
 	       u[q][k]=-1;
-	       sum = sum +pow(u[q][k],2);
+	       sum = sum +pow(u[q][k],2.0);
 	       q=q+1;
 	    }
 	    sum = sqrt(sum);
@@ -629,21 +616,21 @@ Matrix project(int N)
 	 }
 	 
 	 //Generates remainder column vectors
-	 R= N - ((floor(double(N)/(pow(2,(i+1)))))*pow(2,(i+1)));
-	 if (j==m-1 & R >= pow(2,i))
+	 R= N - ((floor(double(N)/(pow(2.0,(i+1)))))*pow(2.0,(i+1)));
+	 if (j==m-1 & R >= pow(2.0,i))
 	 {
 	    u[0][k]=0;
 	    sum = 0;
-	    for (g=0;g<(((pow(2,i))*2*(m)));g++)
+	    for (g=0;g<(((pow(2.0,i))*2*(m)));g++)
 	    {
 	       u[g+1][k]=1;
-	       sum = sum +pow(u[g+1][k],2);
+	       sum = sum +pow(u[g+1][k],2.0);
 	    }
-	    y=-(g)/pow(2,i);
-	    for (t=0;t<(pow(2,(i)));t++)
+	    y=-(g)/pow(2.0,i);
+	    for (t=0;t<(pow(2.0,(i)));t++)
 	    {
 	       u[g+1][k]=y;
-	       sum = sum +pow(u[g+1][k],2);
+	       sum = sum +pow(u[g+1][k],2.0);
 	       g=g+1;
 	    }
 	    sum = sqrt(sum);
