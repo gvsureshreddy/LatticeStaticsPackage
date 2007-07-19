@@ -19,6 +19,7 @@ ChainIterator.d
 ChainSum.d
 LagrangeCB.d
 MultiChainTPP.d
+MultiChainTTPP.d
 MixedCB.d
 EulerCB.d
 Dobson.d
