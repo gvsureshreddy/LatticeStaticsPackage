@@ -26,7 +26,7 @@ public:
    ~MultiMode() {}
 
    // Functions required by LatticeMode
-   virtual double ModeEnergy() {return Lattice_->Energy();}
+   virtual double ModeEnergy() {return Lattice_->E0();}
    virtual Vector DrDt(const Vector &Diff);
 
    //----------------------------------------------------------------

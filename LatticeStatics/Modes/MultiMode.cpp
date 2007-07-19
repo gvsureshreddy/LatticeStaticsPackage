@@ -52,7 +52,7 @@ Vector MultiMode::ModeForce()
    static Vector force(DOFS_);
    static Matrix stress(1,(Lattice_->DOF()).Dim());
 
-   stress = Lattice_->Stress();
+   stress = Lattice_->E1();
 
    for (int i=0;i<DOFS_;++i)
    {
@@ -73,11 +73,8 @@ Matrix MultiMode::ModeStiffness()
    static Matrix stressdt(1,(Lattice_->DOF()).Dim());
 
    K.Resize(DOFS_,DOFS_+1,0.0);
-   Stiff = Lattice_->Stiffness();
-   if (Lattice_->LoadParameter()==Lattice::Temperature)
-      stressdt = Lattice_->StressDT();
-   else if (Lattice_->LoadParameter()==Lattice::Load)
-      stressdt = Lattice_->StressDL();
+   Stiff = Lattice_->E2();
+   stressdt = Lattice_->E1DLoad();
 
    for (int i=0;i<DOFS_;++i)
    {
@@ -114,10 +111,7 @@ void MultiMode::SetModeDOF(const Vector &dof)
    Lattice_->SetDOF(DOF);
    
    ModeDOF_[DOFS_] = dof[DOFS_];
-   if (Lattice_->LoadParameter()==Lattice::Temperature)
-      Lattice_->SetTemp(ModeDOF_[DOFS_]);
-   else if (Lattice_->LoadParameter()==Lattice::Load)
-      Lattice_->SetLambda(ModeDOF_[DOFS_]);
+   Lattice_->SetLoadParameter(ModeDOF_[DOFS_]);
 }
    
 void MultiMode::UpdateModeDOF(const Vector &dr)
@@ -135,10 +129,7 @@ void MultiMode::UpdateModeDOF(const Vector &dr)
    Lattice_->SetDOF(DOF);
 
    ModeDOF_[DOFS_] += dr[DOFS_];
-   if (Lattice_->LoadParameter()==Lattice::Temperature)
-      Lattice_->SetTemp(ModeDOF_[DOFS_]);
-   else if (Lattice_->LoadParameter()==Lattice::Load)
-      Lattice_->SetLambda(ModeDOF_[DOFS_]);
+   Lattice_->SetLoadParameter(ModeDOF_[DOFS_]);
 }
 
 //----------------------------------------------------------------
@@ -233,25 +224,19 @@ double MultiMode::ScanningLoadParameter()
 void MultiMode::ScanningLoadParamSet(const double val)
 {
    ModeDOF_[DOFS_] = val;
-   if (Lattice_->LoadParameter()==Lattice::Temperature)
-      Lattice_->SetTemp(ModeDOF_[DOFS_]);
-   else if (Lattice_->LoadParameter()==Lattice::Load)
-      Lattice_->SetLambda(ModeDOF_[DOFS_]);
+   Lattice_->SetLoadParameter(ModeDOF_[DOFS_]);
 }
 
 void MultiMode::ScanningLoadParamUpdate(const double newval)
 {
    ModeDOF_[DOFS_] += newval;
-   if (Lattice_->LoadParameter()==Lattice::Temperature)
-      Lattice_->SetTemp(ModeDOF_[DOFS_]);
-   else if (Lattice_->LoadParameter()==Lattice::Load)
-      Lattice_->SetLambda(ModeDOF_[DOFS_]);
+   Lattice_->SetLoadParameter(ModeDOF_[DOFS_]);
 }
 
 double MultiMode::ScanningStressParameter()
 {
    double str = 0.0;
-   Matrix stress = Lattice_->Stress();
+   Matrix stress = Lattice_->E1();
 
    for (int i=0;i<DOFindlen_[ScnDefParam_];++i)
    {
@@ -263,7 +248,7 @@ double MultiMode::ScanningStressParameter()
    
 Vector MultiMode::ScanningForce()
 {
-   Matrix stress = Lattice_->Stress();
+   Matrix stress = Lattice_->E1();
    Vector force(DOFS_-1,0.0);
    int a=0;
 
@@ -350,7 +335,7 @@ void MultiMode::ScanningUpdate(const Vector &newval)
 
 Matrix MultiMode::ScanningStiffness()
 {
-   Matrix stiff = Lattice_->Stiffness();
+   Matrix stiff = Lattice_->E2();
    Matrix K(DOFS_-1,DOFS_-1,0.0);
    int a=0,b=0;
 
