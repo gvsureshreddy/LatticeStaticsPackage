@@ -256,7 +256,7 @@ void SetPerlCommand(char *string,const char *datafile,const char *prefix,const c
        "for $__i(0..@__R-1){print ($__R[$__i],\"\\n\");};"\
        "sub __findref {my($__prfx,$__tag,$__df) = @_; my($__fnd,$__reg); $__fnd=1;"\
        "$__reg = $__prfx . $__tag;"\
-       "open(__R,$__df); while (<__R>) {if (/$__reg/) {$__fnd=0; "\
+       "open(__R,$__df); while (<__R>) {if (/$__reg\\s*=\\s*/) {$__fnd=0; "\
        "$_=__deref($__prfx,$_,$__df); $_=~s/$__reg\\s*=\\s*//; return eval($_);}} "\
        "close(__R); if ($__fnd == 1) {exit $__fnd;}} sub __deref "\
        "{my($__prfx,$__fld,$__df)=@_; my($__t); while ($__fld =~ m/<([^>]+)>/g) "\
@@ -509,4 +509,140 @@ unsigned Rank1Convex2D(Matrix K,double dx)
    }
    
    return 1;
+}
+
+
+int pow(int a,int b);
+
+Matrix TranslationProjection1D(int N)
+{
+   int k=0;
+   int l=0;
+   int h,i, j, p, q, g, t;
+   double m, sum, x, y, R;
+   int count=0;
+   
+   Matrix u(N,N+1, 0);
+   // The following generates first column vector [1 0 0 0...0]
+   
+   u[k][0]=1;
+   for (h=1; h < N+1; h++)              
+   {
+      u[k][h]=0;
+   }
+   k=k+1; //Finishes first vector
+   
+   // The following generates floor(log2(N)) vectors with
+   // floor(double(N)/pow(2,(i+1))) entry pairs
+   
+   for (i=0; i < floor(log2(N));i++) // Generates floor(log2(N)) entry pairs
+   {
+      m =  floor(double(N)/pow(2,(i+1)));
+      q=0;
+      
+      for (j=0; j<m;j++) //generates floor(double(N)/pow(2,(i+1))) column vectors
+      {
+	 if (j==0)
+	 {
+	    sum=0;
+	    u[k][0]=0;
+	    q=2*j+1;
+	    
+	    for (p=0;p<pow(2,i);p++)
+	    {
+	       u[k][q]=1;
+	       sum = sum +pow(u[k][q],2);
+	       q=q+1;
+	    }
+	    
+	    for (p=0;p<pow(2,i);p++)
+	    {
+	       u[k][q]=-1;
+	       sum = sum +pow(u[k][q],2);
+	       q=q+1;
+	    }
+	    
+	    sum = sqrt(sum);
+	    
+	    for(h=0;h<N+1;h++)
+	    {											
+	       u[k][h]=u[k][h]/sum;	
+	    }
+	    
+	    k=k+1;
+	 }
+	 else
+	 {
+	    sum =0;
+	    
+	    for (p=0; p<pow(2,i);p++)
+	    {
+	       u[k][q]=1;
+	       sum = sum +pow(u[k][q],2);
+	       q=q+1;
+	    }
+            
+	    for (p=0; p<pow(2,i);p++)
+	    {
+	       u[k][q]=-1;
+	       sum = sum +pow(u[k][q],2);
+	       q=q+1;
+	    }
+            
+	    sum = sqrt(sum);
+	    
+	    for(h=0;h<N+1;h++)
+	    {
+	       u[k][h]=u[k][h]/sum;
+	    }
+	    
+	    k=k+1;
+	 }
+	 
+	 //Generates remainder column vectors
+	 R= N - ((floor(double(N)/(pow(2,(i+1)))))*pow(2,(i+1)));
+	 
+	 if (j==m-1 & R >= pow(2,i))
+	 {
+	    u[k][0]=0;
+	    sum = 0;
+	    
+	    for (g=0;g<(((pow(2,i))*2*(m)));g++)
+	    {
+	       u[k][g+1]=1;
+	       sum = sum +pow(u[k][g+1],2);
+	    }
+	    
+	    y=-(g)/pow(2,i);
+	    
+	    for (t=0;t<(pow(2,(i)));t++)
+	    {
+	       u[k][g+1]=y;
+	       sum = sum +pow(u[k][g+1],2);
+	       g=g+1;
+	    }
+	    
+	    sum = sqrt(sum);
+	    
+	    for(h=0;h<N+1;h++)
+	    {
+	       u[k][h]=u[k][h]/sum;
+	    }
+	    
+	    k=k+1;
+	 }
+      } // closes column vector (j) index
+   } //closes entry pair (i) index
+   
+   return u;
+}
+
+int pow(int a,int b)
+{
+   int c=1;
+   for (int i=0;i<b;i++)
+   {
+      c *= a;
+   }
+   return c;
 }

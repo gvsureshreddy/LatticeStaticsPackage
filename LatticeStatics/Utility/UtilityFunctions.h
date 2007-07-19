@@ -9,6 +9,7 @@
 #include <Matrix.h>
 #include <Vector.h>
 #include <MyMath.h>
+#include <SparseMatrix.h>
 
 using namespace std;
 
@@ -39,6 +40,8 @@ unsigned FullScanRank1Convex3D(Matrix K,double dx);
 unsigned FullScanRank1Convex2D(Matrix K,double dx);
 unsigned Rank1Convex3D(Matrix K,double dx);
 unsigned Rank1Convex2D(Matrix K,double dx);
+
+Matrix TranslationProjection1D(int N);
 
 static const double UtilityALT[3][3][3] = {0.0, 0.0, 0.0,
 					   0.0, 0.0, 1.0,
