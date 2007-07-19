@@ -1106,7 +1106,7 @@ Matrix MultiLatticeTPP::E4()
 
 Matrix MultiLatticeTPP::CondensedModuli()
 {
-   Matrix stiff = Stiffness();
+   Matrix stiff = stiffness();
    int intrn = DOFS-6;
    Matrix CM(6,6), IM(intrn,intrn);
    
@@ -1588,9 +1588,9 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
    static int W;
    static int NoNegEigVal;
    static double MinEigVal;
-   static double energy,entropy,heatcapacity;
+   static double engy,entropy,heatcapacity;
    static Matrix
-      stress(1,DOFS),
+      str(1,DOFS),
       stiff(DOFS,DOFS),
       EigenValues(1,DOFS),
       CondEV(1,6);
@@ -1607,11 +1607,11 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 
    NoNegEigVal=0;
 
-   energy = Energy();
+   engy = energy();
    entropy = Entropy();
    heatcapacity = HeatCapacity();
-   stress = Stress();
-   stiff = Stiffness();
+   str = stress();
+   stiff = stiffness();
    
    EigenValues=SymEigVal(stiff);
    MinEigVal = EigenValues[0][0];
@@ -1716,7 +1716,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 	 out << "Temperature (Ref Normalized): " << setw(W) << NTemp_ << endl
 	     << "Lambda (Normalized): " << setw(W) << Lambda_ << endl
 	     << "DOF's :" << endl << setw(W) << DOF_ << endl
-	     << "Potential Value (Normalized):" << setw(W) << energy << endl
+	     << "Potential Value (Normalized):" << setw(W) << engy << endl
 	     << "Entropy:" << setw(W) << entropy << endl
 	     << "HeatCapacity:" << setw(W) << heatcapacity << endl;
 	 for (int i=0;i<INTERNAL_ATOMS;++i)
@@ -1724,7 +1724,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 	    out << "BodyForce Value " << i << " (Inf Normalized):"
 		<< setw(W) << BodyForce_[i] << endl;
 	 }
-	 out << "Stress (Normalized):" << setw(W) << stress << endl
+	 out << "Stress (Normalized):" << setw(W) << str << endl
 	     << "Stiffness (Normalized):" << setw(W) << stiff
 	     << "Eigenvalue Info:"  << setw(W) << EigenValues
 	     << "Bifurcation Info:" << setw(W) << MinEigVal
@@ -1741,7 +1741,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 	    cout << "Temperature (Ref Normalized): " << setw(W) << NTemp_ << endl
 		 << "Lambda (Normalized): " << setw(W) << Lambda_ << endl
 		 << "DOF's :" << endl << setw(W) << DOF_ << endl
-		 << "Potential Value (Normalized):" << setw(W) << energy << endl
+		 << "Potential Value (Normalized):" << setw(W) << engy << endl
 		 << "Entropy:" << setw(W) << entropy << endl
 		 << "HeatCapacity:" << setw(W) << heatcapacity << endl;
 	    for (int i=0;i<INTERNAL_ATOMS;++i)
@@ -1749,7 +1749,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 	       cout << "BodyForce Value " << i << " (Inf Normalized):"
 		    << setw(W) << BodyForce_[i] << endl;
 	    }
-	    cout << "Stress (Normalized):" << setw(W) << stress << endl
+	    cout << "Stress (Normalized):" << setw(W) << str << endl
 		 << "Stiffness (Normalized):" << setw(W) << stiff
 		 << "Eigenvalue Info:"  << setw(W) << EigenValues
 		 << "Bifurcation Info:" << setw(W) << MinEigVal
@@ -1787,51 +1787,54 @@ ostream &operator<<(ostream &out,MultiLatticeTPP &A)
 void MultiLatticeTPP::DebugMode()
 {
    char *Commands[] = {
-      "INTERNAL_ATOMS",                // 0
-      "DOFS",                          // 1
-      "InfluenceDist_",                // 2
-      "NTemp_",                        // 3
-      "DOF_",                          // 4
-      "RefLattice_",                   // 5
-      "NormModulus_",                  // 6
-      "Lambda_",                       // 7
-      "BodyForce_",                    // 8
-      "AtomicMass_",                   // 9
-      "GridSize_",                     // 10
-      "Potential_",                    // 11
-      "ConvexityDX_",                  // 12
-      "stress",                        // 13
-      "stiffness",                     // 14
-      "CondensedModuli",               // 15
-      "ReferenceDispersionCurves",     // 16
-      "ReferenceBlochWave",            // 17
-      "ReferenceDynamicalStiffness",   // 18
-      "SetDOF",                        // 19
-      "StressDT",                      // 20
-      "StiffnessDT",                   // 21
-      "SetTemp",                       // 22
-      "SetInfluenceDist",              // 23
-      "Energy",                        // 24
-      "E3",                            // 25
-      "E4",                            // 26
-      "SetGridSize",                   // 27
-      "NeighborDistances",             // 28
-      "Print-short",                   // 29
-      "Print-long",                    // 30
-      "SetLambda",                     // 31
-      "StressDL",                      // 32
-      "StiffnessDL",                   // 33
-      "FindLatticeSpacing",            // 34
-      "ConsistencyCheck",              // 35
-      "dbg_",                          // 36
-      "RefineEqbm",                    // 37
-      "EulerAng_",                     // 38
-      "Rotation_",                     // 39
-      "Loading_",                      // 40
-      "PrintCrystal",                  // 41
-      "Entropy"                        // 42
+      "INTERNAL_ATOMS",
+      "DOFS",
+      "InfluenceDist_",
+      "NTemp_",
+      "DOF_",
+      "RefLattice_",
+      "NormModulus_",
+      "Lambda_",
+      "BodyForce_",
+      "AtomicMass_",
+      "GridSize_",
+      "Potential_",
+      "ConvexityDX_",
+      "stress",
+      "stiffness",
+      "CondensedModuli",
+      "ReferenceDispersionCurves",
+      "ReferenceBlochWave",
+      "ReferenceDynamicalStiffness",
+      "SetDOF",
+      "StressDT",
+      "StiffnessDT",
+      "SetTemp",
+      "SetInfluenceDist",
+      "energy",
+      "E0",
+      "E1",
+      "E2",
+      "E3",
+      "E4",
+      "SetGridSize",
+      "NeighborDistances",
+      "Print-short",
+      "Print-long",
+      "SetLambda",
+      "StressDL",
+      "StiffnessDL",
+      "FindLatticeSpacing",
+      "ConsistencyCheck",
+      "dbg_",
+      "RefineEqbm",
+      "EulerAng_",
+      "Rotation_",
+      "Loading_",
+      "PrintCrystal",
+      "Entropy"
    };
-   int NOcommands=43;
+   int NOcommands=45;
    
    char response[LINELENGTH];
    char prompt[] = "Debug > ";
@@ -1964,7 +1967,13 @@ void MultiLatticeTPP::DebugMode()
 	 SetInfluenceDist(dist);
       }
       else if (!strcmp(response,Commands[indx++]))
-	 cout << "Energy= " << Energy() << endl;
+	 cout << "energy= " << energy() << endl;
+      else if (!strcmp(response,Commands[indx++]))
+	 cout << "E0= " << E0() << endl;
+      else if (!strcmp(response,Commands[indx++]))
+	 cout << "E1= " << E1() << endl;
+      else if (!strcmp(response,Commands[indx++]))
+	 cout << "E2= " << E2() << endl;
       else if (!strcmp(response,Commands[indx++]))
 	 cout << "E3= " << setw(W) << E3();
       else if (!strcmp(response,Commands[indx++]))

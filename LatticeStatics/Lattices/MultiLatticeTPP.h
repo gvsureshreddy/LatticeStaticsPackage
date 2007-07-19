@@ -91,12 +91,13 @@ public:
    void SetTemp(const double &Ntemp) {NTemp_ = Ntemp; LatSum_.Recalc();}
    Matrix StressDL() {return stress(PairPotentials::T0,DL);}
    Matrix StiffnessDL() {return stiffness(PairPotentials::T0,DL);}
+   virtual Matrix E1DLoad() {return (LoadParameter_==Temperature)?StressDT():StressDL();}
    double Lambda() {return Lambda_;}
    void SetLambda(const double &lambda) {Lambda_ = lambda;}
 
-   virtual double Energy() {return energy();}
-   virtual Matrix Stress() {return stress();}
-   virtual Matrix Stiffness() {return stiffness();}
+   virtual double E0() {return energy();}
+   virtual Matrix E1() {return stress();}
+   virtual Matrix E2() {return stiffness();}
 
    virtual Matrix E3();
    virtual Matrix E4();
