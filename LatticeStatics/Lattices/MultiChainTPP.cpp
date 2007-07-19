@@ -143,7 +143,7 @@ MultiChainTPP::MultiChainTPP(char *datafile,const char *prefix,int Echo,int Widt
    }
    
    // Initiate the Lattice Sum object
-   ChainSum_(&DOF_,LagrangeCB_,&RefLattice_,INTERNAL_ATOMS,AtomPositions_,Potential_,
+   ChainSum_(&DOF_,LagrangeCB_,0,&RefLattice_,INTERNAL_ATOMS,AtomPositions_,Potential_,
 	     &InfluenceDist_,&NTemp_);
 
    int err=0;
@@ -757,7 +757,7 @@ Matrix MultiChainTPP::E4()
 
 Matrix MultiChainTPP::CondensedModuli()
 {
-   Matrix stiff = Stiffness();
+   Matrix stiff = stiffness();
    int intrn = DOFS-1;
    Matrix CM(1,1), IM(intrn,intrn);
    
@@ -1002,9 +1002,9 @@ void MultiChainTPP::Print(ostream &out,PrintDetail flag)
    static int W;
    static int NoNegEigVal;
    static double MinEigVal;
-   static double energy,entropy,heatcapacity;
+   static double engy,entropy,heatcapacity;
    static Matrix
-      stress(1,DOFS),
+      str(1,DOFS),
       stiff(DOFS,DOFS),
       EigenValues(1,DOFS),
       CondEV(1,1);
@@ -1021,11 +1021,11 @@ void MultiChainTPP::Print(ostream &out,PrintDetail flag)
 
    NoNegEigVal=0;
 
-   energy = Energy();
+   engy = energy();
    entropy = Entropy();
    heatcapacity = HeatCapacity();
-   stress = Stress();
-   stiff = Stiffness();
+   str = stress();
+   stiff = stiffness();
    
    EigenValues=SymEigVal(stiff);
    MinEigVal = EigenValues[0][0];
@@ -1124,7 +1124,7 @@ void MultiChainTPP::Print(ostream &out,PrintDetail flag)
 	 out << "Temperature (Ref Normalized): " << setw(W) << NTemp_ << endl
 	     << "Lambda (Normalized): " << setw(W) << Lambda_ << endl
 	     << "DOF's :" << endl << setw(W) << DOF_ << endl
-	     << "Potential Value (Normalized):" << setw(W) << energy << endl
+	     << "Potential Value (Normalized):" << setw(W) << engy << endl
 	     << "Entropy:" << setw(W) << entropy << endl
 	     << "HeatCapacity:" << setw(W) << heatcapacity << endl;
 	 for (int i=0;i<INTERNAL_ATOMS;++i)
@@ -1132,7 +1132,7 @@ void MultiChainTPP::Print(ostream &out,PrintDetail flag)
 	    out << "BodyForce Value " << i << " (Inf Normalized):"
 		<< setw(W) << BodyForce_[i] << endl;
 	 }
-	 out << "Stress (Normalized):" << setw(W) << stress << endl
+	 out << "Stress (Normalized):" << setw(W) << str << endl
 	     << "Stiffness (Normalized):" << setw(W) << stiff
 	     << "Eigenvalue Info:"  << setw(W) << EigenValues
 	     << "Bifurcation Info:" << setw(W) << MinEigVal
@@ -1148,7 +1148,7 @@ void MultiChainTPP::Print(ostream &out,PrintDetail flag)
 	    cout << "Temperature (Ref Normalized): " << setw(W) << NTemp_ << endl
 		 << "Lambda (Normalized): " << setw(W) << Lambda_ << endl
 		 << "DOF's :" << endl << setw(W) << DOF_ << endl
-		 << "Potential Value (Normalized):" << setw(W) << energy << endl
+		 << "Potential Value (Normalized):" << setw(W) << engy << endl
 		 << "Entropy:" << setw(W) << entropy << endl
 		 << "HeatCapacity:" << setw(W) << heatcapacity << endl;
 	    for (int i=0;i<INTERNAL_ATOMS;++i)
@@ -1156,7 +1156,7 @@ void MultiChainTPP::Print(ostream &out,PrintDetail flag)
 	       cout << "BodyForce Value " << i << " (Inf Normalized):"
 		    << setw(W) << BodyForce_[i] << endl;
 	    }
-	    cout << "Stress (Normalized):" << setw(W) << stress << endl
+	    cout << "Stress (Normalized):" << setw(W) << str << endl
 		 << "Stiffness (Normalized):" << setw(W) << stiff
 		 << "Eigenvalue Info:"  << setw(W) << EigenValues
 		 << "Bifurcation Info:" << setw(W) << MinEigVal
@@ -1194,46 +1194,49 @@ ostream &operator<<(ostream &out,MultiChainTPP &A)
 void MultiChainTPP::DebugMode()
 {
    char *Commands[] = {
-      "INTERNAL_ATOMS",                // 0
-      "DOFS",                          // 1
-      "InfluenceDist_",                // 2
-      "NTemp_",                        // 3
-      "DOF_",                          // 4
-      "RefLattice_",                   // 5
-      "NormModulus_",                  // 6
-      "Lambda_",                       // 7
-      "BodyForce_",                    // 8
-      "AtomicMass_",                   // 9
-      "GridSize_",                     // 10
-      "Potential_",                    // 11
-      "stress",                        // 12
-      "stiffness",                     // 13
-      "CondensedModuli",               // 14
-      "ReferenceDispersionCurves",     // 15
-      "ReferenceBlochWave",            // 16
-      "ReferenceDynamicalStiffness",   // 17
-      "SetDOF",                        // 18
-      "StressDT",                      // 19
-      "StiffnessDT",                   // 20
-      "SetTemp",                       // 21
-      "SetInfluenceDist",              // 22
-      "Energy",                        // 23
-      "E3",                            // 24
-      "E4",                            // 25
-      "SetGridSize",                   // 26
-      "NeighborDistances",             // 27
-      "Print-short",                   // 28
-      "Print-long",                    // 29
-      "SetLambda",                     // 30
-      "StressDL",                      // 31
-      "StiffnessDL",                   // 32
-      "FindLatticeSpacing",            // 33
-      "ConsistencyCheck",              // 34
-      "dbg_",                          // 35
-      "RefineEqbm",                    // 36
-      "Entropy"                        // 37
+      "INTERNAL_ATOMS",
+      "DOFS",
+      "InfluenceDist_",
+      "NTemp_",
+      "DOF_",
+      "RefLattice_",
+      "NormModulus_",
+      "Lambda_",
+      "BodyForce_",
+      "AtomicMass_",
+      "GridSize_",
+      "Potential_",
+      "stress",
+      "stiffness",
+      "CondensedModuli",
+      "ReferenceDispersionCurves",
+      "ReferenceBlochWave",
+      "ReferenceDynamicalStiffness",
+      "SetDOF",
+      "StressDT",
+      "StiffnessDT",
+      "SetTemp",
+      "SetInfluenceDist",
+      "energy",
+      "E0",
+      "E1",
+      "E2",
+      "E3",
+      "E4",
+      "SetGridSize",
+      "NeighborDistances",
+      "Print-short",
+      "Print-long",
+      "SetLambda",
+      "StressDL",
+      "StiffnessDL",
+      "FindLatticeSpacing",
+      "ConsistencyCheck",
+      "dbg_",
+      "RefineEqbm",
+      "Entropy"
    };
-   int NOcommands=38;
+   int NOcommands=41;
    
    char response[LINELENGTH];
    char prompt[] = "Debug > ";
@@ -1364,7 +1367,13 @@ void MultiChainTPP::DebugMode()
 	 SetInfluenceDist(dist);
       }
       else if (!strcmp(response,Commands[indx++]))
-	 cout << "Energy= " << Energy() << endl;
+	 cout << "energy= " << energy() << endl;
+      else if (!strcmp(response,Commands[indx++]))
+	 cout << "E0= " << setw(W) << E0();
+      else if (!strcmp(response,Commands[indx++]))
+	 cout << "E1= " << setw(W) << E1();
+      else if (!strcmp(response,Commands[indx++]))
+	 cout << "E2= " << setw(W) << E2();
       else if (!strcmp(response,Commands[indx++]))
 	 cout << "E3= " << setw(W) << E3();
       else if (!strcmp(response,Commands[indx++]))
