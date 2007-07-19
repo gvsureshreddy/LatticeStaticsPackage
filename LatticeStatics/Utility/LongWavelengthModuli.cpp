@@ -174,8 +174,8 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,const char *
 
 void RefineEquilibrium(Lattice *Lat,double Tol,int Width,int Echo)
 {
-   Vector S = -Lat->Stress();
-   Matrix K = Lat->Stiffness();
+   Vector S = -Lat->E1();
+   Matrix K = Lat->E2();
    Vector Du(S.Dim(),0.0);
    Vector u = Lat->DOF();
 
@@ -185,8 +185,8 @@ void RefineEquilibrium(Lattice *Lat,double Tol,int Width,int Echo)
       u += Du;
       
       Lat->SetDOF(u);
-      S = -Lat->Stress();
-      K = Lat->Stiffness();
+      S = -Lat->E1();
+      K = Lat->E2();
       if (Echo)
       {
 	 cout << setw(Width) << S.Norm() << endl;
