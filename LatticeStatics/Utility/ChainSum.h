@@ -31,6 +31,7 @@ private:
    unsigned Pairs_;
 
    double F_;
+   int Translations_;
    Vector V_;
    Matrix RelPosDATA_;
 
@@ -38,13 +39,13 @@ private:
    
 public:
    ChainSum() {}
-   ChainSum(Vector *DOF,int LagrangeCB,Matrix *RefLat,int InternalAtoms,
-	    Vector *InternalPOS,PairPotentials ***PairPot,double *InfluDist,
-	    double *Ntemp);
+   ChainSum(Vector *DOF,int LagrangeCB,int Translations,Matrix *RefLat,
+	    int InternalAtoms,Vector *InternalPOS,PairPotentials ***PairPot,
+	    double *InfluDist,double *Ntemp);
    ~ChainSum() {}
 
-   void operator()(Vector *DOF,int LagrangeCB,Matrix *RefLat,int InternalAtoms,
-		   Vector *InternalPOS,PairPotentials ***PairPot,
+   void operator()(Vector *DOF,int LagrangeCB,int Translations,Matrix *RefLat,
+		   int InternalAtoms,Vector *InternalPOS,PairPotentials ***PairPot,
 		   double *InfluDist,double *Ntemp);
 
    void Reset();

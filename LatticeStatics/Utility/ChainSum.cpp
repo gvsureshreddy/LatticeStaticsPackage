@@ -6,23 +6,25 @@ int CHAINSUMind(double i,double j);
 
 using namespace std;
 
-ChainSum::ChainSum(Vector *DOF,int LagrangeCB,Matrix *RefLat,int InternalAtoms,
-		   Vector *InternalPOS,PairPotentials ***PairPot,double *InfluDist,
-		   double *Ntemp)
-   : DOF_(DOF),LagrangeCB_(LagrangeCB),RefLattice_(RefLat),InternalAtoms_(InternalAtoms),
-     Ntemp_(Ntemp),InternalPOS_(InternalPOS),Potential_(PairPot),InfluanceDist_(InfluDist),
-     V_(InternalAtoms),Recalc_(0),CurrentPOS_(0),Pairs_(0),
+ChainSum::ChainSum(Vector *DOF,int LagrangeCB,int Translations,Matrix *RefLat,
+		   int InternalAtoms,Vector *InternalPOS,PairPotentials ***PairPot,
+		   double *InfluDist,double *Ntemp)
+   : DOF_(DOF),LagrangeCB_(LagrangeCB),Translations_(Translations),RefLattice_(RefLat),
+     InternalAtoms_(InternalAtoms),Ntemp_(Ntemp),InternalPOS_(InternalPOS),
+     Potential_(PairPot),InfluanceDist_(InfluDist),V_(InternalAtoms),Recalc_(0),
+     CurrentPOS_(0),Pairs_(0),
      RelPosDATA_(int(2*(*InfluDist)*InternalAtoms*InternalAtoms),CHAINSUMdatalen)
 {
    Initialize();
 }
 
-void ChainSum::operator()(Vector *DOF,int LagrangeCB,Matrix *RefLat,int InternalAtoms,
-		       Vector *InternalPOS,PairPotentials ***PairPot,
-		       double *InfluDist,double *Ntemp)
+void ChainSum::operator()(Vector *DOF,int LagrangeCB,int Translations,Matrix *RefLat,
+			  int InternalAtoms,Vector *InternalPOS,PairPotentials ***PairPot,
+			  double *InfluDist,double *Ntemp)
 {
    DOF_ = DOF;
    LagrangeCB_ = LagrangeCB;
+   Translations_ = Translations;
    RefLattice_ = RefLat;
    InternalAtoms_= InternalAtoms;
    InternalPOS_ = InternalPOS;
@@ -59,11 +61,20 @@ void ChainSum::Initialize()
 
    F_ = (*DOF_)[0];
 
-   V_[0] = 0.0;
-
-   for (q=1;q<InternalAtoms_;++q)
+   if (Translations_)
    {
-      V_[q] = (*DOF_)[q];
+      for (q=0;q<InternalAtoms_;++q)
+      {
+	 V_[q] = (*DOF_)[q+1];
+      }
+   }
+   else
+   {
+      V_[0] = 0.0;
+      for (q=1;q<InternalAtoms_;++q)
+      {
+	 V_[q] = (*DOF_)[q];
+      }
    }
 
    // Set to inverse eigenvalue
