@@ -1,13 +1,24 @@
 #include "Lattice.h"
 #include "UtilityFunctions.h"
 
+void Lattice::SetLoadParameter(const double &load)
+{
+   if (LoadParameter_==Temperature)
+   {
+      SetTemp(load);
+   }
+   else
+   {
+      SetLambda(load);
+   }
+}
 
 int Lattice::StiffnessNulity(double *Min)
 {
    int NoNegEigVal = 0;
    int index = 0;
 
-   Matrix EigenValues=SymEigVal(Stiffness());
+   Matrix EigenValues=SymEigVal(E2());
    int dofs=EigenValues.Cols();
 
    if (Min != NULL) *Min = fabs(EigenValues[0][0]);
@@ -38,7 +49,7 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
    
    Matrix 
       D3=E3(),
-      D2=Stiffness(),
+      D2=E2(),
       D2T(D2.Rows(),D2.Cols()),
       D1T(1,D2.Cols()),
       EigVec,
@@ -499,19 +510,19 @@ void Lattice::ConsistencyCheck(double ConsistencyEpsilon,int Width,ostream &out)
    for (int i=0;i<70;i++) out << "="; out << endl;
    out << "Consistency Check." << endl;
 
-   Force = ConsistencyEpsilon*Stress();
+   Force = ConsistencyEpsilon*E1();
 
-   cout << "For Stiffness (1-yes,0-no) :"; cin >> Do2;
+   cout << "For E2 (1-yes,0-no) :"; cin >> Do2;
    cout << "For E3 (1-yes,0-no) :"; cin >> Do3;
    cout << "For E4 (1-yes,0-no) :"; cin >> Do4;
 
-   if (Do2) Stiff = ConsistencyEpsilon*Stiffness();
+   if (Do2) Stiff = ConsistencyEpsilon*E2();
    if (Do3) D3 = ConsistencyEpsilon*E3();
    if (Do4) D4 = ConsistencyEpsilon*E4();
 
-   potential = Energy();
-   if (Do2) stress1 = Stress();
-   if (Do3) stiff1 = Stiffness();
+   potential = E0();
+   if (Do2) stress1 = E1();
+   if (Do3) stiff1 = E2();
    if (Do4) d31 = E3();
    for (int i=0;i<Dim;++i)
    {
@@ -520,9 +531,9 @@ void Lattice::ConsistencyCheck(double ConsistencyEpsilon,int Width,ostream &out)
       pert[i]=1.0;
       SetDOF(OriginalState+ConsistencyEpsilon*pert);
       // Get Check
-      PerturbedForce[i] = Energy() - potential;
-      if (Do2) stress2 = Stress();
-      if (Do3) stiff2 = Stiffness();
+      PerturbedForce[i] = E0() - potential;
+      if (Do2) stress2 = E1();
+      if (Do3) stiff2 = E2();
       if (Do4) d32 = E3();
       for (int j=0;j<Dim;j++)
       {
@@ -552,16 +563,16 @@ void Lattice::ConsistencyCheck(double ConsistencyEpsilon,int Width,ostream &out)
    // Print out the facts
    if (Echo_)
    {
-      cout << "Stress(U) * Epsilon" << endl;
+      cout << "E1(U) * Epsilon" << endl;
       cout << setw(Width) << Force << endl;
-      cout << "Stress(U + Epsilon*Vj)" << endl;
+      cout << "E1(U + Epsilon*Vj)" << endl;
       cout << setw(Width) << PerturbedForce << endl;
 
       if (Do2)
       {
-	 cout << "Stiff(U)*Epsilon" << endl;
+	 cout << "E2(U)*Epsilon" << endl;
 	 cout << setw(Width) << Stiff << endl;
-	 cout << "Stiff(U + Epsilon*Vj)" << endl;
+	 cout << "E2(U + Epsilon*Vj)" << endl;
 	 cout << setw(Width) << PerturbedStiff << endl;
       }
 
@@ -588,16 +599,16 @@ void Lattice::ConsistencyCheck(double ConsistencyEpsilon,int Width,ostream &out)
       if (Do4) cout << setw(Width) << D4 - PerturbedD4 << endl;
    }
  
-   out << "Stress(U) * Epsilon" << endl;
+   out << "E1(U) * Epsilon" << endl;
    out << setw(Width) << Force << endl;
-   out << "Stress(U + Epsilon*Vj)" << endl;
+   out << "E1(U + Epsilon*Vj)" << endl;
    out << setw(Width) << PerturbedForce << endl;
 
    if (Do2)
    {
-      out << "Stiff(U)*Epsilon" << endl;
+      out << "E2(U)*Epsilon" << endl;
       out << setw(Width) << Stiff << endl;
-      out << "Stiff(U + Epsilon*Vj)" << endl;
+      out << "E2(U + Epsilon*Vj)" << endl;
       out << setw(Width) << PerturbedStiff << endl;
    }
 

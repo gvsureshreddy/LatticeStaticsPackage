@@ -35,14 +35,12 @@ public:
    virtual Matrix StiffnessDL() = 0;
    virtual double Lambda() = 0;
    virtual void SetLambda(const double &lambda) = 0;
+   void SetLoadParameter(const double &load);
    
-   
-   virtual double Energy() = 0;
-   double E0() {return Energy();}
-   virtual Matrix Stress() = 0;
-   Matrix E1() {return Stress();}
-   virtual Matrix Stiffness() = 0;
-   Matrix E2() {return Stiffness();}
+   virtual double E0() = 0;
+   virtual Matrix E1() = 0;
+   virtual Matrix E1DLoad() = 0;
+   virtual Matrix E2() = 0;
    virtual Matrix E3() = 0;
    virtual Matrix E4() = 0;
    virtual int StiffnessNulity(double *Min=NULL);
