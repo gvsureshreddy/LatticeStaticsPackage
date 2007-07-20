@@ -283,11 +283,14 @@ double MultiChainTTPP::LAMDA(int p,int q,int i,int j)
 
 double MultiChainTTPP::E0()
 {
-   static double E0;
+   static double E0,Tsq;
    E0 = energy();
-   for (int i=1;i<DOFS;++i) E0+=0.5*DOF_[i]*DOF_[i];
+   Tsq=0;
    
-   return E0;
+   for (int i=0;i<INTERNAL_ATOMS;++i) Tsq+=DOF_[i+1];
+   Tsq = (Tsq*Tsq)/INTERNAL_ATOMS;
+   
+   return E0 + 0.5*Tsq;
 }
 
 double MultiChainTTPP::energy(PairPotentials::TDeriv dt)
@@ -341,9 +344,12 @@ Matrix MultiChainTTPP::E1()
 {
    static Matrix E1(1,DOFS,0.0);
    static Matrix Trans(1,DOFS,0.0);
+   static double T;
    E1 = stress();
-   Trans[0][0]=0;
-   for (int i=1;i<DOFS;++i) Trans[0][i]=DOF_[i];
+   T=0.0;
+   for (int i=0;i<INTERNAL_ATOMS;++i) T+=DOF_[i+1];
+   T=T/INTERNAL_ATOMS;
+   for (int i=1;i<DOFS;++i) Trans[0][i]=T;
    
    return E1 + Trans;
 }
