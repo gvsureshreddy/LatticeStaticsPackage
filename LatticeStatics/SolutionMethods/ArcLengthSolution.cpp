@@ -300,6 +300,7 @@ double ArcLengthSolution::ArcLengthNewton(int &good)
 
    Vector Dx(Dim),
       RHS(Dim);
+   Matrix stif(Dim,Dim);
 
    // Predictor step
    Mode_->ArcLenUpdate(Difference_);
@@ -309,21 +310,23 @@ double ArcLengthSolution::ArcLengthNewton(int &good)
 		  << "ArcLenNewton: Number of Iterations --\n";
 
    RHS = -Mode_->ArcLenForce(CurrentDS_,Difference_,Aspect_);
+   stif=Mode_->ArcLenStiffness(Difference_,Aspect_);
    do
    {
       itr++;
 
 #ifdef SOLVE_SVD
       Dx = SolveSVD(
-	 Mode_->ArcLenStiffness(Difference_,Aspect_),
+	 stif,
 	 RHS,MAXCONDITION,Echo_);
 #else
-      Dx = SolvePLU(Mode_->ArcLenStiffness(Difference_,Aspect_),RHS);
+      Dx = SolvePLU(stif,RHS);
 #endif
 
       Mode_->ArcLenUpdate(Dx);
       Difference_ += Dx;
       RHS = -Mode_->ArcLenForce(CurrentDS_,Difference_,Aspect_);
+      stif=Mode_->ArcLenStiffness(Difference_,Aspect_);
 
       if (Echo_) cout << itr << "(" << setw(20)
 		      << Mode_->ScanningStressParameter() << ","
