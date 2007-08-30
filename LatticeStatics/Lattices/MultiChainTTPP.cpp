@@ -130,7 +130,7 @@ MultiChainTTPP::MultiChainTTPP(char *datafile,const char *prefix,int Echo,int Wi
    if(!GetParameter(prefix,"BlochWaveGridSize",datafile,"%u",&GridSize_)) exit(-1);
 
    //set LagrangeCB_
-   const char *CBKin[] = {"LagrangeCB","EulerCB"};
+   const char *CBKin[] = {"LagrangeCB","MixedCB"};
    switch (GetStringParameter(prefix,"CBKinematics",datafile,CBKin,2,0))
    {
       case 1:
