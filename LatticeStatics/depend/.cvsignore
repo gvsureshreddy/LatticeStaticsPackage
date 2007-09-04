@@ -17,11 +17,14 @@ UtilityFunctions.d
 CBKinematics.d
 ChainIterator.d
 ChainSum.d
-LagrangeCB.d
 MultiChainTPP.d
 MultiChainTTPP.d
+LagrangeCB.d
 MixedCB.d
 EulerCB.d
+SymLagrangeCB.d
+SymMixedCB.d
+SymEulerCB.d
 Dobson.d
 LJCutoff.d
 RadiiMorse2.d
