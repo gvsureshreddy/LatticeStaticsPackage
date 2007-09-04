@@ -24,9 +24,12 @@ endif
 
 ifeq ($(UNAME),Linux)
    # PGI compiler
-   CC         = pgCC
-   OPTIMIZE   = -fast -Minline=levels:10 --no_exceptions
+   #CC         = pgCC
+   #OPTIMIZE   = -fast -Minline=levels:10 --no_exceptions
    #ANSI       = -A
+   CC	= $(gCC)
+   OPTIMIZE = -O
+   ANSI	= -pedantic
 endif
 
 # general options
@@ -49,7 +52,7 @@ SUBDIRS    = Lattices Modes SolutionMethods Potentials Utility
 
 # Defines the source files needed #########################################
 include $(addsuffix /Makefile, $(SUBDIRS))
-SOURCES  = LatticeStatics.cpp\
+SOURCES  = ./LatticeStatics.cpp\
 	   $(addprefix Lattices/,$(LATTICES))\
 	   $(addprefix Modes/,$(MODES))\
 	   $(addprefix SolutionMethods/,$(SOLUTIONMETHODS))\
@@ -82,7 +85,7 @@ include $(addprefix depend/,$(OBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 $(OBJECTS): Makefile
 	$(CC) $(CCFLAGS) -I. $(addprefix -I ,$(SUBDIRS)) -I $(INCL_LOC)/ \
         -o ./lib/$(notdir $@) \
-        -c $(filter %$(*),$(basename $(SOURCES)))$(SRC_EXT)
+        -c $(filter %/$(*),$(basename $(SOURCES)))$(SRC_EXT)
 
 
 
