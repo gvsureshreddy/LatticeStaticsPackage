@@ -12,5 +12,8 @@ ChainSum.d
 LagrangeCB.d
 MixedCB.d
 EulerCB.d
+SymLagrangeCB.d
+SymMixedCB.d
+SymEulerCB.d
 PrintPotentials.d
 EnergyLandscape.d

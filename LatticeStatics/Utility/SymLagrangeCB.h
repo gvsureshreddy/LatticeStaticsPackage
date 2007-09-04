@@ -1,5 +1,5 @@
-#ifndef __LagrangeCB
-#define __LagrangeCB
+#ifndef __SymLagrangeCB
+#define __SymLagrangeCB
 
 #include <Matrix.h>
 #include <Vector.h>
@@ -7,13 +7,13 @@
 
 using namespace std;
 
-class LagrangeCB: public CBKinematics
+class SymLagrangeCB: public CBKinematics
 {
 private:
    
 public:
-   LagrangeCB(Vector *DOF,Matrix *RefLat,int InternalAtoms,Vector *InternalPOS);
-   virtual ~LagrangeCB() {};
+   SymLagrangeCB(Vector *DOF,Matrix *RefLat,int InternalAtoms,Vector *InternalPOS);
+   virtual ~SymLagrangeCB() {};
 
    virtual void Reset();
 
@@ -29,7 +29,7 @@ public:
    virtual double D3yDSSF(int p,int q,int i,int j,int k,int l,int m,int n);
    virtual double D4yDFFSS(int p,int q,int i,int j,int k,int l,int m,int n,int a,int b);
 
-   virtual char *IDString() {return "LagrangeCB";}
+   virtual char *IDString() {return "SymLagrangeCB";}
 };
 
 #endif
