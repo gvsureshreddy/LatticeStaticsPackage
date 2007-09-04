@@ -4,9 +4,9 @@
 #include "Lattice.h"
 #include "UnitCellIterator.h"
 #include "CBKinematics.h"
-#include "LagrangeCB.h"
-#include "MixedCB.h"
-#include "EulerCB.h"
+#include "SymLagrangeCB.h"
+#include "SymMixedCB.h"
+#include "SymEulerCB.h"
 #include "PPSum.h"
 #include "KnownPairPotentials.h"
 #include <CMatrix.h>
@@ -24,6 +24,7 @@ private:
    double InfluenceDist_;
    double NTemp_;
    // DOF[i] = [U11 U22 U33 U12 U13 U23 V11 V12 V13 V21... ...]
+   // i.e., using SymXXXXXCB 
    Vector DOF_;
    Matrix RefLattice_;
    double NormModulus_;
