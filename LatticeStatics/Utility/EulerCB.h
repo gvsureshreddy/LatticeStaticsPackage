@@ -27,7 +27,7 @@ public:
    virtual double D2yDFS(double *Dx,double *DX,int p,int q,int i,int j,int k,int l);
    virtual double D3yDFFS(double *DX,int p,int q,int i,int j,int k,int l,int m,int n);
    virtual double D3yDSSF(int p,int q,int i,int j,int k,int l,int m,int n);
-   virtual double D4yDFSS(int p,int q,int i,int j,int k,int l,int m,int n,int a,int b);
+   virtual double D4yDFFSS(int p,int q,int i,int j,int k,int l,int m,int n,int a,int b);
 
    virtual char *IDString() {return "EulerCB";}
 

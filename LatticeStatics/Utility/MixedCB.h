@@ -25,7 +25,7 @@ public:
    virtual double DyDS(double *Dx,int p,int q,int i,int j);
    virtual double D2yDSS(int p,int q,int i,int j,int k, int l);
    virtual double D2yDFS(double *Dx,double *DX,int p,int q,int i,int j,int k,int l);
-   virtual double D3yDFS(double *DX,int p,int q,int i,int j,int k,int l,int m,int n);
+   virtual double D3yDFFS(double *DX,int p,int q,int i,int j,int k,int l,int m,int n);
    virtual double D3yDSSF(int p,int q,int i,int j,int k,int l,int m,int n);
    virtual double D4yDFFSS(int p,int q,int i,int j,int k,int l,int m,int n,int a,int b);
 
