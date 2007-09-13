@@ -393,16 +393,38 @@ int main()
 
    QR(AA,Q,R);
 
+   cout << "Test QR" << endl;
+
    cout << "A" << endl << setw(20) << AA << endl;
 
    cout << "Q" << endl << setw(20) << Q  << endl;
 
    cout << "R" << endl << setw(20) << R << endl;
-   
+
    Z = Q*R;
 
    cout << "A=Q*R" << endl << setw(20) << Z << endl;
   
+   I=Q*Q.Transpose();
+  
+   cout << "I=Q*Q^T" << endl << setw(20) << I << endl;
+
+   QR(AA,Q,R,1);
+
+   cout << "Test QR with A transpose" << endl;
+
+   cout << "A" << endl << setw(20) << AA << endl;
+
+   cout << "Q" << endl << setw(20) << Q  << endl;
+
+   cout << "R" << endl << setw(20) << R << endl;
+
+   Z.Resize(4,3);
+   Z = Q*R;
+
+   cout << "A=Q*R" << endl << setw(20) << Z << endl;
+
+   I.Resize(4,4);
    I=Q*Q.Transpose();
   
    cout << "I=Q*Q^T" << endl << setw(20) << I << endl;

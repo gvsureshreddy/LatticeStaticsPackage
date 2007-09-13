@@ -6,7 +6,7 @@
 #include <cstdlib>
 
 // Global IDString
-char MatrixID[]="$Id: Matrix.cpp,v 1.17 2007/02/19 14:32:13 elliott Exp $";
+char MatrixID[]="$Id: Matrix.cpp,v 1.18 2007/09/13 17:48:03 elliott Exp $";
 
 // Private Methods...
 
@@ -550,37 +550,63 @@ void PLU(const Matrix& A,Matrix& P,Matrix& L,Matrix& U)
    return;
 }
 
-void QR(const Matrix& A,Matrix& Q,Matrix& R)
+// find QR factorization of A or A.Transpose()
+void QR(const Matrix& A,Matrix& Q,Matrix& R,int CalcTranspose)
 {
    int i,j,k,m,n;
    Matrix::Elm c,s,r,A1,A2;
-   m=A.Rows_;
-   n=A.Cols_;
-   R=A;
-   Q.SetIdentity(m);  
+
+   if (CalcTranspose)
+   {
+      m=A.Cols_;
+      n=A.Rows_;
+   }
+   else
+   {
+      m=A.Rows_;
+      n=A.Cols_;
+   }
+
+   //initialize R and Q
+   R.Resize(m,n);
+   for (i=0;i<m;++i)
+   {
+      for (j=0;j<n;++j)
+      {
+	 if (CalcTranspose)
+	    R[i][j] = A[j][i];
+	 else
+	    R[i][j] = A[i][j];
+      }
+   }
+   Q.SetIdentity(m);
+
+   //Perform Givens rotations
    for (j=0;j<m-1;j++)
-       {
-         for (i=m-1;i>=j+1;i--)
-             {
-                c=R[i-1][j];
-                s=R[i][j];
-                r=sqrt(c*c+s*s);
-                c=c/r;s=s/r;
-                for (k=0;k<m;k++)
-                    {
-                        A1 = Q[k][i-1]*c+Q[k][i]*s;
-                        A2 = Q[k][i]*c-s*Q[k][i-1];
-                        Q[k][i-1] = A1;
-                        Q[k][i]   = A2;
-                    }
-                for (k=j;k<n;k++)
-                    {
-                        A1 = Matrix::Elm(R[i-1][k]*c+R[i][k]*s);
-                        A2 = Matrix::Elm(R[i][k]*c-R[i-1][k]*s);
-                        R[i-1][k]=A1;R[i][k]=A2;
-                    }
-             }
-       }
+   {
+      for (i=m-1;i>=j+1;i--)
+      {
+	 c=R[i-1][j];
+	 s=R[i][j];
+	 r=sqrt(c*c+s*s);
+	 c=c/r;
+	 s=s/r;
+	 for (k=0;k<m;k++)
+	 {
+	    A1 = Q[k][i-1]*c+Q[k][i]*s;
+	    A2 = Q[k][i]*c-s*Q[k][i-1];
+	    Q[k][i-1] = A1;
+	    Q[k][i]   = A2;
+	 }
+	 for (k=j;k<n;k++)
+	 {
+	    A1 = R[i-1][k]*c+R[i][k]*s;
+	    A2 = R[i][k]*c-R[i-1][k]*s;
+	    R[i-1][k]=A1;
+	    R[i][k]=A2;
+	 }
+      }
+   }
    return;
 }
 
