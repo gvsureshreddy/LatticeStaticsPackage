@@ -9,7 +9,7 @@
 #include <cstdlib>
 
 // Global IDString
-char SparseMatrixID[]="$Id: SparseMatrix.cpp,v 1.1 2007/04/30 15:05:14 elliott Exp $";
+char SparseMatrixID[]="$Id: SparseMatrix.cpp,v 1.2 2007/09/14 13:43:17 elliott Exp $";
 
 SparseMatrix::SparseMatrix(const Matrix& A)
 {
@@ -516,7 +516,50 @@ Vector operator*(const Vector& A, const SparseMatrix& B)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+SparseMatrix& SparseMatrix::operator=(const Matrix& A)
+{
+//This counts the number of nonzero entries
+   
+   int i,j=0;
+   int k=0;
+   int count=0;
+   
+   Rows_=A.Rows();
+   Cols_=A.Cols();
+   
+   for(i=0; i<Rows_;i++)
+   {
+      for(j=0;j<Cols_;j++)
+      {
+	 if(A[i][j]!=0)
+	 {
+	    ++count;
+	 }
+      }
+   }
+   NoNonZero_ = count;
+	
+   Row_id_ = new int[NoNonZero_];
+   Column_id_ = new int[NoNonZero_];
+   Nonzero_entry_ = new Elm[NoNonZero_];
 
+   for(i=0; i<Rows_;i++)
+   {
+      for(j=0;j<Cols_;j++)
+      {
+	 if(A[i][j]!=0)
+	 {
+	    Row_id_[k] = i;
+	    Column_id_[k] = j;
+	    Nonzero_entry_[k] = A[i][j];
+	    k=k+1;
+	 }
+      }
+   } 		
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
 SparseMatrix SparseMatrix::Transpose() const
 {
    SparseMatrix B(NoNonZero_,Cols_,Rows_);

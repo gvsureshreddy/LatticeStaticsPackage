@@ -19,7 +19,8 @@ class SparseMatrix
 public:
    typedef double Elm;
 
-protected:
+//protected:
+public:
    unsigned NoNonZero_;
    unsigned Rows_;
    unsigned Cols_;
@@ -66,6 +67,11 @@ public:
    friend Vector3D operator*(const SparseMatrix& A,const Vector3D& B);
    friend Vector3D operator*(const Vector3D& A,const SparseMatrix& B);
 	
+
+   //Assignment Operators
+   SparseMatrix& operator=(const Matrix& A);
+   
+   
    //Miscellaneous Matrix operations
    SparseMatrix Transpose() const;
    friend SparseMatrix SparseIdentity(int Size);
