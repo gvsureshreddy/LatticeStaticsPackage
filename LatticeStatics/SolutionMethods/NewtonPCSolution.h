@@ -16,7 +16,8 @@ private:
    int CurrentSolution_;
    int Echo_;
    int NumSolutions_;
-   double h;
+
+   // other parameters?
    
 public:
    NewtonPCSolution(LatticeMode *Mode,char *datafile,const char *prefix,const Vector &one,
@@ -28,10 +29,6 @@ public:
    // Functions required by SolutionMethod
    virtual int AllSolutionsFound();
    virtual double FindNextSolution(int &good);
-   virtual Vector Force(Vector &D);
-   virtual double Norm(Vector &D);
-   virtual Vector tang(Vector &D);
-   virtual Matrix MPI(Vector &D);
    virtual int BisectAlert(Lattice *Lat,char *datafile,const char *prefix,
 			   int Width,fstream &out);
    
