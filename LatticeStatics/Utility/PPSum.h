@@ -42,7 +42,7 @@ public:
 		   double *InfluDist,double *Ntemp);
 
    void Reset();
-   void Recalc() {CBK_->Reset(); Recalc_ = 1;}
+   void Recalc() {Recalc_ = 1;}
    int Done() {return CurrentPOS_ >= Pairs_;}
    void operator++() {++CurrentPOS_;}
    

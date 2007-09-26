@@ -10,13 +10,15 @@ using namespace std;
 class MixedCB: public CBKinematics
 {
 private:
+   virtual void Reset();
    
 public:
-   MixedCB(Vector *DOF,Matrix *RefLat,int InternalAtoms,Vector *InternalPOS);
+   MixedCB(int InternalAtoms,const char* prefix,const char* datafile);
    virtual ~MixedCB() {};
 
-   virtual void Reset();
+   #include "FwithTransMapping.def"
 
+   virtual Vector FractionalPosVec(int p);
    virtual double DX(double *X,int p,int q,int i);
    virtual double Dx(double *X,int p,int q,int i);
 

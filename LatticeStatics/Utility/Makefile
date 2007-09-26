@@ -1,11 +1,11 @@
 UTILITY  = UtilityFunctions.cpp\
 	 CBKinematics.cpp\
+	 EulerCB.cpp\
 	 LagrangeCB.cpp\
 	 MixedCB.cpp\
-	 EulerCB.cpp\
+	 SymEulerCB.cpp\
 	 SymLagrangeCB.cpp\
 	 SymMixedCB.cpp\
-	 SymEulerCB.cpp\
 	 UnitCellIterator.cpp\
 	 ChainIterator.cpp\
 	 PPSum.cpp\

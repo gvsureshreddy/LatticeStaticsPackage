@@ -10,13 +10,15 @@ using namespace std;
 class LagrangeCB: public CBKinematics
 {
 private:
+   virtual void Reset();
    
 public:
-   LagrangeCB(Vector *DOF,Matrix *RefLat,int InternalAtoms,Vector *InternalPOS);
+   LagrangeCB(int InternalAtoms,const char* prefix,const char* datafile);
    virtual ~LagrangeCB() {};
 
-   virtual void Reset();
+   #include "FwithTransMapping.def"
 
+   virtual Vector FractionalPosVec(int p);
    virtual double DX(double *X,int p,int q,int i);
    virtual double Dx(double *X,int p,int q,int i);
 

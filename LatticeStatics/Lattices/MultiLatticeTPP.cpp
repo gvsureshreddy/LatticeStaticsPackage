@@ -17,7 +17,6 @@ MultiLatticeTPP::~MultiLatticeTPP()
    delete [] SpeciesPotential_;
    delete [] Potential_[0];
    delete [] Potential_;
-   delete [] AtomPositions_;
    delete CBK_;
 }
 
@@ -28,36 +27,36 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
    // Get Lattice definition
    char tmp[LINELENGTH];
    if(!GetParameter(prefix,"InternalAtoms",datafile,"%u",&INTERNAL_ATOMS)) exit(-1);
-   DOFS = 6 + 3*(INTERNAL_ATOMS-1);
-   if (DOFMAX < DOFS)
+   
+   // Initiate the CBK object (default to SymLagrangeCB)
+   const char *CBKin[] = {"SymLagrangeCB","SymMixedCB","SymEulerCB",
+			  "LagrangeCB","MixedCB","EulerCB"};
+   switch (GetStringParameter(prefix,"CBKinematics",datafile,CBKin,6,0))
    {
-      cerr << "Error (MultiLatticeTPP()): DOFMAX < " << DOFS << " in Lattice.h" << endl;
+      case 5:
+	 CBK_ = new EulerCB(INTERNAL_ATOMS,prefix,datafile);
+	 break;
+      case 4:
+	 CBK_ = new MixedCB(INTERNAL_ATOMS,prefix,datafile);
+	 break;
+      case 3:
+	 CBK_ = new LagrangeCB(INTERNAL_ATOMS,prefix,datafile);
+	 break;
+      case 2:
+	 CBK_ = new SymEulerCB(INTERNAL_ATOMS,prefix,datafile);
+	 break;
+      case 1:
+	 CBK_ = new SymMixedCB(INTERNAL_ATOMS,prefix,datafile);
+	 break;
+      case 0:
+      default:
+	 CBK_ = new SymLagrangeCB(INTERNAL_ATOMS,prefix,datafile);
+   }
+   
+   if (DOFMAX < CBK_->DOFS())
+   {
+      cerr << "Error (MultiLatticeTPP()): DOFMAX < " << CBK_->DOFS() << " in Lattice.h" << endl;
       exit(-5);
-   }
-   
-   // Set RefLattice_
-   RefLattice_.Resize(DIM3,DIM3);
-   Vector hold(DIM3);
-   for (int i=0;i<DIM3;++i)
-   {
-      sprintf(tmp,"LatticeBasis_%u",i);
-      if(!GetVectorParameter(prefix,tmp,datafile,&hold)) exit(-1);
-      for (int j=0;j<DIM3;++j)
-      {
-	 RefLattice_[i][j] = hold[j];
-      }
-   }
-   
-   // First Size DOF
-   DOF_.Resize(DOFS,0.0);
-   DOF_[0]=DOF_[1]=DOF_[2] = 1.0;
-   // Set AtomPositions_
-   AtomPositions_ = new Vector[INTERNAL_ATOMS];
-   for (int i=0;i<INTERNAL_ATOMS;++i)
-   {
-      AtomPositions_[i].Resize(DIM3);
-      sprintf(tmp,"AtomPosition_%u",i);
-      if(!GetVectorParameter(prefix,tmp,datafile,&(AtomPositions_[i]))) exit(-1);
    }
    
    // Setup Bodyforce_
@@ -169,22 +168,6 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
    if(!GetParameter(prefix,"MaxIterations",datafile,"%u",&iter)) exit(-1);
    if(!GetParameter(prefix,"BlochWaveGridSize",datafile,"%u",&GridSize_)) exit(-1);
 
-   // Initiate the CBK object (default to SymLagrangeCB)
-   const char *CBKin[] = {"SymLagrangeCB","SymMixedCB","SymEulerCB"};
-   switch (GetStringParameter(prefix,"CBKinematics",datafile,CBKin,3,0))
-   {
-      case 2:
-	 CBK_ = new SymEulerCB(&DOF_,&RefLattice_,INTERNAL_ATOMS,AtomPositions_);
-	 break;
-      case 1:
-	 CBK_ = new SymMixedCB(&DOF_,&RefLattice_,INTERNAL_ATOMS,AtomPositions_);
-	 break;
-      case 0:
-      default:
-	 CBK_ = new SymLagrangeCB(&DOF_,&RefLattice_,INTERNAL_ATOMS,AtomPositions_);
-	 break;
-   }
-   
    // Initiate the Lattice Sum object
    LatSum_(CBK_,INTERNAL_ATOMS,Potential_,&InfluenceDist_,&NTemp_);
 
@@ -215,6 +198,8 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
 
    // Initiate the Unit Cell Iterator for Bloch wave calculations.
    UCIter_(GridSize_);
+
+   // enter debug mode if requested
    if (dbg_)
    {
       if (EnterDebugMode())
@@ -230,12 +215,8 @@ int MultiLatticeTPP::FindLatticeSpacing(char *datafile,const char *prefix,int it
 {
    Lambda_=0.0;
    NTemp_=1.0;
-   DOF_[0] = DOF_[1] = DOF_[2] = 1.0;
-   for (int i=3;i<DOFS;i++)
-   {
-      DOF_[i] = 0.0;
-   }
 
+   CBK_->SetReferenceDOFs();
    LatSum_.Recalc();
 
    if (Echo_)
@@ -244,138 +225,23 @@ int MultiLatticeTPP::FindLatticeSpacing(char *datafile,const char *prefix,int it
       RefineEqbm(1.0e-13,iter,NULL);
 
    // Clean up numerical round off (at least for zero values)
-   for (int i=0;i<DOFS;++i)
+   Vector doftmp(CBK_->DOFS(),0.0);
+   for (int i=0;i<CBK_->DOFS();++i)
    {
-      if (fabs(DOF_[i]) < 1.0e-13) DOF_[i] = 0.0;
+      if (fabs(CBK_->DOF()[i]) < 1.0e-13)
+	 doftmp[i] = 0.0;
+      else
+	 doftmp[i] = CBK_->DOF()[i];
    }
-
-   // update atom pos
-   Matrix U(DIM3,DIM3), TmpRefLat(DIM3,DIM3);
-   U[0][0] = DOF_[0]; U[1][1] = DOF_[1]; U[2][2] = DOF_[2];
-   U[0][1] = U[1][0] = DOF_[3]; U[0][2] = U[2][0] = DOF_[4];
-   U[1][2] = U[2][1] = DOF_[5];
-   TmpRefLat = RefLattice_*U;
+   CBK_->SetDOF(doftmp);
    
-   double zero[] = {0.0,0.0,0.0};
-   Vector tmp(3);
-   for (int i=1;i<INTERNAL_ATOMS;++i)
-   {
-      for (int j=0;j<DIM3;++j)
-      {
-	 tmp[j] = CBK_->Dx(zero,0,i,j);
-      }
-      AtomPositions_[i] = tmp * TmpRefLat.Inverse();
-   }
-
-   // Update RefLattice_
-   RefLattice_ = TmpRefLat;
-
-   // reset DOF
-   DOF_[0] = DOF_[1] = DOF_[2] = 1.0;
-   for (int i=3;i<DOFS;i++)
-   {
-      DOF_[i] = 0.0;
-   }
+   CBK_->SetReferenceToCurrent();
 
    LatSum_.Recalc();
    return 0;
 }
 
 // Lattice Routines
-inline int MultiLatticeTPP::INDU(int i,int j)
-{
-   if (i==j)
-      return i;
-   else
-      return 2+i+j;
-}
-
-inline int MultiLatticeTPP::INDUU(int k,int l,int m,int n)
-{
-   if (k==l)
-   {
-      if (m==n)
-      {
-	 return DOFS*k+m;
-      }
-      else
-      {
-	 return DOFS*k + 2+m+n;
-      }
-   }
-   else
-   {
-      if (m==n)
-      {
-	 return DOFS*(2+k+l) + m;
-      }
-      else
-      {
-	 return DOFS*(2+k+l) + 2+m+n;
-      }
-   }
-}
-
-inline int MultiLatticeTPP::INDV(int i,int j)
-{
-   if (!i)
-   {
-      cerr << "Error: INDV(i,j) i==0!!!!!" << endl;
-      exit(-1);
-   }
-
-   return 6 + (i-1)*3 + j;
-}
-
-inline int MultiLatticeTPP::INDVV(int k,int l,int m,int n)
-{
-   if (!k || !m)
-   {
-      cerr << "Error : INDVV(k,l,m,n) i==0 OR m==0!!!!!!" << endl;
-      exit(-1);
-   }
-
-   return 6*DOFS + 6
-      + DOFS*( (k-1)*3 + l )
-      + ( (m-1)*3 + n );
-}
-
-inline int MultiLatticeTPP::INDUV(int i,int j,int m,int n)
-{
-   if (!m)
-   {
-      cerr << "Error : INDUV(i,j,m,n) m==0!!!!!!" << endl;
-      exit(-1);
-   }
-
-   if (i==j)
-   {
-      return DOFS*i + 6 + (m-1)*3+n;
-   }
-   else
-   {
-      return DOFS*(2+i+j) + 6 + (m-1)*3+n;
-   }
-}
-
-inline int MultiLatticeTPP::INDVU(int m,int n,int i,int j)
-{
-   if (!m)
-   {
-      cerr << "Error : INDVU(m,n,i,j) m==0!!!!!!" << endl;
-      exit(-1);
-   }
-
-   if (i==j)
-   {
-      return 6*DOFS + DOFS*( (m-1)*3+n ) + i;
-   }
-   else
-   {
-      return 6*DOFS + DOFS*( (m-1)*3+n ) + 2+i+j;
-   }
-}
-
 double MultiLatticeTPP::energy(PairPotentials::TDeriv dt)
 {
    double Phi = 0.0;
@@ -389,7 +255,7 @@ double MultiLatticeTPP::energy(PairPotentials::TDeriv dt)
    }
 
    // Phi = Phi/(2*Vr*NormModulus)
-   Vr = RefLattice_.Det();
+   Vr = CBK_->RefVolume();
    Phi *= 1.0/(2.0*(Vr*NormModulus_));
 
    // Apply loading potential and Thermal term
@@ -398,7 +264,7 @@ double MultiLatticeTPP::energy(PairPotentials::TDeriv dt)
       // Loading
       for (int i=0;i<DIM3;++i)
 	 for (int j=0;j<DIM3;++j)
-	    Phi -= Lambda_*Loading_[i][j]*(DOF_[INDU(j,i)] - Del(j,i));
+	    Phi -= Lambda_*Loading_[i][j]*((CBK_->DOF())[CBK_->INDF(j,i)] - Del(j,i));
 
       // Thermal term
       //Phi += (PhiRef_ -
@@ -436,9 +302,9 @@ Matrix MultiLatticeTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
    double phi,Vr;
    int i,j;
 
-   S.Resize(1,DOFS,0.0);
+   S.Resize(1,CBK_->DOFS(),0.0);
 
-   Vr = RefLattice_.Det();
+   Vr = CBK_->RefVolume();
    
    if (dl==L0)
    {
@@ -481,14 +347,14 @@ Matrix MultiLatticeTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
 	 {
 	    for (j=0;j<DIM3;j++)
 	    {
-	       S[0][INDU(i,j)] += phi*CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),i,j);
+	       S[0][CBK_->INDF(i,j)] += phi*CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),i,j);
 	    }
 	 }
-	 for (i=1;i<INTERNAL_ATOMS;i++)
+	 for (i=CBK_->NoTrans();i<INTERNAL_ATOMS;i++)
 	 {
 	    for (j=0;j<DIM3;j++)
 	    {
-	       S[0][INDV(i,j)] += phi*CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
+	       S[0][CBK_->INDS(i,j)] += phi*CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
 						LatSum_.Atom(1),i,j);
 	    }
 	 }
@@ -512,7 +378,7 @@ Matrix MultiLatticeTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
 	 for (i=0;i<DIM3;++i)
 	    for (j=0;j<DIM3;++j)
 	    {
-	       S[0][INDU(i,j)] -= Lambda_*Loading_[j][i];
+	       S[0][CBK_->INDF(i,j)] -= Lambda_*Loading_[j][i];
 	    }
       }
 
@@ -522,7 +388,7 @@ Matrix MultiLatticeTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
       // dl=DL
       for (i=0;i<DIM3;++i)
 	 for (j=0;j<DIM3;++j)
-	    S[0][INDU(i,j)] -= Loading_[j][i];
+	    S[0][CBK_->INDF(i,j)] -= Loading_[j][i];
    }
    else
    {
@@ -536,11 +402,11 @@ Matrix MultiLatticeTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
 Matrix MultiLatticeTPP::stiffness(PairPotentials::TDeriv dt,LDeriv dl)
 {
    static Matrix Phi;
-   Matrix U(DIM3,DIM3);
+   Matrix F(DIM3,DIM3);
    double phi,phi1;
    int i,j,k,l;
 
-   Phi.Resize(DOFS,DOFS,0.0);
+   Phi.Resize(CBK_->DOFS(),CBK_->DOFS(),0.0);
 
    if (dl==L0)
    {
@@ -564,7 +430,7 @@ Matrix MultiLatticeTPP::stiffness(PairPotentials::TDeriv dt,LDeriv dl)
 	    exit(-1);
 	 }
       
-	 //Upper Diag Block (6,6)
+	 //Upper Diag Block (CBK_->Fsize(),CBK_->Fsize())
 	 for (i=0;i<DIM3;i++)
 	 {
 	    for (j=0;j<DIM3;j++)
@@ -573,7 +439,7 @@ Matrix MultiLatticeTPP::stiffness(PairPotentials::TDeriv dt,LDeriv dl)
 	       {
 		  for (l=0;l<DIM3;l++)
 		  {
-		     Phi[INDU(i,j)][INDU(k,l)]+=
+		     Phi[CBK_->INDF(i,j)][CBK_->INDF(k,l)]+=
 			phi*(CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),i,j)
 			     *CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),k,l))
 			+phi1*CBK_->D2yDFF(LatSum_.pDX(),i,j,k,l);
@@ -581,16 +447,16 @@ Matrix MultiLatticeTPP::stiffness(PairPotentials::TDeriv dt,LDeriv dl)
 	       }
 	    }
 	 }
-	 //Lower Diag Block (3*INTERNAL_ATOMS,3*INTERNAL_ATOMS)
-	 for (i=1;i<INTERNAL_ATOMS;i++)
+	 //Lower Diag Block (CBK_->Ssize(),CBK_->Ssize())
+	 for (i=CBK_->NoTrans();i<INTERNAL_ATOMS;i++)
 	 {
 	    for (j=0;j<DIM3;j++)
 	    {
-	       for (k=1;k<INTERNAL_ATOMS;k++)
+	       for (k=CBK_->NoTrans();k<INTERNAL_ATOMS;k++)
 	       {
 		  for (l=0;l<DIM3;l++)
 		  {
-		     Phi[INDV(i,j)][INDV(k,l)]+=
+		     Phi[CBK_->INDS(i,j)][CBK_->INDS(k,l)]+=
 			phi*(CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),LatSum_.Atom(1),i,j)
 			     *CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),LatSum_.Atom(1),k,l))
 			+phi1*CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),i,j,k,l);
@@ -603,12 +469,12 @@ Matrix MultiLatticeTPP::stiffness(PairPotentials::TDeriv dt,LDeriv dl)
 	 {
 	    for (j=0;j<DIM3;j++)
 	    {
-	       for (k=1;k<INTERNAL_ATOMS;k++)
+	       for (k=CBK_->NoTrans();k<INTERNAL_ATOMS;k++)
 	       {
 		  for (l=0;l<DIM3;l++)
 		  {
-		     Phi[INDU(i,j)][INDV(k,l)] =
-			Phi[INDV(k,l)][INDU(i,j)] +=
+		     Phi[CBK_->INDF(i,j)][CBK_->INDS(k,l)] =
+			Phi[CBK_->INDS(k,l)][CBK_->INDF(i,j)] +=
 			phi*(CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),i,j)
 			     *CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),LatSum_.Atom(1),k,l))
 			+phi1*CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
@@ -620,7 +486,7 @@ Matrix MultiLatticeTPP::stiffness(PairPotentials::TDeriv dt,LDeriv dl)
       }
       
       // Phi = Phi/(2*Vr*NormModulus)
-      Phi *= 1.0/(2.0*(RefLattice_.Det()*NormModulus_));
+      Phi *= 1.0/(2.0*(CBK_->RefVolume()*NormModulus_));
    }
    else if (dl==DL)
    {
@@ -640,7 +506,7 @@ Matrix MultiLatticeTPP::E3()
    double phi,phi1,phi2;
    int i,j,k,l,m,n;
 
-   Phi.Resize(DOFS*DOFS,DOFS,0.0);
+   Phi.Resize(CBK_->DOFS()*CBK_->DOFS(),CBK_->DOFS(),0.0);
 
    for (LatSum_.Reset();!LatSum_.Done();++LatSum_)
    {
@@ -649,7 +515,7 @@ Matrix MultiLatticeTPP::E3()
       phi1=LatSum_.phi2();
       phi2=LatSum_.phi1();
 	 
-      // DU^3 block
+      // DF^3 block
       for (i=0;i<DIM3;i++)
 	 for (j=0;j<DIM3;j++)
 	    for (k=0;k<DIM3;k++)
@@ -657,7 +523,7 @@ Matrix MultiLatticeTPP::E3()
 		  for (m=0;m<DIM3;m++)
 		     for (n=0;n<DIM3;n++)
 		     {
-			Phi[INDUU(i,j,k,l)][INDU(m,n)] +=
+			Phi[CBK_->INDFF(i,j,k,l)][CBK_->INDF(m,n)] +=
 			   phi*(CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),i,j)
 				*CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),k,l)
 				*CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),m,n))
@@ -668,80 +534,79 @@ Matrix MultiLatticeTPP::E3()
 				  CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),m,n)
 				  *CBK_->D2yDFF(LatSum_.pDX(),i,j,k,l));
 		     }
-      // DV^3 block
-      for (i=1;i<INTERNAL_ATOMS;i++)
+      // DS^3 block
+      for (i=CBK_->NoTrans();i<INTERNAL_ATOMS;i++)
 	 for (j=0;j<DIM3;j++)
-	    for (k=1;k<INTERNAL_ATOMS;k++)
+	    for (k=CBK_->NoTrans();k<INTERNAL_ATOMS;k++)
 	       for (l=0;l<DIM3;l++)
-		  for (m=1;m<INTERNAL_ATOMS;m++)
+		  for (m=CBK_->NoTrans();m<INTERNAL_ATOMS;m++)
 		     for (n=0;n<DIM3;n++)
 		     {
-			Phi[INDVV(i,j,k,l)][INDV(m,n)] +=
+			Phi[CBK_->INDSS(i,j,k,l)][CBK_->INDS(m,n)] +=
 			   phi*(CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),LatSum_.Atom(1),i,j)
 				*CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),LatSum_.Atom(1),k,l)
-				*CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
-					   LatSum_.Atom(1),m,n))
+				*CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),LatSum_.Atom(1),m,n))
 			   +phi1*(CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
-					    LatSum_.Atom(1),k,l)
-				  *CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),i,j,m,n)
-				  + CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
-					      LatSum_.Atom(1),i,j)
+					     LatSum_.Atom(1),i,j)
 				  *CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),k,l,m,n)
-				  + CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
+				  +CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
+					     LatSum_.Atom(1),k,l)
+				  *CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),i,j,m,n)
+				  +CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
 					      LatSum_.Atom(1),m,n)
 				  *CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),i,j,k,l));
 		     }
-      // DU^2DV blocks
+      // DF^2DS blocks
       for (i=0;i<DIM3;i++)
 	 for (j=0;j<DIM3;j++)
 	    for (k=0;k<DIM3;k++)
 	       for (l=0;l<DIM3;l++)
-		  for (m=1;m<INTERNAL_ATOMS;m++)
+		  for (m=CBK_->NoTrans();m<INTERNAL_ATOMS;m++)
 		     for (n=0;n<DIM3;n++)
 		     {
-			Phi[INDUU(i,j,k,l)][INDV(m,n)] =
-			   Phi[INDUV(i,j,m,n)][INDU(k,l)] =
-			   Phi[INDVU(m,n,i,j)][INDU(k,l)] += (
+			Phi[CBK_->INDFF(i,j,k,l)][CBK_->INDS(m,n)] =
+			   Phi[CBK_->INDFS(i,j,m,n)][CBK_->INDF(k,l)] =
+			   Phi[CBK_->INDSF(m,n,i,j)][CBK_->INDF(k,l)] += (
 			      phi*(CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),i,j)
 				   *CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),k,l)
 				   *CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
 					      LatSum_.Atom(1),m,n))
-			      +phi1*(CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),k,l)
+			      +phi1*(CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),i,j)
 				     *CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
-						  LatSum_.Atom(0),LatSum_.Atom(1),i,j,m,n)
-				     + CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),i,j)
+						   LatSum_.Atom(0),LatSum_.Atom(1),k,l,m,n)
+				     +CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),k,l)
 				     *CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
-						  LatSum_.Atom(0),LatSum_.Atom(1),k,l,m,n)
-				     + CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
+						   LatSum_.Atom(0),LatSum_.Atom(1),i,j,m,n)
+				     +CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
 						 LatSum_.Atom(1),m,n)
 				     *CBK_->D2yDFF(LatSum_.pDX(),i,j,k,l))
 			      +phi2*CBK_->D3yDFFS(LatSum_.pDX(),LatSum_.Atom(0),
 						 LatSum_.Atom(1),i,j,k,l,m,n));
 		     }
-      // DV^2DU blocks
-      for (i=1;i<INTERNAL_ATOMS;i++)
+      // DS^2DF blocks
+      for (i=CBK_->NoTrans();i<INTERNAL_ATOMS;i++)
 	 for (j=0;j<DIM3;j++)
-	    for (k=1;k<INTERNAL_ATOMS;k++)
+	    for (k=CBK_->NoTrans();k<INTERNAL_ATOMS;k++)
 	       for (l=0;l<DIM3;l++)
 		  for (m=0;m<DIM3;m++)
 		     for (n=0;n<DIM3;n++)
 		     {
-			Phi[INDVV(i,j,k,l)][INDU(m,n)] =
-			   Phi[INDVU(i,j,m,n)][INDV(k,l)] =
-			   Phi[INDUV(m,n,i,j)][INDV(k,l)] += (
+			Phi[CBK_->INDSS(i,j,k,l)][CBK_->INDF(m,n)] =
+			   Phi[CBK_->INDSF(i,j,m,n)][CBK_->INDS(k,l)] =
+			   Phi[CBK_->INDFS(m,n,i,j)][CBK_->INDS(k,l)] += (
 			      phi*(CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
 					     LatSum_.Atom(1),i,j)
 				   *CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
 					      LatSum_.Atom(1),k,l)
 				   *CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),m,n))
 			      +phi1*(CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
-					       LatSum_.Atom(1),k,l)
+						LatSum_.Atom(1),i,j)
 				     *CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
-						  LatSum_.Atom(0),LatSum_.Atom(1),m,n,i,j)
-				     + CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
-						 LatSum_.Atom(1),i,j)
+						   LatSum_.Atom(0),LatSum_.Atom(1),m,n,k,l)
+				     +CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
+						 LatSum_.Atom(1),k,l)
 				     *CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
-						  LatSum_.Atom(0),LatSum_.Atom(1),m,n,k,l)
+						   LatSum_.Atom(0),LatSum_.Atom(1),m,n,i,j) 
 				     + CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),m,n)
 				     *CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),i,j,k,l))
 			      +phi2*CBK_->D3yDSSF(LatSum_.Atom(0),LatSum_.Atom(1),i,j,k,l,m,n));
@@ -750,7 +615,7 @@ Matrix MultiLatticeTPP::E3()
 
    
    // Phi = Phi/(2*Vr*NormModulus)
-   Phi *= 1.0/(2.0*(RefLattice_.Det()*NormModulus_));
+   Phi *= 1.0/(2.0*(CBK_->RefVolume()*NormModulus_));
 
    return Phi;
 }
@@ -761,7 +626,7 @@ Matrix MultiLatticeTPP::E4()
    double phi,phi1,phi2,phi3;
    int i,j,k,l,m,n,s,t;
 
-   Phi.Resize(DOFS*DOFS,DOFS*DOFS,0.0);
+   Phi.Resize(CBK_->DOFS()*CBK_->DOFS(),CBK_->DOFS()*CBK_->DOFS(),0.0);
 
    for (LatSum_.Reset();!LatSum_.Done();++LatSum_)
    {  
@@ -772,7 +637,7 @@ Matrix MultiLatticeTPP::E4()
       phi2=LatSum_.phi2();
       phi3=LatSum_.phi1();
       
-      // DU^4 block 
+      // DF^4 block 
       for (i=0;i<DIM3;i++)
 	 for (j=0;j<DIM3;j++)
 	    for (k=0;k<DIM3;k++)
@@ -782,49 +647,49 @@ Matrix MultiLatticeTPP::E4()
 			for (s=0;s<DIM3;s++)
 			   for (t=0;t<DIM3;t++)
 			   {
-			      Phi[INDUU(i,j,k,l)][INDUU(m,n,s,t)]+=
+			      Phi[CBK_->INDFF(i,j,k,l)][CBK_->INDFF(m,n,s,t)]+=
 				 phi*(CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),i,j)
 				      *CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),k,l)
 				      *CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),m,n)
 				      *CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),s,t)) +
 				 phi1*(
-				    CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),k,l)
-				    *CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),m,n)
-				    *CBK_->D2yDFF(LatSum_.pDX(),i,j,s,t)
-				    + CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),i,j)
-				    *CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),m,n)
-				    *CBK_->D2yDFF(LatSum_.pDX(),k,l,s,t)
-				    + CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),i,j)
+				    CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),i,j)
 				    *CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),k,l)
 				    *CBK_->D2yDFF(LatSum_.pDX(),m,n,s,t)
-				    + CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),k,l)
-				    *CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),s,t)
-				    *CBK_->D2yDFF(LatSum_.pDX(),i,j,m,n)
-				    + CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),i,j)
+				    +CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),i,j)
+				    *CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),m,n)
+				    *CBK_->D2yDFF(LatSum_.pDX(),k,l,s,t)
+				    +CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),k,l)
+				    *CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),m,n)
+				    *CBK_->D2yDFF(LatSum_.pDX(),i,j,s,t)
+				    +CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),i,j)
 				    *CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),s,t)
 				    *CBK_->D2yDFF(LatSum_.pDX(),k,l,m,n)
-				    + CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),m,n)
+				    +CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),k,l)
+				    *CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),s,t)
+				    *CBK_->D2yDFF(LatSum_.pDX(),i,j,m,n)
+				    +CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),m,n)
 				    *CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),s,t)
 				    *CBK_->D2yDFF(LatSum_.pDX(),i,j,k,l))
 				 +phi2*(
-				    CBK_->D2yDFF(LatSum_.pDX(),i,j,m,n)
-				    *CBK_->D2yDFF(LatSum_.pDX(),k,l,s,t)
-				    + CBK_->D2yDFF(LatSum_.pDX(),i,j,s,t)
+				    CBK_->D2yDFF(LatSum_.pDX(),i,j,s,t)
 				    *CBK_->D2yDFF(LatSum_.pDX(),k,l,m,n)
-				    + CBK_->D2yDFF(LatSum_.pDX(),i,j,k,l)
-				    *CBK_->D2yDFF(LatSum_.pDX(),m,n,s,t));
+				    +CBK_->D2yDFF(LatSum_.pDX(),k,l,s,t)
+				    *CBK_->D2yDFF(LatSum_.pDX(),i,j,m,n)
+				    +CBK_->D2yDFF(LatSum_.pDX(),m,n,s,t)
+				    *CBK_->D2yDFF(LatSum_.pDX(),i,j,k,l));
 			   }
-      // DV^4 block
-      for (i=1;i<INTERNAL_ATOMS;i++)
+      // DS^4 block
+      for (i=CBK_->NoTrans();i<INTERNAL_ATOMS;i++)
 	 for (j=0;j<DIM3;j++)
-	    for (k=1;k<INTERNAL_ATOMS;k++)
+	    for (k=CBK_->NoTrans();k<INTERNAL_ATOMS;k++)
 	       for (l=0;l<DIM3;l++)
-		  for (m=1;m<INTERNAL_ATOMS;m++)
+		  for (m=CBK_->NoTrans();m<INTERNAL_ATOMS;m++)
 		     for (n=0;n<DIM3;n++)
-			for (s=1;s<INTERNAL_ATOMS;s++)
+			for (s=CBK_->NoTrans();s<INTERNAL_ATOMS;s++)
 			   for (t=0;t<DIM3;t++)
 			   {
-			      Phi[INDVV(i,j,k,l)][INDVV(m,n,s,t)] +=
+			      Phi[CBK_->INDSS(i,j,k,l)][CBK_->INDSS(m,n,s,t)] +=
 				 phi*(CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
 						LatSum_.Atom(1),i,j)
 				      *CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
@@ -835,57 +700,57 @@ Matrix MultiLatticeTPP::E4()
 						 LatSum_.Atom(1),s,t))
 				 +phi1*(
 				    CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
-					      LatSum_.Atom(1),k,l)
-				    *CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
-					       LatSum_.Atom(1),m,n)
-				    *CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),i,j,s,t)
-				    + CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
-						LatSum_.Atom(1),i,j)
-				    *CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
-					       LatSum_.Atom(1),m,n)
-				    *CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),k,l,s,t)
-				    + CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
 						LatSum_.Atom(1),i,j)
 				    *CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
 					       LatSum_.Atom(1),k,l)
 				    *CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),m,n,s,t)
-				    + CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
-						LatSum_.Atom(1),k,l)
+				    +CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
+						LatSum_.Atom(1),i,j)
 				    *CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
-					       LatSum_.Atom(1),s,t)
-				    *CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),i,j,m,n)
-				    + CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
+					       LatSum_.Atom(1),m,n)
+				    *CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),k,l,s,t)
+				    +CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
+					      LatSum_.Atom(1),k,l)
+				    *CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
+					       LatSum_.Atom(1),m,n)
+				    *CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),i,j,s,t)
+				    +CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
 						LatSum_.Atom(1),i,j)
 				    *CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
 					       LatSum_.Atom(1),s,t)
 				    *CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),k,l,m,n)
-				    + CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
+				    +CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
+						LatSum_.Atom(1),k,l)
+				    *CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
+					       LatSum_.Atom(1),s,t)
+				    *CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),i,j,m,n)
+				    +CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
 						LatSum_.Atom(1),m,n)
 				    *CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
 					       LatSum_.Atom(1),s,t)
 				    *CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),i,j,k,l))
 				 +phi2*(
-				    CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),i,j,m,n)
-				    *CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),k,l,s,t)
-				    + CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),i,j,s,t)
+				    CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),i,j,s,t)
 				    *CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),k,l,m,n)
-				    + CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),i,j,k,l)
+				    +CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),i,j,m,n)
+				    *CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),k,l,s,t)
+				    +CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),i,j,k,l)
 				    *CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),m,n,s,t));
 			   }
-      // DU^3DV blocks
+      // DF^3DS blocks
       for (i=0;i<DIM3;i++)
 	 for (j=0;j<DIM3;j++)
 	    for (k=0;k<DIM3;k++)
 	       for (l=0;l<DIM3;l++)
 		  for (m=0;m<DIM3;m++)
 		     for (n=0;n<DIM3;n++)
-			for (s=1;s<INTERNAL_ATOMS;s++)
+			for (s=CBK_->NoTrans();s<INTERNAL_ATOMS;s++)
 			   for (t=0;t<DIM3;t++)
 			   {
-			      Phi[INDUU(i,j,k,l)][INDUV(m,n,s,t)] =
-				 Phi[INDUU(i,j,k,l)][INDVU(s,t,m,n)] =
-				 Phi[INDUV(i,j,s,t)][INDUU(k,l,m,n)] =
-				 Phi[INDVU(s,t,i,j)][INDUU(k,l,m,n)] += (
+			      Phi[CBK_->INDFF(i,j,k,l)][CBK_->INDFS(m,n,s,t)] =
+				 Phi[CBK_->INDFF(i,j,k,l)][CBK_->INDSF(s,t,m,n)] =
+				 Phi[CBK_->INDFS(i,j,s,t)][CBK_->INDFF(k,l,m,n)] =
+				 Phi[CBK_->INDSF(s,t,i,j)][CBK_->INDFF(k,l,m,n)] += (
 				    phi*(
 				       CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),i,j)
 				       *CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),k,l)
@@ -893,66 +758,66 @@ Matrix MultiLatticeTPP::E4()
 				       *CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
 						  LatSum_.Atom(1),s,t))
 				    +phi1*(
-				       CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),k,l)
-				       *CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),m,n)
+				       CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),i,j)
+				       *CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),k,l)
 				       *CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
-						    LatSum_.Atom(0),LatSum_.Atom(1),i,j,s,t)
-				       + CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),i,j)
+						     LatSum_.Atom(0),LatSum_.Atom(1),m,n,s,t)
+				       +CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),i,j)
 				       *CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),m,n)
 				       *CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
 						    LatSum_.Atom(0),LatSum_.Atom(1),k,l,s,t)
-				       + CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),i,j)
-				       *CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),k,l)
+				       +CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),k,l)
+				       *CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),m,n)
 				       *CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
-						    LatSum_.Atom(0),LatSum_.Atom(1),m,n,s,t)
-				       +(CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),k,l)
+						    LatSum_.Atom(0),LatSum_.Atom(1),i,j,s,t)
+				       +(CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),i,j)
 					 *CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
-						    LatSum_.Atom(1),s,t)
-					 *CBK_->D2yDFF(LatSum_.pDX(),i,j,m,n)
-					 + CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),i,j)
-					 *CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
-						    LatSum_.Atom(1),s,t)
+						     LatSum_.Atom(1),s,t)
 					 *CBK_->D2yDFF(LatSum_.pDX(),k,l,m,n)
-					 + CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),m,n)
+					 +CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),k,l)
+					 *CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
+						     LatSum_.Atom(1),s,t)
+					 *CBK_->D2yDFF(LatSum_.pDX(),i,j,m,n)
+					 +CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),m,n)
 					 *CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
 						    LatSum_.Atom(1),s,t)
 					 *CBK_->D2yDFF(LatSum_.pDX(),i,j,k,l)))
 				    +phi2*(
-				       CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),k,l)
+				       CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),i,j)
+				       *CBK_->D3yDFFS(LatSum_.pDX(),LatSum_.Atom(0),
+						      LatSum_.Atom(1),k,l,m,n,s,t)
+				       +CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
+						      LatSum_.Atom(0),LatSum_.Atom(1),
+						      i,j,s,t)
+				       *CBK_->D2yDFF(LatSum_.pDX(),k,l,m,n)
+				       +CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),k,l)
 				       *CBK_->D3yDFFS(LatSum_.pDX(),LatSum_.Atom(0),
 						     LatSum_.Atom(1),i,j,m,n,s,t)
-				       + CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),i,j)
-				       *CBK_->D3yDFFS(LatSum_.pDX(),LatSum_.Atom(0),
-						     LatSum_.Atom(1),k,l,m,n,s,t)
+				       +CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
+						     LatSum_.Atom(0),LatSum_.Atom(1),k,l,s,t)
+				       *CBK_->D2yDFF(LatSum_.pDX(),i,j,m,n)
 				       + CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),m,n)
 				       *CBK_->D3yDFFS(LatSum_.pDX(),LatSum_.Atom(0),
 						     LatSum_.Atom(1),i,j,k,l,s,t)
-				       +(CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
-						     LatSum_.Atom(0),LatSum_.Atom(1),k,l,s,t)
-					 *CBK_->D2yDFF(LatSum_.pDX(),i,j,m,n)
-					 + CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
-						       LatSum_.Atom(0),LatSum_.Atom(1),
-						       i,j,s,t)
-					 *CBK_->D2yDFF(LatSum_.pDX(),k,l,m,n)
-					 + CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
-						       LatSum_.Atom(0),LatSum_.Atom(1),
-						       m,n,s,t)
-					 *CBK_->D2yDFF(LatSum_.pDX(),i,j,k,l))));
+				       + CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
+						      LatSum_.Atom(0),LatSum_.Atom(1),
+						      m,n,s,t)
+				       *CBK_->D2yDFF(LatSum_.pDX(),i,j,k,l)));
 			   }
-      // DV^3DU blocks
-      for (i=1;i<INTERNAL_ATOMS;i++)
+      // DS^3DF blocks
+      for (i=CBK_->NoTrans();i<INTERNAL_ATOMS;i++)
 	 for (j=0;j<DIM3;j++)
-	    for (k=1;k<INTERNAL_ATOMS;k++)
+	    for (k=CBK_->NoTrans();k<INTERNAL_ATOMS;k++)
 	       for (l=0;l<DIM3;l++)
-		  for (m=1;m<INTERNAL_ATOMS;m++)
+		  for (m=CBK_->NoTrans();m<INTERNAL_ATOMS;m++)
 		     for (n=0;n<DIM3;n++)
 			for (s=0;s<DIM3;s++)
 			   for (t=0;t<DIM3;t++)
 			   {
-			      Phi[INDVV(i,j,k,l)][INDVU(m,n,s,t)] =
-				 Phi[INDVV(i,j,k,l)][INDUV(s,t,m,n)] =
-				 Phi[INDVU(i,j,s,t)][INDVV(k,l,m,n)] =
-				 Phi[INDUV(s,t,i,j)][INDVV(k,l,m,n)] += (
+			      Phi[CBK_->INDSS(i,j,k,l)][CBK_->INDSF(m,n,s,t)] =
+				 Phi[CBK_->INDSS(i,j,k,l)][CBK_->INDFS(s,t,m,n)] =
+				 Phi[CBK_->INDSF(i,j,s,t)][CBK_->INDSS(k,l,m,n)] =
+				 Phi[CBK_->INDFS(s,t,i,j)][CBK_->INDSS(k,l,m,n)] += (
 				    phi*(
 				       CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
 						 LatSum_.Atom(1),i,j)
@@ -963,74 +828,74 @@ Matrix MultiLatticeTPP::E4()
 				       *CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),s,t))
 				    +phi1*(
 				       CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
+						  LatSum_.Atom(1),i,j)
+				       *CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
+						   LatSum_.Atom(1),k,l)
+				       *CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
+						     LatSum_.Atom(0),LatSum_.Atom(1),s,t,m,n)
+				       +CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
+						   LatSum_.Atom(1),i,j)
+				       *CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
+						   LatSum_.Atom(1),m,n)
+				       *CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
+						     LatSum_.Atom(0),LatSum_.Atom(1),s,t,k,l)
+				       +CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
 						 LatSum_.Atom(1),k,l)
 				       *CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
 						  LatSum_.Atom(1),m,n)
 				       *CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
 						    LatSum_.Atom(0),LatSum_.Atom(1),s,t,i,j)
-				       + CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
-						   LatSum_.Atom(1),i,j)
-				       *CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
-						  LatSum_.Atom(1),m,n)
-				       *CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
-						    LatSum_.Atom(0),LatSum_.Atom(1),s,t,k,l)
-				       + CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
-						   LatSum_.Atom(1),i,j)
-				       *CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
-						  LatSum_.Atom(1),k,l)
-				       *CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
-						    LatSum_.Atom(0),LatSum_.Atom(1),s,t,m,n)
-				       + CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
-						   LatSum_.Atom(1),k,l)
-				       *CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),s,t)
-				       *CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),i,j,m,n)
-				       + CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
+				       +CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
 						   LatSum_.Atom(1),i,j)
 				       *CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),s,t)
 				       *CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),k,l,m,n)
-				       + CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
+				       +CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
+						   LatSum_.Atom(1),k,l)
+				       *CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),s,t)
+				       *CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),i,j,m,n)
+				       +CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
 						   LatSum_.Atom(1),m,n)
 				       *CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),s,t)
 				       *CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),i,j,k,l))
 				    +phi2*(
 				       CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
-						 LatSum_.Atom(1),k,l)
+						  LatSum_.Atom(1),i,j)
 				       *CBK_->D3yDSSF(LatSum_.Atom(0),LatSum_.Atom(1),
-						     i,j,m,n,s,t)
-				       + CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
-						   LatSum_.Atom(1),i,j)
-				       *CBK_->D3yDSSF(LatSum_.Atom(0),LatSum_.Atom(1),
-						     k,l,m,n,s,t)
-				       + CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
-						   LatSum_.Atom(1),m,n)
-				       *CBK_->D3yDSSF(LatSum_.Atom(0),LatSum_.Atom(1),
-						     i,j,k,l,s,t)
+						      k,l,m,n,s,t)
+				       +CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
+						     LatSum_.Atom(0),LatSum_.Atom(1),s,t,i,j)
+				       *CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),k,l,m,n)
 				       + CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),i,j,m,n)
 				       *CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
-						    LatSum_.Atom(0),LatSum_.Atom(1),s,t,k,l)
-				       + CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),k,l,m,n)
+						     LatSum_.Atom(0),LatSum_.Atom(1),s,t,k,l)
+				       +CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
+						   LatSum_.Atom(1),k,l)
+				       *CBK_->D3yDSSF(LatSum_.Atom(0),LatSum_.Atom(1),
+						      i,j,m,n,s,t)
+				       +CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),i,j,k,l)
 				       *CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
-						    LatSum_.Atom(0),LatSum_.Atom(1),s,t,i,j)
-				       + CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),i,j,k,l)
-				       *CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
-						    LatSum_.Atom(0),LatSum_.Atom(1),s,t,m,n)));
+						     LatSum_.Atom(0),LatSum_.Atom(1),s,t,m,n)
+				       +CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
+						   LatSum_.Atom(1),m,n)
+				       *CBK_->D3yDSSF(LatSum_.Atom(0),LatSum_.Atom(1),
+						      i,j,k,l,s,t)));
 			   }
-      // DU^2DV^2 blocks
+      // DF^2DS^2 blocks
       for (i=0;i<DIM3;i++)
 	 for (j=0;j<DIM3;j++)
 	    for (k=0;k<DIM3;k++)
 	       for (l=0;l<DIM3;l++)
-		  for (m=1;m<INTERNAL_ATOMS;m++)
+		  for (m=CBK_->NoTrans();m<INTERNAL_ATOMS;m++)
 		     for (n=0;n<DIM3;n++)
-			for (s=1;s<INTERNAL_ATOMS;s++)
+			for (s=CBK_->NoTrans();s<INTERNAL_ATOMS;s++)
 			   for (t=0;t<DIM3;t++)
 			   {
-			      Phi[INDUU(i,j,k,l)][INDVV(m,n,s,t)] =
-				 Phi[INDUV(i,j,m,n)][INDUV(k,l,s,t)] =
-				 Phi[INDUV(i,j,m,n)][INDVU(s,t,k,l)] =
-				 Phi[INDVU(m,n,i,j)][INDUV(k,l,s,t)] =
-				 Phi[INDVU(m,n,i,j)][INDVU(s,t,k,l)] =
-				 Phi[INDVV(m,n,s,t)][INDUU(i,j,k,l)] += (
+			      Phi[CBK_->INDFF(i,j,k,l)][CBK_->INDSS(m,n,s,t)] =
+				 Phi[CBK_->INDFS(i,j,m,n)][CBK_->INDFS(k,l,s,t)] =
+				 Phi[CBK_->INDFS(i,j,m,n)][CBK_->INDSF(s,t,k,l)] =
+				 Phi[CBK_->INDSF(m,n,i,j)][CBK_->INDFS(k,l,s,t)] =
+				 Phi[CBK_->INDSF(m,n,i,j)][CBK_->INDSF(s,t,k,l)] =
+				 Phi[CBK_->INDSS(m,n,s,t)][CBK_->INDFF(i,j,k,l)] += (
 				    phi*(
 				       CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),i,j)
 				       *CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),k,l)
@@ -1042,64 +907,64 @@ Matrix MultiLatticeTPP::E4()
 				       CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),i,j)
 				       *CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),k,l)
 				       *CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),m,n,s,t)
-				       + CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),k,l)
+				       +CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),i,j)
 				       *CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
-						  LatSum_.Atom(1),m,n)
-				       *CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
-						    LatSum_.Atom(0),LatSum_.Atom(1),i,j,s,t)
-				       + CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),i,j)
-				       *CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
-						  LatSum_.Atom(1),m,n)
-				       *CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
-						    LatSum_.Atom(0),LatSum_.Atom(1),k,l,s,t)
-				       + CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),k,l)
-				       *CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
-						  LatSum_.Atom(1),s,t)
-				       *CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
-						    LatSum_.Atom(0),LatSum_.Atom(1),i,j,m,n)
-				       + CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),i,j)
-				       *CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
-						  LatSum_.Atom(1),s,t)
-				       *CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
-						    LatSum_.Atom(0),LatSum_.Atom(1),k,l,m,n)
-				       + CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
 						   LatSum_.Atom(1),m,n)
+				       *CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
+						     LatSum_.Atom(0),LatSum_.Atom(1),k,l,s,t)
+				       +CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),k,l)
 				       *CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
-						  LatSum_.Atom(1),s,t)
+						   LatSum_.Atom(1),m,n)
+				       *CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
+						     LatSum_.Atom(0),LatSum_.Atom(1),i,j,s,t)
+				       +CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),i,j)
+				       *CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
+						   LatSum_.Atom(1),s,t)
+				       *CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
+						     LatSum_.Atom(0),LatSum_.Atom(1),k,l,m,n)
+				       +CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),k,l)
+				       *CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
+						   LatSum_.Atom(1),s,t)
+				       *CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
+						     LatSum_.Atom(0),LatSum_.Atom(1),i,j,m,n)
+				       + CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
+						    LatSum_.Atom(1),m,n)
+				       *CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
+						   LatSum_.Atom(1),s,t)
 				       *CBK_->D2yDFF(LatSum_.pDX(),i,j,k,l))
 				    +phi2*(
-				       CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),k,l)
+				       CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),i,j)
 				       *CBK_->D3yDSSF(LatSum_.Atom(0),LatSum_.Atom(1),
-						     m,n,s,t,i,j)
-				       + CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),i,j)
-				       *CBK_->D3yDSSF(LatSum_.Atom(0),LatSum_.Atom(1),
-						     m,n,s,t,k,l)
-				       + CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
-						   LatSum_.Atom(1),m,n)
-				       *CBK_->D3yDFFS(LatSum_.pDX(),LatSum_.Atom(0),
-						     LatSum_.Atom(1),i,j,k,l,s,t)
-				       + CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
-						   LatSum_.Atom(1),s,t)
-				       *CBK_->D3yDFFS(LatSum_.pDX(),LatSum_.Atom(0),
-						     LatSum_.Atom(1),i,j,k,l,m,n)
-				       + CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
-						     LatSum_.Atom(0),LatSum_.Atom(1),i,j,m,n)
-				       *CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
-						    LatSum_.Atom(0),LatSum_.Atom(1),k,l,s,t)
-				       + CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
+						      m,n,s,t,k,l)
+				       +CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
 						     LatSum_.Atom(0),LatSum_.Atom(1),i,j,s,t)
 				       *CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
-						    LatSum_.Atom(0),LatSum_.Atom(1),k,l,m,n)
-				       + CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),m,n,s,t)
-				       *CBK_->D2yDFF(LatSum_.pDX(),i,j,k,l))
+						     LatSum_.Atom(0),LatSum_.Atom(1),k,l,m,n)
+				       +CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
+						      LatSum_.Atom(0),LatSum_.Atom(1),i,j,m,n)
+				       *CBK_->D2yDFS(LatSum_.pDx(),LatSum_.pDX(),
+						     LatSum_.Atom(0),LatSum_.Atom(1),k,l,s,t)
+				       +CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),k,l)
+				       *CBK_->D3yDSSF(LatSum_.Atom(0),LatSum_.Atom(1),
+						      m,n,s,t,i,j)
+				       +CBK_->D2yDFF(LatSum_.pDX(),i,j,k,l)
+				       *CBK_->D2yDSS(LatSum_.Atom(0),LatSum_.Atom(1),m,n,s,t)
+				       +CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
+						   LatSum_.Atom(1),m,n)
+				       *CBK_->D3yDFFS(LatSum_.pDX(),LatSum_.Atom(0),
+						      LatSum_.Atom(1),i,j,k,l,s,t)
+				       +CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
+						   LatSum_.Atom(1),s,t)
+				       *CBK_->D3yDFFS(LatSum_.pDX(),LatSum_.Atom(0),
+						      LatSum_.Atom(1),i,j,k,l,m,n))
 				    +phi3*CBK_->D4yDFFSS(LatSum_.Atom(0),LatSum_.Atom(1),
-							i,j,k,l,m,n,s,t));
+							 i,j,k,l,m,n,s,t));
 			   }
    }
 
    
    // Phi = Phi/(2*Vr*NormModulus)
-   Phi *= 1.0/(2.0*(RefLattice_.Det()*NormModulus_));
+   Phi *= 1.0/(2.0*(CBK_->RefVolume()*NormModulus_));
 
    return Phi;
 }
@@ -1107,11 +972,13 @@ Matrix MultiLatticeTPP::E4()
 Matrix MultiLatticeTPP::CondensedModuli()
 {
    Matrix stiff = stiffness();
-   int intrn = DOFS-6;
-   Matrix CM(6,6), IM(intrn,intrn);
+   int intrn = CBK_->Ssize();
+   double factor = 1.0/(intrn/DIM3);
+   int fsz = CBK_->Fsize();
+   Matrix CM(fsz,fsz), IM(intrn,intrn);
    
-   for (int i=0;i<6;i++)
-      for (int j=0;j<6;j++)
+   for (int i=0;i<fsz;i++)
+      for (int j=0;j<fsz;j++)
       {
 	 CM[i][j] = stiff[i][j];
       }
@@ -1122,34 +989,44 @@ Matrix MultiLatticeTPP::CondensedModuli()
       for (int i=0;i<intrn;i++)
 	 for (int j=0;j<intrn;j++)
 	 {
-	    IM[i][j] = stiff[6+i][6+j];
+	    IM[i][j] = stiff[fsz+i][fsz+j];
+	    
+	    // add translational stiffness to regularize IM, if needed
+	    if ((!CBK_->NoTrans()) && (i%DIM3 == j%DIM3))
+	    {
+	       IM[i][j] += factor;
+	    }
 	 }
       IM = IM.Inverse();
       
       // Set up Condensed Moduli
-      for (int i=0;i<6;i++)
-	 for (int j=0;j<6;j++)
+      for (int i=0;i<fsz;i++)
+	 for (int j=0;j<fsz;j++)
 	 {
 	    for (int m=0;m<intrn;m++)
 	       for (int n=0;n<intrn;n++)
 	       {
-		  CM[i][j] -= stiff[i][6+m]*IM[m][n]*stiff[6+n][j];
+		  CM[i][j] -= stiff[i][fsz+m]*IM[m][n]*stiff[fsz+n][j];
 	       }
 	 }
    }
-   
-   // Remove 2's and 4's
-   for (int i=3;i<6;i++)
-   {
-      for (int j=0;j<3;j++)
-      {
-	 CM[i][j] /= 2.0;
-	 CM[j][i] /= 2.0;
-      }
 
-      for (int j=3;j<6;j++)
+   // If using symmetrized F, assume standard Voigt notation
+   if (fsz==6)
+   {
+      // Remove 2's and 4's
+      for (int i=3;i<6;i++)
       {
-	 CM[i][j] /= 4.0;
+	 for (int j=0;j<3;j++)
+	 {
+	    CM[i][j] /= 2.0;
+	    CM[j][i] /= 2.0;
+	 }
+	 
+	 for (int j=3;j<6;j++)
+	 {
+	    CM[i][j] /= 4.0;
+	 }
       }
    }
 
@@ -1273,13 +1150,8 @@ void MultiLatticeTPP::ReferenceDispersionCurves(Vector K,int NoPTS,const char *p
    out.width(0);
    if (Echo_) cout.width(0);
 
-   Matrix Tmp(DIM3,DIM3),InverseLat(DIM3,DIM3);
-   for (int i=0;i<DIM3;++i)
-      for (int j=0;j<DIM3;++j)
-      {
-	 Tmp[i][j] = RefLattice_[i][j];
-      }
-   InverseLat = Tmp.Inverse();
+   Matrix InverseLat(DIM3,DIM3);
+   InverseLat = (CBK_->RefLattice()).Inverse();
 
    Matrix EigVal[3];
    for (int i=0;i<3;++i) EigVal[i].Resize(1,INTERNAL_ATOMS*DIM3);
@@ -1338,15 +1210,10 @@ int MultiLatticeTPP::ReferenceBlochWave(Vector &K)
 {
    static CMatrix A(INTERNAL_ATOMS*DIM3,INTERNAL_ATOMS*DIM3);
    static Matrix EigVals(1,INTERNAL_ATOMS*DIM3);
-   static Matrix InverseLat(DIM3,DIM3),Tmp(DIM3,DIM3);
+   static Matrix InverseLat(DIM3,DIM3);
    static Vector Z(DIM3);
 
-   for (int i=0;i<DIM3;++i)
-      for (int j=0;j<DIM3;++j)
-      {
-	 Tmp[i][j] = RefLattice_[i][j];
-      }
-   InverseLat = Tmp.Inverse();
+   InverseLat = (CBK_->RefLattice()).Inverse();
 
    // Iterate over points in cubic unit cell
    for (UCIter_.Reset();!UCIter_.Done();++UCIter_)
@@ -1373,6 +1240,7 @@ int MultiLatticeTPP::ReferenceBlochWave(Vector &K)
    return 1;
 }
 
+//---- needs to be updated----//
 void MultiLatticeTPP::LongWavelengthModuli(double dk, int gridsize,const char *prefix,
 					   ostream &out)
 {
@@ -1443,8 +1311,8 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, int gridsize,const char *p
 	       tmp[i][j][l] = 0.0;
 	       for (int k=0;k<DIM3;++k)
 	       {
-		  tmp[i][j][l] += RefLattice_[l][k]*DOF_[INDU(k,i)]*LatSum_.DX(j)
-		     +RefLattice_[l][k]*DOF_[INDU(i,k)]*LatSum_.DX(j);
+		  tmp[i][j][l] += (CBK_->RefLattice())[l][k]*(CBK_->DOF())[CBK_->INDF(k,i)]*LatSum_.DX(j)
+		     +(CBK_->RefLattice())[l][k]*(CBK_->DOF())[CBK_->INDF(i,k)]*LatSum_.DX(j);
 	       }
 	    }
       for (int k=1;k<INTERNAL_ATOMS;++k)
@@ -1456,8 +1324,8 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, int gridsize,const char *p
 		     phi*(2.0*LatSum_.Dx(i)*LatSum_.DX(j))
 		     *CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),LatSum_.Atom(1),k,l) +
 		     phi1*0.5*(Del(k,LatSum_.Atom(1)) - Del(k,LatSum_.Atom(0)))
-		     *( RefLattice_[l][i]*LatSum_.Dx(j) +
-			RefLattice_[l][j]*LatSum_.Dx(i) +
+		     *( (CBK_->RefLattice())[l][i]*LatSum_.Dx(j) +
+			(CBK_->RefLattice())[l][j]*LatSum_.Dx(i) +
 			tmp[i][j][l]);
 	       }
    }
@@ -1465,7 +1333,7 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, int gridsize,const char *p
    // Condense moduli.
    Phi -= (Dfp.Transpose())*(Dpp.Inverse())*Dfp;
    // Phi = Phi/(2*Vr*NormModulus)
-   Phi *= 1.0/(2.0*(RefLattice_.Det()*NormModulus_));
+   Phi *= 1.0/(2.0*(CBK_->RefVolume()*NormModulus_));
    
    //-----------------------------------------------------------------------------
 
@@ -1476,7 +1344,7 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, int gridsize,const char *p
 	 for (int k=0;k<DIM3;++k)
 	    for (int l=k;l<DIM3;++l)
 	    {
-	       SymPhi[INDU(i,j)][INDU(k,l)] = 0.25*(
+	       SymPhi[CBK_->INDF(i,j)][CBK_->INDF(k,l)] = 0.25*(
 		  Phi[3*i+j][3*k+l] +
 		  Phi[3*j+i][3*k+l] +
 		  Phi[3*i+j][3*l+k] +
@@ -1493,7 +1361,7 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, int gridsize,const char *p
    Matrix ModEigVal(1,DIM3);
 
    double Mc=0.0;
-   double Vc=RefLattice_.Det();
+   double Vc=CBK_->RefVolume();
    for (int i=0;i<INTERNAL_ATOMS;++i)
    {
       Mc += AtomicMass_[i];
@@ -1590,12 +1458,12 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
    static double MinEigVal;
    static double engy,entropy,heatcapacity;
    static Matrix
-      str(1,DOFS),
-      stiff(DOFS,DOFS),
-      EigenValues(1,DOFS),
-      CondEV(1,6);
+      str(1,CBK_->DOFS()),
+      stiff(CBK_->DOFS(),CBK_->DOFS()),
+      EigenValues(1,CBK_->DOFS()),
+      CondEV(1,CBK_->Fsize());
    static Matrix
-      CondModuli(6,6);
+      CondModuli(CBK_->Fsize(),CBK_->Fsize());
    static int RankOneConvex;
    static Vector K(DIM3);
    static int BlochWaveStable;
@@ -1615,7 +1483,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
    
    EigenValues=SymEigVal(stiff);
    MinEigVal = EigenValues[0][0];
-   for (int i=0;i<DOFS;i++)
+   for (int i=0;i<CBK_->DOFS();i++)
    {
       if (EigenValues[0][i] < 0)
 	 NoNegEigVal++;
@@ -1645,12 +1513,12 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
       case PrintLong:
 	 out << "MultiLatticeTPP:" << endl << endl;
 	 out << "Using: " << (*CBK_) << " Kinematics" << endl;
-	 out << "RefLattice_ : " << setw(W) << RefLattice_;
+	 out << "RefLattice_ : " << setw(W) << CBK_->RefLattice();
 	 for (int i=0;i<INTERNAL_ATOMS;++i)
 	 {
 	    out << "Atom_" << i << "          "
 		<< "Species : " << setw(5) << AtomSpecies_[i]
-		<< "          Position : " << setw(W) << AtomPositions_[i] << endl;
+		<< "          Position : " << setw(W) << CBK_->AtomPositions(i) << endl;
 	 }
 	 out << "Influence Distance   : " << setw(W) << InfluenceDist_ << endl;
 	 for (int i=0;i<NumberofSpecies_;++i)
@@ -1680,12 +1548,12 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 	 {
 	    cout << "MultiLatticeTPP:" << endl << endl;
 	    cout << "Using: " << (*CBK_) << " Kinematics" << endl;
-	    cout << "RefLattice_ : " << setw(W) << RefLattice_;
+	    cout << "RefLattice_ : " << setw(W) << CBK_->RefLattice();
 	    for (int i=0;i<INTERNAL_ATOMS;++i)
 	    {
 	       cout << "Atom_" << i << "          "
 		    << "Species : " <<setw(5) << AtomSpecies_[i]
-		    << "          Position : " << setw(W) << AtomPositions_[i] << endl;
+		    << "          Position : " << setw(W) << CBK_->AtomPositions(i) << endl;
 	    }
 	    cout << "Influence Distance   : " << setw(W) << InfluenceDist_ << endl;
 	    for (int i=0;i<NumberofSpecies_;++i)
@@ -1715,7 +1583,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
       case PrintShort:
 	 out << "Temperature (Ref Normalized): " << setw(W) << NTemp_ << endl
 	     << "Lambda (Normalized): " << setw(W) << Lambda_ << endl
-	     << "DOF's :" << endl << setw(W) << DOF_ << endl
+	     << "DOF's :" << endl << setw(W) << CBK_->DOF() << endl
 	     << "Potential Value (Normalized):" << setw(W) << engy << endl
 	     << "Entropy:" << setw(W) << entropy << endl
 	     << "HeatCapacity:" << setw(W) << heatcapacity << endl;
@@ -1740,7 +1608,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 	 {
 	    cout << "Temperature (Ref Normalized): " << setw(W) << NTemp_ << endl
 		 << "Lambda (Normalized): " << setw(W) << Lambda_ << endl
-		 << "DOF's :" << endl << setw(W) << DOF_ << endl
+		 << "DOF's :" << endl << setw(W) << CBK_->DOF() << endl
 		 << "Potential Value (Normalized):" << setw(W) << engy << endl
 		 << "Entropy:" << setw(W) << entropy << endl
 		 << "HeatCapacity:" << setw(W) << heatcapacity << endl;
@@ -1853,18 +1721,18 @@ void MultiLatticeTPP::DebugMode()
       if (!strcmp(response,Commands[indx++]))
 	 cout << "INTERNAL_ATOMS = " << INTERNAL_ATOMS << endl;
       else if (!strcmp(response,Commands[indx++]))
-	 cout << "DOFS = " << DOFS << endl;
+	 cout << "CBK_->DOFS() = " << CBK_->DOFS() << endl;
       else if (!strcmp(response,Commands[indx++]))
 	 cout << "InfluenceDist_ = " << InfluenceDist_ << endl;
       else if (!strcmp(response,Commands[indx++]))
 	 cout << "NTemp_ = " << NTemp_ << endl;
       else if (!strcmp(response,Commands[indx++]))
       {
-	 for (int i=0;i<DOFS;++i)
-	    cout << "DOF_[" << i << "] = " << DOF_[i] << endl;
+	 for (int i=0;i<CBK_->DOFS();++i)
+	    cout << "DOF_[" << i << "] = " << (CBK_->DOF())[i] << endl;
       }
       else if (!strcmp(response,Commands[indx++]))
-	 cout << "RefLattice_= " << setw(W) << RefLattice_;
+	 cout << "RefLattice_= " << setw(W) << CBK_->RefLattice();
       else if (!strcmp(response,Commands[indx++]))
 	 cout << "NormModulus_= " << NormModulus_ << endl;
       else if (!strcmp(response,Commands[indx++]))
@@ -1932,7 +1800,7 @@ void MultiLatticeTPP::DebugMode()
       else if (!strcmp(response,Commands[indx++]))
       {
 	 cout << "\tK > ";
-	 Vector K(3,0.0);
+	 Vector K(DIM3,0.0);
 	 cin >> K;
 	 cin.sync(); // clear input
 	 cout << "ReferenceDynamicalStiffness= "
@@ -1940,7 +1808,7 @@ void MultiLatticeTPP::DebugMode()
       }
       else if (!strcmp(response,Commands[indx++]))
       {
-	 Vector DOF(DOFS,0.0);
+	 Vector DOF(CBK_->DOFS(),0.0);
 	 cout << "\tDOF > ";
 	 cin >> DOF;
 	 cin.sync(); // clear input
@@ -2137,7 +2005,7 @@ void MultiLatticeTPP::DebugMode()
 
 void MultiLatticeTPP::RefineEqbm(double Tol,int MaxItr,ostream *out)
 {
-   Vector dx(DOFS,0.0);
+   Vector dx(CBK_->DOFS(),0.0);
    Vector Stress=stress();
    int itr=0;
    
@@ -2150,9 +2018,8 @@ void MultiLatticeTPP::RefineEqbm(double Tol,int MaxItr,ostream *out)
 #else
       dx = SolvePLU(stiffness(),Stress);
 #endif
-
-      SetDOF(DOF_-dx);
-
+      SetDOF(CBK_->DOF()-dx);
+      
       Stress=stress();
 
       if (out != NULL)
@@ -2166,28 +2033,18 @@ void MultiLatticeTPP::RefineEqbm(double Tol,int MaxItr,ostream *out)
 
 void MultiLatticeTPP::PrintCurrentCrystalParamaters(ostream &out)
 {
-   Matrix U(DIM3,DIM3,0.0);
+   Matrix F(DIM3,DIM3,0.0);
    Vector CurrentLattice[DIM3];
    int W=out.width();
    out.width(0);
-   
-   U[0][0] = DOF_[0];
-   U[1][1] = DOF_[1];
-   U[2][2] = DOF_[2];
-   U[0][1] = U[1][0] = DOF_[3];
-   U[0][2] = U[2][0] = DOF_[4];
-   U[1][2] = U[2][1] = DOF_[5];
 
    for (int i=0;i<DIM3;++i)
    {
-      CurrentLattice[i].Resize(DIM3,0.0);
-      for (int j=0;j<DIM3;++j)
-	 for (int p=0;p<DIM3;++p)
-	 {
-	    CurrentLattice[i][j] += U[j][p]*RefLattice_[i][p];
-	 }
+      CurrentLattice[i].Resize(DIM3);
+      CurrentLattice[i] = CBK_->CurrentLatticeVec(i);
    }
 
+   
    out << "TITLE LatticeStatics crystal structure scaled by 10.0" << endl;
    out << "DIMENSION 3" << endl;
    out << "CELL" << setw(W) << 10.0*CurrentLattice[0].Norm()
@@ -2214,13 +2071,11 @@ void MultiLatticeTPP::PrintCurrentCrystalParamaters(ostream &out)
        << "NAME" << setw(W) << "X" << setw(W) << "Y" << setw(W) << "Z" << endl;
    char const *species[] = {"Ni","Ti","C"};
    out << setw(4) << species[(AtomSpecies_[0] > 3)?3:AtomSpecies_[0]]
-       << setw(W) << 0.0 << setw(W) << 0.0 << setw(W) << 0.0 << endl;
+       << setw(W) << CBK_->FractionalPosVec(0) << endl;
    for (int i=1;i<INTERNAL_ATOMS;++i)
    {
       out << setw(4) << species[(AtomSpecies_[i] > 3)?3:AtomSpecies_[i]];
-      for (int j=0;j<DIM3;++j)
-	 out << setw(W) << AtomPositions_[i][j] + DOF_[6+DIM3*(i-1)+j];
-      out << endl;
+      out << setw(W) << CBK_->FractionalPosVec(i) << endl;
    }
 
    out << "EOF" << endl;
@@ -2228,5 +2083,5 @@ void MultiLatticeTPP::PrintCurrentCrystalParamaters(ostream &out)
    out << endl
        << "Temperature : " << setw(W) << NTemp_ << endl
        << "Lambda : " << setw(W) << Lambda_ << endl
-       << "DOFs : " << setw(W) << DOF_ << endl;
+       << "DOFs : " << setw(W) << CBK_->DOF() << endl;
 }

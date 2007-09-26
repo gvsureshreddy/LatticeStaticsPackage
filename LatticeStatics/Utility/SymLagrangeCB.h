@@ -10,13 +10,15 @@ using namespace std;
 class SymLagrangeCB: public CBKinematics
 {
 private:
+   virtual void Reset();
    
 public:
-   SymLagrangeCB(Vector *DOF,Matrix *RefLat,int InternalAtoms,Vector *InternalPOS);
+   SymLagrangeCB(int InternalAtoms,const char* prefix,const char* datafile);
    virtual ~SymLagrangeCB() {};
 
-   virtual void Reset();
+   #include "UwithoutTransMapping.def"
 
+   virtual Vector FractionalPosVec(int p);
    virtual double DX(double *X,int p,int q,int i);
    virtual double Dx(double *X,int p,int q,int i);
 

@@ -1,37 +1,46 @@
 #include "LagrangeCB.h"
 
-LagrangeCB::LagrangeCB(Vector *DOF,Matrix *RefLat,int InternalAtoms,Vector *InternalPOS)
+LagrangeCB::LagrangeCB(int InternalAtoms,const char* prefix,const char* datafile):
+   CBKinematics(InternalAtoms,prefix,datafile)
 {
-   DOF_=DOF;
-   RefLattice_=RefLat;
-   InternalAtoms_=InternalAtoms;
-   InternalPOS_=InternalPOS;
    F_.Resize(DIM3,DIM3);
    S_.Resize(InternalAtoms,DIM3);
+
+   SetReferenceDOFs();
    Reset();
 }
 
 void LagrangeCB::Reset()
 {
-   int i,q,p;
-   F_[0][0] = (*DOF_)[0];
-   F_[0][1] = (*DOF_)[1];
-   F_[0][2] = (*DOF_)[2];
-   F_[1][0] = (*DOF_)[3];
-   F_[1][1] = (*DOF_)[4];
-   F_[1][2] = (*DOF_)[5];
-   F_[2][0] = (*DOF_)[6];
-   F_[2][1] = (*DOF_)[7];
-   F_[2][2] = (*DOF_)[8];
+   int i,j,q,p;
+   for (i=0;i<DIM3;++i)
+   {
+      for (j=0;j<DIM3;++j)
+      {
+	 F_[i][j] = DOF_[INDF(i,j)];
+      }
+   }
    
-   i=9;
+   i=Fsize();
    for (q=0;q<InternalAtoms_;++q)
    {
       for (p=0;p<DIM3;p++)
       {
-         S_[q][p] = (*DOF_)[i++];
+         S_[q][p] = DOF_[i++];
       }
    }
+}
+
+Vector LagrangeCB::FractionalPosVec(int p)
+{
+   Vector pos(DIM3,0.0);
+
+   for (int i=0;i<DIM3;++i)
+   {
+      pos[i] = InternalPOS_[p][i] + S_[p][i];
+   }
+
+   return pos;
 }
 
 double LagrangeCB::DX(double *X,int p,int q,int i)
@@ -42,7 +51,7 @@ double LagrangeCB::DX(double *X,int p,int q,int i)
    {
       tmp += (X[j] + ((InternalPOS_[q][j] + S_[q][j])
 		      - (InternalPOS_[p][j] + S_[p][j])))
-	 *(*RefLattice_)[j][i];
+	 *RefLattice_[j][i];
    }
 
    return tmp;
@@ -81,7 +90,7 @@ double LagrangeCB::DyDS(double *Dx,int p,int q,int i, int j)
       {
 	 for (int k=0;k<DIM3;k++)
 	 {
-	    ret += F_[k][r]*(*RefLattice_)[j][r]*Dx[k];
+	    ret += F_[k][r]*RefLattice_[j][r]*Dx[k];
 	 }
       }
       ret *= 2.0*DELTA(i,p,q);
@@ -101,7 +110,7 @@ double LagrangeCB::D2yDSS(int p,int q,int i,int j,int k,int l)
 	 {
 	    for (int s=0;s<DIM3;s++)
 	    {
-	       tmp += F_[t][r]*(*RefLattice_)[j][r]*F_[t][s]*(*RefLattice_)[l][s];
+	       tmp += F_[t][r]*RefLattice_[j][r]*F_[t][s]*RefLattice_[l][s];
 	    }
 	 }
       }
@@ -119,9 +128,9 @@ double LagrangeCB::D2yDFS(double *Dx,double *DX,int p,int q,int i,int j,int k,in
    {
       for (int r=0;r<DIM3;r++)
       {
-	 tmp += F_[i][r]*(*RefLattice_)[l][r];
+	 tmp += F_[i][r]*RefLattice_[l][r];
       }
-      tmp = 2.0*DELTA(k,p,q)*(Dx[i]*(*RefLattice_)[l][j] + tmp*DX[j]);
+      tmp = 2.0*DELTA(k,p,q)*(Dx[i]*RefLattice_[l][j] + tmp*DX[j]);
    }
 
    return tmp;
@@ -129,7 +138,7 @@ double LagrangeCB::D2yDFS(double *Dx,double *DX,int p,int q,int i,int j,int k,in
 
 double LagrangeCB::D3yDFFS(double *DX,int p,int q,int i,int j,int k,int l,int m, int n)
 {
-   return 2.0*DELTA(m,p,q)*Del(i,k)*((*RefLattice_)[n][j]*DX[l] + DX[j]*(*RefLattice_)[n][l]);
+   return 2.0*DELTA(m,p,q)*Del(i,k)*(RefLattice_[n][j]*DX[l] + DX[j]*RefLattice_[n][l]);
 }
 
 double LagrangeCB::D3yDSSF(int p,int q,int i,int j,int k,int l,int m,int n)
@@ -140,8 +149,8 @@ double LagrangeCB::D3yDSSF(int p,int q,int i,int j,int k,int l,int m,int n)
    {
       for (int s=0;s<DIM3;s++)
       {
-	 tmp += F_[m][s]*((*RefLattice_)[j][n]*(*RefLattice_)[l][s]
-			  + (*RefLattice_)[j][s]*(*RefLattice_)[l][n]);
+	 tmp += F_[m][s]*(RefLattice_[j][n]*RefLattice_[l][s]
+			  + RefLattice_[j][s]*RefLattice_[l][n]);
       }
       tmp *= 2.0*DELTA(i,p,q)*DELTA(k,p,q);
    }
@@ -152,6 +161,6 @@ double LagrangeCB::D3yDSSF(int p,int q,int i,int j,int k,int l,int m,int n)
 double LagrangeCB::D4yDFFSS(int p,int q,int i,int j,int k,int l,int m,int n,int a,int b)
 {
    return (2.0*DELTA(m,p,q)*DELTA(a,p,q)*Del(i,k)*
-	   ((*RefLattice_)[n][j]*(*RefLattice_)[b][l]
-	    + (*RefLattice_)[n][l]*(*RefLattice_)[b][j]));
+	   (RefLattice_[n][j]*RefLattice_[b][l]
+	    + RefLattice_[n][l]*RefLattice_[b][j]));
 }

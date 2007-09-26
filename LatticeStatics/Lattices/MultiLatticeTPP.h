@@ -4,6 +4,9 @@
 #include "Lattice.h"
 #include "UnitCellIterator.h"
 #include "CBKinematics.h"
+#include "LagrangeCB.h"
+#include "MixedCB.h"
+#include "EulerCB.h"
 #include "SymLagrangeCB.h"
 #include "SymMixedCB.h"
 #include "SymEulerCB.h"
@@ -19,14 +22,15 @@ private:
    const static int DIM3 = 3;
    
    int INTERNAL_ATOMS;
-   int DOFS;
 
    double InfluenceDist_;
    double NTemp_;
-   // DOF[i] = [U11 U22 U33 U12 U13 U23 V11 V12 V13 V21... ...]
-   // i.e., using SymXXXXXCB 
-   Vector DOF_;
-   Matrix RefLattice_;
+   // DOF[i] = [F00 F01 F02 F10 F11 F12 F20 F21 F22 S00 S01 S02 S11 S12 S13 S21... ...]
+   // if using a FwithTransMapping CBkinematics
+   // or
+   // DOF[i] = [U11 U22 U33 U12 U13 U23 S11 S12 S13 S21... ...]
+   // if using a UwithoutTransMapping CBkinematics
+   CBKinematics *CBK_;
    double NormModulus_;
    double Tref_;
    double PhiRef_;
@@ -42,7 +46,6 @@ private:
    double *SpeciesMass_;
    double *AtomicMass_;
 
-   CBKinematics *CBK_;
    PPSum LatSum_;
 
    UnitCellIterator UCIter_;
@@ -56,7 +59,6 @@ private:
 
    // Misc
    double ConvexityDX_;
-   Vector *AtomPositions_;
 
    double energy(PairPotentials::TDeriv dt=PairPotentials::T0);
    Matrix stress(PairPotentials::TDeriv dt=PairPotentials::T0,LDeriv dl=L0);
@@ -77,12 +79,12 @@ private:
    static int abscomp(const void *a,const void *b);
 
 public:
-   Vector AtomPositions(int i) {return AtomPositions_[i];}
+   const Vector& AtomPositions(int i) {return CBK_->AtomPositions(i);}
 
 
    // Virtual Functions required by Lattice
-   Vector DOF() {return DOF_;}
-   void SetDOF(const Vector &dof) {DOF_ = dof; LatSum_.Recalc();}
+   Vector DOF() {return CBK_->DOF();}
+   void SetDOF(const Vector &dof) {CBK_->SetDOF(dof); LatSum_.Recalc();}
    // Entropy is NEGATIVE dE/dT
    double Entropy() {return -energy(PairPotentials::DT);}
    double HeatCapacity() {return -(NTemp_)*energy(PairPotentials::D2T);}
@@ -126,12 +128,6 @@ public:
    friend ostream &operator<<(ostream &out,MultiLatticeTPP &A);
 
 private:
-   inline int INDU(int i,int j);
-   inline int INDV(int i,int j);
-   inline int INDUU(int k,int l,int m,int n);
-   inline int INDVV(int k,int l,int m,int n);
-   inline int INDUV(int i,int j,int m,int n);
-   inline int INDVU(int m,int n,int i,int j);
    int FindLatticeSpacing(char *datafile,const char *prefix,int iter);
    void RefineEqbm(double Tol,int MaxItr,ostream *out);
    
