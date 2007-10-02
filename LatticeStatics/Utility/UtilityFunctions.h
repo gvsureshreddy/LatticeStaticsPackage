@@ -41,7 +41,8 @@ unsigned FullScanRank1Convex2D(Matrix K,double dx);
 unsigned Rank1Convex3D(Matrix K,double dx);
 unsigned Rank1Convex2D(Matrix K,double dx);
 
-Matrix TranslationProjection1D(int N);
+Matrix TranslationProjection1D(int NoAtoms);
+Matrix TranslationProjection3D(int Fsize,int NoAtoms);
 
 static const double UtilityALT[3][3][3] = {0.0, 0.0, 0.0,
 					   0.0, 0.0, 1.0,

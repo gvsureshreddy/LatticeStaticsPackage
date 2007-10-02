@@ -5,6 +5,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#define DIM3 3
+
 using namespace std;
 
 /*
@@ -18,21 +20,21 @@ using namespace std;
 
 int setblock  (int file_desc, int block)
 {
- int flags;
+   int flags;
 
    /* retrieve the file descriptor's flags */
    if ( (flags = fcntl (file_desc, F_GETFL)) == -1 )
    {
-     return false;    /* something went wrong! */
+      return false;    /* something went wrong! */
    }
 
    if (block)
    {
-    flags &= ~O_NONBLOCK;      /* we want blocking input */
+      flags &= ~O_NONBLOCK;      /* we want blocking input */
    }
    else
    {
-    flags |= O_NONBLOCK;       /* we want non-blocking input */
+      flags |= O_NONBLOCK;       /* we want non-blocking input */
    }
 
    /* set the flags (note the third parameter) */
@@ -43,26 +45,26 @@ int setblock  (int file_desc, int block)
 
 int kbhitWait(void)
 {
-  struct termios old, newstate;
-  int ch;
+   struct termios old, newstate;
+   int ch;
 
-  tcgetattr(0, &old);
+   tcgetattr(0, &old);
 
-  newstate = old;
-  newstate.c_lflag &= ~(ICANON);
-  newstate.c_lflag &= ~(ECHO);
-  newstate.c_cc[VTIME] = 1;
-  newstate.c_cc[VMIN] = 1;
+   newstate = old;
+   newstate.c_lflag &= ~(ICANON);
+   newstate.c_lflag &= ~(ECHO);
+   newstate.c_cc[VTIME] = 1;
+   newstate.c_cc[VMIN] = 1;
 
-  tcsetattr(0, TCSANOW, &newstate);
+   tcsetattr(0, TCSANOW, &newstate);
 
-  ch = getchar();
+   ch = getchar();
 
-  tcsetattr(0, TCSANOW, &old);
+   tcsetattr(0, TCSANOW, &old);
 
-  if(ch == EOF)
-    return 0;
-  return ch;
+   if(ch == EOF)
+      return 0;
+   return ch;
 }
 
 int EnterDebugMode()
@@ -511,132 +513,7 @@ unsigned Rank1Convex2D(Matrix K,double dx)
    return 1;
 }
 
-
 int pow(int a,int b);
-
-Matrix TranslationProjection1D(int N)
-{
-   int k=0;
-   int l=0;
-   int h,i, j, p, q, g, t;
-   double m, sum, x, y, R;
-   int count=0;
-   
-   Matrix u(N,N+1, 0);
-   // The following generates first column vector [1 0 0 0...0]
-   
-   u[k][0]=1;
-   for (h=1; h < N+1; h++)              
-   {
-      u[k][h]=0;
-   }
-   k=k+1; //Finishes first vector
-   
-   // The following generates floor(log2(N)) vectors with
-   // floor(double(N)/pow(2,(i+1))) entry pairs
-   
-   for (i=0; i < floor(log2(N));i++) // Generates floor(log2(N)) entry pairs
-   {
-      m =  floor(double(N)/pow(2,(i+1)));
-      q=0;
-      
-      for (j=0; j<m;j++) //generates floor(double(N)/pow(2,(i+1))) column vectors
-      {
-	 if (j==0)
-	 {
-	    sum=0;
-	    u[k][0]=0;
-	    q=2*j+1;
-	    
-	    for (p=0;p<pow(2,i);p++)
-	    {
-	       u[k][q]=1;
-	       sum = sum +pow(u[k][q],2);
-	       q=q+1;
-	    }
-	    
-	    for (p=0;p<pow(2,i);p++)
-	    {
-	       u[k][q]=-1;
-	       sum = sum +pow(u[k][q],2);
-	       q=q+1;
-	    }
-	    
-	    sum = sqrt(sum);
-	    
-	    for(h=0;h<N+1;h++)
-	    {											
-	       u[k][h]=u[k][h]/sum;	
-	    }
-	    
-	    k=k+1;
-	 }
-	 else
-	 {
-	    sum =0;
-	    
-	    for (p=0; p<pow(2,i);p++)
-	    {
-	       u[k][q]=1;
-	       sum = sum +pow(u[k][q],2);
-	       q=q+1;
-	    }
-            
-	    for (p=0; p<pow(2,i);p++)
-	    {
-	       u[k][q]=-1;
-	       sum = sum +pow(u[k][q],2);
-	       q=q+1;
-	    }
-            
-	    sum = sqrt(sum);
-	    
-	    for(h=0;h<N+1;h++)
-	    {
-	       u[k][h]=u[k][h]/sum;
-	    }
-	    
-	    k=k+1;
-	 }
-	 
-	 //Generates remainder column vectors
-	 R= N - ((floor(double(N)/(pow(2,(i+1)))))*pow(2,(i+1)));
-	 
-	 if (j==m-1 & R >= pow(2,i))
-	 {
-	    u[k][0]=0;
-	    sum = 0;
-	    
-	    for (g=0;g<(((pow(2,i))*2*(m)));g++)
-	    {
-	       u[k][g+1]=1;
-	       sum = sum +pow(u[k][g+1],2);
-	    }
-	    
-	    y=-(g)/pow(2,i);
-	    
-	    for (t=0;t<(pow(2,(i)));t++)
-	    {
-	       u[k][g+1]=y;
-	       sum = sum +pow(u[k][g+1],2);
-	       g=g+1;
-	    }
-	    
-	    sum = sqrt(sum);
-	    
-	    for(h=0;h<N+1;h++)
-	    {
-	       u[k][h]=u[k][h]/sum;
-	    }
-	    
-	    k=k+1;
-	 }
-      } // closes column vector (j) index
-   } //closes entry pair (i) index
-   
-   return u;
-}
-
 int pow(int a,int b)
 {
    int c=1;
@@ -645,4 +522,301 @@ int pow(int a,int b)
       c *= a;
    }
    return c;
+}
+
+Matrix TranslationProjection1D(int NoAtoms)
+{
+   int k=0;
+   int l=0;
+   int h,i, j, p, q, r, g, t, m, Rows, Columns, pow2_i;
+   double  sum, x, y, R, log2_NoAtoms;
+   int count=0;
+
+   Rows = NoAtoms;
+   Columns = NoAtoms+1;
+   
+   Matrix P(Rows,Columns,0.0);
+   // The following generates first column vector [1 0 0 0...0]
+   
+   P[k][0]=1.0;
+   for (h=1;h<Columns;h++)
+   {
+      P[k][h]=0.0;
+   }
+   k+=1; //Finishes first vector
+   
+   // The following generates floor(log2(NoAtoms)) vectors with
+   // floor(double(NoAtoms)/pow(2,(i+1))) entry pairs
+   log2_NoAtoms = log2(NoAtoms);
+
+   for (i=0; i < log2_NoAtoms;i++) // Generates floor(log2(NoAtoms)) entry pairs
+   {
+      m =  int(floor(double(NoAtoms)/pow(2,(i+1))));
+      q=0;
+      
+      pow2_i = pow(2,i);
+      
+      for (j=0;j<m;j++) //generates floor(double(NoAtoms)/pow(2,(i+1))) column vectors
+      {
+	 if (j==0)
+	 {
+	    sum=0.0;
+	    P[k][0]=0.0;
+	    q=2*j+1;
+	    
+	    for (p=0;p<pow2_i;p++)
+	    {
+	       P[k][q]=1.0;
+	       sum += 1.0;
+	       q+=1;
+	    }
+	    
+	    for (p=0;p<pow2_i;p++)
+	    {
+	       P[k][q]=-1.0;
+	       sum += 1.0;
+	       q+=1;
+	    }
+	    
+	    sum = sqrt(sum);
+	    
+	    for(h=0;h<Columns;h++)
+	    {
+	       P[k][h] /= sum;
+	    }
+	    k+=1;
+	 }
+	 else
+	 {
+	    sum = 0.0;
+	    
+	    for (p=0;p<pow2_i;p++)
+	    {
+	       P[k][q]=1.0;
+	       sum += 1.0;
+	       q+=1;
+	    }
+            
+	    for (p=0;p<pow2_i;p++)
+	    {
+	       P[k][q]=-1.0;
+	       sum += 1.0;
+	       q+=1;
+	    }
+            
+	    sum = sqrt(sum);
+	    
+	    for(h=0;h<Columns;h++)
+	    {
+	       P[k][h] /= sum;
+	    }
+	    k+=1;
+	 }
+	 
+	 //Generates remainder column vectors
+	 R = NoAtoms - (m*pow(2,(i+1)));
+	 
+	 if ((j==m-1) && (R >= pow2_i))
+	 {
+	    P[k][0]=0.0;
+	    sum = 0.0;
+	    
+	    r = (((pow2_i)*2*(m)));
+	    
+	    for (g=0;g<r;g++)
+	    {
+	       P[k][g+1]=1.0;
+	       sum += 1.0;
+	    }
+	    
+	    y=-(g)/(pow2_i);
+	    
+	    for (t=0;t<(pow2_i);t++)
+	    {
+	       P[k][g+1]=y;
+	       sum += pow(P[k][g+1],2);
+	       g+=1;
+	    }
+	    
+	    sum = sqrt(sum);
+	    
+	    for(h=0;h<Columns;h++)
+	    {
+	       P[k][h] /= sum;
+	    }
+	    k+=1;
+	 }
+      } // closes column vector (j) index
+   } //closes entry pair (i) index
+   
+   return P;
+}
+
+Matrix TranslationProjection3D(int Fsize, int NoAtoms)
+{
+   int i, j, g, h, m,t, p, r, qx,qy,qz, kx,ky,kz, wx, wy, wz,pow2_i;
+   double sum,y,log2_NoAtoms, R;
+   int Rows = (Fsize-DIM3) + DIM3*NoAtoms;
+   int Columns = Fsize + DIM3*NoAtoms;
+   
+   Matrix P(Rows,Columns,0.0);
+   
+   // The following takes care of the uniform deformation part
+   for(i=0;i<Fsize;i++)
+   {
+      P[i][i]=1.0;
+   }
+   
+   kx=Fsize;
+   ky=kx+1;
+   kz=ky+1;
+   
+   // The following generates the Rigid Body Translation Projection Operator
+   log2_NoAtoms = log2(NoAtoms);
+   
+   for (i=0; i < log2_NoAtoms;i++)
+   {
+      m = int(floor(double(NoAtoms)/pow(2,(i+1))));
+      
+      pow2_i = pow(2,i);
+      
+      qx=Fsize;
+      qy=qx+1;
+      qz=qy+1;
+      
+      for (j=0;j<m;j++)
+      {
+	 if (j==0)
+	 {
+	    sum = 0.0;
+	    
+	    for (p=0;p<pow2_i;p++)
+	    {
+	       P[kx][qx]=1.0;
+	       P[ky][qy]=1.0;
+	       P[kz][qz]=1.0;
+	       sum += 1.0;
+	       qx+=DIM3;
+	       qy+=DIM3;
+	       qz+=DIM3;
+	    }
+	    
+	    for (p=0;p<pow2_i;p++)
+	    {
+	       P[kx][qx]=-1.0;
+	       P[ky][qy]=-1.0;
+	       P[kz][qz]=-1.0;
+	       sum += 1.0;
+	       qx+=DIM3;
+	       qy+=DIM3;
+	       qz+=DIM3;
+	    }
+				
+	    sum = sqrt(sum);		
+				
+	    //normalize
+	    for (h=Fsize;h<Columns; h++)
+	    {
+	       P[kx][h] /= sum;
+	       P[ky][h] /= sum;
+	       P[kz][h] /= sum;
+	    }
+	    kx+=DIM3;
+	    ky+=DIM3;
+	    kz+=DIM3;
+	 }
+	 else
+	 {
+	    sum=0;
+	    
+	    for (p=0;p<pow2_i;p++)
+	    {
+	       P[kx][qx]=1.0;
+	       P[ky][qy]=1.0;
+	       P[kz][qz]=1.0;
+	       sum += 1.0;
+	       qx+=DIM3;
+	       qy+=DIM3;
+	       qz+=DIM3;
+	    }
+	    
+	    for (p=0;p<pow2_i;p++)
+	    {
+	       P[kx][qx]=-1.0;
+	       P[ky][qy]=-1.0;
+	       P[kz][qz]=-1.0;
+	       sum += 1.0;
+	       qx+=DIM3;
+	       qy+=DIM3;
+	       qz+=DIM3;
+	    }
+	    
+	    sum = sqrt(sum);
+	    
+	    //normalize
+	    for (h=Fsize;h<Columns; h++)
+	    {
+	       P[kx][h] /= sum;
+	       P[ky][h] /= sum;
+	       P[kz][h] /= sum;
+	    }
+	    kx+=DIM3;
+	    ky+=DIM3;
+	    kz+=DIM3;		
+	 }
+	 
+	 R = NoAtoms - (m*pow(2,(i+1)));
+	 
+	 if ((j==m-1) && (R >= pow2_i))
+	 {
+	    sum = 0.0;
+				
+	    wx=Fsize;
+	    wy=wx+1;
+	    wz=wy+1;
+				
+	    r=(((pow2_i)*2*(m)));
+			
+	    for (g=0;g<r;g++)
+	    {
+	       P[kx][wx]=1.0;
+	       P[ky][wy]=1.0;
+	       P[kz][wz]=1.0;
+	       sum += 1.0;
+	       wx += DIM3;
+	       wy += DIM3;
+	       wz += DIM3;
+	    }
+	    
+	    y=-(g)/(pow2_i);
+	    
+	    for (t=0;t<(pow2_i);t++)
+	    {
+	       P[kx][wx]=y;
+	       P[ky][wy]=y;
+	       P[kz][wz]=y;
+	       sum += pow(P[kx][wx],2);
+	       wx += DIM3;
+	       wy += DIM3;
+	       wz += DIM3;
+	    }
+	    
+	    sum=sqrt(sum);
+	    
+	    //normalize
+	    for (h=Fsize;h<Columns; h++)
+	    {
+	       P[kx][h] /= sum;
+	       P[ky][h] /= sum;
+	       P[kz][h] /= sum;
+	    }
+				
+	    kx+=DIM3;
+	    ky+=DIM3;
+	    kz+=DIM3;
+	 }
+      }//closes j
+   }//closes i
+   
+   return P;
 }
