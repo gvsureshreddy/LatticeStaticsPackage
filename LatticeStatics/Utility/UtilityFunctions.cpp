@@ -538,11 +538,7 @@ Matrix TranslationProjection1D(int NoAtoms)
    Matrix P(Rows,Columns,0.0);
    // The following generates first column vector [1 0 0 0...0]
    
-   P[k][0]=1.0;
-   for (h=1;h<Columns;h++)
-   {
-      P[k][h]=0.0;
-   }
+   P[k][0]=1.0; // the rest of P[k][i] are already zero
    k+=1; //Finishes first vector
    
    // The following generates floor(log2(NoAtoms)) vectors with
@@ -555,70 +551,39 @@ Matrix TranslationProjection1D(int NoAtoms)
       q=0;
       
       pow2_i = pow(2,i);
-      
+
+      R = NoAtoms - (m*pow(2,(i+1)));
+      q=1;
+	 
       for (j=0;j<m;j++) //generates floor(double(NoAtoms)/pow(2,(i+1))) column vectors
       {
-	 if (j==0)
+	 sum=0.0;
+	 
+	 for (p=0;p<pow2_i;p++)
 	 {
-	    sum=0.0;
-	    P[k][0]=0.0;
-	    q=2*j+1;
-	    
-	    for (p=0;p<pow2_i;p++)
-	    {
-	       P[k][q]=1.0;
-	       sum += 1.0;
-	       q+=1;
-	    }
-	    
-	    for (p=0;p<pow2_i;p++)
-	    {
-	       P[k][q]=-1.0;
-	       sum += 1.0;
-	       q+=1;
-	    }
-	    
-	    sum = sqrt(sum);
-	    
-	    for(h=0;h<Columns;h++)
-	    {
-	       P[k][h] /= sum;
-	    }
-	    k+=1;
+	    P[k][q]=1.0;
+	    sum += 1.0;
+	    q+=1;
 	 }
-	 else
+	 
+	 for (p=0;p<pow2_i;p++)
 	 {
-	    sum = 0.0;
-	    
-	    for (p=0;p<pow2_i;p++)
-	    {
-	       P[k][q]=1.0;
-	       sum += 1.0;
-	       q+=1;
-	    }
-            
-	    for (p=0;p<pow2_i;p++)
-	    {
-	       P[k][q]=-1.0;
-	       sum += 1.0;
-	       q+=1;
-	    }
-            
-	    sum = sqrt(sum);
-	    
-	    for(h=0;h<Columns;h++)
-	    {
-	       P[k][h] /= sum;
-	    }
-	    k+=1;
+	    P[k][q]=-1.0;
+	    sum += 1.0;
+	    q+=1;
 	 }
+	 
+	 sum = sqrt(sum);
+	 
+	 for(h=0;h<Columns;h++)
+	 {
+	    P[k][h] /= sum;
+	 }
+	 k+=1;
 	 
 	 //Generates remainder column vectors
-	 R = NoAtoms - (m*pow(2,(i+1)));
-	 
 	 if ((j==m-1) && (R >= pow2_i))
 	 {
-	    P[k][0]=0.0;
 	    sum = 0.0;
 	    
 	    r = (((pow2_i)*2*(m)));
@@ -683,100 +648,59 @@ Matrix TranslationProjection3D(int Fsize, int NoAtoms)
       qx=Fsize;
       qy=qx+1;
       qz=qy+1;
+
+      R = NoAtoms - (m*pow(2,(i+1)));
       
       for (j=0;j<m;j++)
       {
-	 if (j==0)
+	 sum = 0.0;
+	 
+	 for (p=0;p<pow2_i;p++)
 	 {
-	    sum = 0.0;
-	    
-	    for (p=0;p<pow2_i;p++)
-	    {
-	       P[kx][qx]=1.0;
-	       P[ky][qy]=1.0;
-	       P[kz][qz]=1.0;
-	       sum += 1.0;
-	       qx+=DIM3;
-	       qy+=DIM3;
-	       qz+=DIM3;
-	    }
-	    
-	    for (p=0;p<pow2_i;p++)
-	    {
-	       P[kx][qx]=-1.0;
-	       P[ky][qy]=-1.0;
-	       P[kz][qz]=-1.0;
-	       sum += 1.0;
-	       qx+=DIM3;
-	       qy+=DIM3;
-	       qz+=DIM3;
-	    }
-				
-	    sum = sqrt(sum);		
-				
-	    //normalize
-	    for (h=Fsize;h<Columns; h++)
-	    {
-	       P[kx][h] /= sum;
-	       P[ky][h] /= sum;
-	       P[kz][h] /= sum;
-	    }
-	    kx+=DIM3;
-	    ky+=DIM3;
-	    kz+=DIM3;
-	 }
-	 else
-	 {
-	    sum=0;
-	    
-	    for (p=0;p<pow2_i;p++)
-	    {
-	       P[kx][qx]=1.0;
-	       P[ky][qy]=1.0;
-	       P[kz][qz]=1.0;
-	       sum += 1.0;
-	       qx+=DIM3;
-	       qy+=DIM3;
-	       qz+=DIM3;
-	    }
-	    
-	    for (p=0;p<pow2_i;p++)
-	    {
-	       P[kx][qx]=-1.0;
-	       P[ky][qy]=-1.0;
-	       P[kz][qz]=-1.0;
-	       sum += 1.0;
-	       qx+=DIM3;
-	       qy+=DIM3;
-	       qz+=DIM3;
-	    }
-	    
-	    sum = sqrt(sum);
-	    
-	    //normalize
-	    for (h=Fsize;h<Columns; h++)
-	    {
-	       P[kx][h] /= sum;
-	       P[ky][h] /= sum;
-	       P[kz][h] /= sum;
-	    }
-	    kx+=DIM3;
-	    ky+=DIM3;
-	    kz+=DIM3;		
+	    P[kx][qx]=1.0;
+	    P[ky][qy]=1.0;
+	    P[kz][qz]=1.0;
+	    sum += 1.0;
+	    qx+=DIM3;
+	    qy+=DIM3;
+	    qz+=DIM3;
 	 }
 	 
-	 R = NoAtoms - (m*pow(2,(i+1)));
+	 for (p=0;p<pow2_i;p++)
+	 {
+	    P[kx][qx]=-1.0;
+	    P[ky][qy]=-1.0;
+	    P[kz][qz]=-1.0;
+	    sum += 1.0;
+	    qx+=DIM3;
+	    qy+=DIM3;
+	    qz+=DIM3;
+	 }
 	 
+	 sum = sqrt(sum);		
+	 
+	 //normalize
+	 for (h=Fsize;h<Columns; h++)
+	 {
+	    P[kx][h] /= sum;
+	    P[ky][h] /= sum;
+	    P[kz][h] /= sum;
+	 }
+	 kx+=DIM3;
+	 ky+=DIM3;
+	 kz+=DIM3;
+
+	 // remainder vectors
 	 if ((j==m-1) && (R >= pow2_i))
 	 {
 	    sum = 0.0;
-				
+	    
 	    wx=Fsize;
 	    wy=wx+1;
 	    wz=wy+1;
-				
+	    
 	    r=(((pow2_i)*2*(m)));
-			
+	    
 	    for (g=0;g<r;g++)
 	    {
 	       P[kx][wx]=1.0;
@@ -810,7 +734,7 @@ Matrix TranslationProjection3D(int Fsize, int NoAtoms)
 	       P[ky][h] /= sum;
 	       P[kz][h] /= sum;
 	    }
-				
+	    
 	    kx+=DIM3;
 	    ky+=DIM3;
 	    kz+=DIM3;
