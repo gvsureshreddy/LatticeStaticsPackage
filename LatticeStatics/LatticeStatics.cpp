@@ -13,7 +13,7 @@ using namespace std;
 enum YN {No,Yes};
 void GetMainSettings(int &Width, int &Precision,YN &BisectCP,int &Echo,char *datafile);
 void InitializeOutputFile(fstream &out,char *outfile,char *datafile,char *startfile,
-			  Lattice *Lat,int Precision,int Width,int Echo);
+			  int Precision,int Width,int Echo);
 
 int main(int argc, char *argv[])
 {
@@ -57,11 +57,12 @@ int main(int argc, char *argv[])
    }
    GetMainSettings(Width,Precision,BisectCP,Echo,datafile);
 
-   Lat = InitializeLattice(datafile,"^",Echo,Width,Debug);
-
    fstream out;
-   InitializeOutputFile(out,outputfile,datafile,startfile,Lat,Precision,Width,Echo);
+   InitializeOutputFile(out,outputfile,datafile,startfile,Precision,Width,Echo);
    
+   Lat = InitializeLattice(datafile,"^",Echo,Width,Debug);
+   Lat->Print(out,Lattice::PrintLong);
+
    Mode = InitializeMode(Lat,datafile,"^");
    out << "Mode: " << Mode->ModeName() << endl;
    if (Echo) cout << "Mode: " << Mode->ModeName() << endl;
@@ -123,7 +124,7 @@ void GetMainSettings(int &Width, int &Precision,YN &BisectCP,int &Echo,char *dat
 
 
 void InitializeOutputFile(fstream &out,char *outfile,char *datafile,char *startfile,
-			  Lattice *Lat,int Precision,int Width,int Echo)
+			  int Precision,int Width,int Echo)
 {
    fstream input,start;
    char dataline[LINELENGTH];
@@ -181,6 +182,4 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,char *startf
        << "LinearAlgebra Build on: " << LinearAlgebraBuildDate() << endl
        << "MyMath Built on:        " << MyMathBuildDate() << endl
        << setw(Width);
-   
-   Lat->Print(out,Lattice::PrintLong);
 }

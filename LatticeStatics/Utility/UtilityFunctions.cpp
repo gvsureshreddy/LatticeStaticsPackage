@@ -1,14 +1,16 @@
 #include "UtilityFunctions.h"
 
 #include <fstream>
-#include <termios.h>
-#include <fcntl.h>
-#include <unistd.h>
 
 #define DIM3 3
 
 using namespace std;
 
+#ifdef UNIX_TERMINAL  // Unix/Linux terminal: use non-blocking to check for debug mode
+//------------------------------------------------------------------------------------
+#include <termios.h>
+#include <fcntl.h>
+#include <unistd.h>
 /*
   The fcntl() function accepts a file descriptor and 
   an action (depending on the action, it may accept 
@@ -43,30 +45,6 @@ int setblock  (int file_desc, int block)
    return 1;
 }
 
-int kbhitWait(void)
-{
-   struct termios old, newstate;
-   int ch;
-
-   tcgetattr(0, &old);
-
-   newstate = old;
-   newstate.c_lflag &= ~(ICANON);
-   newstate.c_lflag &= ~(ECHO);
-   newstate.c_cc[VTIME] = 1;
-   newstate.c_cc[VMIN] = 1;
-
-   tcsetattr(0, TCSANOW, &newstate);
-
-   ch = getchar();
-
-   tcsetattr(0, TCSANOW, &old);
-
-   if(ch == EOF)
-      return 0;
-   return ch;
-}
-
 int EnterDebugMode()
 {
    int n;
@@ -83,6 +61,29 @@ int EnterDebugMode()
 	 return 1;
    }
    return 0;
+}
+//------------------------------------------------------------------------------------
+#else  // Default debugmode behavior: enter debug first time then ignore calls
+//------------------------------------------------------------------------------------
+int EnterDebugMode()
+{
+   static int flag=0;
+
+   if (flag)
+      return 0;
+   else
+      return ++flag;
+}
+//------------------------------------------------------------------------------------
+#endif
+//------------------------------------------------------------------------------------
+
+
+char kbhitWait()
+{
+   char t;
+   cin.get(t);
+   return t;
 }
 
 char UTILITYechocommand[LINELENGTH];

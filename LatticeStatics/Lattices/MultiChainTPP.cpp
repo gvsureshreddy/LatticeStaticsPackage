@@ -173,15 +173,6 @@ MultiChainTPP::MultiChainTPP(char *datafile,const char *prefix,int Echo,int Widt
 
    // Initiate the Unit Cell Iterator for Bloch wave calculations.
    ChainIter_(GridSize_);
-   if (dbg_)
-   {
-      if (EnterDebugMode())
-      {
-	 cout << setw(Width);
-	 DebugMode();
-      }
-   }
-   
 }
 
 int MultiChainTPP::FindLatticeSpacing(char *datafile,const char *prefix,int iter)

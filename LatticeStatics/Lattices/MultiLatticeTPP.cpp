@@ -198,17 +198,6 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
 
    // Initiate the Unit Cell Iterator for Bloch wave calculations.
    UCIter_(GridSize_);
-
-   // enter debug mode if requested
-   if (dbg_)
-   {
-      if (EnterDebugMode())
-      {
-	 cout << setw(Width);
-	 DebugMode();
-      }
-   }
-   
 }
 
 int MultiLatticeTPP::FindLatticeSpacing(char *datafile,const char *prefix,int iter)
@@ -1700,9 +1689,11 @@ void MultiLatticeTPP::DebugMode()
       "Rotation_",
       "Loading_",
       "PrintCrystal",
-      "Entropy"
+      "Entropy",
+      "TranslationProjection1D",
+      "TranslationProjection3D",
    };
-   int NOcommands=45;
+   int NOcommands=48;
    
    char response[LINELENGTH];
    char prompt[] = "Debug > ";
@@ -1964,6 +1955,22 @@ void MultiLatticeTPP::DebugMode()
       else if (!strcmp(response,Commands[indx++]))
       {
 	 cout << "Entropy = " << setw(W) << Entropy() << endl;
+      }
+      else if (!strcmp(response,Commands[indx++]))
+      {
+	 int n;
+	 cout << "\tNoAtoms > ";
+	 cin >> n;
+	 cout << setw(15) << TranslationProjection1D(n).Transpose() << endl;
+      }
+      else if (!strcmp(response,Commands[indx++]))
+      {
+	 int n,f;
+	 cout << "\tFsize > ";
+	 cin >> f;
+	 cout << "\tNoAtoms > ";
+	 cin >> n;
+	 cout << setw(15) << TranslationProjection3D(f,n).Transpose() << endl;
       }
       else if (!strcmp(response,"?") ||
 	       !strcasecmp(response,"help"))

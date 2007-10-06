@@ -16,8 +16,7 @@ using namespace std;
 #define LINELENGTH 600
 
 // Utility function definitions
-int kbhitNoWait();
-int kbhitWait();
+char kbhitWait();
 int EnterDebugMode();
 
 extern char UTILITYechocommand[LINELENGTH];
