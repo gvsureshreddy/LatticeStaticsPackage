@@ -10,6 +10,13 @@ export BIN_LOC
 export INCL_LOC
 export LIB_LOC
 
+gCC = g++
+TERMINAL = 
+#TERMINAL = -DUNIX_TERMINAL
+
+export gCC
+export TERMINAL
+
 .PHONY: all install clean
 
 all: 
