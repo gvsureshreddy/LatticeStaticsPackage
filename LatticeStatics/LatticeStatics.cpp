@@ -64,12 +64,11 @@ int main(int argc, char *argv[])
    Lat->Print(out,Lattice::PrintLong);
 
    Mode = InitializeMode(Lat,datafile,"^");
+   SolveMe = InitializeSolution(Mode,datafile,startfile,Lat,out,Width,Echo);
+
    out << "Mode: " << Mode->ModeName() << endl;
    if (Echo) cout << "Mode: " << Mode->ModeName() << endl;
    
-   SolveMe = InitializeSolution(Mode,datafile,startfile,Lat,out,Width,Echo);
-
-
    int success = 1;
    int Nulity=-1,
       OldNulity=Nulity;

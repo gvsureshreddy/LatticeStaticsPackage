@@ -15,6 +15,7 @@ private:
    LatticeMode *Mode_;
    unsigned MaxIter_;
    double Tolerance_;
+   double BisectTolerance_;
 
    double DSMax_;
    double DSMin_;

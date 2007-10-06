@@ -25,6 +25,13 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char
       // Set default value
       ClosedLoopStart_ = CLOSEDDEFAULT;
    }
+   if(!GetParameter(prefix,"ArcLenBisectTolerance",datafile,'l',&BisectTolerance_))
+   {
+      // Default to 10*Tolerance_
+      BisectTolerance_ = 10*Tolerance_;
+   }
+   
+
    FirstSolution_.Resize(one.Dim());
    FirstSolution_ = one;
    
@@ -51,6 +58,12 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char
       // Set default value
       ClosedLoopStart_ = CLOSEDDEFAULT;
    }
+   if(!GetParameter(prefix,"ArcLenBisectTolerance",datafile,'l',&BisectTolerance_))
+   {
+      // Default to 10*Tolerance_
+      BisectTolerance_ = 10*Tolerance_;
+   }
+   
 
    const char *StartType[] = {"Bifurcation","Continuation","ConsistencyCheck"};
    switch (GetStringParameter(prefix,"StartType",startfile,StartType,3))
@@ -357,13 +370,6 @@ double ArcLengthSolution::ArcLengthNewton(int &good)
 int ArcLengthSolution::BisectAlert(Lattice *Lat,char *datafile,const char *prefix,
 				   int Width,fstream &out)
 {
-   double BisectTolerance;
-   if(!GetParameter(prefix,"ArcLenBisectTolerance",datafile,'l',&BisectTolerance))
-   {
-      // Default to 10*Tolerance_
-      BisectTolerance = 10*Tolerance_;
-   }
-   
    Vector OriginalDiff=Difference_;
    Vector IntermediateDiff(Difference_.Dim(),0.0);
    double OriginalDS = CurrentDS_;
@@ -386,7 +392,7 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,char *datafile,const char *prefi
 		  << " DS " << setw(Width) << CurrentDS_ << endl;
    
    // Find bifurcation point and make sure we are on the back side edge
-   while (((fabs(CurrentMinEV) > BisectTolerance)
+   while (((fabs(CurrentMinEV) > BisectTolerance_)
 	   || (CurrentNulity == RighthandNulity))
 	  && (loops < MaxIter_))
    {
@@ -435,7 +441,7 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,char *datafile,const char *prefi
    //  abs(RighthandNulity - LefthandNulity) is the number of zero eigenvalues
    //  in a perfect situation. should check to see if this is found to be true.
    Lat->CriticalPointInfo(Mode_->DrDt(Difference_),abs(RighthandNulity-LefthandNulity),
-			  BisectTolerance,datafile,prefix,Width,out);
+			  BisectTolerance_,datafile,prefix,Width,out);
 
    if (Echo_) cout << "Success = 1" << endl;
    out << "Success = 1" << endl;
