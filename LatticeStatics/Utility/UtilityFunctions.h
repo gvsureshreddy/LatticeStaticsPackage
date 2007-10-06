@@ -22,7 +22,7 @@ int EnterDebugMode();
 extern char UTILITYechocommand[LINELENGTH];
 extern char *UTILITYechocmd;
 int GetParameter(const char *prefix,const char *tag,const char *datafile,
-		 const char *scanffmt,void *parameter,int DispErr=1);
+		 const char scanffmt,void *parameter,int DispErr=1);
 int GetVectorParameter(const char *prefix,const char *tag,
 		       const char *datafile,Vector *V,int DispErr=1);
 int GetIntVectorParameter(const char *prefix,const char *tag,const char *datafile,

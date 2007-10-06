@@ -5,13 +5,13 @@ MultiMode::MultiMode(Lattice *M,const char *datafile,const char *prefix)
 {
    char tmp[LINELENGTH];
    
-   if (!GetParameter(prefix,"MultiMode_DOFS",datafile,"%u",&DOFS_)) exit(-1);
+   if (!GetParameter(prefix,"MultiMode_DOFS",datafile,'u',&DOFS_)) exit(-1);
    ModeDOF_.Resize(DOFS_+1,0.0);
    
    for (int i=0;i<DOFS_;++i)
    {
       sprintf(tmp,"MultiMode_DOF_%u_Len",i);
-      if (!GetParameter(prefix,tmp,datafile,"%u",&(DOFindlen_[i]))) exit(-1);
+      if (!GetParameter(prefix,tmp,datafile,'u',&(DOFindlen_[i]))) exit(-1);
       sprintf(tmp,"MultiMode_DOF_%u_Val",i);
       if (!GetIntVectorParameter(prefix,tmp,datafile,DOFindlen_[i],DOFindex_[i])) exit(-1);
       DOFMult_[i].Resize(DOFMAX);
@@ -19,7 +19,7 @@ MultiMode::MultiMode(Lattice *M,const char *datafile,const char *prefix)
       if (!GetVectorParameter(prefix,tmp,datafile,&(DOFMult_[i]))) exit(-1);
    }
 
-   if (!GetParameter(prefix,"MultiMode_ScnDefParam",datafile,"%u",&ScnDefParam_))
+   if (!GetParameter(prefix,"MultiMode_ScnDefParam",datafile,'u',&ScnDefParam_))
       exit(-1);
    if ((ScnDefParam_ < 0) || (ScnDefParam_ >= DOFS_))
    {

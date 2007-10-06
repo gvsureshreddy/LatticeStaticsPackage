@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
    int Width,Precision,Echo;
    YN BisectCP;
 
-   if (GetParameter("^","CommandFile",datafile,"%s",UTILITYechocommand,0))
+   if (GetParameter("^","CommandFile",datafile,'s',UTILITYechocommand,0))
    {
       UTILITYechocmd = UTILITYechocommand;
    }
@@ -107,10 +107,10 @@ void GetMainSettings(int &Width, int &Precision,YN &BisectCP,int &Echo,char *dat
 {
    char bisect[LINELENGTH];
 
-   if(!GetParameter("^","MainFieldWidth",datafile,"%d",&Width)) exit(-1);
-   if(!GetParameter("^","MainPrecision",datafile,"%d",&Precision)) exit(-1);
-   if(!GetParameter("^","MainEcho",datafile,"%d",&Echo,0)) Echo = 1;
-   if(!GetParameter("^","MainBisectCP",datafile,"%s",bisect)) exit(-1);
+   if(!GetParameter("^","MainFieldWidth",datafile,'i',&Width)) exit(-1);
+   if(!GetParameter("^","MainPrecision",datafile,'i',&Precision)) exit(-1);
+   if(!GetParameter("^","MainEcho",datafile,'i',&Echo,0)) Echo = 1;
+   if(!GetParameter("^","MainBisectCP",datafile,'s',bisect)) exit(-1);
    if ((!strcmp("Yes",bisect)) || (!strcmp("yes",bisect)))
       BisectCP = Yes;
    else if ((!strcmp("No",bisect)) || (!strcmp("no",bisect)))

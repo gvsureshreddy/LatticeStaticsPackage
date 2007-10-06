@@ -11,16 +11,16 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char
 				     const Vector &one,const Vector &two,int Echo)
    : Mode_(Mode),Difference_(two-one), CurrentSolution_(0), Echo_(Echo)
 {
-   if(!GetParameter(prefix,"ArcLenMaxIterations",datafile,"%u",&MaxIter_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenTolerance",datafile,"%lf",&Tolerance_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenDSMax",datafile,"%lf",&DSMax_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenDSStart",datafile,"%lf",&CurrentDS_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenDSMin",datafile,"%lf",&DSMin_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenAngleCutoff",datafile,"%lf",&AngleCutoff_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenAngleIncrease",datafile,"%lf",&AngleIncrease_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenAspect",datafile,"%lf",&Aspect_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenNumSolutions",datafile,"%u",&NumSolutions_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenClosedLoopStart",datafile,"%i",&ClosedLoopStart_,0))
+   if(!GetParameter(prefix,"ArcLenMaxIterations",datafile,'u',&MaxIter_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenTolerance",datafile,'l',&Tolerance_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenDSMax",datafile,'l',&DSMax_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenDSStart",datafile,'l',&CurrentDS_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenDSMin",datafile,'l',&DSMin_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenAngleCutoff",datafile,'l',&AngleCutoff_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenAngleIncrease",datafile,'l',&AngleIncrease_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenAspect",datafile,'l',&Aspect_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenNumSolutions",datafile,'u',&NumSolutions_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenClosedLoopStart",datafile,'i',&ClosedLoopStart_,0))
    {
       // Set default value
       ClosedLoopStart_ = CLOSEDDEFAULT;
@@ -37,16 +37,16 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char
    : Mode_(Mode), CurrentSolution_(0), Echo_(Echo)
 {
    
-   if(!GetParameter(prefix,"ArcLenMaxIterations",datafile,"%u",&MaxIter_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenTolerance",datafile,"%lf",&Tolerance_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenDSMax",datafile,"%lf",&DSMax_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenDSStart",datafile,"%lf",&CurrentDS_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenDSMin",datafile,"%lf",&DSMin_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenAngleCutoff",datafile,"%lf",&AngleCutoff_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenAngleIncrease",datafile,"%lf",&AngleIncrease_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenAspect",datafile,"%lf",&Aspect_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenNumSolutions",datafile,"%u",&NumSolutions_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenClosedLoopStart",datafile,"%i",&ClosedLoopStart_,0))
+   if(!GetParameter(prefix,"ArcLenMaxIterations",datafile,'u',&MaxIter_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenTolerance",datafile,'l',&Tolerance_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenDSMax",datafile,'l',&DSMax_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenDSStart",datafile,'l',&CurrentDS_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenDSMin",datafile,'l',&DSMin_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenAngleCutoff",datafile,'l',&AngleCutoff_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenAngleIncrease",datafile,'l',&AngleIncrease_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenAspect",datafile,'l',&Aspect_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenNumSolutions",datafile,'u',&NumSolutions_)) exit(-1);
+   if(!GetParameter(prefix,"ArcLenClosedLoopStart",datafile,'i',&ClosedLoopStart_,0))
    {
       // Set default value
       ClosedLoopStart_ = CLOSEDDEFAULT;
@@ -65,7 +65,7 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char
       {
 	 // Set Difference and Lattice state
 	 double eps;
-	 if(!GetParameter(prefix,"Epsilon",startfile,"%lf",&eps)) exit(-1);
+	 if(!GetParameter(prefix,"Epsilon",startfile,'l',&eps)) exit(-1);
 
 	 Difference_.Resize(Mode_->ArcLenDef().Dim());
 	 if(!GetVectorParameter(prefix,"Tangent",startfile,&Difference_)) exit(-1);
@@ -120,8 +120,8 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char
 	 if(!GetVectorParameter(prefix,"Solution2",startfile,&Solution2)) exit(-1);
 	 if(!GetVectorParameter(prefix,"Solution1",startfile,&Solution1)) exit(-1);
 	 // Get Epsilon and Width
-	 if(!GetParameter(prefix,"ConsistencyEpsilon",startfile,"%lf",&ConsistencyEpsilon)) exit(-1);
-	 if(!GetParameter(prefix,"MainFieldWidth",datafile,"%i",&Width)) exit(-1);
+	 if(!GetParameter(prefix,"ConsistencyEpsilon",startfile,'l',&ConsistencyEpsilon)) exit(-1);
+	 if(!GetParameter(prefix,"MainFieldWidth",datafile,'i',&Width)) exit(-1);
 
 
 	 ConsistencyCheck(Solution1,Solution2,ConsistencyEpsilon,Width,out);
@@ -358,7 +358,7 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,char *datafile,const char *prefi
 				   int Width,fstream &out)
 {
    double BisectTolerance;
-   if(!GetParameter(prefix,"ArcLenBisectTolerance",datafile,"%lf",&BisectTolerance))
+   if(!GetParameter(prefix,"ArcLenBisectTolerance",datafile,'l',&BisectTolerance))
    {
       // Default to 10*Tolerance_
       BisectTolerance = 10*Tolerance_;

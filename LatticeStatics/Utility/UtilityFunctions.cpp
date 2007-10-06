@@ -86,63 +86,66 @@ char kbhitWait()
    return t;
 }
 
+#define WIDTH 22
+#define PRECISION 15
 char UTILITYechocommand[LINELENGTH];
 char *UTILITYechocmd = NULL;
-int Getcmdline(const char *prefix,const char *tag,const char *datafile,int DispErr=1)
+fstream UTILITYout;
+void openUTout()
 {
-   char command[LINELENGTH];
-   char cmd[LINELENGTH];
-   FILE *pipe;
-   fstream out;
-   char format[]=
-      {"perl -e '"\
-       "@__R=__findref($ARGV[1],$ARGV[2],$ARGV[0]);"\
-       "for $__i(0..@__R-1){print ($__R[$__i],\"\\n\");};"\
-       "sub __findref {my($__prfx,$__tag,$__df) = @_; my($__fnd,$__reg); $__fnd=1;"\
-       "$__reg = $__prfx . $__tag;"\
-       "open(__R,$__df); while (<__R>) {if (/$__reg/) {$__fnd=0; chomp($_);"\
-       "unshift(@__cmd,$_); __deref($__prfx,$_,$__df); return(@__cmd);}} "\
-       "close(__R); if ($__fnd == 1) {exit $__fnd;}} sub __deref "\
-       "{my($__prfx,$__fld,$__df)=@_; my($__t); while ($__fld =~ m/<([^>]+)>/g) "\
-       "{$__t=$1;__findref($__prfx,\"$__t\",$__df);}}' %s '%s' '%s'"};
-   sprintf(command,format,datafile,prefix,tag);
-
-   out.open(UTILITYechocmd,ios::out | ios::app);
-   if (out.fail())
+   UTILITYout.open(UTILITYechocmd,ios::out | ios::app);
+   if (UTILITYout.fail())
    {
       cerr << "Error: Unable to open file : " << UTILITYechocmd << " for write"
 	   << endl;
       exit(-1);
    }
-   
-   pipe = OpenPipe(command,"r");
-   while (fgets(cmd,LINELENGTH-1,pipe) != NULL)
-   {
-      out << cmd;
-   }
-
-   if (pclose(pipe))
-   {
-      if (DispErr) Errfun(tag);
-      out.close();
-      return 0;
-   }
-   else
-   {
-      out.close();
-      return 1;
-   }
+   UTILITYout << setiosflags(ios::scientific) << setprecision(PRECISION);
+}
+void closeUTout()
+{
+   UTILITYout.close();
 }
 
 int GetParameter(const char *prefix,const char *tag,const char *datafile,
-		 const char *scanffmt,void *parameter,int DispErr)
+		 const char scanffmt,void *parameter,int DispErr)
 {
-   char command[LINELENGTH];
+   static char command[LINELENGTH];
+   static char format[LINELENGTH];
    FILE *pipe;
 
    SetPerlCommand(command,datafile,prefix,tag);
    pipe = OpenPipe(command,"r");
-   fscanf(pipe,scanffmt,parameter);
+   switch (scanffmt)
+   {
+      case 'd':
+      case 'i':
+	 fscanf(pipe,"%i",parameter);
+	 sprintf(command,"%i",*((int*) parameter));
+	 break;
+      case 'u':
+	 fscanf(pipe,"%u",parameter);
+	 sprintf(command,"%u",*((unsigned*) parameter));
+	 break;
+      case 'f':
+	 fscanf(pipe,"%f",parameter);
+	 sprintf(format,"%%%u.%ue",WIDTH,PRECISION);
+	 sprintf(command,format,*((float*) parameter));
+      case 'l':
+	 fscanf(pipe,"%lf",parameter);
+	 sprintf(format,"%%%u.%ule",WIDTH,PRECISION);
+	 sprintf(command,format,*((double*) parameter));
+	 break;
+      case 's':
+	 fscanf(pipe,"%s",parameter);
+	 sprintf(command,"%s",(char *) parameter);
+	 break;
+      default:
+	 if (DispErr) Errfun(tag);
+	 return 0;
+	 break;
+   }
+	 
    if (pclose(pipe))
    {
       if (DispErr) Errfun(tag);
@@ -151,7 +154,12 @@ int GetParameter(const char *prefix,const char *tag,const char *datafile,
    else
    {
       if (UTILITYechocmd != NULL)
-	 Getcmdline(prefix,tag,datafile);
+      {
+	 //Getcmdline(prefix,tag,datafile);
+	 openUTout();
+	 UTILITYout << tag << " = " << command << endl;
+	 closeUTout();
+      }
       return 1;
    }
 }
@@ -176,7 +184,15 @@ int GetVectorParameter(const char *prefix,const char *tag,const char *datafile,V
    else
    {
       if (UTILITYechocmd != NULL)
-	 Getcmdline(prefix,tag,datafile);
+      {
+	 //Getcmdline(prefix,tag,datafile);
+	 openUTout();
+	 UTILITYout << tag << " = ( " << setw(WIDTH) << (*V)[0];
+	 for (int i=1;i<V->Dim();++i)
+	    UTILITYout << ", " << setw(WIDTH) << (*V)[i];
+	 UTILITYout << ")" << endl;
+	 closeUTout();
+      }
       return 1;
    }
 }
@@ -201,7 +217,16 @@ int GetIntVectorParameter(const char *prefix,const char *tag,const char *datafil
    else
    {
       if (UTILITYechocmd != NULL)
-	 Getcmdline(prefix,tag,datafile);
+      {
+	 //Getcmdline(prefix,tag,datafile);
+	 openUTout();
+	 UTILITYout << tag << " = (" << Vec[0];
+	 for (int i=1;i<N;++i)
+	    UTILITYout << ", " << Vec[i];
+	 UTILITYout << ")" << endl;
+	 
+	 closeUTout();
+      }
       return 1;
    }
 }
@@ -229,7 +254,16 @@ int GetMatrixParameter(const char *prefix,const char *tag,const char *datafile,M
    else
    {
       if (UTILITYechocmd != NULL)
-	 Getcmdline(prefix,tag,datafile);
+      {
+	 //Getcmdline(prefix,tag,datafile);
+	 openUTout();
+	 UTILITYout << tag << " = ( " << setw(WIDTH) << (*M)[0][0];
+	 for (int i=0;i<M->Rows();++i)
+	    for (int j=0;j<M->Cols();++i)
+	       if ((i!=0) && (j!=0)) UTILITYout << ", " << setw(WIDTH) << (*M)[i][j];
+	 UTILITYout << ")" << endl;
+	 closeUTout();
+      }
       return 1;
    }
 }
@@ -239,7 +273,8 @@ int GetStringParameter(const char *prefix,const char *tag,const char *datafile,
 {
    int i;
    char strng[LINELENGTH];
-   if (!GetParameter(prefix,tag,datafile,"%s",strng,DispErr)) return -1;
+   if (!GetParameter(prefix,tag,datafile,'s',strng,DispErr)) return -1;
+   
    for (i=numb-1;i>=0;i--)
    {
       if (!strcasecmp(strng,choices[i]))
@@ -247,7 +282,7 @@ int GetStringParameter(const char *prefix,const char *tag,const char *datafile,
 	 return i;
       }
    }
-
+   
    return i;
 }
 

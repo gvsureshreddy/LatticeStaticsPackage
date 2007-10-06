@@ -26,7 +26,7 @@ int main(int argc,char *argv[])
       *outputfile = argv[2],
       prefix[LINELENGTH];
 
-   if (GetParameter("","^Input File:",datafile,"%s",prefix,0))
+   if (GetParameter("","^Input File:",datafile,'s',prefix,0))
    {
       strcpy(prefix,"^Input File:");
    }
@@ -47,8 +47,8 @@ int main(int argc,char *argv[])
    InitializeOutputFile(out,outputfile,datafile,prefix,Lat,Precision,Width,Echo);
 
    int NoLines,NoPTS;
-   if(!GetParameter(prefix,"DispersionLines",datafile,"%u",&NoLines)) exit(-1);
-   if(!GetParameter(prefix,"DispersionPoints",datafile,"%u",&NoPTS)) exit(-1);
+   if(!GetParameter(prefix,"DispersionLines",datafile,'u',&NoLines)) exit(-1);
+   if(!GetParameter(prefix,"DispersionPoints",datafile,'u',&NoPTS)) exit(-1);
 
    Vector *Line;
    Line = new Vector[NoLines];
@@ -141,9 +141,9 @@ int main(int argc,char *argv[])
 void GetMainSettings(int &Width,int &Precision,int &Echo,char *datafile,
 		     const char *prefix)
 {
-   if(!GetParameter(prefix,"MainFieldWidth",datafile,"%d",&Width)) exit(-1);
-   if(!GetParameter(prefix,"MainPrecision",datafile,"%d",&Precision)) exit(-1);
-   if(!GetParameter(prefix,"MainPrecision",datafile,"%d",&Echo,0)) Echo=1;   
+   if(!GetParameter(prefix,"MainFieldWidth",datafile,'i',&Width)) exit(-1);
+   if(!GetParameter(prefix,"MainPrecision",datafile,'i',&Precision)) exit(-1);
+   if(!GetParameter(prefix,"MainPrecision",datafile,'i',&Echo,0)) Echo=1;   
 }
 
 void InitializeOutputFile(fstream &out,char *outfile,char *datafile,const char *prefix,

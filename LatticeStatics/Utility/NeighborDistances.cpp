@@ -55,6 +55,6 @@ int main(int argc,char *argv[])
 
 void GetMainSettings(int &Width, int &Precision,char *datafile,const char *prefix)
 {
-   if(!GetParameter(prefix,"MainFieldWidth",datafile,"%d",&Width)) exit(-1);
-   if(!GetParameter(prefix,"MainPrecision",datafile,"%d",&Precision)) exit(-1);   
+   if(!GetParameter(prefix,"MainFieldWidth",datafile,'i',&Width)) exit(-1);
+   if(!GetParameter(prefix,"MainPrecision",datafile,'i',&Precision)) exit(-1);   
 }

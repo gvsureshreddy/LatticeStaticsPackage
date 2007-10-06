@@ -11,7 +11,7 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
    enum solution {Scanning,ArcLen,NewtonPC};
    solution solu;
 
-   if(!GetParameter("^","MainSolutionMethod",datafile,"%s",slvmthd)) exit(-1);
+   if(!GetParameter("^","MainSolutionMethod",datafile,'s',slvmthd)) exit(-1);
    if ((!strcmp("Scanning",slvmthd))
        || (!strcmp("scanning",slvmthd)))
       solu = Scanning;

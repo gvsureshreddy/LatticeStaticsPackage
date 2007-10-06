@@ -36,8 +36,8 @@ int main(int argc, char *argv[])
    pot = InitializePairPotential(argv[1],"^",i,j);
 
    int Width,Precision;
-   if(!GetParameter("^","MainFieldWidth",argv[1],"%d",&Width)) Width=20;
-   if(!GetParameter("^","MainPrecision",argv[1],"%d",&Precision)) Precision=10;
+   if(!GetParameter("^","MainFieldWidth",argv[1],'i',&Width)) Width=20;
+   if(!GetParameter("^","MainPrecision",argv[1],'i',&Precision)) Precision=10;
 
    cout << setiosflags(ios::fixed) << setprecision(Precision);
    double inc=(yend-ystart)/pts,

@@ -26,7 +26,7 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
    dbg_ = Debug;
    // Get Lattice definition
    char tmp[LINELENGTH];
-   if(!GetParameter(prefix,"InternalAtoms",datafile,"%u",&INTERNAL_ATOMS)) exit(-1);
+   if(!GetParameter(prefix,"InternalAtoms",datafile,'u',&INTERNAL_ATOMS)) exit(-1);
    
    // Initiate the CBK object (default to SymLagrangeCB)
    const char *CBKin[] = {"SymLagrangeCB","SymMixedCB","SymEulerCB",
@@ -65,10 +65,10 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
       BodyForce_[i].Resize(DIM3,0.0);
 
    // Get Thermo parameters
-   if (!GetParameter(prefix,"Tref",datafile,"%lf",&Tref_)) exit(-1);
-   //if (!GetParameter(prefix,"PhiRef",datafile,"%lf",&PhiRef_)) exit(-1);
-   //if (!GetParameter(prefix,"EntropyRef",datafile,"%lf",&EntropyRef_)) exit(-1);
-   //if (!GetParameter(prefix,"HeatCapacityRef",datafile,"%lf",&HeatCapacityRef_)) exit(-1);
+   if (!GetParameter(prefix,"Tref",datafile,'l',&Tref_)) exit(-1);
+   //if (!GetParameter(prefix,"PhiRef",datafile,'l',&PhiRef_)) exit(-1);
+   //if (!GetParameter(prefix,"EntropyRef",datafile,'l',&EntropyRef_)) exit(-1);
+   //if (!GetParameter(prefix,"HeatCapacityRef",datafile,'l',&HeatCapacityRef_)) exit(-1);
 
    if (!GetIntVectorParameter(prefix,"AtomSpecies",datafile,INTERNAL_ATOMS,AtomSpecies_))
       exit(-1);
@@ -103,7 +103,7 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
 	    = InitializePairPotential(datafile,prefix,i,j);
       }
       sprintf(tmp,"AtomicMass_%u",i);
-      if (!GetParameter(prefix,tmp,datafile,"%lf",&(SpeciesMass_[i]))) exit(-1);
+      if (!GetParameter(prefix,tmp,datafile,'l',&(SpeciesMass_[i]))) exit(-1);
    }
    
    for (int i=0;i<INTERNAL_ATOMS;++i)
@@ -119,9 +119,9 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
 	 
    // Get Lattice parameters
    NTemp_ = 1.0;
-   if(!GetParameter(prefix,"InfluanceDist",datafile,"%lf",&InfluenceDist_)) exit(-1);
-   if(!GetParameter(prefix,"NormModulus",datafile,"%lf",&NormModulus_)) exit(-1);
-   if(!GetParameter(prefix,"ConvexityDX",datafile,"%lf",&ConvexityDX_)) exit(-1);
+   if(!GetParameter(prefix,"InfluanceDist",datafile,'l',&InfluenceDist_)) exit(-1);
+   if(!GetParameter(prefix,"NormModulus",datafile,'l',&NormModulus_)) exit(-1);
+   if(!GetParameter(prefix,"ConvexityDX",datafile,'l',&ConvexityDX_)) exit(-1);
 
    // Get Loading parameters
    const char *loadparams[] = {"Temperature","Load"};
@@ -133,9 +133,9 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
       case -1: cerr << "Unknown Loading Parameter" << endl; exit(-1); break;
    }
    Lambda_ = 0.0;
-   if(!GetParameter(prefix,"EulerAngle_X",datafile,"%lf",&(EulerAng_[0]))) exit(-1);
-   if(!GetParameter(prefix,"EulerAngle_Y",datafile,"%lf",&(EulerAng_[1]))) exit(-1);
-   if(!GetParameter(prefix,"EulerAngle_Z",datafile,"%lf",&(EulerAng_[2]))) exit(-1);
+   if(!GetParameter(prefix,"EulerAngle_X",datafile,'l',&(EulerAng_[0]))) exit(-1);
+   if(!GetParameter(prefix,"EulerAngle_Y",datafile,'l',&(EulerAng_[1]))) exit(-1);
+   if(!GetParameter(prefix,"EulerAngle_Z",datafile,'l',&(EulerAng_[2]))) exit(-1);
    LoadingProportions_.Resize(DIM3);
    if(!GetVectorParameter(prefix,"LoadProportions",datafile,&LoadingProportions_)) exit(-1);
    // Calculate Rotation and Loading
@@ -165,8 +165,8 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
    
    // needed to initialize reference length
    int iter;
-   if(!GetParameter(prefix,"MaxIterations",datafile,"%u",&iter)) exit(-1);
-   if(!GetParameter(prefix,"BlochWaveGridSize",datafile,"%u",&GridSize_)) exit(-1);
+   if(!GetParameter(prefix,"MaxIterations",datafile,'u',&iter)) exit(-1);
+   if(!GetParameter(prefix,"BlochWaveGridSize",datafile,'u',&GridSize_)) exit(-1);
 
    // Initiate the Lattice Sum object
    LatSum_(CBK_,INTERNAL_ATOMS,Potential_,&InfluenceDist_,&NTemp_);
@@ -180,8 +180,8 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
    }
 
    // Setup initial status for parameters
-   if(!GetParameter(prefix,"NTemp",datafile,"%lf",&NTemp_)) exit(-1);
-   if(!GetParameter(prefix,"Lambda",datafile,"%lf",&Lambda_)) exit(-1);
+   if(!GetParameter(prefix,"NTemp",datafile,'l',&NTemp_)) exit(-1);
+   if(!GetParameter(prefix,"Lambda",datafile,'l',&Lambda_)) exit(-1);
    // Make any changes to atomic potentials that might be required
    strcpy(tmp,prefix); strcat(tmp,"Update-");
    for (int i=0;i<INTERNAL_ATOMS;++i)
@@ -1961,7 +1961,8 @@ void MultiLatticeTPP::DebugMode()
 	 int n;
 	 cout << "\tNoAtoms > ";
 	 cin >> n;
-	 cout << setw(15) << TranslationProjection1D(n).Transpose() << endl;
+	 cout << "P.Transpose()\n"
+	      << setw(20) << TranslationProjection1D(n).Transpose() << endl;
       }
       else if (!strcmp(response,Commands[indx++]))
       {
@@ -1970,7 +1971,8 @@ void MultiLatticeTPP::DebugMode()
 	 cin >> f;
 	 cout << "\tNoAtoms > ";
 	 cin >> n;
-	 cout << setw(15) << TranslationProjection3D(f,n).Transpose() << endl;
+	 cout << "P.Transpose()\n"
+	      << setw(20) << TranslationProjection3D(f,n).Transpose() << endl;
       }
       else if (!strcmp(response,"?") ||
 	       !strcasecmp(response,"help"))

@@ -26,7 +26,7 @@ MultiChainTPP::MultiChainTPP(char *datafile,const char *prefix,int Echo,int Widt
    dbg_ = Debug;
    // Get Lattice definition
    char tmp[LINELENGTH];
-   if(!GetParameter(prefix,"InternalAtoms",datafile,"%u",&INTERNAL_ATOMS)) exit(-1);
+   if(!GetParameter(prefix,"InternalAtoms",datafile,'u',&INTERNAL_ATOMS)) exit(-1);
    DOFS = INTERNAL_ATOMS;
    if (DOFMAX < DOFS)
    {
@@ -36,7 +36,7 @@ MultiChainTPP::MultiChainTPP(char *datafile,const char *prefix,int Echo,int Widt
    
    // Set RefLattice_
    RefLattice_.Resize(DIM1,DIM1);
-   if(!GetParameter(prefix,"LatticeBasis",datafile,"%lf",&(RefLattice_[0][0]))) exit(-1);
+   if(!GetParameter(prefix,"LatticeBasis",datafile,'l',&(RefLattice_[0][0]))) exit(-1);
    
    // First Size DOF
    DOF_.Resize(DOFS,0.0);
@@ -47,7 +47,7 @@ MultiChainTPP::MultiChainTPP(char *datafile,const char *prefix,int Echo,int Widt
    {
       AtomPositions_[i].Resize(DIM1);
       sprintf(tmp,"AtomPosition_%u",i);
-      if(!GetParameter(prefix,tmp,datafile,"%lf",&(AtomPositions_[i][0]))) exit(-1);
+      if(!GetParameter(prefix,tmp,datafile,'l',&(AtomPositions_[i][0]))) exit(-1);
    }
    
    // Setup Bodyforce_
@@ -56,10 +56,10 @@ MultiChainTPP::MultiChainTPP(char *datafile,const char *prefix,int Echo,int Widt
       BodyForce_[i].Resize(DIM1,0.0);
 
    // Get Thermo parameters
-   if (!GetParameter(prefix,"Tref",datafile,"%lf",&Tref_)) exit(-1);
-   //if (!GetParameter(prefix,"PhiRef",datafile,"%lf",&PhiRef_)) exit(-1);
-   //if (!GetParameter(prefix,"EntropyRef",datafile,"%lf",&EntropyRef_)) exit(-1);
-   //if (!GetParameter(prefix,"HeatCapacityRef",datafile,"%lf",&HeatCapacityRef_)) exit(-1);
+   if (!GetParameter(prefix,"Tref",datafile,'l',&Tref_)) exit(-1);
+   //if (!GetParameter(prefix,"PhiRef",datafile,'l',&PhiRef_)) exit(-1);
+   //if (!GetParameter(prefix,"EntropyRef",datafile,'l',&EntropyRef_)) exit(-1);
+   //if (!GetParameter(prefix,"HeatCapacityRef",datafile,'l',&HeatCapacityRef_)) exit(-1);
 
    if (!GetIntVectorParameter(prefix,"AtomSpecies",datafile,INTERNAL_ATOMS,AtomSpecies_))
       exit(-1);
@@ -94,7 +94,7 @@ MultiChainTPP::MultiChainTPP(char *datafile,const char *prefix,int Echo,int Widt
 	    = InitializePairPotential(datafile,prefix,i,j);
       }
       sprintf(tmp,"AtomicMass_%u",i);
-      if (!GetParameter(prefix,tmp,datafile,"%lf",&(SpeciesMass_[i]))) exit(-1);
+      if (!GetParameter(prefix,tmp,datafile,'l',&(SpeciesMass_[i]))) exit(-1);
    }
    
    for (int i=0;i<INTERNAL_ATOMS;++i)
@@ -110,8 +110,8 @@ MultiChainTPP::MultiChainTPP(char *datafile,const char *prefix,int Echo,int Widt
 	 
    // Get Lattice parameters
    NTemp_ = 1.0;
-   if(!GetParameter(prefix,"InfluenceDist",datafile,"%lf",&InfluenceDist_)) exit(-1);
-   if(!GetParameter(prefix,"NormModulus",datafile,"%lf",&NormModulus_)) exit(-1);
+   if(!GetParameter(prefix,"InfluenceDist",datafile,'l',&InfluenceDist_)) exit(-1);
+   if(!GetParameter(prefix,"NormModulus",datafile,'l',&NormModulus_)) exit(-1);
 
    // Get Loading parameters
    const char *loadparams[] = {"Temperature","Load"};
@@ -126,8 +126,8 @@ MultiChainTPP::MultiChainTPP(char *datafile,const char *prefix,int Echo,int Widt
    
    // needed to initialize reference length
    int iter;
-   if(!GetParameter(prefix,"MaxIterations",datafile,"%u",&iter)) exit(-1);
-   if(!GetParameter(prefix,"BlochWaveGridSize",datafile,"%u",&GridSize_)) exit(-1);
+   if(!GetParameter(prefix,"MaxIterations",datafile,'u',&iter)) exit(-1);
+   if(!GetParameter(prefix,"BlochWaveGridSize",datafile,'u',&GridSize_)) exit(-1);
 
    //set LagrangeCB_
    const char *CBKin[] = {"LagrangeCB","MixedCB"};
@@ -155,8 +155,8 @@ MultiChainTPP::MultiChainTPP(char *datafile,const char *prefix,int Echo,int Widt
    }
 
    // Setup initial status for parameters
-   if(!GetParameter(prefix,"NTemp",datafile,"%lf",&NTemp_)) exit(-1);
-   if(!GetParameter(prefix,"Lambda",datafile,"%lf",&Lambda_)) exit(-1);
+   if(!GetParameter(prefix,"NTemp",datafile,'l',&NTemp_)) exit(-1);
+   if(!GetParameter(prefix,"Lambda",datafile,'l',&Lambda_)) exit(-1);
    // Make any changes to atomic potentials that might be required
    strcpy(tmp,prefix); strcat(tmp,"Update-");
    for (int i=0;i<INTERNAL_ATOMS;++i)
