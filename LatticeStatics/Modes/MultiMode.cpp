@@ -14,7 +14,7 @@ MultiMode::MultiMode(Lattice *M,const char *datafile,const char *prefix)
       if (!GetParameter(prefix,tmp,datafile,'u',&(DOFindlen_[i]))) exit(-1);
       sprintf(tmp,"MultiMode_DOF_%u_Val",i);
       if (!GetIntVectorParameter(prefix,tmp,datafile,DOFindlen_[i],DOFindex_[i])) exit(-1);
-      DOFMult_[i].Resize(DOFMAX);
+      DOFMult_[i].Resize(DOFindlen_[i]);
       sprintf(tmp,"MultiMode_DOF_%u_Mul",i);
       if (!GetVectorParameter(prefix,tmp,datafile,&(DOFMult_[i]))) exit(-1);
    }
