@@ -8,8 +8,6 @@
 #include "MixedCB.h"
 #include "EulerCB.h"
 #include "SymLagrangeCB.h"
-#include "SymMixedCB.h"
-#include "SymEulerCB.h"
 #include "PPSum.h"
 #include "KnownPairPotentials.h"
 #include <CMatrix.h>

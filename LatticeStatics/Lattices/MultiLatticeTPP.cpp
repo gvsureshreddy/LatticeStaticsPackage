@@ -29,28 +29,25 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
    if(!GetParameter(prefix,"InternalAtoms",datafile,'u',&INTERNAL_ATOMS)) exit(-1);
    
    // Initiate the CBK object (default to SymLagrangeCB)
-   const char *CBKin[] = {"SymLagrangeCB","SymMixedCB","SymEulerCB",
-			  "LagrangeCB","MixedCB","EulerCB"};
-   switch (GetStringParameter(prefix,"CBKinematics",datafile,CBKin,6,0))
+   const char *CBKin[] = {"SymLagrangeCB","LagrangeCB","MixedCB","EulerCB"};
+   switch (GetStringParameter(prefix,"CBKinematics",datafile,CBKin,4,0))
    {
-      case 5:
+      case 3:
 	 CBK_ = new EulerCB(INTERNAL_ATOMS,prefix,datafile);
 	 break;
-      case 4:
+      case 2:
 	 CBK_ = new MixedCB(INTERNAL_ATOMS,prefix,datafile);
 	 break;
-      case 3:
+      case 1:
 	 CBK_ = new LagrangeCB(INTERNAL_ATOMS,prefix,datafile);
 	 break;
-      case 2:
-	 CBK_ = new SymEulerCB(INTERNAL_ATOMS,prefix,datafile);
-	 break;
-      case 1:
-	 CBK_ = new SymMixedCB(INTERNAL_ATOMS,prefix,datafile);
-	 break;
       case 0:
-      default:
 	 CBK_ = new SymLagrangeCB(INTERNAL_ATOMS,prefix,datafile);
+	 break;
+      default:
+	 cerr << "Error Unknown CBKinematics specified" << endl;
+	 exit(-9);
+	 break;
    }
    
    if (DOFMAX < CBK_->DOFS())
