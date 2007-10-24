@@ -7,6 +7,7 @@
 #include "LagrangeCB.h"
 #include "MixedCB.h"
 #include "EulerCB.h"
+#include "SymLagrangeWTransCB.h"
 #include "SymLagrangeCB.h"
 #include "PPSum.h"
 #include "KnownPairPotentials.h"
@@ -29,6 +30,9 @@ private:
    // DOF[i] = [U11 U22 U33 U12 U13 U23 S11 S12 S13 S21... ...]
    // if using a UwithoutTransMapping CBkinematics
    CBKinematics *CBK_;
+   int KillRotations_;
+   int KillTranslations_;
+   Vector KillOneRotation_;
    double NormModulus_;
    double Tref_;
    double PhiRef_;
@@ -96,10 +100,9 @@ public:
    double Lambda() {return Lambda_;}
    void SetLambda(const double &lambda) {Lambda_ = lambda;}
 
-   virtual double E0() {return energy();}
-   virtual Matrix E1() {return stress();}
-   virtual Matrix E2() {return stiffness();}
-
+   virtual double E0();
+   virtual Matrix E1();
+   virtual Matrix E2();
    virtual Matrix E3();
    virtual Matrix E4();
    virtual void DispersionCurves(Vector K,int NoPTS,const char *prefix,ostream &out)

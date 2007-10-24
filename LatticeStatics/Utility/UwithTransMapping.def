@@ -1,0 +1,73 @@
+   virtual inline int Fsize() {return 6;}
+   virtual inline int Ssize() {return DIM3*InternalAtoms_;}
+   virtual inline int NoTrans() {return 0;}
+
+   virtual inline int INDF(int i,int j)
+   {
+      if (i==j)
+	 return i;
+      else
+	 return 2+i+j;
+   }
+
+   virtual inline int INDS(int i,int j)
+   {
+      return 6 + i*3 + j;
+   }
+   
+   virtual inline int INDFF(int k,int l,int m,int n)
+   {
+      if (k==l)
+      {
+	 if (m==n)
+	 {
+	    return DOFS()*k+m;
+	 }
+	 else
+	 {
+	    return DOFS()*k + 2+m+n;
+	 }
+      }
+      else
+      {
+	 if (m==n)
+	 {
+	    return DOFS()*(2+k+l) + m;
+	 }
+	 else
+	 {
+	    return DOFS()*(2+k+l) + 2+m+n;
+	 }
+      }
+   }
+
+   virtual inline int INDSS(int k,int l,int m,int n)
+   {
+      return 6*DOFS() + 6
+	 + DOFS()*( k*3 + l )
+	 + ( m*3 + n );
+   }
+   
+   virtual inline int INDFS(int i,int j,int m,int n)
+   {
+      if (i==j)
+      {
+	 return DOFS()*i + 6 + m*3+n;
+      }
+      else
+      {
+	 return DOFS()*(2+i+j) + 6 + m*3+n;
+      }
+   }
+   
+   virtual inline int INDSF(int m,int n,int i,int j)
+   {
+      if (i==j)
+      {
+	 return 6*DOFS() + DOFS()*( m*3+n ) + i;
+      }
+      else
+      {
+	 return 6*DOFS() + DOFS()*( m*3+n ) + 2+i+j;
+      }
+   }

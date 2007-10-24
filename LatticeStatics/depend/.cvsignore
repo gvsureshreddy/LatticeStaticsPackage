@@ -23,8 +23,7 @@ LagrangeCB.d
 MixedCB.d
 EulerCB.d
 SymLagrangeCB.d
-SymMixedCB.d
-SymEulerCB.d
+SymLagrangeWTransCB.d
 Dobson.d
 LJCutoff.d
 RadiiMorse2.d

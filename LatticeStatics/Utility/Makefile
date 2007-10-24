@@ -3,6 +3,7 @@ UTILITY  = UtilityFunctions.cpp\
 	 EulerCB.cpp\
 	 LagrangeCB.cpp\
 	 MixedCB.cpp\
+	 SymLagrangeWTransCB.cpp\
 	 SymLagrangeCB.cpp\
 	 UnitCellIterator.cpp\
 	 ChainIterator.cpp\

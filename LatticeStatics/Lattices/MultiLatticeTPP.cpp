@@ -5,6 +5,9 @@
 
 using namespace std;
 
+const double RoEig_[3] = {1.0,2.0,3.0};
+const double TrEig_[3] = {4.0,5.0,6.0};
+
 MultiLatticeTPP::~MultiLatticeTPP()
 {
    delete [] BodyForce_;
@@ -27,27 +30,74 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
    // Get Lattice definition
    char tmp[LINELENGTH];
    if(!GetParameter(prefix,"InternalAtoms",datafile,'u',&INTERNAL_ATOMS)) exit(-1);
-   
+
+   // Set default values
+   KillTranslations_ = 1; // 1-true, 0-false
+   KillRotations_ = 0; // 0-do nothing, 1-kill one rotation, 2-kill three rotations
    // Initiate the CBK object (default to SymLagrangeCB)
-   const char *CBKin[] = {"SymLagrangeCB","LagrangeCB","MixedCB","EulerCB"};
-   switch (GetStringParameter(prefix,"CBKinematics",datafile,CBKin,4,0))
+   const char *CBKin[] = {"SymLagrangeCB","SymLagrangeWTransCB",
+			  "LagrangeCB","MixedCB","EulerCB"};
+   int cbktype=GetStringParameter(prefix,"CBKinematics",datafile,CBKin,4,0);
+   switch (cbktype)
    {
-      case 3:
+      case 4:
 	 CBK_ = new EulerCB(INTERNAL_ATOMS,prefix,datafile);
 	 break;
-      case 2:
+      case 3:
 	 CBK_ = new MixedCB(INTERNAL_ATOMS,prefix,datafile);
 	 break;
-      case 1:
+      case 2:
 	 CBK_ = new LagrangeCB(INTERNAL_ATOMS,prefix,datafile);
+	 break;
+      case 1:
+	 CBK_ = new SymLagrangeWTransCB(INTERNAL_ATOMS,prefix,datafile);
 	 break;
       case 0:
 	 CBK_ = new SymLagrangeCB(INTERNAL_ATOMS,prefix,datafile);
+	 KillTranslations_ = 0;
 	 break;
       default:
 	 cerr << "Error Unknown CBKinematics specified" << endl;
 	 exit(-9);
 	 break;
+   }
+   // Update KillRotations_ if needed
+   if (cbktype > 1)
+   {
+      const char *KillRot[] = {"NoRotationConstraint","OneRotationConstraint",
+			       "FullRotationConstraint"};
+      int KillRotType=GetStringParameter(prefix,"RotationConstraint",datafile,KillRot,3);
+      if (KillRotType==-1) exit(-2);
+
+      Vector R(DIM3),r(DIM3);
+      double norm;
+      switch (KillRotType)
+      {
+	 case 2:
+	    KillRotations_=2;
+	    break;
+	 case 1:
+	    KillRotations_=1;
+	    if(!GetVectorParameter(prefix,"OneRotationConstraint_R",datafile,&R)) exit(-1);
+	    if(!GetVectorParameter(prefix,"OneRotationConstraint_r",datafile,&r)) exit(-1);
+	    KillOneRotation_.Resize(CBK_->DOFS(),0.0);
+	    for (int i=0;i<DIM3;++i)
+	       for (int j=0;j<DIM3;++j)
+	       {
+		  KillOneRotation_[CBK_->INDF(i,j)] = r[i]*R[j];
+	       }
+	    norm=KillOneRotation_.Norm();
+	    for (int i=0;i<KillOneRotation_.Dim();++i)
+	       KillOneRotation_[i] /= norm;
+	    break;
+	 case 0:
+	    KillRotations_=0;
+	    break;
+	 default:
+	    cerr << "Error (MultiLatticeTPP()): Unknown RotationConstraint type" << endl;
+	    exit(-2);
+	    break;
+      }
    }
    
    if (DOFMAX < CBK_->DOFS())
@@ -228,6 +278,50 @@ int MultiLatticeTPP::FindLatticeSpacing(char *datafile,const char *prefix,int it
 }
 
 // Lattice Routines
+double MultiLatticeTPP::E0()
+{
+   static double E0,Tsq[3],Rsq[3];
+   E0 = energy();
+
+   if (KillTranslations_)
+   {
+      for (int j=0;j<DIM3;++j)
+      {
+	 Tsq[j]=0.0;
+	 for (int i=0;i<INTERNAL_ATOMS;++i)
+	 {
+	    Tsq[j]+=CBK_->DOF()[CBK_->INDS(i,j)];
+	 }
+	 Tsq[j] = (Tsq[j]*Tsq[j])/INTERNAL_ATOMS;
+      }
+   }
+   switch (KillRotations_)
+   {
+      case 2:
+	 // Kill three rotations
+	 Rsq[0] = (CBK_->DOF()[CBK_->INDF(0,1)] - CBK_->DOF()[CBK_->INDF(1,0)]);
+	 Rsq[1] = (CBK_->DOF()[CBK_->INDF(1,2)] - CBK_->DOF()[CBK_->INDF(2,1)]);
+	 Rsq[2] = (CBK_->DOF()[CBK_->INDF(2,0)] - CBK_->DOF()[CBK_->INDF(0,2)]);
+	 for (int i=0;i<DIM3;++i)
+	    Rsq[i] *= 0.5*Rsq[i];
+	 break;
+      case 1:
+	 // Kill one rotation
+	 for (int i=0;i<DIM3;++i)
+	 {
+	    Rsq[i]=0.0;
+	    for (int j=0;j<DIM3;++j)
+	       Rsq[0] += KillOneRotation_[CBK_->INDF(i,j)]*CBK_->DOF()[CBK_->INDF(i,j)];
+	 }
+	 Rsq[0] *= Rsq[0];
+	 break;
+   }
+   
+   
+   return E0 + 0.5*(TrEig_[0]*Tsq[0] + TrEig_[1]*Tsq[1] + TrEig_[2]*Tsq[2])
+      + 0.5*(RoEig_[0]*Rsq[0] + RoEig_[1]*Rsq[1] + RoEig_[2]*Rsq[2]);
+}
+
 double MultiLatticeTPP::energy(PairPotentials::TDeriv dt)
 {
    double Phi = 0.0;
@@ -279,6 +373,57 @@ double MultiLatticeTPP::energy(PairPotentials::TDeriv dt)
    }
    
    return Phi;
+}
+
+Matrix MultiLatticeTPP::E1()
+{
+   static Matrix E1(1,CBK_->DOFS(),0.0);
+   static double T[3],R[3];
+   E1 = stress();
+   
+   if (KillTranslations_)
+   {
+      for (int j=0;j<DIM3;++j)
+      {
+	 T[j]=0.0;
+	 for (int i=0;i<INTERNAL_ATOMS;++i)
+	    T[j]+=CBK_->DOF()[CBK_->INDS(i,j)];
+	 T[j]/=INTERNAL_ATOMS;
+      }
+      for (int i=0;i<INTERNAL_ATOMS;++i)
+	 for (int j=0;j<DIM3;++j)
+	    E1[0][CBK_->INDS(i,j)] += TrEig_[j]*T[j];
+   }
+
+   switch (KillRotations_)
+   {
+      case 2:
+	 // Kill three rotations
+	 R[0] = (CBK_->DOF()[CBK_->INDF(0,1)] - CBK_->DOF()[CBK_->INDF(1,0)])/2.0;
+	 E1[0][CBK_->INDF(0,1)] += RoEig_[0]*R[0];
+	 E1[0][CBK_->INDF(1,0)] -= RoEig_[0]*R[0];
+	 R[1] = (CBK_->DOF()[CBK_->INDF(1,2)] - CBK_->DOF()[CBK_->INDF(2,1)])/2.0;
+	 E1[0][CBK_->INDF(1,2)] += RoEig_[1]*R[1];
+	 E1[0][CBK_->INDF(2,1)] -= RoEig_[1]*R[1];
+	 R[2] = (CBK_->DOF()[CBK_->INDF(2,0)] - CBK_->DOF()[CBK_->INDF(0,2)])/2.0;
+	 E1[0][CBK_->INDF(2,0)] += RoEig_[2]*R[2];
+	 E1[0][CBK_->INDF(0,2)] -= RoEig_[2]*R[2];
+	 break;
+      case 1:
+	 // Kill one rotation
+	 for (int i=0;i<DIM3;++i)
+	 {
+	    R[i]=0.0;
+	    for (int j=0;j<DIM3;++j)
+	       R[0] += KillOneRotation_[CBK_->INDF(i,j)]*CBK_->DOF()[CBK_->INDF(i,j)];
+	 }
+
+	 for (int i=0;i<E1.Cols();++i)
+	    E1[0][i] += RoEig_[0]*R[0]*KillOneRotation_[i];
+	 break;
+   }
+   
+   return E1;
 }
 
 Matrix MultiLatticeTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
@@ -384,7 +529,53 @@ Matrix MultiLatticeTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
    
    return S;
 }
+
+Matrix MultiLatticeTPP::E2()
+{
+   static Matrix E2(CBK_->DOFS(),CBK_->DOFS(),0.0);
+   E2 = stiffness();
+
+   if (KillTranslations_)
+   {
       
+      for (int i=0;i<INTERNAL_ATOMS;++i)
+	 for (int j=0;j<DIM3;++j)
+	    for (int k=0;k<INTERNAL_ATOMS;++k)
+	    {
+	       E2[CBK_->INDS(i,j)][CBK_->INDS(k,j)] += TrEig_[j]/INTERNAL_ATOMS;
+	    }
+   }
+
+   switch (KillRotations_)
+   {
+      case 2:
+	 // Kill three rotations
+	 E2[CBK_->INDF(0,1)][CBK_->INDF(0,1)] += RoEig_[0]/2.0;
+	 E2[CBK_->INDF(0,1)][CBK_->INDF(1,0)] -= RoEig_[0]/2.0;
+	 E2[CBK_->INDF(1,0)][CBK_->INDF(1,0)] += RoEig_[0]/2.0;
+	 E2[CBK_->INDF(1,0)][CBK_->INDF(0,1)] -= RoEig_[0]/2.0;
+
+	 E2[CBK_->INDF(1,2)][CBK_->INDF(1,2)] += RoEig_[1]/2.0;
+	 E2[CBK_->INDF(1,2)][CBK_->INDF(2,1)] -= RoEig_[1]/2.0;
+	 E2[CBK_->INDF(2,1)][CBK_->INDF(2,1)] += RoEig_[1]/2.0;
+	 E2[CBK_->INDF(2,1)][CBK_->INDF(1,2)] -= RoEig_[1]/2.0;
+
+	 E2[CBK_->INDF(2,0)][CBK_->INDF(2,0)] += RoEig_[2]/2.0;
+	 E2[CBK_->INDF(2,0)][CBK_->INDF(0,2)] -= RoEig_[2]/2.0;
+	 E2[CBK_->INDF(0,2)][CBK_->INDF(0,2)] += RoEig_[2]/2.0;
+	 E2[CBK_->INDF(0,2)][CBK_->INDF(2,0)] -= RoEig_[2]/2.0;
+	 break;
+      case 1:
+	 // Kill one rotation
+	 for (int i=0;i<E2.Rows();++i)
+	 for (int j=0;j<E2.Cols();++j)
+	    E2[i][j] += RoEig_[0]*KillOneRotation_[i]*KillOneRotation_[j];
+	 break;
+   }
+   
+   return E2;
+}
+
 Matrix MultiLatticeTPP::stiffness(PairPotentials::TDeriv dt,LDeriv dl)
 {
    static Matrix Phi;
@@ -1467,7 +1658,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
    str = stress();
    stiff = stiffness();
    
-   EigenValues=SymEigVal(stiff);
+   EigenValues=SymEigVal(E2());
    MinEigVal = EigenValues[0][0];
    for (int i=0;i<CBK_->DOFS();i++)
    {
@@ -1580,7 +1771,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 	 }
 	 out << "Stress (Normalized):" << setw(W) << str << endl
 	     << "Stiffness (Normalized):" << setw(W) << stiff
-	     << "Eigenvalue Info:"  << setw(W) << EigenValues
+	     << "Eigenvalue Info (Rots->1,2,3; Trans->4,5,6):"  << setw(W) << EigenValues
 	     << "Bifurcation Info:" << setw(W) << MinEigVal
 	     << setw(W) << NoNegEigVal << endl
 	     << "Condensed Moduli (Normalized):" << setw(W) << CondModuli
@@ -1605,7 +1796,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 	    }
 	    cout << "Stress (Normalized):" << setw(W) << str << endl
 		 << "Stiffness (Normalized):" << setw(W) << stiff
-		 << "Eigenvalue Info:"  << setw(W) << EigenValues
+		 << "Eigenvalue Info (Rots->1,2,3; Trans->4,5,6):"  << setw(W) << EigenValues
 		 << "Bifurcation Info:" << setw(W) << MinEigVal
 		 << setw(W) << NoNegEigVal << endl
 		 << "Condensed Moduli (Normalized):" << setw(W) << CondModuli
@@ -1827,9 +2018,9 @@ void MultiLatticeTPP::DebugMode()
       else if (!strcmp(response,Commands[indx++]))
 	 cout << "E0= " << E0() << endl;
       else if (!strcmp(response,Commands[indx++]))
-	 cout << "E1= " << E1() << endl;
+	 cout << "E1= " << setw(W) << E1() << endl;
       else if (!strcmp(response,Commands[indx++]))
-	 cout << "E2= " << E2() << endl;
+	 cout << "E2= " << setw(W) << E2() << endl;
       else if (!strcmp(response,Commands[indx++]))
 	 cout << "E3= " << setw(W) << E3();
       else if (!strcmp(response,Commands[indx++]))

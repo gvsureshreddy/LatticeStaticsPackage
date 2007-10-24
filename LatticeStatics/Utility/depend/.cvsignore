@@ -13,7 +13,6 @@ LagrangeCB.d
 MixedCB.d
 EulerCB.d
 SymLagrangeCB.d
-SymMixedCB.d
-SymEulerCB.d
+SymLagrangeWTransCB.d
 PrintPotentials.d
 EnergyLandscape.d
