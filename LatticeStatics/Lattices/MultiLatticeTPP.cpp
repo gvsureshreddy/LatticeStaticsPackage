@@ -2203,7 +2203,7 @@ void MultiLatticeTPP::DebugMode()
 void MultiLatticeTPP::RefineEqbm(double Tol,int MaxItr,ostream *out)
 {
    Vector dx(CBK_->DOFS(),0.0);
-   Vector Stress=stress();
+   Vector Stress=E1();
    int itr=0;
    
    while ((itr < MaxItr) && Stress.Norm() > Tol)
@@ -2211,13 +2211,13 @@ void MultiLatticeTPP::RefineEqbm(double Tol,int MaxItr,ostream *out)
       ++itr;
 
 #ifdef SOLVE_SVD
-      dx = SolveSVD(stiffness(),Stress,MAXCONDITION,Echo_);
+      dx = SolveSVD(E2(),Stress,MAXCONDITION,Echo_);
 #else
-      dx = SolvePLU(stiffness(),Stress);
+      dx = SolvePLU(E2(),Stress);
 #endif
       SetDOF(CBK_->DOF()-dx);
       
-      Stress=stress();
+      Stress=E1();
 
       if (out != NULL)
       {
