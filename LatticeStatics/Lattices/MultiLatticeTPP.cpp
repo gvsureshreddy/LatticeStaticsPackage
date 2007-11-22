@@ -1210,6 +1210,15 @@ Matrix MultiLatticeTPP::CondensedModuli()
    return CM;
 }
 
+Matrix MultiLatticeTPP::ThermalExpansion()
+{
+#ifdef SOLVE_SVD
+   return SolveSVD(E2(),-StressDT().Transpose()).Transpose();
+#else
+   return SolvePLU(E2(),-StressDT().Transpose()).Transpose();
+#endif
+}
+
 int MultiLatticeTPP::comp(const void *a,const void *b)
 {
    double t;
@@ -1638,12 +1647,14 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
       str(1,CBK_->DOFS()),
       stiff(CBK_->DOFS(),CBK_->DOFS()),
       EigenValues(1,CBK_->DOFS()),
-      CondEV(1,CBK_->Fsize());
+      CondEV(1,CBK_->Fsize()),
+      TE(1,CBK_->DOFS());
    static Matrix
       CondModuli(CBK_->Fsize(),CBK_->Fsize());
    static int RankOneConvex;
    static Vector K(DIM3);
    static int BlochWaveStable;
+
    
    W=out.width();
 
@@ -1653,6 +1664,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
    NoNegEigVal=0;
 
    engy = energy();
+   TE = ThermalExpansion();
    entropy = Entropy();
    heatcapacity = HeatCapacity();
    str = stress();
@@ -1762,6 +1774,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 	     << "Lambda (Normalized): " << setw(W) << Lambda_ << endl
 	     << "DOF's :" << endl << setw(W) << CBK_->DOF() << endl
 	     << "Potential Value (Normalized):" << setw(W) << engy << endl
+	     << "Thermal Expansion:" << setw(W) << TE
 	     << "Entropy:" << setw(W) << entropy << endl
 	     << "HeatCapacity:" << setw(W) << heatcapacity << endl;
 	 for (int i=0;i<INTERNAL_ATOMS;++i)
@@ -1787,6 +1800,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 		 << "Lambda (Normalized): " << setw(W) << Lambda_ << endl
 		 << "DOF's :" << endl << setw(W) << CBK_->DOF() << endl
 		 << "Potential Value (Normalized):" << setw(W) << engy << endl
+		 << "Thermal Expansion:" << setw(W) << TE
 		 << "Entropy:" << setw(W) << entropy << endl
 		 << "HeatCapacity:" << setw(W) << heatcapacity << endl;
 	    for (int i=0;i<INTERNAL_ATOMS;++i)
@@ -1877,11 +1891,13 @@ void MultiLatticeTPP::DebugMode()
       "Rotation_",
       "Loading_",
       "PrintCrystal",
+      "ThermalExpansion",
       "Entropy",
+      "HeatCapacity",
       "TranslationProjection1D",
       "TranslationProjection3D",
    };
-   int NOcommands=48;
+   int NOcommands=50;
    
    char response[LINELENGTH];
    char prompt[] = "Debug > ";
@@ -2142,7 +2158,15 @@ void MultiLatticeTPP::DebugMode()
       }
       else if (!strcmp(response,Commands[indx++]))
       {
+	 cout << "ThermalExpansion = " << setw(W) << ThermalExpansion() << endl;
+      }
+      else if (!strcmp(response,Commands[indx++]))
+      {
 	 cout << "Entropy = " << setw(W) << Entropy() << endl;
+      }
+      else if (!strcmp(response,Commands[indx++]))
+      {
+	 cout << "HeatCapacity = " << setw(W) << HeatCapacity() << endl;
       }
       else if (!strcmp(response,Commands[indx++]))
       {

@@ -126,6 +126,7 @@ public:
    inline double Del(int i,int j) {return i==j;}
    Vector BodyForce(int i) {return BodyForce_[i]; }
    double NormModulus() const {return NormModulus_;}
+   Matrix ThermalExpansion();
    friend ostream &operator<<(ostream &out,MultiLatticeTPP &A);
 
 private:
