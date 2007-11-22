@@ -6,7 +6,7 @@
 #include <cstdlib>
 
 // Global IDString
-char MatrixID[]="$Id: Matrix.cpp,v 1.18 2007/09/13 17:48:03 elliott Exp $";
+char MatrixID[]="$Id: Matrix.cpp,v 1.19 2007/11/22 03:07:04 elliott Exp $";
 
 // Private Methods...
 
@@ -361,8 +361,12 @@ Matrix Matrix::Inverse() const
    B.Elements_[0][0]=1.0;
    for (register int i=0;i<Cols_;i++)
    {
+#ifdef SOLVE_SVD
+      X=SolveSVD(*this,B);
+#else
       X=SolvePLU(*this,B);
-
+#endif
+      
       for (register int j=0;j<Rows_;j++)
 	 C.Elements_[j][i]=X.Elements_[j][0];
 
