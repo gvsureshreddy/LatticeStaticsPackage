@@ -10,11 +10,15 @@ export BIN_LOC
 export INCL_LOC
 export LIB_LOC
 
-gCC = g++
+CC = g++
+OPTIMIZE   = -O
+ANSI       = -pedantic
 TERMINAL = 
 #TERMINAL = -DUNIX_TERMINAL
 
-export gCC
+export CC
+export OPTIMIZE
+export ANSI
 export TERMINAL
 
 .PHONY: all install clean
