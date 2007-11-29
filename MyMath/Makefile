@@ -23,16 +23,19 @@ endif
 
 ifeq ($(UNAME),Linux)
    # PGI compiler
-   CC         = pgCC
-   OPTIMIZE   = -fast -Minline=levels:10 --no_exceptions
+   #CC         = pgCC
+   #OPTIMIZE   = -fast -Minline=levels:10 --no_exceptions
    #ANSI       = -A
+   CC         = $(gCC)
+   OPTIMIZE   = -O
+   ANSI       = -pedantic
 endif
 
 # general options 
 #PURE       = purify
 #PROFILE    = -pg
 #DEBUG      = -g
-BOUNDS     = -DCHECK_BOUNDS
+#BOUNDS     = -DCHECK_BOUNDS
 DATE_DEF   = -DBUILD_DATE="$(BUILD_DATE)"
 CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS)
 
