@@ -72,28 +72,32 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
       }
       case NewtonPC:
       {
-	  int good=1;
-	  int count=0;
-	  Vector One(Mode->ModeDOF().Dim());
-		if ( startfile == NULL)
-		{
+	 int good=1;
+	 Vector One(Mode->ModeDOF().Dim());
+	 if (startfile == NULL)
+	 {
 	    ScanningSolution ScanMe(Mode,datafile,"^",Echo);
 	    
-	       ScanMe.FindNextSolution(good);
-	       if (good)
-	       {
-			count++;
-			out << setw(Width) << Lat << "Success = 1" << endl;
-			One = Mode->ArcLenDef();
-			return new NewtonPCSolution(Mode,datafile,"^", One,Echo);
-	       }
+	    ScanMe.FindNextSolution(good);
+	    if (good)
+	    {
+	       out << setw(Width) << Lat << "Success = 1" << endl;
+	       One = Mode->ArcLenDef();
+	       return new NewtonPCSolution(Mode,datafile,"^", One,Echo);
 	    }
-		else
-		{
-			return new NewtonPCSolution(Mode,datafile,"^",startfile,out,Echo);
-		}
+	    else
+	    {
+	       cout << "Did not find one solution with Scanning Solution with "
+		  "which to initialize NewtonPCSolutions." << endl;
+	       exit(-56);
+	    }
+	 }
+	 else
+	 {
+	    return new NewtonPCSolution(Mode,datafile,"^",startfile,out,Echo);
+	 }
       }
    }
-
+   
    return NULL;
 }

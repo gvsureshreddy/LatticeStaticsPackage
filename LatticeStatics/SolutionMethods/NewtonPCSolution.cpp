@@ -1,7 +1,7 @@
 #include "NewtonPCSolution.h"
 #include "Matrix.h"
 #include "UtilityFunctions.h"
-#include <cmath>
+#include "ArcLengthSolution.h"
 
 using namespace std;
 
@@ -13,93 +13,64 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode *Mode,char *datafile,const char *
    : Mode_(Mode), CurrentSolution_(0), Echo_(Echo)
 {
    // get needed parameters
-	if(!GetParameter(prefix,"PCNumSolutions",datafile,'u',&NumSolutions_)) exit(-1);
-	if(!GetParameter(prefix,"PCStepLength",datafile,'l',&CurrentDS_)) exit(-1);
-	if(!GetParameter(prefix,"PCContraction",datafile,'l',&cont_rate_nom_)) exit(-1);
-	if(!GetParameter(prefix,"PCDistance",datafile,'l',&delta_nom_)) exit(-1);
-   	if(!GetParameter(prefix,"PCAngle",datafile,'l',&alpha_nom_)) exit(-1);
-	if(!GetParameter(prefix,"PCConvergeCriteria",datafile,'l',&Converge_)) exit(-1);
-	if(!GetParameter(prefix,"PCClosedLoopStart",datafile,'u',&ClosedLoopStart_,0))
-	
-	{
+   if(!GetParameter(prefix,"PCNumSolutions",datafile,'u',&NumSolutions_)) exit(-1);
+   if(!GetParameter(prefix,"PCStepLength",datafile,'l',&MaxDS_)) exit(-1);
+   if(!GetParameter(prefix,"PCContraction",datafile,'l',&cont_rate_nom_)) exit(-1);
+   if(!GetParameter(prefix,"PCDistance",datafile,'l',&delta_nom_)) exit(-1);
+   if(!GetParameter(prefix,"PCAngle",datafile,'l',&alpha_nom_)) exit(-1);
+   if(!GetParameter(prefix,"PCConvergeCriteria",datafile,'l',&Converge_)) exit(-1);
+   if(!GetParameter(prefix,"MinDSRatio",datafile,'l',&MinDSRatio_)) exit(-1);
+   if(!GetParameter(prefix,"PCClosedLoopStart",datafile,'u',&ClosedLoopStart_,0))
+   {
       // Set default value
       ClosedLoopStart_ = CLOSEDDEFAULT;
-	}
-
-	
-	FirstSolution_.Resize(one.Dim());
-	FirstSolution_ = one;
-	
-	//cout << "size of one = " << one.Dim() << endl;
-	
-	// Set Lattice to solution "one"
-	Mode_->SetModeDOF(one);	
-	
-	Stiffness_.Resize(Mode_->ModeStiffness().Rows(), Mode_->ModeStiffness().Cols());
-	//cout << "size of stiffness rows= " << Stiffness_.Rows() << endl;
-	//cout << "size of Mode_->ModeStiffness().Rows_= " << Mode_->ModeStiffness().Rows() << endl << endl;
-	//cout << "size of stiffness columns= " << Stiffness_.Cols() << endl; 
-	//cout << "size of Mode_->ModeStiffness().Cols_= " << Mode_->ModeStiffness().Cols() << endl;
+   }
    
-	// set tangent. Force1_ might not be needed
-	Stiffness_ = Mode_->ModeStiffness();
-	int count = Mode_->ModeStiffness().Cols();
-	int count_minus_one = Mode_->ModeStiffness().Rows();
-	
-	
-	//QR Decomposition of Stiffness Matrix
-	
-	Matrix Q(count, count);
-	Matrix R(count, count_minus_one);
+   CurrentDS_ = MaxDS_;
+   
+   FirstSolution_.Resize(one.Dim());
+   FirstSolution_ = one;
+   Mode_->SetModeDOF(one);
+   
+   int count = Mode_->ModeStiffness().Cols();
+   int count_minus_one = count-1;
+   
+   //QR Decomposition of Stiffness Matrix
+   Matrix Q(count, count);
+   Matrix R(count, count_minus_one);
+   
 			
-			
-	QR(Stiffness_, Q, R, 1);	//Performs QR decomposition using A^T = Q*R. Section 4.1 of ISBN 3-540-12760-7
-	
-	
-	
-	//Assigns Tangent Vector
-	//Last column of Q is the tangent vector
-	
-	
-	Tangent1_.Resize(count);
-	Tangent2_.Resize(count);
-		
-	
-	for(int i=0;i< count;i++)
-	{
-		Tangent1_[i] = Q[i][count_minus_one];
-		Tangent2_[i] = Q[i][count_minus_one];
-	}
-	
-
-	cout << "Stiffness = " << Stiffness_ << endl << endl;
-	cout << "(Q*R)^T = " << (Q*R).Transpose() << endl << endl;
-	cout << "Tangent1 = " << Tangent1_ << endl << endl;
-	cout << "Tangent2 = " << Tangent2_ << endl << endl;	
-	
+   //Performs QR decomposition using A^T = Q*R. Section 4.1 of ISBN 3-540-12760-7
+   QR(Mode->ModeStiffness(),Q,R,1);
+   
+   Tangent1_.Resize(count);
+   Tangent2_.Resize(count);
+   for(int i=0;i<count;i++)
+   {
+      Tangent1_[i] = Tangent2_[i] = Q[i][count_minus_one];
+   }
 }
-
-
 
 NewtonPCSolution::NewtonPCSolution(LatticeMode *Mode,char *datafile,const char *prefix,
 				   char *startfile,fstream &out,int Echo)
    : Mode_(Mode), CurrentSolution_(0), Echo_(Echo)
 {
-
-    // get needed parameters12
-	if(!GetParameter(prefix,"PCNumSolutions",datafile,'u',&NumSolutions_)) exit(-1);
-	if(!GetParameter(prefix,"PCStepLength",datafile,'l',&CurrentDS_)) exit(-1);
-	if(!GetParameter(prefix,"PCContraction",datafile,'l',&cont_rate_nom_)) exit(-1);
-	if(!GetParameter(prefix,"PCDistance",datafile,'l',&delta_nom_)) exit(-1);
-   	if(!GetParameter(prefix,"PCAngle",datafile,'l',&alpha_nom_)) exit(-1);
-	if(!GetParameter(prefix,"PCConvergeCriteria",datafile,'l',&Converge_)) exit(-1);
-	if(!GetParameter(prefix,"PCClosedLoopStart",datafile,'u',&ClosedLoopStart_,0))
-	{
+   // get needed parameters
+   if(!GetParameter(prefix,"PCNumSolutions",datafile,'u',&NumSolutions_)) exit(-1);
+   if(!GetParameter(prefix,"PCStepLength",datafile,'l',&MaxDS_)) exit(-1);
+   if(!GetParameter(prefix,"PCContraction",datafile,'l',&cont_rate_nom_)) exit(-1);
+   if(!GetParameter(prefix,"PCDistance",datafile,'l',&delta_nom_)) exit(-1);
+   if(!GetParameter(prefix,"PCAngle",datafile,'l',&alpha_nom_)) exit(-1);
+   if(!GetParameter(prefix,"PCConvergeCriteria",datafile,'l',&Converge_)) exit(-1);
+   if(!GetParameter(prefix,"MinDSRatio",datafile,'l',&MinDSRatio_)) exit(-1);
+   if(!GetParameter(prefix,"PCClosedLoopStart",datafile,'u',&ClosedLoopStart_,0))
+   {
       // Set default value
       ClosedLoopStart_ = CLOSEDDEFAULT;
-	}
-
-
+   }
+   
+   CurrentDS_ = MaxDS_;
+   
    const char *StartType[] = {"Bifurcation","Continuation","ConsistencyCheck"};
    switch (GetStringParameter(prefix,"StartType",startfile,StartType,3))
    {
@@ -112,8 +83,26 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode *Mode,char *datafile,const char *
       case 0:
       {
 	 // Bifurcation
-
-	 // read in bifurcation point and tangent then proceed as in case 1
+	 // Get solution1
+	 int count = (Mode_->ModeDOF()).Dim();
+	 int i;
+	 Vector one(count);
+	 Previous_Solution_.Resize(count);
+	 Tangent1_.Resize(count);
+	 Tangent2_.Resize(count);
+	 
+	 if(!GetVectorParameter(prefix,"Solution1",startfile,&one)) exit(-1);
+	 if(!GetVectorParameter(prefix,"Tangent",startfile,&Tangent1_)) exit(-1);
+	 
+	 FirstSolution_.Resize(one.Dim());
+	 FirstSolution_ = one;
+	 
+	 Mode_->SetModeDOF(one);
+	 
+	 for(i=0; i<count; i++)
+	 {
+	    Tangent2_[i] = Tangent1_[i];
+	 }
          break;
       }
       case 1:
@@ -121,398 +110,260 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode *Mode,char *datafile,const char *
 	 // Continuation
 	 
          // Get solution1
-		Vector one((Mode_->ModeDOF()).Dim());
-		Tangent1_.Resize((Mode_->ModeDOF()).Dim());
-		Tangent2_.Resize((Mode_->ModeDOF()).Dim());
-		
-		//int count = one.Dim();
-		//int count_plus_one = one.Dim()+1;
-		//int count_minus_one = one.Dim()-1;
-		
-		if(!GetVectorParameter(prefix,"Solution1",startfile,&one)) exit(-1);
-		if(!GetVectorParameter(prefix,"Tangent",startfile,&Tangent1_)) exit(-1);
-		
-		FirstSolution_.Resize(one.Dim());
-		FirstSolution_ = one;
-		
-		Tangent2_ = Tangent1_;
-		
-		//cout << "size of one = " << one.Dim() << endl;
-		
-		Mode_->SetModeDOF(one);
-		Stiffness_.Resize(Mode_->ModeStiffness().Rows(), Mode_->ModeStiffness().Cols());
-		//cout << "size of stiffness rows= " << Stiffness_.Rows() << endl;
-		//cout << "size of Mode_->ModeStiffness().Rows_= " << Mode_->ModeStiffness().Rows() << endl << endl;
-		//cout << "size of stiffness columns= " << Stiffness_.Cols() << endl; 
-		//cout << "size of Mode_->ModeStiffness().Cols_= " << Mode_->ModeStiffness().Cols() << endl;
-		
-		cout << "FirstSolution = "<< endl<< setw(15) << FirstSolution_ << endl << endl;
-		cout << " Tangent1_ = " << endl << setw(15) << Tangent1_ << endl << endl;
-		cout << "Tangent2_ = " << endl << setw(15) << Tangent2_ << endl << endl;
-		
-		cout << " NumSolutions_ = " << NumSolutions_ << endl << endl;
-		cout << " CurrentDS_ = " << CurrentDS_ << endl << endl;
-		cout << " cont_rate_nom_ = " << cont_rate_nom_ << endl << endl;
-		cout << " delta_nom_ = " << delta_nom_ << endl << endl;
-		cout << " alpha_nom_ = " << alpha_nom_ << endl << endl;
-		cout << " Converge_ = "<< setprecision(20) <<Converge_ << endl << endl;
-		cout << " ClosedLoopStart_ = " << setprecision(10) <<ClosedLoopStart_ << endl << endl;
-		
-		// set tangent. Force1_ Might not be needed.
-		//Stiffness_ = Mode_->ModeStiffness();
-		//int count = Mode_->ModeStiffness().Cols();
-		//int count_minus_one = Mode_->ModeStiffness().Rows();
-		
-		//QR Decomposition of Stiffness Matrix
-		//Matrix Q(count, count);
-		//Matrix R(count, count_minus_one);
-
-	
-		//QR(Stiffness_, Q, R, 1);	//Performs QR decomposition using A^T = Q*R. Section 4.1 of ISBN 3-540-12760-7
-	
-		//Assigns Tangent Vector
-		//Last column of Q is the tangent vector
-		//Tangent1_.Resize(count);
-		//Tangent2_.Resize(count);
-		/*
-		for(int i=0;i< count;i++)
-		{
-			Tangent1_[i] = Q[i][count_minus_one];
-			Tangent2_[i] = Q[i][count_minus_one];
-		}
-		*/
-		/*
-		cout << "Stiffness = " << Stiffness_ << endl << endl;
-		cout << "(Q*R)^T = " << (Q*R).Transpose() << endl << endl;
-		cout << "Tangent1 = " << Tangent1_ << endl << endl;
-		cout << "Tangent2 = " << Tangent2_ << endl << endl;
-		*/   
-			   break;
+	 int count = (Mode_->ModeDOF()).Dim();
+	 int count_minus_one = count -1;
+	 int i;
+	 Vector one(count);
+	 
+	 Previous_Solution_.Resize(count);
+	 Tangent1_.Resize(count);
+	 Tangent2_.Resize(count);
+	 
+	 if(!GetVectorParameter(prefix,"Solution1",startfile,&one)) exit(-1);
+	 
+	 FirstSolution_.Resize(one.Dim());
+	 FirstSolution_ = one;
+	 Mode_->SetModeDOF(one);
+	 
+	 Matrix Q(count, count);
+	 Matrix R(count, count_minus_one);
+	 
+	 QR(Mode_->ModeStiffness(),Q,R,1);
+	 for(i=0;i<count;i++)
+	 {
+	    Tangent1_[i] = Tangent2_[i] = Q[i][count_minus_one];
+	 }
+	 break;
       }
       case 2:
       {
 	 // ConsistencyCheck
-
+	 
 	 // do nothing for now
          break;
       }
    }
 }
 
-
-
 int NewtonPCSolution::AllSolutionsFound()
 {
    if (CurrentSolution_ < NumSolutions_)
-   { 
+   {
       return 0;
    }
    else
    {
       return 1;
    }
-   
 }
-
 
 double NewtonPCSolution::FindNextSolution(int &good)
 {
    //Finds the next solution
-	int omega=1;
-	int i, j, Converge_Test ;
-	int count = FirstSolution_.Dim();
-	//int count_plus_one = count + 1;
-	int count_minus_one = count -1;
-	double Kappa, Alpha, Delta, Magnitude1, Magnitude2, temp, f, CurrentDS;
-	Vector v(count,0);
-	Vector u(count,0);
-	Vector w(count,0);
-	Vector Force1(count_minus_one,0);
-	Vector Force2(count_minus_one,0);
-	Vector Corrector(count, 0);
-	Matrix Q(count, count);
-	Matrix R(count, count_minus_one);
-	
-	
-	//size N+1
-	u = Mode_->ModeDOF();
-	//NEED TO STORE TANGENT AT U
-	//Bifurcation Test
-	CurrentDS = CurrentDS_;
-	cout << "Start: u = " << endl << setw(15) << u << endl << endl;
-	cout << "CurrentDS = " << CurrentDS << endl << endl;
+   static int count = FirstSolution_.Dim();
+   static int count_minus_one = count-1;
+   static Vector v(count);
+   static Vector w(count);
+   static Vector Force(count_minus_one);
+   static Vector Corrector(count);
+   static Matrix Q(count,count);
+   static Matrix R(count,count_minus_one);
+   int omega=1;
+   int i, j, Converge_Test ;
+   double Kappa, Alpha, Delta, Magnitude1, Magnitude2, temp, f;
 
-	Force1 = Mode_->ModeForce();
+   Previous_Solution_ = Mode_->ModeDOF();
+   
+   temp=0.0;
+   for(i=0;i<count;i++)
+   {
+      temp = temp + Tangent1_[i] * Tangent2_[i];
+   }
+   
+   if (temp < 0)
+   {
+      omega = -omega;
+      
+      for(i=0;i<count;i++)
+      {
+	 Tangent1_[i] = Tangent2_[i] * omega;
+      }
+   }
+   else
+   {	
+      for(i=0;i<count;i++)
+      {
+	 Tangent1_[i] = Tangent2_[i];
+      }
+   }
+   
+   //Starts solver
+   do
+   {
+      for (i=0;i< count;i++)
+      {
+	 v[i] = Previous_Solution_[i] + CurrentDS_ * Tangent1_[i];
+      }
+      
+      //Sets state to predicted point
+      Mode_->SetModeDOF(v);
+      Force = Mode_->ModeForce();
+      
+      QR(Mode_->ModeStiffness(), Q, R, 1);
+      
+      for(i=0;i<count;i++)
+      {
+	 Tangent2_[i] = Q[i][count_minus_one]*omega;
+      }
+      
+      MoorePenrose(Q,R, Force, Corrector);
+      
+      Magnitude1 = Corrector.Norm();
+      
+      //CORRECTOR LOOP STARTS HERE
+      Converge_Test = 0;
+      do
+      {
+	 for (i=0;i<count;i++)
+	 {
+	    w[i] = v[i] - Corrector[i];
+	 }
+	 
+	 Mode_->SetModeDOF(w);
 	
-	cout << "Start: Tangent1 = " <<endl << setw(15) << Tangent1_ << endl << endl;
-	cout << "Start: Tangent2 = " <<endl << setw(15) << Tangent2_ << endl << endl;	
-	cout << " Tangent1_ * Tangent2_ = " << Tangent1_ * Tangent2_ << endl << endl;
-	
-	
-	//Tangent of size N+1
-	if(Tangent1_ * Tangent2_ < 0)
-	{
-		cout << "Bifurcation Point detected" << endl << endl;
-		omega = -omega; 
-		Tangent1_ = Tangent2_ * omega;
-	}
-	else
-	{
-	Tangent1_ = Tangent2_;
-	}
-	
-	cout << " Tangent1_ = "<< endl << setw(15) << Tangent1_ << endl << endl;
-	cout << "START OF FIND NEXT SOLUTION " << endl << endl << endl;
-	
-	
-	//Starts solver
-	do
-	{
-		//Obtains predicted solution
-		v = u + CurrentDS * Tangent1_;
-		
-		cout << "CurrentDS = " << CurrentDS << endl << endl << endl;
-		//cout << "Tangent1 = " <<endl <<setw(15) << Tangent2_ << endl << endl;
-		
-		cout << "v = " <<endl << setw(15) << v << endl << endl;		
-		
-		//Sets state to predicted point
-		Mode_->SetModeDOF(v);
-		Force1 = Mode_->ModeForce();
-		
-		//cout << "Force1 = " <<endl << setw(15) <<  Force1 << endl << endl;
-		/*
-		cout << "Rows of Modestiffness () = " << Mode_->ModeStiffness().Rows() << endl << endl;
-		cout << "Rows of stiffness_ = " << Stiffness_.Rows() << endl << endl;
-		cout << "Rows of Modestiffness () = " << Mode_->ModeStiffness().Cols() << endl << endl;
-		cout << "Rows of stiffness_ = " << Stiffness_.Cols() << endl << endl;	
-		*/
-		Stiffness_ = Mode_->ModeStiffness();
-		
-		//QR Decomposition of Stiffness Matrix
-	
-		QR(Stiffness_, Q, R, 1);
-		
-		
-		//cout << "Stiffness = " << endl << setw(15) << Stiffness_ << endl << endl;
-		//cout << "(Q*R)^T = " << endl << setw(15) <<(Q*R).Transpose() << endl << endl;
-		
-		
-		for(int i=0;i< count;i++)
-		{
-			//Tangent2_[i] = Q[i][count_minus_one]*omega;
-			//Why omega above?
-			Tangent2_[i] = Q[i][count_minus_one]*omega;
-		}
-		
-		/*
-		cout << "Q = " <<endl<<setw(15) << Q << endl << endl;
-		cout << "R = " <<endl<<setw(15) << R << endl << endl;
-		
-		cout << "Tangent2 = " <<endl <<setw(15) << Tangent2_ << endl << endl;
-		cout << "Tangent1 = " <<endl <<setw(15) << Tangent2_ << endl << endl;
-		*/
+	 Force = Mode_->ModeForce();
+	 
+	 MoorePenrose(Q,R, Force,Corrector);
+	 
+	 Magnitude2 = Corrector.Norm();
+	 
+	 //checks parameters for steplength adaptation
+	 Kappa = sqrt((Magnitude2/ Magnitude1)/cont_rate_nom_);
+	 Alpha = sqrt(acos(Tangent1_ * Tangent2_)/alpha_nom_);
+	 Delta = sqrt(Magnitude1/delta_nom_);
 
-		Corrector = MoorePenrose(Q,R, Force1);
-		
-		//cout << "Corrector = " << endl << setw(15) <<  Corrector << endl << endl;
-		
-		Magnitude1 = Corrector.Norm();
-		//cout << "Magnitude1 = " << setprecision(20) <<Magnitude1 << endl << endl;
-		//cout << setprecision(10);
-		
-		//CORRECTOR LOOP STARTS HERE
-		
-		do
-		{			
-			Converge_Test = 0;
-			
-			w =  v - Corrector;
-			
-			cout << "START OF CORRECTOR LOOP "  << endl << endl << endl;
-			
-			cout << " w = " <<setw(15)<< w << endl << endl;
-			
-			Mode_->SetModeDOF(w);
-	
-			Force2 = Mode_->ModeForce();
-			
-			//cout << "Force2 = " <<endl << setw(15) <<  Force2 << endl << endl;
-			//cout << "Force2.Norm() = "<< Force2.Norm() << endl << endl;
-		
-			Magnitude2 = MoorePenrose(Q,R, Force2).Norm();
-			
-			//cout << "Magnitude1 = " << setprecision(20) << Magnitude1 << endl << endl;
-			//cout << "Magnitude2 = " << Magnitude2 << endl << endl;
-	
-			//checks parameters for steplength adaptation
-			
-			Kappa = sqrt((Magnitude2/ Magnitude1)/cont_rate_nom_);
-			Alpha = sqrt(acos(Tangent1_ * Tangent2_)/alpha_nom_);
-			Delta = sqrt(Magnitude1/delta_nom_);
-			
-			cout << setprecision(20);
-			cout << "kappa = " << Kappa << endl << endl;
-			cout << "Alpha = " << Alpha << endl << endl;
-			cout << "Delta = " << Delta << endl << endl;
-			cout << setprecision(10) ;
-			
-																			
-			temp = max(Kappa, Alpha);
-			f = max(temp, Delta);
-			
-			//cout << "f = " <<f<<  endl << endl;
-		
-			temp = min(f,2.0);
-			f = max(temp, 0.5);
-			
-			cout << "f = " << f << endl << endl;
-			
-			CurrentDS = CurrentDS/f;
-						
-			//cout << "CurrentDS_ /f = " << CurrentDS_ << endl << endl;			
-			
-			if(f >= 2)
-			{
-				//cout << "STEPLENGTH TOO LARGE " << endl << endl << endl;
-				break;
-			}
-			else
-			{
-				v = w;
-				
-				cout << "STEPLENGTH OKAY " << endl << endl << endl;
-				/*
-				cout << " STEPLENGTH OKAY: f<2 , v = " << endl<< setw(15) <<  v << endl << endl;
-				
-				cout << "steplength okay: Force2.Norm() = " <<setprecision(20) <<  Force2.Norm() <<endl << endl;
-				cout << "Steplength okay: magnitude1 = " << Magnitude1 << endl << endl;
-				cout << "Convergence criteria = " << Converge_ << endl << endl;
-				cout << setprecision(10) << endl;
-				*/
-				
-				//Inefficient? When already converged, state is at desired mode so no need to calculate Tangent2_, etc.
-				if (Force2.Norm() <= Converge_ && Corrector.Norm() <= Converge_)
-				{
-					Converge_Test = 1;
-				}
-				
-				if (Converge_Test == 0)
-				{
-					Mode_->SetModeDOF(v);
-	
-					Force1 = Mode_->ModeForce();
-					cout << "HAS NOT CONVERGED " << endl << endl << endl;
-					
-					//cout << "has not converged, Force1 = " << endl << setw(15) << Force1 << endl << endl;
-					
-					Stiffness_ = Mode_->ModeStiffness();
-					
-					//QR Decomposition of Stiffness Matrix
-	
-					QR(Stiffness_, Q, R, 1);
-		
-					//cout << "has not converged, Stiffness = " << endl << setw(15) <<Stiffness_ << endl << endl;
-					//cout << "(Q*R)^T = " << endl << setw(15) <<(Q*R).Transpose() << endl << endl;
-					
-					/*
-					for(int i=0;i< count;i++)
-					{
-						Tangent2_[i] = Q[i][count_minus_one];
-					}
-					*/
-					//cout << "Q = " <<endl<<setw(15) << Q << endl << endl;
-					///cout << "R = " <<endl<<setw(15) << R << endl << endl;
-					
-					//cout << "has not converged, Tangent2 = " << endl << setw(15) << Tangent2_ << endl << endl;
-								
-					
-					Corrector = MoorePenrose(Q,R, Force1);
-					
-					//cout << " has not converged "  << endl << endl;
-					//Magnitude1 = Corrector.Norm();
-		
-					//cout << "has not converged, Corrector = " << endl << setw(15) << Corrector << endl << endl;
-					//cout << " has not converged, Magnitude1 = " << Magnitude1 << endl << endl;
+	 temp = max(Kappa, Alpha);
+	 f = max(temp, Delta);
+	 
+	 temp = min(f,2.0);
+	 f = max(temp, 0.5);
 
-				}
-				
-			}
-			
-		}
-		while (Converge_Test != 1);
-	}
-	while (f >= 2);
-	
-	Stiffness_ = Mode_->ModeStiffness();
-
-	//QR Decomposition of Stiffness Matrix
-	
-	QR(Stiffness_, Q, R, 1);
-	
-	//cout << "HAS CONVERGED, Stiffness = " << Stiffness_ << endl << endl;
-	//cout << "(Q*R)^T = " << (Q*R).Transpose() << endl << endl;
-					
-	for(int i=0;i< count;i++)
-	{
-		Tangent2_[i] = Q[i][count_minus_one];
-	}
-	
-	//cout << "HAS CONVERGED, Tangent2 = " << endl << setw(15) << Tangent2_ << endl << endl<< endl << endl<<endl << endl<< endl << endl<< endl << endl<<endl << endl;
-	
-	cout << "HAS CONVERGED " << endl << endl << endl;	
-	
-	if ((ClosedLoopStart_ >= 0) && (CurrentSolution_ > ClosedLoopStart_) &&
-       ((Mode_->ModeDOF() - FirstSolution_).Norm() < CurrentDS_))
+	 CurrentDS_ = CurrentDS_/f;
+	 
+	 if(CurrentDS_ > MaxDS_)
+	 {
+	    CurrentDS_ = MaxDS_;
+	 }
+	 else if(CurrentDS_/MaxDS_ < MinDSRatio_)
+	 {
+	    cout << "Minimum StepSize ratio violated. Exit Solver. "<< endl << endl;
+	    exit(-1);
+	 }
+	 
+	 if(f >= 2.0)
+	 {
+	    //cout << "STEPLENGTH TOO LARGE " << endl << endl << endl;
+	    //cout << "Previous_Solution_ = " << endl << setw(15)
+	    //     << Previous_Solution_ << endl << endl;
+	    //cout << "v = " <<endl << setw(15) << v << endl << endl;
+	    //cout << "w = " << endl << setw(15) << w << endl << endl;
+	    break;
+	 }
+	 else
+	 {
+	    for(i=0;i<count;i++)
+	    {
+	       v[i] = w[i];
+	    }
+	    
+	    //cout << "STEPLENGTH OKAY " << endl << endl << endl;
+	    
+	    if ((Force.Norm() <= Converge_) && (Corrector.Norm() <= Converge_))
+	    {
+	       Converge_Test = 1;
+	    }
+	    else
+	    {
+	       Mode_->SetModeDOF(v);
+	       Force = Mode_->ModeForce();
+	       //cout << "HAS NOT CONVERGED " << endl << endl << endl;
+	       
+	       QR(Mode_->ModeStiffness(), Q, R, 1);
+	       MoorePenrose(Q,R, Force,Corrector);
+	    }
+	 }
+      }
+      while (Converge_Test != 1);
+   }
+   while (f >= 2.0);
+   //cout << "HAS CONVERGED " << endl << endl << endl;
+   
+   if ((ClosedLoopStart_ >= 0) && (CurrentSolution_ > ClosedLoopStart_) &&
+       ((Mode_->ModeDOF() - FirstSolution_).Norm() < MaxDS_))
    {
       // We are done -- set currentsolution to numsolutions
       cerr << "Closed Loop detected at Solution # " << CurrentSolution_
 	   << " --- Terminating!" << endl;
-
+      
       CurrentSolution_ = NumSolutions_;
    }
    else
    {
       CurrentSolution_++;
    }
-
 }
 
-
-int NewtonPCSolution::BisectAlert(Lattice *Lat,char *datafile,const char *prefix,int Width,
-				  fstream &out)
+int NewtonPCSolution::BisectAlert(int LHN,int RHN,Lattice *Lat,char *datafile,
+				  const char *prefix,int Width,fstream &out)
 {
-   // for the moment, do nothing
+   ArcLengthSolution S1(Mode_, datafile, "^", Previous_Solution_,Mode_->ModeDOF(), 1);
+   int sz=Previous_Solution_.Dim();
+   Vector tmp_diff(sz),tmp_DOF(Mode_->ModeDOF());
+   double tmp_ds=0.0;
+   for (int i=0;i<sz-1;++i)
+   {
+      tmp_ds += (Previous_Solution_[i]-tmp_DOF[i])*(Previous_Solution_[i]-tmp_DOF[i]);
+   }
+   tmp_ds += (Previous_Solution_[sz-1]-tmp_DOF[sz-1])*(Previous_Solution_[sz-1]-tmp_DOF[sz-1])
+      /(S1.GetAspect()*S1.GetAspect());
+   S1.SetCurrentDS(sqrt(tmp_ds));
+   S1.BisectAlert(LHN,RHN,Lat,datafile,"^",Width,out);
+   
    return 1;
 }
 
-//Returns the vector H'+ * H 
-Vector NewtonPCSolution::MoorePenrose(const Matrix& Q, const Matrix& R, const Vector& Force)
+void NewtonPCSolution::MoorePenrose(const Matrix& Q,const Matrix& R,const Vector& Force,
+				    Vector& Corrector)
 {
-	double sum;
-	int i,j;
-	int k=0;
-	int Size = Force.Dim()+1;
-	int count_minus_one = Size -1;
-	Vector Corrector(Size, 0);
-	Vector y(Size, 0);
-	
-	for ( i = 0; i < count_minus_one; i++)
-			{
-				sum = 0;
-				for ( j = 0; j < k;j++)
-				{
-					sum +=R[j][i] * y[j];
-				}
-		
-				y[i] = (Force[i] - sum)/R[i][i];
-	
-				k++;
-			}
-	
-	Corrector = Q * y;
-	
-	return Corrector;
-	
+   double sum;
+   int i,j;
+   int k=0;
+   static int Size = Force.Dim()+1;
+   static int count_minus_one = Size-1;
+   static Vector y(Size);
+   
+   for (i=0; i<count_minus_one; i++)
+   {
+      sum = 0;
+      for (j=0; j<k; j++)
+      {
+	 sum += R[j][i]*y[j];
+      }
+      
+      y[i] = (Force[i] - sum)/R[i][i];
+      
+      k++;
+   }
+   
+   for (i=0; i<Size; i++)
+   {
+      sum = 0;
+      
+      for(j=0; j<Size; j++)
+      {
+	 sum = sum + Q[i][j]*y[j];
+      }
+      
+      Corrector[i] = sum;
+   }
 }
-

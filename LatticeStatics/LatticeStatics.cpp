@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
 	 OldNulity = Nulity;
 	 Nulity = Lat->StiffnessNulity();
 	 if ((OldNulity != Nulity) && (BisectCP == Yes) && (OldNulity != -1))
-	    SolveMe->BisectAlert(Lat,datafile,"^",Width,out);
+	    SolveMe->BisectAlert(OldNulity,Nulity,Lat,datafile,"^",Width,out);
 	 
 	 // Send Output
 	 out << setw(Width) << Lat << "Success = 1" << endl;

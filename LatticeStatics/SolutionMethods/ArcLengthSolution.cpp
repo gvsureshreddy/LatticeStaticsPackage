@@ -25,12 +25,8 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char
       // Set default value
       ClosedLoopStart_ = CLOSEDDEFAULT;
    }
-   if(!GetParameter(prefix,"ArcLenBisectTolerance",datafile,'l',&BisectTolerance_))
-   {
-      // Default to 10*Tolerance_
-      BisectTolerance_ = 10*Tolerance_;
-   }
-   
+
+   BisectTolerance_ = Tolerance_;
 
    FirstSolution_.Resize(one.Dim());
    FirstSolution_ = one;
@@ -58,13 +54,9 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char
       // Set default value
       ClosedLoopStart_ = CLOSEDDEFAULT;
    }
-   if(!GetParameter(prefix,"ArcLenBisectTolerance",datafile,'l',&BisectTolerance_))
-   {
-      // Default to 10*Tolerance_
-      BisectTolerance_ = 10*Tolerance_;
-   }
    
-
+   BisectTolerance_ = Tolerance_;
+   
    const char *StartType[] = {"Bifurcation","Continuation","ConsistencyCheck"};
    switch (GetStringParameter(prefix,"StartType",startfile,StartType,3))
    {
@@ -317,17 +309,18 @@ double ArcLengthSolution::ArcLengthNewton(int &good)
 
    // Predictor step
    Mode_->ArcLenUpdate(Difference_);
-
+   
    // Iterate until convergence
    if (Echo_) cout << setiosflags(ios::scientific)
-		  << "ArcLenNewton: Number of Iterations --\n";
+		   << "ArcLenNewton: Number of Iterations --\n";
 
    RHS = -Mode_->ArcLenForce(CurrentDS_,Difference_,Aspect_);
    stif=Mode_->ArcLenStiffness(Difference_,Aspect_);
+   
    do
    {
       itr++;
-
+      
 #ifdef SOLVE_SVD
       Dx = SolveSVD(
 	 stif,
@@ -335,7 +328,7 @@ double ArcLengthSolution::ArcLengthNewton(int &good)
 #else
       Dx = SolvePLU(stif,RHS);
 #endif
-
+      
       Mode_->ArcLenUpdate(Dx);
       Difference_ += Dx;
       RHS = -Mode_->ArcLenForce(CurrentDS_,Difference_,Aspect_);
@@ -350,10 +343,10 @@ double ArcLengthSolution::ArcLengthNewton(int &good)
 #endif
    }
    while ((itr < MaxIter_) && ((RHS.Norm() > Tolerance_) || (Dx.Norm() > Tolerance_)));
-
+   
    if (Echo_) cout << resetiosflags(ios::scientific) << endl;
    uncertainty = Dx.Norm();
-
+   
    if (itr >= MaxIter_)
    {
       cerr << "Convergence Not Reached!!! -- ArcLengthNewton" << endl;
@@ -363,56 +356,64 @@ double ArcLengthSolution::ArcLengthNewton(int &good)
    {
       good = 1;
    }
-
+   
    return uncertainty;
 }
 
-int ArcLengthSolution::BisectAlert(Lattice *Lat,char *datafile,const char *prefix,
-				   int Width,fstream &out)
+int ArcLengthSolution::BisectAlert(int LHN,int RHN,Lattice *Lat,char *datafile,
+				   const char *prefix,int Width,fstream &out)
 {
    Vector OriginalDiff=Difference_;
    Vector IntermediateDiff(Difference_.Dim(),0.0);
    double OriginalDS = CurrentDS_;
-   double CurrentMinEV,OldMinEV;
+   double CurrentMinEV=1.0, OldMinEV;
    double uncertainty;
+   double Delta_DS=0.0;
    int dummy = 1;
    int loops = 0;
-   int OldNulity = Lat->StiffnessNulity(&OldMinEV);
-   // RigthhandNulity is the nulity on the front side of the path being traced
-   int RighthandNulity = OldNulity; 
-   int CurrentNulity;
-
-   // Set Lattice back to previous solution
-   Mode_->ArcLenUpdate(-Difference_);
-   CurrentNulity = Lat->StiffnessNulity(&CurrentMinEV);
-   // LefthandNulity is the nulity on the back side of the path being traced
-   int LefthandNulity = CurrentNulity;
-
-   if (Echo_) cout << "\t" << setw(Width) << OldNulity << setw(Width) << OldMinEV
-		  << " DS " << setw(Width) << CurrentDS_ << endl;
+   int RighthandNulity = RHN;
+   int CurrentNulity= RHN;
+   int LefthandNulity = LHN;
+   
+   Delta_DS = CurrentDS_;
+   
+   Vector Original_DOF((Mode_->ModeDOF()).Dim(),0);
+   Original_DOF = Mode_->ModeDOF();
+   
+   
+   if (Echo_) cout << "LHN = " << LHN << endl << "RHN = " << RHN << endl;
    
    // Find bifurcation point and make sure we are on the back side edge
    while (((fabs(CurrentMinEV) > BisectTolerance_)
 	   || (CurrentNulity == RighthandNulity))
 	  && (loops < MaxIter_))
    {
-      if (Echo_) cout << setw(Width) << CurrentNulity
-		     << setw(Width) << CurrentMinEV
-		     << " DS " << setw(Width) << CurrentDS_ << endl;
-
-      // stick with bisection --- secant method proves problematic.
-      CurrentDS_ /= 2.0; // Bisection Method
-      // this takes care of the direction that needs to be searched (thus the positive DS)
-      if (((OldNulity - CurrentNulity) != 0)
-	  && (loops != 0))
-	 Difference_ = -Difference_;
+      if (Echo_) cout << "OldMinEV = " << OldMinEV << endl
+		      << "CurrentNulity = " << CurrentNulity << endl
+		      << "CurrentMinEV = "  << CurrentMinEV << endl;
+      
+      //set to left hand point
+      Mode_->ArcLenUpdate(-Difference_);
+      Delta_DS = Delta_DS/2.0;
+      
+      if(CurrentNulity == RighthandNulity)
+      {
+	 CurrentDS_ = CurrentDS_ - Delta_DS;
+	 Difference_ = Difference_/2.0;
+      }
+      if(CurrentNulity == LefthandNulity)
+      {
+	 CurrentDS_ = CurrentDS_ + Delta_DS;
+	 Difference_ = 1.5 * Difference_;
+      }
+      
+      cout << "Current_DS = " << CurrentDS_ << endl << endl;
 
       uncertainty = ArcLengthNewton(dummy);
-      IntermediateDiff += Difference_;
+      
       OldMinEV = CurrentMinEV;
-      OldNulity = CurrentNulity;
       CurrentNulity = Lat->StiffnessNulity(&CurrentMinEV);
-
+      
       loops++;
    }
    
@@ -424,30 +425,30 @@ int ArcLengthSolution::BisectAlert(Lattice *Lat,char *datafile,const char *prefi
    }
    if (Echo_) cout << endl;
    out << endl;
-
+   
    if (Echo_) cout << setw(Width) << Lat
 		   << "Uncertainty = " << setw(Width) << uncertainty << endl;
    out << setw(Width) << Lat
        << "Uncertainty = " << setw(Width) << uncertainty << endl;
-      
+   
    for (int i=0;i<70;i++)
    {
       if (Echo_) cout << "=";
       out << "=";
    }
    if (Echo_) cout << endl; out << endl;
-
+   
    // Call Lattice function to do any Lattice Specific things
    //  abs(RighthandNulity - LefthandNulity) is the number of zero eigenvalues
    //  in a perfect situation. should check to see if this is found to be true.
    Lat->CriticalPointInfo(Mode_->DrDt(Difference_),abs(RighthandNulity-LefthandNulity),
 			  BisectTolerance_,datafile,prefix,Width,out);
-
+   
    if (Echo_) cout << "Success = 1" << endl;
    out << "Success = 1" << endl;
    
    // Reset Lattice and ArcLengthSolution
-   Mode_->ArcLenUpdate(OriginalDiff - IntermediateDiff);
+   Mode_->ArcLenUpdate(OriginalDiff-Difference_);
    CurrentDS_ = OriginalDS;
    Difference_ = OriginalDiff;
    

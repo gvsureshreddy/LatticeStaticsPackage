@@ -41,11 +41,14 @@ public:
    ArcLengthSolution(LatticeMode *Mode,char *datafile,const char *prefix,
 		     char *startfile,fstream &out,int Echo=1);
    ~ArcLengthSolution() {}
+   
+   double GetAspect() {return Aspect_;}
+   void SetCurrentDS(double ds) {CurrentDS_ = ds;}
 
    // Functions required by SolutionMethod
    virtual int AllSolutionsFound();
    virtual double FindNextSolution(int &good);
-   virtual int BisectAlert(Lattice *Lat,char *datafile,const char *prefix,
+   virtual int BisectAlert(int LHN,int RHN,Lattice *Lat,char *datafile,const char *prefix,
 			   int Width,fstream &out);
    
 };
