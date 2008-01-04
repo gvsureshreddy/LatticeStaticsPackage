@@ -236,37 +236,32 @@ double NewtonPCSolution::FindNextSolution(int &good)
 	 MoorePenrose(Q,R, Force,Corrector);
 	 
 	 Magnitude2 = Corrector.Norm();
+
+	 temp = 0.0;
+	 for (i=0; i<count; i++)
+	 {
+	    temp = temp + (Tangent1_[i]*Tangent2_[i]);
+	 }
 	 
 	 //checks parameters for steplength adaptation
 	 Kappa = sqrt((Magnitude2/ Magnitude1)/cont_rate_nom_);
-	 Alpha = sqrt(acos(Tangent1_ * Tangent2_)/alpha_nom_);
+	 Alpha = sqrt(acos(temp)/alpha_nom_);
 	 Delta = sqrt(Magnitude1/delta_nom_);
-
+	 
 	 temp = max(Kappa, Alpha);
 	 f = max(temp, Delta);
 	 
 	 temp = min(f,2.0);
 	 f = max(temp, 0.5);
-
-	 CurrentDS_ = CurrentDS_/f;
-	 
-	 if(CurrentDS_ > MaxDS_)
-	 {
-	    CurrentDS_ = MaxDS_;
-	 }
-	 else if(CurrentDS_/MaxDS_ < MinDSRatio_)
-	 {
-	    cout << "Minimum StepSize ratio violated. Exit Solver. "<< endl << endl;
-	    exit(-1);
-	 }
 	 
 	 if(f >= 2.0)
 	 {
-	    //cout << "STEPLENGTH TOO LARGE " << endl << endl << endl;
-	    //cout << "Previous_Solution_ = " << endl << setw(15)
-	    //     << Previous_Solution_ << endl << endl;
-	    //cout << "v = " <<endl << setw(15) << v << endl << endl;
-	    //cout << "w = " << endl << setw(15) << w << endl << endl;
+	    CurrentDS_ = CurrentDS_/f;
+	    if(CurrentDS_/MaxDS_ < MinDSRatio_)
+	    {
+	       cout << "Minimum StepSize ratio violated. Exit Solver. "<< endl << endl;
+	       exit(-53);
+	    }
 	    break;
 	 }
 	 else
@@ -277,17 +272,18 @@ double NewtonPCSolution::FindNextSolution(int &good)
 	    }
 	    
 	    //cout << "STEPLENGTH OKAY " << endl << endl << endl;
-	    
-	    if ((Force.Norm() <= Converge_) && (Corrector.Norm() <= Converge_))
+	    if (Force.Norm() <= Converge_ && Corrector.Norm() <= Converge_)
 	    {
 	       Converge_Test = 1;
+	       CurrentDS_ = CurrentDS_/f;
+	       if(CurrentDS_ > MaxDS_)
+	       {
+		  CurrentDS_ = MaxDS_;
+	       }
 	    }
 	    else
 	    {
-	       Mode_->SetModeDOF(v);
-	       Force = Mode_->ModeForce();
 	       //cout << "HAS NOT CONVERGED " << endl << endl << endl;
-	       
 	       QR(Mode_->ModeStiffness(), Q, R, 1);
 	       MoorePenrose(Q,R, Force,Corrector);
 	    }
