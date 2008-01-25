@@ -34,7 +34,9 @@ private:
    double ArcLengthNewton(int &good);
    void ConsistencyCheck(Vector &Solution1,Vector &Solution2,
 			 double ConsistencyEpsilon,int Width,fstream &out);
-
+   virtual int OldBisectAlert(int LHN,double LHEV,int RHN,double RHEV,Lattice *Lat,
+			      char *datafile,const char *prefix,int Width,fstream &out);
+   
 public:
    ArcLengthSolution(LatticeMode *Mode,char *datafile,const char *prefix,
 		     const Vector &one,const Vector &two,int Echo=1);
@@ -48,9 +50,8 @@ public:
    // Functions required by SolutionMethod
    virtual int AllSolutionsFound();
    virtual double FindNextSolution(int &good);
-   virtual int BisectAlert(int LHN,int RHN,Lattice *Lat,char *datafile,const char *prefix,
-			   int Width,fstream &out);
-   
+   virtual int BisectAlert(int LHN,double LHEV,int RHN,double RHEV,Lattice *Lat,char *datafile,
+			   const char *prefix,int Width,fstream &out);
 };
 
 #endif

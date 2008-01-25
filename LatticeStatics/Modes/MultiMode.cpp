@@ -26,8 +26,26 @@ MultiMode::MultiMode(Lattice *M,const char *datafile,const char *prefix)
       cerr << "MultiMode: ScnDefParam too small or too big!" << endl;
       exit(-1);
    }
-
+   
    Lattice_ = (Lattice *) M;
+   
+   //Baseline DOF Initialization 
+   int temp1 = (Lattice_->DOF()).Dim();
+   int temp2;
+   double temp3;
+   int Baseline_DOFS;
+   if (!GetParameter(prefix,"MultiMode_Baseline_DOFS",datafile,'u',&Baseline_DOFS)) exit(-1);
+   BaselineDOF_.Resize(temp1,0.0);
+   
+   for(int i=0; i< Baseline_DOFS ; ++i)
+   {
+      sprintf(tmp,"MultiMode_Baseline_DOF_Index_%u",i);
+      if (!GetParameter(prefix,tmp,datafile,'u',&temp2)) exit(-1);
+      sprintf(tmp,"MultiMode_Baseline_DOF_Value_%u",i);
+      if (!GetParameter(prefix,tmp,datafile,'l',&temp3)) exit(-1);
+      
+      BaselineDOF_[temp2] =  temp3;
+   }
 }
 
 // Functions required by LatticeMode
@@ -47,6 +65,27 @@ Vector MultiMode::DrDt(const Vector &Diff)
 }
 
 //----------------------------------------------------------------
+void MultiMode::UpdateLatticeState()
+{
+   static int size = (Lattice_->DOF()).Dim();
+   static Vector DOF(size);
+   for (int i=0;i<size;++i)
+   {
+      DOF[i] = BaselineDOF_[i];
+   }
+   
+   for (int i=0;i<DOFS_;++i)
+   {
+      for (int j=0;j<DOFindlen_[i];++j)
+      {
+	 DOF[DOFindex_[i][j]] += DOFMult_[i][j]*ModeDOF_[i];
+      }
+   }
+
+   Lattice_->SetDOF(DOF);
+   Lattice_->SetLoadParameter(ModeDOF_[DOFS_]);
+}
+
 Vector MultiMode::ModeForce()
 {
    static Vector force(DOFS_);
@@ -98,38 +137,22 @@ Matrix MultiMode::ModeStiffness()
 
 void MultiMode::SetModeDOF(const Vector &dof)
 {
-   Vector DOF((Lattice_->DOF()).Dim(),0.0);
-   
-   for (int i=0;i<DOFS_;++i)
+   for (int i=0;i<=DOFS_;++i)
    {
       ModeDOF_[i] = dof[i];
-      for (int j=0;j<DOFindlen_[i];++j)
-      {
-	 DOF[DOFindex_[i][j]] += DOFMult_[i][j]*ModeDOF_[i];
-      }
    }
-   Lattice_->SetDOF(DOF);
-   
-   ModeDOF_[DOFS_] = dof[DOFS_];
-   Lattice_->SetLoadParameter(ModeDOF_[DOFS_]);
+
+   UpdateLatticeState();
 }
    
 void MultiMode::UpdateModeDOF(const Vector &dr)
 {
-   Vector DOF((Lattice_->DOF()).Dim(),0.0);
-   
-   for (int i=0;i<DOFS_;++i)
+   for (int i=0;i<=DOFS_;++i)
    {
       ModeDOF_[i] += dr[i];
-      for (int j=0;j<DOFindlen_[i];++j)
-      {
-	 DOF[DOFindex_[i][j]] += DOFMult_[i][j]*ModeDOF_[i];
-      }
    }
-   Lattice_->SetDOF(DOF);
 
-   ModeDOF_[DOFS_] += dr[DOFS_];
-   Lattice_->SetLoadParameter(ModeDOF_[DOFS_]);
+   UpdateLatticeState();
 }
 
 //----------------------------------------------------------------
@@ -186,34 +209,16 @@ double MultiMode::ScanningDefParameter()
 
 void MultiMode::ScanningDefParamSet(const double val)
 {
-   Vector DOF((Lattice_->DOF()).Dim(),0.0);
    ModeDOF_[ScnDefParam_] = val;
 
-   for (int i=0;i<DOFS_;++i)
-   {
-      for (int j=0;j<DOFindlen_[i];++j)
-      {
-	 DOF[DOFindex_[i][j]] += DOFMult_[i][j]*ModeDOF_[i];
-      }
-   }
-
-   Lattice_->SetDOF(DOF);
+   UpdateLatticeState();
 }
 
 void MultiMode::ScanningDefParamUpdate(const double newval)
 {
-   Vector DOF((Lattice_->DOF()).Dim(),0.0);
    ModeDOF_[ScnDefParam_] += newval;
 
-   for (int i=0;i<DOFS_;++i)
-   {
-      for (int j=0;j<DOFindlen_[i];++j)
-      {
-	 DOF[DOFindex_[i][j]] += DOFMult_[i][j]*ModeDOF_[i];
-      }
-   }
-
-   Lattice_->SetDOF(DOF);
+   UpdateLatticeState();
 }
 
 double MultiMode::ScanningLoadParameter()
@@ -297,40 +302,28 @@ Vector MultiMode::ScanningDef()
 
 void MultiMode::ScanningSet(const Vector &val)
 {
-   Vector DOF((Lattice_->DOF()).Dim(),0.0);
-   
    for (int i=0;i<DOFS_;++i)
    {
       if (i != ScnDefParam_)
       {
 	 ModeDOF_[i] = val[i];
       }
-      for (int j=0;j<DOFindlen_[i];++j)
-      {
-	 DOF[DOFindex_[i][j]] += DOFMult_[i][j]*ModeDOF_[i];
-      }
    }
-   
-   Lattice_->SetDOF(DOF);
+
+   UpdateLatticeState();
 }
 
 void MultiMode::ScanningUpdate(const Vector &newval)
 {
-   Vector dof((Lattice_->DOF()).Dim(),0.0);
-
    for (int i=0;i<DOFS_;++i)
    {
       if (i != ScnDefParam_)
       {
 	 ModeDOF_[i] += newval[(i>ScnDefParam_)?i-1:i];
       }
-      for (int j=0;j<DOFindlen_[i];++j)
-      {
-	 dof[DOFindex_[i][j]] += DOFMult_[i][j]*ModeDOF_[i];
-      }
    }
    
-   Lattice_->SetDOF(dof);
+   UpdateLatticeState();
 }
 
 Matrix MultiMode::ScanningStiffness()

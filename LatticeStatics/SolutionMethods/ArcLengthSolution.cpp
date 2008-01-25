@@ -1,11 +1,11 @@
+#include <math.h>
 #include "ArcLengthSolution.h"
-
-
 #include "UtilityFunctions.h"
 
 using namespace std;
 
 #define CLOSEDDEFAULT 30
+#define EPS 1.0e-15
 
 ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char *prefix,
 				     const Vector &one,const Vector &two,int Echo)
@@ -25,9 +25,9 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char
       // Set default value
       ClosedLoopStart_ = CLOSEDDEFAULT;
    }
-
+   
    BisectTolerance_ = Tolerance_;
-
+   
    FirstSolution_.Resize(one.Dim());
    FirstSolution_ = one;
    
@@ -39,7 +39,6 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char
 				     char *startfile,fstream &out,int Echo)
    : Mode_(Mode), CurrentSolution_(0), Echo_(Echo)
 {
-   
    if(!GetParameter(prefix,"ArcLenMaxIterations",datafile,'u',&MaxIter_)) exit(-1);
    if(!GetParameter(prefix,"ArcLenTolerance",datafile,'l',&Tolerance_)) exit(-1);
    if(!GetParameter(prefix,"ArcLenDSMax",datafile,'l',&DSMax_)) exit(-1);
@@ -71,23 +70,23 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char
 	 // Set Difference and Lattice state
 	 double eps;
 	 if(!GetParameter(prefix,"Epsilon",startfile,'l',&eps)) exit(-1);
-
+	 
 	 Difference_.Resize(Mode_->ArcLenDef().Dim());
 	 if(!GetVectorParameter(prefix,"Tangent",startfile,&Difference_)) exit(-1);
 	 Difference_ *= eps;
-
+	 
 	 Vector stat(Difference_.Dim());
 	 if(!GetVectorParameter(prefix,"BifurcationPoint",startfile,&stat)) exit(-1);
 	 // Set Lattice state to the bifurcation point
 	 Mode_->ArcLenSet(stat);
-
+	 
 	 // Set FirstSolution
 	 FirstSolution_.Resize(stat.Dim());
 	 if(!GetVectorParameter(prefix,"ClosedLoopFirstPoint",startfile,&FirstSolution_,0))
 	 {
 	    FirstSolution_ = stat;
 	 }
-
+	 
 	 break;
       }
       case 1:
@@ -103,14 +102,13 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char
 	 // Set Difference_ to   two - one
 	 Difference_.Resize(two.Dim());
 	 Difference_ = two - one;
-
+	 
 	 // Set FirstSolution
 	 FirstSolution_.Resize(two.Dim());
 	 if(!GetVectorParameter(prefix,"ClosedLoopFirstPoint",startfile,&FirstSolution_,0))
 	 {
 	    FirstSolution_ = two;
 	 }
-	 
 	 
 	 break;
       }
@@ -121,20 +119,18 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char
 	    Dim=Mode_->ArcLenDef().Dim();
 	 Vector Solution1(Dim),
 	    Solution2(Dim);
-
+	 
 	 if(!GetVectorParameter(prefix,"Solution2",startfile,&Solution2)) exit(-1);
 	 if(!GetVectorParameter(prefix,"Solution1",startfile,&Solution1)) exit(-1);
 	 // Get Epsilon and Width
 	 if(!GetParameter(prefix,"ConsistencyEpsilon",startfile,'l',&ConsistencyEpsilon)) exit(-1);
 	 if(!GetParameter(prefix,"MainFieldWidth",datafile,'i',&Width)) exit(-1);
-
-
+	 
 	 ConsistencyCheck(Solution1,Solution2,ConsistencyEpsilon,Width,out);
 	 break;
       }
    }
 }
-
 
 void ArcLengthSolution::ConsistencyCheck(Vector &Solution1,Vector &Solution2,
 					 double ConsistencyEpsilon,int Width,fstream &out)
@@ -156,7 +152,7 @@ void ArcLengthSolution::ConsistencyCheck(Vector &Solution1,Vector &Solution2,
    Mode_->ArcLenSet(Solution2);
    // Set Difference to Solution2 - Solution1
    Difference_ = Solution2 - Solution1;
-	 
+   
    // Do Consistency check
    if (Echo_)
    {
@@ -186,7 +182,7 @@ void ArcLengthSolution::ConsistencyCheck(Vector &Solution1,Vector &Solution2,
       Mode_->ArcLenSet(Solution2 + Difference_);
       potential = Mode_->ModeEnergy();
       RHS = Mode_->ArcLenForce(ConsistencyEpsilon,Difference_,1.0);
-	    
+      
       // Perturb the lattice state
       pert=Vector(pert.Dim(),0.0);
       pert[i]=1.0;
@@ -201,7 +197,7 @@ void ArcLengthSolution::ConsistencyCheck(Vector &Solution1,Vector &Solution2,
       for (int j=0;j<Dim;j++)
 	 PerturbedStiff[j][i] = RHS[j];
    }
-
+   
    // Print out the facts
    if (Echo_)
    {
@@ -213,7 +209,7 @@ void ArcLengthSolution::ConsistencyCheck(Vector &Solution1,Vector &Solution2,
       cout << setw(Width) << Force - PerturbedForce << endl << endl;
       cout << setw(Width) << Stiff - PerturbedStiff << endl;
    }
-
+   
    out << "P(U + DeltaU) - P(U + DeltaU + Epsilon*Vj)" << endl;
    out << setw(Width) << PerturbedForce << endl;
    out << "Fi(U + DeltaU) - Fi(U + DeltaU + Epsilon*Vj)" << endl;
@@ -221,7 +217,7 @@ void ArcLengthSolution::ConsistencyCheck(Vector &Solution1,Vector &Solution2,
    out << "Difference" << endl;
    out << setw(Width) << Force - PerturbedForce << endl << endl;
    out << setw(Width) << Stiff - PerturbedStiff << endl;
-
+   
    if (Echo_)
    {
       for (int i=0;i<70;i++) cout << "="; cout << endl;
@@ -244,17 +240,17 @@ double ArcLengthSolution::FindNextSolution(int &good)
    // Assume that first solution should not be strictly restricted to the
    // adaptive steping angle constraint
    double AngleFactor = CurrentSolution_ ? 1.0 : 5.0;
-
+   
    Vector OldDiff = Difference_;
-
+   
    do
    {
       if (Echo_) cout << "DS= " << CurrentDS_ << endl;
-
+      
       uncertainty = ArcLengthNewton(good);
-
+      
       AngleTest = Mode_->ArcLenAngle(OldDiff,Difference_,Aspect_);
-
+      
       if (Echo_)
 	 cout << "AngleTest = " << AngleTest << "  Cutoff = " << AngleCutoff_ << endl;
    }
@@ -263,19 +259,19 @@ double ArcLengthSolution::FindNextSolution(int &good)
 	  && (Mode_->ArcLenUpdate(-Difference_),// back to previous solution
 	      Difference_ = OldDiff,
 	      CurrentDS_=CurrentDS_/2.0));
-
+   
    if ((AngleTest <= AngleIncrease_) && (CurrentDS_ < DSMax_))
    {
       CurrentDS_ *= 2.0;
       if (CurrentDS_ > DSMax_) CurrentDS_ = DSMax_;
       if (Echo_) cout << "DS= " << CurrentDS_ << endl;
    }
-
+   
    if (!good)
    {
       cerr << "ArcLenghtSolution did not converge properly" << endl;
    }
-
+   
    if ((ClosedLoopStart_ >= 0) && (CurrentSolution_ > ClosedLoopStart_) &&
        ((Mode_->ArcLenDef() - FirstSolution_).Norm() < CurrentDS_))
    {
@@ -289,7 +285,7 @@ double ArcLengthSolution::FindNextSolution(int &good)
    {
       CurrentSolution_++;
    }
-
+   
    // Always have the current "solution" state printed as a solution point
    good = 1;
    
@@ -302,18 +298,18 @@ double ArcLengthSolution::ArcLengthNewton(int &good)
    
    int itr = 0;
    int Dim=Mode_->ArcLenDef().Dim();
-
+   
    Vector Dx(Dim),
       RHS(Dim);
    Matrix stif(Dim,Dim);
-
+   
    // Predictor step
    Mode_->ArcLenUpdate(Difference_);
    
    // Iterate until convergence
    if (Echo_) cout << setiosflags(ios::scientific)
 		   << "ArcLenNewton: Number of Iterations --\n";
-
+   
    RHS = -Mode_->ArcLenForce(CurrentDS_,Difference_,Aspect_);
    stif=Mode_->ArcLenStiffness(Difference_,Aspect_);
    
@@ -333,7 +329,7 @@ double ArcLengthSolution::ArcLengthNewton(int &good)
       Difference_ += Dx;
       RHS = -Mode_->ArcLenForce(CurrentDS_,Difference_,Aspect_);
       stif=Mode_->ArcLenStiffness(Difference_,Aspect_);
-
+      
       if (Echo_) cout << itr << "(" << setw(20)
 		      << Mode_->ScanningStressParameter() << ","
 		      << setw(20) << RHS.Norm() << ","
@@ -360,11 +356,10 @@ double ArcLengthSolution::ArcLengthNewton(int &good)
    return uncertainty;
 }
 
-int ArcLengthSolution::BisectAlert(int LHN,int RHN,Lattice *Lat,char *datafile,
-				   const char *prefix,int Width,fstream &out)
+int ArcLengthSolution::OldBisectAlert(int LHN,double LHEV,int RHN,double RHEV,Lattice *Lat,
+				      char *datafile,const char *prefix,int Width,fstream &out)
 {
    Vector OriginalDiff=Difference_;
-   Vector IntermediateDiff(Difference_.Dim(),0.0);
    double OriginalDS = CurrentDS_;
    double CurrentMinEV=1.0, OldMinEV;
    double uncertainty;
@@ -379,7 +374,6 @@ int ArcLengthSolution::BisectAlert(int LHN,int RHN,Lattice *Lat,char *datafile,
    
    Vector Original_DOF((Mode_->ModeDOF()).Dim(),0);
    Original_DOF = Mode_->ModeDOF();
-   
    
    if (Echo_) cout << "LHN = " << LHN << endl << "RHN = " << RHN << endl;
    
@@ -408,12 +402,189 @@ int ArcLengthSolution::BisectAlert(int LHN,int RHN,Lattice *Lat,char *datafile,
       }
       
       cout << "Current_DS = " << CurrentDS_ << endl << endl;
-
+      
       uncertainty = ArcLengthNewton(dummy);
       
       OldMinEV = CurrentMinEV;
       CurrentNulity = Lat->StiffnessNulity(&CurrentMinEV);
       
+      loops++;
+   }
+   
+   // Output Critical Point
+   for (int i=0;i<70;i++)
+   {
+      if (Echo_) cout << "=";
+      out << "=";
+   }
+   if (Echo_) cout << endl;
+   out << endl;
+   
+   if (Echo_) cout << setw(Width) << Lat
+		   << "Uncertainty = " << setw(Width) << uncertainty << endl;
+   out << setw(Width) << Lat
+       << "Uncertainty = " << setw(Width) << uncertainty << endl;
+   
+   for (int i=0;i<70;i++)
+   {
+      if (Echo_) cout << "=";
+      out << "=";
+   }
+   if (Echo_) cout << endl; out << endl;
+   
+   // Call Lattice function to do any Lattice Specific things
+   //  abs(RighthandNulity - LefthandNulity) is the number of zero eigenvalues
+   //  in a perfect situation. should check to see if this is found to be true.
+   Lat->CriticalPointInfo(Mode_->DrDt(Difference_),abs(RighthandNulity-LefthandNulity),
+			  BisectTolerance_,datafile,prefix,Width,out);
+   
+   if (Echo_) cout << "Success = 1" << endl;
+   out << "Success = 1" << endl;
+   
+   // Reset Lattice and ArcLengthSolution
+   Mode_->ArcLenUpdate(OriginalDiff-Difference_);
+   CurrentDS_ = OriginalDS;
+   Difference_ = OriginalDiff;
+   
+   return 1;
+}
+
+int ArcLengthSolution::BisectAlert(int LHN,double LHEV,int RHN,double RHEV,Lattice *Lat,
+				   char *datafile,const char *prefix,int Width,fstream &out)
+{
+   Vector OriginalDiff=Difference_;
+   Vector LastDiff(Difference_.Dim(),0.0);
+   double OriginalDS = CurrentDS_;
+   double LastDS;
+   double uncertainty;
+   double a,b,c,d,e,xm,p, fa,fb,fc, tol1,s,q,r,min1,min2;
+   int dummy = 1;
+   int loops = 0;
+   int RighthandNulity = RHN;
+   int CurrentNulity = RHN;
+   int LefthandNulity = LHN;
+   double factor = 0.0;
+   
+   b=OriginalDS;
+   c=b;
+   a=0.0;
+   fa=LHEV;
+   fb=RHEV;
+   fc=fb;
+   
+   //CurrentNulity == RighthandNulity gives some problems
+   while (((fabs(fb) > BisectTolerance_) || (CurrentNulity == RighthandNulity))
+	  && (loops < MaxIter_))
+   {
+      if (Echo_)
+      {
+	 cout << setprecision(30) << "CurrentMinEV = " << fb << endl;
+	 cout << "CurrentDS_ =" << CurrentDS_ << setprecision(10) << endl;
+	 cout << "LHN = " << LHN << endl << "RHN = " << RHN << endl
+	      << "CurrentNulity = " << CurrentNulity << endl << endl;
+      }
+      Mode_->ArcLenUpdate(-Difference_);
+      
+      if ((fb > 0.0 && fc > 0.0) || (fb < 0.0 && fc < 0.0))
+      {
+	 c=a;
+	 fc=fa;
+	 e=b-a;
+	 d=e;
+      }
+      
+      if (fabs(fc) < fabs(fb))
+      {
+	 a=b;
+	 b=c;
+	 c=a;
+	 fa=fb;
+	 fb=fc;
+	 fc=fa;
+      }
+      
+      tol1 = 2.0*EPS*fabs(b) + 0.5*BisectTolerance_;
+      xm = 0.5 * (c-b);
+      
+      if(fabs(xm) <= tol1 || fb == 0.0)
+      {
+	 //cout << "Minimal Root found! XM too small! " < endl;
+	 CurrentDS_ = LastDS;
+	 Difference_ = LastDiff;
+	 Mode_->ArcLenUpdate(Difference_);
+	 CurrentNulity = Lat->StiffnessNulity(&fb);
+	 
+	 if(Echo_)
+	 {
+	    cout <<setprecision(30)<<"CurrentMinEV = " << fb << endl;
+	    cout << "CurrentDS_ =" << CurrentDS_ <<setprecision(10)<< endl;
+	    cout << "LHN = " << LHN << endl << "RHN = " << RHN << endl
+		 << "CurrentNulity = " << CurrentNulity << endl << endl;
+	 }
+	 break;
+      }
+      
+      if((fabs(e) >= tol1) && (fabs(fa) > fabs(fb)))
+      {
+	 s=fb/fa;
+	 if(a == c)
+	 {
+	    p=2.0*xm*s;
+	    q=1.0-s;
+	 }
+	 else
+	 {
+	    q=fa/fc;
+	    r=fb/fc;
+	    p=s*(2.0*xm*q*(q-r) - (b-a)*(r-1.0));
+	    q=(q-1.0)*(r-1.0)*(s-1.0);
+	 }
+	 
+	 if(p > 0.0)
+	 {
+	    q=-q;
+	 }
+	 
+	 p=fabs(p);
+	 min1=3.0*xm*q - fabs(tol1*q);
+	 min2=fabs(e*q);
+	 
+	 if(2.0*p < (min1 < min2 ? min1 : min2))
+	 {
+	    e=d;
+	    d=p/q;
+	 }
+	 else
+	 {
+	    d=xm;
+	    e=d;
+            //cout << "BISECT ALERT POINT 1" << endl;
+	 }
+      }
+      else
+      {
+	 d=xm;
+	 e=d;
+	 //cout << "BISECT ALERT POINT 2" << endl;
+      }
+      
+      a=b;
+      fa=fb;
+      if(fabs(d) > tol1)
+      {
+	 b += d;
+      }
+      else
+      {
+	 b += (xm >=0.0 ? fabs(tol1) : -fabs(tol1));
+      }
+      LastDiff = Difference_;
+      LastDS = CurrentDS_;
+      CurrentDS_ = b;
+      factor = OriginalDS/b;
+      Difference_ = OriginalDiff/factor;
+      uncertainty = ArcLengthNewton(dummy);
+      CurrentNulity = Lat->StiffnessNulity(&fb);
       loops++;
    }
    

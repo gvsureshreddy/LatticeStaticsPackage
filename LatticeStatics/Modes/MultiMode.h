@@ -16,10 +16,12 @@ private:
    int DOFindlen_[DOFMAX];
    int DOFindex_[DOFMAX][DOFMAX];
    Vector DOFMult_[DOFMAX];
+   Vector BaselineDOF_;
    Vector ModeDOF_;
+   
+   int ScnDefParam_;
 
-   int ScnDefParam_;   
-
+   void UpdateLatticeState();
 public:
    MultiMode(Lattice *M,const char *datafile,const char *prefix);
 

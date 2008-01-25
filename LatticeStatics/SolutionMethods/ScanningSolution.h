@@ -44,8 +44,8 @@ public:
    // Functions required by SolutionMethod
    virtual int AllSolutionsFound();
    virtual double FindNextSolution(int &good);
-   virtual int BisectAlert(int LHN,int RHN,Lattice *Lat,char *datafile,const char *prefix,
-			   int Width,fstream &out) {return 1;}
+   virtual int BisectAlert(int LHN,double LHEV,int RHN,double RHEV,Lattice *Lat,char *datafile,
+			   const char *prefix,int Width,fstream &out) {return 1;}
    
 };
 

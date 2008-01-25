@@ -72,19 +72,21 @@ int main(int argc, char *argv[])
    int success = 1;
    int Nulity=-1,
       OldNulity=Nulity;
-
+   double LeftMinEV=1.0, RightMinEV=1.0;
    
    while (!SolveMe->AllSolutionsFound())
    {
       SolveMe->FindNextSolution(success);
 
       if (success)
-      {	 
+      {
 	 // Check for Critical Point Crossing
 	 OldNulity = Nulity;
-	 Nulity = Lat->StiffnessNulity();
+	 LeftMinEV = RightMinEV;
+	 Nulity = Lat->StiffnessNulity(&RightMinEV);
 	 if ((OldNulity != Nulity) && (BisectCP == Yes) && (OldNulity != -1))
-	    SolveMe->BisectAlert(OldNulity,Nulity,Lat,datafile,"^",Width,out);
+	    SolveMe->BisectAlert(OldNulity,LeftMinEV,Nulity,RightMinEV,Lat,
+				 datafile,"^",Width,out);
 	 
 	 // Send Output
 	 out << setw(Width) << Lat << "Success = 1" << endl;
