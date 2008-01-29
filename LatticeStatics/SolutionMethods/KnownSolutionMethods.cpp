@@ -10,7 +10,7 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
    
    enum solution {Scanning,ArcLen,NewtonPC,NewtonUpdatePC};
    solution solu;
-
+   
    if(!GetParameter("^","MainSolutionMethod",datafile,'s',slvmthd)) exit(-1);
    if ((!strcmp("Scanning",slvmthd))
        || (!strcmp("scanning",slvmthd)))
@@ -20,13 +20,13 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
    else if ((!strcmp("NewtonPC",slvmthd)) || (!strcmp("newtonpc",slvmthd)))
       solu = NewtonPC;
    else if ((!strcmp("NewtonUpdatePC",slvmthd)) || (!strcmp("newtonupdatepc",slvmthd)))
-      solu = NewtonUpdatePC;  
+      solu = NewtonUpdatePC;
    else
    {
       cerr << "Unknown SolutionMethod : " << slvmthd << endl;
       exit(-1);
    }
-
+   
    switch (solu)
    {
       case Scanning:
@@ -37,9 +37,9 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
       {
 	 int good = 1;
 	 int count = 0;
-	 Vector One = Mode->ArcLenDef(),
-	    Two = Mode->ArcLenDef();
-
+	 Vector One = Mode->ModeDOF(),
+	    Two = Mode->ModeDOF();
+	 
 	 if ( startfile == NULL)
 	 {
 	    ScanningSolution ScanMe(Mode,datafile,"^",Echo);
@@ -52,7 +52,7 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
 	       {
 		  count++;
 		  out << setw(Width) << Lat << "Success = 1" << endl;
-		  Two = Mode->ArcLenDef();
+		  Two = Mode->ModeDOF();
 	       }
 	    }
 	    
@@ -86,7 +86,7 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
 	    {
 	       count++;
 	       out << setw(Width) << Lat << "Success = 1" << endl;
-	       One = Mode->ArcLenDef();
+	       One = Mode->ModeDOF();
 	       return new NewtonPCSolution(Mode,datafile,"^", One,Echo);
 	    }
 	 }
@@ -109,7 +109,7 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
 	    {
 	       count++;
 	       out << setw(Width) << Lat << "Success = 1" << endl;
-	       One = Mode->ArcLenDef();
+	       One = Mode->ModeDOF();
 	       return new NewtonUpdatePCSolution(Mode,datafile,"^", One,Echo);
 	    }
 	 }
