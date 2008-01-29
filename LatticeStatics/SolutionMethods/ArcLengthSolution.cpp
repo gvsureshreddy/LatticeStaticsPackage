@@ -402,8 +402,9 @@ double ArcLengthSolution::ArcLengthNewton(int &good)
    return uncertainty;
 }
 
-int ArcLengthSolution::OldBisectAlert(int LHN,double LHEV,int RHN,double RHEV,Lattice *Lat,
-				      char *datafile,const char *prefix,int Width,fstream &out)
+int ArcLengthSolution::OldFindCriticalPoint(int LHN,double LHEV,int RHN,double RHEV,
+					    Lattice *Lat,char *datafile,const char *prefix,
+					    int Width,fstream &out)
 {
    Vector OriginalDiff=Difference_;
    double OriginalDS = CurrentDS_;
@@ -495,8 +496,9 @@ int ArcLengthSolution::OldBisectAlert(int LHN,double LHEV,int RHN,double RHEV,La
    return 1;
 }
 
-int ArcLengthSolution::BisectAlert(int LHN,double LHEV,int RHN,double RHEV,Lattice *Lat,
-				   char *datafile,const char *prefix,int Width,fstream &out)
+int ArcLengthSolution::FindCriticalPoint(int LHN,double LHEV,int RHN,double RHEV,Lattice *Lat,
+					 char *datafile,const char *prefix,int Width,
+					 fstream &out)
 {
    Vector OriginalDiff=Difference_;
    Vector LastDiff(Difference_.Dim(),0.0);

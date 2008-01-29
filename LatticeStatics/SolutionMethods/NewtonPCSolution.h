@@ -16,7 +16,7 @@ private:
    int CurrentSolution_;
    int Echo_;
    int NumSolutions_;
-
+   
    double MaxDS_;
    double CurrentDS_;		//initial Steplength h > 0
    double cont_rate_nom_;	//Nominal contraction rate
@@ -39,12 +39,12 @@ public:
    NewtonPCSolution(LatticeMode *Mode,char *datafile,const char *prefix,char *startfile,
 		    fstream &out,int Echo);
    ~NewtonPCSolution() {}
-
+   
    // Functions required by SolutionMethod
    virtual int AllSolutionsFound();
    virtual double FindNextSolution(int &good);
-   virtual int BisectAlert(int LHN,double LHEV,int RHN,double RHEV,Lattice *Lat,char *datafile,
-			   const char *prefix,int Width,fstream &out);
+   virtual int FindCriticalPoint(int LHN,double LHEV,int RHN,double RHEV,Lattice *Lat,
+				 char *datafile,const char *prefix,int Width,fstream &out);
 };
 
 #endif

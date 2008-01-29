@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
       Debug=1;
    else
       Debug=0;
-
+   
    char *datafile = argv[1+Debug],
       *outputfile = argv[2+Debug],
       *startfile;
@@ -41,31 +41,31 @@ int main(int argc, char *argv[])
    if (argc == 4+Debug)
       startfile = argv[3+Debug];
    else
-      startfile = NULL;   
+      startfile = NULL;
    
-
+   
    Lattice *Lat;
    LatticeMode *Mode;
    SolutionMethod *SolveMe;
-
+   
    int Width,Precision,Echo;
    YN BisectCP;
-
+   
    if (GetParameter("^","CommandFile",datafile,'s',UTILITYechocommand,0))
    {
       UTILITYechocmd = UTILITYechocommand;
    }
    GetMainSettings(Width,Precision,BisectCP,Echo,datafile);
-
+   
    fstream out;
    InitializeOutputFile(out,outputfile,datafile,startfile,Precision,Width,Echo);
    
    Lat = InitializeLattice(datafile,"^",Echo,Width,Debug);
    Lat->Print(out,Lattice::PrintLong);
-
+   
    Mode = InitializeMode(Lat,datafile,"^");
    SolveMe = InitializeSolution(Mode,datafile,startfile,Lat,out,Width,Echo);
-
+   
    out << "Mode: " << Mode->ModeName() << endl;
    if (Echo) cout << "Mode: " << Mode->ModeName() << endl;
    
@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
    while (!SolveMe->AllSolutionsFound())
    {
       SolveMe->FindNextSolution(success);
-
+      
       if (success)
       {
 	 // Check for Critical Point Crossing
@@ -85,19 +85,19 @@ int main(int argc, char *argv[])
 	 LeftMinEV = RightMinEV;
 	 Nulity = Lat->StiffnessNulity(&RightMinEV);
 	 if ((OldNulity != Nulity) && (BisectCP == Yes) && (OldNulity != -1))
-	    SolveMe->BisectAlert(OldNulity,LeftMinEV,Nulity,RightMinEV,Lat,
-				 datafile,"^",Width,out);
+	    SolveMe->FindCriticalPoint(OldNulity,LeftMinEV,Nulity,RightMinEV,Lat,
+				       datafile,"^",Width,out);
 	 
 	 // Send Output
 	 out << setw(Width) << Lat << "Success = 1" << endl;
       }
    }
-
+   
    out.close();
    delete SolveMe;
    delete Mode;
    delete Lat;
-
+   
    return 0;
 }
 
@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
 void GetMainSettings(int &Width, int &Precision,YN &BisectCP,int &Echo,char *datafile)
 {
    char bisect[LINELENGTH];
-
+   
    if(!GetParameter("^","MainFieldWidth",datafile,'i',&Width)) exit(-1);
    if(!GetParameter("^","MainPrecision",datafile,'i',&Precision)) exit(-1);
    if(!GetParameter("^","MainEcho",datafile,'i',&Echo,0)) Echo = 1;
@@ -129,7 +129,7 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,char *startf
 {
    fstream input,start;
    char dataline[LINELENGTH];
-
+   
    input.open(datafile,ios::in);
    if (input.fail())
    {
@@ -144,15 +144,15 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,char *startf
 	   << endl;
       exit(-1);
    }
-
+   
    while (!input.eof())
    {
       input.getline(dataline,LINELENGTH-1);
       out << "Input File:" << dataline << endl;
    }
-
+   
    input.close();
-
+   
    if (startfile != NULL)
    {
       start.open(startfile,ios::in);
@@ -162,19 +162,19 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,char *startf
 	      << endl;
 	 exit(-1);
       }
-
+      
       while (!start.eof())
       {
 	 start.getline(dataline,LINELENGTH-1);
 	 out << "Start File:" << dataline << endl;
       }
-
+      
       start.close();
    }
    
    if (Echo) cout << setiosflags(ios::fixed) << setprecision(Precision);
    out  << setiosflags(ios::fixed) << setprecision(Precision);
-
+   
    if (Echo) cout << "Built on:               " << builddate() << endl
 		  << "LinearAlgebra Build on: " << LinearAlgebraBuildDate() << endl
 		  << "MyMath Built on:        " << MyMathBuildDate() << endl

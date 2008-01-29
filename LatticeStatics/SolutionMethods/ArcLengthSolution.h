@@ -35,8 +35,8 @@ private:
    double ArcLengthNewton(int &good);
    void ConsistencyCheck(Vector &Solution1,Vector &Solution2,
 			 double ConsistencyEpsilon,int Width,fstream &out);
-   virtual int OldBisectAlert(int LHN,double LHEV,int RHN,double RHEV,Lattice *Lat,
-			      char *datafile,const char *prefix,int Width,fstream &out);
+   virtual int OldFindCriticalPoint(int LHN,double LHEV,int RHN,double RHEV,Lattice *Lat,
+				    char *datafile,const char *prefix,int Width,fstream &out);
    
    Vector ArcLenForce(double DS,const Vector &Diff,double Aspect);
    Vector ArcLenDef() {return Mode_->ModeDOF();}
@@ -58,8 +58,8 @@ public:
    // Functions required by SolutionMethod
    virtual int AllSolutionsFound();
    virtual double FindNextSolution(int &good);
-   virtual int BisectAlert(int LHN,double LHEV,int RHN,double RHEV,Lattice *Lat,char *datafile,
-			   const char *prefix,int Width,fstream &out);
+   virtual int FindCriticalPoint(int LHN,double LHEV,int RHN,double RHEV,Lattice *Lat,
+				 char *datafile,const char *prefix,int Width,fstream &out);
 };
 
 #endif

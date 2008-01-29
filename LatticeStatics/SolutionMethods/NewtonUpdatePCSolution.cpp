@@ -39,7 +39,7 @@ NewtonUpdatePCSolution::NewtonUpdatePCSolution(LatticeMode *Mode,char *datafile,
    
    Matrix Q(count, count);
    Matrix R(count, count_minus_one);
-
+   
    //Performs QR decomposition using A^T = Q*R. Section 4.1 of ISBN 3-540-12760-7
    QR(Mode->ModeStiffness(),Q,R,1);
    
@@ -380,9 +380,9 @@ double NewtonUpdatePCSolution::FindNextSolution(int &good)
    }
 }
 
-int NewtonUpdatePCSolution::BisectAlert(int LHN,double LHEV,int RHN,double RHEV,Lattice *Lat,
-					char *datafile,const char *prefix,int Width,
-					fstream &out)
+int NewtonUpdatePCSolution::FindCriticalPoint(int LHN,double LHEV,int RHN,double RHEV,
+					      Lattice *Lat,char *datafile,const char *prefix,
+					      int Width,fstream &out)
 {
    ArcLengthSolution S1(Mode_, datafile, "^", Previous_Solution_,Mode_->ModeDOF(), 1);
    //S1.SetCurrentDS((Mode_->ModeDOF()-Previous_Solution_).Norm());
@@ -396,7 +396,7 @@ int NewtonUpdatePCSolution::BisectAlert(int LHN,double LHEV,int RHN,double RHEV,
    tmp_ds += (Previous_Solution_[sz-1]-tmp_DOF[sz-1])*(Previous_Solution_[sz-1]-tmp_DOF[sz-1])
       /(S1.GetAspect()*S1.GetAspect());
    S1.SetCurrentDS(sqrt(tmp_ds));
-   S1.BisectAlert(LHN,LHEV,RHN,RHEV,Lat,datafile,"^",Width,out);
+   S1.FindCriticalPoint(LHN,LHEV,RHN,RHEV,Lat,datafile,"^",Width,out);
    
    return 1;
 }
