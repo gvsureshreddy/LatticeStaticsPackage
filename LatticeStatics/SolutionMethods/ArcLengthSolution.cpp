@@ -416,6 +416,7 @@ int ArcLengthSolution::OldFindCriticalPoint(int LHN,double LHEV,int RHN,double R
    int RighthandNulity = RHN;
    int CurrentNulity= RHN;
    int LefthandNulity = LHN;
+   Matrix EigenValues(1,Lat->DOF().Dim());
    
    Delta_DS = CurrentDS_;
    
@@ -453,7 +454,8 @@ int ArcLengthSolution::OldFindCriticalPoint(int LHN,double LHEV,int RHN,double R
       uncertainty = ArcLengthNewton(dummy);
       
       OldMinEV = CurrentMinEV;
-      CurrentNulity = Lat->StiffnessNulity(&CurrentMinEV);
+      CurrentNulity = Lat->StiffnessNulity(EigenValues);
+      CurrentMinEV = EigenValues[0][1]; //not correct;
       
       loops++;
    }
@@ -511,6 +513,7 @@ int ArcLengthSolution::FindCriticalPoint(int LHN,double LHEV,int RHN,double RHEV
    int RighthandNulity = RHN;
    int CurrentNulity = RHN;
    int LefthandNulity = LHN;
+   Matrix EigenValues(1,Lat->DOF().Dim());
    double factor = 0.0;
    
    b=OriginalDS;
@@ -560,7 +563,8 @@ int ArcLengthSolution::FindCriticalPoint(int LHN,double LHEV,int RHN,double RHEV
 	 CurrentDS_ = LastDS;
 	 Difference_ = LastDiff;
 	 ArcLenUpdate(Difference_);
-	 CurrentNulity = Lat->StiffnessNulity(&fb);
+	 CurrentNulity = Lat->StiffnessNulity(EigenValues);
+	 fb=EigenValues[0][0]; // not correct
 	 
 	 if(Echo_)
 	 {
@@ -632,7 +636,8 @@ int ArcLengthSolution::FindCriticalPoint(int LHN,double LHEV,int RHN,double RHEV
       factor = OriginalDS/b;
       Difference_ = OriginalDiff/factor;
       uncertainty = ArcLengthNewton(dummy);
-      CurrentNulity = Lat->StiffnessNulity(&fb);
+      CurrentNulity = Lat->StiffnessNulity(EigenValues);
+      fb=EigenValues[0][0];//not correct
       loops++;
    }
    
