@@ -14,8 +14,6 @@ class Dobson: public PairPotentials
 private:
    double Eps0_,Eps1_,Sigma0_,Sigma1_,rcut_;
 
-   double j(double NTemp,YDeriv dy=Y0,TDeriv dt=T0);
-
 public:
 
    Dobson() {};
