@@ -14,7 +14,7 @@ CBKinematics::CBKinematics(int InternalAtoms,const char* prefix,const char* data
       if(!GetVectorParameter(prefix,tmp,datafile,&hold)) exit(-1);
       for (int j=0;j<DIM3;++j)
       {
-	 RefLattice_[i][j] = hold[j];
+         RefLattice_[i][j] = hold[j];
       }
    }
    
@@ -26,7 +26,7 @@ CBKinematics::CBKinematics(int InternalAtoms,const char* prefix,const char* data
       sprintf(tmp,"AtomPosition_%u",i);
       if(!GetVectorParameter(prefix,tmp,datafile,&(InternalPOS_[i]))) exit(-1);
    }
-
+   
 }
 
 void CBKinematics:: InfluenceRegion(double *InfluenceRegion)
@@ -73,10 +73,10 @@ void CBKinematics::SetReferenceToCurrent()
    for (int i=0;i<DIM3;++i)
    {
       for (int j=0;j<DIM3;++j)
-	 for (int k=0;k<DIM3;++k)
-	 {
-	    CurrentLattice[i][j] += F_[j][k]*RefLattice_[i][k];
-	 }
+         for (int k=0;k<DIM3;++k)
+         {
+            CurrentLattice[i][j] += F_[j][k]*RefLattice_[i][k];
+         }
    }
    RefLattice_ = CurrentLattice;
    
@@ -84,7 +84,7 @@ void CBKinematics::SetReferenceToCurrent()
    {
       for (int j=0;j<DIM3;++j)
       {
-	 InternalPOS_[i][j] = InternalPOS_[i][j] + S_[i][j];
+         InternalPOS_[i][j] = InternalPOS_[i][j] + S_[i][j];
       }
    }
    
@@ -94,12 +94,12 @@ void CBKinematics::SetReferenceToCurrent()
 Vector CBKinematics::CurrentLatticeVec(int p)
 {
    Vector tmp(DIM3,0.0);
-
+   
    for (int i=0;i<DIM3;++i)
    {
       for (int j=0;j<DIM3;++j)
-	 tmp[i] += F_[i][j]*RefLattice_[p][j];
+         tmp[i] += F_[i][j]*RefLattice_[p][j];
    }
-
+   
    return tmp;
 }

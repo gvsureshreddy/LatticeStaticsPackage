@@ -10,7 +10,7 @@
 
 
 SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
-				   char *startfile,Lattice *Lat,fstream &out,int Width,
-				   int Echo);
+                                   char *startfile,Lattice *Lat,fstream &out,int Width,
+                                   int Echo);
 
 #endif

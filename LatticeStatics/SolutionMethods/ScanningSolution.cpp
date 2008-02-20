@@ -6,7 +6,7 @@
 using namespace std;
 
 ScanningSolution::ScanningSolution(LatticeMode *Mode,char *datafile,const char *prefix,
-				   int Echo)
+                                   int Echo)
    : Mode_(Mode), Echo_(Echo)
 {
    ModeDOFS_=Mode_->ModeDOF().Dim();
@@ -142,11 +142,11 @@ Vector ScanningSolution::ScanningForce()
    {
       for (int i=0;i<ModeDOFS_-1;++i)
       {
-	 if (i != ScnDefParam_)
-	 {
-	    force[a] = stress[i];
-	    ++a;
-	 }
+         if (i != ScnDefParam_)
+         {
+            force[a] = stress[i];
+            ++a;
+         }
       }
       
       return force;
@@ -167,11 +167,11 @@ Vector ScanningSolution::ScanningDef()
    {
       for (int i=0;i<ModeDOFS_-1;++i)
       {
-	 if (i != ScnDefParam_)
-	 {
-	    DEF[a] = ModeDOF[i];
-	    ++a;
-	 }
+         if (i != ScnDefParam_)
+         {
+            DEF[a] = ModeDOF[i];
+            ++a;
+         }
       }
       
       return DEF;
@@ -190,7 +190,7 @@ void ScanningSolution::ScanningSet(const Vector &val)
    {
       if (i != ScnDefParam_)
       {
-	 ModeDOF[i] = val[i];
+         ModeDOF[i] = val[i];
       }
    }
    
@@ -207,7 +207,7 @@ void ScanningSolution::ScanningUpdate(const Vector &newval)
    {
       if (i != ScnDefParam_)
       {
-	 ModeDOF[i] += newval[(i>ScnDefParam_)?i-1:i];
+         ModeDOF[i] += newval[(i>ScnDefParam_)?i-1:i];
       }
    }
    
@@ -225,18 +225,18 @@ Matrix ScanningSolution::ScanningStiffness()
    {
       for (int i=0;i<ModeDOFS_-1;++i)
       {
-	 if (i != ScnDefParam_)
-	 {
-	    for (int j=0;j<ModeDOFS_-1;++j)
-	    {
-	       if (j != ScnDefParam_)
-	       {
-		  K[a][b] = ModeK[i][j];
-	       }
-	       ++b;
-	    }
-	    ++a;
-	 }
+         if (i != ScnDefParam_)
+         {
+            for (int j=0;j<ModeDOFS_-1;++j)
+            {
+               if (j != ScnDefParam_)
+               {
+                  K[a][b] = ModeK[i][j];
+               }
+               ++b;
+            }
+            ++a;
+         }
       }
       return K;
    }
@@ -260,14 +260,14 @@ double ScanningSolution::FindNextSolution(int &good)
    {
       if (ScanFullField_ == No)
       {
-	 InitializeLine();
+         InitializeLine();
       }
       else
       {
-	 if (Direction_ == Loading)
-	    ScanningLoadParamUpdate(LineStep_);
-	 else
-	    ScanningDefParamUpdate(LineStep_);
+         if (Direction_ == Loading)
+            ScanningLoadParamUpdate(LineStep_);
+         else
+            ScanningDefParamUpdate(LineStep_);
       }
    }
    
@@ -292,38 +292,38 @@ double ScanningSolution::FindNextSolution(int &good)
    {
       if (Direction_ == Loading)
       {
-	 if (ScanningLoadParameter()*LineStep_/fabs(LineStep_)
-	     > LineEnd_*LineStep_/fabs(LineStep_))
-	 {
-	    CurrentScanLine_ += ScanStep_;
-	    OnSolution_ = No;
-	    InitializeLine();
-	    good = 0;
-	    return uncertainty;
-	 }
-	 
-	 if (Echo_) cout << ScanningLoadParameter();
+         if (ScanningLoadParameter()*LineStep_/fabs(LineStep_)
+             > LineEnd_*LineStep_/fabs(LineStep_))
+         {
+            CurrentScanLine_ += ScanStep_;
+            OnSolution_ = No;
+            InitializeLine();
+            good = 0;
+            return uncertainty;
+         }
+         
+         if (Echo_) cout << ScanningLoadParameter();
       }
       else
       {
-	 if (ScanningDefParameter()*LineStep_/fabs(LineStep_)
-	     > LineEnd_*LineStep_/fabs(LineStep_))
-	 {
-	    CurrentScanLine_ += ScanStep_;
-	    OnSolution_ = No;
-	    InitializeLine();
-	    good = 0;
-	    return uncertainty;
-	 }
-	 
-	 if (Echo_) cout << ScanningDefParameter();
+         if (ScanningDefParameter()*LineStep_/fabs(LineStep_)
+             > LineEnd_*LineStep_/fabs(LineStep_))
+         {
+            CurrentScanLine_ += ScanStep_;
+            OnSolution_ = No;
+            InitializeLine();
+            good = 0;
+            return uncertainty;
+         }
+         
+         if (Echo_) cout << ScanningDefParameter();
       }
       if (Echo_) cout << "\t" << ScanningStressParameter() << endl;
       
       if (Direction_ == Loading)
-	 ScanningLoadParamUpdate(LineStep_);
+         ScanningLoadParamUpdate(LineStep_);
       else
-	 ScanningDefParamUpdate(LineStep_);
+         ScanningDefParamUpdate(LineStep_);
       
       uncertainty = ScanningNewton(good);
       
@@ -335,38 +335,38 @@ double ScanningSolution::FindNextSolution(int &good)
    // Iterate onto solution
    stepsize = LineStep_;
    while ((fabs(ScanningStressParameter()) > Tolerance_)
-	  && (iteration < MaxIter_))
+          && (iteration < MaxIter_))
    {
       if (Echo_)
       {
-	 if (Direction_ == Loading)
-	    cout << ScanningLoadParameter();
-	 else
-	    cout << ScanningDefParameter();
-	 cout << "\t" << ScanningStressParameter() << endl;
+         if (Direction_ == Loading)
+            cout << ScanningLoadParameter();
+         else
+            cout << ScanningDefParameter();
+         cout << "\t" << ScanningStressParameter() << endl;
       }
       
       iteration++;
       
       if (Direction_ == Loading)
       {
-	 // Bisection Method
-	 //ScanningLoadParamUpdate(
-	 //   -LineStep_*sign*newsign/(pow(2.0,iteration)));
-	 
-	 // Secant Method
-	 stepsize /= -(1.0 - oldval/val);
-	 ScanningLoadParamUpdate(stepsize);
+         // Bisection Method
+         //ScanningLoadParamUpdate(
+         //   -LineStep_*sign*newsign/(pow(2.0,iteration)));
+         
+         // Secant Method
+         stepsize /= -(1.0 - oldval/val);
+         ScanningLoadParamUpdate(stepsize);
       }
       else
       {
-	 // Bisection Method
-	 //ScanningDefParamUpdate(
-	 //   -LineStep_*sign*newsign/(pow(2.0,iteration)));
-	 
-	 // Secant Method
-	 stepsize /= -(1.0 - oldval/val);
-	 ScanningDefParamUpdate(stepsize);
+         // Bisection Method
+         //ScanningDefParamUpdate(
+         //   -LineStep_*sign*newsign/(pow(2.0,iteration)));
+         
+         // Secant Method
+         stepsize /= -(1.0 - oldval/val);
+         ScanningDefParamUpdate(stepsize);
       }
       
       uncertainty = ScanningNewton(good);
@@ -379,9 +379,9 @@ double ScanningSolution::FindNextSolution(int &good)
    if (Echo_)
    {
       if (Direction_ == Loading)
-	 cout << ScanningLoadParameter();
+         cout << ScanningLoadParameter();
       else
-	 cout << ScanningDefParameter();
+         cout << ScanningDefParameter();
       cout << "\t" << ScanningStressParameter() << endl;
    }
    
@@ -423,8 +423,8 @@ double ScanningSolution::ScanningNewton(int &good)
    
 #ifdef SOLVE_SVD
    dx = SolveSVD(ScanningStiffness(),
-		 RHS,
-		 MAXCONDITION,Echo_);
+                 RHS,
+                 MAXCONDITION,Echo_);
 #else
    dx = SolvePLU(ScanningStiffness(),RHS);
 #endif
@@ -448,15 +448,15 @@ double ScanningSolution::ScanningNewton(int &good)
       
 #ifdef SOLVE_SVD
       dx=SolveSVD(ScanningStiffness(),
-		  -ScanningForce(),
-		  MAXCONDITION,Echo_);
+                  -ScanningForce(),
+                  MAXCONDITION,Echo_);
 #else
       dx=SolvePLU(ScanningStiffness(),-ScanningForce());
 #endif
       
       ScanningUpdate(dx);
       if (Echo_) cout << "ScanningNewton(dx) = " << setw(20) << dx
-		      << ", RHS = " << setw(20) << ScanningForce() << endl;
+                      << ", RHS = " << setw(20) << ScanningForce() << endl;
    }
    
    if (itr >= MaxIter_)

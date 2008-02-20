@@ -14,19 +14,19 @@ private:
    int CurrentPOS_;
    
    void Initialize(int GridSize,int DoHalfOnly,int SkipZero);
-
+   
 public:
-
+   
    UnitCellIterator(): Vectors_(NULL) {}
    UnitCellIterator(int GridSize,int DoHalfOnly=1,int SkipZero=1)
       :Vectors_(NULL) {Initialize(GridSize,DoHalfOnly,SkipZero);}
    ~UnitCellIterator();
-
+   
    void operator()(int GridSize,int DoHalfOnly=1,int SkipZero=1)
    {Initialize(GridSize,DoHalfOnly,SkipZero);}
-
+   
    void Reset() {CurrentPOS_ = 0;}
-
+   
    int Done() {return VectorsLen_ <= CurrentPOS_;}
    double operator[](int i) {return Vectors_[CurrentPOS_][i];}
    void operator++() {++CurrentPOS_;}

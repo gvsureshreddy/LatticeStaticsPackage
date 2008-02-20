@@ -13,7 +13,7 @@ using namespace std;
 enum YN {No,Yes};
 void GetMainSettings(int &Width, int &Precision,YN &BisectCP,int &Echo,char *datafile);
 void InitializeOutputFile(fstream &out,char *outfile,char *datafile,char *startfile,
-			  int Precision,int Width,int Echo);
+                          int Precision,int Width,int Echo);
 
 int main(int argc, char *argv[])
 {
@@ -21,11 +21,11 @@ int main(int argc, char *argv[])
    if (argc < 3)
    {
       cerr << "Usage: " << argv[0]
-	   << " [--debug]"
-	   << " ParamFile OutputFile <StartData>" << endl;
+           << " [--debug]"
+           << " ParamFile OutputFile <StartData>" << endl;
       cerr << "Built on:               " << builddate() << endl
-	   << "LinearAlgebra Built on: " << LinearAlgebraBuildDate() << endl
-	   << "MyMath Built on:        " << MyMathBuildDate() << endl;
+           << "LinearAlgebra Built on: " << LinearAlgebraBuildDate() << endl
+           << "MyMath Built on:        " << MyMathBuildDate() << endl;
       exit(-1);
    }
    int Debug;
@@ -80,14 +80,14 @@ int main(int argc, char *argv[])
       
       if (success)
       {
-	 // Check for Critical Point Crossing
-	 OldTestValue = TestValue;
-	 TestValue = Lat->TestFunctions(EigenValues);
-	 if ((OldTestValue != TestValue) && (BisectCP == Yes) && (OldTestValue != -1))
-	    SolveMe->FindCriticalPoint(Lat,datafile,"^",Width,out);
-	 
-	 // Send Output
-	 out << setw(Width) << Lat << "Success = 1" << endl;
+         // Check for Critical Point Crossing
+         OldTestValue = TestValue;
+         TestValue = Lat->TestFunctions(EigenValues);
+         if ((OldTestValue != TestValue) && (BisectCP == Yes) && (OldTestValue != -1))
+            SolveMe->FindCriticalPoint(Lat,datafile,"^",Width,out);
+         
+         // Send Output
+         out << setw(Width) << Lat << "Success = 1" << endl;
       }
    }
    
@@ -123,7 +123,7 @@ void GetMainSettings(int &Width, int &Precision,YN &BisectCP,int &Echo,char *dat
 
 
 void InitializeOutputFile(fstream &out,char *outfile,char *datafile,char *startfile,
-			  int Precision,int Width,int Echo)
+                          int Precision,int Width,int Echo)
 {
    fstream input,start;
    char dataline[LINELENGTH];
@@ -132,14 +132,14 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,char *startf
    if (input.fail())
    {
       cerr << "Error: Unable to open file : " << datafile << " for read"
-	   << endl;
+           << endl;
       exit(-1);
    }
    out.open(outfile,ios::out);
    if (out.fail())
    {
       cerr << "Error: Unable to open file : " << outfile << " for write"
-	   << endl;
+           << endl;
       exit(-1);
    }
    
@@ -156,15 +156,15 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,char *startf
       start.open(startfile,ios::in);
       if (start.fail())
       {
-	 cerr << "Error: Unable to open file : " << startfile << " for read"
-	      << endl;
-	 exit(-1);
+         cerr << "Error: Unable to open file : " << startfile << " for read"
+              << endl;
+         exit(-1);
       }
       
       while (!start.eof())
       {
-	 start.getline(dataline,LINELENGTH-1);
-	 out << "Start File:" << dataline << endl;
+         start.getline(dataline,LINELENGTH-1);
+         out << "Start File:" << dataline << endl;
       }
       
       start.close();
@@ -174,9 +174,9 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,char *startf
    out  << setiosflags(ios::fixed) << setprecision(Precision);
    
    if (Echo) cout << "Built on:               " << builddate() << endl
-		  << "LinearAlgebra Build on: " << LinearAlgebraBuildDate() << endl
-		  << "MyMath Built on:        " << MyMathBuildDate() << endl
-		  << setw(Width);
+                  << "LinearAlgebra Build on: " << LinearAlgebraBuildDate() << endl
+                  << "MyMath Built on:        " << MyMathBuildDate() << endl
+                  << setw(Width);
    out << "Built on:               " << builddate() << endl
        << "LinearAlgebra Build on: " << LinearAlgebraBuildDate() << endl
        << "MyMath Built on:        " << MyMathBuildDate() << endl

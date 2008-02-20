@@ -53,7 +53,7 @@ Vector MultiMode::DrDt(const Vector &Diff)
    {
       for (int j=0;j<DOFindlen_[i];++j)
       {
-	 ddt[DOFindex_[i][j]] += DOFMult_[i][j]*(Diff[i]/Diff[DOFS_]);
+         ddt[DOFindex_[i][j]] += DOFMult_[i][j]*(Diff[i]/Diff[DOFS_]);
       }
    }
    
@@ -74,7 +74,7 @@ void MultiMode::UpdateLatticeState()
    {
       for (int j=0;j<DOFindlen_[i];++j)
       {
-	 DOF[DOFindex_[i][j]] += DOFMult_[i][j]*ModeDOF_[i];
+         DOF[DOFindex_[i][j]] += DOFMult_[i][j]*ModeDOF_[i];
       }
    }
    
@@ -94,7 +94,7 @@ Vector MultiMode::ModeForce()
       force[i] = 0.0;
       for (int j=0;j<DOFindlen_[i];j++)
       {
-	 force[i] += DOFMult_[i][j]*stress[0][DOFindex_[i][j]];
+         force[i] += DOFMult_[i][j]*stress[0][DOFindex_[i][j]];
       }
    }
    
@@ -115,16 +115,16 @@ Matrix MultiMode::ModeStiffness()
    {
       for (int j=0;j<DOFindlen_[i];++j)
       {
-	 for (int k=0;k<DOFS_;++k)
-	 {
-	    for (int l=0;l<DOFindlen_[k];++l)
-	    {
-	       K[i][k] +=
-		  DOFMult_[i][j]*(Stiff[DOFindex_[i][j]][DOFindex_[k][l]])*DOFMult_[k][l];
-	    }
-	 }
-	 
-	 K[i][DOFS_] += DOFMult_[i][j]*stressdt[0][DOFindex_[i][j]];
+         for (int k=0;k<DOFS_;++k)
+         {
+            for (int l=0;l<DOFindlen_[k];++l)
+            {
+               K[i][k] +=
+                  DOFMult_[i][j]*(Stiff[DOFindex_[i][j]][DOFindex_[k][l]])*DOFMult_[k][l];
+            }
+         }
+         
+         K[i][DOFS_] += DOFMult_[i][j]*stressdt[0][DOFindex_[i][j]];
       }
    }
    

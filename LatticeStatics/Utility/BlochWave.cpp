@@ -12,32 +12,32 @@ int main(int argc,char *argv[])
    if (argc < 3)
    {
       cerr << "Usage: " << argv[0]
-	   << " ParamFile GridSize Echo" << endl;
+           << " ParamFile GridSize Echo" << endl;
       cerr << "Built on:               " << builddate() << endl
-	   << "LinearAlgebra Built on: " << LinearAlgebraBuildDate() << endl
-	   << "MyMath Built on:        " << MyMathBuildDate() << endl;
+           << "LinearAlgebra Built on: " << LinearAlgebraBuildDate() << endl
+           << "MyMath Built on:        " << MyMathBuildDate() << endl;
       exit(-1);
    }
-
+   
    char *datafile = argv[1],
       prefix[LINELENGTH];
    int GridSize = atoi(argv[2]);
-
+   
    strcpy(prefix,"^Input File:");
    
    Lattice *Lat;
-
+   
    int Width,Precision,Echo=0;
-
+   
    if (argc == 4) Echo = 1;
-
+   
    GetMainSettings(Width,Precision,datafile,prefix);
-
+   
    Lat = InitializeLattice(datafile,prefix,Echo);
    Lat->SetGridSize(GridSize);
-
+   
    cout  << setiosflags(ios::fixed) << setprecision(Precision);
-
+   
    Vector DOF((Lat->DOF()).Dim()),K(3);
    int BlochWaveStable;
    double Temp,Lambda;
@@ -46,16 +46,16 @@ int main(int argc,char *argv[])
    {
       cin >> Lambda;
       cin >> DOF;
-
+      
       Lat->SetTemp(Temp);
       Lat->SetLambda(Lambda);
       Lat->SetDOF(DOF);
-
+      
       BlochWaveStable = Lat->BlochWave(K);
-
+      
       cout << "BlochWave Stability (GridSize=" << GridSize << "):"
-	   << setw(Width) << BlochWaveStable << ", "
-	   << setw(Width) << K << endl << flush;
+           << setw(Width) << BlochWaveStable << ", "
+           << setw(Width) << K << endl << flush;
    }
    
    return 1;
@@ -64,5 +64,5 @@ int main(int argc,char *argv[])
 void GetMainSettings(int &Width, int &Precision,char *datafile,const char *prefix)
 {
    if(!GetParameter(prefix,"MainFieldWidth",datafile,'i',&Width)) exit(-1);
-   if(!GetParameter(prefix,"MainPrecision",datafile,'i',&Precision)) exit(-1);   
+   if(!GetParameter(prefix,"MainPrecision",datafile,'i',&Precision)) exit(-1);
 }

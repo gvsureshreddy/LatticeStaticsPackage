@@ -4,11 +4,11 @@ void UnitCellIterator::Initialize(int GridSize,int DoHalfOnly,int SkipZero)
 {
    GridSize_ = GridSize;
    CurrentPOS_ = 0;
-
+   
    if ((GridSize_ < 2))
    {
       cerr << "UnitCellIterator GridSize must be >= 2"
-	   << endl;
+           << endl;
       exit(-1);
    }
    VectorsLen_ = DoHalfOnly ?
@@ -28,20 +28,20 @@ void UnitCellIterator::Initialize(int GridSize,int DoHalfOnly,int SkipZero)
    {
       Vectors_[i] = Vectors_[i-1] + 3;
    }
-
+   
    int even = 1-GridSize_%2;
    for (int k= DoHalfOnly ? 0 : -GridSize_/2-(!DoHalfOnly&&even); k <= GridSize_/2; ++k)
       for (int j=-GridSize_/2;j<=GridSize_/2-even;++j)
-	 for (int i=-GridSize_/2;i<=GridSize_/2-even;++i)
-	 {
-	    if (!(SkipZero && (i == 0) && (j == 0) && (k == 0)))
-	    {
-	       Vectors_[CurrentPOS_][0] = i/double(GridSize_);
-	       Vectors_[CurrentPOS_][1] = j/double(GridSize_);
-	       Vectors_[CurrentPOS_][2] = k/double(GridSize_);
-	       ++CurrentPOS_;
-	    }
-	 }
+         for (int i=-GridSize_/2;i<=GridSize_/2-even;++i)
+         {
+            if (!(SkipZero && (i == 0) && (j == 0) && (k == 0)))
+            {
+               Vectors_[CurrentPOS_][0] = i/double(GridSize_);
+               Vectors_[CurrentPOS_][1] = j/double(GridSize_);
+               Vectors_[CurrentPOS_][2] = k/double(GridSize_);
+               ++CurrentPOS_;
+            }
+         }
    
    CurrentPOS_ = 0;
 }

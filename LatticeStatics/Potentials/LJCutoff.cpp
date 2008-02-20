@@ -12,33 +12,33 @@ double LJCutoff::CutoffFunction(double NTemp,double r2,YDeriv dy,TDeriv dt)
    switch (dy)
    {
       case Y0:
-	 val = - (LJ::PairPotential(NTemp,Cutoff_*Cutoff_,DY,dt)/(2.0*Cutoff_*Cutoff_))*r2*r2
-	    + ((LJ::PairPotential(NTemp,Cutoff_*Cutoff_,DY,dt)/2.0)*Cutoff_*Cutoff_ -
-	       LJ::PairPotential(NTemp,Cutoff_*Cutoff_,Y0,dt));
-	 break;
+         val = - (LJ::PairPotential(NTemp,Cutoff_*Cutoff_,DY,dt)/(2.0*Cutoff_*Cutoff_))*r2*r2
+            + ((LJ::PairPotential(NTemp,Cutoff_*Cutoff_,DY,dt)/2.0)*Cutoff_*Cutoff_ -
+               LJ::PairPotential(NTemp,Cutoff_*Cutoff_,Y0,dt));
+         break;
       case DY:
-	 val = -(LJ::PairPotential(NTemp,Cutoff_*Cutoff_,DY,dt)/(Cutoff_*Cutoff_))*r2;
-	 break;
+         val = -(LJ::PairPotential(NTemp,Cutoff_*Cutoff_,DY,dt)/(Cutoff_*Cutoff_))*r2;
+         break;
       case D2Y:
-	 val = -(LJ::PairPotential(NTemp,Cutoff_*Cutoff_,DY,dt)/(Cutoff_*Cutoff_));
-	 break;
+         val = -(LJ::PairPotential(NTemp,Cutoff_*Cutoff_,DY,dt)/(Cutoff_*Cutoff_));
+         break;
    }
    return val;
 }
-   
+
 double LJCutoff::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
 {
    if (r2 >= Cutoff_*Cutoff_)
       return 0.0;
    else
       return (LJ::PairPotential(NTemp,r2,dy,dt)
-	      + CutoffFunction(NTemp,r2,dy,dt));
+              + CutoffFunction(NTemp,r2,dy,dt));
 }
 
 void LJCutoff::Print(ostream &out)
 {
    int W=out.width();
-
+   
    out.width(0);
    
    out << "Eps0=" << setw(W) << Eps0_

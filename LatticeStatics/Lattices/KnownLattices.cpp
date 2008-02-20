@@ -10,22 +10,22 @@ Lattice *InitializeLattice(char *datafile,const char *prefix,int Echo,int Width,
    {
       case 0:
       {
-	 return new MultiLatticeTPP(datafile,prefix,Echo,Width,Debug);
+         return new MultiLatticeTPP(datafile,prefix,Echo,Width,Debug);
       }
       case 1:
       {
-	 return new MultiChainTPP(datafile,prefix,Echo,Width,Debug);
+         return new MultiChainTPP(datafile,prefix,Echo,Width,Debug);
       }
       case 2:
       {
-	 return new MultiChainTTPP(datafile,prefix,Echo,Width,Debug);
+         return new MultiChainTTPP(datafile,prefix,Echo,Width,Debug);
       }
       case -1:
       {
-	 cerr << "Unknown Lattice Type " << endl;
-	 exit(-1);
+         cerr << "Unknown Lattice Type " << endl;
+         exit(-1);
       }
    }
-
+   
    return NULL;
 }

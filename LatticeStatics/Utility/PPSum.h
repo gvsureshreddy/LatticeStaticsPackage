@@ -24,23 +24,23 @@ private:
    PairPotentials ***Potential_;
    double *Ntemp_;
    CBKinematics *CBK_;
-
+   
    unsigned CurrentPOS_;
    unsigned Pairs_;
-
+   
    Matrix RelPosDATA_;
-
+   
    void Initialize();
    
 public:
    PPSum() {}
    PPSum(CBKinematics *CBK,int InternalAtoms,PairPotentials ***PairPot,double *InfluDist,
-	 double *Ntemp);
+         double *Ntemp);
    ~PPSum() {}
-
+   
    void operator()(CBKinematics *CBK,int InternalAtoms,PairPotentials ***PairPot,
-		   double *InfluDist,double *Ntemp);
-
+                   double *InfluDist,double *Ntemp);
+   
    void Reset();
    void Recalc() {Recalc_ = 1;}
    int Done() {return CurrentPOS_ >= Pairs_;}
@@ -54,7 +54,7 @@ public:
    int Atom(int i) {return int(RelPosDATA_[CurrentPOS_][PPSUMatomstart+i]);}
    double phi1() {return RelPosDATA_[CurrentPOS_][PPSUMphi1start];}
    double phi2() {return RelPosDATA_[CurrentPOS_][PPSUMphi2start];}
-
+   
    Matrix NeighborDistances(int cutoff,double eps);
    
    int Pairs() {return Pairs_;}

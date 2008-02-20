@@ -5,7 +5,7 @@ EulerCB::EulerCB(int InternalAtoms,const char* prefix,const char* datafile):
 {
    F_.Resize(DIM3,DIM3);
    S_.Resize(InternalAtoms,DIM3);
-
+   
    SetReferenceDOFs();
    Reset();
    
@@ -18,7 +18,7 @@ void EulerCB::Reset()
    {
       for (j=0;j<DIM3;++j)
       {
-	 F_[i][j] = DOF_[INDF(i,j)];
+         F_[i][j] = DOF_[INDF(i,j)];
       }
    }
    
@@ -36,51 +36,51 @@ Vector EulerCB::FractionalPosVec(int p)
 {
    Vector pos(DIM3,0.0),fracpos(DIM3,0.0),tmp(DIM3,0.0);
    Matrix CurrentLattice(DIM3,DIM3,0.0),InverseLattice(DIM3,DIM3);
-
+   
    for (int i=0;i<DIM3;++i)
    {
       tmp = CurrentLatticeVec(i);
       for (int j=0;j<DIM3;++j)
       {
-	 CurrentLattice[i][j] = tmp[j];
+         CurrentLattice[i][j] = tmp[j];
       }
       
       pos[i] = InternalPOS_[p][i] + S_[p][i];
    }
    InverseLattice = CurrentLattice.Inverse();
    
-
+   
    for (int i=0;i<DIM3;++i)
    {
       for (int j=0;j<DIM3;++j)
-	 fracpos[i] += pos[j]*InverseLattice[j][i];
+         fracpos[i] += pos[j]*InverseLattice[j][i];
    }
-
+   
    return fracpos;
 }
 
 double EulerCB::DX(double *X,int p,int q,int i)
 {
    double tmp=0.0;
-
+   
    for (int j=0;j<DIM3;++j)
    {
       tmp += X[j]*RefLattice_[j][i];
    }
-
+   
    return tmp;
 }
 
 double EulerCB::Dx(double *X,int p,int q,int i)
 {
    double tmp=0.0;
-
+   
    for (int j=0;j<DIM3;++j)
    {
       tmp += F_[i][j]*DX(X,p,q,j);
    }
    tmp += InternalPOS_[q][i] - InternalPOS_[p][i] + S_[q][i] - S_[p][i];
-
+   
    return tmp;
 }
 

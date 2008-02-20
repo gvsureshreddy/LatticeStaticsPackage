@@ -20,18 +20,18 @@ protected:
       Ival_[DTmax];
    
    double A0_, B0_, Alpha_, Rref1_, Rref2_, Rtheta1_, Rtheta2_;
-
+   
 public:
-
+   
    RadiiMorse() {};
    RadiiMorse(double A0,double B0,double Alpha,double Rref1,double Rref2,
-	      double Rtheta1,double Rtheta2);
+              double Rtheta1,double Rtheta2);
    ~RadiiMorse() {};
    friend ostream &operator<<(ostream &out,RadiiMorse &A);
    double PairPotential(double NTemp,double r2,YDeriv dy=Y0,TDeriv dt=T0);
    virtual void Print(ostream &out);
    virtual const char* Type() {return "RadiiMorse";}
-
+   
    double A0() {return A0_;}
    double B0() {return B0_;}
    double Alpha() {return Alpha_;}
@@ -39,7 +39,7 @@ public:
    double Rref2() {return Rref2_;}
    double Rtheta1() {return Rtheta1_;}
    double Rtheta2() {return Rtheta2_;}
-
+   
    void SetA0(double A0) {A0_=A0;}
    void SetB0(double B0) {B0_=B0;}
    void SetAlpha(double Alpha) {Alpha_=Alpha;}
@@ -59,11 +59,11 @@ private:
    double Rhat(double NTemp,TDeriv dt=T0);
    inline double rhat(double NTemp,TDeriv dt=T0)
    {return (Rchk_[dt])? Rval_[dt] : Rval_[dt]=Rhat(NTemp,dt);}
-
+   
    double G(double NTemp,double r2,YDeriv dy,TDeriv dt);
    inline double g(double NTemp,double r2,YDeriv dy,TDeriv dt)
    {return (Gchk_[dy][dt])? Gval_[dy][dt] : Gval_[dy][dt]=G(NTemp,r2,dy,dt);}
-
+   
    double I(double NTemp,TDeriv dt=T0);
    inline double i(double NTemp,TDeriv dt=T0)
    {return (Ichk_[dt])? Ival_[dt] : Ival_[dt]=I(NTemp,dt);}

@@ -26,28 +26,28 @@ private:
    Vector *InternalPOS_;
    PairPotentials ***Potential_;
    double *Ntemp_;
-
+   
    unsigned CurrentPOS_;
    unsigned Pairs_;
-
+   
    double F_;
    int Translations_;
    Vector V_;
    Matrix RelPosDATA_;
-
+   
    void Initialize();
    
 public:
    ChainSum() {}
    ChainSum(Vector *DOF,int LagrangeCB,int Translations,Matrix *RefLat,
-	    int InternalAtoms,Vector *InternalPOS,PairPotentials ***PairPot,
-	    double *InfluDist,double *Ntemp);
+            int InternalAtoms,Vector *InternalPOS,PairPotentials ***PairPot,
+            double *InfluDist,double *Ntemp);
    ~ChainSum() {}
-
+   
    void operator()(Vector *DOF,int LagrangeCB,int Translations,Matrix *RefLat,
-		   int InternalAtoms,Vector *InternalPOS,PairPotentials ***PairPot,
-		   double *InfluDist,double *Ntemp);
-
+                   int InternalAtoms,Vector *InternalPOS,PairPotentials ***PairPot,
+                   double *InfluDist,double *Ntemp);
+   
    void Reset();
    void Recalc() {Recalc_ = 1;}
    int Done() {return CurrentPOS_ >= Pairs_;}
@@ -62,7 +62,7 @@ public:
    double phi1() {return RelPosDATA_[CurrentPOS_][CHAINSUMphi1start];}
    double phi2() {return RelPosDATA_[CurrentPOS_][CHAINSUMphi2start];}
    double J() {return F_;}
-
+   
    Matrix NeighborDistances(int cutoff,double eps);
    
    int Pairs() {return Pairs_;}

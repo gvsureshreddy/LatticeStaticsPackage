@@ -625,7 +625,7 @@ int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,char *datafile,const char 
    {
       out <<out_string[i];
    }
-
+   
    delete [] Index;
    delete [] out_string;   //deletes memory allocated to out_string
    

@@ -12,24 +12,24 @@ using namespace std;
 #include <fcntl.h>
 #include <unistd.h>
 /*
-  The fcntl() function accepts a file descriptor and 
-  an action (depending on the action, it may accept 
-  a third parameter), and returns a result depending 
-  on that action.  
-
+  The fcntl() function accepts a file descriptor and
+  an action (depending on the action, it may accept
+  a third parameter), and returns a result depending
+  on that action.
+  
   If things break bad, it returns -1.
 */
 
 int setblock  (int file_desc, int block)
 {
    int flags;
-
+   
    /* retrieve the file descriptor's flags */
    if ( (flags = fcntl (file_desc, F_GETFL)) == -1 )
    {
       return false;    /* something went wrong! */
    }
-
+   
    if (block)
    {
       flags &= ~O_NONBLOCK;      /* we want blocking input */
@@ -38,10 +38,10 @@ int setblock  (int file_desc, int block)
    {
       flags |= O_NONBLOCK;       /* we want non-blocking input */
    }
-
+   
    /* set the flags (note the third parameter) */
    fcntl (file_desc, F_SETFL, flags);
-
+   
    return 1;
 }
 
@@ -58,7 +58,7 @@ int EnterDebugMode()
       dbg[n-1]=0;
       
       if (!strcmp(dbg,"debug"))
-	 return 1;
+         return 1;
    }
    return 0;
 }
@@ -68,7 +68,7 @@ int EnterDebugMode()
 int EnterDebugMode()
 {
    static int flag=0;
-
+   
    if (flag)
       return 0;
    else
@@ -97,7 +97,7 @@ void openUTout()
    if (UTILITYout.fail())
    {
       cerr << "Error: Unable to open file : " << UTILITYechocmd << " for write"
-	   << endl;
+           << endl;
       exit(-1);
    }
    UTILITYout << setiosflags(ios::scientific) << setprecision(PRECISION);
@@ -108,44 +108,44 @@ void closeUTout()
 }
 
 int GetParameter(const char *prefix,const char *tag,const char *datafile,
-		 const char scanffmt,void *parameter,int DispErr)
+                 const char scanffmt,void *parameter,int DispErr)
 {
    static char command[LINELENGTH];
    static char format[LINELENGTH];
    FILE *pipe;
-
+   
    SetPerlCommand(command,datafile,prefix,tag);
    pipe = OpenPipe(command,"r");
    switch (scanffmt)
    {
       case 'd':
       case 'i':
-	 fscanf(pipe,"%i",parameter);
-	 sprintf(command,"%i",*((int*) parameter));
-	 break;
+         fscanf(pipe,"%i",parameter);
+         sprintf(command,"%i",*((int*) parameter));
+         break;
       case 'u':
-	 fscanf(pipe,"%u",parameter);
-	 sprintf(command,"%u",*((unsigned*) parameter));
-	 break;
+         fscanf(pipe,"%u",parameter);
+         sprintf(command,"%u",*((unsigned*) parameter));
+         break;
       case 'f':
-	 fscanf(pipe,"%f",parameter);
-	 sprintf(format,"%%%u.%ue",WIDTH,PRECISION);
-	 sprintf(command,format,*((float*) parameter));
+         fscanf(pipe,"%f",parameter);
+         sprintf(format,"%%%u.%ue",WIDTH,PRECISION);
+         sprintf(command,format,*((float*) parameter));
       case 'l':
-	 fscanf(pipe,"%lf",parameter);
-	 sprintf(format,"%%%u.%ule",WIDTH,PRECISION);
-	 sprintf(command,format,*((double*) parameter));
-	 break;
+         fscanf(pipe,"%lf",parameter);
+         sprintf(format,"%%%u.%ule",WIDTH,PRECISION);
+         sprintf(command,format,*((double*) parameter));
+         break;
       case 's':
-	 fscanf(pipe,"%s",parameter);
-	 sprintf(command,"%s",(char *) parameter);
-	 break;
+         fscanf(pipe,"%s",parameter);
+         sprintf(command,"%s",(char *) parameter);
+         break;
       default:
-	 if (DispErr) Errfun(tag);
-	 return 0;
-	 break;
+         if (DispErr) Errfun(tag);
+         return 0;
+         break;
    }
-	 
+   
    if (pclose(pipe))
    {
       if (DispErr) Errfun(tag);
@@ -155,21 +155,21 @@ int GetParameter(const char *prefix,const char *tag,const char *datafile,
    {
       if (UTILITYechocmd != NULL)
       {
-	 //Getcmdline(prefix,tag,datafile);
-	 openUTout();
-	 UTILITYout << tag << " = " << command << endl;
-	 closeUTout();
+         //Getcmdline(prefix,tag,datafile);
+         openUTout();
+         UTILITYout << tag << " = " << command << endl;
+         closeUTout();
       }
       return 1;
    }
 }
 
 int GetVectorParameter(const char *prefix,const char *tag,const char *datafile,Vector *V,
-		       int DispErr)
+                       int DispErr)
 {
    char command[LINELENGTH];
    FILE *pipe;
-
+   
    SetPerlCommand(command,datafile,prefix,tag);
    pipe = OpenPipe(command,"r");
    for (int i=0;i<V->Dim();++i)
@@ -185,24 +185,24 @@ int GetVectorParameter(const char *prefix,const char *tag,const char *datafile,V
    {
       if (UTILITYechocmd != NULL)
       {
-	 //Getcmdline(prefix,tag,datafile);
-	 openUTout();
-	 UTILITYout << tag << " = ( " << setw(WIDTH) << (*V)[0];
-	 for (int i=1;i<V->Dim();++i)
-	    UTILITYout << ", " << setw(WIDTH) << (*V)[i];
-	 UTILITYout << ")" << endl;
-	 closeUTout();
+         //Getcmdline(prefix,tag,datafile);
+         openUTout();
+         UTILITYout << tag << " = ( " << setw(WIDTH) << (*V)[0];
+         for (int i=1;i<V->Dim();++i)
+            UTILITYout << ", " << setw(WIDTH) << (*V)[i];
+         UTILITYout << ")" << endl;
+         closeUTout();
       }
       return 1;
    }
 }
 
 int GetIntVectorParameter(const char *prefix,const char *tag,const char *datafile,int N,
-			  int *Vec,int DispErr)
+                          int *Vec,int DispErr)
 {
    char command[LINELENGTH];
    FILE *pipe;
-
+   
    SetPerlCommand(command,datafile,prefix,tag);
    pipe = OpenPipe(command,"r");
    for (int i=0;i<N;++i)
@@ -218,32 +218,32 @@ int GetIntVectorParameter(const char *prefix,const char *tag,const char *datafil
    {
       if (UTILITYechocmd != NULL)
       {
-	 //Getcmdline(prefix,tag,datafile);
-	 openUTout();
-	 UTILITYout << tag << " = (" << Vec[0];
-	 for (int i=1;i<N;++i)
-	    UTILITYout << ", " << Vec[i];
-	 UTILITYout << ")" << endl;
-	 
-	 closeUTout();
+         //Getcmdline(prefix,tag,datafile);
+         openUTout();
+         UTILITYout << tag << " = (" << Vec[0];
+         for (int i=1;i<N;++i)
+            UTILITYout << ", " << Vec[i];
+         UTILITYout << ")" << endl;
+         
+         closeUTout();
       }
       return 1;
    }
 }
 
 int GetMatrixParameter(const char *prefix,const char *tag,const char *datafile,Matrix *M,
-		       int DispErr)
+                       int DispErr)
 {
    char command[LINELENGTH];
    FILE *pipe;
-
+   
    SetPerlCommand(command,datafile,prefix,tag);
    pipe = OpenPipe(command,"r");
    for (int i=0;i<M->Rows();++i)
    {
       for (int j=0;M->Cols();++j)
       {
-	 fscanf(pipe,"%lf",&((*M)[i][j]));
+         fscanf(pipe,"%lf",&((*M)[i][j]));
       }
    }
    if (pclose(pipe))
@@ -255,21 +255,21 @@ int GetMatrixParameter(const char *prefix,const char *tag,const char *datafile,M
    {
       if (UTILITYechocmd != NULL)
       {
-	 //Getcmdline(prefix,tag,datafile);
-	 openUTout();
-	 UTILITYout << tag << " = ( " << setw(WIDTH) << (*M)[0][0];
-	 for (int i=0;i<M->Rows();++i)
-	    for (int j=0;j<M->Cols();++i)
-	       if ((i!=0) && (j!=0)) UTILITYout << ", " << setw(WIDTH) << (*M)[i][j];
-	 UTILITYout << ")" << endl;
-	 closeUTout();
+         //Getcmdline(prefix,tag,datafile);
+         openUTout();
+         UTILITYout << tag << " = ( " << setw(WIDTH) << (*M)[0][0];
+         for (int i=0;i<M->Rows();++i)
+            for (int j=0;j<M->Cols();++i)
+               if ((i!=0) && (j!=0)) UTILITYout << ", " << setw(WIDTH) << (*M)[i][j];
+         UTILITYout << ")" << endl;
+         closeUTout();
       }
       return 1;
    }
 }
 
 int GetStringParameter(const char *prefix,const char *tag,const char *datafile,
-		       const char *choices[],const unsigned numb,int DispErr)
+                       const char *choices[],const unsigned numb,int DispErr)
 {
    int i;
    char strng[LINELENGTH];
@@ -279,7 +279,7 @@ int GetStringParameter(const char *prefix,const char *tag,const char *datafile,
    {
       if (!strcasecmp(strng,choices[i]))
       {
-	 return i;
+         return i;
       }
    }
    
@@ -288,10 +288,10 @@ int GetStringParameter(const char *prefix,const char *tag,const char *datafile,
 
 void SetPerlCommand(char *string,const char *datafile,const char *prefix,const char *tag)
 {
-   char format[]=
+   char format1[]=
       {"perl -e 'use Math::Trig;"\
        "@__R=__findref($ARGV[1],$ARGV[2],$ARGV[0]);"\
-       "for $__i(0..@__R-1){print ($__R[$__i],\"\\n\");};"\
+       "for $__i(0..@__R-1){print ($__R[$__i],\" \");};"\
        "sub __findref {my($__prfx,$__tag,$__df) = @_; my($__fnd,$__reg); $__fnd=1;"\
        "$__reg = $__prfx . $__tag;"\
        "open(__R,$__df); while (<__R>) {if (/$__reg\\s*=\\s*/) {$__fnd=0; "\
@@ -300,27 +300,38 @@ void SetPerlCommand(char *string,const char *datafile,const char *prefix,const c
        "{my($__prfx,$__fld,$__df)=@_; my($__t); while ($__fld =~ m/<([^>]+)>/g) "\
        "{$__t=$1; $__v=__findref($__prfx,\"$__t\",$__df); "\
        "$__fld =~ s/<$__t>/$__v/} return $__fld;}' %s '%s' '%s'"};
-   sprintf(string,format,datafile,prefix,tag);
+   char format2[]=
+      {"perl -e 'use Math::Trig; $R=findref($ARGV[1],$ARGV[2],$ARGV[0]); print $R;"\
+       "sub findref {my($prfx,$tag,$df) = @_; my($fnd,$reg); $fnd=1;"\
+       "$reg = $prfx . $tag;"\
+       "open(R,$df); while (<R>) {if (/$reg/) {$fnd=0; "\
+       "$_=deref($prfx,$_,$df); split(\"=\",$_); return eval($_[1]);}} "\
+       "close(R); if ($fnd == 1) {exit $fnd;}} sub deref "\
+       "{my($prfx,$fld,$df)=@_; my($t); while ($fld =~ m/<([^>]+)>/g) "\
+       "{$t=$1; $v=findref($prfx,\"$t\",$df); "\
+       "$fld =~ s/<$t>/$v/} return $fld;}' %s '%s' '%s'"};
+   
+   sprintf(string,format1,datafile,prefix,tag);
 }
 
 FILE *OpenPipe(const char *command,const char *mode)
 {
    FILE *pipe;
-
+   
    pipe=popen(command,mode);
    if (!pipe)
    {
       cerr << "popen failed! -- " << command << endl;
       exit(-1);
    }
-
+   
    return pipe;
 }
 
 void Errfun(const char *string)
 {
    cerr << "Error -- Unable to find : "
-	<< string << endl;
+        << string << endl;
 }
 
 //======================================================================
@@ -352,33 +363,33 @@ unsigned FullScanRank1Convex3D(Matrix K, double dx)
       Pi2 = 2*Pi;
    double phi,theta;
    double n[3];
-
+   
    for (phi = -Piby2;phi < Piby2;phi += dx)
    {
       for (theta = 0;theta < Pi2;theta += dx)
       {
-	 n[0] = cos(phi)*cos(theta);
-	 n[1] = cos(phi)*sin(theta);
-	 n[2] = sin(phi);
-
-	 // Acoustic tensor
-	 for (int i=0;i<3;i++)
-	    for (int j=0;j<3;j++)
-	    {
-	       A[i][j] = 0.0;
-	       for (int k=0;k<3;k++)
-		  for (int l=0;l<3;l++)
-		  {
-		     A[i][j] += K[IND3D(k,i)][IND3D(j,l)] * n[k] * n[l];
-		  }
-	    }
-
-	 Eigvals = SymEigVal(A);
-	 for(int i=0;i<3;i++)
-	    if (Eigvals[0][i] <= 0.0) return 0;
+         n[0] = cos(phi)*cos(theta);
+         n[1] = cos(phi)*sin(theta);
+         n[2] = sin(phi);
+         
+         // Acoustic tensor
+         for (int i=0;i<3;i++)
+            for (int j=0;j<3;j++)
+            {
+               A[i][j] = 0.0;
+               for (int k=0;k<3;k++)
+                  for (int l=0;l<3;l++)
+                  {
+                     A[i][j] += K[IND3D(k,i)][IND3D(j,l)] * n[k] * n[l];
+                  }
+            }
+         
+         Eigvals = SymEigVal(A);
+         for(int i=0;i<3;i++)
+            if (Eigvals[0][i] <= 0.0) return 0;
       }
    }
-
+   
    return 1;
 }
 
@@ -390,7 +401,7 @@ unsigned FullScanRank1Convex2D(Matrix K, double dx)
    double Pi2 = 2*Pi;
    double theta;
    double n[2];
-
+   
    for (theta = 0;theta < Pi2;theta += dx)
    {
       n[0] = cos(theta);
@@ -398,19 +409,19 @@ unsigned FullScanRank1Convex2D(Matrix K, double dx)
       
       // Acoustic tensor
       for (int i=0;i<2;i++)
-	 for (int j=0;j<2;j++)
-	 {
-	    A[i][j] = 0.0;
-	    for (int k=0;k<2;k++)
-	       for (int l=0;l<2;l++)
-	       {
-		  A[i][j] += K[IND2D(k,i)][IND2D(j,l)] * n[k] * n[l];
-	       }
-	 }
+         for (int j=0;j<2;j++)
+         {
+            A[i][j] = 0.0;
+            for (int k=0;k<2;k++)
+               for (int l=0;l<2;l++)
+               {
+                  A[i][j] += K[IND2D(k,i)][IND2D(j,l)] * n[k] * n[l];
+               }
+         }
       
       Eigvals = SymEigVal(A);
       for(int i=0;i<2;i++)
-	 if (Eigvals[0][i] <= 0.0) return 0;
+         if (Eigvals[0][i] <= 0.0) return 0;
    }
    
    return 1;
@@ -426,52 +437,52 @@ unsigned Rank1Convex3D(Matrix K,double dx)
    {
       n[0] = cos(theta);
       n[1] = sin(theta);
-
+      
       for (int i=0;i<3;i++)
-	 for (int j=0;j<3;j++)
-	    for (int k=0;k<3;k++)
-	       A[i][j][k] = MyComplexDouble(0.0,0.0);
-
-
+         for (int j=0;j<3;j++)
+            for (int k=0;k<3;k++)
+               A[i][j][k] = MyComplexDouble(0.0,0.0);
+      
+      
       // Calculate Aij Polynomials
       for (int i=0;i<3;i++)
       {
-	 for (int j=0;j<3;j++)
-	 {
-	    for (int k=0;k<2;k++)
-	    {
-	       for (int l=0;l<2;l++)
-	       {
-		  A[i][j][0] += K[IND3D(i,k)][IND3D(j,l)]*n[k]*n[l];
-	       }
-	       A[i][j][1] += K[IND3D(i,k)][IND3D(j,2)]*n[k]
-		  + K[IND3D(i,2)][IND3D(j,k)]*n[k];
-	    }
-	    A[i][j][2] = K[IND3D(i,2)][IND3D(j,2)];
-	 }
+         for (int j=0;j<3;j++)
+         {
+            for (int k=0;k<2;k++)
+            {
+               for (int l=0;l<2;l++)
+               {
+                  A[i][j][0] += K[IND3D(i,k)][IND3D(j,l)]*n[k]*n[l];
+               }
+               A[i][j][1] += K[IND3D(i,k)][IND3D(j,2)]*n[k]
+                  + K[IND3D(i,2)][IND3D(j,k)]*n[k];
+            }
+            A[i][j][2] = K[IND3D(i,2)][IND3D(j,2)];
+         }
       }
-
-
+      
+      
       MyComplexDouble Roots[6];
       MyComplexDouble SolveMe[7], PA[5], PB[5];
-
+      
       PolyRootsLaguerre(A[0][0],2,Roots,1);
       for (int i=0;i<2;i++) if (Roots[i].imag() == 0.0) return 0;
       
       // Only need to check the leading principal minors
       //PolyRootsLaguerre(A[1][1],2,Roots,1);
       //for (int i=0;i<2;i++) if (Roots[i].imag() == 0.0) return 0;
-
+      
       // Only need to check the leading principal minors
       //PolyRootsLaguerre(A[2][2],2,Roots,1);
       //for (int i=0;i<2;i++) if (Roots[i].imag() == 0.0) return 0;
-
+      
       PolyMult(A[0][0],2,A[1][1],2,PA);
       PolyMult(A[0][1],2,A[1][0],2,PB);
       for (int i=0;i<=4;i++) SolveMe[i] = PA[i] - PB[i];
       PolyRootsLaguerre(SolveMe,4,Roots,1);
       for (int i=0;i<4;i++) if (Roots[i].imag() == 0.0) return 0;
-
+      
       // Only need to check the leading principal minors
       //PolyMult(A[0][0],2,A[2][2],2,PA);
       //PolyMult(A[0][2],2,A[2][0],2,PB);
@@ -485,31 +496,31 @@ unsigned Rank1Convex3D(Matrix K,double dx)
       //for (int i=0;i<=4;i++) SolveMe[i] = PA[i] - PB[i];
       //PolyRootsLaguerre(SolveMe,4,Roots,1);
       //for (int i=0;i<4;i++) if (Roots[i].imag() == 0.0) return 0;
-
+      
       MyComplexDouble DA[7],DB[7],DC[7];
-
+      
       
       PolyMult(A[1][1],2,A[2][2],2,PA);
       PolyMult(A[1][2],2,A[2][1],2,PB);
       for (int i=0;i<=4;i++) PA[i] = PA[i] - PB[i];
       PolyMult(A[0][0],2,PA,4,DA);
-
+      
       PolyMult(A[1][0],2,A[2][2],2,PA);
       PolyMult(A[1][2],2,A[2][0],2,PB);
       for (int i=0;i<=4;i++) PA[i] = PA[i] - PB[i];
       PolyMult(A[0][1],2,PA,4,DB);
-
+      
       PolyMult(A[1][0],2,A[2][1],2,PA);
       PolyMult(A[1][1],2,A[2][0],2,PB);
       for (int i=0;i<=4;i++) PA[i] = PA[i] - PB[i];
       PolyMult(A[0][2],2,PA,4,DC);
-
+      
       for (int i=0;i<=6;i++) SolveMe[i] = DA[i] - DB[i] + DC[i];
-
+      
       PolyRootsLaguerre(SolveMe,6,Roots,1);
       for (int i=0;i<6;i++) if (Roots[i].imag() == 0.0) return 0;
    }
-
+   
    return 1;
 }
 
@@ -523,22 +534,22 @@ unsigned Rank1Convex2D(Matrix K,double dx)
    {
       n[0] = cos(theta);
       n[1] = sin(theta);
-
+      
       for (int i=0;i<2;i++)
-	 for (int j=0;j<2;j++)
-	    A[i][j] = 0.0;
-
-
+         for (int j=0;j<2;j++)
+            A[i][j] = 0.0;
+      
+      
       // Calculate Aij
       for (int i=0;i<2;i++)
-      	 for (int j=0;j<2;j++)
-	    for (int k=0;k<2;k++)
-	       for (int l=0;l<2;l++)
-	       {
-		  A[i][j] += K[IND2D(i,k)][IND2D(j,l)]*n[k]*n[l];
-	       }
-
-
+         for (int j=0;j<2;j++)
+            for (int k=0;k<2;k++)
+               for (int l=0;l<2;l++)
+               {
+                  A[i][j] += K[IND2D(i,k)][IND2D(j,l)]*n[k]*n[l];
+               }
+      
+      
       if (A[0][0] <= 0.0) return 0;
       // Only need to check the leading principal minors
       //if (A[1][1] <= 0.0) return 0;
@@ -567,7 +578,7 @@ Matrix TranslationProjection1D(int NoAtoms)
    int h,i, j, p, q, r, g, t, m, Rows, Columns, pow2_i;
    double  sum, x, y, R, log2_NoAtoms;
    int count=0;
-
+   
    Rows = NoAtoms;
    Columns = NoAtoms+1;
    
@@ -580,73 +591,73 @@ Matrix TranslationProjection1D(int NoAtoms)
    // The following generates floor(log2(NoAtoms)) vectors with
    // floor(double(NoAtoms)/pow(2,(i+1))) entry pairs
    log2_NoAtoms = log2(NoAtoms);
-
+   
    for (i=0; i < log2_NoAtoms;i++) // Generates floor(log2(NoAtoms)) entry pairs
    {
       m =  int(floor(double(NoAtoms)/pow(2,(i+1))));
       q=0;
       
       pow2_i = pow(2,i);
-
+      
       R = NoAtoms - (m*pow(2,(i+1)));
       q=1;
-	 
+      
       for (j=0;j<m;j++) //generates floor(double(NoAtoms)/pow(2,(i+1))) column vectors
       {
-	 sum=0.0;
-	 
-	 for (p=0;p<pow2_i;p++)
-	 {
-	    P[k][q]=1.0;
-	    sum += 1.0;
-	    q+=1;
-	 }
-	 
-	 for (p=0;p<pow2_i;p++)
-	 {
-	    P[k][q]=-1.0;
-	    sum += 1.0;
-	    q+=1;
-	 }
-	 
-	 sum = sqrt(sum);
-	 
-	 for(h=0;h<Columns;h++)
-	 {
-	    P[k][h] /= sum;
-	 }
-	 k+=1;
-	 
-	 //Generates remainder column vectors
-	 if ((j==m-1) && (R >= pow2_i))
-	 {
-	    sum = 0.0;
-	    
-	    r = (((pow2_i)*2*(m)));
-	    
-	    for (g=0;g<r;g++)
-	    {
-	       P[k][g+1]=1.0;
-	       sum += 1.0;
-	    }
-	    
-	    y=-(g)/(pow2_i);
-	    
-	    for (t=0;t<(pow2_i);t++)
-	    {
-	       P[k][g+1]=y;
-	       sum += pow(P[k][g+1],2);
-	       g+=1;
-	    }
-	    
-	    sum = sqrt(sum);
-	    
-	    for(h=0;h<Columns;h++)
-	    {
-	       P[k][h] /= sum;
-	    }
-	    k+=1;
-	 }
+         sum=0.0;
+         
+         for (p=0;p<pow2_i;p++)
+         {
+            P[k][q]=1.0;
+            sum += 1.0;
+            q+=1;
+         }
+         
+         for (p=0;p<pow2_i;p++)
+         {
+            P[k][q]=-1.0;
+            sum += 1.0;
+            q+=1;
+         }
+         
+         sum = sqrt(sum);
+         
+         for(h=0;h<Columns;h++)
+         {
+            P[k][h] /= sum;
+         }
+         k+=1;
+         
+         //Generates remainder column vectors
+         if ((j==m-1) && (R >= pow2_i))
+         {
+            sum = 0.0;
+            
+            r = (((pow2_i)*2*(m)));
+            
+            for (g=0;g<r;g++)
+            {
+               P[k][g+1]=1.0;
+               sum += 1.0;
+            }
+            
+            y=-(g)/(pow2_i);
+            
+            for (t=0;t<(pow2_i);t++)
+            {
+               P[k][g+1]=y;
+               sum += pow(P[k][g+1],2);
+               g+=1;
+            }
+            
+            sum = sqrt(sum);
+            
+            for(h=0;h<Columns;h++)
+            {
+               P[k][h] /= sum;
+            }
+            k+=1;
+         }
       } // closes column vector (j) index
    } //closes entry pair (i) index
    
@@ -684,97 +695,97 @@ Matrix TranslationProjection3D(int Fsize, int NoAtoms)
       qx=Fsize;
       qy=qx+1;
       qz=qy+1;
-
+      
       R = NoAtoms - (m*pow(2,(i+1)));
       
       for (j=0;j<m;j++)
       {
-	 sum = 0.0;
-	 
-	 for (p=0;p<pow2_i;p++)
-	 {
-	    P[kx][qx]=1.0;
-	    P[ky][qy]=1.0;
-	    P[kz][qz]=1.0;
-	    sum += 1.0;
-	    qx+=DIM3;
-	    qy+=DIM3;
-	    qz+=DIM3;
-	 }
-	 
-	 for (p=0;p<pow2_i;p++)
-	 {
-	    P[kx][qx]=-1.0;
-	    P[ky][qy]=-1.0;
-	    P[kz][qz]=-1.0;
-	    sum += 1.0;
-	    qx+=DIM3;
-	    qy+=DIM3;
-	    qz+=DIM3;
-	 }
-	 
-	 sum = sqrt(sum);		
-	 
-	 //normalize
-	 for (h=Fsize;h<Columns; h++)
-	 {
-	    P[kx][h] /= sum;
-	    P[ky][h] /= sum;
-	    P[kz][h] /= sum;
-	 }
-	 kx+=DIM3;
-	 ky+=DIM3;
-	 kz+=DIM3;
-
-	 // remainder vectors
-	 if ((j==m-1) && (R >= pow2_i))
-	 {
-	    sum = 0.0;
-	    
-	    wx=Fsize;
-	    wy=wx+1;
-	    wz=wy+1;
-	    
-	    r=(((pow2_i)*2*(m)));
-	    
-	    for (g=0;g<r;g++)
-	    {
-	       P[kx][wx]=1.0;
-	       P[ky][wy]=1.0;
-	       P[kz][wz]=1.0;
-	       sum += 1.0;
-	       wx += DIM3;
-	       wy += DIM3;
-	       wz += DIM3;
-	    }
-	    
-	    y=-(g)/(pow2_i);
-	    
-	    for (t=0;t<(pow2_i);t++)
-	    {
-	       P[kx][wx]=y;
-	       P[ky][wy]=y;
-	       P[kz][wz]=y;
-	       sum += pow(P[kx][wx],2);
-	       wx += DIM3;
-	       wy += DIM3;
-	       wz += DIM3;
-	    }
-	    
-	    sum=sqrt(sum);
-	    
-	    //normalize
-	    for (h=Fsize;h<Columns; h++)
-	    {
-	       P[kx][h] /= sum;
-	       P[ky][h] /= sum;
-	       P[kz][h] /= sum;
-	    }
-	    
-	    kx+=DIM3;
-	    ky+=DIM3;
-	    kz+=DIM3;
-	 }
+         sum = 0.0;
+         
+         for (p=0;p<pow2_i;p++)
+         {
+            P[kx][qx]=1.0;
+            P[ky][qy]=1.0;
+            P[kz][qz]=1.0;
+            sum += 1.0;
+            qx+=DIM3;
+            qy+=DIM3;
+            qz+=DIM3;
+         }
+         
+         for (p=0;p<pow2_i;p++)
+         {
+            P[kx][qx]=-1.0;
+            P[ky][qy]=-1.0;
+            P[kz][qz]=-1.0;
+            sum += 1.0;
+            qx+=DIM3;
+            qy+=DIM3;
+            qz+=DIM3;
+         }
+         
+         sum = sqrt(sum);
+         
+         //normalize
+         for (h=Fsize;h<Columns; h++)
+         {
+            P[kx][h] /= sum;
+            P[ky][h] /= sum;
+            P[kz][h] /= sum;
+         }
+         kx+=DIM3;
+         ky+=DIM3;
+         kz+=DIM3;
+         
+         // remainder vectors
+         if ((j==m-1) && (R >= pow2_i))
+         {
+            sum = 0.0;
+            
+            wx=Fsize;
+            wy=wx+1;
+            wz=wy+1;
+            
+            r=(((pow2_i)*2*(m)));
+            
+            for (g=0;g<r;g++)
+            {
+               P[kx][wx]=1.0;
+               P[ky][wy]=1.0;
+               P[kz][wz]=1.0;
+               sum += 1.0;
+               wx += DIM3;
+               wy += DIM3;
+               wz += DIM3;
+            }
+            
+            y=-(g)/(pow2_i);
+            
+            for (t=0;t<(pow2_i);t++)
+            {
+               P[kx][wx]=y;
+               P[ky][wy]=y;
+               P[kz][wz]=y;
+               sum += pow(P[kx][wx],2);
+               wx += DIM3;
+               wy += DIM3;
+               wz += DIM3;
+            }
+            
+            sum=sqrt(sum);
+            
+            //normalize
+            for (h=Fsize;h<Columns; h++)
+            {
+               P[kx][h] /= sum;
+               P[ky][h] /= sum;
+               P[kz][h] /= sum;
+            }
+            
+            kx+=DIM3;
+            ky+=DIM3;
+            kz+=DIM3;
+         }
       }//closes j
    }//closes i
    

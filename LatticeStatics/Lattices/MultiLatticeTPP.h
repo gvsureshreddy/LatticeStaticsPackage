@@ -21,7 +21,7 @@ private:
    const static int DIM3 = 3;
    
    int INTERNAL_ATOMS;
-
+   
    double InfluenceDist_;
    double NTemp_;
    // DOF[i] = [F00 F01 F02 F10 F11 F12 F20 F21 F22 S00 S01 S02 S11 S12 S13 S21... ...]
@@ -47,27 +47,27 @@ private:
    Vector *BodyForce_;
    double *SpeciesMass_;
    double *AtomicMass_;
-
+   
    PPSum LatSum_;
-
+   
    UnitCellIterator UCIter_;
    int GridSize_;
-
+   
    //Pair Potential data
    int NumberofSpecies_;
    int AtomSpecies_[100]; // Max number of atoms in unit cell. might need to be changed...
    PairPotentials ***SpeciesPotential_;
    PairPotentials ***Potential_;
-
+   
    // Misc
    double ConvexityDX_;
-
+   
    double energy(PairPotentials::TDeriv dt=PairPotentials::T0);
    Matrix stress(PairPotentials::TDeriv dt=PairPotentials::T0,LDeriv dl=L0);
    Matrix stiffness(PairPotentials::TDeriv dt=PairPotentials::T0,
-		    LDeriv dl=L0);
+                    LDeriv dl=L0);
    Matrix CondensedModuli();
-
+   
    void ReferenceDispersionCurves(Vector K,int NoPTS,const char *prefix,ostream &out);
    int ReferenceBlochWave(Vector &K);
    CMatrix ReferenceDynamicalStiffness(Vector &K);
@@ -79,11 +79,11 @@ private:
    // compair function for qsort
    static int comp(const void *a,const void *b);
    static int abscomp(const void *a,const void *b);
-
+   
 public:
    const Vector& AtomPositions(int i) {return CBK_->AtomPositions(i);}
-
-
+   
+   
    // Virtual Functions required by Lattice
    Vector DOF() {return CBK_->DOF();}
    void SetDOF(const Vector &dof) {CBK_->SetDOF(dof); LatSum_.Recalc();}
@@ -99,7 +99,7 @@ public:
    virtual Matrix E1DLoad() {return (LoadParameter_==Temperature)?StressDT():StressDL();}
    double Lambda() {return Lambda_;}
    void SetLambda(const double &lambda) {Lambda_ = lambda;}
-
+   
    virtual double E0();
    virtual Matrix E1();
    virtual Matrix E2();
@@ -110,12 +110,12 @@ public:
    virtual int BlochWave(Vector &K)
    {return ReferenceBlochWave(K);}
    virtual void LongWavelengthModuli(double dk,int gridsize,const char *prefix,
-				     ostream &out);
+                                     ostream &out);
    virtual void SetGridSize(int Grid) {GridSize_=Grid; UCIter_(GridSize_);}
    virtual void NeighborDistances(int cutoff,ostream &out);
    virtual void DebugMode();
    virtual void Print(ostream &out,PrintDetail flag);
-
+   
    void PrintCurrentCrystalParamaters(ostream &out);
    
    // Functions provided by MultiLatticeTPP
@@ -128,7 +128,7 @@ public:
    double NormModulus() const {return NormModulus_;}
    Matrix ThermalExpansion();
    friend ostream &operator<<(ostream &out,MultiLatticeTPP &A);
-
+   
 private:
    int FindLatticeSpacing(char *datafile,const char *prefix,int iter);
    void RefineEqbm(double Tol,int MaxItr,ostream *out);

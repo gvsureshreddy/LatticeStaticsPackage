@@ -16,7 +16,7 @@ class Lattice
 public:
    int Echo_;
    int dbg_;
-
+   
    enum LoadType {Temperature,Load};
    enum StateType {LHS,RHS,CRITPT};
    LoadType LoadParameter_;
@@ -48,15 +48,15 @@ public:
    virtual void DispersionCurves(Vector K,int NoPTS,const char *prefix,ostream &out) {};
    virtual int BlochWave(Vector &K) {return -1;}
    virtual void LongWavelengthModuli(double dk,int gridsize,const char *prefix,
-				     ostream &out) {};
+                                     ostream &out) {};
    virtual void SetGridSize(int Grid) = 0;
    virtual void NeighborDistances(int cutoff,ostream &out) {};
    virtual void CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
-				  double Tolerance,char *datafile,const char *prefix,
-				  int Width,ostream &out);
+                                  double Tolerance,char *datafile,const char *prefix,
+                                  int Width,ostream &out);
    void ConsistencyCheck(double ConsistencyEpsilon,int Width,ostream &out);
    virtual void DebugMode() {};
-
+   
    enum PrintDetail {PrintLong,PrintShort};
    virtual void Print(ostream &out,PrintDetail flag) = 0;
    friend ostream &operator<<(ostream &out,Lattice *L)

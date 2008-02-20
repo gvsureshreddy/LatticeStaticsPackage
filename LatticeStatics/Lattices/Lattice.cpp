@@ -39,8 +39,8 @@ int Lattice::TestFunctions(Vector &TF1, StateType State , Vector *TF2)
       
       for (int i=0;i<size;i++)
       {
-	 if (EV1[0][i] < 0.0) NoNegEigVal++;
-	 TF1[i]=EV1[0][i];
+         if (EV1[0][i] < 0.0) NoNegEigVal++;
+         TF1[i]=EV1[0][i];
       }
       
       return NoNegEigVal;
@@ -49,8 +49,8 @@ int Lattice::TestFunctions(Vector &TF1, StateType State , Vector *TF2)
    {
       if(TF2 == NULL)
       {
-	 cerr << "Error in Lattice::TestFunctions(): TF2 == NULL" << endl;
-	 exit(-53);
+         cerr << "Error in Lattice::TestFunctions(): TF2 == NULL" << endl;
+         exit(-53);
       }
       
       EV1 = SymEigVal(Stiffness_1, &EigVect);
@@ -59,40 +59,40 @@ int Lattice::TestFunctions(Vector &TF1, StateType State , Vector *TF2)
       //Stiffness_temp = Stiffness_2 * EigVect
       for (int i =0; i<size; i++)
       {
-	 for (int j=0; j<size; j++)
-	 {
-	    sum = 0.0;
-	    for(int k=0; k<size; k++)
-	    {
-	       sum += Stiffness_2[i][k] * EigVect[k][j];
-	    }
-	    Stiffness_temp[i][j] = sum;
-	 }
+         for (int j=0; j<size; j++)
+         {
+            sum = 0.0;
+            for(int k=0; k<size; k++)
+            {
+               sum += Stiffness_2[i][k] * EigVect[k][j];
+            }
+            Stiffness_temp[i][j] = sum;
+         }
       }
       //stiffness_diagonalized = Eigvect.Transpose() * Stiffness_temp
       for(int i=0; i<size; i++)
       {
-	 for(int j=0; j<size; j++)
-	 {
-	    sum = 0.0;
-	    for (int k=0; k<size; k++)
-	    {
-	       sum += EigVect[k][i] * Stiffness_temp[k][j];
-	    }
-	    Stiffness_diagonalized[i][j] = sum;
-	 }
+         for(int j=0; j<size; j++)
+         {
+            sum = 0.0;
+            for (int k=0; k<size; k++)
+            {
+               sum += EigVect[k][i] * Stiffness_temp[k][j];
+            }
+            Stiffness_diagonalized[i][j] = sum;
+         }
       }
       
       EV2 = SymEigVal(Stiffness_diagonalized);
       Diff_NoNegEigVal = 0;
       for (int i=0;i<size;i++)
       {
-	 if ((EV1[0][i] * EV2[0][i]) < 0.0)
-	 {
-	    Diff_NoNegEigVal += 1;
-	 }
-	 TF1[i]=EV1[0][i];
-	 (*TF2)[i]=EV2[0][i];
+         if ((EV1[0][i] * EV2[0][i]) < 0.0)
+         {
+            Diff_NoNegEigVal += 1;
+         }
+         TF1[i]=EV1[0][i];
+         (*TF2)[i]=EV2[0][i];
       }
       
       return Diff_NoNegEigVal;
@@ -103,28 +103,28 @@ int Lattice::TestFunctions(Vector &TF1, StateType State , Vector *TF2)
       
       for (int i=0; i<size; i++)
       {
-	 for (int j=0; j<size; j++)
-	 {
-	    sum = 0.0;
-	    for(int k=0; k<size; k++)
-	    {
-	       sum += Stiffness_3[i][k] * EigVect[k][j];
-	    }
-	    Stiffness_temp[i][j] = sum;
-	 }
+         for (int j=0; j<size; j++)
+         {
+            sum = 0.0;
+            for(int k=0; k<size; k++)
+            {
+               sum += Stiffness_3[i][k] * EigVect[k][j];
+            }
+            Stiffness_temp[i][j] = sum;
+         }
       }
       //stiffness_diagonalized = Eigvect.Transpose() * Stiffness_temp
       for(int i=0; i<size; i++)
       {
-	 for(int j=0; j<size; j++)
-	 {
-	    sum = 0.0;
-	    for (int k=0; k<size; k++)
-	    {
-	       sum += EigVect[k][i] * Stiffness_temp[k][j];
-	    }
-	    Stiffness_diagonalized[i][j] = sum;
-	 }
+         for(int j=0; j<size; j++)
+         {
+            sum = 0.0;
+            for (int k=0; k<size; k++)
+            {
+               sum += EigVect[k][i] * Stiffness_temp[k][j];
+            }
+            Stiffness_diagonalized[i][j] = sum;
+         }
       }
       
       //cout << "STIFFNESS_DIAGONALIZED = " << endl << setw(15)
@@ -135,8 +135,8 @@ int Lattice::TestFunctions(Vector &TF1, StateType State , Vector *TF2)
       
       for (int i=0;i<size;i++)
       {
-	 if (EV1[0][i] < 0.0) NoNegEigVal++;
-	 TF1[i]=EV1[0][i];
+         if (EV1[0][i] < 0.0) NoNegEigVal++;
+         TF1[i]=EV1[0][i];
       }
       
       return NoNegEigVal;
@@ -144,13 +144,13 @@ int Lattice::TestFunctions(Vector &TF1, StateType State , Vector *TF2)
 }
 
 void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
-				double Tolerance,char *datafile,const char *prefix,
-				int Width,ostream &out)
+                                double Tolerance,char *datafile,const char *prefix,
+                                int Width,ostream &out)
 {
    
    const char *thirdorderchoices[] = {"No","Yes"};
    int thirdorder=GetStringParameter(prefix,"CriticalPoint_T2",datafile,
-				     thirdorderchoices,2);
+                                     thirdorderchoices,2);
    if (thirdorder < 0) exit(-1);
    
    Matrix
@@ -193,7 +193,7 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
       Ind[i] = 0;
       if (fabs(EigVal[0][i]) < Tolerance)
       {
-	 Ind[count++]=i;
+         Ind[count++]=i;
       }
    }
    
@@ -203,37 +203,37 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
       int skp;
       for (int j=count;j<NumZeroEigenVals;++j)
       {
-	 Ind[count] = 0;
-	 int a=0;
-	 while ((Ind[count] == Ind[a]) && (a < j))
-	 {
-	    (Ind[count])++;
-	    a++;
-	 }
-	 
-	 for (int i=1;i<dofs;++i)
-	 {
-	    skp=0;
-	    for (int k=0;k<count;++k)
-	    {
-	       if (Ind[k] == i) skp=1;
-	    }
-	    
-	    if (!skp)
-	    {
-	       if (fabs(EigVal[0][i]) < fabs(EigVal[0][Ind[count]]))
-		  Ind[count] = i;
-	    }
-	 }
-	 count++;
+         Ind[count] = 0;
+         int a=0;
+         while ((Ind[count] == Ind[a]) && (a < j))
+         {
+            (Ind[count])++;
+            a++;
+         }
+         
+         for (int i=1;i<dofs;++i)
+         {
+            skp=0;
+            for (int k=0;k<count;++k)
+            {
+               if (Ind[k] == i) skp=1;
+            }
+            
+            if (!skp)
+            {
+               if (fabs(EigVal[0][i]) < fabs(EigVal[0][Ind[count]]))
+                  Ind[count] = i;
+            }
+         }
+         count++;
       }
       
       out << "NOTE: Incorrect number of zero eigenvalues found. "
-	  << "Modes with smallest abs. value used." << endl;
+          << "Modes with smallest abs. value used." << endl;
       if (Echo_)
       {
-	 cout << "NOTE: Incorrect number of zero eigenvalues found. "
-	      << "Modes with smallest abs. value used." << endl;
+         cout << "NOTE: Incorrect number of zero eigenvalues found. "
+              << "Modes with smallest abs. value used." << endl;
       }
    }
    
@@ -243,7 +243,7 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
    if (Echo_)
    {
       for (int i=0;i<count;++i)
-	 cout << "Mode[" << i << "] DOF: " << Ind[i] << ",  ";
+         cout << "Mode[" << i << "] DOF: " << Ind[i] << ",  ";
       cout << endl;
    }
    
@@ -259,7 +259,7 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
    {
       for (int j=0;j<dofs;j++)
       {
-	 Mode[i][j] = EigVec[j][Ind[i]];
+         Mode[i][j] = EigVec[j][Ind[i]];
       }
    }
    
@@ -270,31 +270,31 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
    // Eijk
    for (int i=0;i<count;i++)
       for (int j=0;j<count;j++)
-	 for (int k=0;k<count;k++)
-	 {
-	    Eijk[i][j][k] = 0.0;
-	    for (int a=0;a<dofs;a++)
-	       for (int b=0;b<dofs;b++)
-		  for (int c=0;c<dofs;c++)
-		  {
-		     Eijk[i][j][k] += D3[a*dofs + b][c]*Mode[i][a]*Mode[j][b]*Mode[k][c];
-		  }
-	 }
+         for (int k=0;k<count;k++)
+         {
+            Eijk[i][j][k] = 0.0;
+            for (int a=0;a<dofs;a++)
+               for (int b=0;b<dofs;b++)
+                  for (int c=0;c<dofs;c++)
+                  {
+                     Eijk[i][j][k] += D3[a*dofs + b][c]*Mode[i][a]*Mode[j][b]*Mode[k][c];
+                  }
+         }
    
    //EijT
    for (int i=0;i<count;i++)
       for (int j=0;j<count;j++)
       {
-	 EijT[i][j] = 0.0;
-	 for (int a=0;a<dofs;a++)
-	    for (int b=0;b<dofs;b++)
-	    {
-	       for (int c=0;c<dofs;c++)
-	       {
-		  EijT[i][j] += D3[a*dofs + b][c]*DrDt[c]*Mode[i][a]*Mode[j][b];
-	       }
-	       EijT[i][j] += D2T[a][b]*Mode[i][a]*Mode[j][b];
-	    }
+         EijT[i][j] = 0.0;
+         for (int a=0;a<dofs;a++)
+            for (int b=0;b<dofs;b++)
+            {
+               for (int c=0;c<dofs;c++)
+               {
+                  EijT[i][j] += D3[a*dofs + b][c]*DrDt[c]*Mode[i][a]*Mode[j][b];
+               }
+               EijT[i][j] += D2T[a][b]*Mode[i][a]*Mode[j][b];
+            }
       }
    
    // Print out results
@@ -311,7 +311,7 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
       double z=0.0;
       for (int j=0;j<dofs;++j)
       {
-	 z+= Mode[i][j]*D1T[0][j];
+         z+= Mode[i][j]*D1T[0][j];
       }
       out << "StressDT*Mode[" << i << "] = " << setw(Width) << z << endl;
       if (Echo_) cout << "StressDT*Mode[" << i << "] = " << setw(Width) << z << endl;
@@ -329,38 +329,38 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
    for (int i=0;i<count;i++)
    {
       for (int j=0;j<count;j++)
-	 for (int k=j;k<count;k++)
-	 {
-	    if (Echo_) cout << "(" << setw(Width)
-			    << Eijk[i][j][k] + ( (j==k)?0.0:Eijk[i][k][j] )
-			    << ")a_" << j
-			    << "a_"  << k
-			    << " + ";
-	    out << "(" << setw(Width)
-		<< Eijk[i][j][k] + ( (j==k)?0.0:Eijk[i][k][j] )
-		<< ")a_" << j
-		<< "a_"  << k
-		<< " + ";
-	 }
+         for (int k=j;k<count;k++)
+         {
+            if (Echo_) cout << "(" << setw(Width)
+                            << Eijk[i][j][k] + ( (j==k)?0.0:Eijk[i][k][j] )
+                            << ")a_" << j
+                            << "a_"  << k
+                            << " + ";
+            out << "(" << setw(Width)
+                << Eijk[i][j][k] + ( (j==k)?0.0:Eijk[i][k][j] )
+                << ")a_" << j
+                << "a_"  << k
+                << " + ";
+         }
       
       out << "2T_1( ";
       if (Echo_) cout << "2T_1( ";
       
       for (int j=0;j<count-1;j++)
       {
-	 if (Echo_) cout << "(" << setw(Width)
-			 << EijT[i][j]
-			 << ")a_" << j
-			 << " + ";
-	 out << "(" << setw(Width)
-	     << EijT[i][j]
-	     << ")a_" << j
-	     << " + ";
+         if (Echo_) cout << "(" << setw(Width)
+                         << EijT[i][j]
+                         << ")a_" << j
+                         << " + ";
+         out << "(" << setw(Width)
+             << EijT[i][j]
+             << ")a_" << j
+             << " + ";
       }
       if (Echo_) cout << "(" << setw(Width) << EijT[i][count-1] << ")a_" << count-1
-		      << " ) = 0" << endl;
+                      << " ) = 0" << endl;
       out << "(" << setw(Width) << EijT[i][count-1] << ")a_" << count-1
-	  << " ) = 0" << endl;
+          << " ) = 0" << endl;
    }
    
    //------- output coefficients ----------
@@ -371,13 +371,13 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
    for (int i=0;i<count;++i)
       for (int j=0;j<count;++j)
       {
-	 for (int k=0;k<count;++k)
-	 {
-	    out << setw(Width) << Eijk[i][j][k];
-	    if (Echo_) cout << setw(Width) << Eijk[i][j][k];
-	 }
-	 out << endl;
-	 if (Echo_) cout << endl;
+         for (int k=0;k<count;++k)
+         {
+            out << setw(Width) << Eijk[i][j][k];
+            if (Echo_) cout << setw(Width) << Eijk[i][j][k];
+         }
+         out << endl;
+         if (Echo_) cout << endl;
       }
    out << endl;
    if (Echo_) cout << endl;
@@ -388,8 +388,8 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
    {
       for (int j=0;j<count;++j)
       {
-	 out << setw(Width) << EijT[i][j];
-	 if (Echo_) cout << setw(Width) << EijT[i][j];
+         out << setw(Width) << EijT[i][j];
+         if (Echo_) cout << setw(Width) << EijT[i][j];
       }
       out << endl;
       if (Echo_) cout << endl;
@@ -402,88 +402,88 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
    if (thirdorder)
    {
       double Eijkl[BIFMAX][BIFMAX][BIFMAX][BIFMAX],
-	 Vij[BIFMAX][BIFMAX][DOFMAX];
+         Vij[BIFMAX][BIFMAX][DOFMAX];
       Matrix D4=E4(),
-	 S(dofs-count,dofs);
+         S(dofs-count,dofs);
       
       // Create projection operator
       for (int t=0,j=0,i=0;i<dofs;i++)
       {
-	 if (Ind[t] == i)
-	 {
-	    t++;
-	    continue;
-	 }
-	 else
-	 {
-	    for (int k=0;k<dofs;k++)
-	    {
-	       S[j][k] = EigVec[k][i];
-	    }
-	    j++;
-	 }
+         if (Ind[t] == i)
+         {
+            t++;
+            continue;
+         }
+         else
+         {
+            for (int k=0;k<dofs;k++)
+            {
+               S[j][k] = EigVec[k][i];
+            }
+            j++;
+         }
       }
       
       Matrix Ainv=(S*D2*S.Transpose()).Inverse();
       Matrix b(dofs-count,1);
       
       for (int i=0;i<count;i++)
-	 for (int j=0;j<count;j++)
-	 {
-	    for (int n=0;n<dofs-count;n++)
-	    {
-	       b[n][0] = 0.0;
-	       for (int k=0;k<dofs;k++)
-		  for (int l=0;l<dofs;l++)
-		     for (int m=0;m<dofs;m++)
-		     {
-			b[n][0] += -S[n][k]*D3[k*dofs + l][m]*Mode[i][l]*Mode[j][m];
-		     }
-	    }
-	    
-	    if (Echo_) cout << endl << "V[" << i << "][" << j << "]=";
-	    out << endl << "V[" << i << "][" << j << "]=";
-	    
-	    for (int k=0;k<dofs;k++)
-	    {
-	       Vij[i][j][k] = 0.0;
-	       for (int l=0;l<dofs-count;l++)
-		  for (int m=0;m<dofs-count;m++)
-		  {
-		     Vij[i][j][k] += S[l][k]*Ainv[l][m]*b[m][0];
-		  }
-	       if (Echo_) cout << setw(Width) << Vij[i][j][k];
-	       out << setw(Width) << Vij[i][j][k];
-	    }
-	 }
+         for (int j=0;j<count;j++)
+         {
+            for (int n=0;n<dofs-count;n++)
+            {
+               b[n][0] = 0.0;
+               for (int k=0;k<dofs;k++)
+                  for (int l=0;l<dofs;l++)
+                     for (int m=0;m<dofs;m++)
+                     {
+                        b[n][0] += -S[n][k]*D3[k*dofs + l][m]*Mode[i][l]*Mode[j][m];
+                     }
+            }
+            
+            if (Echo_) cout << endl << "V[" << i << "][" << j << "]=";
+            out << endl << "V[" << i << "][" << j << "]=";
+            
+            for (int k=0;k<dofs;k++)
+            {
+               Vij[i][j][k] = 0.0;
+               for (int l=0;l<dofs-count;l++)
+                  for (int m=0;m<dofs-count;m++)
+                  {
+                     Vij[i][j][k] += S[l][k]*Ainv[l][m]*b[m][0];
+                  }
+               if (Echo_) cout << setw(Width) << Vij[i][j][k];
+               out << setw(Width) << Vij[i][j][k];
+            }
+         }
       if (Echo_) cout << endl;
       out << endl;
       
       // Eijkl
       for (int i=0;i<count;i++)
-	 for (int j=0;j<count;j++)
-	    for (int k=0;k<count;k++)
-	       for (int l=0;l<count;l++)
-	       {
-		  Eijkl[i][j][k][l] = 0.0;
-		  for (int m=0;m<dofs;m++)
-		     for (int n=0;n<dofs;n++)
-			for (int p=0;p<dofs;p++)
-			   for (int q=0;q<dofs;q++)
-			   {
-			      Eijkl[i][j][k][l] += D4[m*dofs + n][p*dofs + q]
-				 *Mode[i][m]*Mode[j][n]*Mode[k][p]*Mode[l][q];
-			   }
-		  for (int m=0;m<dofs;m++)
-		     for (int n=0;n<dofs;n++)
-			for (int p=0;p<dofs;p++)
-			{
-			   Eijkl[i][j][k][l] += D3[m*dofs + n][p]
-			      *Mode[i][m]*(Mode[j][n]*Vij[k][l][p]
-					   + Mode[k][n]*Vij[j][l][p]
-					   + Mode[l][n]*Vij[j][k][p]);
-			}
-	       }
+         for (int j=0;j<count;j++)
+            for (int k=0;k<count;k++)
+               for (int l=0;l<count;l++)
+               {
+                  Eijkl[i][j][k][l] = 0.0;
+                  for (int m=0;m<dofs;m++)
+                     for (int n=0;n<dofs;n++)
+                        for (int p=0;p<dofs;p++)
+                           for (int q=0;q<dofs;q++)
+                           {
+                              Eijkl[i][j][k][l] += D4[m*dofs + n][p*dofs + q]
+                                 *Mode[i][m]*Mode[j][n]*Mode[k][p]*Mode[l][q];
+                           }
+                  for (int m=0;m<dofs;m++)
+                     for (int n=0;n<dofs;n++)
+                        for (int p=0;p<dofs;p++)
+                        {
+                           Eijkl[i][j][k][l] += D3[m*dofs + n][p]
+                              *Mode[i][m]*(Mode[j][n]*Vij[k][l][p]
+                                           + Mode[k][n]*Vij[j][l][p]
+                                           + Mode[l][n]*Vij[j][k][p]);
+                        }
+               }
       
       // Print out results
       if (Echo_) cout << endl << "3rd Order Bifurcation Equations:" << endl;
@@ -491,61 +491,61 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
       
       for (int i=0;i<count;i++)
       {
-	 for (int j=0;j<count;j++)
-	    for (int k=j;k<count;k++)
-	       for (int l=k;l<count;l++)
-	       {
-		  if (Echo_) cout << "(" << setw(Width)
-				  << Eijkl[i][j][k][l] + ( (j==k)?0.0:Eijkl[i][k][j][l] )
-				+ ( (j==l)?0.0:Eijkl[i][l][k][j] ) + ( (k==l)?0.0:Eijkl[i][j][l][k] )
-				  << ")a_" << j
-				  << "a_"  << k
-				  << "a_"  << l
-				  << " + ";
-		  out << "(" << setw(Width)
-		      << Eijkl[i][j][k][l] + ( (j==k)?0.0:Eijkl[i][k][j][l] )
-		     + ( (j==l)?0.0:Eijkl[i][l][k][j] ) + ( (k==l)?0.0:Eijkl[i][j][l][k] )
-		      << ")a_" << j
-		      << "a_"  << k
-		      << "a_"  << l
-		      << " + ";
-	       }
-	 
-	 if (Echo_) cout << "3T_2( ";
-	 out << "3T_2( ";
-	 
-	 for (int j=0;j<count-1;j++)
-	 {
-	    if (Echo_) cout << "(" << setw(Width)
-			    << EijT[i][j]
-			    << ")a_" << j
-			    << " + ";
-	    out << "(" << setw(Width)
-		<< EijT[i][j]
-		<< ")a_" << j
-		<< " + ";
-	 }
-	 if (Echo_) cout << "(" << setw(Width) << EijT[i][count-1] << ")a_" << count-1
-			 << " ) = 0" << endl;
-	 out << "(" << setw(Width) << EijT[i][count-1] << ")a_" << count-1
-	     << " ) = 0" << endl;
+         for (int j=0;j<count;j++)
+            for (int k=j;k<count;k++)
+               for (int l=k;l<count;l++)
+               {
+                  if (Echo_) cout << "(" << setw(Width)
+                                  << Eijkl[i][j][k][l] + ( (j==k)?0.0:Eijkl[i][k][j][l] )
+                                + ( (j==l)?0.0:Eijkl[i][l][k][j] ) + ( (k==l)?0.0:Eijkl[i][j][l][k] )
+                                  << ")a_" << j
+                                  << "a_"  << k
+                                  << "a_"  << l
+                                  << " + ";
+                  out << "(" << setw(Width)
+                      << Eijkl[i][j][k][l] + ( (j==k)?0.0:Eijkl[i][k][j][l] )
+                     + ( (j==l)?0.0:Eijkl[i][l][k][j] ) + ( (k==l)?0.0:Eijkl[i][j][l][k] )
+                      << ")a_" << j
+                      << "a_"  << k
+                      << "a_"  << l
+                      << " + ";
+               }
+         
+         if (Echo_) cout << "3T_2( ";
+         out << "3T_2( ";
+         
+         for (int j=0;j<count-1;j++)
+         {
+            if (Echo_) cout << "(" << setw(Width)
+                            << EijT[i][j]
+                            << ")a_" << j
+                            << " + ";
+            out << "(" << setw(Width)
+                << EijT[i][j]
+                << ")a_" << j
+                << " + ";
+         }
+         if (Echo_) cout << "(" << setw(Width) << EijT[i][count-1] << ")a_" << count-1
+                         << " ) = 0" << endl;
+         out << "(" << setw(Width) << EijT[i][count-1] << ")a_" << count-1
+             << " ) = 0" << endl;
       }
       
       //-------- output coefficients -----------
       out << endl << "Eijkl = " << endl;
       if (Echo_) cout << endl << "Eijkl = " << endl;
       for (int i=0;i<count;++i)
-	 for (int j=0;j<count;++j)
-	 {
-	    for (int k=0;k<count;++k)
-	       for (int l=0;l<count;++l)
-	       {
-		  out << setw(Width) << Eijkl[i][j][k][l];
-		  if (Echo_) cout << setw(Width) << Eijkl[i][j][k][l];
-	       }
-	    out << endl;
-	    if (Echo_) cout << endl;
-	 }
+         for (int j=0;j<count;++j)
+         {
+            for (int k=0;k<count;++k)
+               for (int l=0;l<count;++l)
+               {
+                  out << setw(Width) << Eijkl[i][j][k][l];
+                  if (Echo_) cout << setw(Width) << Eijkl[i][j][k][l];
+               }
+            out << endl;
+            if (Echo_) cout << endl;
+         }
       out << endl;
       if (Echo_) cout << endl;
       // ----------------------------
@@ -569,8 +569,8 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
    {
       if (EnterDebugMode())
       {
-	 cout << setw(Width);
-	 DebugMode();
+         cout << setw(Width);
+         DebugMode();
       }
    }
    return;
@@ -643,24 +643,24 @@ void Lattice::ConsistencyCheck(double ConsistencyEpsilon,int Width,ostream &out)
       if (Do4) d32 = E3();
       for (int j=0;j<Dim;j++)
       {
-	 if (Do2) PerturbedStiff[j][i] = stress2[0][j] - stress1[0][j];
-	 
-	 if (Do3 || Do4)
-	 {
-	    for (int k=0;k<Dim;++k)
-	    {
-	       if (Do3) PerturbedD3[k*Dim + j][i] = stiff2[k][j] - stiff1[k][j];
-	       
-	       if (Do4)
-	       {
-		  for (int l=0;l<Dim;++l)
-		  {
-		     PerturbedD4[l*Dim + k][j*Dim + i]
-			= d32[l*Dim + k][j] - d31[l*Dim + k][j];
-		  }
-	       }
-	    }
-	 }
+         if (Do2) PerturbedStiff[j][i] = stress2[0][j] - stress1[0][j];
+         
+         if (Do3 || Do4)
+         {
+            for (int k=0;k<Dim;++k)
+            {
+               if (Do3) PerturbedD3[k*Dim + j][i] = stiff2[k][j] - stiff1[k][j];
+               
+               if (Do4)
+               {
+                  for (int l=0;l<Dim;++l)
+                  {
+                     PerturbedD4[l*Dim + k][j*Dim + i]
+                        = d32[l*Dim + k][j] - d31[l*Dim + k][j];
+                  }
+               }
+            }
+         }
       }
    }
    // Set Lattice back to originalstate
@@ -676,26 +676,26 @@ void Lattice::ConsistencyCheck(double ConsistencyEpsilon,int Width,ostream &out)
       
       if (Do2)
       {
-	 cout << "E2(U)*Epsilon" << endl;
-	 cout << setw(Width) << Stiff << endl;
-	 cout << "E2(U + Epsilon*Vj)" << endl;
-	 cout << setw(Width) << PerturbedStiff << endl;
+         cout << "E2(U)*Epsilon" << endl;
+         cout << setw(Width) << Stiff << endl;
+         cout << "E2(U + Epsilon*Vj)" << endl;
+         cout << setw(Width) << PerturbedStiff << endl;
       }
       
       if (Do3)
       {
-	 cout << "E3(U)*Epsilon" << endl;
-	 cout << setw(Width) << D3 << endl;
-	 cout << "E3(U + Epsilon*Vj)" << endl;
-	 cout << setw(Width) << PerturbedD3 << endl;
+         cout << "E3(U)*Epsilon" << endl;
+         cout << setw(Width) << D3 << endl;
+         cout << "E3(U + Epsilon*Vj)" << endl;
+         cout << setw(Width) << PerturbedD3 << endl;
       }
       
       if (Do4)
       {
-	 cout << "E4(U)*Epsilon" << endl;
-	 cout << setw(Width) << D4 << endl;
-	 cout << "E4(U + Epsilon*Vj)" << endl;
-	 cout << setw(Width) << PerturbedD4 << endl;
+         cout << "E4(U)*Epsilon" << endl;
+         cout << setw(Width) << D4 << endl;
+         cout << "E4(U + Epsilon*Vj)" << endl;
+         cout << setw(Width) << PerturbedD4 << endl;
       }
       
       cout << "Difference" << endl;
