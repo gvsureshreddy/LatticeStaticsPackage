@@ -3,8 +3,8 @@
 #include "UtilityFunctions.h"
 
 SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
-				   char *startfile,Lattice *Lat,fstream &out,int Width,
-				   int Echo)
+                                   char *startfile,Lattice *Lat,fstream &out,int Width,
+                                   int Echo)
 {
    char slvmthd[LINELENGTH];
    
@@ -31,92 +31,98 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
    {
       case Scanning:
       {
-	 return new ScanningSolution(Mode,datafile,"^",Echo);
+         return new ScanningSolution(Mode,datafile,"^",Echo);
       }
       case ArcLen:
       {
-	 int good = 1;
-	 int count = 0;
-	 Vector One = Mode->ModeDOF(),
-	    Two = Mode->ModeDOF();
-	 
-	 if ( startfile == NULL)
-	 {
-	    ScanningSolution ScanMe(Mode,datafile,"^",Echo);
-	    
-	    while (!ScanMe.AllSolutionsFound())
-	    {
-	       One = Two;
-	       ScanMe.FindNextSolution(good);
-	       if (good)
-	       {
-		  count++;
-		  out << setw(Width) << Lat << "Success = 1" << endl;
-		  Two = Mode->ModeDOF();
-	       }
-	    }
-	    
-	    if (count < 2)
-	    {
-	       cout << "Did not find two solutions with Scanning Solutions with "
-		    << "which to initialize ArcLengthSolution." << endl;
-	       exit(-55);
-	    }
-	    else
-	    {
-	       return new ArcLengthSolution(Mode,datafile,"^",One,Two,Echo);
-	    }
-	 }
-	 else
-	 {
-	    return new ArcLengthSolution(Mode,datafile,"^",startfile,out,Echo);
-	 }
+         int good = 1;
+         int count = 0;
+         Vector One = Mode->ModeDOF(),
+            Two = Mode->ModeDOF();
+         
+         if ( startfile == NULL)
+         {
+            ScanningSolution ScanMe(Mode,datafile,"^",Echo);
+            
+            while (!ScanMe.AllSolutionsFound())
+            {
+               One = Two;
+               ScanMe.FindNextSolution(good);
+               if (good)
+               {
+                  count++;
+                  out << setw(Width) << Lat << "Success = 1" << endl;
+                  Two = Mode->ModeDOF();
+               }
+            }
+            
+            if (count < 2)
+            {
+               cout << "Did not find two solutions with Scanning Solutions with "
+                    << "which to initialize ArcLengthSolution." << endl;
+               exit(-55);
+            }
+            else
+            {
+               return new ArcLengthSolution(Mode,datafile,"^",One,Two,Echo);
+            }
+         }
+         else
+         {
+            return new ArcLengthSolution(Mode,datafile,"^",startfile,out,Echo);
+         }
       }
       case NewtonPC:
       {
-	 int good=1;
-	 int count=0;
-	 Vector One(Mode->ModeDOF().Dim());
-	 if ( startfile == NULL)
-	 {
-	    ScanningSolution ScanMe(Mode,datafile,"^",Echo);
-	    
-	    ScanMe.FindNextSolution(good);
-	    if (good)
-	    {
-	       count++;
-	       out << setw(Width) << Lat << "Success = 1" << endl;
-	       One = Mode->ModeDOF();
-	       return new NewtonPCSolution(Mode,datafile,"^", One,Echo);
-	    }
-	 }
-	 else
-	 {
-	    return new NewtonPCSolution(Mode,datafile,"^",startfile,out,Echo);
-	 }
+         int good=1;
+         int count=0;
+         int Direction;
+         Vector One(Mode->ModeDOF().Dim());
+         if (startfile == NULL)
+         {
+            if(!GetParameter("^","Direction",datafile,'u',&Direction)) exit(-1);
+            
+            ScanningSolution ScanMe(Mode,datafile,"^",Echo);
+            
+            ScanMe.FindNextSolution(good);
+            if (good)
+            {
+               count++;
+               out << setw(Width) << Lat << "Success = 1" << endl;
+               One = Mode->ModeDOF();
+               return new NewtonPCSolution(Mode,datafile,"^", One,Echo, Direction);
+            }
+         }
+         else
+         {
+            return new NewtonPCSolution(Mode,datafile,"^",startfile,out,Echo);
+         }
       }
       case NewtonUpdatePC:
       {
-	 int good=1;
-	 int count=0;
-	 Vector One(Mode->ModeDOF().Dim());
-	 if ( startfile == NULL)
-	 {
-	    ScanningSolution ScanMe(Mode,datafile,"^",Echo);
-	    
-	    ScanMe.FindNextSolution(good);
-	    if (good)
-	    {
-	       count++;
-	       out << setw(Width) << Lat << "Success = 1" << endl;
-	       One = Mode->ModeDOF();
-	       return new NewtonUpdatePCSolution(Mode,datafile,"^", One,Echo);
-	    }
-	 }
-	 else
-	 {
-	    return new NewtonUpdatePCSolution(Mode,datafile,"^",startfile,out,Echo);
-	 }
+         int good=1;
+         int count=0;
+         int Direction;
+         Vector One(Mode->ModeDOF().Dim());
+         if (startfile == NULL)
+         {
+            if(!GetParameter("^","Direction",datafile,'u',&Direction)) exit(-1);
+            
+            ScanningSolution ScanMe(Mode,datafile,"^",Echo);
+            
+            ScanMe.FindNextSolution(good);
+            if (good)
+            {
+               count++;
+               out << setw(Width) << Lat << "Success = 1" << endl;
+               One = Mode->ModeDOF();
+               return new NewtonUpdatePCSolution(Mode,datafile,"^", One,Echo, Direction);
+            }
+         }
+         else
+         {
+            return new NewtonUpdatePCSolution(Mode,datafile,"^",startfile,out,Echo);
+         }
       }
    }
    

@@ -70,10 +70,9 @@ int main(int argc, char *argv[])
    if (Echo) cout << "Mode: " << Mode->ModeName() << endl;
    
    int success = 1;
-   int Nulity=-1,
-      OldNulity=Nulity;
-   double LeftMinEV=1.0, RightMinEV=1.0;
-   Matrix EigenValues(1,Lat->DOF().Dim());
+   int TestValue=-1,
+      OldTestValue=TestValue;
+   Vector EigenValues(Lat->DOF().Dim());
    
    while (!SolveMe->AllSolutionsFound())
    {
@@ -82,13 +81,10 @@ int main(int argc, char *argv[])
       if (success)
       {
 	 // Check for Critical Point Crossing
-	 OldNulity = Nulity;
-	 LeftMinEV = RightMinEV;
-	 Nulity = Lat->StiffnessNulity(EigenValues);
-	 RightMinEV=EigenValues[0][0]; // not correct
-	 if ((OldNulity != Nulity) && (BisectCP == Yes) && (OldNulity != -1))
-	    SolveMe->FindCriticalPoint(OldNulity,LeftMinEV,Nulity,RightMinEV,Lat,
-				       datafile,"^",Width,out);
+	 OldTestValue = TestValue;
+	 TestValue = Lat->TestFunctions(EigenValues);
+	 if ((OldTestValue != TestValue) && (BisectCP == Yes) && (OldTestValue != -1))
+	    SolveMe->FindCriticalPoint(Lat,datafile,"^",Width,out);
 	 
 	 // Send Output
 	 out << setw(Width) << Lat << "Success = 1" << endl;

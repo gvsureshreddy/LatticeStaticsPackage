@@ -16,6 +16,7 @@ private:
    int CurrentSolution_;
    int Echo_;
    int NumSolutions_;
+   int Direction_;
    
    double MaxDS_;
    double CurrentDS_;		//initial Steplength h > 0
@@ -30,12 +31,12 @@ private:
    Vector Tangent1_;		//Tangent vector of ith point
    Vector Tangent2_;		//Tangent Vector of ith + 1 point
    
-   void MoorePenrose(const Matrix& Q,const Matrix& R,const Vector& Force,Vector& Corrector);
+   void MoorePenrose(const Matrix &Q,const Matrix &R,const Vector &Force,Vector &Corrector);
    
 public:
    Vector Previous_Solution_;
    NewtonUpdatePCSolution(LatticeMode *Mode,char *datafile,const char *prefix,const Vector &one,
-			  int Echo=1);
+			  int Echo=1,  int Direction=0);
    NewtonUpdatePCSolution(LatticeMode *Mode,char *datafile,const char *prefix,char *startfile,
 			  fstream &out,int Echo);
    ~NewtonUpdatePCSolution() {}
@@ -43,8 +44,8 @@ public:
    // Functions required by SolutionMethod
    virtual int AllSolutionsFound();
    virtual double FindNextSolution(int &good);
-   virtual int FindCriticalPoint(int LHN,double LHEV,int RHN,double RHEV,Lattice *Lat,
-				 char *datafile,const char *prefix,int Width,fstream &out);
+   virtual int FindCriticalPoint(Lattice *Lat,char *datafile,const char *prefix,int Width,
+                                 fstream &out);
 };
 
 #endif

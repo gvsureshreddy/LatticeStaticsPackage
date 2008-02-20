@@ -34,9 +34,12 @@ private:
    
    double ArcLengthNewton(int &good);
    void ConsistencyCheck(Vector &Solution1,Vector &Solution2,
-			 double ConsistencyEpsilon,int Width,fstream &out);
+                         double ConsistencyEpsilon,int Width,fstream &out);
    virtual int OldFindCriticalPoint(int LHN,double LHEV,int RHN,double RHEV,Lattice *Lat,
-				    char *datafile,const char *prefix,int Width,fstream &out);
+                                    char *datafile,const char *prefix,int Width,fstream &out);
+   double ZBrent(Lattice *Lat,int track,double fa,double fb,
+                 const Vector &OriginalDiff,const double OriginalDS,
+                 const int TestValueDiff,int *Index,int &Repeat,int CP);
    
    Vector ArcLenForce(double DS,const Vector &Diff,double Aspect);
    Vector ArcLenDef() {return Mode_->ModeDOF();}
@@ -47,9 +50,9 @@ private:
    
 public:
    ArcLengthSolution(LatticeMode *Mode,char *datafile,const char *prefix,
-		     const Vector &one,const Vector &two,int Echo=1);
+                     const Vector &one,const Vector &two,int Echo=1);
    ArcLengthSolution(LatticeMode *Mode,char *datafile,const char *prefix,
-		     char *startfile,fstream &out,int Echo=1);
+                     char *startfile,fstream &out,int Echo=1);
    ~ArcLengthSolution() {}
    
    double GetAspect() {return Aspect_;}
@@ -58,8 +61,8 @@ public:
    // Functions required by SolutionMethod
    virtual int AllSolutionsFound();
    virtual double FindNextSolution(int &good);
-   virtual int FindCriticalPoint(int LHN,double LHEV,int RHN,double RHEV,Lattice *Lat,
-				 char *datafile,const char *prefix,int Width,fstream &out);
+   virtual int FindCriticalPoint(Lattice *Lat,
+                                 char *datafile,const char *prefix,int Width,fstream &out);
 };
 
 #endif

@@ -13,50 +13,147 @@ void Lattice::SetLoadParameter(const double &load)
    }
 }
 
-int Lattice::StiffnessNulity(Matrix &EigenValues)
+int Lattice::TestFunctions(Vector &TF1, StateType State , Vector *TF2)
 {
-   static Matrix OldEigenValues = Matrix().SetIdentity(DOF().Dim());
-   static Matrix temp1(DOF().Dim(),DOF().Dim());
-   static Matrix temp2(DOF().Dim(),DOF().Dim());
+   static int size =DOF().Dim();
+   static Matrix Stiffness_1=E2();
+   static Matrix Stiffness_2=Stiffness_1;
+   static Matrix Stiffness_3(size, size);
+   static Matrix Stiffness_temp(size, size);
+   static Matrix Stiffness_diagonalized(size, size);
+   static Matrix EigVect(size, size);
+   static Matrix EV1(1,size),EV2(1,size);
    
+   double sum;
    int NoNegEigVal = 0;
-   int index = 0;
-
-   temp1 = E2();
-   temp1 = temp1*OldEigenValues;
-   temp1 = (OldEigenValues.Transpose())*temp1;
-   EigenValues=SymEigVal(temp1,&temp2);
-   OldEigenValues = OldEigenValues*temp2;
-
-   int dofs=EigenValues.Cols();
-
-   //if (Min != NULL) *Min = fabs(EigenValues[0][0]);
-   for (int i=0;i<dofs;i++)
+   int temp1, temp2;
+   int Diff_NoNegEigVal;
+   
+   
+   if (State == LHS)
    {
-      if (EigenValues[0][i] < 0.0) NoNegEigVal++;
-      //if ((Min != NULL)
-      //&& (fabs(EigenValues[0][i]) < *Min))
-      //{
-      //*Min = fabs(EigenValues[0][i]);
-      //index = i;
-      //}
+      Stiffness_1 = Stiffness_2;
+      Stiffness_2 = E2();
+      
+      EV1 = SymEigVal(Stiffness_2);
+      
+      for (int i=0;i<size;i++)
+      {
+	 if (EV1[0][i] < 0.0) NoNegEigVal++;
+	 TF1[i]=EV1[0][i];
+      }
+      
+      return NoNegEigVal;
    }
-
-   //if (Min != NULL) *Min = EigenValues[0][index];
-   return NoNegEigVal;
+   if (State == RHS)
+   {
+      if(TF2 == NULL)
+      {
+	 cerr << "Error in Lattice::TestFunctions(): TF2 == NULL" << endl;
+	 exit(-53);
+      }
+      
+      EV1 = SymEigVal(Stiffness_1, &EigVect);
+      
+      // Stiffness_diagonalized = EigVect.Transpose() * (Stiffness_2 * EigVect)
+      //Stiffness_temp = Stiffness_2 * EigVect
+      for (int i =0; i<size; i++)
+      {
+	 for (int j=0; j<size; j++)
+	 {
+	    sum = 0.0;
+	    for(int k=0; k<size; k++)
+	    {
+	       sum += Stiffness_2[i][k] * EigVect[k][j];
+	    }
+	    Stiffness_temp[i][j] = sum;
+	 }
+      }
+      //stiffness_diagonalized = Eigvect.Transpose() * Stiffness_temp
+      for(int i=0; i<size; i++)
+      {
+	 for(int j=0; j<size; j++)
+	 {
+	    sum = 0.0;
+	    for (int k=0; k<size; k++)
+	    {
+	       sum += EigVect[k][i] * Stiffness_temp[k][j];
+	    }
+	    Stiffness_diagonalized[i][j] = sum;
+	 }
+      }
+      
+      EV2 = SymEigVal(Stiffness_diagonalized);
+      Diff_NoNegEigVal = 0;
+      for (int i=0;i<size;i++)
+      {
+	 if ((EV1[0][i] * EV2[0][i]) < 0.0)
+	 {
+	    Diff_NoNegEigVal += 1;
+	 }
+	 TF1[i]=EV1[0][i];
+	 (*TF2)[i]=EV2[0][i];
+      }
+      
+      return Diff_NoNegEigVal;
+   }
+   if (State == CRITPT)
+   {
+      Stiffness_3 = E2();
+      
+      for (int i=0; i<size; i++)
+      {
+	 for (int j=0; j<size; j++)
+	 {
+	    sum = 0.0;
+	    for(int k=0; k<size; k++)
+	    {
+	       sum += Stiffness_3[i][k] * EigVect[k][j];
+	    }
+	    Stiffness_temp[i][j] = sum;
+	 }
+      }
+      //stiffness_diagonalized = Eigvect.Transpose() * Stiffness_temp
+      for(int i=0; i<size; i++)
+      {
+	 for(int j=0; j<size; j++)
+	 {
+	    sum = 0.0;
+	    for (int k=0; k<size; k++)
+	    {
+	       sum += EigVect[k][i] * Stiffness_temp[k][j];
+	    }
+	    Stiffness_diagonalized[i][j] = sum;
+	 }
+      }
+      
+      //cout << "STIFFNESS_DIAGONALIZED = " << endl << setw(15)
+      //<< Stiffness_diagonalized << endl << endl;
+      
+      EV1 = SymEigVal(Stiffness_diagonalized);
+      //EV1 = SymEigVal(Stiffness_diagonalized,&EigVect);
+      
+      for (int i=0;i<size;i++)
+      {
+	 if (EV1[0][i] < 0.0) NoNegEigVal++;
+	 TF1[i]=EV1[0][i];
+      }
+      
+      return NoNegEigVal;
+   }
 }
 
 void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
 				double Tolerance,char *datafile,const char *prefix,
 				int Width,ostream &out)
 {
-
+   
    const char *thirdorderchoices[] = {"No","Yes"};
    int thirdorder=GetStringParameter(prefix,"CriticalPoint_T2",datafile,
 				     thirdorderchoices,2);
    if (thirdorder < 0) exit(-1);
    
-   Matrix 
+   Matrix
       D3=E3(),
       D2=E2(),
       D2T(D2.Rows(),D2.Cols()),
@@ -86,11 +183,11 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
    double
       Eijk[BIFMAX][BIFMAX][BIFMAX],
       EijT[BIFMAX][BIFMAX];
-
+   
    // Find the modes
    int count = 0,
       Ind[DOFMAX];
-
+   
    for (int i=0;i<dofs;i++)
    {
       Ind[i] = 0;
@@ -99,7 +196,7 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
 	 Ind[count++]=i;
       }
    }
-
+   
    // Check for incorrect number of modes
    if (count != NumZeroEigenVals)
    {
@@ -121,7 +218,7 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
 	    {
 	       if (Ind[k] == i) skp=1;
 	    }
-
+	    
 	    if (!skp)
 	    {
 	       if (fabs(EigVal[0][i]) < fabs(EigVal[0][Ind[count]]))
@@ -139,7 +236,7 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
 	      << "Modes with smallest abs. value used." << endl;
       }
    }
-
+   
    for (int i=0;i<count;++i)
       out << "Mode[" << i << "] DOF: " << Ind[i] << ",  ";
    out << endl;
@@ -149,7 +246,7 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
 	 cout << "Mode[" << i << "] DOF: " << Ind[i] << ",  ";
       cout << endl;
    }
-
+   
    if (BIFMAX < count)
    {
       cerr << "Error: BIFMAX < " << count << " in Lattice.h" << endl;
@@ -157,7 +254,7 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
    }
    
    Mode.Resize(count,dofs);
-
+   
    for (int i=0;i<count;i++)
    {
       for (int j=0;j<dofs;j++)
@@ -165,7 +262,7 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
 	 Mode[i][j] = EigVec[j][Ind[i]];
       }
    }
-
+   
    // Print out the Eigenvectors
    out << "EigenVectors" << endl << setw(Width) << EigVec;
    if (Echo_) cout << "EigenVectors" << endl << setw(Width) << EigVec;
@@ -199,7 +296,7 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
 	       EijT[i][j] += D2T[a][b]*Mode[i][a]*Mode[j][b];
 	    }
       }
-
+   
    // Print out results
    for (int i=0;i<70;i++)
    {
@@ -207,7 +304,7 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
       if (Echo_) cout << "-";
    }
    out << endl; if (Echo_) cout << endl;
-
+   
    // Print out the critical point character test (Limit-load/Bifurcation)
    for (int i=0;i<count;++i)
    {
@@ -223,12 +320,12 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
    
    out << endl << endl << "2nd Order Bifurcation Equations:" << endl;
    if (Echo_) cout << endl << endl << "2nd Order Bifurcation Equations:" << endl;
-
+   
    int prec = out.precision();
-
+   
    out.flags(ios::scientific); out << setprecision(prec/2);
    if (Echo_) cout.flags(ios::scientific); cout << setprecision(prec/2);
-
+   
    for (int i=0;i<count;i++)
    {
       for (int j=0;j<count;j++)
@@ -245,7 +342,7 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
 		<< "a_"  << k
 		<< " + ";
 	 }
-
+      
       out << "2T_1( ";
       if (Echo_) cout << "2T_1( ";
       
@@ -265,7 +362,7 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
       out << "(" << setw(Width) << EijT[i][count-1] << ")a_" << count-1
 	  << " ) = 0" << endl;
    }
-
+   
    //------- output coefficients ----------
    out << endl << "DrDt = " << setw(Width) << DrDt << endl;
    if (Echo_) cout << endl << "DrDt = " << setw(Width) << DrDt << endl;
@@ -300,15 +397,15 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
    out << endl;
    if (Echo_) cout << endl;
    // ----------------------------
-
-
+   
+   
    if (thirdorder)
    {
       double Eijkl[BIFMAX][BIFMAX][BIFMAX][BIFMAX],
 	 Vij[BIFMAX][BIFMAX][DOFMAX];
       Matrix D4=E4(),
 	 S(dofs-count,dofs);
-
+      
       // Create projection operator
       for (int t=0,j=0,i=0;i<dofs;i++)
       {
@@ -326,10 +423,10 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
 	    j++;
 	 }
       }
-
+      
       Matrix Ainv=(S*D2*S.Transpose()).Inverse();
       Matrix b(dofs-count,1);
-
+      
       for (int i=0;i<count;i++)
 	 for (int j=0;j<count;j++)
 	 {
@@ -343,10 +440,10 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
 			b[n][0] += -S[n][k]*D3[k*dofs + l][m]*Mode[i][l]*Mode[j][m];
 		     }
 	    }
-
+	    
 	    if (Echo_) cout << endl << "V[" << i << "][" << j << "]=";
 	    out << endl << "V[" << i << "][" << j << "]=";
-
+	    
 	    for (int k=0;k<dofs;k++)
 	    {
 	       Vij[i][j][k] = 0.0;
@@ -361,7 +458,7 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
 	 }
       if (Echo_) cout << endl;
       out << endl;
-
+      
       // Eijkl
       for (int i=0;i<count;i++)
 	 for (int j=0;j<count;j++)
@@ -383,11 +480,11 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
 			{
 			   Eijkl[i][j][k][l] += D3[m*dofs + n][p]
 			      *Mode[i][m]*(Mode[j][n]*Vij[k][l][p]
-					    + Mode[k][n]*Vij[j][l][p]
-					    + Mode[l][n]*Vij[j][k][p]);
+					   + Mode[k][n]*Vij[j][l][p]
+					   + Mode[l][n]*Vij[j][k][p]);
 			}
 	       }
-
+      
       // Print out results
       if (Echo_) cout << endl << "3rd Order Bifurcation Equations:" << endl;
       out <<  endl << "3rd Order Bifurcation Equations:" << endl;
@@ -433,7 +530,7 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
 	 out << "(" << setw(Width) << EijT[i][count-1] << ")a_" << count-1
 	     << " ) = 0" << endl;
       }
-
+      
       //-------- output coefficients -----------
       out << endl << "Eijkl = " << endl;
       if (Echo_) cout << endl << "Eijkl = " << endl;
@@ -453,7 +550,7 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
       if (Echo_) cout << endl;
       // ----------------------------
    }
-
+   
    out.flags(ios::fixed); out << setprecision(prec);
    if (Echo_) cout.flags(ios::fixed); cout << setprecision(prec);
    
@@ -466,7 +563,7 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
    }
    if (Echo_) cout << endl;
    out << endl;
-
+   
    
    if (dbg_)
    {
@@ -504,10 +601,10 @@ void Lattice::ConsistencyCheck(double ConsistencyEpsilon,int Width,ostream &out)
    
    // Get current state
    OriginalState = DOF();
-
+   
    out.flags(ios::scientific);
    if (Echo_) cout.flags(ios::scientific);
-
+   
    // Do Consistency check
    int Do2=1,Do3=0,Do4=0;
    
@@ -518,17 +615,17 @@ void Lattice::ConsistencyCheck(double ConsistencyEpsilon,int Width,ostream &out)
    }
    for (int i=0;i<70;i++) out << "="; out << endl;
    out << "Consistency Check." << endl;
-
+   
    Force = ConsistencyEpsilon*E1();
-
+   
    cout << "For E2 (1-yes,0-no) :"; cin >> Do2;
    cout << "For E3 (1-yes,0-no) :"; cin >> Do3;
    cout << "For E4 (1-yes,0-no) :"; cin >> Do4;
-
+   
    if (Do2) Stiff = ConsistencyEpsilon*E2();
    if (Do3) D3 = ConsistencyEpsilon*E3();
    if (Do4) D4 = ConsistencyEpsilon*E4();
-
+   
    potential = E0();
    if (Do2) stress1 = E1();
    if (Do3) stiff1 = E2();
@@ -576,7 +673,7 @@ void Lattice::ConsistencyCheck(double ConsistencyEpsilon,int Width,ostream &out)
       cout << setw(Width) << Force << endl;
       cout << "E1(U + Epsilon*Vj)" << endl;
       cout << setw(Width) << PerturbedForce << endl;
-
+      
       if (Do2)
       {
 	 cout << "E2(U)*Epsilon" << endl;
@@ -584,7 +681,7 @@ void Lattice::ConsistencyCheck(double ConsistencyEpsilon,int Width,ostream &out)
 	 cout << "E2(U + Epsilon*Vj)" << endl;
 	 cout << setw(Width) << PerturbedStiff << endl;
       }
-
+      
       if (Do3)
       {
 	 cout << "E3(U)*Epsilon" << endl;
@@ -592,7 +689,7 @@ void Lattice::ConsistencyCheck(double ConsistencyEpsilon,int Width,ostream &out)
 	 cout << "E3(U + Epsilon*Vj)" << endl;
 	 cout << setw(Width) << PerturbedD3 << endl;
       }
-
+      
       if (Do4)
       {
 	 cout << "E4(U)*Epsilon" << endl;
@@ -600,19 +697,19 @@ void Lattice::ConsistencyCheck(double ConsistencyEpsilon,int Width,ostream &out)
 	 cout << "E4(U + Epsilon*Vj)" << endl;
 	 cout << setw(Width) << PerturbedD4 << endl;
       }
-
+      
       cout << "Difference" << endl;
       cout << setw(Width) << Force - PerturbedForce << endl << endl;
       if (Do2) cout << setw(Width) << Stiff - PerturbedStiff << endl;
       if (Do3) cout << setw(Width) << D3 - PerturbedD3 << endl;
       if (Do4) cout << setw(Width) << D4 - PerturbedD4 << endl;
    }
- 
+   
    out << "E1(U) * Epsilon" << endl;
    out << setw(Width) << Force << endl;
    out << "E1(U + Epsilon*Vj)" << endl;
    out << setw(Width) << PerturbedForce << endl;
-
+   
    if (Do2)
    {
       out << "E2(U)*Epsilon" << endl;
@@ -620,7 +717,7 @@ void Lattice::ConsistencyCheck(double ConsistencyEpsilon,int Width,ostream &out)
       out << "E2(U + Epsilon*Vj)" << endl;
       out << setw(Width) << PerturbedStiff << endl;
    }
-
+   
    if (Do3)
    {
       out << "E3(U)*Epsilon" << endl;
@@ -628,7 +725,7 @@ void Lattice::ConsistencyCheck(double ConsistencyEpsilon,int Width,ostream &out)
       out << "E3(U + Epsilon*Vj)" << endl;
       out << setw(Width) << PerturbedD3 << endl;
    }
-
+   
    if (Do4)
    {
       out << "E4(U)*Epsilon" << endl;
@@ -636,17 +733,17 @@ void Lattice::ConsistencyCheck(double ConsistencyEpsilon,int Width,ostream &out)
       out << "E4(U + Epsilon*Vj)" << endl;
       out << setw(Width) << PerturbedD4 << endl;
    }
-
+   
    out << "Difference" << endl;
    out << setw(Width) << Force - PerturbedForce << endl << endl;
    if (Do2) out << setw(Width) << Stiff - PerturbedStiff << endl;
    if (Do3) out << setw(Width) << D3 - PerturbedD3 << endl;
    if (Do4) out << setw(Width) << D4 - PerturbedD4 << endl;
-
+   
    out.flags(ios::fixed);
    if (Echo_) cout.flags(ios::fixed);
-
-
+   
+   
    if (Echo_)
    {
       for (int i=0;i<70;i++) cout << "="; cout << endl;

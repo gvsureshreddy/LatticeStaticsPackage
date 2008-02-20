@@ -18,6 +18,7 @@ public:
    int dbg_;
 
    enum LoadType {Temperature,Load};
+   enum StateType {LHS,RHS,CRITPT};
    LoadType LoadParameter_;
    LoadType LoadParameter() {return LoadParameter_;}
    
@@ -43,7 +44,7 @@ public:
    virtual Matrix E2() = 0;
    virtual Matrix E3() = 0;
    virtual Matrix E4() = 0;
-   virtual int StiffnessNulity(Matrix &EigenValues);
+   virtual int TestFunctions(Vector &TF1, StateType State = LHS, Vector *EV2= NULL);
    virtual void DispersionCurves(Vector K,int NoPTS,const char *prefix,ostream &out) {};
    virtual int BlochWave(Vector &K) {return -1;}
    virtual void LongWavelengthModuli(double dk,int gridsize,const char *prefix,

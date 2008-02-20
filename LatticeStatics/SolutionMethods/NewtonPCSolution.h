@@ -25,17 +25,18 @@ private:
    double Converge_;		//Convergence criteria
    double MinDSRatio_;		// Minimum Stepsize ratio
    int ClosedLoopStart_;	//Closed loop test variable
+   int Direction_;			//Direction of tangent
    
    Vector FirstSolution_;	//Initial point on curve
    Vector Tangent1_;		//Tangent vector of ith point
    Vector Tangent2_;		//Tangent Vector of ith + 1 point
    
-   void MoorePenrose(const Matrix& Q, const Matrix& R, const Vector& Force, Vector& Corrector);
+   void MoorePenrose(const Matrix &Q, const Matrix &R, const Vector &Force, Vector &Corrector);
    
 public:
    Vector Previous_Solution_;
    NewtonPCSolution(LatticeMode *Mode,char *datafile,const char *prefix,const Vector &one,
-		    int Echo=1);
+		    int Echo=1,  int Direction=0);
    NewtonPCSolution(LatticeMode *Mode,char *datafile,const char *prefix,char *startfile,
 		    fstream &out,int Echo);
    ~NewtonPCSolution() {}
@@ -43,8 +44,8 @@ public:
    // Functions required by SolutionMethod
    virtual int AllSolutionsFound();
    virtual double FindNextSolution(int &good);
-   virtual int FindCriticalPoint(int LHN,double LHEV,int RHN,double RHEV,Lattice *Lat,
-				 char *datafile,const char *prefix,int Width,fstream &out);
+   virtual int FindCriticalPoint(Lattice *Lat, char *datafile,const char *prefix,int Width,
+                                 fstream &out);
 };
 
 #endif
