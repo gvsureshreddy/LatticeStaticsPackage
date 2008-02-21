@@ -85,14 +85,24 @@ int Lattice::TestFunctions(Vector &TF1, StateType State , Vector *TF2)
       
       EV2 = SymEigVal(Stiffness_diagonalized);
       Diff_NoNegEigVal = 0;
+      NoNegEigVal = 0;
       for (int i=0;i<size;i++)
       {
+         NoNegEigVal += ((EV1[0][i] < 0.0) ? 1 : 0);
+         NoNegEigVal -= ((EV2[0][i] < 0.0) ? 1 : 0);
          if ((EV1[0][i] * EV2[0][i]) < 0.0)
          {
             Diff_NoNegEigVal += 1;
          }
          TF1[i]=EV1[0][i];
          (*TF2)[i]=EV2[0][i];
+      }
+      NoNegEigVal = (NoNegEigVal < 0) ? -NoNegEigVal : NoNegEigVal;
+      
+      if (Diff_NoNegEigVal != NoNegEigVal)
+      {
+         // return a negative number to indicate the error
+         Diff_NoNegEigVal = -Diff_NoNegEigVal;
       }
       
       return Diff_NoNegEigVal;

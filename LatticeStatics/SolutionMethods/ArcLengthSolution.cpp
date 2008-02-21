@@ -509,21 +509,39 @@ int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,char *datafile,const char 
    int TestValueDiff;
    int temp;
    int size = Lat->DOF().Dim();
-   static Vector EV_LHS(size);
-   static Vector EV_RHS(size);
+   static Vector TF_LHS(size);
+   static Vector TF_RHS(size);
+   static Vector CurrentTF(size);
    double fa,fb;
+   int Multiplicity;
    int track;
-   int Repeat;
    int num;
    int CP;
    int count;
    int spot;
    ostringstream in_string;
    
-   TestValueDiff= Lat->TestFunctions(EV_LHS, Lattice::RHS, &EV_RHS);
+   TestValueDiff= Lat->TestFunctions(TF_LHS, Lattice::RHS, &TF_RHS);
+   if (TestValueDiff < 0)
+   {
+      out << "Note: TestFunctions found a discrepancy between the\n"
+          << "Note: difference in number of negative Test Functions\n"
+          << "Note: and the number of Test Functions that change sign\n"
+          << "Note: from LeftHandSide to RightHandSide.  This is usually\n"
+          << "Note: caused by having too large of a path-following stepsize."
+          << endl;
+      if (Echo_)
+         cout << "Note: TestFunctions found a discrepancy between the\n"
+              << "Note: difference in number of negative Test Functions\n"
+              << "Note: and the number of Test Functions that change sign\n"
+              << "Note: from LeftHandSide to RightHandSide.  This is usually\n"
+              << "Note: caused by having too large of a path-following stepsize."
+              << endl;
+      TestValueDiff = -TestValueDiff;
+   }
    
-   cout << "EV_LHS = " << setw(15) << EV_LHS<< endl;
-   cout << "EV_RHS = " << setw(15) << EV_RHS << endl;
+   cout << "TF_LHS = " << setw(15) << TF_LHS<< endl;
+   cout << "TF_RHS = " << setw(15) << TF_RHS << endl;
    
    int *Index;
    Index = new int[TestValueDiff];
@@ -534,7 +552,7 @@ int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,char *datafile,const char 
    temp = 0;
    for (int i = 0; i< size; i++)
    {
-      if ((EV_LHS[i]*EV_RHS[i]) < 0.0)
+      if ((TF_LHS[i]*TF_RHS[i]) < 0.0)
       {
          Index[temp] = i;
          temp++;
@@ -551,18 +569,29 @@ int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,char *datafile,const char 
       }
    }
    
-   Repeat = 0;
    num = 0;
    for (CP= 0; CP < TestValueDiff; CP++)
    {
       track = Index[CP];
-      fa = EV_LHS[track];
-      fb = EV_RHS[track];
+      fa = TF_LHS[track];
+      fb = TF_RHS[track];
       
       if(track>=0) //START OF IF STATEMENT
       {
-         uncertainty = ZBrent(Lat, track,fa, fb, OriginalDiff, OriginalDS,TestValueDiff, Index,
-                              Repeat, CP);
+         uncertainty = ZBrent(Lat, track,fa, fb, OriginalDiff, OriginalDS, CurrentTF);
+         Multiplicity = 1;
+         for(int i=CP+1;i<TestValueDiff;i++)
+         {
+            temp = Index[i];
+            if(fabs(CurrentTF[temp]) <= BisectTolerance_)
+            {
+               Index[i] = -1;
+               Multiplicity++;
+               //cout <<"i = " << i << endl <<  "CHECK POINT INDEX[CP] = " << Index[i] << endl;
+            }
+         }
+         
+         // sort the critical points
          spot=num;
          while((spot!=0)&&(DSTrack[spot-1] > CurrentDS_) )
          {
@@ -596,16 +625,7 @@ int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,char *datafile,const char 
          in_string << endl;
          
          // Call Lattice function to do any Lattice Specific things
-         //  abs(RighthandNulity - LefthandNulity) is the number of zero eigenvalues
-         //  in a perfect situation. should check to see if this is found to be true.
-         //Lat->CriticalPointInfo(Mode_->DrDt(Difference_),abs(RighthandNulity-LefthandNulity),
-         //                BisectTolerance_,datafile,prefix,Width,out);
-         //////////////////////////////
-         //////////////////////////////
-         //////////////////////////////
-         //NEED TO SEE IF THIS IS THE RIGHT FORMAT.
-         //CHANGED ABS ARGUMENT BELOW. WHAT TO PUT INTO in_string???
-         Lat->CriticalPointInfo(Mode_->DrDt(Difference_),abs(TestValueDiff),
+         Lat->CriticalPointInfo(Mode_->DrDt(Difference_),Multiplicity,
                                 BisectTolerance_,datafile,prefix,Width,in_string);
          
          if (Echo_) cout << "Success = 1" << endl;
@@ -615,13 +635,11 @@ int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,char *datafile,const char 
          out_string[spot] = in_string.str();
          num = num + 1;
          in_string.str("");
-         
       }//END OF IF STATEMENT
    }
-   count = TestValueDiff - Repeat;
    
    ////PRINT OUT CP DATA
-   for (int i = 0; i < count; i++)
+   for (int i = 0; i < num; i++)
    {
       out <<out_string[i];
    }
@@ -639,7 +657,7 @@ int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,char *datafile,const char 
 
 double ArcLengthSolution::ZBrent(Lattice *Lat,int track,double fa,double fb,
                                  const Vector &OriginalDiff,const double OriginalDS,
-                                 const int TestValueDiff,int *Index,int &repeat,int CP)
+                                 Vector &CurrentTF)
 {
    Vector LastDiff(Difference_.Dim(),0.0);
    double LastDS;
@@ -647,10 +665,8 @@ double ArcLengthSolution::ZBrent(Lattice *Lat,int track,double fa,double fb,
    double uncertainty;
    int dummy = 1;
    int loops = 0;
-   int CurrentTestValue;
    double factor = 0.0;
    int size = Lat->DOF().Dim();
-   static Vector EV_New(size);
    int temp;
    
    b=OriginalDS;
@@ -666,9 +682,8 @@ double ArcLengthSolution::ZBrent(Lattice *Lat,int track,double fa,double fb,
    {
       if (Echo_)
       {
-         cout << setprecision(30) << "CurrentMinEV = " << fb << endl;
+         cout << setprecision(30) << "CurrentMinTF = " << fb << endl;
          cout << "CurrentDS_ =" << CurrentDS_ << setprecision(10) << endl;
-         cout << "CurrentTestValue = " << CurrentTestValue << endl << endl;
       }
       ArcLenUpdate(-Difference_);
       
@@ -699,13 +714,12 @@ double ArcLengthSolution::ZBrent(Lattice *Lat,int track,double fa,double fb,
          CurrentDS_ = LastDS;
          Difference_ = LastDiff;
          ArcLenUpdate(Difference_);
-         CurrentTestValue = Lat->TestFunctions(EV_New,Lattice::CRITPT);
-         fb=EV_New[track];
+         Lat->TestFunctions(CurrentTF,Lattice::CRITPT);
+         fb=CurrentTF[track];
          if(Echo_)
          {
-            cout <<setprecision(30)<<"CurrentMinEV = " << fb << endl;
+            cout <<setprecision(30)<<"CurrentMinTF = " << fb << endl;
             cout << "CurrentDS_ =" << CurrentDS_ <<setprecision(10)<< endl;
-            cout << "CurrentTestValue = " << CurrentTestValue << endl << endl;
          }
          break;
       }
@@ -768,26 +782,14 @@ double ArcLengthSolution::ZBrent(Lattice *Lat,int track,double fa,double fb,
       factor = OriginalDS/b;
       Difference_ = OriginalDiff/factor;
       uncertainty = ArcLengthNewton(dummy);
-      CurrentTestValue = Lat->TestFunctions(EV_New,Lattice::CRITPT);
+      Lat->TestFunctions(CurrentTF,Lattice::CRITPT);
       
-      fb=EV_New[track];
+      fb=CurrentTF[track];
       loops++;
       
-      //cout << "EV = " << endl << setw(15) << EV_New<< endl << endl;
-      //cout << "EV_New[track] = " << endl << EV_New[track]<< endl<< endl;
+      //cout << "CurrentTF = " << endl << setw(15) << CurrentTF << endl << endl;
+      //cout << "CurrentTF[track] = " << endl << CurrentTF[track]<< endl<< endl;
    }
    
-   for(int i=CP+1;i<TestValueDiff;i++)
-   {
-      temp = Index[i];
-      if(fabs(EV_New[temp]) <= BisectTolerance_)
-      {
-         Index[i] = -1;
-         repeat = repeat + 1;
-         
-         //cout <<"i = " << i << endl <<  "CHECK POINT INDEX[CP] = " << Index[i] << endl;
-      }
-   }
-   //cout << "REPEAT IN BRENT = " << repeat << endl;
    return uncertainty;
 }
