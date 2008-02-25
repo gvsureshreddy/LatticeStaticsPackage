@@ -1,15 +1,16 @@
-#include "NewtonPCSolution.h"
+#include "NewtonQRUpdatePCSolution.h"
 #include "Matrix.h"
 #include "UtilityFunctions.h"
+#include <cmath>
 #include "ArcLengthSolution.h"
 
 using namespace std;
 
 #define CLOSEDDEFAULT 30
 
-
-NewtonPCSolution::NewtonPCSolution(LatticeMode *Mode,char *datafile,const char *prefix,
-                                   const Vector &one,int Echo,int Direction)
+NewtonQRUpdatePCSolution::NewtonQRUpdatePCSolution(LatticeMode *Mode,char *datafile,
+                                                   const char *prefix,const Vector &one,
+                                                   int Echo,int Direction)
    : Mode_(Mode), CurrentSolution_(0), Echo_(Echo)
 {
    // get needed parameters
@@ -30,7 +31,6 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode *Mode,char *datafile,const char *
       cout << "error in direction " << endl;
       exit(-1);
    }
-   
    Direction_ = Direction;
    CurrentDS_ = MaxDS_;
    
@@ -40,10 +40,11 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode *Mode,char *datafile,const char *
    
    Previous_Solution_.Resize(one.Dim());
    
-   int count = (Mode_->ModeDOF()).Dim();
-   int count_minus_one = count -1;
+   int count = Mode_->ModeStiffness().Cols();
+   int count_minus_one = Mode_->ModeStiffness().Rows();
    
    //QR Decomposition of Stiffness Matrix
+   
    Matrix Q(count, count);
    Matrix R(count, count_minus_one);
    
@@ -52,17 +53,19 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode *Mode,char *datafile,const char *
    
    Tangent1_.Resize(count);
    Tangent2_.Resize(count);
-   for(int i=0;i<count;i++)
+   
+   for(int i=0;i< count;i++)
    {
       Tangent1_[i] = Tangent2_[i] = Direction_ * Q[i][count_minus_one];
    }
 }
 
-NewtonPCSolution::NewtonPCSolution(LatticeMode *Mode,char *datafile,const char *prefix,
-                                   char *startfile,fstream &out,int Echo)
+NewtonQRUpdatePCSolution::NewtonQRUpdatePCSolution(LatticeMode *Mode,char *datafile,
+                                                   const char *prefix,char *startfile,
+                                                   fstream &out,int Echo)
    : Mode_(Mode), CurrentSolution_(0), Echo_(Echo)
 {
-   // get needed parameters
+   // get needed parameters12
    if(!GetParameter(prefix,"PCNumSolutions",datafile,'u',&NumSolutions_)) exit(-1);
    if(!GetParameter(prefix,"PCStepLength",datafile,'l',&MaxDS_)) exit(-1);
    if(!GetParameter(prefix,"PCContraction",datafile,'l',&cont_rate_nom_)) exit(-1);
@@ -100,18 +103,19 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode *Mode,char *datafile,const char *
          
          if(!GetVectorParameter(prefix,"Solution1",startfile,&one)) exit(-1);
          if(!GetVectorParameter(prefix,"Tangent",startfile,&Tangent1_)) exit(-1);
-         if(!GetParameter(prefix,"Direction",startfile,'u',&Direction_)) exit(-1);
+         if(!GetParameter(prefix,"Direction",startfile,'u', &Direction_)) exit(-1);
          
          FirstSolution_.Resize(one.Dim());
          FirstSolution_ = one;
          
          Mode_->SetModeDOF(one);
          
-         for(i=0; i<count; i++)
+         for(i =0; i< count; i++)
          {
             Tangent1_[i] = Direction_ * Tangent1_[i];
             Tangent2_[i] = Tangent1_[i];
          }
+         
          break;
       }
       case 1:
@@ -122,6 +126,7 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode *Mode,char *datafile,const char *
          int count = (Mode_->ModeDOF()).Dim();
          int count_minus_one = count -1;
          int i;
+         
          Vector one(count);
          
          Previous_Solution_.Resize(count);
@@ -129,7 +134,7 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode *Mode,char *datafile,const char *
          Tangent2_.Resize(count);
          
          if(!GetVectorParameter(prefix,"Solution1",startfile,&one)) exit(-1);
-         if(!GetParameter(prefix,"Direction",startfile,'u',&Direction_)) exit(-1);
+         if(!GetParameter(prefix,"Direction",startfile,'u', &Direction_)) exit(-1);
          
          FirstSolution_.Resize(one.Dim());
          FirstSolution_ = one;
@@ -137,12 +142,13 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode *Mode,char *datafile,const char *
          
          Matrix Q(count, count);
          Matrix R(count, count_minus_one);
-         
          QR(Mode_->ModeStiffness(),Q,R,1);
-         for(i=0;i<count;i++)
+         
+         for( i=0;i< count;i++)
          {
             Tangent1_[i] = Tangent2_[i] = Direction_ * Q[i][count_minus_one];
          }
+         
          break;
       }
       case 2:
@@ -155,7 +161,7 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode *Mode,char *datafile,const char *
    }
 }
 
-int NewtonPCSolution::AllSolutionsFound()
+int NewtonQRUpdatePCSolution::AllSolutionsFound()
 {
    if (CurrentSolution_ < NumSolutions_)
    {
@@ -167,24 +173,28 @@ int NewtonPCSolution::AllSolutionsFound()
    }
 }
 
-double NewtonPCSolution::FindNextSolution(int &good)
+double NewtonQRUpdatePCSolution::FindNextSolution(int &good)
 {
    //Finds the next solution
+   //Stiffness: NxN+1
+   //DOF: N+1
+   //Force: N
    static int count = FirstSolution_.Dim();
-   static int count_minus_one = count-1;
+   static int count_minus_one = count -1;
    static Vector v(count);
    static Vector w(count);
    static Vector Force(count_minus_one);
    static Vector Corrector(count);
-   static Matrix Q(count,count);
-   static Matrix R(count,count_minus_one);
+   static Vector difference(count);
+   static Matrix Q(count, count);
+   static Matrix R(count, count_minus_one);
    int omega=1;
-   int i, j, Converge_Test;
+   int i, j, Converge_Test ;
    double Kappa, Alpha, Delta, Magnitude1, Magnitude2, temp, f;
    
    Previous_Solution_ = Mode_->ModeDOF();
    
-   temp=0.0;
+   temp=0;
    for(i=0;i<count;i++)
    {
       temp = temp + Tangent1_[i] * Tangent2_[i];
@@ -207,23 +217,21 @@ double NewtonPCSolution::FindNextSolution(int &good)
       }
    }
    
-   //Starts solver
    do
    {
       for (i=0;i< count;i++)
       {
          v[i] = Previous_Solution_[i] + CurrentDS_ * Tangent1_[i];
       }
-      
-      //Sets state to predicted point
+      //cout << "START OF SOLVER " << endl << endl;
       Mode_->SetModeDOF(v);
       Force = Mode_->ModeForce();
       
       QR(Mode_->ModeStiffness(), Q, R, 1);
       
-      for(i=0;i<count;i++)
+      for(i=0;i< count;i++)
       {
-         Tangent2_[i] = Direction_ * Q[i][count_minus_one]*omega;
+         Tangent2_[i] =Direction_* Q[i][count_minus_one]*omega;
       }
       
       MoorePenrose(Q,R, Force, Corrector);
@@ -234,10 +242,10 @@ double NewtonPCSolution::FindNextSolution(int &good)
       Converge_Test = 0;
       do
       {
-         
          for (i=0;i<count;i++)
          {
             w[i] = v[i] - Corrector[i];
+            difference[i] = w[i] - v[i];
          }
          
          Mode_->SetModeDOF(w);
@@ -245,18 +253,20 @@ double NewtonPCSolution::FindNextSolution(int &good)
          Force = Mode_->ModeForce();
          
          MoorePenrose(Q,R, Force,Corrector);
+         
          Magnitude2 = Corrector.Norm();
          
-         temp = 0.0;
-         for (i=0; i<count; i++)
+         temp = 0;
+         for (i=0; i<count ;i++)
          {
-            temp = temp + (Tangent1_[i]*Tangent2_[i]);
+            temp = temp + (Tangent1_[i] * Tangent2_[i]);
          }
          
          //checks parameters for steplength adaptation
          Kappa = sqrt((Magnitude2/ Magnitude1)/cont_rate_nom_);
          Alpha = sqrt(acos(temp)/alpha_nom_);
          Delta = sqrt(Magnitude1/delta_nom_);
+         //cout << setprecision(15)<< endl;
          //cout << "Kappa = " << Kappa << endl;
          //cout << "Alpha = " << Alpha << endl;
          //cout << "Delta = " << Delta << endl;
@@ -269,7 +279,7 @@ double NewtonPCSolution::FindNextSolution(int &good)
          
          if(f >= 2.0)
          {
-            cout << " STEPLENGTH TOO LARGE " << endl << endl;
+            //cout << "STEPLENGTH TOO LARGE " << endl << endl << endl;
             CurrentDS_ = CurrentDS_/2.0;
             if(CurrentDS_/MaxDS_ < MinDSRatio_)
             {
@@ -285,11 +295,12 @@ double NewtonPCSolution::FindNextSolution(int &good)
                v[i] = w[i];
             }
             
-            // cout << "STEPLENGTH OKAY " << endl << endl << endl;
+            //cout << "STEPLENGTH OKAY " << endl << endl << endl;
             if (Force.Norm() <= Converge_ && Corrector.Norm() <= Converge_)
             {
                Converge_Test = 1;
-               CurrentDS_ = CurrentDS_ * 2.0;
+               
+               CurrentDS_ = CurrentDS_*2.0;
                if(CurrentDS_ > MaxDS_)
                {
                   CurrentDS_ = MaxDS_;
@@ -297,8 +308,8 @@ double NewtonPCSolution::FindNextSolution(int &good)
             }
             else
             {
-               cout << "HAS NOT CONVERGED " << endl << endl << endl;
-               QR(Mode_->ModeStiffness(), Q, R, 1);
+               //cout << "HAS NOT CONVERGED " << endl << endl << endl;
+               QRUpdate(Force, difference, Q,R);
                MoorePenrose(Q,R, Force,Corrector);
             }
          }
@@ -306,7 +317,8 @@ double NewtonPCSolution::FindNextSolution(int &good)
       while (Converge_Test != 1);
    }
    while (f >= 2.0);
-   cout << "HAS CONVERGED " << endl << endl << endl;
+   
+   //cout << "HAS CONVERGED " << endl << endl << endl;
    
    if ((ClosedLoopStart_ >= 0) && (CurrentSolution_ > ClosedLoopStart_) &&
        ((Mode_->ModeDOF() - FirstSolution_).Norm() < MaxDS_))
@@ -323,8 +335,8 @@ double NewtonPCSolution::FindNextSolution(int &good)
    }
 }
 
-int NewtonPCSolution::FindCriticalPoint(Lattice *Lat,char *datafile,const char *prefix,
-                                        int Width,fstream &out)
+int NewtonQRUpdatePCSolution::FindCriticalPoint(Lattice *Lat,char *datafile,const char *prefix,
+                                                int Width,fstream &out)
 {
    ArcLengthSolution S1(Mode_, datafile, "^", Previous_Solution_,Mode_->ModeDOF(), 1);
    int sz=Previous_Solution_.Dim();
@@ -338,17 +350,18 @@ int NewtonPCSolution::FindCriticalPoint(Lattice *Lat,char *datafile,const char *
       /(S1.GetAspect()*S1.GetAspect());
    S1.SetCurrentDS(sqrt(tmp_ds));
    S1.FindCriticalPoint(Lat,datafile,"^",Width,out);
+   
    return 1;
 }
 
-void NewtonPCSolution::MoorePenrose(const Matrix& Q,const Matrix& R,const Vector& Force,
-                                    Vector& Corrector)
+void NewtonQRUpdatePCSolution::MoorePenrose(const Matrix& Q,const Matrix& R,const Vector& Force,
+                                            Vector& Corrector)
 {
    double sum;
    int i,j;
    int k=0;
    static int Size = Force.Dim()+1;
-   static int count_minus_one = Size-1;
+   static int count_minus_one = Size -1;
    static Vector y(Size);
    
    for(i=0;i < Size; i++)
@@ -356,24 +369,141 @@ void NewtonPCSolution::MoorePenrose(const Matrix& Q,const Matrix& R,const Vector
       y[i] = 0.0;
    }
    
-   for (i=0; i<count_minus_one; i++)
+   for ( i = 0; i < count_minus_one; i++)
    {
       sum = 0;
-      for (j=0; j<k; j++)
+      for ( j = 0; j < k;j++)
       {
-         sum += R[j][i]*y[j];
+         sum +=R[j][i] * y[j];
       }
+      
       y[i] = (Force[i] - sum)/R[i][i];
       k++;
    }
    
-   for (i=0; i<Size; i++)
+   for (i = 0; i < Size; i++)
    {
-      sum = 0.0;
-      for(j=0; j<Size; j++)
+      sum = 0;
+      for(j = 0; j < Size; j++)
       {
-         sum = sum + Q[i][j]*y[j];
+         sum = sum + Q[i][j] * y[j];
       }
+      
       Corrector[i] = sum;
    }
+}
+
+
+void NewtonQRUpdatePCSolution::QRUpdate(const Vector& Force,  const Vector& difference,
+                                        Matrix& QBar, Matrix& RBar)
+{
+   static int count(Force.Dim());
+   static int count_plus = count + 1;
+   static Vector u(count_plus);
+   static Vector a(count);
+   static Vector e(count_plus);
+   double norm;
+   double C,S,r,A1,A2;
+   double sum;
+   
+   norm =0.0;
+   for(int i =0;i<count_plus;i++)
+   {
+      norm = norm + difference[i]*difference[i];
+   }
+   norm = sqrt(norm);
+   
+   //set a = Force/norm;
+   for(int i=0;i<count;i++)
+   {
+      a[i] = Force[i]/norm;
+      e[i] = difference[i]/norm;
+   }
+   e[count] = difference[count]/norm;
+   
+   //set Qbar =Q , Rbar = R and u = Q^T *e
+   for(int i =0;i< count_plus;i++)
+   {
+      sum = 0.0;
+      for(int w=0;w<count_plus;w++)
+      {
+         sum = sum + QBar[w][i]*e[w];
+      }
+      u[i] = sum;
+   }
+   
+   //Algorithm 16.3.3 in Intro To Numerical Continuation Methods-- Algower, Georg
+   for (int i = count-1;i>=0;i--)
+   {
+      //Calculate Rotation Cosine and Sine
+      C = u[i];
+      S = u[i+1];
+      
+      if(S!=0.0)
+      {
+         r = sqrt(C*C+S*S);
+         C = C/r;
+         S = S/r;
+         
+         //Givens Rotation on Rows of RBar
+         for(int k=0;k<count;k++)
+         {
+            A1 = C * RBar[i][k] + S * RBar[i+1][k];
+            A2 = C * RBar[i+1][k] - S * RBar[i][k];
+            RBar[i][k] = A1;
+            RBar[i+1][k] = A2;
+            A1 = C * QBar[i][k] + S * QBar[i+1][k];
+            A2 = C * QBar[i+1][k] - S * QBar[i][k];
+            QBar[i][k] = A1;
+            QBar[i+1][k] = A2;
+            
+         }
+         A1 = C * QBar[i][count] + S * QBar[i+1][count];
+         A2 = C * QBar[i+1][count] - S * QBar[i][count];
+         QBar[i][count] = A1;
+         QBar[i+1][count] = A2;
+         
+         //Givens Rotation on u
+         A1 = C * u[i] + S * u[i+1];
+         A2 = C * u[i+1] - S * u[i];
+         u[i] = A1;
+         u[i+1] = A2;
+      }
+   }
+   
+   for(int i=0;i<count;i++)
+   {
+      RBar[0][i] = RBar[0][i] + u[0]*a[i];
+   }
+   
+   for(int i = 0;i<count;i++)
+   {
+      C = RBar[i][i];
+      S = RBar[i+1][i];
+      
+      if(S!=0.0)
+      {
+         r = sqrt(C*C+S*S);
+         C = C/r;
+         S = S/r;
+         
+         //Givens Rotation on Rows of RBar
+         for(int k=0;k<count;k++)
+         {
+            A1 = C * RBar[i][k] + S * RBar[i+1][k];
+            A2 = C * RBar[i+1][k] - S * RBar[i][k];
+            RBar[i][k] = A1;
+            RBar[i+1][k] = A2;
+            A1 = C * QBar[i][k] + S * QBar[i+1][k];
+            A2 = C * QBar[i+1][k] - S * QBar[i][k];
+            QBar[i][k] = A1;
+            QBar[i+1][k] = A2;
+         }
+         A1 = C * QBar[i][count] + S * QBar[i+1][count];
+         A2 = C * QBar[i+1][count] - S * QBar[i][count];
+         QBar[i][count] = A1;
+         QBar[i+1][count] = A2;
+      }
+   }
+   
 }

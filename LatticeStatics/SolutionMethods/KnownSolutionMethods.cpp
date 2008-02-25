@@ -8,7 +8,7 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
 {
    char slvmthd[LINELENGTH];
    
-   enum solution {Scanning,ArcLen,NewtonPC,NewtonUpdatePC};
+   enum solution {Scanning,ArcLen,NewtonPC,NewtonUpdatePC,NewtonQRUpdatePC};
    solution solu;
    
    if(!GetParameter("^","MainSolutionMethod",datafile,'s',slvmthd)) exit(-1);
@@ -21,6 +21,8 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
       solu = NewtonPC;
    else if ((!strcmp("NewtonUpdatePC",slvmthd)) || (!strcmp("newtonupdatepc",slvmthd)))
       solu = NewtonUpdatePC;
+   else if ((!strcmp("NewtonQRUpdatePC",slvmthd)) || (!strcmp("newtonqrupdatepc",slvmthd)))
+      solu = NewtonQRUpdatePC;
    else
    {
       cerr << "Unknown SolutionMethod : " << slvmthd << endl;
@@ -122,6 +124,32 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
          else
          {
             return new NewtonUpdatePCSolution(Mode,datafile,"^",startfile,out,Echo);
+         }
+      }
+      case NewtonQRUpdatePC:
+      {
+         int good=1;
+         int count=0;
+         int Direction;
+         Vector One(Mode->ModeDOF().Dim());
+         if ( startfile == NULL)
+         {
+            if(!GetParameter("^","Direction",datafile,'u',&Direction)) exit(-1);
+            
+            ScanningSolution ScanMe(Mode,datafile,"^",Echo);
+            
+            ScanMe.FindNextSolution(good);
+            if (good)
+            {
+               count++;
+               out << setw(Width) << Lat << "Success = 1" << endl;
+               One = Mode->ModeDOF();
+               return new NewtonQRUpdatePCSolution(Mode,datafile,"^", One,Echo, Direction);
+            }
+         }
+         else
+         {
+            return new NewtonQRUpdatePCSolution(Mode,datafile,"^",startfile,out,Echo);
          }
       }
    }

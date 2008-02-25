@@ -5,6 +5,7 @@
 #include "ScanningSolution.h"
 #include "NewtonPCSolution.h"
 #include "NewtonUpdatePCSolution.h"
+#include "NewtonQRUpdatePCSolution.h"
 
 #define KNOWNSOLUTIONMETHODS 4
 
