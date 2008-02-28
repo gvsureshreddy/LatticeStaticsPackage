@@ -311,7 +311,7 @@ void SetPerlCommand(char *string,const char *datafile,const char *prefix,const c
        "{$t=$1; $v=findref($prfx,\"$t\",$df); "\
        "$fld =~ s/<$t>/$v/} return $fld;}' %s '%s' '%s'"};
    
-   sprintf(string,format1,datafile,prefix,tag);
+   sprintf(string,format2,datafile,prefix,tag);
 }
 
 FILE *OpenPipe(const char *command,const char *mode)
