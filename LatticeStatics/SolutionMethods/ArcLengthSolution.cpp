@@ -520,8 +520,11 @@ int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,char *datafile,const char 
    int count;
    int spot;
    ostringstream in_string;
+
+   // Setup in_string ios
+   in_string << setiosflags(ios::fixed) << setprecision(out.precision());
    
-   TestValueDiff= Lat->TestFunctions(TF_LHS, Lattice::RHS, &TF_RHS);
+   TestValueDiff = Lat->TestFunctions(TF_LHS, Lattice::RHS, &TF_RHS);
    if (TestValueDiff < 0)
    {
       out << "Note: TestFunctions found a discrepancy between the\n"

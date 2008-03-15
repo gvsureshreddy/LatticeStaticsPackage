@@ -269,7 +269,7 @@ double NewtonPCSolution::FindNextSolution(int &good)
          
          if(f >= 2.0)
          {
-            cout << " STEPLENGTH TOO LARGE " << endl << endl;
+            //cout << " STEPLENGTH TOO LARGE " << endl << endl;
             CurrentDS_ = CurrentDS_/2.0;
             if(CurrentDS_/MaxDS_ < MinDSRatio_)
             {
@@ -297,7 +297,7 @@ double NewtonPCSolution::FindNextSolution(int &good)
             }
             else
             {
-               cout << "HAS NOT CONVERGED " << endl << endl << endl;
+               //cout << "HAS NOT CONVERGED " << endl << endl << endl;
                QR(Mode_->ModeStiffness(), Q, R, 1);
                MoorePenrose(Q,R, Force,Corrector);
             }
@@ -306,7 +306,7 @@ double NewtonPCSolution::FindNextSolution(int &good)
       while (Converge_Test != 1);
    }
    while (f >= 2.0);
-   cout << "HAS CONVERGED " << endl << endl << endl;
+   //cout << "HAS CONVERGED " << endl << endl << endl;
    
    if ((ClosedLoopStart_ >= 0) && (CurrentSolution_ > ClosedLoopStart_) &&
        ((Mode_->ModeDOF() - FirstSolution_).Norm() < MaxDS_))
