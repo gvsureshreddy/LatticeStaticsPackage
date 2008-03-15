@@ -20,7 +20,8 @@ MultiChainTTPP::~MultiChainTTPP()
    delete [] AtomPositions_;
 }
 
-MultiChainTTPP::MultiChainTTPP(char *datafile,const char *prefix,int Echo,int Width,int Debug)
+MultiChainTTPP::MultiChainTTPP(char *datafile,const char *prefix,int Echo,int Width,int Debug):
+   Lattice(datafile,prefix)
 {
    Echo_ = Echo;
    dbg_ = Debug;
@@ -1032,16 +1033,16 @@ void MultiChainTTPP::NeighborDistances(int cutoff,ostream &out)
 void MultiChainTTPP::Print(ostream &out,PrintDetail flag)
 {
    static int W;
-   static int NoNegEigVal;
+   static int NoNegTestFunctions;
    static double MinEigVal;
    static double engy,entropy,heatcapacity;
    static Matrix
       str(1,DOFS),
       stiff(DOFS,DOFS),
-      EigenValues(1,DOFS),
       CondEV(1,1);
    static Matrix
       CondModuli(1,1);
+   static Vector TestFunctVals(DOFS);
    static int RankOneConvex;
    static Vector K(1);
    static int BlochWaveStable;
@@ -1051,24 +1052,13 @@ void MultiChainTTPP::Print(ostream &out,PrintDetail flag)
    out.width(0);
    if (Echo_) cout.width(0);
    
-   NoNegEigVal=0;
-   
    engy = energy();
    entropy = Entropy();
    heatcapacity = HeatCapacity();
    str = stress();
    stiff = stiffness();
    
-   EigenValues=SymEigVal(E2());
-   MinEigVal = EigenValues[0][0];
-   for (int i=0;i<DOFS;i++)
-   {
-      if (EigenValues[0][i] < 0)
-         NoNegEigVal++;
-      
-      if (MinEigVal > EigenValues[0][i])
-         MinEigVal = EigenValues[0][i];
-   }
+   NoNegTestFunctions=TestFunctions(TestFunctVals,LHS);
    
    CondModuli = CondensedModuli();
    
@@ -1166,9 +1156,8 @@ void MultiChainTTPP::Print(ostream &out,PrintDetail flag)
          }
          out << "Stress (Normalized):" << setw(W) << str << endl
              << "Stiffness (Normalized):" << setw(W) << stiff
-             << "Eigenvalue Info (Translations->1.0):"  << setw(W) << EigenValues
-             << "Bifurcation Info:" << setw(W) << MinEigVal
-             << setw(W) << NoNegEigVal << endl
+             << "Eigenvalue Info:"  <<endl<< setw(W) << TestFunctVals<<endl
+             << "Bifurcation Info:" << setw(W) << 0.0 << setw(W) << NoNegTestFunctions << endl
              << "Condensed Moduli (Normalized):" << setw(W) << CondModuli
              << "CondEV Info:" << setw(W) << CondEV
              << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << endl
@@ -1190,9 +1179,10 @@ void MultiChainTTPP::Print(ostream &out,PrintDetail flag)
             }
             cout << "Stress (Normalized):" << setw(W) << str << endl
                  << "Stiffness (Normalized):" << setw(W) << stiff
-                 << "Eigenvalue Info (Translations->1.0):"  << setw(W) << EigenValues
-                 << "Bifurcation Info:" << setw(W) << MinEigVal
-                 << setw(W) << NoNegEigVal << endl
+                 << "Eigenvalue Info (Translations->1.0):"  << endl
+                 <<setw(W) <<  TestFunctVals<<endl
+                 << "Bifurcation Info:" << setw(W) << 0.0 << setw(W) << NoNegTestFunctions
+                 << endl
                  << "Condensed Moduli (Normalized):" << setw(W) << CondModuli
                  << "CondEV Info:" << setw(W) << CondEV
                  << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << endl

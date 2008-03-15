@@ -23,7 +23,8 @@ MultiLatticeTPP::~MultiLatticeTPP()
    delete CBK_;
 }
 
-MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int Width,int Debug)
+MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int Width,int Debug):
+   Lattice(datafile,prefix)
 {
    Echo_ = Echo;
    dbg_ = Debug;
@@ -1640,17 +1641,17 @@ void MultiLatticeTPP::NeighborDistances(int cutoff,ostream &out)
 void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 {
    static int W;
-   static int NoNegEigVal;
+   static int NoNegTestFunctions;
    static double MinEigVal;
    static double engy,entropy,heatcapacity;
    static Matrix
       str(1,CBK_->DOFS()),
       stiff(CBK_->DOFS(),CBK_->DOFS()),
-      EigenValues(1,CBK_->DOFS()),
       CondEV(1,CBK_->Fsize()),
       TE(1,CBK_->DOFS());
    static Matrix
       CondModuli(CBK_->Fsize(),CBK_->Fsize());
+   static Vector TestFunctVals(CBK_->DOFS());
    static int RankOneConvex;
    static Vector K(DIM3);
    static int BlochWaveStable;
@@ -1661,26 +1662,14 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
    out.width(0);
    if (Echo_) cout.width(0);
    
-   NoNegEigVal=0;
-   
    engy = energy();
    TE = ThermalExpansion();
    entropy = Entropy();
    heatcapacity = HeatCapacity();
    str = stress();
    stiff = stiffness();
-   
-   EigenValues=SymEigVal(E2());
-   MinEigVal = EigenValues[0][0];
-   for (int i=0;i<CBK_->DOFS();i++)
-   {
-      if (EigenValues[0][i] < 0)
-         NoNegEigVal++;
-      
-      if (MinEigVal > EigenValues[0][i])
-         MinEigVal = EigenValues[0][i];
-   }
-   
+
+   NoNegTestFunctions=TestFunctions(TestFunctVals,LHS);
    CondModuli = CondensedModuli();
    
    CondEV=SymEigVal(CondModuli);
@@ -1784,9 +1773,12 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
          }
          out << "Stress (Normalized):" << setw(W) << str << endl
              << "Stiffness (Normalized):" << setw(W) << stiff
-             << "Eigenvalue Info (Rots->1,2,3; Trans->4,5,6):"  << setw(W) << EigenValues
-             << "Bifurcation Info:" << setw(W) << MinEigVal
-             << setw(W) << NoNegEigVal << endl
+            //<< "Eigenvalue Info (Rots->1,2,3; Trans->4,5,6):"  << setw(W) << EigenValues
+            //<< "Bifurcation Info:" << setw(W) << MinEigVal
+            //<< setw(W) << NoNegEigVal << endl
+             << "Eigenvalue Info (Rots->1,2,3; Trans->4,5,6):" << endl<<setw(W)
+             << TestFunctVals<< endl
+             << "Bifurcation Info:" << setw(W) << 0.0 << setw(W) << NoNegTestFunctions << endl
              << "Condensed Moduli (Normalized):" << setw(W) << CondModuli
              << "CondEV Info:" << setw(W) << CondEV
              << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << endl
@@ -1810,9 +1802,13 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
             }
             cout << "Stress (Normalized):" << setw(W) << str << endl
                  << "Stiffness (Normalized):" << setw(W) << stiff
-                 << "Eigenvalue Info (Rots->1,2,3; Trans->4,5,6):"  << setw(W) << EigenValues
-                 << "Bifurcation Info:" << setw(W) << MinEigVal
-                 << setw(W) << NoNegEigVal << endl
+               //<< "Eigenvalue Info (Rots->1,2,3; Trans->4,5,6):"  << setw(W) << EigenValues
+               //<< "Bifurcation Info:" << setw(W) << MinEigVal
+               //<< setw(W) << NoNegEigVal << endl
+                 << "Eigenvalue Info (Rots->1,2,3; Trans->4,5,6):" << endl<<setw(W)
+                 << TestFunctVals << endl
+                 << "Bifurcation Info:" << setw(W) << 0.0 << setw(W) << NoNegTestFunctions
+                 << endl
                  << "Condensed Moduli (Normalized):" << setw(W) << CondModuli
                  << "CondEV Info:" << setw(W) << CondEV
                  << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << endl

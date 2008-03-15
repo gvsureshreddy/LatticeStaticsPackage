@@ -1,6 +1,14 @@
 #include "Lattice.h"
 #include "UtilityFunctions.h"
 
+Lattice::Lattice(char *datafile,const char *prefix)
+{
+   if (!GetParameter(prefix,"Lattice_OrderedTFs",datafile,'u',&OrderedTFs_,0))
+   {
+      OrderedTFs_ = 0;
+   }
+}
+
 void Lattice::SetLoadParameter(const double &load)
 {
    if (LoadParameter_==Temperature)
@@ -22,134 +30,285 @@ int Lattice::TestFunctions(Vector &TF1, StateType State , Vector *TF2)
    static Matrix Stiffness_temp(size, size);
    static Matrix Stiffness_diagonalized(size, size);
    static Matrix EigVect(size, size);
+   static Matrix EigVectRHS(size, size);
+   static Matrix EigVectLHS(size, size);
+   static int num = 0;
    static Matrix EV1(1,size),EV2(1,size);
+   
+   if(num == 0)
+   {
+      EigVectLHS.SetIdentity(size);
+      num = num+1;
+   }
    
    double sum;
    int NoNegEigVal = 0;
    int temp1, temp2;
    int Diff_NoNegEigVal;
    
-   
-   if (State == LHS)
+   if(OrderedTFs_ == 1)
    {
-      Stiffness_1 = Stiffness_2;
-      Stiffness_2 = E2();
-      
-      EV1 = SymEigVal(Stiffness_2);
-      
-      for (int i=0;i<size;i++)
+      if (State == LHS)
       {
-         if (EV1[0][i] < 0.0) NoNegEigVal++;
-         TF1[i]=EV1[0][i];
+         Stiffness_2 = E2();
+         
+         //Stiffness_diagonalized = EigVect.Transpose() * (Stiffness_2 * EigVect)
+         //Stiffness_temp = Stiffness_2 * EigVect
+         for (int i =0; i<size; i++)
+         {
+            for (int j=0; j<size; j++)
+            {
+               sum = 0.0;
+               for(int k=0; k<size; k++)
+               {
+                  sum += Stiffness_2[i][k] * EigVectLHS[k][j];
+               }
+               Stiffness_temp[i][j] = sum;
+            }
+         }
+         //stiffness_diagonalized = Eigvect.Transpose() * Stiffness_temp
+         for(int i=0; i<size; i++)
+         {
+            for(int j=0; j<size; j++)
+            {
+               sum = 0.0;
+               for (int k=0; k<size; k++)
+               {
+                  sum += EigVectLHS[k][i] * Stiffness_temp[k][j];
+               }
+               Stiffness_diagonalized[i][j] = sum;
+            }
+         }
+         
+         for(int i=0;i<size;i++)
+         {
+            EV1[0][i] = EV2[0][i];
+            for (int j =0;j<size;j++)
+            {
+               EigVectRHS[i][j] = EigVectLHS[i][j];
+            }
+            
+         }
+         
+         EV2 = SymEigVal(Stiffness_diagonalized, &EigVect);
+         
+         for(int i=0; i<size; i++)
+         {
+            for(int j=0; j<size; j++)
+            {
+               sum = 0.0;
+               for (int k=0; k<size; k++)
+               {
+                  sum += EigVectRHS[i][k] * EigVect[k][j];
+               }
+               EigVectLHS[i][j] = sum;
+            }
+         }
+         
+         for (int i=0;i<size;i++)
+         {
+            if (EV2[0][i] < 0.0) NoNegEigVal++;
+            TF1[i]=EV2[0][i];
+         }
+         
+         return NoNegEigVal;
       }
-      
-      return NoNegEigVal;
+      if (State == RHS)
+      {
+         if(TF2 == NULL)
+         {
+            cerr << "Error in Lattice::TestFunctions(): TF2 == NULL" << endl;
+            exit(-53);
+         }
+         
+         Diff_NoNegEigVal = 0;
+         NoNegEigVal = 0;
+         for (int i=0;i<size;i++)
+         {
+            NoNegEigVal += ((EV1[0][i] < 0.0) ? 1 : 0);
+            NoNegEigVal -= ((EV2[0][i] < 0.0) ? 1 : 0);
+            if ((EV1[0][i] * EV2[0][i]) < 0.0)
+            {
+               Diff_NoNegEigVal += 1;
+            }
+            TF1[i]=EV1[0][i];
+            (*TF2)[i]=EV2[0][i];
+         }
+         NoNegEigVal = (NoNegEigVal < 0) ? -NoNegEigVal : NoNegEigVal;
+         
+         if (Diff_NoNegEigVal != NoNegEigVal)
+         {
+            // return a negative number to indicate the error
+            Diff_NoNegEigVal = -Diff_NoNegEigVal;
+         }
+         
+         return Diff_NoNegEigVal;
+      }
+      if (State == CRITPT)
+      {
+         Stiffness_3 = E2();
+         
+         for (int i=0; i<size; i++)
+         {
+            for (int j=0; j<size; j++)
+            {
+               sum = 0.0;
+               for(int k=0; k<size; k++)
+               {
+                  sum += Stiffness_3[i][k] * EigVectLHS[k][j];
+               }
+               Stiffness_temp[i][j] = sum;
+            }
+         }
+         //stiffness_diagonalized = Eigvect.Transpose() * Stiffness_temp
+         for(int i=0; i<size; i++)
+         {
+            for(int j=0; j<size; j++)
+            {
+               sum = 0.0;
+               for (int k=0; k<size; k++)
+               {
+                  sum += EigVectLHS[k][i] * Stiffness_temp[k][j];
+               }
+               Stiffness_diagonalized[i][j] = sum;
+            }
+         }
+         
+         EV1 = SymEigVal(Stiffness_diagonalized);
+         //EV1 = SymEigVal(Stiffness_diagonalized,&EigVectLHS);
+         
+         for (int i=0;i<size;i++)
+         {
+            if (EV1[0][i] < 0.0) NoNegEigVal++;
+            TF1[i]=EV1[0][i];
+         }
+         
+         return NoNegEigVal;
+      }
    }
-   if (State == RHS)
+   else
    {
-      if(TF2 == NULL)
+      if (State == LHS)
       {
-         cerr << "Error in Lattice::TestFunctions(): TF2 == NULL" << endl;
-         exit(-53);
-      }
-      
-      EV1 = SymEigVal(Stiffness_1, &EigVect);
-      
-      // Stiffness_diagonalized = EigVect.Transpose() * (Stiffness_2 * EigVect)
-      //Stiffness_temp = Stiffness_2 * EigVect
-      for (int i =0; i<size; i++)
-      {
-         for (int j=0; j<size; j++)
+         Stiffness_1 = Stiffness_2;
+         Stiffness_2 = E2();
+         
+         EV1 = SymEigVal(Stiffness_2);
+         
+         for (int i=0;i<size;i++)
          {
-            sum = 0.0;
-            for(int k=0; k<size; k++)
+            if (EV1[0][i] < 0.0) NoNegEigVal++;
+            TF1[i]=EV1[0][i];
+         }
+         
+         return NoNegEigVal;
+      }
+      if (State == RHS)
+      {
+         if(TF2 == NULL)
+         {
+            cerr << "Error in Lattice::TestFunctions(): TF2 == NULL" << endl;
+            exit(-53);
+         }
+         
+         EV1 = SymEigVal(Stiffness_1, &EigVect);
+         
+         // Stiffness_diagonalized = EigVect.Transpose() * (Stiffness_2 * EigVect)
+         //Stiffness_temp = Stiffness_2 * EigVect
+         for (int i =0; i<size; i++)
+         {
+            for (int j=0; j<size; j++)
             {
-               sum += Stiffness_2[i][k] * EigVect[k][j];
+               sum = 0.0;
+               for(int k=0; k<size; k++)
+               {
+                  sum += Stiffness_2[i][k] * EigVect[k][j];
+               }
+               Stiffness_temp[i][j] = sum;
             }
-            Stiffness_temp[i][j] = sum;
          }
-      }
-      //stiffness_diagonalized = Eigvect.Transpose() * Stiffness_temp
-      for(int i=0; i<size; i++)
-      {
-         for(int j=0; j<size; j++)
+         //stiffness_diagonalized = Eigvect.Transpose() * Stiffness_temp
+         for(int i=0; i<size; i++)
          {
-            sum = 0.0;
-            for (int k=0; k<size; k++)
+            for(int j=0; j<size; j++)
             {
-               sum += EigVect[k][i] * Stiffness_temp[k][j];
+               sum = 0.0;
+               for (int k=0; k<size; k++)
+               {
+                  sum += EigVect[k][i] * Stiffness_temp[k][j];
+               }
+               Stiffness_diagonalized[i][j] = sum;
             }
-            Stiffness_diagonalized[i][j] = sum;
          }
-      }
-      
-      EV2 = SymEigVal(Stiffness_diagonalized);
-      Diff_NoNegEigVal = 0;
-      NoNegEigVal = 0;
-      for (int i=0;i<size;i++)
-      {
-         NoNegEigVal += ((EV1[0][i] < 0.0) ? 1 : 0);
-         NoNegEigVal -= ((EV2[0][i] < 0.0) ? 1 : 0);
-         if ((EV1[0][i] * EV2[0][i]) < 0.0)
+         
+         EV2 = SymEigVal(Stiffness_diagonalized);
+         Diff_NoNegEigVal = 0;
+         NoNegEigVal = 0;
+         for (int i=0;i<size;i++)
          {
-            Diff_NoNegEigVal += 1;
-         }
-         TF1[i]=EV1[0][i];
-         (*TF2)[i]=EV2[0][i];
-      }
-      NoNegEigVal = (NoNegEigVal < 0) ? -NoNegEigVal : NoNegEigVal;
-      
-      if (Diff_NoNegEigVal != NoNegEigVal)
-      {
-         // return a negative number to indicate the error
-         Diff_NoNegEigVal = -Diff_NoNegEigVal;
-      }
-      
-      return Diff_NoNegEigVal;
-   }
-   if (State == CRITPT)
-   {
-      Stiffness_3 = E2();
-      
-      for (int i=0; i<size; i++)
-      {
-         for (int j=0; j<size; j++)
-         {
-            sum = 0.0;
-            for(int k=0; k<size; k++)
+            NoNegEigVal += ((EV1[0][i] < 0.0) ? 1 : 0);
+            NoNegEigVal -= ((EV2[0][i] < 0.0) ? 1 : 0);
+            if ((EV1[0][i] * EV2[0][i]) < 0.0)
             {
-               sum += Stiffness_3[i][k] * EigVect[k][j];
+               Diff_NoNegEigVal += 1;
             }
-            Stiffness_temp[i][j] = sum;
+            TF1[i]=EV1[0][i];
+            (*TF2)[i]=EV2[0][i];
          }
-      }
-      //stiffness_diagonalized = Eigvect.Transpose() * Stiffness_temp
-      for(int i=0; i<size; i++)
-      {
-         for(int j=0; j<size; j++)
+         NoNegEigVal = (NoNegEigVal < 0) ? -NoNegEigVal : NoNegEigVal;
+         
+         if (Diff_NoNegEigVal != NoNegEigVal)
          {
-            sum = 0.0;
-            for (int k=0; k<size; k++)
-            {
-               sum += EigVect[k][i] * Stiffness_temp[k][j];
-            }
-            Stiffness_diagonalized[i][j] = sum;
+            // return a negative number to indicate the error
+            Diff_NoNegEigVal = -Diff_NoNegEigVal;
          }
+         
+         return Diff_NoNegEigVal;
       }
-      
-      //cout << "STIFFNESS_DIAGONALIZED = " << endl << setw(15)
-      //<< Stiffness_diagonalized << endl << endl;
-      
-      EV1 = SymEigVal(Stiffness_diagonalized);
-      //EV1 = SymEigVal(Stiffness_diagonalized,&EigVect);
-      
-      for (int i=0;i<size;i++)
+      if (State == CRITPT)
       {
-         if (EV1[0][i] < 0.0) NoNegEigVal++;
-         TF1[i]=EV1[0][i];
+         Stiffness_3 = E2();
+         
+         for (int i=0; i<size; i++)
+         {
+            for (int j=0; j<size; j++)
+            {
+               sum = 0.0;
+               for(int k=0; k<size; k++)
+               {
+                  sum += Stiffness_3[i][k] * EigVect[k][j];
+               }
+               Stiffness_temp[i][j] = sum;
+            }
+         }
+         //stiffness_diagonalized = Eigvect.Transpose() * Stiffness_temp
+         for(int i=0; i<size; i++)
+         {
+            for(int j=0; j<size; j++)
+            {
+               sum = 0.0;
+               for (int k=0; k<size; k++)
+               {
+                  sum += EigVect[k][i] * Stiffness_temp[k][j];
+               }
+               Stiffness_diagonalized[i][j] = sum;
+            }
+         }
+         
+         //cout << "STIFFNESS_DIAGONALIZED = " << endl << setw(15)
+         //<< Stiffness_diagonalized << endl << endl;
+         
+         EV1 = SymEigVal(Stiffness_diagonalized);
+         //EV1 = SymEigVal(Stiffness_diagonalized,&EigVect);
+         
+         for (int i=0;i<size;i++)
+         {
+            if (EV1[0][i] < 0.0) NoNegEigVal++;
+            TF1[i]=EV1[0][i];
+         }
+         
+         return NoNegEigVal;
       }
-      
-      return NoNegEigVal;
    }
 }
 

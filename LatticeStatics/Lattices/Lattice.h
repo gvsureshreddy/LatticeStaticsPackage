@@ -21,7 +21,9 @@ public:
    enum StateType {LHS,RHS,CRITPT};
    LoadType LoadParameter_;
    LoadType LoadParameter() {return LoadParameter_;}
+   int OrderedTFs_;
    
+   Lattice(char *datafile,const char *prefix);
    virtual ~Lattice() {}
    
    virtual Vector DOF() = 0;
