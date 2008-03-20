@@ -22,6 +22,13 @@ double LJCutoff::CutoffFunction(double NTemp,double r2,YDeriv dy,TDeriv dt)
       case D2Y:
          val = -(LJ::PairPotential(NTemp,Cutoff_*Cutoff_,DY,dt)/(Cutoff_*Cutoff_));
          break;
+      case D3Y:
+      case D4Y:
+      case DYmax:
+      default:
+         cerr << "Error in LJCutoff::CutoffFunction()\n";
+         exit(-1);
+         break;
    }
    return val;
 }

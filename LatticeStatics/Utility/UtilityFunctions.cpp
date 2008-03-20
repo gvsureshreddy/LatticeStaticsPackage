@@ -120,24 +120,24 @@ int GetParameter(const char *prefix,const char *tag,const char *datafile,
    {
       case 'd':
       case 'i':
-         fscanf(pipe,"%i",parameter);
+         fscanf(pipe,"%i",(int*) parameter);
          sprintf(command,"%i",*((int*) parameter));
          break;
       case 'u':
-         fscanf(pipe,"%u",parameter);
+         fscanf(pipe,"%u",(unsigned*) parameter);
          sprintf(command,"%u",*((unsigned*) parameter));
          break;
       case 'f':
-         fscanf(pipe,"%f",parameter);
+         fscanf(pipe,"%f",(float*) parameter);
          sprintf(format,"%%%u.%ue",WIDTH,PRECISION);
          sprintf(command,format,*((float*) parameter));
       case 'l':
-         fscanf(pipe,"%lf",parameter);
+         fscanf(pipe,"%lf",(double*) parameter);
          sprintf(format,"%%%u.%ule",WIDTH,PRECISION);
          sprintf(command,format,*((double*) parameter));
          break;
       case 's':
-         fscanf(pipe,"%s",parameter);
+         fscanf(pipe,"%s",(char *) parameter);
          sprintf(command,"%s",(char *) parameter);
          break;
       default:
@@ -172,7 +172,7 @@ int GetVectorParameter(const char *prefix,const char *tag,const char *datafile,V
    
    SetPerlCommand(command,datafile,prefix,tag);
    pipe = OpenPipe(command,"r");
-   for (int i=0;i<V->Dim();++i)
+   for (unsigned i=0;i<V->Dim();++i)
    {
       fscanf(pipe,"%lf",&((*V)[i]));
    }
@@ -188,7 +188,7 @@ int GetVectorParameter(const char *prefix,const char *tag,const char *datafile,V
          //Getcmdline(prefix,tag,datafile);
          openUTout();
          UTILITYout << tag << " = ( " << setw(WIDTH) << (*V)[0];
-         for (int i=1;i<V->Dim();++i)
+         for (unsigned i=1;i<V->Dim();++i)
             UTILITYout << ", " << setw(WIDTH) << (*V)[i];
          UTILITYout << ")" << endl;
          closeUTout();
@@ -207,7 +207,7 @@ int GetIntVectorParameter(const char *prefix,const char *tag,const char *datafil
    pipe = OpenPipe(command,"r");
    for (int i=0;i<N;++i)
    {
-      fscanf(pipe,"%u",&(Vec[i]));
+      fscanf(pipe,"%i",&(Vec[i]));
    }
    if (pclose(pipe))
    {
@@ -239,9 +239,9 @@ int GetMatrixParameter(const char *prefix,const char *tag,const char *datafile,M
    
    SetPerlCommand(command,datafile,prefix,tag);
    pipe = OpenPipe(command,"r");
-   for (int i=0;i<M->Rows();++i)
+   for (unsigned i=0;i<M->Rows();++i)
    {
-      for (int j=0;M->Cols();++j)
+      for (unsigned j=0;M->Cols();++j)
       {
          fscanf(pipe,"%lf",&((*M)[i][j]));
       }
@@ -258,8 +258,8 @@ int GetMatrixParameter(const char *prefix,const char *tag,const char *datafile,M
          //Getcmdline(prefix,tag,datafile);
          openUTout();
          UTILITYout << tag << " = ( " << setw(WIDTH) << (*M)[0][0];
-         for (int i=0;i<M->Rows();++i)
-            for (int j=0;j<M->Cols();++i)
+         for (unsigned i=0;i<M->Rows();++i)
+            for (unsigned j=0;j<M->Cols();++i)
                if ((i!=0) && (j!=0)) UTILITYout << ", " << setw(WIDTH) << (*M)[i][j];
          UTILITYout << ")" << endl;
          closeUTout();
@@ -288,6 +288,7 @@ int GetStringParameter(const char *prefix,const char *tag,const char *datafile,
 
 void SetPerlCommand(char *string,const char *datafile,const char *prefix,const char *tag)
 {
+   
    char format1[]=
       {"perl -e 'use Math::Trig;"\
        "@__R=__findref($ARGV[1],$ARGV[2],$ARGV[0]);"\
@@ -310,7 +311,8 @@ void SetPerlCommand(char *string,const char *datafile,const char *prefix,const c
        "{my($prfx,$fld,$df)=@_; my($t); while ($fld =~ m/<([^>]+)>/g) "\
        "{$t=$1; $v=findref($prfx,\"$t\",$df); "\
        "$fld =~ s/<$t>/$v/} return $fld;}' %s '%s' '%s'"};
-   
+
+   sprintf(string,format1,datafile,prefix,tag);
    sprintf(string,format2,datafile,prefix,tag);
 }
 
@@ -574,10 +576,8 @@ int pow(int a,int b)
 Matrix TranslationProjection1D(int NoAtoms)
 {
    int k=0;
-   int l=0;
    int h,i, j, p, q, r, g, t, m, Rows, Columns, pow2_i;
-   double  sum, x, y, R, log2_NoAtoms;
-   int count=0;
+   double  sum, y, R, log2_NoAtoms;
    
    Rows = NoAtoms;
    Columns = NoAtoms+1;

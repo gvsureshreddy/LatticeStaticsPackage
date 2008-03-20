@@ -98,7 +98,7 @@ int main(int argc,char *argv[])
          {
             temp = atof(tmp);
             fscanf(pipe,"%lf",&lambda);
-            for (int j=0;j<DOF.Dim();++j)
+            for (unsigned j=0;j<DOF.Dim();++j)
             {
                fscanf(pipe,"%lf",&(DOF[j]));
             }

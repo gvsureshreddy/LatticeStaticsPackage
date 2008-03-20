@@ -11,7 +11,9 @@ using namespace std;
 NewtonUpdatePCSolution::NewtonUpdatePCSolution(LatticeMode *Mode,char *datafile,
                                                const char *prefix,const Vector &one,int Echo,
                                                int Direction)
-   : Mode_(Mode), CurrentSolution_(0), Echo_(Echo)
+   : Mode_(Mode),
+     CurrentSolution_(0),
+     Echo_(Echo)
 {
    // get needed parameters
    if(!GetParameter(prefix,"PCNumSolutions",datafile,'u',&NumSolutions_)) exit(-1);
@@ -63,7 +65,9 @@ NewtonUpdatePCSolution::NewtonUpdatePCSolution(LatticeMode *Mode,char *datafile,
 NewtonUpdatePCSolution::NewtonUpdatePCSolution(LatticeMode *Mode,char *datafile,
                                                const char *prefix,char *startfile,
                                                fstream &out,int Echo)
-   : Mode_(Mode), CurrentSolution_(0), Echo_(Echo)
+   : Mode_(Mode),
+     CurrentSolution_(0),
+     Echo_(Echo)
 {
    // get needed parameters12
    if(!GetParameter(prefix,"PCNumSolutions",datafile,'u',&NumSolutions_)) exit(-1);
@@ -172,7 +176,7 @@ int NewtonUpdatePCSolution::AllSolutionsFound()
    }
 }
 
-double NewtonUpdatePCSolution::FindNextSolution(int &good)
+int NewtonUpdatePCSolution::FindNextSolution()
 {
    //Finds the next solution
    //Stiffness: NxN+1
@@ -190,6 +194,7 @@ double NewtonUpdatePCSolution::FindNextSolution(int &good)
    static Matrix R(count, count_minus_one);
    static Matrix Stiffness(count_minus_one, count);
    static Matrix Temporary(count_minus_one, count);
+   int good=0;
    int omega=1;
    int i, j, Converge_Test ;
    double Kappa, Alpha, Delta, Magnitude1, Magnitude2, temp, f;
@@ -385,6 +390,11 @@ double NewtonUpdatePCSolution::FindNextSolution(int &good)
    {
       CurrentSolution_++;
    }
+
+   // always have current solution point printed
+   good = 1;
+
+   return good;
 }
 
 int NewtonUpdatePCSolution::FindCriticalPoint(Lattice *Lat,char *datafile,const char *prefix,

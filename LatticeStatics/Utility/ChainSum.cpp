@@ -9,10 +9,18 @@ using namespace std;
 ChainSum::ChainSum(Vector *DOF,int LagrangeCB,int Translations,Matrix *RefLat,
                    int InternalAtoms,Vector *InternalPOS,PairPotentials ***PairPot,
                    double *InfluDist,double *Ntemp)
-   : DOF_(DOF),LagrangeCB_(LagrangeCB),Translations_(Translations),RefLattice_(RefLat),
-     InternalAtoms_(InternalAtoms),Ntemp_(Ntemp),InternalPOS_(InternalPOS),
-     Potential_(PairPot),InfluanceDist_(InfluDist),V_(InternalAtoms),Recalc_(0),
-   CurrentPOS_(0),Pairs_(0),
+   : Recalc_(0),
+     InfluanceDist_(InfluDist),
+     DOF_(DOF),
+     LagrangeCB_(LagrangeCB),
+     RefLattice_(RefLat),
+     InternalAtoms_(InternalAtoms),
+     InternalPOS_(InternalPOS),
+     Potential_(PairPot),
+     Ntemp_(Ntemp),
+     CurrentPOS_(0),Pairs_(0),
+     Translations_(Translations),
+     V_(InternalAtoms),
      RelPosDATA_(int(2*(*InfluDist)*InternalAtoms*InternalAtoms),CHAINSUMdatalen)
 {
    Initialize();
@@ -162,7 +170,7 @@ Matrix ChainSum::NeighborDistances(int cutoff,double eps)
    Reset();
    Matrix NeighborInfo(Pairs_,3);
    
-   for (int i=0;i<Pairs_;++i)
+   for (unsigned i=0;i<Pairs_;++i)
    {
       NeighborInfo[i][0] = RelPosDATA_[i][CHAINSUMr2start];
       NeighborInfo[i][1] = RelPosDATA_[i][CHAINSUMatomstart];

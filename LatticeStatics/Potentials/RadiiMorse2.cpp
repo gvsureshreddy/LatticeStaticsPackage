@@ -207,6 +207,10 @@ double RadiiMorse2::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
                exit(-1);
          }
          break;
+      case DYmax:
+      default:
+         cerr << "Error in RadiiMorse2::PairPotential -- DYmax out of range\n";
+         break;
    }
    return val;
 }

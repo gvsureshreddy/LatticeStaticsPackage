@@ -7,7 +7,8 @@ using namespace std;
 
 ScanningSolution::ScanningSolution(LatticeMode *Mode,char *datafile,const char *prefix,
                                    int Echo)
-   : Mode_(Mode), Echo_(Echo)
+   : Echo_(Echo),
+     Mode_(Mode)
 {
    ModeDOFS_=Mode_->ModeDOF().Dim();
    const char *yn[]={"No","Yes"};
@@ -251,10 +252,10 @@ int ScanningSolution::AllSolutionsFound()
       > ScanEnd_*(ScanStep_/fabs(ScanStep_));
 }
 
-double ScanningSolution::FindNextSolution(int &good)
+int ScanningSolution::FindNextSolution()
 {
-   double uncertainty;
-   int iteration=0;
+   int good=0;
+   unsigned iteration=0;
    
    if (OnSolution_ == Yes)
    {
@@ -271,7 +272,7 @@ double ScanningSolution::FindNextSolution(int &good)
       }
    }
    
-   uncertainty = ScanningNewton(good);
+   ScanningNewton(good);
    
    double stepsize;
    double val = ScanningStressParameter(),
@@ -283,7 +284,7 @@ double ScanningSolution::FindNextSolution(int &good)
    {
       good = 1;
       OnSolution_ = Yes;
-      return uncertainty;
+      return good;
    }
    
    // March along CurrentScanLine_ until
@@ -299,7 +300,7 @@ double ScanningSolution::FindNextSolution(int &good)
             OnSolution_ = No;
             InitializeLine();
             good = 0;
-            return uncertainty;
+            return good;
          }
          
          if (Echo_) cout << ScanningLoadParameter();
@@ -313,7 +314,7 @@ double ScanningSolution::FindNextSolution(int &good)
             OnSolution_ = No;
             InitializeLine();
             good = 0;
-            return uncertainty;
+            return good;
          }
          
          if (Echo_) cout << ScanningDefParameter();
@@ -325,7 +326,7 @@ double ScanningSolution::FindNextSolution(int &good)
       else
          ScanningDefParamUpdate(LineStep_);
       
-      uncertainty = ScanningNewton(good);
+      ScanningNewton(good);
       
       oldval = val;
       val = ScanningStressParameter();
@@ -369,7 +370,7 @@ double ScanningSolution::FindNextSolution(int &good)
          ScanningDefParamUpdate(stepsize);
       }
       
-      uncertainty = ScanningNewton(good);
+      ScanningNewton(good);
       
       oldval = val;
       val = ScanningStressParameter();
@@ -402,12 +403,12 @@ double ScanningSolution::FindNextSolution(int &good)
       CurrentScanLine_ += ScanStep_;
    }
    
-   return (stepsize > uncertainty)?stepsize:uncertainty;
+   return good;
 }
 
-double ScanningSolution::ScanningNewton(int &good)
+void ScanningSolution::ScanningNewton(int &good)
 {
-   int itr=0;
+   unsigned itr=0;
    
    Vector RHS=-ScanningForce();
    Vector dx(RHS.Dim());
@@ -468,6 +469,4 @@ double ScanningSolution::ScanningNewton(int &good)
    {
       good = 1;
    }
-   
-   return dx.Norm();
 }

@@ -27,18 +27,18 @@ private:
    
    unsigned NumSolutions_;
    unsigned CurrentSolution_;
-   int ClosedLoopStart_;
+   unsigned ClosedLoopStart_;
    Vector FirstSolution_;
    
    Vector Difference_;
    
-   double ArcLengthNewton(int &good);
+   void ArcLengthNewton(int &good);
    void ConsistencyCheck(Vector &Solution1,Vector &Solution2,
                          double ConsistencyEpsilon,int Width,fstream &out);
    virtual int OldFindCriticalPoint(int LHN,double LHEV,int RHN,double RHEV,Lattice *Lat,
                                     char *datafile,const char *prefix,int Width,fstream &out);
-   double ZBrent(Lattice *Lat,int track,double fa,double fb,const Vector &OriginalDiff,
-                 const double OriginalDS,Vector &CurrentTF);
+   void ZBrent(Lattice *Lat,int track,double fa,double fb,const Vector &OriginalDiff,
+               const double OriginalDS,Vector &CurrentTF);
    
    Vector ArcLenForce(double DS,const Vector &Diff,double Aspect);
    Vector ArcLenDef() {return Mode_->ModeDOF();}
@@ -59,7 +59,7 @@ public:
    
    // Functions required by SolutionMethod
    virtual int AllSolutionsFound();
-   virtual double FindNextSolution(int &good);
+   virtual int FindNextSolution();
    virtual int FindCriticalPoint(Lattice *Lat,char *datafile,const char *prefix,int Width,
                                  fstream &out);
 };

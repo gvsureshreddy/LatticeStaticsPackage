@@ -3,7 +3,7 @@
 #include "UtilityFunctions.h"
 
 const char *POTENTIALNAMES[] = {"LJ","LJCutoff","RadiiMorse","RadiiMorse2","RadiiMorseCutoff",
-                                "TempMorse","Dobson"};
+                                "RadiiMorseCutoff2","TempMorse","Dobson"};
 
 PairPotentials* InitializePairPotential(char *datafile,const char *prefix,int i,int j)
 {
@@ -104,6 +104,27 @@ PairPotentials* InitializePairPotential(char *datafile,const char *prefix,int i,
       }
       case 5:
       {
+         sprintf(tmp,"A0_%u_%u",i,j);
+         if(!GetParameter(prefix,tmp,datafile,'l',&A0)) exit(-1);
+         sprintf(tmp,"B0_%u_%u",i,j);
+         if(!GetParameter(prefix,tmp,datafile,'l',&B0)) exit(-1);
+         sprintf(tmp,"Alpha_%u_%u",i,j);
+         if(!GetParameter(prefix,tmp,datafile,'l',&Alpha)) exit(-1);
+         sprintf(tmp,"Rref1_%u_%u",i,j);
+         if(!GetParameter(prefix,tmp,datafile,'l',&Rref1)) exit(-1);
+         sprintf(tmp,"Rtheta1_%u_%u",i,j);
+         if(!GetParameter(prefix,tmp,datafile,'l',&Rtheta1)) exit(-1);
+         sprintf(tmp,"Rref2_%u_%u",i,j);
+         if(!GetParameter(prefix,tmp,datafile,'l',&Rref2)) exit(-1);
+         sprintf(tmp,"Rtheta2_%u_%u",i,j);
+         if(!GetParameter(prefix,tmp,datafile,'l',&Rtheta2)) exit(-1);
+         sprintf(tmp,"Cutoff_%u_%u",i,j);
+         if(!GetParameter(prefix,tmp,datafile,'l',&Cutoff)) exit(-1);
+         
+         return new RadiiMorseCutoff2(A0,B0,Alpha,Rref1,Rref2,Rtheta1,Rtheta2,Cutoff);
+      }
+      case 6:
+      {
          sprintf(tmp,"Tref");
          if(!GetParameter(prefix,tmp,datafile,'l',&Tref)) exit(-1);
          sprintf(tmp,"A0_%u_%u",i,j);
@@ -119,7 +140,7 @@ PairPotentials* InitializePairPotential(char *datafile,const char *prefix,int i,
          
          return new TempMorse(A0,B0,Alpha,Rref1,Tref,Tmelt);
       }
-      case 6:
+      case 7:
       {
          sprintf(tmp,"Eps0_%u_%u",i,j);
          if(!GetParameter(prefix,tmp,datafile,'l',&Eps0)) exit(-1);
@@ -268,6 +289,43 @@ void UpdatePairPotential(char *datafile,const char *prefix,int i,int j,
    {
       RadiiMorseCutoff *RM;
       RM = dynamic_cast<RadiiMorseCutoff *>(Potential);
+      
+      sprintf(tmp,"A0_%u_%u",i,j);
+      if(GetParameter(prefix,tmp,datafile,'l',&A0,0))
+         RM->SetA0(A0);
+      
+      sprintf(tmp,"B0_%u_%u",i,j);
+      if(GetParameter(prefix,tmp,datafile,'l',&B0,0))
+         RM->SetB0(B0);
+      
+      sprintf(tmp,"Alpha_%u_%u",i,j);
+      if(GetParameter(prefix,tmp,datafile,'l',&Alpha,0))
+         RM->SetAlpha(Alpha);
+      
+      sprintf(tmp,"Rref1_%u_%u",i,j);
+      if(GetParameter(prefix,tmp,datafile,'l',&Rref1,0))
+         RM->SetRref1(Rref1);
+      
+      sprintf(tmp,"Rtheta1_%u_%u",i,j);
+      if(GetParameter(prefix,tmp,datafile,'l',&Rtheta1,0))
+         RM->SetRtheta1(Rtheta1);
+      
+      sprintf(tmp,"Rref2_%u_%u",i,j);
+      if(GetParameter(prefix,tmp,datafile,'l',&Rref2,0))
+         RM->SetRref2(Rref2);
+      
+      sprintf(tmp,"Rtheta2_%u_%u",i,j);
+      if(GetParameter(prefix,tmp,datafile,'l',&Rtheta2,0))
+         RM->SetRtheta2(Rtheta2);
+      
+      sprintf(tmp,"Cutoff_%u_%u",i,j);
+      if(GetParameter(prefix,tmp,datafile,'l',&Cutoff,0))
+         RM->SetCutoff(Cutoff);
+   }
+   else if (!strcmp(Potential->Type(),"RadiiMorseCutoff2"))
+   {
+      RadiiMorseCutoff2 *RM;
+      RM = dynamic_cast<RadiiMorseCutoff2 *>(Potential);
       
       sprintf(tmp,"A0_%u_%u",i,j);
       if(GetParameter(prefix,tmp,datafile,'l',&A0,0))

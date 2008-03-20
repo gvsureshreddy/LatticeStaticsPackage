@@ -6,10 +6,11 @@
 #include "RadiiMorse.h"
 #include "RadiiMorse2.h"
 #include "RadiiMorseCutoff.h"
+#include "RadiiMorseCutoff2.h"
 #include "TempMorse.h"
 #include "Dobson.h"
 
-#define NOPOTENTIALS 7
+#define NOPOTENTIALS 8
 
 PairPotentials *InitializePairPotential(char *datafile,const char *prefix,int i,int j);
 void UpdatePairPotential(char *datafile,const char *prefix,int i,int j,

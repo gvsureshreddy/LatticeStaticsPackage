@@ -79,7 +79,7 @@ int main(int argc,char *argv[])
       while (strcmp("DONE",tmp))
       {
          temp = atof(tmp);
-         for (int j=0;j<DOF.Dim();++j)
+         for (unsigned j=0;j<DOF.Dim();++j)
          {
             fscanf(pipe,"%lf",&(DOF[j]));
          }

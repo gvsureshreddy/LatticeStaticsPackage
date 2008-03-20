@@ -8,8 +8,14 @@ using namespace std;
 
 PPSum::PPSum(CBKinematics *CBK,int InternalAtoms,PairPotentials ***PairPot,double *InfluDist,
              double *Ntemp)
-   : CBK_(CBK),InternalAtoms_(InternalAtoms),Ntemp_(Ntemp),Potential_(PairPot),
-     InfluenceDist_(InfluDist),Recalc_(0),CurrentPOS_(0),Pairs_(0),
+   : Recalc_(0),
+     InfluenceDist_(InfluDist),
+     InternalAtoms_(InternalAtoms),
+     Potential_(PairPot),
+     Ntemp_(Ntemp),
+     CBK_(CBK),
+     CurrentPOS_(0),
+     Pairs_(0),
      RelPosDATA_(int(pow(2*(*InfluDist),double(3))*pow(double(InternalAtoms),
                                                        double(2))),PPSUMdatalen)
 {
@@ -136,7 +142,7 @@ Matrix PPSum::NeighborDistances(int cutoff,double eps)
    Reset();
    Matrix NeighborInfo(Pairs_,3);
    
-   for (int i=0;i<Pairs_;++i)
+   for (unsigned i=0;i<Pairs_;++i)
    {
       NeighborInfo[i][0] = RelPosDATA_[i][PPSUMr2start];
       NeighborInfo[i][1] = RelPosDATA_[i][PPSUMatomstart];

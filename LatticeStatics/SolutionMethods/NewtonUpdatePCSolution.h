@@ -43,7 +43,7 @@ public:
    
    // Functions required by SolutionMethod
    virtual int AllSolutionsFound();
-   virtual double FindNextSolution(int &good);
+   virtual int FindNextSolution();
    virtual int FindCriticalPoint(Lattice *Lat,char *datafile,const char *prefix,int Width,
                                  fstream &out);
 };

@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
    
    while (!SolveMe->AllSolutionsFound())
    {
-      SolveMe->FindNextSolution(success);
+      success=SolveMe->FindNextSolution();
       
       if (success)
       {

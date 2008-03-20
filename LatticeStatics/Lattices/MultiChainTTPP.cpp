@@ -847,7 +847,7 @@ void MultiChainTTPP::interpolate(Matrix *EigVals,int zero,int one,int two)
    EigVals[zero] = 2.0*EigVals[one] - EigVals[zero];
    
    double delta,dtmp;
-   int i,j,pos;
+   unsigned i,j,pos;
    
    for (i=0;i<EigVals[0].Cols();++i)
    {
@@ -980,7 +980,7 @@ int MultiChainTTPP::ReferenceBlochWave(Vector &K)
    static double InverseLat;
    static Vector Z(1);
    
-   for (int i=0;i<K.Dim();++i) K[i]=0.0;
+   for (unsigned i=0;i<K.Dim();++i) K[i]=0.0;
    
    InverseLat = 1.0/RefLattice_[0][0];
    
@@ -1034,7 +1034,6 @@ void MultiChainTTPP::Print(ostream &out,PrintDetail flag)
 {
    static int W;
    static int NoNegTestFunctions;
-   static double MinEigVal;
    static double engy,entropy,heatcapacity;
    static Matrix
       str(1,DOFS),

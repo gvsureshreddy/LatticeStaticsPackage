@@ -88,7 +88,7 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
                   KillOneRotation_[CBK_->INDF(i,j)] = r[i]*R[j];
                }
             norm=KillOneRotation_.Norm();
-            for (int i=0;i<KillOneRotation_.Dim();++i)
+            for (unsigned i=0;i<KillOneRotation_.Dim();++i)
                KillOneRotation_[i] /= norm;
             break;
          case 0:
@@ -419,7 +419,7 @@ Matrix MultiLatticeTPP::E1()
                R[0] += KillOneRotation_[CBK_->INDF(i,j)]*CBK_->DOF()[CBK_->INDF(i,j)];
          }
          
-         for (int i=0;i<E1.Cols();++i)
+         for (unsigned i=0;i<E1.Cols();++i)
             E1[0][i] += RoEig_[0]*R[0]*KillOneRotation_[i];
          break;
    }
@@ -568,8 +568,8 @@ Matrix MultiLatticeTPP::E2()
          break;
       case 1:
          // Kill one rotation
-         for (int i=0;i<E2.Rows();++i)
-            for (int j=0;j<E2.Cols();++j)
+         for (unsigned i=0;i<E2.Rows();++i)
+            for (unsigned j=0;j<E2.Cols();++j)
                E2[i][j] += RoEig_[0]*KillOneRotation_[i]*KillOneRotation_[j];
          break;
    }
@@ -1250,7 +1250,7 @@ void MultiLatticeTPP::interpolate(Matrix *EigVals,int zero,int one,int two)
    EigVals[zero] = 2.0*EigVals[one] - EigVals[zero];
    
    double delta,dtmp;
-   int i,j,pos;
+   unsigned i,j,pos;
    
    for (i=0;i<EigVals[0].Cols();++i)
    {
@@ -1642,7 +1642,6 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
 {
    static int W;
    static int NoNegTestFunctions;
-   static double MinEigVal;
    static double engy,entropy,heatcapacity;
    static Matrix
       str(1,CBK_->DOFS()),

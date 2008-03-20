@@ -13,7 +13,7 @@ public:
    virtual ~SolutionMethod() {}
    
    virtual int AllSolutionsFound() = 0;
-   virtual double FindNextSolution(int &good) = 0;
+   virtual int FindNextSolution() = 0;
    virtual int FindCriticalPoint(Lattice *Lat, char *datafile,const char *prefix,int Width,
                                  fstream &out) = 0;
 };

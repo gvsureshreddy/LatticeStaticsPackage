@@ -29,7 +29,7 @@ CBKinematics::CBKinematics(int InternalAtoms,const char* prefix,const char* data
    
 }
 
-void CBKinematics:: InfluenceRegion(double *InfluenceRegion)
+void CBKinematics::InfluenceRegion(double *InfluenceRegion)
 {
    Matrix Eigvals(1,DIM3);
    double tmp;

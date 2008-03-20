@@ -13,7 +13,7 @@ private:
    virtual void Reset() = 0;
    
 public:
-   const static int DIM3 = 3;
+   static const int DIM3 = 3;
    
    Vector DOF_;
    Matrix RefLattice_;

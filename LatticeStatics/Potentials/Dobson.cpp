@@ -364,6 +364,10 @@ double Dobson::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
                exit(-1);
          }
          break;
+      case DYmax:
+      default:
+         cerr << "Error in Dobson::PairPotential -- DYmax out of range\n";
+         exit(-1);
    }
    return val;
 }

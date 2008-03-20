@@ -23,7 +23,7 @@ void Lattice::SetLoadParameter(const double &load)
 
 int Lattice::TestFunctions(Vector &TF1, StateType State , Vector *TF2)
 {
-   static int size =DOF().Dim();
+   static int size=DOF().Dim();
    static Matrix Stiffness_1=E2();
    static Matrix Stiffness_2=Stiffness_1;
    static Matrix Stiffness_3(size, size);
@@ -43,8 +43,8 @@ int Lattice::TestFunctions(Vector &TF1, StateType State , Vector *TF2)
    
    double sum;
    int NoNegEigVal = 0;
-   int temp1, temp2;
-   int Diff_NoNegEigVal;
+   int Diff_NoNegEigVal = 0;
+   int retval = 0;
    
    if(OrderedTFs_ == 1)
    {
@@ -111,7 +111,7 @@ int Lattice::TestFunctions(Vector &TF1, StateType State , Vector *TF2)
             TF1[i]=EV2[0][i];
          }
          
-         return NoNegEigVal;
+         retval = NoNegEigVal;
       }
       if (State == RHS)
       {
@@ -142,7 +142,7 @@ int Lattice::TestFunctions(Vector &TF1, StateType State , Vector *TF2)
             Diff_NoNegEigVal = -Diff_NoNegEigVal;
          }
          
-         return Diff_NoNegEigVal;
+         retval = Diff_NoNegEigVal;
       }
       if (State == CRITPT)
       {
@@ -183,7 +183,7 @@ int Lattice::TestFunctions(Vector &TF1, StateType State , Vector *TF2)
             TF1[i]=EV1[0][i];
          }
          
-         return NoNegEigVal;
+         retval = NoNegEigVal;
       }
    }
    else
@@ -201,7 +201,7 @@ int Lattice::TestFunctions(Vector &TF1, StateType State , Vector *TF2)
             TF1[i]=EV1[0][i];
          }
          
-         return NoNegEigVal;
+         retval = NoNegEigVal;
       }
       if (State == RHS)
       {
@@ -263,7 +263,7 @@ int Lattice::TestFunctions(Vector &TF1, StateType State , Vector *TF2)
             Diff_NoNegEigVal = -Diff_NoNegEigVal;
          }
          
-         return Diff_NoNegEigVal;
+         retval = Diff_NoNegEigVal;
       }
       if (State == CRITPT)
       {
@@ -307,9 +307,11 @@ int Lattice::TestFunctions(Vector &TF1, StateType State , Vector *TF2)
             TF1[i]=EV1[0][i];
          }
          
-         return NoNegEigVal;
+         retval = NoNegEigVal;
       }
    }
+
+   return retval;
 }
 
 void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,

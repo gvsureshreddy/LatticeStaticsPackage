@@ -49,7 +49,7 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
             while (!ScanMe.AllSolutionsFound())
             {
                One = Two;
-               ScanMe.FindNextSolution(good);
+               good = ScanMe.FindNextSolution();
                if (good)
                {
                   count++;
@@ -86,7 +86,7 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
             
             ScanningSolution ScanMe(Mode,datafile,"^",Echo);
             
-            ScanMe.FindNextSolution(good);
+            good = ScanMe.FindNextSolution();
             if (good)
             {
                count++;
@@ -112,7 +112,7 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
             
             ScanningSolution ScanMe(Mode,datafile,"^",Echo);
             
-            ScanMe.FindNextSolution(good);
+            good = ScanMe.FindNextSolution();
             if (good)
             {
                count++;
@@ -138,7 +138,7 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
             
             ScanningSolution ScanMe(Mode,datafile,"^",Echo);
             
-            ScanMe.FindNextSolution(good);
+            good = ScanMe.FindNextSolution();
             if (good)
             {
                count++;

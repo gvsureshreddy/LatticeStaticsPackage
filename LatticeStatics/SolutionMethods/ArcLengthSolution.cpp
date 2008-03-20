@@ -11,7 +11,10 @@ using namespace std;
 
 ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char *prefix,
                                      const Vector &one,const Vector &two,int Echo)
-   : Mode_(Mode),Difference_(two-one), CurrentSolution_(0), Echo_(Echo)
+   : Echo_(Echo),
+     Mode_(Mode),
+     CurrentSolution_(0),
+     Difference_(two-one)
 {
    ModeDOFS_=Mode_->ModeDOF().Dim();
    if(!GetParameter(prefix,"ArcLenMaxIterations",datafile,'u',&MaxIter_)) exit(-1);
@@ -40,7 +43,9 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char
 
 ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char *prefix,
                                      char *startfile,fstream &out,int Echo)
-   : Mode_(Mode), CurrentSolution_(0), Echo_(Echo)
+   :  Echo_(Echo),
+      Mode_(Mode),
+      CurrentSolution_(0)
 {
    ModeDOFS_=Mode_->ModeDOF().Dim();
    if(!GetParameter(prefix,"ArcLenMaxIterations",datafile,'u',&MaxIter_)) exit(-1);
@@ -224,7 +229,7 @@ void ArcLengthSolution::ConsistencyCheck(Vector &Solution1,Vector &Solution2,
    Stiff = ConsistencyEpsilon*ArcLenStiffness(Difference_,1.0);
    if (Echo_) cout << setw(Width) << Stiff << endl;
    out << setw(Width) << Stiff << endl;
-   for (int i=0;i<Difference_.Dim();i++)
+   for (unsigned i=0;i<Difference_.Dim();i++)
    {
       // Get RHS
       Difference_ = Solution2 - Solution1;
@@ -282,9 +287,9 @@ int ArcLengthSolution::AllSolutionsFound()
    return (CurrentSolution_ >= NumSolutions_);
 }
 
-double ArcLengthSolution::FindNextSolution(int &good)
+int ArcLengthSolution::FindNextSolution()
 {
-   double uncertainty;
+   int good=0;
    double AngleTest;
    // Assume that first solution should not be strictly restricted to the
    // adaptive steping angle constraint
@@ -296,7 +301,7 @@ double ArcLengthSolution::FindNextSolution(int &good)
    {
       if (Echo_) cout << "DS= " << CurrentDS_ << endl;
       
-      uncertainty = ArcLengthNewton(good);
+      ArcLengthNewton(good);
       
       AngleTest = ArcLenAngle(OldDiff,Difference_,Aspect_);
       
@@ -338,15 +343,13 @@ double ArcLengthSolution::FindNextSolution(int &good)
    // Always have the current "solution" state printed as a solution point
    good = 1;
    
-   return uncertainty;
+   return good;
 }
 
-double ArcLengthSolution::ArcLengthNewton(int &good)
+void ArcLengthSolution::ArcLengthNewton(int &good)
 {
-   double uncertainty;
-   
-   int itr = 0;
-   int Dim=ArcLenDef().Dim();
+   unsigned itr = 0;
+   unsigned Dim=ArcLenDef().Dim();
    
    Vector Dx(Dim),
       RHS(Dim);
@@ -389,7 +392,6 @@ double ArcLengthSolution::ArcLengthNewton(int &good)
    while ((itr < MaxIter_) && ((RHS.Norm() > Tolerance_) || (Dx.Norm() > Tolerance_)));
    
    if (Echo_) cout << resetiosflags(ios::scientific) << endl;
-   uncertainty = Dx.Norm();
    
    if (itr >= MaxIter_)
    {
@@ -400,8 +402,6 @@ double ArcLengthSolution::ArcLengthNewton(int &good)
    {
       good = 1;
    }
-   
-   return uncertainty;
 }
 
 int ArcLengthSolution::OldFindCriticalPoint(int LHN,double LHEV,int RHN,double RHEV,
@@ -410,11 +410,10 @@ int ArcLengthSolution::OldFindCriticalPoint(int LHN,double LHEV,int RHN,double R
 {
    Vector OriginalDiff=Difference_;
    double OriginalDS = CurrentDS_;
-   double CurrentMinEV=1.0, OldMinEV;
-   double uncertainty;
+   double CurrentMinEV=1.0, OldMinEV=1.0;
    double Delta_DS=0.0;
    int dummy = 1;
-   int loops = 0;
+   unsigned loops = 0;
    int RighthandTestValue = RHN;
    int CurrentTestValue = RHN;
    int LefthandTestValue = LHN;
@@ -453,7 +452,7 @@ int ArcLengthSolution::OldFindCriticalPoint(int LHN,double LHEV,int RHN,double R
       
       cout << "Current_DS = " << CurrentDS_ << endl << endl;
       
-      uncertainty = ArcLengthNewton(dummy);
+      ArcLengthNewton(dummy);
       
       OldMinEV = CurrentMinEV;
       CurrentTestValue = Lat->TestFunctions(EigenValues);
@@ -471,11 +470,9 @@ int ArcLengthSolution::OldFindCriticalPoint(int LHN,double LHEV,int RHN,double R
    if (Echo_) cout << endl;
    out << endl;
    
-   if (Echo_) cout << setw(Width) << Lat
-                   << "Uncertainty = " << setw(Width) << uncertainty << endl;
-   out << setw(Width) << Lat
-       << "Uncertainty = " << setw(Width) << uncertainty << endl;
-   
+   if (Echo_) cout << setw(Width) << Lat << endl;
+   out << setw(Width) << Lat << endl;
+      
    for (int i=0;i<70;i++)
    {
       if (Echo_) cout << "=";
@@ -505,7 +502,6 @@ int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,char *datafile,const char 
 {
    Vector OriginalDiff=Difference_;
    double OriginalDS = CurrentDS_;
-   double uncertainty;
    int TestValueDiff;
    int temp;
    int size = Lat->DOF().Dim();
@@ -517,7 +513,6 @@ int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,char *datafile,const char 
    int track;
    int num;
    int CP;
-   int count;
    int spot;
    ostringstream in_string;
 
@@ -581,7 +576,7 @@ int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,char *datafile,const char 
       
       if(track>=0) //START OF IF STATEMENT
       {
-         uncertainty = ZBrent(Lat, track,fa, fb, OriginalDiff, OriginalDS, CurrentTF);
+         ZBrent(Lat, track,fa, fb, OriginalDiff, OriginalDS, CurrentTF);
          Multiplicity = 1;
          for(int i=CP+1;i<TestValueDiff;i++)
          {
@@ -613,11 +608,8 @@ int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,char *datafile,const char 
          if (Echo_) cout << endl;
          in_string << endl;
          
-         if (Echo_) cout << setw(Width) << Lat
-                         << "Uncertainty = " << setw(Width) << uncertainty << endl;
-         in_string << setw(Width) << Lat
-                   << "Uncertainty = " << setw(Width) << uncertainty << endl;
-         
+         if (Echo_) cout << setw(Width) << Lat << endl;
+         in_string << setw(Width) << Lat << endl;         
          
          for (int i=0;i<70;i++)
          {
@@ -658,19 +650,16 @@ int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,char *datafile,const char 
    return 1;
 }
 
-double ArcLengthSolution::ZBrent(Lattice *Lat,int track,double fa,double fb,
-                                 const Vector &OriginalDiff,const double OriginalDS,
-                                 Vector &CurrentTF)
+void ArcLengthSolution::ZBrent(Lattice *Lat,int track,double fa,double fb,
+                               const Vector &OriginalDiff,const double OriginalDS,
+                               Vector &CurrentTF)
 {
    Vector LastDiff(Difference_.Dim(),0.0);
-   double LastDS;
+   double LastDS=CurrentDS_;
    double a,b,c,d,e,xm,p,fc, tol1,s,q,r,min1,min2;
-   double uncertainty;
    int dummy = 1;
-   int loops = 0;
+   unsigned loops = 0;
    double factor = 0.0;
-   int size = Lat->DOF().Dim();
-   int temp;
    
    b=OriginalDS;
    c=b;
@@ -784,7 +773,7 @@ double ArcLengthSolution::ZBrent(Lattice *Lat,int track,double fa,double fb,
       CurrentDS_ = b;
       factor = OriginalDS/b;
       Difference_ = OriginalDiff/factor;
-      uncertainty = ArcLengthNewton(dummy);
+      ArcLengthNewton(dummy);
       Lat->TestFunctions(CurrentTF,Lattice::CRITPT);
       
       fb=CurrentTF[track];
@@ -793,6 +782,4 @@ double ArcLengthSolution::ZBrent(Lattice *Lat,int track,double fa,double fb,
       //cout << "CurrentTF = " << endl << setw(15) << CurrentTF << endl << endl;
       //cout << "CurrentTF[track] = " << endl << CurrentTF[track]<< endl<< endl;
    }
-   
-   return uncertainty;
 }
