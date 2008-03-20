@@ -26,7 +26,7 @@ ifeq ($(UNAME),Linux)
    # PGI compiler
    #CC         = pgCC
    #OPTIMIZE   = -fast -Minline=levels:10 --no_exceptions
-   #ANSI       = -A -Wall
+   #ANSI       = -A -Minform=inform
    CC = $(gCC)
    OPTIMIZE = -O
    ANSI = -pedantic -Wall
