@@ -43,15 +43,15 @@ unsigned Rank1Convex2D(Matrix K,double dx);
 Matrix TranslationProjection1D(int NoAtoms);
 Matrix TranslationProjection3D(int Fsize,int NoAtoms);
 
-static const double UtilityALT[3][3][3] = {0.0, 0.0, 0.0,
-                                           0.0, 0.0, 1.0,
-                                           0.0, -1.0, 0.0,
-                                           0.0, 0.0, -1.0,
-                                           0.0, 0.0, 0.0,
-                                           1.0, 0.0, 0.0,
-                                           0.0, 1.0, 0.0,
-                                           -1.0, 0.0, 0.0,
-                                           0.0, 0.0, 0.0};
+static const double UtilityALT[3][3][3] = {{{0.0, 0.0, 0.0},
+                                            {0.0, 0.0, 1.0},
+                                            {0.0, -1.0, 0.0}},
+                                           {{0.0, 0.0, -1.0},
+                                            {0.0, 0.0, 0.0},
+                                            {1.0, 0.0, 0.0}},
+                                           {{0.0, 1.0, 0.0},
+                                            {-1.0, 0.0, 0.0},
+                                            {0.0, 0.0, 0.0}}};
 
 inline double Alt(int i,int j,int k) {return UtilityALT[i][j][k];}
 

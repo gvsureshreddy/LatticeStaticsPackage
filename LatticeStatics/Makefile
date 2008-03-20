@@ -135,7 +135,7 @@ clean:
 # Define rule for dependicy files
 depend/$(notdir %).d: %$(SRC_EXT)
 	@$(SHELL) -ec '$(gCC) -MM -I. $(addprefix -I ,$(SUBDIRS)) \
-	      -I $(INCL_LOC)/ $< \
+	      -I $(INCL_LOC)/ `perl -MExtUtils::Embed -e ccopts` $< \
 	      | sed '\''s/\($*\)\.o[ :]*/\1.o $*.d : /g'\'' \
 	      > $@; [ -s $@ ] || rm -f $@'
 	@echo "Building $@"
