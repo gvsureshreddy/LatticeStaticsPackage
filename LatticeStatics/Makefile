@@ -19,17 +19,17 @@ ifeq ($(UNAME),Darwin)
    # gCC compiler
    CC         = $(gCC)
    OPTIMIZE   = -O
-   ANSI       = -pedantic
+   ANSI       = -pedantic -Wall
 endif
 
 ifeq ($(UNAME),Linux)
    # PGI compiler
    #CC         = pgCC
    #OPTIMIZE   = -fast -Minline=levels:10 --no_exceptions
-   #ANSI       = -A
+   #ANSI       = -A -Wall
    CC	= $(gCC)
    OPTIMIZE = -O
-   ANSI	= -pedantic
+   ANSI	= -pedantic -Wall
 endif
 
 # general options
@@ -74,7 +74,7 @@ Utilities:
 
 $(EXE):  $(OBJECTS)
 	 $(CC) $(CCFLAGS) $(DATE_DEF) -o lib/builddate.o -c Utility/builddate.cpp
-	 $(PURE) $(CC) $(LFLAGS) lib/builddate.o \
+	 $(PURE) $(CC) $(LFLAGS) `perl -MExtUtils::Embed -e ldopts` lib/builddate.o \
 		 -L$(LIB_LOC) -o ./bin/$(EXE) \
 		 $(addprefix lib/,$(OBJECTS)) $(LIBS)
 	 /bin/rm -f lib/builddate.o
@@ -83,12 +83,19 @@ $(EXE):  $(OBJECTS)
 include $(addprefix depend/,$(OBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 
 # Define object file dependicies and make rule
-$(OBJECTS): Makefile
+PerlObject.o: Makefile
+	$(CC) $(CCFLAGS) `perl -MExtUtils::Embed -e ccopts` \
+        -I. $(addprefix -I ,$(SUBDIRS)) -I $(INCL_LOC)/ \
+        -o ./lib/$(notdir $@) \
+        -c Utility/PerlObject.cpp
+
+$(filter-out PerlObject.o, $(OBJECTS)): Makefile
 	$(CC) $(CCFLAGS) -I. $(addprefix -I ,$(SUBDIRS)) -I $(INCL_LOC)/ \
         -o ./lib/$(notdir $@) \
         -c $(filter %/$(*),$(basename $(SOURCES)))$(SRC_EXT)
 
-
+KnownPotentials.o: Makefile
+	echo $(patsubst %.h,%,$(PTNLS))
 
 .PHONY: install uninstall
 # Define install
