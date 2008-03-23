@@ -156,7 +156,7 @@ public:
    // Tol - tolerance for convergence
    //
    // Note: Assumes A is SYMMETRIC
-   friend Matrix SymEigVal(Matrix A,Matrix *B=NULL,const int MaxItr=100,
+   friend Matrix SymEigVal(Matrix A,Matrix *B=NULL,const unsigned MaxItr=100,
 			   const double Tol=1.0e-13);
    
    // Cholesky Decomposition of Matrix

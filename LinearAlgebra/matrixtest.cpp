@@ -44,42 +44,42 @@ int main()
 
 //   Matrix::MathematicaPrintFlag=1;
    
-   for (int i=0;i<3;i++)
-      for (int j=0;j<3;j++)
+   for (unsigned i=0;i<3;i++)
+      for (unsigned j=0;j<3;j++)
       {
 	 A[i][j] = double(rand()%10);
 	 CA[i][j] = MyComplexDouble(rand()%10,rand()%10);
       }
 
-   for (int i=0;i<3;i++)
-      for (int j=0;j<3;j++)
+   for (unsigned i=0;i<3;i++)
+      for (unsigned j=0;j<3;j++)
       {
 	 B[i][j] = double(rand()%10);
 	 CB[i][j] = MyComplexDouble(rand()%10,rand()%10);
       }
 
-   for (int i=0;i<3;i++)
-      for (int j=0;j<6;j++)
+   for (unsigned i=0;i<3;i++)
+      for (unsigned j=0;j<6;j++)
       {
 	 C[i][j] = double(rand()%10);
 	 CC[i][j] = MyComplexDouble(rand()%10,rand()%10);
       }
    
-   for (int i=0;i<6;i++)
-      for (int j=0;j<3;j++)
+   for (unsigned i=0;i<6;i++)
+      for (unsigned j=0;j<3;j++)
       {
 	 D[i][j] = double(rand()%10);
 	 CD[i][j] = MyComplexDouble(rand()%10,rand()%10);
       }
    
-   for (int i=0;i<6;i++)
-      for (int j=0;j<6;j++)
+   for (unsigned i=0;i<6;i++)
+      for (unsigned j=0;j<6;j++)
       {
 	 E[i][j] = double(rand()%10);
 	 CE[i][j] = MyComplexDouble(rand()%10,rand()%10);
       }
    
-   for (int i=0;i<3;i++)
+   for (unsigned i=0;i<3;i++)
    {
       a[i] = double(rand()%10);
       ca[i] = MyComplexDouble(rand()%10,rand()%10);
@@ -87,7 +87,7 @@ int main()
       cb[i] = MyComplexDouble(rand()%10,rand()%10);
    }
 
-   for (int i=0;i<6;i++)
+   for (unsigned i=0;i<6;i++)
    {
       c[i] = double(rand()%10);
       cc[i] = MyComplexDouble(rand()%10,rand()%10);
@@ -95,7 +95,7 @@ int main()
       cd[i] = MyComplexDouble(rand()%10,rand()%10);
    }
 
-   for (int i=0;i<3;i++)
+   for (unsigned i=0;i<3;i++)
    {
       e[i] = double(rand()%10);
       f[i] = double(rand()%10);
@@ -250,9 +250,9 @@ int main()
    cout << "F" << "\n" << setw(20) << F << "\n";
    cout << "F*F.Transpose()" << "\n" << setw(20) << F*F.Transpose() << "\n";
 
-   for (int i=0;i<6;i++)
+   for (unsigned i=0;i<6;i++)
    {
-      for (int j=0;j<6;j++)
+      for (unsigned j=0;j<6;j++)
       {
 	 c[j] = F[j][i];
       }
@@ -267,9 +267,9 @@ int main()
    cout << "CF" << "\n" << setw(20) << CF << "\n";
    cout << "CF.ConjTrans()*CF" << "\n" << setw(20) << CF.ConjTrans()*CF << "\n";
 
-   for (int i=0;i<6;i++)
+   for (unsigned i=0;i<6;i++)
    {
-      for (int j=0;j<6;j++)
+      for (unsigned j=0;j<6;j++)
       {
 	 cc[j] = CF[j][i];
       }
@@ -305,7 +305,7 @@ int main()
 
    cout << "SVD" << "\n" << setw(20) << B*C*D.Transpose() << "\n";
 
-   for (int i=0;i<C.Rows();i++)
+   for (unsigned i=0;i<C.Rows();i++)
       if (C[i][i]) C[i][i] = 1.0/C[i][i];
    
    cout << "A^-1 via SVD" << "\n" << setw(20) << D*C*B.Transpose() << "\n"
@@ -318,7 +318,7 @@ int main()
 
    cout << "W" << "\n" << setw(20) << C << "\n";
 
-   for (int i=0;i<C.Rows();i++)
+   for (unsigned i=0;i<C.Rows();i++)
       if (C[i][i]) C[i][i] = 1.0/C[i][i];
    
    cout << "A^-1 via SVD" << "\n" << setw(20) << D*C*B.Transpose() << "\n"

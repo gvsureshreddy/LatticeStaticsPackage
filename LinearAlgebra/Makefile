@@ -19,7 +19,7 @@ ifeq ($(UNAME),Darwin)
    # gCC compiler
    CC         = $(gCC)
    OPTIMIZE   = -O
-   ANSI       = -pedantic
+   ANSI       = -pedantic -Wall
 endif
 
 ifeq ($(UNAME),Linux)
@@ -29,7 +29,7 @@ ifeq ($(UNAME),Linux)
    #ANSI       = -A
    CC         = $(gCC)
    OPTIMIZE   = -O
-   ANSI       = -pedantic
+   ANSI       = -pedantic -Wall
 endif
 
 # general options 

@@ -126,7 +126,7 @@ public:
    // Tol - tolerance for convergence
    //
    // Note: Assumes A is HERMITIAN
-   friend Matrix HermiteEigVal(CMatrix A,CMatrix *B=NULL,const int MaxItr=100,
+   friend Matrix HermiteEigVal(CMatrix A,CMatrix *B=NULL,const unsigned MaxItr=100,
 			       const double Tol=1.0e-13);
 
    // Cholesky Decomposition of CMatrix

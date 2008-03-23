@@ -9,15 +9,15 @@
 #include <cstdlib>
 
 // Global IDString
-char SparseMatrixID[]="$Id: SparseMatrix.cpp,v 1.3 2008/03/23 02:26:56 elliott Exp $";
+char SparseMatrixID[]="$Id: SparseMatrix.cpp,v 1.4 2008/03/23 21:01:27 elliott Exp $";
 
 SparseMatrix::SparseMatrix(const Matrix& A)
 {
    //This counts the number of nonzero entries
    
-   int i,j=0;
-   int k=0;
-   int count=0;
+   unsigned i,j=0;
+   unsigned k=0;
+   unsigned count=0;
    
    Rows_=A.Rows();
    Cols_=A.Cols();
@@ -34,8 +34,8 @@ SparseMatrix::SparseMatrix(const Matrix& A)
    }
    NoNonZero_ = count;
 	
-   Row_id_ = new int[NoNonZero_];
-   Column_id_ = new int[NoNonZero_];
+   Row_id_ = new unsigned[NoNonZero_];
+   Column_id_ = new unsigned[NoNonZero_];
    Nonzero_entry_ = new Elm[NoNonZero_];
 
    for(i=0; i<Rows_;i++)
@@ -61,11 +61,11 @@ SparseMatrix::SparseMatrix(const SparseMatrix& A)
    Cols_=A.Cols();
    NoNonZero_=A.NoNonZero_;
 	
-   Row_id_ = new int[NoNonZero_];
-   Column_id_ = new int[NoNonZero_];
+   Row_id_ = new unsigned[NoNonZero_];
+   Column_id_ = new unsigned[NoNonZero_];
    Nonzero_entry_ = new Elm[NoNonZero_];
 	
-   for(register int i=0; i<NoNonZero_; i++)
+   for(register unsigned i=0; i<NoNonZero_; i++)
    {
       Row_id_[i] = A.Row_id_[i];
       Column_id_[i] = A.Column_id_[i];
@@ -75,17 +75,17 @@ SparseMatrix::SparseMatrix(const SparseMatrix& A)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-SparseMatrix::SparseMatrix(int NoNonZero, int Rows, int Cols)
+SparseMatrix::SparseMatrix(unsigned NoNonZero, unsigned Rows, unsigned Cols)
 {
    Rows_=Rows;
    Cols_=Cols;
    NoNonZero_= NoNonZero;
 	
-   Row_id_ = new int[NoNonZero_];
-   Column_id_ = new int[NoNonZero_];
+   Row_id_ = new unsigned[NoNonZero_];
+   Column_id_ = new unsigned[NoNonZero_];
    Nonzero_entry_ = new Elm[NoNonZero_];
 
-   for(register int i=0; i<NoNonZero_;i++)
+   for(register unsigned i=0; i<NoNonZero_;i++)
    {
       Row_id_[i] = i;
       Column_id_[i] = i;
@@ -95,15 +95,15 @@ SparseMatrix::SparseMatrix(int NoNonZero, int Rows, int Cols)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-SparseMatrix::SparseMatrix(const Matrix& A,int NoEntries)
+SparseMatrix::SparseMatrix(const Matrix& A,unsigned NoEntries)
 {
-   int i,j,k;
+   unsigned i,j,k;
 
    NoNonZero_ = NoEntries;
    Rows_ = A.Rows();
    Cols_ = A.Cols();
-   Row_id_ = new int[NoNonZero_];
-   Column_id_ = new int[NoNonZero_];
+   Row_id_ = new unsigned[NoNonZero_];
+   Column_id_ = new unsigned[NoNonZero_];
    Nonzero_entry_ = new Elm[NoNonZero_];
 	
    k=0;
@@ -147,11 +147,11 @@ Matrix operator+(const SparseMatrix& A,const SparseMatrix&B)
 	
    Matrix C(A.Rows_, A.Cols_, 0);
 
-   for(register int i=0; i < A.Rows_; i++)
+   for(register unsigned i=0; i < A.Rows_; i++)
    {
-      for(register int j=0; j<A.Cols_; j++)
+      for(register unsigned j=0; j<A.Cols_; j++)
       {
-	 for (register int l=0 ; l<A.NoNonZero_; l++)
+	 for (register unsigned l=0 ; l<A.NoNonZero_; l++)
 	 {
 	    if (i == A.Row_id_[l] && j == A.Column_id_[l])
 	    {
@@ -159,7 +159,7 @@ Matrix operator+(const SparseMatrix& A,const SparseMatrix&B)
 	    }
 	 }
 			
-	 for (register int m=0; m<B.NoNonZero_; m++)
+	 for (register unsigned m=0; m<B.NoNonZero_; m++)
 	 {
 	    if (i == B.Row_id_[m] && j == B.Column_id_[m])
 	    {
@@ -178,7 +178,7 @@ SparseMatrix operator-(const SparseMatrix& A)
 {
    SparseMatrix B(A);
 	
-   for(register int i=0;i<A.NoNonZero_;i++)
+   for(register unsigned i=0;i<A.NoNonZero_;i++)
    {
       B.Nonzero_entry_[i]= -A.Nonzero_entry_[i];
    }
@@ -200,11 +200,11 @@ Matrix operator-(const SparseMatrix& A,const SparseMatrix&B)
 	
    Matrix C(A.Rows_, A.Cols_, 0);
 
-   for(register int i=0; i < A.Rows_; i++)
+   for(register unsigned i=0; i < A.Rows_; i++)
    {
-      for(register int j=0; j<A.Cols_; j++)
+      for(register unsigned j=0; j<A.Cols_; j++)
       {
-	 for (register int l=0 ; l<A.NoNonZero_; l++)
+	 for (register unsigned l=0 ; l<A.NoNonZero_; l++)
 	 {
 	    if (i == A.Row_id_[l] && j == A.Column_id_[l])
 	    {
@@ -212,7 +212,7 @@ Matrix operator-(const SparseMatrix& A,const SparseMatrix&B)
 	    }
 	 }
 			
-	 for (register int m=0; m<B.NoNonZero_; m++)
+	 for (register unsigned m=0; m<B.NoNonZero_; m++)
 	 {
 	    if (i == B.Row_id_[m] && j == B.Column_id_[m])
 	    {
@@ -231,7 +231,7 @@ SparseMatrix operator*(const double A, const SparseMatrix& B)
 {
    SparseMatrix C(B);
 	
-   for(register int i=0;i<B.NoNonZero_;i++)
+   for(register unsigned i=0;i<B.NoNonZero_;i++)
    {
       C.Nonzero_entry_[i]= A*B.Nonzero_entry_[i];
    }
@@ -245,7 +245,7 @@ SparseMatrix operator*(const SparseMatrix& B, const double A)
 {
    SparseMatrix C(B);
 	
-   for(register int i=0;i<B.NoNonZero_;i++)
+   for(register unsigned i=0;i<B.NoNonZero_;i++)
    {
       C.Nonzero_entry_[i]= A*B.Nonzero_entry_[i];
    }
@@ -269,17 +269,17 @@ Matrix operator*(const SparseMatrix& A, const SparseMatrix& B)
 	
    Matrix C(A.Rows_, B.Cols_, 0);
 	
-   for(register int i=0; i< A.Rows_; i++)
+   for(register unsigned i=0; i< A.Rows_; i++)
    {
-      for(register int j=0; j< B.Cols_; j++)
+      for(register unsigned j=0; j< B.Cols_; j++)
       {
 	 entry = 0;
 			
-	 for(register int k=0; k<A.NoNonZero_;k++)
+	 for(register unsigned k=0; k<A.NoNonZero_;k++)
 	 {
 	    if(A.Row_id_[k] == i)
 	    {
-	       for(register int l=0; l<B.NoNonZero_; l++)
+	       for(register unsigned l=0; l<B.NoNonZero_; l++)
 	       {
 		  if(B.Column_id_[l] == j)
 		  {
@@ -314,15 +314,15 @@ Matrix operator*(const SparseMatrix& A, const Matrix& B)
 	
    double entry;
 	
-   for (register int i=0; i<A.Rows(); i++)
+   for (register unsigned i=0; i<A.Rows(); i++)
    {
-      for(register int j=0; j<B.Cols(); j++)
+      for(register unsigned j=0; j<B.Cols(); j++)
       {
 	 entry = 0;
 			
-	 for(register int k=0; k<B.Rows();k++)
+	 for(register unsigned k=0; k<B.Rows();k++)
 	 {
-	    for(register int l=0; l<A.NoNonZero();l++)
+	    for(register unsigned l=0; l<A.NoNonZero();l++)
 	    {
 	       if(A.Row_id_[l] == i && A.Column_id_[l] == k)
 	       {
@@ -354,15 +354,15 @@ Matrix operator*(const Matrix& A, const SparseMatrix& B)
 	
    double entry;
 	
-   for (register int i=0; i<A.Rows(); i++)
+   for (register unsigned i=0; i<A.Rows(); i++)
    {
-      for(register int j=0; j<B.Cols(); j++)
+      for(register unsigned j=0; j<B.Cols(); j++)
       {
 	 entry = 0;
 			
-	 for(register int k=0; k< A.Cols();k++)
+	 for(register unsigned k=0; k< A.Cols();k++)
 	 {
-	    for (register int l=0;l<B.NoNonZero();l++)
+	    for (register unsigned l=0;l<B.NoNonZero();l++)
 	    {
 	       if(B.Column_id_[l] == j & B.Row_id_[l] == k)
 	       {
@@ -394,11 +394,11 @@ Vector operator*(const SparseMatrix& A, const Vector& B)
 	
    double entry;
 	
-   for(register int i=0; i<A.Rows(); i++)
+   for(register unsigned i=0; i<A.Rows(); i++)
    {
       entry = 0;
 		
-      for (register int j=0; j<A.NoNonZero(); j++)
+      for (register unsigned j=0; j<A.NoNonZero(); j++)
       {
 	 if(A.Row_id_[j]==i)
 	 {
@@ -425,13 +425,13 @@ Vector3D operator*(const SparseMatrix& A,const Vector3D& B)
 	
    double entry;
 	
-   for (register int i=0;i<V3DLEN;i++)
+   for (register unsigned i=0;i<V3DLEN;i++)
    {
       entry =0;
 		
-      for(register int j=0; j<V3DLEN; j++)
+      for(register unsigned j=0; j<V3DLEN; j++)
       {
-	 for(register int k=0; k<A.NoNonZero(); k++)
+	 for(register unsigned k=0; k<A.NoNonZero(); k++)
 	 {
 	    if(A.Row_id_[k] == i && A.Column_id_[k] == j)
 	    {
@@ -460,13 +460,13 @@ Vector3D operator*(const Vector3D& A,const SparseMatrix& B)
 	
    double entry;
 	
-   for (register int i=0; i < V3DLEN ;i++)
+   for (register unsigned i=0; i < V3DLEN ;i++)
    {
       entry = 0;
 		
-      for(register int j=0; j< V3DLEN; j++)
+      for(register unsigned j=0; j< V3DLEN; j++)
       {
-	 for(register int k=0; k<B.NoNonZero();k++)
+	 for(register unsigned k=0; k<B.NoNonZero();k++)
 	 {
 	    if(B.Row_id_[k] == j && B.Column_id_[k] == i)
 	    {
@@ -494,13 +494,13 @@ Vector operator*(const Vector& A, const SparseMatrix& B)
 	
    double entry;
 	
-   for(register int i=0; i< B.Cols(); i++)
+   for(register unsigned i=0; i< B.Cols(); i++)
    {
       entry = 0;
 		
-      for(register int j=0; j<A.Cols_ ;j++)
+      for(register unsigned j=0; j<A.Cols_ ;j++)
       {
-	 for(register int k=0; k<B.NoNonZero(); k++)
+	 for(register unsigned k=0; k<B.NoNonZero(); k++)
 	 {
 	    if(B.Column_id_[k]==i && B.Row_id_[k] == j)
 	    {
@@ -520,9 +520,9 @@ SparseMatrix& SparseMatrix::operator=(const Matrix& A)
 {
 //This counts the number of nonzero entries
    
-   int i,j=0;
-   int k=0;
-   int count=0;
+   unsigned i,j=0;
+   unsigned k=0;
+   unsigned count=0;
    
    Rows_=A.Rows();
    Cols_=A.Cols();
@@ -539,8 +539,8 @@ SparseMatrix& SparseMatrix::operator=(const Matrix& A)
    }
    NoNonZero_ = count;
 	
-   Row_id_ = new int[NoNonZero_];
-   Column_id_ = new int[NoNonZero_];
+   Row_id_ = new unsigned[NoNonZero_];
+   Column_id_ = new unsigned[NoNonZero_];
    Nonzero_entry_ = new Elm[NoNonZero_];
 
    for(i=0; i<Rows_;i++)
@@ -555,8 +555,8 @@ SparseMatrix& SparseMatrix::operator=(const Matrix& A)
 	    k=k+1;
 	 }
       }
-   } 		
-
+   }
+   return *this;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -564,7 +564,7 @@ SparseMatrix SparseMatrix::Transpose() const
 {
    SparseMatrix B(NoNonZero_,Cols_,Rows_);
 	
-   for(register int i=0; i<NoNonZero_; i++)
+   for(register unsigned i=0; i<NoNonZero_; i++)
    {
       B.Row_id_[i] = Column_id_[i];
       B.Column_id_[i] = Row_id_[i];
@@ -576,11 +576,11 @@ SparseMatrix SparseMatrix::Transpose() const
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-SparseMatrix SparseIdentity(int Size)
+SparseMatrix SparseIdentity(unsigned Size)
 {
    SparseMatrix A(Size, Size, Size);
 	
-   for(register int i=0; i<Size;i++)
+   for(register unsigned i=0; i<Size;i++)
    {
       A.Row_id_[i] = i;
       A.Column_id_[i] = i;
@@ -595,11 +595,11 @@ Matrix ReverseSparse(const SparseMatrix& A)
 {
    Matrix B(A.Rows(),A.Cols(),0);
 	
-   for (register int i=0; i<A.Rows(); i++)
+   for (register unsigned i=0; i<A.Rows(); i++)
    {
-      for(register int j=0; j<A.Cols(); j++)
+      for(register unsigned j=0; j<A.Cols(); j++)
       {
-	 for(register int k=0; k<A.NoNonZero(); k++)
+	 for(register unsigned k=0; k<A.NoNonZero(); k++)
 	 {
 	    if(A.Row_id_[k] == i && A.Column_id_[k] == j)
 	    {
@@ -616,11 +616,11 @@ Matrix ReverseSparse(const SparseMatrix& A)
 ostream& operator<<(ostream& out,const SparseMatrix& A)
 {
    int W=out.width();
-   int NoNonZero = A.NoNonZero();
+   unsigned NoNonZero = A.NoNonZero();
    
    out << "\n";
 
-   for (register int i=0;i<NoNonZero;i++)
+   for (register unsigned i=0;i<NoNonZero;i++)
    {
       out << "Row id = " << setw(W) << A.Row_id_[i] 
 	  << "Column id = " << setw(W) << A.Column_id_[i] 

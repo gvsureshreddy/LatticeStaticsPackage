@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
       exit(-1);
    }
 
-   int size=3;
+   unsigned size=3;
    Matrix A(size,size);
    A[0][0] = atof(argv[1]);
    A[1][1] = atof(argv[2]);
@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
       tmp=EigVals[0][0];
       EigVals[0][0]=EigVals[0][1];
       EigVals[0][1]=tmp;
-      for (int i=0;i<size;++i)
+      for (unsigned i=0;i<size;++i)
       {
 	 tmp = EigVec[i][0];
 	 EigVec[i][0] = EigVec[i][1];
@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
       tmp=EigVals[0][0];
       EigVals[0][0]=EigVals[0][2];
       EigVals[0][2]=tmp;
-      for (int i=0;i<size;++i)
+      for (unsigned i=0;i<size;++i)
       {
 	 tmp = EigVec[i][0];
 	 EigVec[i][0] = EigVec[i][2];
@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
       tmp=EigVals[0][1];
       EigVals[0][1]=EigVals[0][2];
       EigVals[0][2]=tmp;
-      for (int i=0;i<size;++i)
+      for (unsigned i=0;i<size;++i)
       {
 	 tmp = EigVec[i][1];
 	 EigVec[i][1] = EigVec[i][2];
@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
 
    X[0] = 1.0;
    Z[2] = 1.0;
-   for (int i=0;i<size;++i)
+   for (unsigned i=0;i<size;++i)
    {
       Xp[i] = EigVec[i][0];
       Yp[i] = EigVec[i][1];
@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
    }
    LineofNodes = Yp % Zp;
 
-   for (int i=0;i<size;++i)
+   for (unsigned i=0;i<size;++i)
       cout << setw(20) << EigVals[0][i];
 
    cout << setw(20) << acos(X*LineofNodes);
