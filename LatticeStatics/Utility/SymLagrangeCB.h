@@ -14,7 +14,8 @@ private:
    virtual void Reset();
    
 public:
-   SymLagrangeCB(int InternalAtoms,PerlInput &Input);
+   SymLagrangeCB(unsigned InternalAtoms,Matrix &RefLattice,Vector *AtomPositions);
+   SymLagrangeCB(PerlInput &Input,PerlInput::HashStruct *ParentHash=NULL);
    virtual ~SymLagrangeCB() {};
    
 #include "UwithoutTransMapping.def"

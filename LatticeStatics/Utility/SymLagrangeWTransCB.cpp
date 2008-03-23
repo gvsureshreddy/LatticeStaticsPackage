@@ -1,10 +1,21 @@
 #include "SymLagrangeWTransCB.h"
 
-SymLagrangeWTransCB::SymLagrangeWTransCB(int InternalAtoms,PerlInput &Input)
-   : CBKinematics(InternalAtoms,Input)
+SymLagrangeWTransCB::SymLagrangeWTransCB(unsigned InternalAtoms,Matrix &RefLattice,
+                                         Vector *AtomPositions)
+   : CBKinematics(InternalAtoms,RefLattice,AtomPositions)
 {
    F_.Resize(DIM3,DIM3);
-   S_.Resize(InternalAtoms,DIM3);
+   S_.Resize(InternalAtoms_,DIM3);
+   
+   SetReferenceDOFs();
+   Reset();
+}
+
+SymLagrangeWTransCB::SymLagrangeWTransCB(PerlInput &Input,PerlInput::HashStruct *ParentHash)
+   : CBKinematics(Input,ParentHash)
+{
+   F_.Resize(DIM3,DIM3);
+   S_.Resize(InternalAtoms_,DIM3);
    
    SetReferenceDOFs();
    Reset();
@@ -12,7 +23,7 @@ SymLagrangeWTransCB::SymLagrangeWTransCB(int InternalAtoms,PerlInput &Input)
 
 void SymLagrangeWTransCB::Reset()
 {
-   int i,j,q,p;
+   unsigned i,j,q,p;
    for (i=0;i<DIM3;++i)
    {
       for (j=0;j<DIM3;++j)
@@ -35,7 +46,7 @@ Vector SymLagrangeWTransCB::FractionalPosVec(int p)
 {
    Vector pos(DIM3,0.0);
    
-   for (int i=0;i<DIM3;++i)
+   for (unsigned i=0;i<DIM3;++i)
    {
       pos[i] = InternalPOS_[p][i] + S_[p][i];
    }
@@ -47,7 +58,7 @@ double SymLagrangeWTransCB::DX(double *X,int p,int q,int i)
 {
    double tmp=0.0;
    
-   for (int j=0;j<DIM3;++j)
+   for (unsigned j=0;j<DIM3;++j)
    {
       tmp += (X[j] + ((InternalPOS_[q][j] + S_[q][j])
                       - (InternalPOS_[p][j] + S_[p][j])))
@@ -61,7 +72,7 @@ double SymLagrangeWTransCB::Dx(double *X,int p,int q,int i)
 {
    double tmp=0.0;
    
-   for (int k=0;k<DIM3;++k)
+   for (unsigned k=0;k<DIM3;++k)
    {
       tmp += F_[i][k]*DX(X,p,q,k);
    }
@@ -89,9 +100,9 @@ double SymLagrangeWTransCB::DyDS(double *Dx,int p,int q,int i, int j)
    ret=0;
    if (DELTA(i,p,q))
    {
-      for (int r=0;r<DIM3;r++)
+      for (unsigned r=0;r<DIM3;r++)
       {
-         for (int k=0;k<DIM3;k++)
+         for (unsigned k=0;k<DIM3;k++)
          {
             ret += F_[k][r]*RefLattice_[j][r]*Dx[k];
          }
@@ -107,11 +118,11 @@ double SymLagrangeWTransCB::D2yDSS(int p,int q,int i,int j,int k,int l)
    double tmp=0;
    if (DELTA(i,p,q)*DELTA(k,p,q))
    {
-      for (int s=0;s<DIM3;s++)
+      for (unsigned s=0;s<DIM3;s++)
       {
-         for (int t=0;t<DIM3;t++)
+         for (unsigned t=0;t<DIM3;t++)
          {
-            for (int r=0;r<DIM3;r++)
+            for (unsigned r=0;r<DIM3;r++)
             {
                tmp += F_[t][r]*RefLattice_[j][r]*F_[t][s]*RefLattice_[l][s];
             }
@@ -129,7 +140,7 @@ double SymLagrangeWTransCB::D2yDFS(double *Dx,double *DX,int p,int q,int i,int j
    
    if (DELTA(k,p,q))
    {
-      for (int s=0;s<DIM3;s++)
+      for (unsigned s=0;s<DIM3;s++)
       {
          tmp += F_[i][s]*RefLattice_[l][s]*DX[j] + F_[j][s]*RefLattice_[l][s]*DX[i];
       }
@@ -157,7 +168,7 @@ double SymLagrangeWTransCB::D3yDSSF(int p,int q,int i,int j,int k,int l,int m,in
    
    if (DELTA(i,p,q)*DELTA(k,p,q))
    {
-      for (int s=0;s<DIM3;s++)
+      for (unsigned s=0;s<DIM3;s++)
       {
          tmp += (RefLattice_[j][n]*F_[m][s]*RefLattice_[l][s]
                  + RefLattice_[j][m]*F_[n][s]*RefLattice_[l][s]

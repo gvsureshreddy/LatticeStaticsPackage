@@ -1,10 +1,20 @@
 #include "MixedCB.h"
 
-MixedCB::MixedCB(int InternalAtoms,PerlInput &Input):
-   CBKinematics(InternalAtoms,Input)
+MixedCB::MixedCB(unsigned InternalAtoms,Matrix &RefLattice,Vector *AtomPositions)
+   : CBKinematics(InternalAtoms,RefLattice,AtomPositions)
 {
    F_.Resize(DIM3,DIM3);
-   S_.Resize(InternalAtoms,DIM3);
+   S_.Resize(InternalAtoms_,DIM3);
+   
+   SetReferenceDOFs();
+   Reset();
+}
+
+MixedCB::MixedCB(PerlInput &Input,PerlInput::HashStruct *ParentHash)
+   : CBKinematics(Input,ParentHash)
+{
+   F_.Resize(DIM3,DIM3);
+   S_.Resize(InternalAtoms_,DIM3);
    
    SetReferenceDOFs();
    Reset();
@@ -12,7 +22,7 @@ MixedCB::MixedCB(int InternalAtoms,PerlInput &Input):
 
 void MixedCB::Reset()
 {
-   int i,j,q,p;
+   unsigned i,j,q,p;
    for (i=0;i<DIM3;++i)
    {
       for (j=0;j<DIM3;++j)
@@ -36,10 +46,10 @@ Vector MixedCB::FractionalPosVec(int p)
    Vector fracpos(DIM3,0.0),tmp(DIM3,0.0);
    Matrix CurrentLattice(DIM3,DIM3,0.0),InverseLattice(DIM3,DIM3);
    
-   for (int i=0;i<DIM3;++i)
+   for (unsigned i=0;i<DIM3;++i)
    {
       tmp = CurrentLatticeVec(i);
-      for (int j=0;j<DIM3;++j)
+      for (unsigned j=0;j<DIM3;++j)
       {
          CurrentLattice[i][j] = tmp[j];
       }
@@ -47,10 +57,10 @@ Vector MixedCB::FractionalPosVec(int p)
    InverseLattice = CurrentLattice.Inverse();
    
    
-   for (int i=0;i<DIM3;++i)
+   for (unsigned i=0;i<DIM3;++i)
    {
       fracpos[i] += InternalPOS_[p][i];;
-      for (int j=0;j<DIM3;++j)
+      for (unsigned j=0;j<DIM3;++j)
          fracpos[i] += S_[p][j]*InverseLattice[j][i];
    }
    
@@ -61,7 +71,7 @@ double MixedCB::DX(double *X,int p,int q,int i)
 {
    double tmp=0.0;
    
-   for (int j=0;j<DIM3;++j)
+   for (unsigned j=0;j<DIM3;++j)
    {
       tmp += (X[j] + InternalPOS_[q][j] - InternalPOS_[p][j])*RefLattice_[j][i];
    }
@@ -73,7 +83,7 @@ double MixedCB::Dx(double *X,int p,int q,int i)
 {
    double tmp=0.0;
    
-   for (int j=0;j<DIM3;++j)
+   for (unsigned j=0;j<DIM3;++j)
    {
       tmp += F_[i][j]*DX(X,p,q,j);
    }

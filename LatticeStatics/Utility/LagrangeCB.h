@@ -14,7 +14,8 @@ private:
    virtual void Reset();
    
 public:
-   LagrangeCB(int InternalAtoms,PerlInput &Input);
+   LagrangeCB(unsigned InternalAtoms,Matrix &RefLattice,Vector *AtomPositions);
+   LagrangeCB(PerlInput &Input,PerlInput::HashStruct *ParentHash=NULL);
    virtual ~LagrangeCB() {};
    
 #include "FwithTransMapping.def"

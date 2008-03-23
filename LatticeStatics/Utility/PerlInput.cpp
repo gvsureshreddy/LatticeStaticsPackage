@@ -633,7 +633,7 @@ void PerlInput::getIntVector(int *IntArry,unsigned len,HashStruct Hash,char *Par
    }
 }
 
-void PerlInput::getUnsignedVector(int *UnsignedArry,unsigned len,HashStruct Hash,
+void PerlInput::getUnsignedVector(unsigned *UnsignedArry,unsigned len,HashStruct Hash,
                                   char *ParamName,int a,int b,int c,int d)
 {
    int Errno = -5;
@@ -786,7 +786,7 @@ void PerlInput::getIntMatrix(int *IntMtrx,unsigned rows,unsigned cols,HashStruct
    }
 }
 
-void PerlInput::getUnsignedMatrix(int *UnsignedMtrx,unsigned rows,unsigned cols,
+void PerlInput::getUnsignedMatrix(unsigned *UnsignedMtrx,unsigned rows,unsigned cols,
                                   HashStruct Hash,char *ParamName,int a,int b,int c)
 {
    int Errno = -5;

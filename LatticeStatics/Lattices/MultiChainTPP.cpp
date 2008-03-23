@@ -971,7 +971,7 @@ int MultiChainTPP::ReferenceBlochWave(Vector &K)
    return 1;
 }
 
-void MultiChainTPP::LongWavelengthModuli(double dk, int gridsize,const char *prefix,
+void MultiChainTPP::LongWavelengthModuli(double dk, unsigned gridsize,const char *prefix,
                                          ostream &out)
 {
 }

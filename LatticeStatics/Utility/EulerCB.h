@@ -14,7 +14,8 @@ private:
    virtual void Reset();
    
 public:
-   EulerCB(int InternalAtoms,PerlInput &Input);
+   EulerCB(unsigned InternalAtoms,Matrix &RefLattice,Vector *AtomPositions);
+   EulerCB(PerlInput &Input,PerlInput::HashStruct *ParentHash=NULL);
    virtual ~EulerCB() {};
    
 #include "FwithTransMapping.def"

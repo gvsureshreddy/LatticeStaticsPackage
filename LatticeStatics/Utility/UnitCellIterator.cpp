@@ -1,6 +1,6 @@
 #include "UnitCellIterator.h"
 
-void UnitCellIterator::Initialize(int GridSize,int DoHalfOnly,int SkipZero)
+void UnitCellIterator::Initialize(unsigned GridSize,int DoHalfOnly,int SkipZero)
 {
    GridSize_ = GridSize;
    CurrentPOS_ = 0;
@@ -30,9 +30,9 @@ void UnitCellIterator::Initialize(int GridSize,int DoHalfOnly,int SkipZero)
    }
    
    int even = 1-GridSize_%2;
-   for (int k= DoHalfOnly ? 0 : -GridSize_/2-(!DoHalfOnly&&even); k <= GridSize_/2; ++k)
-      for (int j=-GridSize_/2;j<=GridSize_/2-even;++j)
-         for (int i=-GridSize_/2;i<=GridSize_/2-even;++i)
+   for (unsigned k= DoHalfOnly ? 0 : -GridSize_/2-(!DoHalfOnly&&even); k <= GridSize_/2; ++k)
+      for (unsigned j=-GridSize_/2;j<=GridSize_/2-even;++j)
+         for (unsigned i=-GridSize_/2;i<=GridSize_/2-even;++i)
          {
             if (!(SkipZero && (i == 0) && (j == 0) && (k == 0)))
             {

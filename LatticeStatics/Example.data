@@ -1,12 +1,14 @@
 # Main Parameters
 use Math::Trig;
 
+# Main LatticeStatics Program Parameters
 %Main = (FieldWidth     => 20,
          Precision      => 12,
          Echo           => 1,
          BisectCP       => Yes,
          );
 
+# Lattice Parameters
 $spacing = 1.17984390811391227;
 $DEG2RAD = atan2(1,1)*4/180;
 
@@ -23,10 +25,18 @@ $Rtheta1_1_1 = 0.275914376289;
             OrderedTFs => No,
             ThirdOrder => No,
             MultiLatticeTPP => 
-            {InternalAtoms       => 4,
-             MaxIterations       => 100,
+            {MaxIterations       => 100,
              CriticalPoint_T2    => No,
-             CBKinematics        => LagrangeCB, 
+             CBKinematics        => {Type => LagrangeCB,
+                                     InternalAtoms => 4,
+                                     LatticeBasis  => [[$spacing, $spacing, 0.0],
+                                                      [-$spacing, $spacing, 0.0],
+                                                      [0.0, 0.0, $spacing]],
+                                     AtomPositions => [[0.0, 0.0, 0.0],
+                                                       [0.5, 0.0, 0.5],
+                                                       [0.5, 0.5, 0.0],
+                                                       [0.0, 0.5, 0.5]]
+                                                         },
              RotationConstraint  => [FullRotationConstraint],
              #RotationConstraint  => [OneRotationConstraint,
              #                        [1.0, 1.0, 0.0],
@@ -75,17 +85,7 @@ $Rtheta1_1_1 = 0.275914376289;
                }
             );
 
-%CBKinematics = (Type => LagrangeCB,
-                 LatticeBasis => [[$spacing, $spacing, 0.0],
-                                  [-$spacing, $spacing, 0.0],
-                                  [0.0, 0.0, $spacing]],
-                 AtomPositions => [[0.0, 0.0, 0.0],
-                                   [0.5, 0.0, 0.5],
-                                   [0.5, 0.5, 0.0],
-                                   [0.0, 0.5, 0.5]]
-                 );
-
-
+# Mode Parameters
 %Mode = (Type      => MultiMode,
          MultiMode => {DOFS     => 1,
                        DOF_0    => [[0, 4, 8],
@@ -125,7 +125,7 @@ $ArcLenDSMax = 0.01;
                                           }
                    );
 
-
+# Start/Restart Parameters (can be put into start file OR input file)
 %StartType = (Type => Continuation,
               Solution1 => [1.000000000000, 1.000000000000],
               Solution2 => [1.000033386242, 1.010000000000]

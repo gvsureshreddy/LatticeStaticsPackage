@@ -91,9 +91,9 @@ public:
                      int a=-1,int b=-1,int c=-1,int d=-1)
    {getIntVector(IntArry,len,getHash(HashName),ParamName,a,b,c,d);}
   
-   void getUnsignedVector(int *UnsignedArry,unsigned len,HashStruct Hash,char *ParamName,
+   void getUnsignedVector(unsigned *UnsignedArry,unsigned len,HashStruct Hash,char *ParamName,
                           int a=-1,int b=-1,int c=-1,int d=-1);
-   void getUnsignedVector(int *UnsignedArry,unsigned len,char *HashName,char *ParamName,
+   void getUnsignedVector(unsigned *UnsignedArry,unsigned len,char *HashName,char *ParamName,
                           int a=-1,int b=-1,int c=-1,int d=-1)
    {getUnsignedVector(UnsignedArry,len,getHash(HashName),ParamName,a,b,c,d);}
    
@@ -103,9 +103,9 @@ public:
                      int a=-1,int b=-1,int c=-1)
    {getIntMatrix(IntMtrx,rows,cols,getHash(HashName),ParamName,a,b,c);}
 
-   void getUnsignedMatrix(int *UnsignedMtrx,unsigned rows,unsigned cols,
+   void getUnsignedMatrix(unsigned *UnsignedMtrx,unsigned rows,unsigned cols,
                           HashStruct Hash,char *ParamName,int a=-1,int b=-1,int c=-1);   
-   void getUnsignedMatrix(int *UnsignedMtrx,unsigned rows,unsigned cols,
+   void getUnsignedMatrix(unsigned *UnsignedMtrx,unsigned rows,unsigned cols,
                           char *HashName,char *ParamName,int a=-1,int b=-1,int c=-1)
    {getUnsignedMatrix(UnsignedMtrx,rows,cols,getHash(HashName),ParamName,a,b,c);}
 };

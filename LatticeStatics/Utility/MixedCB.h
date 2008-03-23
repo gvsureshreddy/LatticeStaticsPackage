@@ -14,7 +14,8 @@ private:
    virtual void Reset();
    
 public:
-   MixedCB(int InternalAtoms,PerlInput &Input);
+   MixedCB(unsigned InternalAtoms,Matrix &RefLattice,Vector *AtomPositions);
+   MixedCB(PerlInput &Input,PerlInput::HashStruct *ParentHash=NULL);
    virtual ~MixedCB() {};
    
 #include "FwithTransMapping.def"

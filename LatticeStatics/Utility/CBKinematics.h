@@ -13,23 +13,25 @@ private:
    virtual void Reset() = 0;
    
 public:
-   static const int DIM3 = 3;
+   static const unsigned DIM3 = 3;
    
    Vector DOF_;
+   unsigned InternalAtoms_;
    Matrix RefLattice_;
-   int InternalAtoms_;
    Vector *InternalPOS_;
    
    Matrix F_;
    Matrix S_;
-   
-   CBKinematics(int InternalAtoms,PerlInput &Input);
+
+   CBKinematics(unsigned InternalAtoms,Matrix &RefLattice,Vector *AtomPositions);
+   CBKinematics(PerlInput &Input,PerlInput::HashStruct *ParentHash=NULL);
    virtual ~CBKinematics() {delete [] InternalPOS_;}
    
    virtual void InfluenceRegion(double *InfluenceRegion);
    
    virtual void SetReferenceToCurrent();
    virtual void SetReferenceDOFs();
+   const unsigned InternalAtoms() {return InternalAtoms_;}
    const Matrix& RefLattice() {return RefLattice_;}
    const double RefVolume() {return RefLattice_.Det();}
    const Vector &DOF() {return DOF_;}

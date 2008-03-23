@@ -60,6 +60,7 @@ include ../Modes/Makefile
 include ../Potentials/Makefile
 
 BSCSOURCES  = $(addprefix ./,$(UTILITY))
+RK1SOURCES  = ./Rank1Convex.cpp
 DISPERSIONSOURCES = ./DispersionCurves.cpp
 LONGWAVELENGTH = ./LongWavelengthModuli.cpp
 BLOCHWAVESOURCES = ./BlochWave.cpp
@@ -67,7 +68,7 @@ NEIGHBORSSOURCES = ./NeighborDistances.cpp
 PRINTPOTENTIALS = ./PrintPotentials.cpp
 ENERGYLANDSCAPE = ./EnergyLandscape.cpp
 #
-ALLSOURCES  = $(BSCSOURCES) $(DISPERSIONSOURCES) \
+ALLSOURCES  = $(BSCSOURCES) $(RK1SOURCES) $(DISPERSIONSOURCES) \
 	      $(BLOCHWAVESOURCES) $(NEIGHBORSSOURCES) $(LONGWAVELENGTH) $(PRINTPOTENTIALS) \
 	      $(ENERGYLANDSCAPE)
 
@@ -75,6 +76,7 @@ ALLSOURCES  = $(BSCSOURCES) $(DISPERSIONSOURCES) \
 # Defines the object files to be created using the SYSTEM name ############
 STRIPEDSOURCES = $(notdir $(BSCSOURCES))
 BSCOBJECTS  = $(STRIPEDSOURCES:$(SRC_EXT)=$(OBJ_EXT))
+RK1OBJECTS  = $(RK1SOURCES:$(SRC_EXT)=$(OBJ_EXT))
 DISPERSIONOBJECTS = $(DISPERSIONSOURCES:$(SRC_EXT)=$(OBJ_EXT))
 WAVELENGTHOBJECTS = $(LONGWAVELENGTH:$(SRC_EXT)=$(OBJ_EXT))
 BLOCHWAVEOBJECTS = $(BLOCHWAVESOURCES:$(SRC_EXT)=$(OBJ_EXT))
@@ -82,14 +84,23 @@ NEIGHBORSOBJECTS = $(NEIGHBORSSOURCES:$(SRC_EXT)=$(OBJ_EXT))
 PRINTPOTSOBJECTS = $(PRINTPOTENTIALS:$(SRC_EXT)=$(OBJ_EXT))
 ENERGYLANDOBJECTS = $(ENERGYLANDSCAPE:$(SRC_EXT)=$(OBJ_EXT))
 #
-ALLOBJECTS = $(BSCOBJECTS) $(DISPERSIONOBJECTS) \
+ALLOBJECTS = $(BSCOBJECTS) $(RK1OBJECTS) $(DISPERSIONOBJECTS) \
 	     $(BLOCHWAVEOBJECTS) $(NEIGHBORSOBJECTS) $(WAVELENGTHOBJECTS) $(PRINTPOTSOBJECTS) \
 	     $(ENERGYLANDOBJECTS)
 
-ALLPROGRAMS = DispersionCurves BlochWave NeighborDistances\
+ALLPROGRAMS = Rank1Convex DispersionCurves BlochWave NeighborDistances\
               LongWavelengthModuli PrintPotentials EnergyLandscape
 
 all: $(ALLPROGRAMS)
+
+# Defines the Program Target (linking command) ############################
+Rank1Convex:  $(RK1OBJECTS) $(BSCOBJECTS)
+	      $(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/builddate.o -c builddate.cpp
+	      $(PURE) $(CC) $(LFLAGS) \
+	      -L$(LIB_LOC) -o ./bin/Rank1Convex \
+	      $(addprefix lib/,$(RK1OBJECTS)) \
+	      $(addprefix lib/,$(BSCOBJECTS)) $(LIBS) ./lib/builddate.o
+	      /bin/rm -f ./lib/builddate.o
 
 # Defines the Program Target (linking command) ############################
 DispersionCurves:     $(DISPERSIONOBJECTS) $(BSCOBJECTS) \
@@ -175,6 +186,7 @@ EnergyLandscape:      $(ENERGYLANDOBJECTS) $(BSCOBJECTS) \
 
 # include the dependicies
 include $(addprefix depend/,$(BSCOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
+include $(addprefix depend/,$(RK1OBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 include $(addprefix depend/,$(DISPERSIONOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 include $(addprefix depend/,$(WAVELENGTHOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 include $(addprefix depend/,$(BLOCHWAVEOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
@@ -206,6 +218,7 @@ $(addprefix $(BIN_LOC)/,$(ALLPROGRAMS)): $(BIN_LOC)/%: %
 # Define uninstall
 uninstall:
 	/bin/rm -f $(BIN_LOC)/DispersionCurves
+	/bin/rm -f $(BIN_LOC)/Rank1Convex
 	/bin/rm -f $(BIN_LOC)/LongWavelengthModuli
 	/bin/rm -f $(BIN_LOC)/BlochWave
 	/bin/rm -f $(BIN_LOC)/NeighborDistances
@@ -217,6 +230,7 @@ uninstall:
 
 clean:
 	 -/bin/rm -f $(addprefix lib/,$(BSCOBJECTS:$(OBJ_EXT)=.*)) \
+		  $(addprefix lib/,$(RK1OBJECTS:$(OBJ_EXT)=.*)) \
 		  $(addprefix lib/,$(DISPERSIONOBJECTS:$(OBJ_EXT)=.*)) \
 		  $(addprefix lib/,$(WAVELENGTHOBJECTS:$(OBJ_EXT)=.*)) \
 		  $(addprefix lib/,$(BLOCHWAVEOBJECTS:$(OBJ_EXT)=.*)) \
@@ -224,6 +238,7 @@ clean:
 		  $(addprefix lib/,$(PRINTPOTSOBJECTS:$(OBJ_EXT)=.*)) \
 		  $(addprefix lib/,$(ENERGYLANDOBJECTS:$(OBJ_EXT)=.*)) \
 		  bin/DispersionCurves \
+		  bin/Rank1Convex \
 		  bin/LongWavelengthModuli \
 		  bin/BlochWave \
 		  bin/NeighborDistances \
