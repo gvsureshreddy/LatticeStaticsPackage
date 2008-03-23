@@ -4,7 +4,7 @@
 #include <cmath>
 
 // Global IDString
-char CMatrixID[]="$Id: CMatrix.cpp,v 1.13 2006/04/18 14:27:21 elliott Exp $";
+char CMatrixID[]="$Id: CMatrix.cpp,v 1.14 2008/03/23 02:26:56 elliott Exp $";
 
 // Private Methods...
 
@@ -147,7 +147,7 @@ CMatrix operator+(const CMatrix& A,const CMatrix& B)
    if (A.Rows_!=B.Rows_ || A.Cols_!=B.Cols_ || A.IsNull() || B.IsNull())
    {
       cerr << "Error in CMatrix Operator+() Diff Size Matrices or Null CMatrix!!!"
-	   << endl;
+	   << "\n";
       exit(-1);
    }
 
@@ -184,7 +184,7 @@ CMatrix operator-(const CMatrix& A,const CMatrix& B)
    if (A.Rows_!=B.Rows_ || A.Cols_!=B.Cols_ || A.IsNull() || B.IsNull())
    {
       cerr << "Error in CMatrix Operator-() Diff Size Matrices or Null CMatrix!!!"
-	   << endl;
+	   << "\n";
       exit(-1);
    }
       
@@ -206,7 +206,7 @@ CMatrix operator*(const CMatrix& A,const CMatrix& B)
    if (A.Cols_!=B.Rows_ || A.IsNull() || B.IsNull())
    {
       cerr << "Error In CMatrix Operator* : A.Cols!=B.Rows or Null CMatrix"
-	   <<endl;
+	   <<"\n";
       exit(-1);
    }
 
@@ -261,7 +261,7 @@ CMatrix operator/(const CMatrix& A,const CMatrix::Elm& B)
    if (B == CMatrix::Elm(0.0,0.0))
    {
       cerr << "Divide By Zero Error in CMatrix operator/()"
-	   << endl;
+	   << "\n";
       exit(-1);
    }
    
@@ -283,7 +283,7 @@ CMatrix::Elm* CMatrix::operator[](unsigned i)
 {
    if (i >= Rows_)
    {
-      cerr << "CMatrix Index Overflow -- CMatrix::Elm* operator[]()" << endl;
+      cerr << "CMatrix Index Overflow -- CMatrix::Elm* operator[]()" << "\n";
       exit(-1);
    }
 
@@ -294,7 +294,7 @@ CMatrix::Elm* CMatrix::operator[](unsigned i) const
 {
    if (i >= Rows_)
    {
-      cerr << "CMatrix Index Overflow -- CMatrix::Elm* operator[]()" << endl;
+      cerr << "CMatrix Index Overflow -- CMatrix::Elm* operator[]()" << "\n";
       exit(-1);
    }
 
@@ -308,7 +308,7 @@ CMatrix& CMatrix::operator=(const CMatrix& B)
    {
       cerr << "Error in CMatrix& operator=() : Matricies not same size "
            << "or Null CMatrix"
-           << endl;
+           << "\n";
       exit(-1);
    }
 
@@ -370,7 +370,7 @@ CMatrix CMatrix::Inverse() const
 {
    if (!IsSquare() || IsNull())
    {
-      cerr << "Error in CMatrix::Inverse() : Non-Square or Null CMatrix" << endl;
+      cerr << "Error in CMatrix::Inverse() : Non-Square or Null CMatrix" << "\n";
       exit(-1);
    }
 
@@ -438,7 +438,7 @@ CMatrix::Elm CMatrix::Det() const
 {
    if (IsNull() || !IsSquare())
    {
-      cerr << "Error in CMatrix::Det() : Null or Non-Square CMatrix" << endl;
+      cerr << "Error in CMatrix::Det() : Null or Non-Square CMatrix" << "\n";
       exit(-1);
    }
 
@@ -462,7 +462,7 @@ void PLU(const CMatrix& A,CMatrix& P,CMatrix& L,CMatrix& U)
 {
    if (!A.IsSquare() || A.IsNull())
    {
-      cerr << "Error in PLU -- Non-Square or Null CMatrix to decompose..." << endl;
+      cerr << "Error in PLU -- Non-Square or Null CMatrix to decompose..." << "\n";
       exit(-1);
    }
 
@@ -670,7 +670,7 @@ Matrix HermiteEigVal(CMatrix A,CMatrix *B,const int MaxItr,const double Tol)
 
    if (!converged)
    {
-      cerr << "Error: HermiteEigVal(): Failed - No convergence!" << endl;
+      cerr << "Error: HermiteEigVal(): Failed - No convergence!" << "\n";
       exit(-1);
    }
 
@@ -686,7 +686,7 @@ void Cholesky(const CMatrix& A,CMatrix& U,CMatrix& D)
 {
    if (!A.IsSquare() || A.IsNull())
    {
-      cerr << "Error in Cholesky() -- Non-Square or Null CMatrix" << endl;
+      cerr << "Error in Cholesky() -- Non-Square or Null CMatrix" << "\n";
       exit(-1);
    }
 
@@ -729,7 +729,7 @@ CMatrix SolvePLU(const CMatrix& A,const CMatrix& B)
    if (!A.IsSquare() || A.IsNull() || A.Cols_!=B.Rows_)
    {
       cerr << "Error in Solve() - Non-Square CMatrix, Null CMatrix, or system of != dimension"
-	   << endl;
+	   << "\n";
       exit(-1);
    }
    
@@ -774,7 +774,7 @@ ostream& operator<<(ostream& out,const CMatrix& A)
 {
    int W=out.width();
    
-   out << endl;
+   out << "\n";
 
    if (CMatrix::MathematicaPrintFlag) out << setw(0) << "{{";
    for (register int i=0;i<A.Rows_;i++)
@@ -794,10 +794,10 @@ ostream& operator<<(ostream& out,const CMatrix& A)
 	    out << "}}";
       }
       else
-	 out << endl;
+	 out << "\n";
    }
 
-   out << endl;
+   out << "\n";
 
    return out;
 }

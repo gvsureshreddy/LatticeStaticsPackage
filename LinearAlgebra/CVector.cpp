@@ -7,7 +7,7 @@
 #include "Matrix.h"
 
 // Global IDString
-char CVectorID[]="$Id: CVector.cpp,v 1.4 2006/04/18 14:27:21 elliott Exp $";
+char CVectorID[]="$Id: CVector.cpp,v 1.5 2008/03/23 02:26:56 elliott Exp $";
 
 // Private Functions...
 
@@ -61,7 +61,7 @@ CVector::CVector(const CMatrix& A)
    if (A.IsNull() || (A.Rows()!=1 && A.Cols()!=1))
    {
       cerr << "Error in CVector::CVector(CMatrix& A) -- Null CMatrix or Non-CVector"
-	   << endl;
+	   << "\n";
       exit(-1);
    }
 
@@ -125,7 +125,7 @@ CVector::CVector(const Matrix& A)
    if (A.IsNull() || (A.Rows()!=1 && A.Cols()!=1))
    {
       cerr << "Error in CVector::CVector(Matrix& A) -- Null Matrix or Non-CVector"
-	   << endl;
+	   << "\n";
       exit(-1);
    }
 
@@ -181,7 +181,7 @@ CVector operator+(const CVector& A,const CVector& B)
    if (A.Cols_!=B.Cols_ || A.Cols_==0 || B.Cols_==0)
    {
       cerr << "Error in CVector Operator+() Diff Size CVectors or Null CVector!!!"
-	   << endl;
+	   << "\n";
       exit(-1);
    }
 
@@ -200,7 +200,7 @@ CVector operator-(const CVector& A,const CVector& B)
    if (A.Cols_!=B.Cols_ || A.Cols_==0 || B.Cols_==0)
    {
       cerr << "Error in CVector Operator-() Diff Size CVectors or Null CVector!!!"
-	   << endl;
+	   << "\n";
       exit(-1);
    }
 
@@ -230,7 +230,7 @@ CVector::Elm operator*(const CVector& A,const CVector& B)
    if (A.Cols_==0 || B.Cols_==0 || A.Cols_!=B.Cols_)
    {
       cerr <<"Error in Dot Product -- Null CVector or different Dimensions."
-	   << endl;
+	   << "\n";
       exit(-1);
    }
    
@@ -249,7 +249,7 @@ CVector operator*(const CMatrix& A,const CVector& B)
    if (A.Cols()!=B.Cols_ || A.IsNull() || B.Cols_==0)
    {
       cerr << "Error In CVector Operator* : A.Cols!=B.Cols or Null CMatrix or CVector"
-	   <<endl;
+	   <<"\n";
       exit(-1);
    }
 
@@ -271,7 +271,7 @@ CVector operator*(const CVector& A,const CMatrix& B)
    if (B.Cols()!=A.Cols_ || B.IsNull() || A.Cols_==0)
    {
       cerr << "Error In CVector Operator* : A.Cols!=B.Cols or Null CMatrix or CVector"
-	   <<endl;
+	   <<"\n";
       exit(-1);
    }
 
@@ -330,7 +330,7 @@ CVector::Elm& CVector::operator[](const unsigned& i)
    if (i>=Cols_)
    {
       cerr << "Error in CVector::operator[]() -- Index Overflow"
-	   << endl;
+	   << "\n";
       exit(-1);
    }
 
@@ -342,7 +342,7 @@ const CVector::Elm CVector::operator[](const unsigned& i) const
    if (i>=Cols_)
    {
       cerr << "Error in CVector::operator[]() -- Index Overflow"
-	   << endl;
+	   << "\n";
       exit(-1);
    }
 
@@ -356,7 +356,7 @@ CVector& CVector::operator=(const CVector& B)
    {
       cerr << "Error in CVector& operator=() : CVectors not same size "
            << "or Null CVector"
-           << endl;
+           << "\n";
       exit(-1);
    }
 

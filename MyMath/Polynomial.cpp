@@ -102,7 +102,7 @@ int Laguerre(MyComplexDouble Coeff[],int Degree,MyComplexDouble *X)
 	 (*X) = (*X) - ((double(iter)/MT)*dx);
    }
 
-   cerr << "too many iteration in Laguerre" << endl;
+   cerr << "too many iteration in Laguerre" << "\n";
    return iter;
 }
       

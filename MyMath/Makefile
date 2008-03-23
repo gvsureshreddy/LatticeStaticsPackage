@@ -23,12 +23,12 @@ endif
 
 ifeq ($(UNAME),Linux)
    # PGI compiler
-   #CC         = pgCC
-   #OPTIMIZE   = -fast -Minline=levels:10 --no_exceptions
-   #ANSI       = -A
-   CC         = $(gCC)
-   OPTIMIZE   = -O
-   ANSI       = -pedantic
+   CC         = pgCC
+   OPTIMIZE   = -fast -Minline=levels:10 --no_exceptions
+   ANSI       = -A
+   #CC         = $(gCC)
+   #OPTIMIZE   = -O
+   #ANSI       = -pedantic
 endif
 
 # general options 

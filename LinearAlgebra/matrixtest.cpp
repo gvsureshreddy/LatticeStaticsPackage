@@ -105,125 +105,125 @@ int main()
    cout << setiosflags(ios::fixed) << setprecision(12);
 //   cout << setiosflags(ios::scientific) << setprecision(12);
 
-   cout << "A" << endl
-	<< setw(20) << A << endl
-	<< "CA" << endl
-	<< setw(20) << CA << endl
-	<< "B" << endl
-	<< setw(20) << B << endl
-	<< "CB" << endl
-	<< setw(20) << CB << endl
-	<< "C" << endl
-	<< setw(20) << C << endl
-	<< "CC" << endl
-	<< setw(20) << CC << endl
-	<< "D" << endl
-	<< setw(20) << D << endl
-	<< "CD" << endl
-	<< setw(20) << CD << endl
-	<< "a" << endl
-	<< setw(20) << a << endl
-	<< "ca" << endl
-	<< setw(20) << ca << endl      
-	<< "b" << endl
-	<< setw(20) << b << endl
-	<< "cb" << endl
-	<< setw(20) << cb << endl
-	<< "c" << endl
-	<< setw(20) << c << endl
-	<< "cc" << endl
-	<< setw(20) << cc << endl
-	<< "d" << endl
-	<< setw(20) << d << endl
-	<< "cd" << endl
-	<< setw(20) << cd << endl
-	<< "e" << endl
-	<< setw(20) << e << endl
-	<< "f" << endl
-	<< setw(20) << f << endl;
+   cout << "A" << "\n"
+	<< setw(20) << A << "\n"
+	<< "CA" << "\n"
+	<< setw(20) << CA << "\n"
+	<< "B" << "\n"
+	<< setw(20) << B << "\n"
+	<< "CB" << "\n"
+	<< setw(20) << CB << "\n"
+	<< "C" << "\n"
+	<< setw(20) << C << "\n"
+	<< "CC" << "\n"
+	<< setw(20) << CC << "\n"
+	<< "D" << "\n"
+	<< setw(20) << D << "\n"
+	<< "CD" << "\n"
+	<< setw(20) << CD << "\n"
+	<< "a" << "\n"
+	<< setw(20) << a << "\n"
+	<< "ca" << "\n"
+	<< setw(20) << ca << "\n"      
+	<< "b" << "\n"
+	<< setw(20) << b << "\n"
+	<< "cb" << "\n"
+	<< setw(20) << cb << "\n"
+	<< "c" << "\n"
+	<< setw(20) << c << "\n"
+	<< "cc" << "\n"
+	<< setw(20) << cc << "\n"
+	<< "d" << "\n"
+	<< setw(20) << d << "\n"
+	<< "cd" << "\n"
+	<< setw(20) << cd << "\n"
+	<< "e" << "\n"
+	<< setw(20) << e << "\n"
+	<< "f" << "\n"
+	<< setw(20) << f << "\n";
 
    Matrix q(A);
 
-   cout << "q=" << endl << setw(20) << q <<endl;
+   cout << "q=" << "\n" << setw(20) << q <<"\n";
 
    q=B;
 
-   cout << "q=B" << endl << setw(20) << q << endl;
+   cout << "q=B" << "\n" << setw(20) << q << "\n";
 
-   cout << "A+B" << endl << setw(20) << A+B << endl;
+   cout << "A+B" << "\n" << setw(20) << A+B << "\n";
 
-   cout << "CA+CB" << endl << setw(20) << CA+CB << endl;
+   cout << "CA+CB" << "\n" << setw(20) << CA+CB << "\n";
 
-   cout << "A*B" << endl << setw(20) << A*B << endl;
+   cout << "A*B" << "\n" << setw(20) << A*B << "\n";
 
-   cout << "CA*CB" << endl << setw(20) << CA*CB << endl;
+   cout << "CA*CB" << "\n" << setw(20) << CA*CB << "\n";
 
-   cout << "D*C" << endl << setw(20) << D*C << endl;
+   cout << "D*C" << "\n" << setw(20) << D*C << "\n";
 
-   cout << "D^T" << endl << setw(20) << D.Transpose() << endl;
+   cout << "D^T" << "\n" << setw(20) << D.Transpose() << "\n";
 
-   cout << "CD^T" << endl << setw(20) << CD.Transpose() << endl;
+   cout << "CD^T" << "\n" << setw(20) << CD.Transpose() << "\n";
 
-   cout << "Det(A)" << setw(20) << A.Det() << endl;
+   cout << "Det(A)" << setw(20) << A.Det() << "\n";
 
-   cout << "Det(CA)" << setw(20) << CA.Det() << endl;
+   cout << "Det(CA)" << setw(20) << CA.Det() << "\n";
 
-   cout << "A^-1" << setw(20) << A.Inverse() << endl;
+   cout << "A^-1" << setw(20) << A.Inverse() << "\n";
 
-   cout << "A*A^-1" << setw(20) << A*A.Inverse() << endl;
+   cout << "A*A^-1" << setw(20) << A*A.Inverse() << "\n";
 
-   cout << "CA^-1" << setw(20) << CA.Inverse() << endl;
+   cout << "CA^-1" << setw(20) << CA.Inverse() << "\n";
 
-   cout << "CA*CA^-1" << setw(20) << CA*CA.Inverse() << endl;
+   cout << "CA*CA^-1" << setw(20) << CA*CA.Inverse() << "\n";
 
    PLU(A,B,C,D);
    PLU(CA,CB,CC,CD);
 
-   cout << "A" << endl << setw(20) << A << endl;
+   cout << "A" << "\n" << setw(20) << A << "\n";
 
-   cout << "P" << endl << setw(20) << B << endl;
+   cout << "P" << "\n" << setw(20) << B << "\n";
 
-   cout << "L" << endl << setw(20) << C << endl;
+   cout << "L" << "\n" << setw(20) << C << "\n";
 
-   cout << "U" << endl << setw(20) << D << endl;
+   cout << "U" << "\n" << setw(20) << D << "\n";
 
-   cout << "PLU" << endl << setw(20) << B.Inverse()*C*D << endl;
+   cout << "PLU" << "\n" << setw(20) << B.Inverse()*C*D << "\n";
 
-   cout << "CA" << endl << setw(20) << CA << endl;
+   cout << "CA" << "\n" << setw(20) << CA << "\n";
 
-   cout << "CP" << endl << setw(20) << CB << endl;
+   cout << "CP" << "\n" << setw(20) << CB << "\n";
 
-   cout << "CL" << endl << setw(20) << CC << endl;
+   cout << "CL" << "\n" << setw(20) << CC << "\n";
 
-   cout << "CU" << endl << setw(20) << CD << endl;
+   cout << "CU" << "\n" << setw(20) << CD << "\n";
 
-   cout << "CPLU" << endl << setw(20) << CB.Inverse()*CC*CD << endl;
+   cout << "CPLU" << "\n" << setw(20) << CB.Inverse()*CC*CD << "\n";
 
-   cout << "E" << endl << setw(20) << E << endl;
+   cout << "E" << "\n" << setw(20) << E << "\n";
 
-   cout << "c" << endl << setw(20) << c << endl;
+   cout << "c" << "\n" << setw(20) << c << "\n";
 
-   cout << "x=E^-1*c" << setw(20) << SolvePLU(E,c) << endl;
-   cout << "E*x" << setw(20) << E*SolvePLU(E,c) << endl;
+   cout << "x=E^-1*c" << setw(20) << SolvePLU(E,c) << "\n";
+   cout << "E*x" << setw(20) << E*SolvePLU(E,c) << "\n";
 
-   cout << "CE" << endl << setw(20) << CE << endl;
+   cout << "CE" << "\n" << setw(20) << CE << "\n";
 
-   cout << "cc" << endl << setw(20) << cc << endl;
+   cout << "cc" << "\n" << setw(20) << cc << "\n";
 
-   cout << "cx=CE^-1*cc" << setw(20) << SolvePLU(CE,cc) << endl;
-   cout << "CE*cx" << setw(20) << CE*SolvePLU(CE,cc) << endl;
+   cout << "cx=CE^-1*cc" << setw(20) << SolvePLU(CE,cc) << "\n";
+   cout << "CE*cx" << setw(20) << CE*SolvePLU(CE,cc) << "\n";
 
    SVD(A,B,C,D,MAXCONDITION,1);
 
-   cout << "A" << endl << setw(20) << A << endl;
+   cout << "A" << "\n" << setw(20) << A << "\n";
 
-   cout << "U" << endl << setw(20) << B << endl;
+   cout << "U" << "\n" << setw(20) << B << "\n";
 
-   cout << "W" << endl << setw(20) << C << endl;
+   cout << "W" << "\n" << setw(20) << C << "\n";
 
-   cout << "V" << endl << setw(20) << D << endl;
+   cout << "V" << "\n" << setw(20) << D << "\n";
 
-   cout << "SVD" << endl << setw(20) << B*C*D.Transpose() << endl;
+   cout << "SVD" << "\n" << setw(20) << B*C*D.Transpose() << "\n";
 
    // check cholesky
    Matrix DD,UU;
@@ -234,21 +234,21 @@ int main()
    CE=CE*CE.ConjTrans();
    Cholesky(E,UU,DD);
    Cholesky(CE,CUU,CDD);
-   cout << "Cholesky" << endl << setw(20) << E << endl;
-   cout << "result" << endl << setw(20) << UU.Transpose()*DD*UU << endl;
+   cout << "Cholesky" << "\n" << setw(20) << E << "\n";
+   cout << "result" << "\n" << setw(20) << UU.Transpose()*DD*UU << "\n";
 
-   cout << "Complex Cholesky" << endl << setw(20) << CE << endl;
-   cout << "Complex result" << endl << setw(20)
-	<< CUU.ConjTrans()*CDD*CUU << endl;
+   cout << "Complex Cholesky" << "\n" << setw(20) << CE << "\n";
+   cout << "Complex result" << "\n" << setw(20)
+	<< CUU.ConjTrans()*CDD*CUU << "\n";
 
    // check SymEigVal
-   cout << "SymEigVal" << endl << setw(20) << SymEigVal(E) << endl;
+   cout << "SymEigVal" << "\n" << setw(20) << SymEigVal(E) << "\n";
 
    // check SymEigVal eigenvector calculation
    d=SymEigVal(E,&F);
-   cout << "SymEigVal(E,F)" << endl << setw(20) << d << endl;
-   cout << "F" << endl << setw(20) << F << endl;
-   cout << "F*F.Transpose()" << endl << setw(20) << F*F.Transpose() << endl;
+   cout << "SymEigVal(E,F)" << "\n" << setw(20) << d << "\n";
+   cout << "F" << "\n" << setw(20) << F << "\n";
+   cout << "F*F.Transpose()" << "\n" << setw(20) << F*F.Transpose() << "\n";
 
    for (int i=0;i<6;i++)
    {
@@ -257,15 +257,15 @@ int main()
 	 c[j] = F[j][i];
       }
       
-      cout << setw(20) << E*c << endl;
-      cout << setw(20) << (E*c)/d[i] << endl << endl;
+      cout << setw(20) << E*c << "\n";
+      cout << setw(20) << (E*c)/d[i] << "\n" << "\n";
    }
 
    // check HermiteigVal eigenvector calculation
    d=HermiteEigVal(CE,&CF);
-   cout << "HermiteEigVal(CE,&CF)" << endl << setw(20) << d << endl;
-   cout << "CF" << endl << setw(20) << CF << endl;
-   cout << "CF.ConjTrans()*CF" << endl << setw(20) << CF.ConjTrans()*CF << endl;
+   cout << "HermiteEigVal(CE,&CF)" << "\n" << setw(20) << d << "\n";
+   cout << "CF" << "\n" << setw(20) << CF << "\n";
+   cout << "CF.ConjTrans()*CF" << "\n" << setw(20) << CF.ConjTrans()*CF << "\n";
 
    for (int i=0;i<6;i++)
    {
@@ -274,8 +274,8 @@ int main()
 	 cc[j] = CF[j][i];
       }
       
-      cout << setw(20) << CE*cc << endl;
-      cout << setw(20) << (CE*cc)/d[i] << endl << endl;
+      cout << setw(20) << CE*cc << "\n";
+      cout << setw(20) << (CE*cc)/d[i] << "\n" << "\n";
    }
 
    E.Resize(3,3);
@@ -295,91 +295,91 @@ int main()
 
    SVD(A,B,C,D,MAXCONDITION,1);
 
-   cout << "A" << endl << setw(20) << A << endl;
+   cout << "A" << "\n" << setw(20) << A << "\n";
 
-   cout << "U" << endl << setw(20) << B << endl;
+   cout << "U" << "\n" << setw(20) << B << "\n";
 
-   cout << "W" << endl << setw(20) << C << endl;
+   cout << "W" << "\n" << setw(20) << C << "\n";
 
-   cout << "V" << endl << setw(20) << D << endl;
+   cout << "V" << "\n" << setw(20) << D << "\n";
 
-   cout << "SVD" << endl << setw(20) << B*C*D.Transpose() << endl;
+   cout << "SVD" << "\n" << setw(20) << B*C*D.Transpose() << "\n";
 
    for (int i=0;i<C.Rows();i++)
       if (C[i][i]) C[i][i] = 1.0/C[i][i];
    
-   cout << "A^-1 via SVD" << endl << setw(20) << D*C*B.Transpose() << endl
-	<< setw(20) << A*(D*C*B.Transpose()) << endl;
+   cout << "A^-1 via SVD" << "\n" << setw(20) << D*C*B.Transpose() << "\n"
+	<< setw(20) << A*(D*C*B.Transpose()) << "\n";
 
-   cout << "A^-1 via PLU" << endl << setw(20) << A.Inverse() << endl
-	<< setw(20) << A*(A.Inverse()) << endl;
+   cout << "A^-1 via PLU" << "\n" << setw(20) << A.Inverse() << "\n"
+	<< setw(20) << A*(A.Inverse()) << "\n";
 
    SVD(A,B,C,D,10e17,1);
 
-   cout << "W" << endl << setw(20) << C << endl;
+   cout << "W" << "\n" << setw(20) << C << "\n";
 
    for (int i=0;i<C.Rows();i++)
       if (C[i][i]) C[i][i] = 1.0/C[i][i];
    
-   cout << "A^-1 via SVD" << endl << setw(20) << D*C*B.Transpose() << endl
-	<< setw(20) << A*(D*C*B.Transpose()) << endl;
+   cout << "A^-1 via SVD" << "\n" << setw(20) << D*C*B.Transpose() << "\n"
+	<< setw(20) << A*(D*C*B.Transpose()) << "\n";
 
    A=E;
 
-   cout << "a" << setw(20) << a << endl;
+   cout << "a" << setw(20) << a << "\n";
 
-   cout << "b" << setw(20) << b << endl;
+   cout << "b" << setw(20) << b << "\n";
 
-   cout << "c" << setw(20) << c << endl;
+   cout << "c" << setw(20) << c << "\n";
 
-   cout << "d" << setw(20) << d << endl;
+   cout << "d" << setw(20) << d << "\n";
 
-   cout << "a+b" << setw(20) << a+b << endl;
+   cout << "a+b" << setw(20) << a+b << "\n";
 
-   cout << "axb" << setw(20) << a%b << endl;
+   cout << "axb" << setw(20) << a%b << "\n";
 
-   cout << "a.b" << setw(20) << a*b << endl;
+   cout << "a.b" << setw(20) << a*b << "\n";
 
-   cout << "2a" << setw(20) << 2.0*a << endl;
+   cout << "2a" << setw(20) << 2.0*a << "\n";
 
-   cout << "a/5" << setw(20) << a/5.0 << endl;
+   cout << "a/5" << setw(20) << a/5.0 << "\n";
 
    a=b;
 
-   cout << "a=b" << setw(20) << a << endl;
+   cout << "a=b" << setw(20) << a << "\n";
 
-   cout << "A*b" << setw(20) << A*b << endl;
+   cout << "A*b" << setw(20) << A*b << "\n";
 
 
-   cout << "ca" << setw(20) << ca << endl;
+   cout << "ca" << setw(20) << ca << "\n";
 
-   cout << "cb" << setw(20) << cb << endl;
+   cout << "cb" << setw(20) << cb << "\n";
 
-   cout << "cc" << setw(20) << cc << endl;
+   cout << "cc" << setw(20) << cc << "\n";
 
-   cout << "cd" << setw(20) << cd << endl;
+   cout << "cd" << setw(20) << cd << "\n";
 
-   cout << "ca+cb" << setw(20) << ca+cb << endl;
+   cout << "ca+cb" << setw(20) << ca+cb << "\n";
 
-   cout << "ca.cb" << setw(20) << ca*cb << endl;
+   cout << "ca.cb" << setw(20) << ca*cb << "\n";
 
-   cout << "2ca" << setw(20) << MyComplexDouble(2.0)*ca << endl;
+   cout << "2ca" << setw(20) << MyComplexDouble(2.0)*ca << "\n";
 
-   cout << "ca/5" << setw(20) << ca/5.0 << endl;
+   cout << "ca/5" << setw(20) << ca/5.0 << "\n";
 
    ca=cb;
 
-   cout << "ca=cb" << setw(20) << ca << endl;
+   cout << "ca=cb" << setw(20) << ca << "\n";
 
-   cout << "CA*cb" << setw(20) << CA*cb << endl;
+   cout << "CA*cb" << setw(20) << CA*cb << "\n";
 
    f=Vector3D(b);
    
-   cout << "A*f" << setw(20) << A*f << endl;
+   cout << "A*f" << setw(20) << A*f << "\n";
 
    Matrix zz(1,1);
    zz[0][0] = 4.0;
-   cout << "zz.Inverse()" << setw(20) << zz.Inverse() << endl;
+   cout << "zz.Inverse()" << setw(20) << zz.Inverse() << "\n";
 
    Matrix AA(3,4),
    Q(3,3),R(3,4),Z(3,4),I(3,3);
@@ -393,57 +393,57 @@ int main()
 
    QR(AA,Q,R);
 
-   cout << "Test QR" << endl;
+   cout << "Test QR" << "\n";
 
-   cout << "A" << endl << setw(20) << AA << endl;
+   cout << "A" << "\n" << setw(20) << AA << "\n";
 
-   cout << "Q" << endl << setw(20) << Q  << endl;
+   cout << "Q" << "\n" << setw(20) << Q  << "\n";
 
-   cout << "R" << endl << setw(20) << R << endl;
+   cout << "R" << "\n" << setw(20) << R << "\n";
 
    Z = Q*R;
 
-   cout << "A=Q*R" << endl << setw(20) << Z << endl;
+   cout << "A=Q*R" << "\n" << setw(20) << Z << "\n";
   
    I=Q*Q.Transpose();
   
-   cout << "I=Q*Q^T" << endl << setw(20) << I << endl;
+   cout << "I=Q*Q^T" << "\n" << setw(20) << I << "\n";
 
    QR(AA,Q,R,1);
 
-   cout << "Test QR with A transpose" << endl;
+   cout << "Test QR with A transpose" << "\n";
 
-   cout << "A" << endl << setw(20) << AA << endl;
+   cout << "A" << "\n" << setw(20) << AA << "\n";
 
-   cout << "Q" << endl << setw(20) << Q  << endl;
+   cout << "Q" << "\n" << setw(20) << Q  << "\n";
 
-   cout << "R" << endl << setw(20) << R << endl;
+   cout << "R" << "\n" << setw(20) << R << "\n";
 
    Z.Resize(4,3);
    Z = Q*R;
 
-   cout << "A=Q*R" << endl << setw(20) << Z << endl;
+   cout << "A=Q*R" << "\n" << setw(20) << Z << "\n";
 
    I.Resize(4,4);
    I=Q*Q.Transpose();
   
-   cout << "I=Q*Q^T" << endl << setw(20) << I << endl;
+   cout << "I=Q*Q^T" << "\n" << setw(20) << I << "\n";
 
    QR(BB,BQ,BR);
 
-   cout << "BB" << endl << setw(20) << BB << endl;
+   cout << "BB" << "\n" << setw(20) << BB << "\n";
 
-   cout << "BQ" << endl << setw(20) << BQ  << endl;
+   cout << "BQ" << "\n" << setw(20) << BQ  << "\n";
 
-   cout << "BR" << endl << setw(20) << BR << endl;
+   cout << "BR" << "\n" << setw(20) << BR << "\n";
    
    BZ = BQ*BR;
 
-   cout << "BA=BQ*BR" << endl << setw(20) << BZ << endl;
+   cout << "BA=BQ*BR" << "\n" << setw(20) << BZ << "\n";
   
    BI=BQ*BQ.Transpose();
   
-   cout << "BI=BQ*BQ^T" << endl << setw(20) << BI << endl;
+   cout << "BI=BQ*BQ^T" << "\n" << setw(20) << BI << "\n";
 
 
    // sparse matrix stuff
@@ -474,89 +474,89 @@ void sparsematrixtest()
    Matrix M(3,3,1);
    SparseMatrix Y(M);
 	
-   cout << "u = " << endl << setw(20) << u << endl;
+   cout << "u = " << "\n" << setw(20) << u << "\n";
 	
    //ADDITION AND SUBTRACTION TEST
-   cout << "+A = u" << setw(20) << +A << endl;
-   cout << "-A = -u" << setw(20) << -A << endl;
+   cout << "+A = u" << setw(20) << +A << "\n";
+   cout << "-A = -u" << setw(20) << -A << "\n";
 	
-   cout << "C = " <<endl << setw(20) << C << endl;
-   cout << "D = C" << endl << setw(20) << D <<endl;
+   cout << "C = " <<"\n" << setw(20) << C << "\n";
+   cout << "D = C" << "\n" << setw(20) << D <<"\n";
 	
    // SparseMatrix A + Matrix C + Matrix C
-   cout << "A+C+C = " << endl << setw(20) << A+C+C << endl;
+   cout << "A+C+C = " << "\n" << setw(20) << A+C+C << "\n";
 	
    // SparseMatrix D + SparseMatrix A + SparseMatrix D
-   cout << "D+A+D = " << endl << setw(20) << D+A+D << endl;
+   cout << "D+A+D = " << "\n" << setw(20) << D+A+D << "\n";
 	
    // SparseMatrix D + SparseMatrix A - Matrix C 
-   cout << "D+A-C = " << endl << setw(20) << D+A-C << endl;
+   cout << "D+A-C = " << "\n" << setw(20) << D+A-C << "\n";
 	
    // SparseMatrix D + SparseMatrix A - Matrix C 
-   cout << "-C+A+D = " << endl << setw(20) << -C+A+D << endl;
+   cout << "-C+A+D = " << "\n" << setw(20) << -C+A+D << "\n";
 	
    // -SparseMatrix A + SparseMatrix D
-   cout << "-A+D  = " << endl << setw(20) << -A+D << endl;
+   cout << "-A+D  = " << "\n" << setw(20) << -A+D << "\n";
 	
    // -SparseMatrix + Matrix C
-   cout << "-A+C  = " << endl << setw(20) << -A+C << endl;
+   cout << "-A+C  = " << "\n" << setw(20) << -A+C << "\n";
 	
    // -SparseMatrix A - SparseMatrix D
-   cout << "-A-D  = " << endl << setw(20) << -A-D << endl;
+   cout << "-A-D  = " << "\n" << setw(20) << -A-D << "\n";
 	
    // -SparseMatrix - Matrix C
-   cout << "-A-C  = " << endl << setw(20) << -A-C << endl;
+   cout << "-A-C  = " << "\n" << setw(20) << -A-C << "\n";
 	
 
 	
    //MATRIX MULTIPLICATION TEST
 	
    //SparseMatrix A, Matrix H, SparseMatrix I
-   cout << "N = " << N << endl<< endl;
-   cout << "A = " << endl << setw(20) << A <<endl;
-   cout << "A = u" << endl << setw(20) << ReverseSparse(A) <<endl;
-   cout << "I = H " << endl << setw(20) <<I<< endl;
-   cout << "H = I" << endl << setw (20) <<H << endl;
+   cout << "N = " << N << "\n"<< "\n";
+   cout << "A = " << "\n" << setw(20) << A <<"\n";
+   cout << "A = u" << "\n" << setw(20) << ReverseSparse(A) <<"\n";
+   cout << "I = H " << "\n" << setw(20) <<I<< "\n";
+   cout << "H = I" << "\n" << setw (20) <<H << "\n";
 
    //SparseMatrix A * Double N
-   cout << "N*A = " << endl << setw(20) << N*A <<endl;
-   cout << "A*N = " << endl << setw(20) << A*N <<endl;
+   cout << "N*A = " << "\n" << setw(20) << N*A <<"\n";
+   cout << "A*N = " << "\n" << setw(20) << A*N <<"\n";
 	
    //SparseMatrix A * SparseMatrix I
-   cout << "A*I = " << endl <<setw(20) << A*I << endl;
+   cout << "A*I = " << "\n" <<setw(20) << A*I << "\n";
    //SparseMatrix A * Matrix H 
-   cout << "A*H = " << endl <<setw(20) << A*H << endl;
+   cout << "A*H = " << "\n" <<setw(20) << A*H << "\n";
    //SparseMatrix I * SparseMatrix A
-   cout << "I*A = " << endl <<setw(20) << I*A << endl;
+   cout << "I*A = " << "\n" <<setw(20) << I*A << "\n";
    //Matrix H * SparseMatrix A
-   cout << "H*A = " << endl <<setw(20) << H*A << endl;
+   cout << "H*A = " << "\n" <<setw(20) << H*A << "\n";
 	
    //SparseMatrix B * SparseMatrix B
-   cout << "B*B = " << endl <<setw(20) << B*B << endl;
-   cout << "B*G = " << endl << setw(20) << B*G <<endl;
-   cout << "G*B = " << endl << setw(20) << G*B <<endl;
+   cout << "B*B = " << "\n" <<setw(20) << B*B << "\n";
+   cout << "B*G = " << "\n" << setw(20) << B*G <<"\n";
+   cout << "G*B = " << "\n" << setw(20) << G*B <<"\n";
 	
 	
    //VECTOR MULTIPLICATION TEST
-   cout << "A = u " << endl <<setw(20) << u << endl;
-   cout << "V1 = " << endl << setw(20) << V1 << endl<<endl<<endl<<endl;
-   cout << "V2 = " << endl << setw(20) << V2 << endl<<endl<<endl<<endl;	
-   cout << "A * V1 = " <<endl << setw(20) << A*V1 << endl<<endl<<endl<<endl;
-   cout << "V2 * A = " <<endl << setw(20) << V2*A << endl<<endl<<endl<<endl;
-   cout << "Y = " << endl << setw(20) << ReverseSparse(Y) << endl<<endl<<endl<<endl;
-   cout << "Z = " << endl << setw(20) << Z << endl<<endl<<endl<<endl;
-   cout << "Y*Z = " <<endl << setw(20) << Y*Z << endl<<endl<<endl<<endl;
-   cout << "Z*Y = " <<endl << setw(20) << Z*Y << endl<<endl<<endl<<endl;	
+   cout << "A = u " << "\n" <<setw(20) << u << "\n";
+   cout << "V1 = " << "\n" << setw(20) << V1 << "\n"<<"\n"<<"\n"<<"\n";
+   cout << "V2 = " << "\n" << setw(20) << V2 << "\n"<<"\n"<<"\n"<<"\n";	
+   cout << "A * V1 = " <<"\n" << setw(20) << A*V1 << "\n"<<"\n"<<"\n"<<"\n";
+   cout << "V2 * A = " <<"\n" << setw(20) << V2*A << "\n"<<"\n"<<"\n"<<"\n";
+   cout << "Y = " << "\n" << setw(20) << ReverseSparse(Y) << "\n"<<"\n"<<"\n"<<"\n";
+   cout << "Z = " << "\n" << setw(20) << Z << "\n"<<"\n"<<"\n"<<"\n";
+   cout << "Y*Z = " <<"\n" << setw(20) << Y*Z << "\n"<<"\n"<<"\n"<<"\n";
+   cout << "Z*Y = " <<"\n" << setw(20) << Z*Y << "\n"<<"\n"<<"\n"<<"\n";	
 	
    //TRANSPOSE AND REVERSESPARSE TEST
-   cout << "A = " << endl <<setw(20) << A << endl<< endl
-	<< "A.Transpose = " << endl << setw(20) << A.Transpose() <<endl;
-   cout << "A = " << endl <<setw(20) << ReverseSparse(A) << endl << endl
-	<< "A.Transpose = " << endl << setw(20) << ReverseSparse(A.Transpose())<<endl;
+   cout << "A = " << "\n" <<setw(20) << A << "\n"<< "\n"
+	<< "A.Transpose = " << "\n" << setw(20) << A.Transpose() <<"\n";
+   cout << "A = " << "\n" <<setw(20) << ReverseSparse(A) << "\n" << "\n"
+	<< "A.Transpose = " << "\n" << setw(20) << ReverseSparse(A.Transpose())<<"\n";
 	
    //Identity SparseMatrix
-   cout << "Identity SparseMatrix= " <<endl << setw(20)<<SparseIdentity(6)<< endl;
-   cout << "Identity Matrix= " << endl << setw(20) << ReverseSparse(SparseIdentity(6)) <<endl;
+   cout << "Identity SparseMatrix= " <<"\n" << setw(20)<<SparseIdentity(6)<< "\n";
+   cout << "Identity Matrix= " << "\n" << setw(20) << ReverseSparse(SparseIdentity(6)) <<"\n";
 }
 
 //Returns matrix of size Rows_ x Cols_

@@ -7,7 +7,7 @@
 #include "Matrix.h"
 
 // Global IDString
-char Vector3DID[]="$Id: Vector3D.cpp,v 1.4 2004/08/24 19:38:00 elliottr Exp $";
+char Vector3DID[]="$Id: Vector3D.cpp,v 1.5 2008/03/23 02:26:56 elliott Exp $";
 
 // Private Functions...
 
@@ -37,7 +37,7 @@ Vector3D::Vector3D(const Vector& A)
 {
    if (A.Cols_ != V3DLEN)
    {
-      cerr << "Vector3D: error: Constructor: Wrong Size" << endl;
+      cerr << "Vector3D: error: Constructor: Wrong Size" << "\n";
       exit(-1);
    }
    
@@ -57,7 +57,7 @@ Vector3D operator*(const Vector3D& A,const Matrix& B)
 {
    if (B.Rows_ != V3DLEN)
    {
-      cerr << "Vector3D: error: operator*(vec,matrix): Wrong Size" << endl;
+      cerr << "Vector3D: error: operator*(vec,matrix): Wrong Size" << "\n";
       exit(-1);
    }
 
@@ -77,7 +77,7 @@ Vector3D operator*(const Matrix& A,const Vector3D& B)
 {
    if (A.Cols_ != V3DLEN)
    {
-      cerr << "Vector3D: error: operator*(matrix,vec): Wrong Size" << endl;
+      cerr << "Vector3D: error: operator*(matrix,vec): Wrong Size" << "\n";
       exit(-1);
    }
 

@@ -9,7 +9,7 @@
 #include <cstdlib>
 
 // Global IDString
-char SparseMatrixID[]="$Id: SparseMatrix.cpp,v 1.2 2007/09/14 13:43:17 elliott Exp $";
+char SparseMatrixID[]="$Id: SparseMatrix.cpp,v 1.3 2008/03/23 02:26:56 elliott Exp $";
 
 SparseMatrix::SparseMatrix(const Matrix& A)
 {
@@ -141,7 +141,7 @@ Matrix operator+(const SparseMatrix& A,const SparseMatrix&B)
    if (A.Rows_ != B.Rows_ || A.Cols_ != B.Cols_ ||  A.IsNull() || B.IsNull())
    {
       cerr << "Error in Matrix Operator+() Diff Size Matrices or Null Matrix!!!"
-	   << endl;
+	   << "\n";
       exit(-1);
    }
 	
@@ -194,7 +194,7 @@ Matrix operator-(const SparseMatrix& A,const SparseMatrix&B)
    if (A.Rows_ != B.Rows_ || A.Cols_ != B.Cols_ ||  A.IsNull() || B.IsNull())
    {
       cerr << "Error in Matrix Operator+() Diff Size Matrices or Null Matrix!!!"
-	   << endl;
+	   << "\n";
       exit(-1);
    }
 	
@@ -260,7 +260,7 @@ Matrix operator*(const SparseMatrix& A, const SparseMatrix& B)
    if (A.Cols_!=B.Rows_ || A.IsNull() || B.IsNull())
    {
       cerr << "Error In SparseMatrix Operator* : A.Cols!=B.Rows or Null Matrix"
-	   <<endl;
+	   <<"\n";
       exit(-1);
    }
 	
@@ -306,7 +306,7 @@ Matrix operator*(const SparseMatrix& A, const Matrix& B)
    if (A.Cols_!=B.Rows_ || A.IsNull() || B.IsNull())
    {
       cerr << "Error In SparseMatrix Operator* : A.Cols!=B.Rows or Null Matrix"
-	   <<endl;
+	   <<"\n";
       exit(-1);
    }
 	
@@ -346,7 +346,7 @@ Matrix operator*(const Matrix& A, const SparseMatrix& B)
    if (A.Cols_!=B.Rows_ || A.IsNull() || B.IsNull())
    {
       cerr << "Error In SparseMatrix Operator* : A.Cols!=B.Rows or Null Matrix"
-	   <<endl;
+	   <<"\n";
       exit(-1);
    }
 	
@@ -385,7 +385,7 @@ Vector operator*(const SparseMatrix& A, const Vector& B)
    if (A.Cols()!=B.Cols_ || A.IsNull() || B.Cols_==0)
    {
       cerr << "Error In Vector Operator* : A.Cols!=B.Cols or Null Matrix or Vector"
-	   <<endl;
+	   <<"\n";
       exit(-1);
    }
 	
@@ -417,7 +417,7 @@ Vector3D operator*(const SparseMatrix& A,const Vector3D& B)
 {
    if (A.Cols() != V3DLEN)
    {
-      cerr << "Vector3D: error: operator*(matrix,vec): Wrong Size" << endl;
+      cerr << "Vector3D: error: operator*(matrix,vec): Wrong Size" << "\n";
       exit(-1);
    }
 
@@ -452,7 +452,7 @@ Vector3D operator*(const Vector3D& A,const SparseMatrix& B)
 {
    if (B.Rows() != V3DLEN)
    {
-      cerr << "Vector3D: error: operator*(matrix,vec): Wrong Size" << endl;
+      cerr << "Vector3D: error: operator*(matrix,vec): Wrong Size" << "\n";
       exit(-1);
    }
 	
@@ -486,7 +486,7 @@ Vector operator*(const Vector& A, const SparseMatrix& B)
    if (B.Rows()!=A.Cols_ || B.IsNull() || A.Cols_==0)
    {
       cerr << "Error In Vector Operator* : A.Cols!=B.Rows or Null Matrix or Vector"
-	   <<endl;
+	   <<"\n";
       exit(-1);
    }
 	
@@ -618,17 +618,17 @@ ostream& operator<<(ostream& out,const SparseMatrix& A)
    int W=out.width();
    int NoNonZero = A.NoNonZero();
    
-   out << endl;
+   out << "\n";
 
    for (register int i=0;i<NoNonZero;i++)
    {
       out << "Row id = " << setw(W) << A.Row_id_[i] 
 	  << "Column id = " << setw(W) << A.Column_id_[i] 
 	  << "Entry = " << setw(W) << A.Nonzero_entry_[i]
-	  << endl;
+	  << "\n";
    }
 
-   out << endl;
+   out << "\n";
 
    return out;
 }

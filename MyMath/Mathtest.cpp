@@ -20,7 +20,7 @@ int main()
 
    for (int i=0;i<m+1;++i)
    {
-      cout << "Coeff[" << i << "]=" << setw(20) << Coeff[i] << endl;
+      cout << "Coeff[" << i << "]=" << setw(20) << Coeff[i] << "\n";
    }
    
    MyComplexDouble Roots[m+1];
@@ -28,28 +28,28 @@ int main()
    PolyRootsLaguerre(Coeff,2,Roots,1);
 
    for (int i=0;i<2;i++)
-      cout << setw(20) << Roots[i] << endl;
+      cout << setw(20) << Roots[i] << "\n";
 
    tst = -Roots[0];
    for (int i=1;i<2;i++)
       tst *= -Roots[i];
 
    // this should be Coeff[0]
-   cout << tst*Coeff[2] << endl;
-   cout << endl;
+   cout << tst*Coeff[2] << "\n";
+   cout << "\n";
    
    PolyRootsLaguerre(Coeff,m,Roots,1);
    for (int i=0;i<m;i++)
-      cout << setw(20) << Roots[i] << endl;
+      cout << setw(20) << Roots[i] << "\n";
 
    tst = -Roots[0];
    for (int i=1;i<m;i++)
       tst *= -Roots[i];
 
    // this should be Coeff[0]
-   cout << tst*Coeff[m] << endl;
+   cout << tst*Coeff[m] << "\n";
 
-   cout << endl << endl;
+   cout << "\n" << "\n";
 
    MyComplexDouble A[3],B[3],R[5];
    A[0] = MyComplexDouble(-4.0,0.0);
@@ -62,10 +62,10 @@ int main()
    PolyMult(A,2,B,2,R);
    for (int i=0;i<=4;i++)
       cout << setw(20) << R[i];
-   cout << endl;
+   cout << "\n";
 
    PolyRootsLaguerre(R,4,Roots,1);
    for (int i=0;i<4;i++)
-      cout << setw(20) << Roots[i] << endl;
+      cout << setw(20) << Roots[i] << "\n";
 
 }

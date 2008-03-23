@@ -6,7 +6,7 @@
 #include <cstdlib>
 
 // Global IDString
-char MatrixID[]="$Id: Matrix.cpp,v 1.19 2007/11/22 03:07:04 elliott Exp $";
+char MatrixID[]="$Id: Matrix.cpp,v 1.20 2008/03/23 02:26:56 elliott Exp $";
 
 // Private Methods...
 
@@ -144,7 +144,7 @@ Matrix operator+(const Matrix& A,const Matrix& B)
    if (A.Rows_!=B.Rows_ || A.Cols_!=B.Cols_ || A.IsNull() || B.IsNull())
    {
       cerr << "Error in Matrix Operator+() Diff Size Matrices or Null Matrix!!!"
-	   << endl;
+	   << "\n";
       exit(-1);
    }
 
@@ -181,7 +181,7 @@ Matrix operator-(const Matrix& A,const Matrix& B)
    if (A.Rows_!=B.Rows_ || A.Cols_!=B.Cols_ || A.IsNull() || B.IsNull())
    {
       cerr << "Error in Matrix Operator-() Diff Size Matrices or Null Matrix!!!"
-	   << endl;
+	   << "\n";
       exit(-1);
    }
 
@@ -203,7 +203,7 @@ Matrix operator*(const Matrix& A,const Matrix& B)
    if (A.Cols_!=B.Rows_ || A.IsNull() || B.IsNull())
    {
       cerr << "Error In Matrix Operator* : A.Cols!=B.Rows or Null Matrix"
-	   <<endl;
+	   <<"\n";
       exit(-1);
    }
 
@@ -258,7 +258,7 @@ Matrix operator/(const Matrix& A,const Matrix::Elm& B)
    if (B==0)
    {
       cerr << "Divide By Zero Error in Matrix operator/()"
-	   << endl;
+	   << "\n";
       exit(-1);
    }
    
@@ -280,7 +280,7 @@ Matrix::Elm* Matrix::operator[](unsigned i)
 {
    if (i >= Rows_)
    {
-      cerr << "Matrix Index Overflow -- Matrix::Elm* operator[]()" << endl;
+      cerr << "Matrix Index Overflow -- Matrix::Elm* operator[]()" << "\n";
       exit(-1);
    }
 
@@ -291,7 +291,7 @@ Matrix::Elm* Matrix::operator[](unsigned i) const
 {
    if (i >= Rows_)
    {
-      cerr << "Matrix Index Overflow -- Matrix::Elm* operator[]()" << endl;
+      cerr << "Matrix Index Overflow -- Matrix::Elm* operator[]()" << "\n";
       exit(-1);
    }
 
@@ -305,7 +305,7 @@ Matrix& Matrix::operator=(const Matrix& B)
    {
       cerr << "Error in Matrix& operator=() : Matricies not same size "
            << "or Null Matrix"
-           << endl;
+           << "\n";
       exit(-1);
    }
 
@@ -352,7 +352,7 @@ Matrix Matrix::Inverse() const
 {
    if (!IsSquare() || IsNull())
    {
-      cerr << "Error in Matrix::Inverse() : Non-Square or Null Matrix" << endl;
+      cerr << "Error in Matrix::Inverse() : Non-Square or Null Matrix" << "\n";
       exit(-1);
    }
 
@@ -426,7 +426,7 @@ Matrix::Elm Matrix::Det() const
 {
    if (IsNull() || !IsSquare())
    {
-      cerr << "Error in Matrix::Det() : Null or Non-Square Matrix" << endl;
+      cerr << "Error in Matrix::Det() : Null or Non-Square Matrix" << "\n";
       exit(-1);
    }
 
@@ -451,7 +451,7 @@ void PLU(const Matrix& A,Matrix& P,Matrix& L,Matrix& U)
 {
    if (!A.IsSquare() || A.IsNull())
    {
-      cerr << "Error in PLU -- Non-Square or Null Matrix to decompose..." << endl;
+      cerr << "Error in PLU -- Non-Square or Null Matrix to decompose..." << "\n";
       exit(-1);
    }
 
@@ -830,7 +830,7 @@ Matrix::Elm SVD(const Matrix& A,Matrix& U,Matrix& W,Matrix& V,
 	 }
 	 if (its == 30)
 	 {
-	    cerr << "no convergence in 30 SVD iterations" << endl;
+	    cerr << "no convergence in 30 SVD iterations" << "\n";
 	    exit(-1);
 	 }
 	 // Shift from bottom 2-by-2 minor
@@ -909,7 +909,7 @@ Matrix::Elm SVD(const Matrix& A,Matrix& U,Matrix& W,Matrix& V,
    ConditionNumber = wmax/wmin;
    if (PrintFlag)
    {
-      cerr << "SVD: Condition Number is : " << ConditionNumber << endl;
+      cerr << "SVD: Condition Number is : " << ConditionNumber << "\n";
    }
 
    // Fix up any singular values that are "too small"
@@ -918,7 +918,7 @@ Matrix::Elm SVD(const Matrix& A,Matrix& U,Matrix& W,Matrix& V,
       {
 	 W.Elements_[j][j] = 0.0;
 	 cerr << "SVD: Explicitly set Singular Value #" << j
-	      << " to 0.0  !!!" << endl;
+	      << " to 0.0  !!!" << "\n";
       }
 
    return ConditionNumber;
@@ -1015,7 +1015,7 @@ Matrix SymEigVal(Matrix A,Matrix *B,const int MaxItr,const double Tol)
 
    if (!converged)
    {
-      cerr << "Error: SymEigVal(): Failed - No convergence!" << endl;
+      cerr << "Error: SymEigVal(): Failed - No convergence!" << "\n";
       exit(-1);
    }
 
@@ -1029,7 +1029,7 @@ void Cholesky(const Matrix& A,Matrix& U,Matrix& D)
 {
    if (!A.IsSquare() || A.IsNull())
    {
-      cerr << "Error in Cholesky() -- Non-Square or Null Matrix" << endl;
+      cerr << "Error in Cholesky() -- Non-Square or Null Matrix" << "\n";
       exit(-1);
    }
 
@@ -1069,7 +1069,7 @@ Matrix SolvePLU(const Matrix& A,const Matrix& B)
    if (!A.IsSquare() || A.IsNull() || A.Cols_!=B.Rows_)
    {
       cerr << "Error in Solve() - Non-Square Matrix, Null Matrix, or system of != dimension"
-	   << endl;
+	   << "\n";
       exit(-1);
    }
    
@@ -1160,7 +1160,7 @@ ostream& operator<<(ostream& out,const Matrix& A)
 {
    int W=out.width();
    
-   out << endl;
+   out << "\n";
 
    if (Matrix::MathematicaPrintFlag) out << setw(0) << "{{";
    for (register int i=0;i<A.Rows_;i++)
@@ -1180,10 +1180,10 @@ ostream& operator<<(ostream& out,const Matrix& A)
 	    out << "}}";
       }
       else
-	 out << endl;
+	 out << "\n";
    }
 
-   out << endl;
+   out << "\n";
 
    return out;
 }

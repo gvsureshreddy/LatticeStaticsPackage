@@ -8,7 +8,7 @@ int main(int argc, char *argv[])
 {
    if (argc != 7)
    {
-      cerr << "Usage: " << argv[0] << " A11 A22 A33 A12 A13 A23" << endl;
+      cerr << "Usage: " << argv[0] << " A11 A22 A33 A12 A13 A23" << "\n";
       exit(-1);
    }
 
@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
    cout << setw(20) << acos(X*LineofNodes);
    cout << setw(20) << acos(Z*Zp);
    cout << setw(20) << acos(Xp*LineofNodes);
-   cout << endl;
+   cout << "\n";
    
    return 0;
 }

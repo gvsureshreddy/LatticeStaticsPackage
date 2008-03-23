@@ -5,7 +5,7 @@
 #include <cmath>
 
 // Global IDString
-char VectorID[]="$Id: Vector.cpp,v 1.12 2005/03/16 22:55:19 elliott Exp $";
+char VectorID[]="$Id: Vector.cpp,v 1.13 2008/03/23 02:26:56 elliott Exp $";
 
 // Private Functions...
 
@@ -77,7 +77,7 @@ Vector::Vector(const Matrix& A)
    if (A.IsNull() || (A.Rows()!=1 && A.Cols()!=1))
    {
       cerr << "Error in Vector::Vector(Matrix& A) -- Null Matrix or Non-Vector"
-	   << endl;
+	   << "\n";
       exit(-1);
    }
 
@@ -127,7 +127,7 @@ Vector operator+(const Vector& A,const Vector& B)
    if (A.Cols_!=B.Cols_ || A.Cols_==0 || B.Cols_==0)
    {
       cerr << "Error in Vector Operator+() Diff Size Vectors or Null Vector!!!"
-	   << endl;
+	   << "\n";
       exit(-1);
    }
    else
@@ -149,7 +149,7 @@ Vector operator-(const Vector& A,const Vector& B)
    if (A.Cols_!=B.Cols_ || A.Cols_==0 || B.Cols_==0)
    {
       cerr << "Error in Vector Operator-() Diff Size Vectors or Null Vector!!!"
-	   << endl;
+	   << "\n";
       exit(-1);
    }
    else
@@ -182,7 +182,7 @@ Vector::Elm operator*(const Vector& A,const Vector& B)
    if (A.Cols_==0 || B.Cols_==0 || A.Cols_!=B.Cols_)
    {
       cerr <<"Error in Dot Product -- Null Vector or different Dimensions."
-	   << endl;
+	   << "\n";
       exit(-1);
    }
    
@@ -202,7 +202,7 @@ Vector operator%(const Vector& A,const Vector& B)
    if (A.Cols_==0 || B.Cols_==0 || A.Cols_!=B.Cols_ || A.Cols_!=3)
    {
       cerr << "Error in Cross Product -- Null Vector of different Dimensions"
-	   << " or Cols_!=3" << endl;
+	   << " or Cols_!=3" << "\n";
       exit(-1);
    }
    
@@ -223,7 +223,7 @@ Vector operator*(const Matrix& A,const Vector& B)
    if (A.Cols()!=B.Cols_ || A.IsNull() || B.Cols_==0)
    {
       cerr << "Error In Vector Operator* : A.Cols!=B.Cols or Null Matrix or Vector"
-	   <<endl;
+	   <<"\n";
       exit(-1);
    }
    else
@@ -248,7 +248,7 @@ Vector operator*(const Vector& A,const Matrix& B)
    if (B.Cols()!=A.Cols_ || B.IsNull() || A.Cols_==0)
    {
       cerr << "Error In Vector Operator* : A.Cols!=B.Cols or Null Matrix or Vector"
-	   <<endl;
+	   <<"\n";
       exit(-1);
    }
    else
@@ -310,7 +310,7 @@ Vector::Elm& Vector::operator[](const unsigned& i)
    if (i>=Cols_)
    {
       cerr << "Error in Vector::operator[]() -- Index Overflow"
-	   << endl;
+	   << "\n";
       exit(-1);
    }
    return Elements_[i];
@@ -321,7 +321,7 @@ Vector::Elm Vector::operator[](const unsigned& i) const
    if (i>=Cols_)
    {
       cerr << "Error in Vector::operator[]() -- Index Overflow"
-	   << endl;
+	   << "\n";
       exit(-1);
    }
    return Elements_[i];
@@ -334,7 +334,7 @@ Vector& Vector::operator=(const Vector& B)
    {
       cerr << "Error in Vector& operator=() : Vectors not same size "
            << "or Null Vector"
-           << endl;
+           << "\n";
       exit(-1);
    }
 

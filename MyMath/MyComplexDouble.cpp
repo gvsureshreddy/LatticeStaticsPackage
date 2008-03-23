@@ -1,7 +1,7 @@
 #include "MyComplexDouble.h"
 
 // Global IDString
-char MyComplexDoubleID[]="$Id: MyComplexDouble.cpp,v 1.3 2006/04/18 16:30:35 elliott Exp $";
+char MyComplexDoubleID[]="$Id: MyComplexDouble.cpp,v 1.4 2008/03/23 02:25:51 elliott Exp $";
 
 // Private Functions...
 
@@ -49,7 +49,7 @@ MyComplexDouble operator/(const MyComplexDouble& A,const MyComplexDouble& B)
 {
    if ((B.Re_ == 0.0) && (B.Im_ == 0.0))
    {
-      cerr << "Can not divide by complex (0,0)!" << endl;
+      cerr << "Can not divide by complex (0,0)!" << "\n";
       exit(-1);
    }
 
@@ -63,7 +63,7 @@ MyComplexDouble operator/(const MyComplexDouble& A,const double& B)
 {
    if (B == 0.0)
    {
-      cerr << "Can not divide by zero in MyComplexDouble operator/" << endl;
+      cerr << "Can not divide by zero in MyComplexDouble operator/" << "\n";
       exit(-1);
    }
 
