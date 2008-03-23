@@ -19,7 +19,7 @@ using namespace std;
 class MultiLatticeTPP : public Lattice
 {
 private:
-   const static unsigned DIM3 = 3;
+   const static unsigned DIM3;
 
    unsigned InternalAtoms_;
    
@@ -42,7 +42,7 @@ private:
    enum LDeriv {L0,DL};
    double Lambda_;
    Vector LoadingProportions_;
-   double EulerAng_[DIM3];
+   double *EulerAng_;
    Matrix Rotation_;
    Matrix Loading_;
    Vector *BodyForce_;

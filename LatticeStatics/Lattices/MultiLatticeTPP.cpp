@@ -4,11 +4,14 @@
 
 using namespace std;
 
+const unsigned MultiLatticeTPP::DIM3 = 3;
+
 const double RoEig_[3] = {1.0,2.0,3.0};
 const double TrEig_[3] = {4.0,5.0,6.0};
 
 MultiLatticeTPP::~MultiLatticeTPP()
 {
+   delete [] EulerAng_;
    delete [] BodyForce_;
    delete [] SpeciesMass_;
    delete [] AtomicMass_;
@@ -188,6 +191,7 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput &Input,int Echo,int Width,int Debug)
       exit(-1);
    }
    Lambda_ = 0.0;
+   EulerAng_ = new double[DIM3];
    EulerAng_[0] = Input.getDouble(Hash,"EulerAngle_X");
    EulerAng_[1] = Input.getDouble(Hash,"EulerAngle_Y");
    EulerAng_[2] = Input.getDouble(Hash,"EulerAngle_Z");

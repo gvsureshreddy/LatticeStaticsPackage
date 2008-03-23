@@ -2,6 +2,8 @@
 
 #define LINELENGTH 600
 
+const unsigned CBKinematics::DIM3 = 3;
+
 CBKinematics::CBKinematics(unsigned InternalAtoms,Matrix &RefLattice,Vector *AtomPositions)
    : InternalAtoms_(InternalAtoms),
      RefLattice_(RefLattice)

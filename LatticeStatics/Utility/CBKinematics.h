@@ -13,7 +13,7 @@ private:
    virtual void Reset() = 0;
    
 public:
-   static const unsigned DIM3 = 3;
+   const static unsigned DIM3;
    
    Vector DOF_;
    unsigned InternalAtoms_;
