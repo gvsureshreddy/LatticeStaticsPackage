@@ -6,8 +6,11 @@
 #include <iostream>
 #include <iomanip>
 
+#include "PerlInput.h"
+
 using namespace std;
 
+#define LINELENGTH 600
 #define DOFMAX 256
 #define BIFMAX 25
 
@@ -22,8 +25,9 @@ public:
    LoadType LoadParameter_;
    LoadType LoadParameter() {return LoadParameter_;}
    int OrderedTFs_;
+   int ThirdOrder_;
    
-   Lattice(char *datafile,const char *prefix);
+   Lattice(PerlInput &Input);
    virtual ~Lattice() {}
    
    virtual Vector DOF() = 0;
@@ -54,8 +58,7 @@ public:
    virtual void SetGridSize(int Grid) = 0;
    virtual void NeighborDistances(int cutoff,ostream &out) {};
    virtual void CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
-                                  double Tolerance,char *datafile,const char *prefix,
-                                  int Width,ostream &out);
+                                  double Tolerance,int Width,ostream &out);
    void ConsistencyCheck(double ConsistencyEpsilon,int Width,ostream &out);
    virtual void DebugMode() {};
    

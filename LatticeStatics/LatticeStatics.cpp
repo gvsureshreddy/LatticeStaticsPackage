@@ -1,3 +1,4 @@
+#include "PerlInput.h"
 #include "KnownLattices.h"
 #include "KnownModes.h"
 #include "KnownSolutionMethods.h"
@@ -5,13 +6,16 @@
 #include "ArcLengthSolution.h"
 
 #include "UtilityFunctions.h"
+#define LINELENGTH 600
 
 #include <fstream>
+
+char *builddate();
 
 using namespace std;
 
 enum YN {No,Yes};
-void GetMainSettings(int &Width, int &Precision,YN &BisectCP,int &Echo,char *datafile);
+void GetMainSettings(int &Width, int &Precision,YN &BisectCP,int &Echo,PerlInput &Input);
 void InitializeOutputFile(fstream &out,char *outfile,char *datafile,char *startfile,
                           int Precision,int Width,int Echo);
 
@@ -22,10 +26,10 @@ int main(int argc, char *argv[])
    {
       cerr << "Usage: " << argv[0]
            << " [--debug]"
-           << " ParamFile OutputFile <StartData>" << endl;
-      cerr << "Built on:               " << builddate() << endl
-           << "LinearAlgebra Built on: " << LinearAlgebraBuildDate() << endl
-           << "MyMath Built on:        " << MyMathBuildDate() << endl;
+           << " ParamFile OutputFile <StartData>" << "\n";
+      cerr << "Built on:               " << builddate() << "\n"
+           << "LinearAlgebra Built on: " << LinearAlgebraBuildDate() << "\n"
+           << "MyMath Built on:        " << MyMathBuildDate() << "\n";
       exit(-1);
    }
    int Debug;
@@ -37,12 +41,18 @@ int main(int argc, char *argv[])
    char *datafile = argv[1+Debug],
       *outputfile = argv[2+Debug],
       *startfile;
-   
+
+   PerlInput Input(datafile);
+
    if (argc == 4+Debug)
+   {
       startfile = argv[3+Debug];
+      Input.Readfile(startfile);
+   }
    else
+   {
       startfile = NULL;
-   
+   }
    
    Lattice *Lat;
    LatticeMode *Mode;
@@ -50,24 +60,21 @@ int main(int argc, char *argv[])
    
    int Width,Precision,Echo;
    YN BisectCP;
-   
-   if (GetParameter("^","CommandFile",datafile,'s',UTILITYechocommand,0))
-   {
-      UTILITYechocmd = UTILITYechocommand;
-   }
-   GetMainSettings(Width,Precision,BisectCP,Echo,datafile);
+
+   GetMainSettings(Width,Precision,BisectCP,Echo,Input);
    
    fstream out;
    InitializeOutputFile(out,outputfile,datafile,startfile,Precision,Width,Echo);
    
-   Lat = InitializeLattice(datafile,"^",Echo,Width,Debug);
+   Lat = InitializeLattice(Input,Echo,Width,Debug);
    Lat->Print(out,Lattice::PrintLong);
    
-   Mode = InitializeMode(Lat,datafile,"^");
-   SolveMe = InitializeSolution(Mode,datafile,startfile,Lat,out,Width,Echo);
+   Mode = InitializeMode(Lat,Input);
+
+   out << "Mode: " << Mode->ModeName() << "\n";
+   if (Echo) cout << "Mode: " << Mode->ModeName() << "\n";
    
-   out << "Mode: " << Mode->ModeName() << endl;
-   if (Echo) cout << "Mode: " << Mode->ModeName() << endl;
+   SolveMe = InitializeSolution(Mode,Input,Lat,out,Width,Echo);
    
    int success = 1;
    int TestValue=-1,
@@ -84,10 +91,10 @@ int main(int argc, char *argv[])
          OldTestValue = TestValue;
          TestValue = Lat->TestFunctions(EigenValues);
          if ((OldTestValue != TestValue) && (BisectCP == Yes) && (OldTestValue != -1))
-            SolveMe->FindCriticalPoint(Lat,datafile,"^",Width,out);
+            SolveMe->FindCriticalPoint(Lat,Input,Width,out);
          
          // Send Output
-         out << setw(Width) << Lat << "Success = 1" << endl;
+         out << setw(Width) << Lat << "Success = 1" << "\n";
       }
    }
    
@@ -102,21 +109,27 @@ int main(int argc, char *argv[])
 
 
 
-void GetMainSettings(int &Width, int &Precision,YN &BisectCP,int &Echo,char *datafile)
+void GetMainSettings(int &Width, int &Precision,YN &BisectCP,int &Echo,PerlInput &Input)
 {
    char bisect[LINELENGTH];
-   
-   if(!GetParameter("^","MainFieldWidth",datafile,'i',&Width)) exit(-1);
-   if(!GetParameter("^","MainPrecision",datafile,'i',&Precision)) exit(-1);
-   if(!GetParameter("^","MainEcho",datafile,'i',&Echo,0)) Echo = 1;
-   if(!GetParameter("^","MainBisectCP",datafile,'s',bisect)) exit(-1);
-   if ((!strcmp("Yes",bisect)) || (!strcmp("yes",bisect)))
+
+   Width = Input.getInt("Main","FieldWidth");
+   Precision = Input.getInt("Main","Precision");
+   if (Input.ParameterOK("Main","Echo"))
+   {
+      Echo = Input.getInt("Main","Echo");
+   }
+   else
+   {
+      Echo = 1;
+   }
+   if (!strcmp("Yes",Input.getString("Main","BisectCP")))
       BisectCP = Yes;
-   else if ((!strcmp("No",bisect)) || (!strcmp("no",bisect)))
+   else if (!strcmp("No",Input.getString("Main","BisectCP")))
       BisectCP = No;
    else
    {
-      cerr << "Unknown BisectCP option : " << bisect << endl;
+      cerr << "Unknown BisectCP option : " << bisect << "\n";
       exit(-1);
    }
 }
@@ -132,21 +145,21 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,char *startf
    if (input.fail())
    {
       cerr << "Error: Unable to open file : " << datafile << " for read"
-           << endl;
+           << "\n";
       exit(-1);
    }
    out.open(outfile,ios::out);
    if (out.fail())
    {
       cerr << "Error: Unable to open file : " << outfile << " for write"
-           << endl;
+           << "\n";
       exit(-1);
    }
    
    while (!input.eof())
    {
       input.getline(dataline,LINELENGTH-1);
-      out << "Input File:" << dataline << endl;
+      out << "Input File:" << dataline << "\n";
    }
    
    input.close();
@@ -157,14 +170,14 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,char *startf
       if (start.fail())
       {
          cerr << "Error: Unable to open file : " << startfile << " for read"
-              << endl;
+              << "\n";
          exit(-1);
       }
       
       while (!start.eof())
       {
          start.getline(dataline,LINELENGTH-1);
-         out << "Start File:" << dataline << endl;
+         out << "Start File:" << dataline << "\n";
       }
       
       start.close();
@@ -173,12 +186,12 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,char *startf
    if (Echo) cout << setiosflags(ios::fixed) << setprecision(Precision);
    out  << setiosflags(ios::fixed) << setprecision(Precision);
    
-   if (Echo) cout << "Built on:               " << builddate() << endl
-                  << "LinearAlgebra Build on: " << LinearAlgebraBuildDate() << endl
-                  << "MyMath Built on:        " << MyMathBuildDate() << endl
+   if (Echo) cout << "Built on:               " << builddate() << "\n"
+                  << "LinearAlgebra Build on: " << LinearAlgebraBuildDate() << "\n"
+                  << "MyMath Built on:        " << MyMathBuildDate() << "\n"
                   << setw(Width);
-   out << "Built on:               " << builddate() << endl
-       << "LinearAlgebra Build on: " << LinearAlgebraBuildDate() << endl
-       << "MyMath Built on:        " << MyMathBuildDate() << endl
+   out << "Built on:               " << builddate() << "\n"
+       << "LinearAlgebra Build on: " << LinearAlgebraBuildDate() << "\n"
+       << "MyMath Built on:        " << MyMathBuildDate() << "\n"
        << setw(Width);
 }

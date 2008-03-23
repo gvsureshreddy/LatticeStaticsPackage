@@ -1,39 +1,86 @@
 #include "NewtonUpdatePCSolution.h"
 #include "Matrix.h"
-#include "UtilityFunctions.h"
 #include <cmath>
 #include "ArcLengthSolution.h"
 
 using namespace std;
 
-#define CLOSEDDEFAULT 30
-
-NewtonUpdatePCSolution::NewtonUpdatePCSolution(LatticeMode *Mode,char *datafile,
-                                               const char *prefix,const Vector &one,int Echo,
-                                               int Direction)
+NewtonUpdatePCSolution::NewtonUpdatePCSolution(LatticeMode *Mode,
+                                               const Vector &one,unsigned CurrentSolution,
+                                               unsigned NumSolutions,double MaxDS,
+                                               double CurrentDS,double cont_rate_nom,
+                                               double delta_nom,double alpha_nom,
+                                               double Converge,double MinDSRatio,
+                                               const Vector &FirstSolution,int Direction,
+                                               unsigned ClosedLoopStart,int Echo)
    : Mode_(Mode),
-     CurrentSolution_(0),
-     Echo_(Echo)
+     Echo_(Echo),
+     CurrentSolution_(CurrentSolution),
+     NumSolutions_(NumSolutions),
+     MaxDS_(MaxDS),
+     CurrentDS_(CurrentDS),
+     cont_rate_nom_(cont_rate_nom),
+     delta_nom_(delta_nom),
+     alpha_nom_(alpha_nom),
+     Converge_(Converge),
+     MinDSRatio_(MinDSRatio),
+     ClosedLoopStart_(ClosedLoopStart),
+     Direction_(Direction),
+     FirstSolution_(FirstSolution)
+{
+   int count = (Mode_->ModeDOF()).Dim();
+   int count_minus_one = count -1;
+   
+   //QR Decomposition of Stiffness Matrix
+   Matrix Q(count, count);
+   Matrix R(count, count_minus_one);
+   
+   //Performs QR decomposition using A^T = Q*R. Section 4.1 of ISBN 3-540-12760-7
+   QR(Mode->ModeStiffness(),Q,R,1);
+   
+   Tangent1_.Resize(count);
+   Tangent2_.Resize(count);
+   for(int i=0;i<count;i++)
+   {
+      Tangent1_[i] = Tangent2_[i] = Direction_ * Q[i][count_minus_one];
+   }
+}
+
+NewtonUpdatePCSolution::NewtonUpdatePCSolution(LatticeMode *Mode,PerlInput &Input,
+                                               const Vector &one,int Echo)
+   : Mode_(Mode),
+     Echo_(Echo),
+     CurrentSolution_(0)
 {
    // get needed parameters
-   if(!GetParameter(prefix,"PCNumSolutions",datafile,'u',&NumSolutions_)) exit(-1);
-   if(!GetParameter(prefix,"PCStepLength",datafile,'l',&MaxDS_)) exit(-1);
-   if(!GetParameter(prefix,"PCContraction",datafile,'l',&cont_rate_nom_)) exit(-1);
-   if(!GetParameter(prefix,"PCDistance",datafile,'l',&delta_nom_)) exit(-1);
-   if(!GetParameter(prefix,"PCAngle",datafile,'l',&alpha_nom_)) exit(-1);
-   if(!GetParameter(prefix,"PCConvergeCriteria",datafile,'l',&Converge_)) exit(-1);
-   if(!GetParameter(prefix,"MinDSRatio",datafile,'l',&MinDSRatio_)) exit(-1);
-   if(!GetParameter(prefix,"PCClosedLoopStart",datafile,'u',&ClosedLoopStart_,0))
+   PerlInput::HashStruct Hash = Input.getHash("SolutionMethod","NewtonUpdatePCSolution");
+   NumSolutions_ = Input.getUnsigned(Hash,"NumSolutions");
+   MaxDS_ = Input.getDouble(Hash,"MaxDS");
+   cont_rate_nom_ = Input.getDouble(Hash,"Contraction");
+   delta_nom_ = Input.getDouble(Hash,"Distance");
+   alpha_nom_ = Input.getDouble(Hash,"Angle");
+   Converge_ = Input.getDouble(Hash,"ConvergeCriteria");
+   MinDSRatio_ = Input.getDouble(Hash,"MinDSRatio");
+   if (Input.ParameterOK(Hash,"ClosedLoopStart"))
+   {
+      ClosedLoopStart_ = Input.getUnsigned(Hash,"ClosedLoopStart");
+   }
+   else
    {
       // Set default value
       ClosedLoopStart_ = CLOSEDDEFAULT;
    }
-   if(Direction == 0)
+
+   if (Input.ParameterOK(Hash,"Direction"))
    {
-      cout << "error in direction " << endl;
-      exit(-1);
+      Direction_ = Input.getInt(Hash,"Direction");
    }
-   Direction_ = Direction;
+   else
+   {
+      // Default to positive;
+      Direction_ = 1;
+   }
+
    CurrentDS_ = MaxDS_;
    
    FirstSolution_.Resize(one.Dim());
@@ -62,105 +109,117 @@ NewtonUpdatePCSolution::NewtonUpdatePCSolution(LatticeMode *Mode,char *datafile,
    }
 }
 
-NewtonUpdatePCSolution::NewtonUpdatePCSolution(LatticeMode *Mode,char *datafile,
-                                               const char *prefix,char *startfile,
-                                               fstream &out,int Echo)
+NewtonUpdatePCSolution::NewtonUpdatePCSolution(LatticeMode *Mode,PerlInput &Input,int Echo)
    : Mode_(Mode),
-     CurrentSolution_(0),
-     Echo_(Echo)
+     Echo_(Echo),
+     CurrentSolution_(0)
 {
-   // get needed parameters12
-   if(!GetParameter(prefix,"PCNumSolutions",datafile,'u',&NumSolutions_)) exit(-1);
-   if(!GetParameter(prefix,"PCStepLength",datafile,'l',&MaxDS_)) exit(-1);
-   if(!GetParameter(prefix,"PCContraction",datafile,'l',&cont_rate_nom_)) exit(-1);
-   if(!GetParameter(prefix,"PCDistance",datafile,'l',&delta_nom_)) exit(-1);
-   if(!GetParameter(prefix,"PCAngle",datafile,'l',&alpha_nom_)) exit(-1);
-   if(!GetParameter(prefix,"PCConvergeCriteria",datafile,'l',&Converge_)) exit(-1);
-   if(!GetParameter(prefix,"MinDSRatio",datafile,'l',&MinDSRatio_)) exit(-1);
-   if(!GetParameter(prefix,"PCClosedLoopStart",datafile,'u',&ClosedLoopStart_,0))
+   // get needed parameters
+   PerlInput::HashStruct Hash = Input.getHash("SolutionMethod","NewtonUpdatePCSolution");
+   NumSolutions_ = Input.getUnsigned(Hash,"NumSolutions");
+   MaxDS_ = Input.getDouble(Hash,"MaxDS");
+   cont_rate_nom_ = Input.getDouble(Hash,"Contraction");
+   delta_nom_ = Input.getDouble(Hash,"Distance");
+   alpha_nom_ = Input.getDouble(Hash,"Angle");
+   Converge_ = Input.getDouble(Hash,"ConvergeCriteria");
+   MinDSRatio_ = Input.getDouble(Hash,"MinDSRatio");
+   if (Input.ParameterOK(Hash,"ClosedLoopStart"))
+   {
+      ClosedLoopStart_ = Input.getUnsigned(Hash,"ClosedLoopStart");
+   }
+   else
    {
       // Set default value
       ClosedLoopStart_ = CLOSEDDEFAULT;
    }
+
+   if (Input.ParameterOK(Hash,"Direction"))
+   {
+      Direction_ = Input.getInt(Hash,"Direction");
+   }
+   else
+   {
+      // Default to positive;
+      Direction_ = 1;
+   }
    
    CurrentDS_ = MaxDS_;
    
-   const char *StartType[] = {"Bifurcation","Continuation","ConsistencyCheck"};
-   switch (GetStringParameter(prefix,"StartType",startfile,StartType,3))
+   const char *starttype = Input.getString("StartType","Type");
+   if (!strcmp("Bifurcation",starttype))
    {
-      case -1:
+      // Bifurcation
+      // Get solution1
+      int count = (Mode_->ModeDOF()).Dim();
+      int i;
+      Vector one(count);
+      Previous_Solution_.Resize(count);
+      Tangent1_.Resize(count);
+      Tangent2_.Resize(count);
+
+      Input.getVector(one,"StartType","Solution1");
+      Input.getVector(Tangent1_,"StartType","Tangent");
+      // override direction with start file value
+      if (Input.ParameterOK("StartType","Direction"))
       {
-         cerr << "Unknown StartType!" << endl;
-         exit(-1);
-         break;
+         Direction_ = Input.getUnsigned("StartType","Direction");
       }
-      case 0:
+      
+      FirstSolution_.Resize(one.Dim());
+      FirstSolution_ = one;
+      
+      Mode_->SetModeDOF(one);
+      
+      for(i=0; i<count; i++)
       {
-         // Bifurcation
-         // Get solution1
-         int count = (Mode_->ModeDOF()).Dim();
-         int i;
-         Vector one(count);
-         Previous_Solution_.Resize(count);
-         Tangent1_.Resize(count);
-         Tangent2_.Resize(count);
-         
-         if(!GetVectorParameter(prefix,"Solution1",startfile,&one)) exit(-1);
-         if(!GetVectorParameter(prefix,"Tangent",startfile,&Tangent1_)) exit(-1);
-         if(!GetParameter(prefix,"Direction",startfile,'u', &Direction_)) exit(-1);
-         
-         FirstSolution_.Resize(one.Dim());
-         FirstSolution_ = one;
-         
-         Mode_->SetModeDOF(one);
-         
-         for(i =0; i< count; i++)
-         {
-            Tangent1_[i] = Direction_ * Tangent1_[i];
-            Tangent2_[i] = Tangent1_[i];
-         }
-         
-         break;
+         Tangent1_[i] = Direction_ * Tangent1_[i];
+         Tangent2_[i] = Tangent1_[i];
       }
-      case 1:
+   }
+   else if (!strcmp("Continuation",starttype))
+   {
+      // Continuation
+      
+      // Get solution1
+      int count = (Mode_->ModeDOF()).Dim();
+      int count_minus_one = count -1;
+      int i;
+      Vector one(count);
+      
+      Previous_Solution_.Resize(count);
+      Tangent1_.Resize(count);
+      Tangent2_.Resize(count);
+
+      Input.getVector(one,"StartType","Solution1");
+      // override direction with start file value
+      if (Input.ParameterOK("StartType","Direction"))
       {
-         // Continuation
-         
-         // Get solution1
-         int count = (Mode_->ModeDOF()).Dim();
-         int count_minus_one = count -1;
-         int i;
-         
-         Vector one(count);
-         
-         Previous_Solution_.Resize(count);
-         Tangent1_.Resize(count);
-         Tangent2_.Resize(count);
-         
-         if(!GetVectorParameter(prefix,"Solution1",startfile,&one)) exit(-1);
-         
-         FirstSolution_.Resize(one.Dim());
-         FirstSolution_ = one;
-         Mode_->SetModeDOF(one);
-         
-         Matrix Q(count, count);
-         Matrix R(count, count_minus_one);
-         QR(Mode_->ModeStiffness(),Q,R,1);
-         
-         for( i=0;i< count;i++)
-         {
-            Tangent1_[i] = Tangent2_[i] = Direction_ * Q[i][count_minus_one];
-         }
-         
-         break;
+         Direction_ = Input.getUnsigned("StartType","Direction");
       }
-      case 2:
+      
+      FirstSolution_.Resize(one.Dim());
+      FirstSolution_ = one;
+      Mode_->SetModeDOF(one);
+      
+      Matrix Q(count, count);
+      Matrix R(count, count_minus_one);
+      
+      QR(Mode_->ModeStiffness(),Q,R,1);
+      for(i=0;i<count;i++)
       {
-         // ConsistencyCheck
-         
-         // do nothing for now
-         break;
+         Tangent1_[i] = Tangent2_[i] = Direction_ * Q[i][count_minus_one];
       }
+   }
+   if (!strcmp("ConsistenceCheck",starttype))
+   {
+      // ConsistencyCheck
+      
+      // do nothing for now
+   }
+   else
+   {
+      cerr << "Unknown StartType!" << "\n";
+      exit(-1);
    }
 }
 
@@ -232,7 +291,7 @@ int NewtonUpdatePCSolution::FindNextSolution()
          v[i] = Previous_Solution_[i] + CurrentDS_ * Tangent1_[i];
       }
       
-      //cout << "START OF SOLVER " << endl << endl;
+      //cout << "START OF SOLVER " << "\n" << "\n";
       Mode_->SetModeDOF(v);
       Force2 = Mode_->ModeForce();
       
@@ -293,10 +352,10 @@ int NewtonUpdatePCSolution::FindNextSolution()
          //Alpha = sqrt(acos(Tangent1_ * Tangent2_)/alpha_nom_);
          Alpha = sqrt(acos(temp)/alpha_nom_);
          Delta = sqrt(Magnitude1/delta_nom_);
-         //cout << setprecision(15)<< endl;
-         //cout << "Kappa = " << Kappa << endl;
-         //cout << "Alpha = " << Alpha << endl;
-         //cout << "Delta = " << Delta << endl;
+         //cout << setprecision(15)<< "\n";
+         //cout << "Kappa = " << Kappa << "\n";
+         //cout << "Alpha = " << Alpha << "\n";
+         //cout << "Delta = " << Delta << "\n";
          
          temp = max(Kappa, Alpha);
          f = max(temp, Delta);
@@ -304,21 +363,21 @@ int NewtonUpdatePCSolution::FindNextSolution()
          temp = min(f,2.0);
          f = max(temp, 0.5);
          
-         //cout << " f = " << f << endl;
-         //cout << setprecision(10) << endl;
+         //cout << " f = " << f << "\n";
+         //cout << setprecision(10) << "\n";
          
          if(f >= 2.0)
          {
-            //cout << "STEPLENGTH TOO LARGE " << endl << endl << endl;
-            //cout << "Previous_Solution_ = " << endl << setw(15) << Previous_Solution_
-            //<< endl << endl;
-            //cout << "v = " <<endl << setw(15) << v << endl << endl;
-            //cout << "w = " << endl << setw(15) << w << endl << endl;
+            //cout << "STEPLENGTH TOO LARGE " << "\n" << "\n" << "\n";
+            //cout << "Previous_Solution_ = " << "\n" << setw(15) << Previous_Solution_
+            //<< "\n" << "\n";
+            //cout << "v = " <<"\n" << setw(15) << v << "\n" << "\n";
+            //cout << "w = " << "\n" << setw(15) << w << "\n" << "\n";
             //CurrentDS_ = CurrentDS_/f;
             CurrentDS_ = CurrentDS_/2.0;
             if(CurrentDS_/MaxDS_ < MinDSRatio_)
             {
-               cout << "Minimum StepSize ratio violated. Exit Solver. "<< endl << endl;
+               cout << "Minimum StepSize ratio violated. Exit Solver. "<< "\n" << "\n";
                exit(-53);
             }
             break;
@@ -330,7 +389,7 @@ int NewtonUpdatePCSolution::FindNextSolution()
                v[i] = w[i];
             }
             
-            //cout << "STEPLENGTH OKAY " << endl << endl << endl;
+            //cout << "STEPLENGTH OKAY " << "\n" << "\n" << "\n";
             
             if (Force2.Norm() <= Converge_ && Corrector.Norm() <= Converge_)
             {
@@ -345,7 +404,7 @@ int NewtonUpdatePCSolution::FindNextSolution()
             }
             else
             {
-               //cout << "HAS NOT CONVERGED " << endl << endl << endl;
+               //cout << "HAS NOT CONVERGED " << "\n" << "\n" << "\n";
                
                temp = 0;
                for(i=0;i<count;i++)
@@ -375,14 +434,14 @@ int NewtonUpdatePCSolution::FindNextSolution()
    }
    while (f >= 2.0);
    
-   //cout << "HAS CONVERGED " << endl << endl << endl;
+   //cout << "HAS CONVERGED " << "\n" << "\n" << "\n";
    
    if ((ClosedLoopStart_ >= 0) && (CurrentSolution_ > ClosedLoopStart_) &&
        ((Mode_->ModeDOF() - FirstSolution_).Norm() < MaxDS_))
    {
       // We are done -- set currentsolution to numsolutions
       cerr << "Closed Loop detected at Solution # " << CurrentSolution_
-           << " --- Terminating!" << endl;
+           << " --- Terminating!" << "\n";
       
       CurrentSolution_ = NumSolutions_;
    }
@@ -397,23 +456,23 @@ int NewtonUpdatePCSolution::FindNextSolution()
    return good;
 }
 
-int NewtonUpdatePCSolution::FindCriticalPoint(Lattice *Lat,char *datafile,const char *prefix,
+int NewtonUpdatePCSolution::FindCriticalPoint(Lattice *Lat,PerlInput &Input,
                                               int Width,fstream &out)
 {
-   ArcLengthSolution S1(Mode_, datafile, "^", Previous_Solution_,Mode_->ModeDOF(), 1);
-   //S1.SetCurrentDS((Mode_->ModeDOF()-Previous_Solution_).Norm());
    int sz=Previous_Solution_.Dim();
    Vector tmp_diff(sz),tmp_DOF(Mode_->ModeDOF());
    double tmp_ds=0.0;
-   for (int i=0;i<sz-1;++i)
+   for (int i=0;i<sz;++i)
    {
       tmp_ds += (Previous_Solution_[i]-tmp_DOF[i])*(Previous_Solution_[i]-tmp_DOF[i]);
    }
-   tmp_ds += (Previous_Solution_[sz-1]-tmp_DOF[sz-1])*(Previous_Solution_[sz-1]-tmp_DOF[sz-1])
-      /(S1.GetAspect()*S1.GetAspect());
-   S1.SetCurrentDS(sqrt(tmp_ds));
-   S1.FindCriticalPoint(Lat,datafile,"^",Width,out);
    
+   //ArcLengthSolution S1(Mode_,Input,Previous_Solution_,Mode_->ModeDOF(),1);
+   int MaxIter = 50;
+   ArcLengthSolution S1(Mode_,Mode_->ModeDOF(),MaxIter,Converge_,Converge_,tmp_ds,
+                        tmp_ds,tmp_ds,1.0,0.5,1.0,1,0,Previous_Solution_,
+                        Mode_->ModeDOF()-Previous_Solution_,10,Echo_);
+   S1.FindCriticalPoint(Lat,Input,Width,out);
    return 1;
 }
 

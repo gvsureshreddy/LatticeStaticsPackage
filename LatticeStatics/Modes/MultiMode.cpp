@@ -1,44 +1,46 @@
 #include "MultiMode.h"
-#include "UtilityFunctions.h"
 
-MultiMode::MultiMode(Lattice *M,const char *datafile,const char *prefix)
+MultiMode::MultiMode(Lattice *M,PerlInput &Input)
 {
    char tmp[LINELENGTH];
-   
-   if (!GetParameter(prefix,"MultiMode_DOFS",datafile,'u',&DOFS_)) exit(-1);
+
+   PerlInput::HashStruct Hash = Input.getHash("Mode","MultiMode");
+   DOFS_ = Input.getUnsigned(Hash,"DOFS");
    ModeDOF_.Resize(DOFS_+1,0.0);
    
    for (int i=0;i<DOFS_;++i)
    {
-      sprintf(tmp,"MultiMode_DOF_%u_Len",i);
-      if (!GetParameter(prefix,tmp,datafile,'u',&(DOFindlen_[i]))) exit(-1);
-      sprintf(tmp,"MultiMode_DOF_%u_Val",i);
-      if (!GetIntVectorParameter(prefix,tmp,datafile,DOFindlen_[i],DOFindex_[i])) exit(-1);
+      sprintf(tmp,"DOF_%u",i);
+      DOFindlen_[i] = Input.getArrayLength(Hash,tmp,0);
+      Input.getIntVector(DOFindex_[i],DOFindlen_[i],Hash,tmp,0);
       DOFMult_[i].Resize(DOFindlen_[i]);
-      sprintf(tmp,"MultiMode_DOF_%u_Mul",i);
-      if (!GetVectorParameter(prefix,tmp,datafile,&(DOFMult_[i]))) exit(-1);
+      Input.getVector(DOFMult_[i],Hash,tmp,1);
    }
    
    Lattice_ = (Lattice *) M;
    
    //Baseline DOF Initialization
    int temp1 = (Lattice_->DOF()).Dim();
-   int temp2;
+   unsigned temp2;
    double temp3;
-   int Baseline_DOFS;
-   if (!GetParameter(prefix,"MultiMode_Baseline_DOFS",datafile,'u',&Baseline_DOFS))
+   unsigned Baseline_DOFS;
+   if (Input.ParameterOK(Hash,"Baseline_DOFS"))
+   {
+      Baseline_DOFS = Input.getUnsigned(Hash,"Baseline_DOFS");
+   }
+   else
    {
       Baseline_DOFS=0;
    }
    
    BaselineDOF_.Resize(temp1,0.0);
    
-   for(int i=0; i < Baseline_DOFS ; ++i)
+   for(unsigned i=0; i < Baseline_DOFS ; ++i)
    {
-      sprintf(tmp,"MultiMode_Baseline_DOF_Index_%u",i);
-      if (!GetParameter(prefix,tmp,datafile,'u',&temp2)) exit(-1);
-      sprintf(tmp,"MultiMode_Baseline_DOF_Value_%u",i);
-      if (!GetParameter(prefix,tmp,datafile,'l',&temp3)) exit(-1);
+      sprintf(tmp,"Baseline_DOF_Index_%u",i);
+      temp2 = Input.getUnsigned(Hash,tmp);
+      sprintf(tmp,"Baseline_DOF_Value_%u",i);
+      temp3 = Input.getDouble(Hash,tmp);
       
       BaselineDOF_[temp2] =  temp3;
    }

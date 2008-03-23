@@ -3,6 +3,7 @@
 
 #include <Matrix.h>
 #include <Vector.h>
+#include "PerlInput.h"
 #include "CBKinematics.h"
 
 using namespace std;
@@ -13,7 +14,7 @@ private:
    virtual void Reset();
    
 public:
-   EulerCB(int InternalAtoms,const char* prefix,const char* datafile);
+   EulerCB(int InternalAtoms,PerlInput &Input);
    virtual ~EulerCB() {};
    
 #include "FwithTransMapping.def"

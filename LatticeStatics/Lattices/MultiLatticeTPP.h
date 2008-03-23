@@ -1,6 +1,7 @@
 #ifndef __MultiLatticeTPP
 #define __MultiLatticeTPP
 
+#include "PerlInput.h"
 #include "Lattice.h"
 #include "UnitCellIterator.h"
 #include "CBKinematics.h"
@@ -119,7 +120,7 @@ public:
    void PrintCurrentCrystalParamaters(ostream &out);
    
    // Functions provided by MultiLatticeTPP
-   MultiLatticeTPP(char *datafile,const char *prefix,int Echo=1,int Width=20,int Debug=0);
+   MultiLatticeTPP(PerlInput &Input,int Echo=1,int Width=20,int Debug=0);
    ~MultiLatticeTPP();
    double InfluenceDist() {return InfluenceDist_;}
    void SetInfluenceDist(double InfluenceDist) {InfluenceDist_=InfluenceDist;}
@@ -130,7 +131,7 @@ public:
    friend ostream &operator<<(ostream &out,MultiLatticeTPP &A);
    
 private:
-   int FindLatticeSpacing(char *datafile,const char *prefix,int iter);
+   int FindLatticeSpacing(int iter);
    void RefineEqbm(double Tol,int MaxItr,ostream *out);
    
 };

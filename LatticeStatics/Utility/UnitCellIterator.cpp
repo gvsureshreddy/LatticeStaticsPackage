@@ -8,7 +8,7 @@ void UnitCellIterator::Initialize(int GridSize,int DoHalfOnly,int SkipZero)
    if ((GridSize_ < 2))
    {
       cerr << "UnitCellIterator GridSize must be >= 2"
-           << endl;
+           << "\n";
       exit(-1);
    }
    VectorsLen_ = DoHalfOnly ?

@@ -86,7 +86,7 @@ void PPSum::Initialize()
    if (RelPosDATA_.Rows() < 0.55*tmp)
    {
       RelPosDATA_.Resize(int(tmp),PPSUMdatalen);
-      cerr << "Resizing RELPOSDATA matrix in PPSum object to " << tmp << endl;
+      cerr << "Resizing RELPOSDATA matrix in PPSum object to " << tmp << "\n";
    }
    
    Pairs_ = 0;

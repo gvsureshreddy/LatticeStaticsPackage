@@ -3,7 +3,7 @@
 
 #include <Matrix.h>
 #include <Vector.h>
-#include "UtilityFunctions.h"
+#include "PerlInput.h"
 
 using namespace std;
 
@@ -23,7 +23,7 @@ public:
    Matrix F_;
    Matrix S_;
    
-   CBKinematics(int InternalAtoms,const char* prefix,const char* datafile);
+   CBKinematics(int InternalAtoms,PerlInput &Input);
    virtual ~CBKinematics() {delete [] InternalPOS_;}
    
    virtual void InfluenceRegion(double *InfluenceRegion);

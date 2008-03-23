@@ -14,6 +14,7 @@ ScanningSolution.d
 TempMorse.d
 UnitCellIterator.d
 UtilityFunctions.d
+PerlInput.d
 CBKinematics.d
 ChainIterator.d
 ChainSum.d
@@ -28,5 +29,8 @@ Dobson.d
 LJCutoff.d
 RadiiMorse2.d
 RadiiMorseCutoff.d
-NewtonUpdatePCSolution.d
+RadiiMorseCutoff2.d
 NewtonPCSolution.d
+NewtonUpdatePCSolution.d
+NewtonQRUpdatePCSolution.d
+

@@ -1,12 +1,13 @@
 #include "KnownLattices.h"
-#include "UtilityFunctions.h"
+#include "PerlInput.h"
 #include <fstream>
+
+char *builddate();
 
 using namespace std;
 
-void GetMainSettings(int &Width,int &Presision,int &Echo,char *datafile,
-                     const char *prefix);
-void InitializeOutputFile(fstream &out,char *outfile,char *datafile,const char *prefix,
+void GetMainSettings(int &Width,int &Presision,int &Echo,PerlInput &Input);
+void InitializeOutputFile(fstream &out,char *outfile,char *datafile,int argc,
                           Lattice *Lat,int Precision,int Width,int Echo);
 
 int main(int argc,char *argv[])
@@ -15,61 +16,60 @@ int main(int argc,char *argv[])
    if (argc < 3)
    {
       cerr << "Usage: " << argv[0]
-           << " ParamFile OutputFile" << endl;
-      cerr << "Built on:               " << builddate() << endl
-           << "LinearAlgebra Built on: " << LinearAlgebraBuildDate() << endl
-           << "MyMath Built on:        " << MyMathBuildDate() << endl;
+           << " ParamFile OutputFile [1 - regular inputfile (not an output of LatticeStatics)]"
+           << "\n";
+      cerr << "Built on:               " << builddate() << "\n"
+           << "LinearAlgebra Built on: " << LinearAlgebraBuildDate() << "\n"
+           << "MyMath Built on:        " << MyMathBuildDate() << "\n";
       exit(-1);
    }
    
    char *datafile = argv[1],
-      *outputfile = argv[2],
-      prefix[LINELENGTH];
-   
-   if (GetParameter("","^Input File:",datafile,'s',prefix,0))
+      *outputfile = argv[2];
+
+   PerlInput Input;
+   if (argc >= 4)
    {
-      strcpy(prefix,"^Input File:");
+      Input.Readfile(datafile);
    }
    else
    {
-      strcpy(prefix,"^");
+      Input.Readfile(datafile,"Input File:");
    }
-   
+
    Lattice *Lat;
    
    int Width,Precision,Echo;
    
-   GetMainSettings(Width,Precision,Echo,datafile,prefix);
-   
-   Lat = InitializeLattice(datafile,prefix,Echo);
-   
+   GetMainSettings(Width,Precision,Echo,Input);
+
+   Lat = InitializeLattice(Input,Echo);
+
    fstream out;
-   InitializeOutputFile(out,outputfile,datafile,prefix,Lat,Precision,Width,Echo);
+   InitializeOutputFile(out,outputfile,datafile,argc,Lat,Precision,Width,Echo);
    
-   int NoLines,NoPTS;
-   if(!GetParameter(prefix,"DispersionLines",datafile,'u',&NoLines)) exit(-1);
-   if(!GetParameter(prefix,"DispersionPoints",datafile,'u',&NoPTS)) exit(-1);
+   unsigned NoLines,NoPTS;
+   NoLines = Input.getUnsigned("DispersionCurves","NoLines");
+   NoPTS = Input.getUnsigned("DispersionCurves","Points");
    
    Vector *Line;
    Line = new Vector[NoLines];
-   char tmp[LINELENGTH];
-   
-   for (int i=0;i<NoLines;++i)
+
+   for (unsigned i=0;i<NoLines;++i)
    {
       Line[i].Resize(6);
-      sprintf(tmp,"DispersionLine_%u",i);
-      if(!GetVectorParameter(prefix,tmp,datafile,&(Line[i]))) exit(-1);
+      Input.getVector(Line[i],"DispersionCurves","Lines",i);
    }
-   
-   if (strcmp(prefix,"^Input File:"))
+
+   if (argc >= 4)
    {
-      for (int i=0;i<NoLines;++i)
+      for (unsigned i=0;i<NoLines;++i)
       {
-         out << "#" << setw(Width) << Line[i] << endl << setw(Width);
-         if (Echo) cout << "#" << setw(Width) << Line[i] << endl << setw(Width);
+         out << "#" << setw(Width) << Line[i] << "\n" << setw(Width);
+         if (Echo) cout << "#" << setw(Width) << Line[i] << "\n" << setw(Width);
          Lat->DispersionCurves(Line[i],NoPTS,"",out);
-         out << endl << endl;
-         if (Echo) cout << endl << endl;
+         out << "\n" << "\n";
+         if (Echo) cout << "\n" << "\n";
       }
    }
    else
@@ -84,10 +84,10 @@ int main(int argc,char *argv[])
       char tmp[LINELENGTH];
       sprintf(strng,format,datafile);
       
-      for (int i=0;i<NoLines;++i)
+      for (unsigned i=0;i<NoLines;++i)
       {
-         out << "#" << setw(Width) << Line[i] << endl;
-         if (Echo) cout << "#" << setw(Width) << Line[i] << endl;
+         out << "#" << setw(Width) << Line[i] << "\n";
+         if (Echo) cout << "#" << setw(Width) << Line[i] << "\n";
          
          pipe = popen(strng,"r");
          
@@ -108,22 +108,22 @@ int main(int argc,char *argv[])
             Lat->SetDOF(DOF);
             
             out << "# Temp= " << setw(Width) << temp << " Lambda= "
-                << setw(Width) << lambda << endl
-                << "#" << setw(Width) << DOF << endl << setw(Width);
+                << setw(Width) << lambda << "\n"
+                << "#" << setw(Width) << DOF << "\n" << setw(Width);
             if (Echo) cout << "# Temp= " << setw(Width) << temp << " Lambda= "
-                           << setw(Width) << lambda << endl
-                           << "#" << setw(Width) << DOF << endl;;
+                           << setw(Width) << lambda << "\n"
+                           << "#" << setw(Width) << DOF << "\n";;
             
             Lat->DispersionCurves(Line[i],NoPTS,"",out);
-            out << endl << endl;
-            if (Echo) cout << endl << endl;
+            out << "\n" << "\n";
+            if (Echo) cout << "\n" << "\n";
             
             fscanf(pipe,"%s",tmp);
          }
          pclose(pipe);
          
-         out << endl;
-         if (Echo) cout << endl;
+         out << "\n";
+         if (Echo) cout << "\n";
       }
    }
    
@@ -138,15 +138,21 @@ int main(int argc,char *argv[])
 
 
 
-void GetMainSettings(int &Width,int &Precision,int &Echo,char *datafile,
-                     const char *prefix)
+void GetMainSettings(int &Width,int &Precision,int &Echo,PerlInput &Input)
 {
-   if(!GetParameter(prefix,"MainFieldWidth",datafile,'i',&Width)) exit(-1);
-   if(!GetParameter(prefix,"MainPrecision",datafile,'i',&Precision)) exit(-1);
-   if(!GetParameter(prefix,"MainPrecision",datafile,'i',&Echo,0)) Echo=1;
+   Width = Input.getInt("Main","FieldWidth");
+   Precision = Input.getInt("Main","Precision");
+   if (Input.ParameterOK("Main","Echo"))
+   {
+      Echo = Input.getInt("Main","Echo");
+   }
+   else
+   {
+      Echo = 1;
+   }
 }
 
-void InitializeOutputFile(fstream &out,char *outfile,char *datafile,const char *prefix,
+void InitializeOutputFile(fstream &out,char *outfile,char *datafile,int argc,
                           Lattice *Lat,int Precision,int Width,int Echo)
 {
    fstream input;
@@ -156,23 +162,23 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,const char *
    if (input.fail())
    {
       cerr << "Error: Unable to open file : " << datafile << " for read"
-           << endl;
+           << "\n";
       exit(-1);
    }
    out.open(outfile,ios::out);
    if (out.fail())
    {
       cerr << "Error: Unable to open file : " << outfile << " for write"
-           << endl;
+           << "\n";
       exit(-1);
    }
    
-   if (!strcmp("^",prefix))
+   if (argc >= 4)
    {
       while (!input.eof())
       {
          input.getline(dataline,LINELENGTH-1);
-         out << "# Input File:" << dataline << endl;
+         out << "# Input File:" << dataline << "\n";
       }
    }
    else
@@ -181,7 +187,7 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,const char *
       while ((strstr(dataline,"Input File:") != NULL) ||
              (strstr(dataline,"Start File:") != NULL))
       {
-         out << "# " << dataline << endl;
+         out << "# " << dataline << "\n";
          input.getline(dataline,LINELENGTH-1);
       }
    }
@@ -191,11 +197,11 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,const char *
    cout << setiosflags(ios::fixed) << setprecision(Precision);
    out  << setiosflags(ios::fixed) << setprecision(Precision);
    
-   cout << "Built on:               " << builddate() << endl
-        << "LinearAlgebra Build on: " << LinearAlgebraBuildDate() << endl
-        << "MyMath Built on:        " << MyMathBuildDate() << endl;
-   out << "# Built on:               " << builddate() << endl
-       << "# LinearAlgebra Build on: " << LinearAlgebraBuildDate() << endl
-       << "# MyMath Built on:        " << MyMathBuildDate() << endl;
+   cout << "Built on:               " << builddate() << "\n"
+        << "LinearAlgebra Build on: " << LinearAlgebraBuildDate() << "\n"
+        << "MyMath Built on:        " << MyMathBuildDate() << "\n";
+   out << "# Built on:               " << builddate() << "\n"
+       << "# LinearAlgebra Build on: " << LinearAlgebraBuildDate() << "\n"
+       << "# MyMath Built on:        " << MyMathBuildDate() << "\n";
 }
 

@@ -1,15 +1,41 @@
 #include <math.h>
-#include "ArcLengthSolution.h"
-#include "UtilityFunctions.h"
 #include <sstream>
 #include <string>
+#include "ArcLengthSolution.h"
 
 using namespace std;
 
-#define CLOSEDDEFAULT 30
 #define ARCLENEPS 1.0e-15
 
-ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char *prefix,
+ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,const Vector &dofs,
+                                     unsigned MaxIter,double Tolerance,
+                                     double BisectTolerance,double DSMax,double DSMin,
+                                     double CurrentDS,double AngleCutoff,double AngleIncrease,
+                                     double Aspect,unsigned NumSolutions,
+                                     unsigned CurrentSolution,const Vector &FirstSolution,
+                                     const Vector &Difference,unsigned ClosedLoopStart,int Echo)
+   : Echo_(Echo),
+     Mode_(Mode),
+     ModeDOFS_(Mode_->ModeDOF().Dim()),
+     MaxIter_(MaxIter),
+     Tolerance_(Tolerance),
+     BisectTolerance_(BisectTolerance),
+     DSMax_(DSMax),
+     DSMin_(DSMin),
+     CurrentDS_(CurrentDS),
+     AngleCutoff_(AngleCutoff),
+     AngleIncrease_(AngleIncrease),
+     Aspect_(Aspect),
+     NumSolutions_(NumSolutions_),
+     CurrentSolution_(CurrentSolution),
+     ClosedLoopStart_(ClosedLoopStart),
+     FirstSolution_(FirstSolution),
+     Difference_(Difference)
+{
+   ArcLenSet(dofs);
+}
+
+ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,PerlInput &Input,
                                      const Vector &one,const Vector &two,int Echo)
    : Echo_(Echo),
      Mode_(Mode),
@@ -17,16 +43,21 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char
      Difference_(two-one)
 {
    ModeDOFS_=Mode_->ModeDOF().Dim();
-   if(!GetParameter(prefix,"ArcLenMaxIterations",datafile,'u',&MaxIter_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenTolerance",datafile,'l',&Tolerance_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenDSMax",datafile,'l',&DSMax_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenDSStart",datafile,'l',&CurrentDS_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenDSMin",datafile,'l',&DSMin_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenAngleCutoff",datafile,'l',&AngleCutoff_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenAngleIncrease",datafile,'l',&AngleIncrease_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenAspect",datafile,'l',&Aspect_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenNumSolutions",datafile,'u',&NumSolutions_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenClosedLoopStart",datafile,'i',&ClosedLoopStart_,0))
+   PerlInput::HashStruct Hash = Input.getHash("SolutionMethod","ArcLengthSolution");
+   MaxIter_ = Input.getUnsigned(Hash,"MaxIterations");
+   Tolerance_ = Input.getDouble(Hash,"Tolerance");
+   DSMax_ = Input.getDouble(Hash,"DSMax");
+   CurrentDS_ = Input.getDouble(Hash,"DSStart");
+   DSMin_ = Input.getDouble(Hash,"DSMin");
+   AngleCutoff_ = Input.getDouble(Hash,"AngleCutoff");
+   AngleIncrease_ = Input.getDouble(Hash,"AngleIncrease");
+   Aspect_ = Input.getDouble(Hash,"Aspect");
+   NumSolutions_ = Input.getUnsigned(Hash,"NumSolutions");
+   if (Input.ParameterOK(Hash,"ClosedLoopStart"))
+   {
+      ClosedLoopStart_ = Input.getUnsigned(Hash,"ClosedLoopStart");
+   }
+   else
    {
       // Set default value
       ClosedLoopStart_ = CLOSEDDEFAULT;
@@ -41,23 +72,27 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char
    ArcLenSet(two);
 }
 
-ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char *prefix,
-                                     char *startfile,fstream &out,int Echo)
+ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,PerlInput &Input,int Echo)
    :  Echo_(Echo),
       Mode_(Mode),
       CurrentSolution_(0)
 {
    ModeDOFS_=Mode_->ModeDOF().Dim();
-   if(!GetParameter(prefix,"ArcLenMaxIterations",datafile,'u',&MaxIter_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenTolerance",datafile,'l',&Tolerance_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenDSMax",datafile,'l',&DSMax_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenDSStart",datafile,'l',&CurrentDS_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenDSMin",datafile,'l',&DSMin_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenAngleCutoff",datafile,'l',&AngleCutoff_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenAngleIncrease",datafile,'l',&AngleIncrease_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenAspect",datafile,'l',&Aspect_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenNumSolutions",datafile,'u',&NumSolutions_)) exit(-1);
-   if(!GetParameter(prefix,"ArcLenClosedLoopStart",datafile,'i',&ClosedLoopStart_,0))
+   PerlInput::HashStruct Hash = Input.getHash("SolutionMethod","ArcLengthSolution");
+   MaxIter_ = Input.getUnsigned(Hash,"MaxIterations");
+   Tolerance_ = Input.getDouble(Hash,"Tolerance");
+   DSMax_ = Input.getDouble(Hash,"DSMax");
+   CurrentDS_ = Input.getDouble(Hash,"DSStart");
+   DSMin_ = Input.getDouble(Hash,"DSMin");
+   AngleCutoff_ = Input.getDouble(Hash,"AngleCutoff");
+   AngleIncrease_ = Input.getDouble(Hash,"AngleIncrease");
+   Aspect_ = Input.getDouble(Hash,"Aspect");
+   NumSolutions_ = Input.getUnsigned(Hash,"NumSolutions");
+   if (Input.ParameterOK(Hash,"ClosedLoopStart"))
+   {
+      ClosedLoopStart_ = Input.getUnsigned(Hash,"ClosedLoopStart");
+   }
+   else
    {
       // Set default value
       ClosedLoopStart_ = CLOSEDDEFAULT;
@@ -65,79 +100,79 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,char *datafile,const char
    
    BisectTolerance_ = Tolerance_;
    
-   const char *StartType[] = {"Bifurcation","Continuation","ConsistencyCheck"};
-   switch (GetStringParameter(prefix,"StartType",startfile,StartType,3))
+   const char *starttype = Input.getString("StartType","Type");
+
+   if (!strcmp("Bifurcation",starttype))
    {
-      case -1:
+      // Set Difference and Lattice state
+      double eps = Input.getDouble("StartType","Epsilon");
+      
+      Difference_.Resize(ArcLenDef().Dim());
+      Input.getVector(Difference_,"StartType","Tangent");
+      Difference_ *= eps;
+      
+      Vector stat(Difference_.Dim());
+      Input.getVector(stat,"StartType","BifurcationPoint");
+      // Set Lattice state to the bifurcation point
+      ArcLenSet(stat);
+      
+      // Set FirstSolution
+      FirstSolution_.Resize(stat.Dim());
+      if (Input.ParameterOK("StartType","ClosedLoopFirstSolution"))
       {
-         cerr << "Unknown StartType!" << endl;
-         exit(-1);
-         break;
+         Input.getVector(FirstSolution_,"StartType","ClosedLoopFirstSolution");
       }
-      case 0:
+      else
       {
-         // Set Difference and Lattice state
-         double eps;
-         if(!GetParameter(prefix,"Epsilon",startfile,'l',&eps)) exit(-1);
-         
-         Difference_.Resize(ArcLenDef().Dim());
-         if(!GetVectorParameter(prefix,"Tangent",startfile,&Difference_)) exit(-1);
-         Difference_ *= eps;
-         
-         Vector stat(Difference_.Dim());
-         if(!GetVectorParameter(prefix,"BifurcationPoint",startfile,&stat)) exit(-1);
-         // Set Lattice state to the bifurcation point
-         ArcLenSet(stat);
-         
-         // Set FirstSolution
-         FirstSolution_.Resize(stat.Dim());
-         if(!GetVectorParameter(prefix,"ClosedLoopFirstPoint",startfile,&FirstSolution_,0))
-         {
-            FirstSolution_ = stat;
-         }
-         
-         break;
+         FirstSolution_ = stat;
       }
-      case 1:
+   }
+   else if (!strcmp("Continuation",starttype))
+   {
+      // Set Lattice state to Solution2
+      Vector two(ArcLenDef().Dim());
+      Input.getVector(two,"StartType","Solution2");
+      ArcLenSet(two);
+      
+      // Get solution1
+      Vector one(two.Dim());
+      Input.getVector(one,"StartType","Solution1");
+      // Set Difference_ to   two - one
+      Difference_.Resize(two.Dim());
+      Difference_ = two - one;
+      
+      // Set FirstSolution
+      FirstSolution_.Resize(two.Dim());
+      if (Input.ParameterOK("StartType","ClosedLoopFirstSolution"))
       {
-         // Set Lattice state to Solution2
-         Vector two(ArcLenDef().Dim());
-         if(!GetVectorParameter(prefix,"Solution2",startfile,&two)) exit(-1);
-         ArcLenSet(two);
-         
-         // Get solution1
-         Vector one(two.Dim());
-         if(!GetVectorParameter(prefix,"Solution1",startfile,&one)) exit(-1);
-         // Set Difference_ to   two - one
-         Difference_.Resize(two.Dim());
-         Difference_ = two - one;
-         
-         // Set FirstSolution
-         FirstSolution_.Resize(two.Dim());
-         if(!GetVectorParameter(prefix,"ClosedLoopFirstPoint",startfile,&FirstSolution_,0))
-         {
-            FirstSolution_ = two;
-         }
-         
-         break;
+         Input.getVector(FirstSolution_,"StartType","ClosedLoopFirstSolution");
       }
-      case 2:
+      else
       {
-         double ConsistencyEpsilon;
-         int Width,
-            Dim=ArcLenDef().Dim();
-         Vector Solution1(Dim),
-            Solution2(Dim);
-         
-         if(!GetVectorParameter(prefix,"Solution2",startfile,&Solution2)) exit(-1);
-         if(!GetVectorParameter(prefix,"Solution1",startfile,&Solution1)) exit(-1);
-         // Get Epsilon and Width
-         if(!GetParameter(prefix,"ConsistencyEpsilon",startfile,'l',&ConsistencyEpsilon)) exit(-1);
-         if(!GetParameter(prefix,"MainFieldWidth",datafile,'i',&Width)) exit(-1);
-         
-         ConsistencyCheck(Solution1,Solution2,ConsistencyEpsilon,Width,out);
-         break;
+         FirstSolution_ = one;
       }
+   }
+   else if (!strcmp("ConsistenceCheck",starttype))
+   {
+      double ConsistencyEpsilon;
+      int Width,
+         Dim=ArcLenDef().Dim();
+      Vector Solution1(Dim),
+         Solution2(Dim);
+
+      Input.getVector(Solution2,"StartType","Solution2");
+      Input.getVector(Solution1,"StartType","Solution1");
+      // Get Epsilon and Width
+      ConsistencyEpsilon = Input.getDouble("StartType","ConsistenceEpsilon");
+      Width = Input.getInt("Main","FieldWidth");
+
+      cout << "FIX UP CONSISTENCYCHECK!!!!!!\n";
+      //ConsistencyCheck(Solution1,Solution2,ConsistencyEpsilon,Width,out);
+   }
+   else
+   {
+      cerr << "Unknown StartType!" << "\n";
+      exit(-1);
    }
 }
 
@@ -149,7 +184,7 @@ Vector ArcLengthSolution::ArcLenForce(double DS,const Vector &Diff,
    mdfc = Mode_->ModeForce();
    
    force[ModeDOFS_-1] = DS*DS - Diff[ModeDOFS_-1]*Diff[ModeDOFS_-1]/(Aspect*Aspect);
-   for (int i=0;i<ModeDOFS_-1;++i)
+   for (unsigned i=0;i<ModeDOFS_-1;++i)
    {
       force[i] = mdfc[i];
       force[ModeDOFS_-1] -= Diff[i]*Diff[i];
@@ -165,9 +200,9 @@ Matrix ArcLengthSolution::ArcLenStiffness(const Vector &Diff,double Aspect)
    
    ModeK = Mode_->ModeStiffness();
    
-   for (int i=0;i<ModeDOFS_-1;++i)
+   for (unsigned i=0;i<ModeDOFS_-1;++i)
    {
-      for (int j=0;j<=ModeDOFS_-1;++j)
+      for (unsigned j=0;j<=ModeDOFS_-1;++j)
       {
          K[i][j] = ModeK[i][j];
       }
@@ -210,25 +245,25 @@ void ArcLengthSolution::ConsistencyCheck(Vector &Solution1,Vector &Solution2,
    // Do Consistency check
    if (Echo_)
    {
-      for (int i=0;i<70;i++) cout << "="; cout << endl;
-      cout << "Consistency Check." << endl;
-      cout << "F(U + DeltaU) * Epsilon" << endl;
+      for (int i=0;i<70;i++) cout << "="; cout << "\n";
+      cout << "Consistency Check." << "\n";
+      cout << "F(U + DeltaU) * Epsilon" << "\n";
    }
-   for (int i=0;i<70;i++) out << "="; out << endl;
-   out << "Consistency Check." << endl;
-   out << "F(U + DeltaU) * Epsilon" << endl;
+   for (int i=0;i<70;i++) out << "="; out << "\n";
+   out << "Consistency Check." << "\n";
+   out << "F(U + DeltaU) * Epsilon" << "\n";
    ArcLenUpdate(Difference_);
    Force = ConsistencyEpsilon*ArcLenForce(ConsistencyEpsilon,Difference_,1.0);
    if (Echo_)
    {
-      cout << setw(Width) << Force << endl;
-      cout << "K(U + DeltaU) * Epsilon" << endl;
+      cout << setw(Width) << Force << "\n";
+      cout << "K(U + DeltaU) * Epsilon" << "\n";
    }
-   out << setw(Width) << Force << endl;
-   out << "K(U + DeltaU) * Epsilon" << endl;
+   out << setw(Width) << Force << "\n";
+   out << "K(U + DeltaU) * Epsilon" << "\n";
    Stiff = ConsistencyEpsilon*ArcLenStiffness(Difference_,1.0);
-   if (Echo_) cout << setw(Width) << Stiff << endl;
-   out << setw(Width) << Stiff << endl;
+   if (Echo_) cout << setw(Width) << Stiff << "\n";
+   out << setw(Width) << Stiff << "\n";
    for (unsigned i=0;i<Difference_.Dim();i++)
    {
       // Get RHS
@@ -255,28 +290,28 @@ void ArcLengthSolution::ConsistencyCheck(Vector &Solution1,Vector &Solution2,
    // Print out the facts
    if (Echo_)
    {
-      cout << "P(U + DeltaU) - P(U + DeltaU + Epsilon*Vj)" << endl;
-      cout << setw(Width) << PerturbedForce << endl;
-      cout << "Fi(U + DeltaU) - Fi(U + DeltaU + Epsilon*Vj)" << endl;
-      cout << setw(Width) << PerturbedStiff << endl;
-      cout << "Difference" << endl;
-      cout << setw(Width) << Force - PerturbedForce << endl << endl;
-      cout << setw(Width) << Stiff - PerturbedStiff << endl;
+      cout << "P(U + DeltaU) - P(U + DeltaU + Epsilon*Vj)" << "\n";
+      cout << setw(Width) << PerturbedForce << "\n";
+      cout << "Fi(U + DeltaU) - Fi(U + DeltaU + Epsilon*Vj)" << "\n";
+      cout << setw(Width) << PerturbedStiff << "\n";
+      cout << "Difference" << "\n";
+      cout << setw(Width) << Force - PerturbedForce << "\n" << "\n";
+      cout << setw(Width) << Stiff - PerturbedStiff << "\n";
    }
    
-   out << "P(U + DeltaU) - P(U + DeltaU + Epsilon*Vj)" << endl;
-   out << setw(Width) << PerturbedForce << endl;
-   out << "Fi(U + DeltaU) - Fi(U + DeltaU + Epsilon*Vj)" << endl;
-   out << setw(Width) << PerturbedStiff << endl;
-   out << "Difference" << endl;
-   out << setw(Width) << Force - PerturbedForce << endl << endl;
-   out << setw(Width) << Stiff - PerturbedStiff << endl;
+   out << "P(U + DeltaU) - P(U + DeltaU + Epsilon*Vj)" << "\n";
+   out << setw(Width) << PerturbedForce << "\n";
+   out << "Fi(U + DeltaU) - Fi(U + DeltaU + Epsilon*Vj)" << "\n";
+   out << setw(Width) << PerturbedStiff << "\n";
+   out << "Difference" << "\n";
+   out << setw(Width) << Force - PerturbedForce << "\n" << "\n";
+   out << setw(Width) << Stiff - PerturbedStiff << "\n";
    
    if (Echo_)
    {
-      for (int i=0;i<70;i++) cout << "="; cout << endl;
+      for (int i=0;i<70;i++) cout << "="; cout << "\n";
    }
-   for (int i=0;i<70;i++) out << "="; out << endl;
+   for (int i=0;i<70;i++) out << "="; out << "\n";
    
    // We are done -- set currentsolution to numsolutions
    CurrentSolution_ = NumSolutions_;
@@ -299,14 +334,14 @@ int ArcLengthSolution::FindNextSolution()
    
    do
    {
-      if (Echo_) cout << "DS= " << CurrentDS_ << endl;
+      if (Echo_) cout << "DS= " << CurrentDS_ << "\n";
       
       ArcLengthNewton(good);
       
       AngleTest = ArcLenAngle(OldDiff,Difference_,Aspect_);
       
       if (Echo_)
-         cout << "AngleTest = " << AngleTest << "  Cutoff = " << AngleCutoff_ << endl;
+         cout << "AngleTest = " << AngleTest << "  Cutoff = " << AngleCutoff_ << "\n";
    }
    while (((AngleTest >= AngleFactor*AngleCutoff_) || !good)
           && (CurrentDS_ >= DSMin_)
@@ -318,12 +353,12 @@ int ArcLengthSolution::FindNextSolution()
    {
       CurrentDS_ *= 2.0;
       if (CurrentDS_ > DSMax_) CurrentDS_ = DSMax_;
-      if (Echo_) cout << "DS= " << CurrentDS_ << endl;
+      if (Echo_) cout << "DS= " << CurrentDS_ << "\n";
    }
    
    if (!good)
    {
-      cerr << "ArcLenghtSolution did not converge properly" << endl;
+      cerr << "ArcLenghtSolution did not converge properly" << "\n";
    }
    
    if ((ClosedLoopStart_ >= 0) && (CurrentSolution_ > ClosedLoopStart_) &&
@@ -331,7 +366,7 @@ int ArcLengthSolution::FindNextSolution()
    {
       // We are done -- set currentsolution to numsolutions
       cerr << "Closed Loop detected at Solution # " << CurrentSolution_
-           << " --- Terminating!" << endl;
+           << " --- Terminating!" << "\n";
       
       CurrentSolution_ = NumSolutions_;
    }
@@ -386,16 +421,16 @@ void ArcLengthSolution::ArcLengthNewton(int &good)
                       << setw(20) << RHS.Norm() << ","
                       << setw(20) << Dx.Norm()  << "), ";
 #ifdef SOLVE_SVD
-      if (Echo_) cout << endl;
+      if (Echo_) cout << "\n";
 #endif
    }
    while ((itr < MaxIter_) && ((RHS.Norm() > Tolerance_) || (Dx.Norm() > Tolerance_)));
    
-   if (Echo_) cout << resetiosflags(ios::scientific) << endl;
+   if (Echo_) cout << resetiosflags(ios::scientific) << "\n";
    
    if (itr >= MaxIter_)
    {
-      cerr << "Convergence Not Reached!!! -- ArcLengthNewton" << endl;
+      cerr << "Convergence Not Reached!!! -- ArcLengthNewton" << "\n";
       good = 0;
    }
    else
@@ -405,7 +440,7 @@ void ArcLengthSolution::ArcLengthNewton(int &good)
 }
 
 int ArcLengthSolution::OldFindCriticalPoint(int LHN,double LHEV,int RHN,double RHEV,
-                                            Lattice *Lat,char *datafile,const char *prefix,
+                                            Lattice *Lat,PerlInput &Input,
                                             int Width,fstream &out)
 {
    Vector OriginalDiff=Difference_;
@@ -424,16 +459,16 @@ int ArcLengthSolution::OldFindCriticalPoint(int LHN,double LHEV,int RHN,double R
    Vector Original_DOF((Mode_->ModeDOF()).Dim(),0);
    Original_DOF = Mode_->ModeDOF();
    
-   if (Echo_) cout << "LHN = " << LHN << endl << "RHN = " << RHN << endl;
+   if (Echo_) cout << "LHN = " << LHN << "\n" << "RHN = " << RHN << "\n";
    
    // Find bifurcation point and make sure we are on the back side edge
    while (((fabs(CurrentMinEV) > BisectTolerance_)
            || (CurrentTestValue == RighthandTestValue))
           && (loops < MaxIter_))
    {
-      if (Echo_) cout << "OldMinEV = " << OldMinEV << endl
-                      << "CurrentTestValue = " << CurrentTestValue << endl
-                      << "CurrentMinEV = "  << CurrentMinEV << endl;
+      if (Echo_) cout << "OldMinEV = " << OldMinEV << "\n"
+                      << "CurrentTestValue = " << CurrentTestValue << "\n"
+                      << "CurrentMinEV = "  << CurrentMinEV << "\n";
       
       //set to left hand point
       ArcLenUpdate(-Difference_);
@@ -450,7 +485,7 @@ int ArcLengthSolution::OldFindCriticalPoint(int LHN,double LHEV,int RHN,double R
          Difference_ = 1.5 * Difference_;
       }
       
-      cout << "Current_DS = " << CurrentDS_ << endl << endl;
+      cout << "Current_DS = " << CurrentDS_ << "\n" << "\n";
       
       ArcLengthNewton(dummy);
       
@@ -467,27 +502,27 @@ int ArcLengthSolution::OldFindCriticalPoint(int LHN,double LHEV,int RHN,double R
       if (Echo_) cout << "=";
       out << "=";
    }
-   if (Echo_) cout << endl;
-   out << endl;
+   if (Echo_) cout << "\n";
+   out << "\n";
    
-   if (Echo_) cout << setw(Width) << Lat << endl;
-   out << setw(Width) << Lat << endl;
+   if (Echo_) cout << setw(Width) << Lat << "\n";
+   out << setw(Width) << Lat << "\n";
       
    for (int i=0;i<70;i++)
    {
       if (Echo_) cout << "=";
       out << "=";
    }
-   if (Echo_) cout << endl; out << endl;
+   if (Echo_) cout << "\n"; out << "\n";
    
    // Call Lattice function to do any Lattice Specific things
    //  abs(RighthandNulity - LefthandNulity) is the number of zero eigenvalues
    //  in a perfect situation. should check to see if this is found to be true.
    Lat->CriticalPointInfo(Mode_->DrDt(Difference_),abs(RighthandTestValue-LefthandTestValue),
-                          BisectTolerance_,datafile,prefix,Width,out);
+                          BisectTolerance_,Width,out);
    
-   if (Echo_) cout << "Success = 1" << endl;
-   out << "Success = 1" << endl;
+   if (Echo_) cout << "Success = 1" << "\n";
+   out << "Success = 1" << "\n";
    
    // Reset Lattice and ArcLengthSolution
    ArcLenUpdate(OriginalDiff-Difference_);
@@ -497,8 +532,7 @@ int ArcLengthSolution::OldFindCriticalPoint(int LHN,double LHEV,int RHN,double R
    return 1;
 }
 
-int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,char *datafile,const char *prefix,
-                                         int Width,fstream &out)
+int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,PerlInput &Input,int Width,fstream &out)
 {
    Vector OriginalDiff=Difference_;
    double OriginalDS = CurrentDS_;
@@ -527,19 +561,19 @@ int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,char *datafile,const char 
           << "Note: and the number of Test Functions that change sign\n"
           << "Note: from LeftHandSide to RightHandSide.  This is usually\n"
           << "Note: caused by having too large of a path-following stepsize."
-          << endl;
+          << "\n";
       if (Echo_)
          cout << "Note: TestFunctions found a discrepancy between the\n"
               << "Note: difference in number of negative Test Functions\n"
               << "Note: and the number of Test Functions that change sign\n"
               << "Note: from LeftHandSide to RightHandSide.  This is usually\n"
               << "Note: caused by having too large of a path-following stepsize."
-              << endl;
+              << "\n";
       TestValueDiff = -TestValueDiff;
    }
    
-   cout << "TF_LHS = " << setw(15) << TF_LHS<< endl;
-   cout << "TF_RHS = " << setw(15) << TF_RHS << endl;
+   cout << "TF_LHS = " << setw(15) << TF_LHS<< "\n";
+   cout << "TF_RHS = " << setw(15) << TF_RHS << "\n";
    
    int *Index;
    Index = new int[TestValueDiff];
@@ -557,13 +591,13 @@ int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,char *datafile,const char 
       }
    }
    
-   cout << "TestValueDiff = "<< TestValueDiff << endl;
+   cout << "TestValueDiff = "<< TestValueDiff << "\n";
    if (Echo_)
    {
       for (int i = 0; i < TestValueDiff; i++)
       {
-         cout << "i = " << i<< endl;
-         cout << "Index[i] =" << Index[i]<< endl;
+         cout << "i = " << i<< "\n";
+         cout << "Index[i] =" << Index[i]<< "\n";
       }
    }
    
@@ -585,7 +619,7 @@ int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,char *datafile,const char 
             {
                Index[i] = -1;
                Multiplicity++;
-               //cout <<"i = " << i << endl <<  "CHECK POINT INDEX[CP] = " << Index[i] << endl;
+               //cout <<"i = " << i << "\n" <<  "CHECK POINT INDEX[CP] = " << Index[i] << "\n";
             }
          }
          
@@ -605,26 +639,26 @@ int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,char *datafile,const char 
             if (Echo_) cout << "=";
             in_string << "=";
          }
-         if (Echo_) cout << endl;
-         in_string << endl;
+         if (Echo_) cout << "\n";
+         in_string << "\n";
          
-         if (Echo_) cout << setw(Width) << Lat << endl;
-         in_string << setw(Width) << Lat << endl;         
+         if (Echo_) cout << setw(Width) << Lat << "\n";
+         in_string << setw(Width) << Lat << "\n";         
          
          for (int i=0;i<70;i++)
          {
             if (Echo_) cout << "=";
             in_string << "=";
          }
-         if (Echo_) cout << endl;
-         in_string << endl;
+         if (Echo_) cout << "\n";
+         in_string << "\n";
          
          // Call Lattice function to do any Lattice Specific things
          Lat->CriticalPointInfo(Mode_->DrDt(Difference_),Multiplicity,
-                                BisectTolerance_,datafile,prefix,Width,in_string);
+                                BisectTolerance_,Width,in_string);
          
-         if (Echo_) cout << "Success = 1" << endl;
-         in_string << "Success = 1" << endl;
+         if (Echo_) cout << "Success = 1" << "\n";
+         in_string << "Success = 1" << "\n";
          
          DSTrack[spot] = CurrentDS_;
          out_string[spot] = in_string.str();
@@ -666,16 +700,16 @@ void ArcLengthSolution::ZBrent(Lattice *Lat,int track,double fa,double fb,
    a=0.0;
    
    fc = fb;
-   //cout << " a = " << a << endl << "fa = " << fa << endl
-   //<<  "b = " << b << endl << "fb = " << fb << endl
-   //<< "c = " << c << endl << "fc = " << fc << endl;
+   //cout << " a = " << a << "\n" << "fa = " << fa << "\n"
+   //<<  "b = " << b << "\n" << "fb = " << fb << "\n"
+   //<< "c = " << c << "\n" << "fc = " << fc << "\n";
    
    while (((fabs(fb) > BisectTolerance_) )&& (loops < MaxIter_))
    {
       if (Echo_)
       {
-         cout << setprecision(30) << "CurrentMinTF = " << fb << endl;
-         cout << "CurrentDS_ =" << CurrentDS_ << setprecision(10) << endl;
+         cout << setprecision(30) << "CurrentMinTF = " << fb << "\n";
+         cout << "CurrentDS_ =" << CurrentDS_ << setprecision(10) << "\n";
       }
       ArcLenUpdate(-Difference_);
       
@@ -702,7 +736,7 @@ void ArcLengthSolution::ZBrent(Lattice *Lat,int track,double fa,double fb,
       
       if(fabs(xm) <= tol1 || fb == 0.0)
       {
-         //cout << "Minimal Root found! XM too small! " < endl;
+         //cout << "Minimal Root found! XM too small! " < "\n";
          CurrentDS_ = LastDS;
          Difference_ = LastDiff;
          ArcLenUpdate(Difference_);
@@ -710,8 +744,8 @@ void ArcLengthSolution::ZBrent(Lattice *Lat,int track,double fa,double fb,
          fb=CurrentTF[track];
          if(Echo_)
          {
-            cout <<setprecision(30)<<"CurrentMinTF = " << fb << endl;
-            cout << "CurrentDS_ =" << CurrentDS_ <<setprecision(10)<< endl;
+            cout <<setprecision(30)<<"CurrentMinTF = " << fb << "\n";
+            cout << "CurrentDS_ =" << CurrentDS_ <<setprecision(10)<< "\n";
          }
          break;
       }
@@ -779,7 +813,7 @@ void ArcLengthSolution::ZBrent(Lattice *Lat,int track,double fa,double fb,
       fb=CurrentTF[track];
       loops++;
       
-      //cout << "CurrentTF = " << endl << setw(15) << CurrentTF << endl << endl;
-      //cout << "CurrentTF[track] = " << endl << CurrentTF[track]<< endl<< endl;
+      //cout << "CurrentTF = " << "\n" << setw(15) << CurrentTF << "\n" << "\n";
+      //cout << "CurrentTF[track] = " << "\n" << CurrentTF[track]<< "\n"<< "\n";
    }
 }

@@ -40,15 +40,17 @@ endif
 TERMINAL   = -DUNIX_TERMINAL
 DATE_DEF   = -DBUILD_DATE="$(BUILD_DATE)"
 SOLVE      = -DSOLVE_SVD
-CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS) $(SOLVE) $(TERMINAL)
+CC_PERL     = `perl -MExtUtils::Embed -e ccopts`
+CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS) $(SOLVE) $(TERMINAL) $(CC_PERL)
+LIBS_PERL   = `perl -MExtUtils::Embed -e ldopts`
+LIBS       = -lLinearAlgebra -lMyMath -lm
+LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(DATE_DEF) $(LIBS_PERL)
 
 
 # File Locations ##########################################################
 BIN_LOC    = ${HOME}/bin
 INCL_LOC   = ${HOME}/include
 LIB_LOC    = ${HOME}/lib
-LIBS       = -lLinearAlgebra -lMyMath -lm
-LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(DATE_DEF)
 SUBDIRS    = Lattices Modes SolutionMethods Potentials Utility
 
 # Defines the source files needed #########################################
@@ -74,7 +76,7 @@ Utilities:
 
 $(EXE):  $(OBJECTS)
 	 $(CC) $(CCFLAGS) $(DATE_DEF) -o lib/builddate.o -c Utility/builddate.cpp
-	 $(PURE) $(CC) $(LFLAGS) `perl -MExtUtils::Embed -e ldopts` lib/builddate.o \
+	 $(PURE) $(CC) $(LFLAGS) lib/builddate.o \
 		 -L$(LIB_LOC) -o ./bin/$(EXE) \
 		 $(addprefix lib/,$(OBJECTS)) $(LIBS)
 	 /bin/rm -f lib/builddate.o
@@ -83,13 +85,7 @@ $(EXE):  $(OBJECTS)
 include $(addprefix depend/,$(OBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 
 # Define object file dependicies and make rule
-PerlObject.o: Makefile
-	$(CC) $(CCFLAGS) `perl -MExtUtils::Embed -e ccopts` \
-        -I. $(addprefix -I ,$(SUBDIRS)) -I $(INCL_LOC)/ \
-        -o ./lib/$(notdir $@) \
-        -c Utility/PerlObject.cpp
-
-$(filter-out PerlObject.o, $(OBJECTS)): Makefile
+$(OBJECTS): Makefile
 	$(CC) $(CCFLAGS) -I. $(addprefix -I ,$(SUBDIRS)) -I $(INCL_LOC)/ \
         -o ./lib/$(notdir $@) \
         -c $(filter %/$(*),$(basename $(SOURCES)))$(SRC_EXT)
@@ -135,7 +131,7 @@ clean:
 # Define rule for dependicy files
 depend/$(notdir %).d: %$(SRC_EXT)
 	@$(SHELL) -ec '$(gCC) -MM -I. $(addprefix -I ,$(SUBDIRS)) \
-	      -I $(INCL_LOC)/ `perl -MExtUtils::Embed -e ccopts` $< \
+	      -I $(INCL_LOC)/ $(CCFLAGS) $< \
 	      | sed '\''s/\($*\)\.o[ :]*/\1.o $*.d : /g'\'' \
 	      > $@; [ -s $@ ] || rm -f $@'
 	@echo "Building $@"

@@ -1,7 +1,7 @@
 #include "MixedCB.h"
 
-MixedCB::MixedCB(int InternalAtoms,const char* prefix,const char* datafile):
-   CBKinematics(InternalAtoms,prefix,datafile)
+MixedCB::MixedCB(int InternalAtoms,PerlInput &Input):
+   CBKinematics(InternalAtoms,Input)
 {
    F_.Resize(DIM3,DIM3);
    S_.Resize(InternalAtoms,DIM3);

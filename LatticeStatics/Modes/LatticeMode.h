@@ -2,6 +2,7 @@
 #define __LatticeMode
 
 #include "Lattice.h"
+#define LINELENGTH 600
 
 class LatticeMode
 {

@@ -2,6 +2,7 @@
 #define __SolutionMethod
 
 #include <fstream>
+#include "PerlInput.h"
 
 using namespace std;
 
@@ -14,8 +15,7 @@ public:
    
    virtual int AllSolutionsFound() = 0;
    virtual int FindNextSolution() = 0;
-   virtual int FindCriticalPoint(Lattice *Lat, char *datafile,const char *prefix,int Width,
-                                 fstream &out) = 0;
+   virtual int FindCriticalPoint(Lattice *Lat,PerlInput &Input,int Width,fstream &out) = 0;
 };
 
 #endif

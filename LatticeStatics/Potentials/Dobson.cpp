@@ -5,7 +5,7 @@ Dobson::Dobson(double Eps0,double Eps1,double Sigma0,double Sigma1,double rcut):
 {
    if (rcut_ < D3_RCUTU)
    {
-      cerr << "Error: rcut < D3_RCUTU in Dobson3.  exiting." << endl;
+      cerr << "Error: rcut < D3_RCUTU in Dobson3.  exiting." << "\n";
       exit(-1);
    }
 }
@@ -25,7 +25,7 @@ double Dobson::Eps(double NTemp,TDeriv dt)
          retval = 0.0;
          break;
       default:
-         cerr << "Error in Dobson::Eps" << endl;
+         cerr << "Error in Dobson::Eps" << "\n";
          exit(-1);
    }
    
@@ -48,7 +48,7 @@ double Dobson::Sigma(double NTemp,TDeriv dt)
          retval = 0.0;
          break;
       default:
-         cerr << "Error in Dobson::Sigma" << endl;
+         cerr << "Error in Dobson::Sigma" << "\n";
          exit(-1);
    }
    
@@ -80,7 +80,7 @@ double Dobson::j(double NTemp,double r2,YDeriv dy,TDeriv dt)
                val = 0.0;
                break;
             default:
-               cerr << "Error in Dobson::j - Dj/DT and above not programmed" << endl;
+               cerr << "Error in Dobson::j - Dj/DT and above not programmed" << "\n";
                exit(-1);
                break;
          }
@@ -100,7 +100,7 @@ double Dobson::j(double NTemp,double r2,YDeriv dy,TDeriv dt)
                val = 0.0;
                break;
             default:
-               cerr << "Error in Dobson::j - D2j/DYDT and above not programmed" << endl;
+               cerr << "Error in Dobson::j - D2j/DYDT and above not programmed" << "\n";
                exit(-1);
                break;
          }
@@ -121,7 +121,7 @@ double Dobson::j(double NTemp,double r2,YDeriv dy,TDeriv dt)
                   val = 0.0;
                break;
             default:
-               cerr << "Error in Dobson::j - D3j/D2YDT and above not programmed" << endl;
+               cerr << "Error in Dobson::j - D3j/D2YDT and above not programmed" << "\n";
                exit(-1);
                break;
          }
@@ -144,7 +144,7 @@ double Dobson::j(double NTemp,double r2,YDeriv dy,TDeriv dt)
                   val = 0.0;
                break;
             default:
-               cerr << "Error in Dobson::j - D4j/D3YDT and above not programmed" << endl;
+               cerr << "Error in Dobson::j - D4j/D3YDT and above not programmed" << "\n";
                exit(-1);
                break;
          }
@@ -168,13 +168,13 @@ double Dobson::j(double NTemp,double r2,YDeriv dy,TDeriv dt)
                   val = 0.0;
                break;
             default:
-               cerr << "Error in Dobson::j - D5j/D3YDT and above not programmed" << endl;
+               cerr << "Error in Dobson::j - D5j/D3YDT and above not programmed" << "\n";
                exit(-1);
                break;
          }
          break;
       default:
-         cerr << "Error in Dobson::j" << endl;
+         cerr << "Error in Dobson::j" << "\n";
          exit(-1);
    }
    
@@ -208,7 +208,7 @@ double Dobson::A(double NTemp,TDeriv dt)
                44.0*pow(Sigma(NTemp)/rcut_,10) - 5.0*pow(Sigma(NTemp)/rcut_,4));
          break;
       default:
-         cerr << "Error in Dobson::A" << endl;
+         cerr << "Error in Dobson::A" << "\n";
          exit(-1);
          break;
    }
@@ -241,7 +241,7 @@ double Dobson::B(double NTemp,TDeriv dt)
                3696.0*pow(Sigma(NTemp)/rcut_,10) - 480.0*pow(Sigma(NTemp)/rcut_,4));
          break;
       default:
-         cerr << "Error in Dobson::B" << endl;
+         cerr << "Error in Dobson::B" << "\n";
          exit(-1);
          break;
    }
@@ -283,7 +283,7 @@ double Dobson::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
                   + j(NTemp,r2,Y0,D2T) + A(NTemp,D2T)*r2 + B(NTemp,D2T);
                break;
             default:
-               cerr << "Error in Dobson::PairPotential" << endl;
+               cerr << "Error in Dobson::PairPotential" << "\n";
                exit(-1);}
          break;
       case DY:
@@ -301,7 +301,7 @@ double Dobson::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
                   + j(NTemp,r2,DY,DT) + A(NTemp,DT);
                break;
             default:
-               cerr << "Error in Dobson::PairPotential -- DY,D2T not programmed" << endl;
+               cerr << "Error in Dobson::PairPotential -- DY,D2T not programmed" << "\n";
                exit(-1);
          }
          break;
@@ -323,7 +323,7 @@ double Dobson::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
                   + j(NTemp,r2,D2Y,DT);
                break;
             default:
-               cerr << "Error in Dobson::PairPotential -- D2Y,D2T not programmed" << endl;
+               cerr << "Error in Dobson::PairPotential -- D2Y,D2T not programmed" << "\n";
                exit(-1);
          }
          break;
@@ -337,11 +337,11 @@ double Dobson::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
                   + j(NTemp,r2,D3Y);
                break;
             case DT:
-               cerr << "D4phi/Dy3DT Not Coded... " << endl;
+               cerr << "D4phi/Dy3DT Not Coded... " << "\n";
                exit(-1);
                break;
             default:
-               cerr << "Error in Dobson::PairPotential -- D3Y,D2T not programmed" << endl;
+               cerr << "Error in Dobson::PairPotential -- D3Y,D2T not programmed" << "\n";
                exit(-1);
          }
          break;
@@ -356,11 +356,11 @@ double Dobson::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
                   + j(NTemp,r2,D4Y);
                break;
             case DT:
-               cerr << "D5phi/Dy4DT Not Coded... " << endl;
+               cerr << "D5phi/Dy4DT Not Coded... " << "\n";
                exit(-1);
                break;
             default:
-               cerr << "Error in Dobson::PairPotential -- D4Y,D2T not programmed" << endl;
+               cerr << "Error in Dobson::PairPotential -- D4Y,D2T not programmed" << "\n";
                exit(-1);
          }
          break;

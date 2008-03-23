@@ -1,30 +1,26 @@
 #include "KnownLattices.h"
 #include "UtilityFunctions.h"
 
-Lattice *InitializeLattice(char *datafile,const char *prefix,int Echo,int Width,int Debug)
+Lattice *InitializeLattice(PerlInput &Input,int Echo,int Width,int Debug)
 {
-   const int NoLats = 3;
-   const char *Lattices[]={"MultiLatticeTPP","MultiChainTPP","MultiChainTTPP"};
-   
-   switch (GetStringParameter(prefix,"MainLatticeType",datafile,Lattices,NoLats))
+   const char *Lat = Input.getString("Lattice","Type");
+
+   if (!strcmp("MultiLatticeTPP",Lat))
    {
-      case 0:
-      {
-         return new MultiLatticeTPP(datafile,prefix,Echo,Width,Debug);
-      }
-      case 1:
-      {
-         return new MultiChainTPP(datafile,prefix,Echo,Width,Debug);
-      }
-      case 2:
-      {
-         return new MultiChainTTPP(datafile,prefix,Echo,Width,Debug);
-      }
-      case -1:
-      {
-         cerr << "Unknown Lattice Type " << endl;
-         exit(-1);
-      }
+      return new MultiLatticeTPP(Input,Echo,Width,Debug);
+   }
+   else if (!strcmp("MultiChainTPP",Lat))
+   {
+      return new MultiChainTPP(Input,Echo,Width,Debug);
+   }
+   else if (!strcmp("MultiChainTTPP",Lat))
+   {
+      return new MultiChainTTPP(Input,Echo,Width,Debug);
+   }
+   else
+   {
+      cerr << "Unknown Lattice Type " << "\n";
+      exit(-1);
    }
    
    return NULL;

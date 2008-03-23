@@ -86,267 +86,8 @@ char kbhitWait()
    return t;
 }
 
-#define WIDTH 22
-#define PRECISION 15
-char UTILITYechocommand[LINELENGTH];
-char *UTILITYechocmd = NULL;
-fstream UTILITYout;
-void openUTout()
-{
-   UTILITYout.open(UTILITYechocmd,ios::out | ios::app);
-   if (UTILITYout.fail())
-   {
-      cerr << "Error: Unable to open file : " << UTILITYechocmd << " for write"
-           << endl;
-      exit(-1);
-   }
-   UTILITYout << setiosflags(ios::scientific) << setprecision(PRECISION);
-}
-void closeUTout()
-{
-   UTILITYout.close();
-}
-
-int GetParameter(const char *prefix,const char *tag,const char *datafile,
-                 const char scanffmt,void *parameter,int DispErr)
-{
-   static char command[LINELENGTH];
-   static char format[LINELENGTH];
-   FILE *pipe;
-   
-   SetPerlCommand(command,datafile,prefix,tag);
-   pipe = OpenPipe(command,"r");
-   switch (scanffmt)
-   {
-      case 'd':
-      case 'i':
-         fscanf(pipe,"%i",(int*) parameter);
-         sprintf(command,"%i",*((int*) parameter));
-         break;
-      case 'u':
-         fscanf(pipe,"%u",(unsigned*) parameter);
-         sprintf(command,"%u",*((unsigned*) parameter));
-         break;
-      case 'f':
-         fscanf(pipe,"%f",(float*) parameter);
-         sprintf(format,"%%%u.%ue",WIDTH,PRECISION);
-         sprintf(command,format,*((float*) parameter));
-      case 'l':
-         fscanf(pipe,"%lf",(double*) parameter);
-         sprintf(format,"%%%u.%ule",WIDTH,PRECISION);
-         sprintf(command,format,*((double*) parameter));
-         break;
-      case 's':
-         fscanf(pipe,"%s",(char *) parameter);
-         sprintf(command,"%s",(char *) parameter);
-         break;
-      default:
-         if (DispErr) Errfun(tag);
-         return 0;
-         break;
-   }
-   
-   if (pclose(pipe))
-   {
-      if (DispErr) Errfun(tag);
-      return 0;
-   }
-   else
-   {
-      if (UTILITYechocmd != NULL)
-      {
-         //Getcmdline(prefix,tag,datafile);
-         openUTout();
-         UTILITYout << tag << " = " << command << endl;
-         closeUTout();
-      }
-      return 1;
-   }
-}
-
-int GetVectorParameter(const char *prefix,const char *tag,const char *datafile,Vector *V,
-                       int DispErr)
-{
-   char command[LINELENGTH];
-   FILE *pipe;
-   
-   SetPerlCommand(command,datafile,prefix,tag);
-   pipe = OpenPipe(command,"r");
-   for (unsigned i=0;i<V->Dim();++i)
-   {
-      fscanf(pipe,"%lf",&((*V)[i]));
-   }
-   if (pclose(pipe))
-   {
-      if (DispErr) Errfun(tag);
-      return 0;
-   }
-   else
-   {
-      if (UTILITYechocmd != NULL)
-      {
-         //Getcmdline(prefix,tag,datafile);
-         openUTout();
-         UTILITYout << tag << " = ( " << setw(WIDTH) << (*V)[0];
-         for (unsigned i=1;i<V->Dim();++i)
-            UTILITYout << ", " << setw(WIDTH) << (*V)[i];
-         UTILITYout << ")" << endl;
-         closeUTout();
-      }
-      return 1;
-   }
-}
-
-int GetIntVectorParameter(const char *prefix,const char *tag,const char *datafile,int N,
-                          int *Vec,int DispErr)
-{
-   char command[LINELENGTH];
-   FILE *pipe;
-   
-   SetPerlCommand(command,datafile,prefix,tag);
-   pipe = OpenPipe(command,"r");
-   for (int i=0;i<N;++i)
-   {
-      fscanf(pipe,"%i",&(Vec[i]));
-   }
-   if (pclose(pipe))
-   {
-      if (DispErr) Errfun(tag);
-      return 0;
-   }
-   else
-   {
-      if (UTILITYechocmd != NULL)
-      {
-         //Getcmdline(prefix,tag,datafile);
-         openUTout();
-         UTILITYout << tag << " = (" << Vec[0];
-         for (int i=1;i<N;++i)
-            UTILITYout << ", " << Vec[i];
-         UTILITYout << ")" << endl;
-         
-         closeUTout();
-      }
-      return 1;
-   }
-}
-
-int GetMatrixParameter(const char *prefix,const char *tag,const char *datafile,Matrix *M,
-                       int DispErr)
-{
-   char command[LINELENGTH];
-   FILE *pipe;
-   
-   SetPerlCommand(command,datafile,prefix,tag);
-   pipe = OpenPipe(command,"r");
-   for (unsigned i=0;i<M->Rows();++i)
-   {
-      for (unsigned j=0;M->Cols();++j)
-      {
-         fscanf(pipe,"%lf",&((*M)[i][j]));
-      }
-   }
-   if (pclose(pipe))
-   {
-      if (DispErr) Errfun(tag);
-      return 0;
-   }
-   else
-   {
-      if (UTILITYechocmd != NULL)
-      {
-         //Getcmdline(prefix,tag,datafile);
-         openUTout();
-         UTILITYout << tag << " = ( " << setw(WIDTH) << (*M)[0][0];
-         for (unsigned i=0;i<M->Rows();++i)
-            for (unsigned j=0;j<M->Cols();++i)
-               if ((i!=0) && (j!=0)) UTILITYout << ", " << setw(WIDTH) << (*M)[i][j];
-         UTILITYout << ")" << endl;
-         closeUTout();
-      }
-      return 1;
-   }
-}
-
-int GetStringParameter(const char *prefix,const char *tag,const char *datafile,
-                       const char *choices[],const unsigned numb,int DispErr)
-{
-   int i;
-   char strng[LINELENGTH];
-   if (!GetParameter(prefix,tag,datafile,'s',strng,DispErr)) return -1;
-   
-   for (i=numb-1;i>=0;i--)
-   {
-      if (!strcasecmp(strng,choices[i]))
-      {
-         return i;
-      }
-   }
-   
-   return i;
-}
-
-void SetPerlCommand(char *string,const char *datafile,const char *prefix,const char *tag)
-{
-   
-   char format1[]=
-      {"perl -e 'use Math::Trig;"\
-       "@__R=__findref($ARGV[1],$ARGV[2],$ARGV[0]);"\
-       "for $__i(0..@__R-1){print ($__R[$__i],\" \");};"\
-       "sub __findref {my($__prfx,$__tag,$__df) = @_; my($__fnd,$__reg); $__fnd=1;"\
-       "$__reg = $__prfx . $__tag;"\
-       "open(__R,$__df); while (<__R>) {if (/$__reg\\s*=\\s*/) {$__fnd=0; "\
-       "$_=__deref($__prfx,$_,$__df); $_=~s/$__reg\\s*=\\s*//; return eval($_);}} "\
-       "close(__R); if ($__fnd == 1) {exit $__fnd;}} sub __deref "\
-       "{my($__prfx,$__fld,$__df)=@_; my($__t); while ($__fld =~ m/<([^>]+)>/g) "\
-       "{$__t=$1; $__v=__findref($__prfx,\"$__t\",$__df); "\
-       "$__fld =~ s/<$__t>/$__v/} return $__fld;}' %s '%s' '%s'"};
-   char format2[]=
-      {"perl -e 'use Math::Trig; $R=findref($ARGV[1],$ARGV[2],$ARGV[0]); print $R;"\
-       "sub findref {my($prfx,$tag,$df) = @_; my($fnd,$reg); $fnd=1;"\
-       "$reg = $prfx . $tag;"\
-       "open(R,$df); while (<R>) {if (/$reg/) {$fnd=0; "\
-       "$_=deref($prfx,$_,$df); split(\"=\",$_); return eval($_[1]);}} "\
-       "close(R); if ($fnd == 1) {exit $fnd;}} sub deref "\
-       "{my($prfx,$fld,$df)=@_; my($t); while ($fld =~ m/<([^>]+)>/g) "\
-       "{$t=$1; $v=findref($prfx,\"$t\",$df); "\
-       "$fld =~ s/<$t>/$v/} return $fld;}' %s '%s' '%s'"};
-
-   sprintf(string,format1,datafile,prefix,tag);
-   sprintf(string,format2,datafile,prefix,tag);
-}
-
-FILE *OpenPipe(const char *command,const char *mode)
-{
-   FILE *pipe;
-   
-   pipe=popen(command,mode);
-   if (!pipe)
-   {
-      cerr << "popen failed! -- " << command << endl;
-      exit(-1);
-   }
-   
-   return pipe;
-}
-
-void Errfun(const char *string)
-{
-   cerr << "Error -- Unable to find : "
-        << string << endl;
-}
-
 //======================================================================
-int IND3D(int i,int j);
 int IND2D(int i,int j);
-
-int IND3D(int i,int j)
-{
-   if (i==j)
-      return i;
-   else
-      return 2+i+j;
-}
 
 int IND2D(int i,int j)
 {
@@ -356,7 +97,7 @@ int IND2D(int i,int j)
       return 1+i+j;
 }
 
-unsigned FullScanRank1Convex3D(Matrix K, double dx)
+unsigned FullScanRank1Convex3D(CBKinematics *CBK, Matrix K, double dx)
 {
    Matrix A(3,3);
    Matrix Eigvals(1,3);
@@ -382,7 +123,7 @@ unsigned FullScanRank1Convex3D(Matrix K, double dx)
                for (int k=0;k<3;k++)
                   for (int l=0;l<3;l++)
                   {
-                     A[i][j] += K[IND3D(k,i)][IND3D(j,l)] * n[k] * n[l];
+                     A[i][j] += K[CBK->INDF(k,i)][CBK->INDF(j,l)] * n[k] * n[l];
                   }
             }
          
@@ -429,7 +170,7 @@ unsigned FullScanRank1Convex2D(Matrix K, double dx)
    return 1;
 }
 
-unsigned Rank1Convex3D(Matrix K,double dx)
+unsigned Rank1Convex3D(CBKinematics *CBK,Matrix K,double dx)
 {
    double Pi=4.0*atan(1.0);
    MyComplexDouble A[3][3][3];
@@ -455,12 +196,12 @@ unsigned Rank1Convex3D(Matrix K,double dx)
             {
                for (int l=0;l<2;l++)
                {
-                  A[i][j][0] += K[IND3D(i,k)][IND3D(j,l)]*n[k]*n[l];
+                  A[i][j][0] += K[CBK->INDF(i,k)][CBK->INDF(j,l)]*n[k]*n[l];
                }
-               A[i][j][1] += K[IND3D(i,k)][IND3D(j,2)]*n[k]
-                  + K[IND3D(i,2)][IND3D(j,k)]*n[k];
+               A[i][j][1] += K[CBK->INDF(i,k)][CBK->INDF(j,2)]*n[k]
+                  + K[CBK->INDF(i,2)][CBK->INDF(j,k)]*n[k];
             }
-            A[i][j][2] = K[IND3D(i,2)][IND3D(j,2)];
+            A[i][j][2] = K[CBK->INDF(i,2)][CBK->INDF(j,2)];
          }
       }
       

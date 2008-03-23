@@ -40,15 +40,17 @@ endif
 TERMINAL   = -DUNIX_TERMINAL
 DATE_DEF   = -DBUILD_DATE="$(BUILD_DATE)"
 SOLVE      = -DSOLVE_SVD
-CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS) $(SOLVE) $(TERMINAL)
+CC_PERL     = `perl -MExtUtils::Embed -e ccopts`
+CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS) $(SOLVE) $(TERMINAL) $(CC_PERL)
+LIBS_PERL   = `perl -MExtUtils::Embed -e ldopts`
+LIBS       = -lLinearAlgebra -lMyMath -lm
+LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(LIBS_PERL)
 
 
 # File Locations ##########################################################
 BIN_LOC    = ${HOME}/bin
 INCL_LOC   = ${HOME}/include
 LIB_LOC    = ${HOME}/lib
-LIBS       = -lLinearAlgebra -lMyMath -lm
-LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE)
 SUBDIRS = ../Lattices ../Modes ../Potentials
 #
 # Defines the source files needed #########################################
@@ -58,7 +60,6 @@ include ../Modes/Makefile
 include ../Potentials/Makefile
 
 BSCSOURCES  = $(addprefix ./,$(UTILITY))
-RK1SOURCES  = ./Rank1Convex.cpp
 DISPERSIONSOURCES = ./DispersionCurves.cpp
 LONGWAVELENGTH = ./LongWavelengthModuli.cpp
 BLOCHWAVESOURCES = ./BlochWave.cpp
@@ -66,7 +67,7 @@ NEIGHBORSSOURCES = ./NeighborDistances.cpp
 PRINTPOTENTIALS = ./PrintPotentials.cpp
 ENERGYLANDSCAPE = ./EnergyLandscape.cpp
 #
-ALLSOURCES  = $(BSCSOURCES) $(RK1SOURCES) $(DISPERSIONSOURCES) \
+ALLSOURCES  = $(BSCSOURCES) $(DISPERSIONSOURCES) \
 	      $(BLOCHWAVESOURCES) $(NEIGHBORSSOURCES) $(LONGWAVELENGTH) $(PRINTPOTENTIALS) \
 	      $(ENERGYLANDSCAPE)
 
@@ -74,7 +75,6 @@ ALLSOURCES  = $(BSCSOURCES) $(RK1SOURCES) $(DISPERSIONSOURCES) \
 # Defines the object files to be created using the SYSTEM name ############
 STRIPEDSOURCES = $(notdir $(BSCSOURCES))
 BSCOBJECTS  = $(STRIPEDSOURCES:$(SRC_EXT)=$(OBJ_EXT))
-RK1OBJECTS  = $(RK1SOURCES:$(SRC_EXT)=$(OBJ_EXT))
 DISPERSIONOBJECTS = $(DISPERSIONSOURCES:$(SRC_EXT)=$(OBJ_EXT))
 WAVELENGTHOBJECTS = $(LONGWAVELENGTH:$(SRC_EXT)=$(OBJ_EXT))
 BLOCHWAVEOBJECTS = $(BLOCHWAVESOURCES:$(SRC_EXT)=$(OBJ_EXT))
@@ -82,30 +82,21 @@ NEIGHBORSOBJECTS = $(NEIGHBORSSOURCES:$(SRC_EXT)=$(OBJ_EXT))
 PRINTPOTSOBJECTS = $(PRINTPOTENTIALS:$(SRC_EXT)=$(OBJ_EXT))
 ENERGYLANDOBJECTS = $(ENERGYLANDSCAPE:$(SRC_EXT)=$(OBJ_EXT))
 #
-ALLOBJECTS = $(BSCOBJECTS) $(RK1OBJECTS) $(DISPERSIONOBJECTS) \
+ALLOBJECTS = $(BSCOBJECTS) $(DISPERSIONOBJECTS) \
 	     $(BLOCHWAVEOBJECTS) $(NEIGHBORSOBJECTS) $(WAVELENGTHOBJECTS) $(PRINTPOTSOBJECTS) \
 	     $(ENERGYLANDOBJECTS)
 
-ALLPROGRAMS = Rank1Convex DispersionCurves BlochWave NeighborDistances\
+ALLPROGRAMS = DispersionCurves BlochWave NeighborDistances\
               LongWavelengthModuli PrintPotentials EnergyLandscape
 
 all: $(ALLPROGRAMS)
-
-# Defines the Program Target (linking command) ############################
-Rank1Convex:  $(RK1OBJECTS) $(BSCOBJECTS)
-	      $(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/builddate.o -c builddate.cpp
-	      $(PURE) $(CC) $(LFLAGS) `perl -MExtUtils::Embed -e ldopts`\
-	        -L$(LIB_LOC) -o ./bin/Rank1Convex \
-	        $(addprefix lib/,$(RK1OBJECTS)) \
-		$(addprefix lib/,$(BSCOBJECTS)) $(LIBS) ./lib/builddate.o
-		/bin/rm -f ./lib/builddate.o
 
 # Defines the Program Target (linking command) ############################
 DispersionCurves:     $(DISPERSIONOBJECTS) $(BSCOBJECTS) \
 		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
 		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT)))
 		      $(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/builddate.o -c builddate.cpp
-		      $(PURE) $(CC) $(LFLAGS) `perl -MExtUtils::Embed -e ldopts`\
+		      $(PURE) $(CC) $(LFLAGS) \
 		      -L$(LIB_LOC) -o ./bin/DispersionCurves \
 		      $(addprefix lib/,$(DISPERSIONOBJECTS)) \
 		      $(addprefix lib/,$(BSCOBJECTS)) \
@@ -119,7 +110,7 @@ LongWavelengthModuli: $(WAVELENGTHOBJECTS) $(BSCOBJECTS) \
 		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
 		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT)))
 		      $(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/builddate.o -c builddate.cpp
-		      $(PURE) $(CC) $(LFLAGS) `perl -MExtUtils::Embed -e ldopts`\
+		      $(PURE) $(CC) $(LFLAGS) \
 		      -L$(LIB_LOC) -o ./bin/LongWavelengthModuli \
 		      $(addprefix lib/,$(WAVELENGTHOBJECTS)) \
 		      $(addprefix lib/,$(BSCOBJECTS)) \
@@ -133,7 +124,7 @@ BlochWave:	      $(BLOCHWAVEOBJECTS) $(BSCOBJECTS) \
 		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
 		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT)))
 		      $(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/builddate.o -c builddate.cpp
-		      $(PURE) $(CC) $(LFLAGS) `perl -MExtUtils::Embed -e ldopts`\
+		      $(PURE) $(CC) $(LFLAGS) \
 		      -L$(LIB_LOC) -o ./bin/BlochWave \
 		      $(addprefix lib/,$(BLOCHWAVEOBJECTS)) \
 		      $(addprefix lib/,$(BSCOBJECTS)) \
@@ -147,7 +138,7 @@ NeighborDistances:    $(NEIGHBORSOBJECTS) $(BSCOBJECTS) \
 		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
 		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT)))
 		      $(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/builddate.o -c builddate.cpp
-		      $(PURE) $(CC) $(LFLAGS) `perl -MExtUtils::Embed -e ldopts`\
+		      $(PURE) $(CC) $(LFLAGS) \
 		      -L$(LIB_LOC) -o ./bin/NeighborDistances \
 		      $(addprefix lib/,$(NEIGHBORSOBJECTS)) \
 		      $(addprefix lib/,$(BSCOBJECTS)) \
@@ -159,7 +150,7 @@ NeighborDistances:    $(NEIGHBORSOBJECTS) $(BSCOBJECTS) \
 # Defines the Program Target (linking command) ############################
 PrintPotentials:      $(PRINTPOTSOBJECTS) $(BSCOBJECTS) \
 		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT)))
-		      $(PURE) $(CC) $(LFLAGS) `perl -MExtUtils::Embed -e ldopts`\
+		      $(PURE) $(CC) $(LFLAGS) \
 		      -L$(LIB_LOC) -o ./bin/PrintPotentials \
 		      $(addprefix lib/,$(PRINTPOTSOBJECTS)) \
 		      $(addprefix lib/,$(BSCOBJECTS)) \
@@ -172,7 +163,7 @@ EnergyLandscape:      $(ENERGYLANDOBJECTS) $(BSCOBJECTS) \
 		      $(addprefix ../lib/,$(MODES:$(SRC_EXT)=$(OBJ_EXT))) \
 		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT)))
 		      $(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/builddate.o -c builddate.cpp
-		      $(PURE) $(CC) $(LFLAGS) `perl -MExtUtils::Embed -e ldopts`\
+		      $(PURE) $(CC) $(LFLAGS) \
 		      -L$(LIB_LOC) -o ./bin/EnergyLandscape \
 		      $(addprefix lib/,$(ENERGYLANDOBJECTS)) \
 		      $(addprefix lib/,$(BSCOBJECTS)) \
@@ -184,7 +175,6 @@ EnergyLandscape:      $(ENERGYLANDOBJECTS) $(BSCOBJECTS) \
 
 # include the dependicies
 include $(addprefix depend/,$(BSCOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
-include $(addprefix depend/,$(RK1OBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 include $(addprefix depend/,$(DISPERSIONOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 include $(addprefix depend/,$(WAVELENGTHOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 include $(addprefix depend/,$(BLOCHWAVEOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
@@ -193,13 +183,13 @@ include $(addprefix depend/,$(PRINTPOTSOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 include $(addprefix depend/,$(ENERGYLANDOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 
 # Define object file dependicies and make rule
-./lib/PerlObject.o: Makefile
-	$(CC) $(CCFLAGS) `perl -MExtUtils::Embed -e ccopts` \
+./lib/PerlInput.o: Makefile
+	$(CC) $(CCFLAGS) \
         -I. $(addprefix -I ,$(SUBDIRS)) -I $(INCL_LOC)/ \
         -o ./lib/$(notdir $@) \
-        -c PerlObject.cpp
+        -c PerlInput.cpp
 
-$(filter-out PerlObject.o, $(ALLOBJECTS)): Makefile MakeUtilityProgs
+$(filter-out PerlInput.o, $(ALLOBJECTS)): Makefile MakeUtilityProgs
 	$(CC) $(CCFLAGS) -I. $(addprefix -I ,$(SUBDIRS)) -I $(INCL_LOC)/ \
         -o ./lib/$(notdir $@) \
         -c $(filter %/$(*),$(basename $(ALLSOURCES)))$(SRC_EXT)
@@ -215,7 +205,6 @@ $(addprefix $(BIN_LOC)/,$(ALLPROGRAMS)): $(BIN_LOC)/%: %
 
 # Define uninstall
 uninstall:
-	/bin/rm -f $(BIN_LOC)/Rank1Convex
 	/bin/rm -f $(BIN_LOC)/DispersionCurves
 	/bin/rm -f $(BIN_LOC)/LongWavelengthModuli
 	/bin/rm -f $(BIN_LOC)/BlochWave
@@ -228,14 +217,12 @@ uninstall:
 
 clean:
 	 -/bin/rm -f $(addprefix lib/,$(BSCOBJECTS:$(OBJ_EXT)=.*)) \
-		  $(addprefix lib/,$(RK1OBJECTS:$(OBJ_EXT)=.*)) \
 		  $(addprefix lib/,$(DISPERSIONOBJECTS:$(OBJ_EXT)=.*)) \
 		  $(addprefix lib/,$(WAVELENGTHOBJECTS:$(OBJ_EXT)=.*)) \
 		  $(addprefix lib/,$(BLOCHWAVEOBJECTS:$(OBJ_EXT)=.*)) \
 		  $(addprefix lib/,$(NEIGHBORSOBJECTS:$(OBJ_EXT)=.*)) \
 		  $(addprefix lib/,$(PRINTPOTSOBJECTS:$(OBJ_EXT)=.*)) \
 		  $(addprefix lib/,$(ENERGYLANDOBJECTS:$(OBJ_EXT)=.*)) \
-                  bin/Rank1Convex \
 		  bin/DispersionCurves \
 		  bin/LongWavelengthModuli \
 		  bin/BlochWave \
@@ -248,7 +235,7 @@ clean:
 # Define rule for dependicy files
 depend/%.d: %$(SRC_EXT)
 	@$(SHELL) -ec '$(gCC) -MM -I. $(addprefix -I ,$(SUBDIRS)) \
-	      -I $(INCL_LOC)/ `perl -MExtUtils::Embed -e ccopts` $< \
+	      -I $(INCL_LOC)/ $(CCFLAGS) $< \
 	      | sed '\''s/\($(notdir $*)\)\.o[ :]*/\1.o $(notdir $*).d : /g'\'' \
 	      > $@; [ -s $@ ] || rm -f $@'
 	@echo "Building $@"

@@ -1,13 +1,14 @@
 #include "KnownLattices.h"
 #include "KnownModes.h"
-#include "UtilityFunctions.h"
+#include "PerlInput.h"
 #include <fstream>
+
+char *builddate();
 
 using namespace std;
 
-void GetMainSettings(int &Width,int &Presision,int &Echo,char *datafile,
-                     const char *prefix);
-void InitializeOutputFile(fstream &out,char *outfile,char *datafile,const char *prefix,
+void GetMainSettings(int &Width,int &Presision,int &Echo,PerlInput &Input);
+void InitializeOutputFile(fstream &out,char *outfile,char *datafile,int argc,
                           Lattice *Lat,int Precision,int Width,int Echo);
 
 int main(int argc,char *argv[])
@@ -16,62 +17,50 @@ int main(int argc,char *argv[])
    if (argc < 3)
    {
       cerr << "Usage: " << argv[0]
-           << " ParamFile OutputFile" << endl;
-      cerr << "Built on:               " << builddate() << endl
-           << "LinearAlgebra Built on: " << LinearAlgebraBuildDate() << endl
-           << "MyMath Built on:        " << MyMathBuildDate() << endl;
+           << " ParamFile OutputFile" << "\n";
+      cerr << "Built on:               " << builddate() << "\n"
+           << "LinearAlgebra Built on: " << LinearAlgebraBuildDate() << "\n"
+           << "MyMath Built on:        " << MyMathBuildDate() << "\n";
       exit(-1);
    }
    
    char *datafile = argv[1],
-      *outputfile = argv[2],
-      prefix[LINELENGTH];
-   
-   if (GetParameter("","^Input File:",datafile,'s',prefix,0))
-   {
-      strcpy(prefix,"^Input File:");
-   }
-   else
-   {
-      strcpy(prefix,"^");
-   }
+      *outputfile = argv[2];
+
+   PerlInput Input(datafile);
    
    Lattice *Lat;
    LatticeMode *Mode;
    
    int Width,Precision,Echo;
    
-   GetMainSettings(Width,Precision,Echo,datafile,prefix);
+   GetMainSettings(Width,Precision,Echo,Input);
    
-   Lat = InitializeLattice(datafile,prefix,Echo);
+   Lat = InitializeLattice(Input,Echo);
    
    fstream out;
-   InitializeOutputFile(out,outputfile,datafile,prefix,Lat,Precision,Width,Echo);
+   InitializeOutputFile(out,outputfile,datafile,argc,Lat,Precision,Width,Echo);
    
-   Mode = InitializeMode(Lat,datafile,prefix);
+   Mode = InitializeMode(Lat,Input);
    
    int NoDims;
-   if(!GetParameter(prefix,"Directions",datafile,'u',&NoDims)) exit(-1);
+   NoDims = Input.getUnsigned("EnergyLandscape","Directions");
    char tmp[LINELENGTH];
    int *divs;
    divs = new int[NoDims+1];
-   for (int i=0;i<NoDims;++i)
-   {
-      sprintf(tmp,"DirectionDivisions_%u",i);
-      if(!GetParameter(prefix,tmp,datafile,'u',&(divs[i]))) exit(-1);
-   }
+   Input.getIntVector(divs,NoDims,"EnergyLandscape","DirectionDivisions");
    divs[NoDims]=1;
    
    Vector *Corners;
    Corners = new Vector[NoDims+1];
    
    Corners[0].Resize(Mode->ModeDOF().Dim());
-   if(!GetVectorParameter(prefix,"Origin",datafile,&(Corners[0]))) exit(-1);
+   Input.getVector(Corners[0],"EnergyLandscape","Origin");
    for (int i=1;i<=NoDims;++i)
    {
       Corners[i].Resize(Mode->ModeDOF().Dim());
       sprintf(tmp,"Corner_%u",i);
-      if(!GetVectorParameter(prefix,tmp,datafile,&(Corners[i]))) exit(-1);
+      Input.getVector(Corners[i],"EnergyLandscape","Corners",i-1);
    }
    
    Vector *Directions;
@@ -92,17 +81,17 @@ int main(int argc,char *argv[])
    {
       state=Corners[0];
       for (i=0;i<NoDims;++i) state += counter[i]*Directions[i];
-      //cout << setw(Width) << state << endl;
+      //cout << setw(Width) << state << "\n";
       Mode->SetModeDOF(state);
       
       for (i=0;i<NoDims;++i) out << setw(Width) << counter[i];
-      out << setw(Width) << Mode->ModeEnergy() << endl;
+      out << setw(Width) << Mode->ModeEnergy() << "\n";
       
       ++(counter[0]);
       i=0;
       while (counter[i]>divs[i])
       {
-         if (i<2) out << endl;
+         if (i<2) out << "\n";
          counter[i]=0;
          if (i < NoDims) ++(counter[++i]);
       }
@@ -125,15 +114,21 @@ int main(int argc,char *argv[])
 
 
 
-void GetMainSettings(int &Width,int &Precision,int &Echo,char *datafile,
-                     const char *prefix)
+void GetMainSettings(int &Width,int &Precision,int &Echo,PerlInput &Input)
 {
-   if(!GetParameter(prefix,"MainFieldWidth",datafile,'i',&Width)) exit(-1);
-   if(!GetParameter(prefix,"MainPrecision",datafile,'i',&Precision)) exit(-1);
-   if(!GetParameter(prefix,"MainPrecision",datafile,'i',&Echo,0)) Echo=1;
+   Width = Input.getInt("Main","FieldWidth");
+   Precision = Input.getInt("Main","Precision");
+   if (Input.ParameterOK("Main","Echo"))
+   {
+      Echo = Input.getInt("Main","Echo");
+   }
+   else
+   {
+      Echo=1;
+   }
 }
 
-void InitializeOutputFile(fstream &out,char *outfile,char *datafile,const char *prefix,
+void InitializeOutputFile(fstream &out,char *outfile,char *datafile,int argc,
                           Lattice *Lat,int Precision,int Width,int Echo)
 {
    fstream input;
@@ -143,23 +138,23 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,const char *
    if (input.fail())
    {
       cerr << "Error: Unable to open file : " << datafile << " for read"
-           << endl;
+           << "\n";
       exit(-1);
    }
    out.open(outfile,ios::out);
    if (out.fail())
    {
       cerr << "Error: Unable to open file : " << outfile << " for write"
-           << endl;
+           << "\n";
       exit(-1);
    }
    
-   if (!strcmp("^",prefix))
+   if (argc >= 4)
    {
       while (!input.eof())
       {
          input.getline(dataline,LINELENGTH-1);
-         out << "# Input File:" << dataline << endl;
+         out << "# Input File:" << dataline << "\n";
       }
    }
    else
@@ -168,7 +163,7 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,const char *
       while ((strstr(dataline,"Input File:") != NULL) ||
              (strstr(dataline,"Start File:") != NULL))
       {
-         out << "# " << dataline << endl;
+         out << "# " << dataline << "\n";
          input.getline(dataline,LINELENGTH-1);
       }
    }
@@ -178,11 +173,11 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,const char *
    cout << setiosflags(ios::fixed) << setprecision(Precision);
    out  << setiosflags(ios::fixed) << setprecision(Precision);
    
-   cout << "Built on:               " << builddate() << endl
-        << "LinearAlgebra Build on: " << LinearAlgebraBuildDate() << endl
-        << "MyMath Built on:        " << MyMathBuildDate() << endl;
-   out << "# Built on:               " << builddate() << endl
-       << "# LinearAlgebra Build on: " << LinearAlgebraBuildDate() << endl
-       << "# MyMath Built on:        " << MyMathBuildDate() << endl;
+   cout << "Built on:               " << builddate() << "\n"
+        << "LinearAlgebra Build on: " << LinearAlgebraBuildDate() << "\n"
+        << "MyMath Built on:        " << MyMathBuildDate() << "\n";
+   out << "# Built on:               " << builddate() << "\n"
+       << "# LinearAlgebra Build on: " << LinearAlgebraBuildDate() << "\n"
+       << "# MyMath Built on:        " << MyMathBuildDate() << "\n";
 }
 

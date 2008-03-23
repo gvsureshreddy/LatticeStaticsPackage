@@ -20,7 +20,7 @@ double LJ::Eps(double NTemp,TDeriv dt)
          retval = 0.0;
          break;
       default:
-         cerr << "Error in LJ::Eps" << endl;
+         cerr << "Error in LJ::Eps" << "\n";
          exit(-1);
    }
    
@@ -43,7 +43,7 @@ double LJ::Sigma(double NTemp,TDeriv dt)
          retval = 0.0;
          break;
       default:
-         cerr << "Error in LJ::Sigma" << endl;
+         cerr << "Error in LJ::Sigma" << "\n";
          exit(-1);
    }
    
@@ -67,7 +67,7 @@ double LJ::G(double NTemp,double r2,YDeriv dy,TDeriv dt)
             + 6.0*pow(s(NTemp,T0),5.0)*s(NTemp,D2T);
          break;
       default:
-         cerr << "Error in LJ::G dt" << endl;
+         cerr << "Error in LJ::G dt" << "\n";
          exit(-1);
          break;
    }
@@ -90,7 +90,7 @@ double LJ::G(double NTemp,double r2,YDeriv dy,TDeriv dt)
          val *= 360.0*pow(r2,-7.0);
          break;
       default:
-         cerr << "Error in LJ::G dy" << endl;
+         cerr << "Error in LJ::G dy" << "\n";
          exit(-1);
          break;
    }
@@ -115,7 +115,7 @@ double LJ::H(double NTemp,double r2,YDeriv dy,TDeriv dt)
             + 12.0*pow(s(NTemp,T0),11.0)*s(NTemp,D2T);
          break;
       default:
-         cerr << "Error in LJ::H dt" << endl;
+         cerr << "Error in LJ::H dt" << "\n";
          exit(-1);
          break;
    }
@@ -138,7 +138,7 @@ double LJ::H(double NTemp,double r2,YDeriv dy,TDeriv dt)
          val *= 3024.0*pow(r2,-10.0);
          break;
       default:
-         cerr << "Error in LJ::H dy" << endl;
+         cerr << "Error in LJ::H dy" << "\n";
          exit(-1);
          break;
    }
@@ -175,7 +175,7 @@ double LJ::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
             + e(NTemp)*(h(NTemp,r2,dy,D2T) - g(NTemp,r2,dy,D2T));
          break;
       default:
-         cerr << "Error in LJ::PairPotential" << endl;
+         cerr << "Error in LJ::PairPotential" << "\n";
          exit(-1);
    }
    

@@ -1,7 +1,7 @@
 #include "LagrangeCB.h"
 
-LagrangeCB::LagrangeCB(int InternalAtoms,const char* prefix,const char* datafile):
-   CBKinematics(InternalAtoms,prefix,datafile)
+LagrangeCB::LagrangeCB(int InternalAtoms,PerlInput &Input)
+   : CBKinematics(InternalAtoms,Input)
 {
    F_.Resize(DIM3,DIM3);
    S_.Resize(InternalAtoms,DIM3);

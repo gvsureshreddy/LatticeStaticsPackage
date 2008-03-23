@@ -1,10 +1,12 @@
 #include "KnownLattices.h"
-#include "UtilityFunctions.h"
+#include "PerlInput.h"
 #include <fstream>
+
+char *builddate();
 
 using namespace std;
 
-void GetMainSettings(int &Width,int &Presision,char *datafile,const char *prefix);
+void GetMainSettings(int &Width,int &Presision,PerlInput &Input);
 
 int main(int argc,char *argv[])
 {
@@ -12,18 +14,18 @@ int main(int argc,char *argv[])
    if (argc < 3)
    {
       cerr << "Usage: " << argv[0]
-           << " ParamFile cutoff <Echo>" << endl;
-      cerr << "Built on:               " << builddate() << endl
-           << "LinearAlgebra Built on: " << LinearAlgebraBuildDate() << endl
-           << "MyMath Built on:        " << MyMathBuildDate() << endl;
+           << " ParamFile cutoff <Echo>" << "\n";
+      cerr << "Built on:               " << builddate() << "\n"
+           << "LinearAlgebra Built on: " << LinearAlgebraBuildDate() << "\n"
+           << "MyMath Built on:        " << MyMathBuildDate() << "\n";
       exit(-1);
    }
    
-   char *datafile = argv[1],
-      prefix[LINELENGTH];
+   char *datafile = argv[1];
    int cutoff = atoi(argv[2]);
-   
-   strcpy(prefix,"^Input File:");
+
+   PerlInput Input;
+   Input.Readfile(datafile,"Input File:");
    
    Lattice *Lat;
    
@@ -31,9 +33,9 @@ int main(int argc,char *argv[])
    
    if (argc == 4) Echo = 1;
    
-   GetMainSettings(Width,Precision,datafile,prefix);
+   GetMainSettings(Width,Precision,Input);
    
-   Lat = InitializeLattice(datafile,prefix,Echo);
+   Lat = InitializeLattice(Input,Echo);
    
    cout  << setiosflags(ios::fixed) << setprecision(Precision);
    
@@ -53,8 +55,8 @@ int main(int argc,char *argv[])
    return 1;
 }
 
-void GetMainSettings(int &Width, int &Precision,char *datafile,const char *prefix)
+void GetMainSettings(int &Width, int &Precision,PerlInput &Input)
 {
-   if(!GetParameter(prefix,"MainFieldWidth",datafile,'i',&Width)) exit(-1);
-   if(!GetParameter(prefix,"MainPrecision",datafile,'i',&Precision)) exit(-1);
+   Width = Input.getInt("Main","FieldWidth");
+   Precision = Input.getInt("Main","Precision");
 }

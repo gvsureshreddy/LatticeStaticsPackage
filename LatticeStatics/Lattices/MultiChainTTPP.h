@@ -1,6 +1,7 @@
 #ifndef __MultiChainTTPP
 #define __MultiChainTTPP
 
+#include "PerlInput.h"
 #include "Lattice.h"
 #include "ChainIterator.h"
 #include "ChainSum.h"
@@ -104,7 +105,7 @@ public:
    virtual void Print(ostream &out,PrintDetail flag);
    
    // Functions provided by MultiChainTTPP
-   MultiChainTTPP(char *datafile,const char *prefix,int Echo=1,int Width=20,int Debug=0);
+   MultiChainTTPP(PerlInput &Input,int Echo=1,int Width=20,int Debug=0);
    ~MultiChainTTPP();
    
    double InfluenceDist() {return InfluenceDist_;}
@@ -126,7 +127,7 @@ private:
    double LAMDA(int p,int q,int i,int j);
    
    inline double DELTA(int s,int p,int q) {return Del(s,q) - Del(s,p);}
-   int FindLatticeSpacing(char *datafile,const char *prefix,int iter);
+   int FindLatticeSpacing(int iter);
    void RefineEqbm(double Tol,int MaxItr,ostream *out);
    
 };

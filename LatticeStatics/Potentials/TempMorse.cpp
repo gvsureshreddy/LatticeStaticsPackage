@@ -18,7 +18,7 @@ double TempMorse::Beta(double NTemp,TDeriv dt)
          retval = B0_*Alpha_;
          break;
       default:
-         cerr << "Error in TempMorse::Beta" << endl;
+         cerr << "Error in TempMorse::Beta" << "\n";
          exit(-1);
    }
    
@@ -40,7 +40,7 @@ double TempMorse::Rhat(double NTemp,TDeriv dt)
             (1.0/(1.0 - NTemp*Tref_/(4.0*Tmelt_)))*(-Tref_/(4.0*Tmelt_));
          break;
       default:
-         cerr << "Error in TempMorse::Rhat" << endl;
+         cerr << "Error in TempMorse::Rhat" << "\n";
          exit(-1);
    }
    
@@ -78,7 +78,7 @@ double TempMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
                   *Exp_temp*(Exp_temp - 1.0);
                break;
             default:
-               cerr << "Error in TempMorse::PairPotential -- Y0,D2T not programmed" << endl;
+               cerr << "Error in TempMorse::PairPotential -- Y0,D2T not programmed" << "\n";
                exit(-1);
          }
          break;
@@ -101,7 +101,7 @@ double TempMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
                    *(2.0*Exp_temp - 1.0));
                break;
             default:
-               cerr << "Error in TempMorse::PairPotential -- DY,D2T not programmed" << endl;
+               cerr << "Error in TempMorse::PairPotential -- DY,D2T not programmed" << "\n";
                exit(-1);
          }
          break;
@@ -132,7 +132,7 @@ double TempMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
                       *(2.0*Exp_temp*Exp_temp - Exp_temp)));
                break;
             default:
-               cerr << "Error in TempMorse::PairPotential -- D2Y,D2T not programmed" << endl;
+               cerr << "Error in TempMorse::PairPotential -- D2Y,D2T not programmed" << "\n";
                exit(-1);
          }
          break;
@@ -147,11 +147,11 @@ double TempMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
                     *Exp_temp*Exp_temp);
                break;
             case DT:
-               cerr << "D4phi/Dy3DT Not Coded... " << endl;
+               cerr << "D4phi/Dy3DT Not Coded... " << "\n";
                exit(-1);
                break;
             default:
-               cerr << "Error in TempMorse::PairPotential -- D3Y,D2T not programmed" << endl;
+               cerr << "Error in TempMorse::PairPotential -- D3Y,D2T not programmed" << "\n";
                exit(-1);
          }
          break;
@@ -168,13 +168,13 @@ double TempMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
                              *(8.0*Exp_temp - 1.0));
                break;
             default:
-               cerr << "Error in TempMorse::PairPotential -- Dy4,D2T Not Coded... " << endl;
+               cerr << "Error in TempMorse::PairPotential -- Dy4,D2T Not Coded... " << "\n";
                exit(-1);
                break;
          }
          break;
       default:
-         cerr << "Error in TempMorse::PairPotential -- Unknown dy" << endl;
+         cerr << "Error in TempMorse::PairPotential -- Unknown dy" << "\n";
          exit(-1);
    }
    return val;

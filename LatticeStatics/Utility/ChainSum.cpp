@@ -105,7 +105,7 @@ void ChainSum::Initialize()
    if (RelPosDATA_.Rows() < tmp)
    {
       RelPosDATA_.Resize(int(tmp),CHAINSUMdatalen);
-      cerr << "Resizing RELPOSDATA matrix in ChainSum object to " << tmp << endl;
+      cerr << "Resizing RELPOSDATA matrix in ChainSum object to " << tmp << "\n";
    }
    
    Pairs_ = 0;

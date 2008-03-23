@@ -1,6 +1,7 @@
 #ifndef __ScanningSolution
 #define __ScanningSolution
 
+#include "PerlInput.h"
 #include "SolutionMethod.h"
 #include "LatticeMode.h"
 
@@ -13,7 +14,7 @@ class ScanningSolution : public SolutionMethod
 private:
    int Echo_;
    LatticeMode *Mode_;
-   int ModeDOFS_;
+   unsigned ModeDOFS_;
    unsigned MaxIter_;
    double Tolerance_;
    double NewtonTolerance_;
@@ -24,7 +25,7 @@ private:
    Vector InitialDef_;
    
    enum ScanDir {Loading,Deformation};
-   int ScnDefParam_;
+   unsigned ScnDefParam_;
    ScanDir Direction_;
    double ScanStart_;
    double ScanEnd_;
@@ -35,9 +36,8 @@ private:
    double LineStep_;
    
    double CurrentScanLine_;
-   
-   void ScanningNewton(int &good);
-   void InitializeLine();
+
+   void ScanningNewton(int &good);   void InitializeLine();
    
    //----------------------------------------------------------------
    virtual double ScanningDefParameter();
@@ -55,14 +55,19 @@ private:
    virtual Matrix ScanningStiffness();
    
 public:
-   ScanningSolution(LatticeMode *Mode,char *datafile,const char *prefix,int Echo=1);
+   ScanningSolution(LatticeMode *Mode,PerlInput &Input,int Echo=1);
+   ScanningSolution(LatticeMode *Mode,
+                    int MaxIter,double Tolerance,double NewtonTolerance,YN ScanFullField,
+                    Vector &InitialDef,unsigned ScnDefParam,ScanDir Direction,
+                    double ScanStart,double ScanEnd,double ScanStep,
+                    double LineStart,double LineEnd,double LineStep,
+                    YN OnSolution=No,int Echo=1);
    ~ScanningSolution() {}
    
    // Functions required by SolutionMethod
    virtual int AllSolutionsFound();
    virtual int FindNextSolution();
-   virtual int FindCriticalPoint(Lattice *Lat,char *datafile,const char *prefix,int Width,
-                                 fstream &out)
+   virtual int FindCriticalPoint(Lattice *Lat,PerlInput &Input,int Width,fstream &out)
    {return 1;}
 };
 

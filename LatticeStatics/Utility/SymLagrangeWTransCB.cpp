@@ -1,15 +1,13 @@
 #include "SymLagrangeWTransCB.h"
 
-SymLagrangeWTransCB::SymLagrangeWTransCB(int InternalAtoms,const char* prefix,
-                                         const char* datafile):
-   CBKinematics(InternalAtoms,prefix,datafile)
+SymLagrangeWTransCB::SymLagrangeWTransCB(int InternalAtoms,PerlInput &Input)
+   : CBKinematics(InternalAtoms,Input)
 {
    F_.Resize(DIM3,DIM3);
    S_.Resize(InternalAtoms,DIM3);
    
    SetReferenceDOFs();
    Reset();
-   
 }
 
 void SymLagrangeWTransCB::Reset()

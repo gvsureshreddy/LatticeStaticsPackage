@@ -1,10 +1,9 @@
 #ifndef __KnownModes
 #define __KnownModes
 
+#include "PerlInput.h"
 #include "MultiMode.h"
 
-#define KNOWNMODES 1
-
-LatticeMode *InitializeMode(Lattice *Lat,const char *datafile,const char *prefix);
+LatticeMode *InitializeMode(Lattice *Lat,PerlInput &Input);
 
 #endif

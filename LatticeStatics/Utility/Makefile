@@ -1,5 +1,5 @@
 UTILITY  = UtilityFunctions.cpp\
-	 PerlObject.cpp\
+	 PerlInput.cpp\
 	 CBKinematics.cpp\
 	 EulerCB.cpp\
 	 LagrangeCB.cpp\

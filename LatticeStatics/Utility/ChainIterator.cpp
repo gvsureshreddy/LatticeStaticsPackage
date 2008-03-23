@@ -8,7 +8,7 @@ void ChainIterator::Initialize(int GridSize,int DoHalfOnly,int SkipZero)
    if ((GridSize_ < 2))
    {
       cerr << "ChainIterator GridSize must be >= 2"
-           << endl;
+           << "\n";
       exit(-1);
    }
    VectorsLen_ = DoHalfOnly ?

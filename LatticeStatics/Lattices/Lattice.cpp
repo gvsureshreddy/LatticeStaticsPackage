@@ -1,11 +1,48 @@
 #include "Lattice.h"
 #include "UtilityFunctions.h"
 
-Lattice::Lattice(char *datafile,const char *prefix)
+Lattice::Lattice(PerlInput &Input)
 {
-   if (!GetParameter(prefix,"Lattice_OrderedTFs",datafile,'u',&OrderedTFs_,0))
+   if (Input.ParameterOK("Lattice","OrderedTFs"))
+   {
+      if (!strcmp("No",Input.getString("Lattice","OrderedTFs")))
+      {
+         OrderedTFs_ = 0;
+      }
+      else if (!strcmp("Yes",Input.getString("Lattice","OrderedTFs")))
+      {
+         OrderedTFs_ = 1;
+      }
+      else
+      {
+         cerr << "Error: Unknown value for Lattice{OrderedTFs}.\n";
+         exit(-1);
+      }
+   }
+   else
    {
       OrderedTFs_ = 0;
+   }
+
+   if (Input.ParameterOK("Lattice","ThirdOrder"))
+   {
+      if (!strcmp("Yes",Input.getString("Lattice","ThirdOrder")))
+      {
+         ThirdOrder_ = 1;
+      }
+      else if (!strcmp("No",Input.getString("Lattice","ThirdOrder")))
+      {
+         ThirdOrder_ = 0;
+      }
+      else
+      {
+         cerr << "Error: Unknown value for Lattice{ThirdOrder}.\n";
+         exit(-1);
+      }
+   }
+   else
+   {
+      ThirdOrder_ = 0;
    }
 }
 
@@ -117,7 +154,7 @@ int Lattice::TestFunctions(Vector &TF1, StateType State , Vector *TF2)
       {
          if(TF2 == NULL)
          {
-            cerr << "Error in Lattice::TestFunctions(): TF2 == NULL" << endl;
+            cerr << "Error in Lattice::TestFunctions(): TF2 == NULL" << "\n";
             exit(-53);
          }
          
@@ -207,7 +244,7 @@ int Lattice::TestFunctions(Vector &TF1, StateType State , Vector *TF2)
       {
          if(TF2 == NULL)
          {
-            cerr << "Error in Lattice::TestFunctions(): TF2 == NULL" << endl;
+            cerr << "Error in Lattice::TestFunctions(): TF2 == NULL" << "\n";
             exit(-53);
          }
          
@@ -295,8 +332,8 @@ int Lattice::TestFunctions(Vector &TF1, StateType State , Vector *TF2)
             }
          }
          
-         //cout << "STIFFNESS_DIAGONALIZED = " << endl << setw(15)
-         //<< Stiffness_diagonalized << endl << endl;
+         //cout << "STIFFNESS_DIAGONALIZED = " << "\n" << setw(15)
+         //<< Stiffness_diagonalized << "\n" << "\n";
          
          EV1 = SymEigVal(Stiffness_diagonalized);
          //EV1 = SymEigVal(Stiffness_diagonalized,&EigVect);
@@ -315,15 +352,8 @@ int Lattice::TestFunctions(Vector &TF1, StateType State , Vector *TF2)
 }
 
 void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
-                                double Tolerance,char *datafile,const char *prefix,
-                                int Width,ostream &out)
+                                double Tolerance,int Width,ostream &out)
 {
-   
-   const char *thirdorderchoices[] = {"No","Yes"};
-   int thirdorder=GetStringParameter(prefix,"CriticalPoint_T2",datafile,
-                                     thirdorderchoices,2);
-   if (thirdorder < 0) exit(-1);
-   
    Matrix
       D3=E3(),
       D2=E2(),
@@ -346,7 +376,7 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
    
    if (DOFMAX < (dofs=D2.Rows()))
    {
-      cerr << "Error: DOFMAX < " << dofs << " in Lattice.h" << endl;
+      cerr << "Error: DOFMAX < " << dofs << " in Lattice.h" << "\n";
       exit(-5);
    }
    
@@ -400,27 +430,27 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
       }
       
       out << "NOTE: Incorrect number of zero eigenvalues found. "
-          << "Modes with smallest abs. value used." << endl;
+          << "Modes with smallest abs. value used." << "\n";
       if (Echo_)
       {
          cout << "NOTE: Incorrect number of zero eigenvalues found. "
-              << "Modes with smallest abs. value used." << endl;
+              << "Modes with smallest abs. value used." << "\n";
       }
    }
    
    for (int i=0;i<count;++i)
       out << "Mode[" << i << "] DOF: " << Ind[i] << ",  ";
-   out << endl;
+   out << "\n";
    if (Echo_)
    {
       for (int i=0;i<count;++i)
          cout << "Mode[" << i << "] DOF: " << Ind[i] << ",  ";
-      cout << endl;
+      cout << "\n";
    }
    
    if (BIFMAX < count)
    {
-      cerr << "Error: BIFMAX < " << count << " in Lattice.h" << endl;
+      cerr << "Error: BIFMAX < " << count << " in Lattice.h" << "\n";
       exit(-6);
    }
    
@@ -435,8 +465,8 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
    }
    
    // Print out the Eigenvectors
-   out << "EigenVectors" << endl << setw(Width) << EigVec;
-   if (Echo_) cout << "EigenVectors" << endl << setw(Width) << EigVec;
+   out << "EigenVectors" << "\n" << setw(Width) << EigVec;
+   if (Echo_) cout << "EigenVectors" << "\n" << setw(Width) << EigVec;
    
    // Eijk
    for (int i=0;i<count;i++)
@@ -474,7 +504,7 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
       out << "-";
       if (Echo_) cout << "-";
    }
-   out << endl; if (Echo_) cout << endl;
+   out << "\n"; if (Echo_) cout << "\n";
    
    // Print out the critical point character test (Limit-load/Bifurcation)
    for (int i=0;i<count;++i)
@@ -484,13 +514,13 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
       {
          z+= Mode[i][j]*D1T[0][j];
       }
-      out << "StressDT*Mode[" << i << "] = " << setw(Width) << z << endl;
-      if (Echo_) cout << "StressDT*Mode[" << i << "] = " << setw(Width) << z << endl;
+      out << "StressDT*Mode[" << i << "] = " << setw(Width) << z << "\n";
+      if (Echo_) cout << "StressDT*Mode[" << i << "] = " << setw(Width) << z << "\n";
    }
    
    
-   out << endl << endl << "2nd Order Bifurcation Equations:" << endl;
-   if (Echo_) cout << endl << endl << "2nd Order Bifurcation Equations:" << endl;
+   out << "\n" << "\n" << "2nd Order Bifurcation Equations:" << "\n";
+   if (Echo_) cout << "\n" << "\n" << "2nd Order Bifurcation Equations:" << "\n";
    
    int prec = out.precision();
    
@@ -529,16 +559,16 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
              << " + ";
       }
       if (Echo_) cout << "(" << setw(Width) << EijT[i][count-1] << ")a_" << count-1
-                      << " ) = 0" << endl;
+                      << " ) = 0" << "\n";
       out << "(" << setw(Width) << EijT[i][count-1] << ")a_" << count-1
-          << " ) = 0" << endl;
+          << " ) = 0" << "\n";
    }
    
    //------- output coefficients ----------
-   out << endl << "DrDt = " << setw(Width) << DrDt << endl;
-   if (Echo_) cout << endl << "DrDt = " << setw(Width) << DrDt << endl;
-   out << "Eijk = " << endl;
-   if (Echo_) cout << "Eijk = " << endl;
+   out << "\n" << "DrDt = " << setw(Width) << DrDt << "\n";
+   if (Echo_) cout << "\n" << "DrDt = " << setw(Width) << DrDt << "\n";
+   out << "Eijk = " << "\n";
+   if (Echo_) cout << "Eijk = " << "\n";
    for (int i=0;i<count;++i)
       for (int j=0;j<count;++j)
       {
@@ -547,14 +577,14 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
             out << setw(Width) << Eijk[i][j][k];
             if (Echo_) cout << setw(Width) << Eijk[i][j][k];
          }
-         out << endl;
-         if (Echo_) cout << endl;
+         out << "\n";
+         if (Echo_) cout << "\n";
       }
-   out << endl;
-   if (Echo_) cout << endl;
+   out << "\n";
+   if (Echo_) cout << "\n";
    
-   out << "EijT = " << endl;
-   if (Echo_) cout << "EijT = " << endl;
+   out << "EijT = " << "\n";
+   if (Echo_) cout << "EijT = " << "\n";
    for (int i=0;i<count;++i)
    {
       for (int j=0;j<count;++j)
@@ -562,15 +592,15 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
          out << setw(Width) << EijT[i][j];
          if (Echo_) cout << setw(Width) << EijT[i][j];
       }
-      out << endl;
-      if (Echo_) cout << endl;
+      out << "\n";
+      if (Echo_) cout << "\n";
    }
-   out << endl;
-   if (Echo_) cout << endl;
+   out << "\n";
+   if (Echo_) cout << "\n";
    // ----------------------------
    
    
-   if (thirdorder)
+   if (ThirdOrder_)
    {
       double Eijkl[BIFMAX][BIFMAX][BIFMAX][BIFMAX],
          Vij[BIFMAX][BIFMAX][DOFMAX];
@@ -612,8 +642,8 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
                      }
             }
             
-            if (Echo_) cout << endl << "V[" << i << "][" << j << "]=";
-            out << endl << "V[" << i << "][" << j << "]=";
+            if (Echo_) cout << "\n" << "V[" << i << "][" << j << "]=";
+            out << "\n" << "V[" << i << "][" << j << "]=";
             
             for (int k=0;k<dofs;k++)
             {
@@ -627,8 +657,8 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
                out << setw(Width) << Vij[i][j][k];
             }
          }
-      if (Echo_) cout << endl;
-      out << endl;
+      if (Echo_) cout << "\n";
+      out << "\n";
       
       // Eijkl
       for (int i=0;i<count;i++)
@@ -657,8 +687,8 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
                }
       
       // Print out results
-      if (Echo_) cout << endl << "3rd Order Bifurcation Equations:" << endl;
-      out <<  endl << "3rd Order Bifurcation Equations:" << endl;
+      if (Echo_) cout << "\n" << "3rd Order Bifurcation Equations:" << "\n";
+      out <<  "\n" << "3rd Order Bifurcation Equations:" << "\n";
       
       for (int i=0;i<count;i++)
       {
@@ -697,14 +727,14 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
                 << " + ";
          }
          if (Echo_) cout << "(" << setw(Width) << EijT[i][count-1] << ")a_" << count-1
-                         << " ) = 0" << endl;
+                         << " ) = 0" << "\n";
          out << "(" << setw(Width) << EijT[i][count-1] << ")a_" << count-1
-             << " ) = 0" << endl;
+             << " ) = 0" << "\n";
       }
       
       //-------- output coefficients -----------
-      out << endl << "Eijkl = " << endl;
-      if (Echo_) cout << endl << "Eijkl = " << endl;
+      out << "\n" << "Eijkl = " << "\n";
+      if (Echo_) cout << "\n" << "Eijkl = " << "\n";
       for (int i=0;i<count;++i)
          for (int j=0;j<count;++j)
          {
@@ -714,26 +744,26 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
                   out << setw(Width) << Eijkl[i][j][k][l];
                   if (Echo_) cout << setw(Width) << Eijkl[i][j][k][l];
                }
-            out << endl;
-            if (Echo_) cout << endl;
+            out << "\n";
+            if (Echo_) cout << "\n";
          }
-      out << endl;
-      if (Echo_) cout << endl;
+      out << "\n";
+      if (Echo_) cout << "\n";
       // ----------------------------
    }
    
    out.flags(ios::fixed); out << setprecision(prec);
    if (Echo_) cout.flags(ios::fixed); cout << setprecision(prec);
    
-   if (Echo_) cout << endl;
-   out << endl;
+   if (Echo_) cout << "\n";
+   out << "\n";
    for (int i=0;i<70;i++)
    {
       if (Echo_) cout << "-";
       out << "-";
    }
-   if (Echo_) cout << endl;
-   out << endl;
+   if (Echo_) cout << "\n";
+   out << "\n";
    
    
    if (dbg_)
@@ -781,11 +811,11 @@ void Lattice::ConsistencyCheck(double ConsistencyEpsilon,int Width,ostream &out)
    
    if (Echo_)
    {
-      for (int i=0;i<70;i++) cout << "="; cout << endl;
-      cout << "Consistency Check." << endl;
+      for (int i=0;i<70;i++) cout << "="; cout << "\n";
+      cout << "Consistency Check." << "\n";
    }
-   for (int i=0;i<70;i++) out << "="; out << endl;
-   out << "Consistency Check." << endl;
+   for (int i=0;i<70;i++) out << "="; out << "\n";
+   out << "Consistency Check." << "\n";
    
    Force = ConsistencyEpsilon*E1();
    
@@ -840,76 +870,76 @@ void Lattice::ConsistencyCheck(double ConsistencyEpsilon,int Width,ostream &out)
    // Print out the facts
    if (Echo_)
    {
-      cout << "E1(U) * Epsilon" << endl;
-      cout << setw(Width) << Force << endl;
-      cout << "E1(U + Epsilon*Vj)" << endl;
-      cout << setw(Width) << PerturbedForce << endl;
+      cout << "E1(U) * Epsilon" << "\n";
+      cout << setw(Width) << Force << "\n";
+      cout << "E1(U + Epsilon*Vj)" << "\n";
+      cout << setw(Width) << PerturbedForce << "\n";
       
       if (Do2)
       {
-         cout << "E2(U)*Epsilon" << endl;
-         cout << setw(Width) << Stiff << endl;
-         cout << "E2(U + Epsilon*Vj)" << endl;
-         cout << setw(Width) << PerturbedStiff << endl;
+         cout << "E2(U)*Epsilon" << "\n";
+         cout << setw(Width) << Stiff << "\n";
+         cout << "E2(U + Epsilon*Vj)" << "\n";
+         cout << setw(Width) << PerturbedStiff << "\n";
       }
       
       if (Do3)
       {
-         cout << "E3(U)*Epsilon" << endl;
-         cout << setw(Width) << D3 << endl;
-         cout << "E3(U + Epsilon*Vj)" << endl;
-         cout << setw(Width) << PerturbedD3 << endl;
+         cout << "E3(U)*Epsilon" << "\n";
+         cout << setw(Width) << D3 << "\n";
+         cout << "E3(U + Epsilon*Vj)" << "\n";
+         cout << setw(Width) << PerturbedD3 << "\n";
       }
       
       if (Do4)
       {
-         cout << "E4(U)*Epsilon" << endl;
-         cout << setw(Width) << D4 << endl;
-         cout << "E4(U + Epsilon*Vj)" << endl;
-         cout << setw(Width) << PerturbedD4 << endl;
+         cout << "E4(U)*Epsilon" << "\n";
+         cout << setw(Width) << D4 << "\n";
+         cout << "E4(U + Epsilon*Vj)" << "\n";
+         cout << setw(Width) << PerturbedD4 << "\n";
       }
       
-      cout << "Difference" << endl;
-      cout << setw(Width) << Force - PerturbedForce << endl << endl;
-      if (Do2) cout << setw(Width) << Stiff - PerturbedStiff << endl;
-      if (Do3) cout << setw(Width) << D3 - PerturbedD3 << endl;
-      if (Do4) cout << setw(Width) << D4 - PerturbedD4 << endl;
+      cout << "Difference" << "\n";
+      cout << setw(Width) << Force - PerturbedForce << "\n" << "\n";
+      if (Do2) cout << setw(Width) << Stiff - PerturbedStiff << "\n";
+      if (Do3) cout << setw(Width) << D3 - PerturbedD3 << "\n";
+      if (Do4) cout << setw(Width) << D4 - PerturbedD4 << "\n";
    }
    
-   out << "E1(U) * Epsilon" << endl;
-   out << setw(Width) << Force << endl;
-   out << "E1(U + Epsilon*Vj)" << endl;
-   out << setw(Width) << PerturbedForce << endl;
+   out << "E1(U) * Epsilon" << "\n";
+   out << setw(Width) << Force << "\n";
+   out << "E1(U + Epsilon*Vj)" << "\n";
+   out << setw(Width) << PerturbedForce << "\n";
    
    if (Do2)
    {
-      out << "E2(U)*Epsilon" << endl;
-      out << setw(Width) << Stiff << endl;
-      out << "E2(U + Epsilon*Vj)" << endl;
-      out << setw(Width) << PerturbedStiff << endl;
+      out << "E2(U)*Epsilon" << "\n";
+      out << setw(Width) << Stiff << "\n";
+      out << "E2(U + Epsilon*Vj)" << "\n";
+      out << setw(Width) << PerturbedStiff << "\n";
    }
    
    if (Do3)
    {
-      out << "E3(U)*Epsilon" << endl;
-      out << setw(Width) << D3 << endl;
-      out << "E3(U + Epsilon*Vj)" << endl;
-      out << setw(Width) << PerturbedD3 << endl;
+      out << "E3(U)*Epsilon" << "\n";
+      out << setw(Width) << D3 << "\n";
+      out << "E3(U + Epsilon*Vj)" << "\n";
+      out << setw(Width) << PerturbedD3 << "\n";
    }
    
    if (Do4)
    {
-      out << "E4(U)*Epsilon" << endl;
-      out << setw(Width) << D4 << endl;
-      out << "E4(U + Epsilon*Vj)" << endl;
-      out << setw(Width) << PerturbedD4 << endl;
+      out << "E4(U)*Epsilon" << "\n";
+      out << setw(Width) << D4 << "\n";
+      out << "E4(U + Epsilon*Vj)" << "\n";
+      out << setw(Width) << PerturbedD4 << "\n";
    }
    
-   out << "Difference" << endl;
-   out << setw(Width) << Force - PerturbedForce << endl << endl;
-   if (Do2) out << setw(Width) << Stiff - PerturbedStiff << endl;
-   if (Do3) out << setw(Width) << D3 - PerturbedD3 << endl;
-   if (Do4) out << setw(Width) << D4 - PerturbedD4 << endl;
+   out << "Difference" << "\n";
+   out << setw(Width) << Force - PerturbedForce << "\n" << "\n";
+   if (Do2) out << setw(Width) << Stiff - PerturbedStiff << "\n";
+   if (Do3) out << setw(Width) << D3 - PerturbedD3 << "\n";
+   if (Do4) out << setw(Width) << D4 - PerturbedD4 << "\n";
    
    out.flags(ios::fixed);
    if (Echo_) cout.flags(ios::fixed);
@@ -917,7 +947,7 @@ void Lattice::ConsistencyCheck(double ConsistencyEpsilon,int Width,ostream &out)
    
    if (Echo_)
    {
-      for (int i=0;i<70;i++) cout << "="; cout << endl;
+      for (int i=0;i<70;i++) cout << "="; cout << "\n";
    }
-   for (int i=0;i<70;i++) out << "="; out << endl;
+   for (int i=0;i<70;i++) out << "="; out << "\n";
 }

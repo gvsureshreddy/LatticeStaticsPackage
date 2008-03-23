@@ -1,7 +1,6 @@
 #include "MultiChainTTPP.h"
-#include <cmath>
-
 #include "UtilityFunctions.h"
+#include <cmath>
 
 using namespace std;
 
@@ -20,24 +19,24 @@ MultiChainTTPP::~MultiChainTTPP()
    delete [] AtomPositions_;
 }
 
-MultiChainTTPP::MultiChainTTPP(char *datafile,const char *prefix,int Echo,int Width,int Debug):
-   Lattice(datafile,prefix)
+MultiChainTTPP::MultiChainTTPP(PerlInput &Input,int Echo,int Width,int Debug)
+   : Lattice(Input)
 {
    Echo_ = Echo;
    dbg_ = Debug;
    // Get Lattice definition
    char tmp[LINELENGTH];
-   if(!GetParameter(prefix,"InternalAtoms",datafile,'u',&INTERNAL_ATOMS)) exit(-1);
+   INTERNAL_ATOMS = Input.getUnsigned("MultiChainTTPP","InternalAtoms");
    DOFS = 1+INTERNAL_ATOMS;
    if (DOFMAX < DOFS)
    {
-      cerr << "Error (MultiChainTTPP()): DOFMAX < " << DOFS << " in Lattice.h" << endl;
+      cerr << "Error (MultiChainTTPP()): DOFMAX < " << DOFS << " in Lattice.h" << "\n";
       exit(-5);
    }
    
    // Set RefLattice_
    RefLattice_.Resize(DIM1,DIM1);
-   if(!GetParameter(prefix,"LatticeBasis",datafile,'l',&(RefLattice_[0][0]))) exit(-1);
+   RefLattice_[0][0] = Input.getDouble("MultiChainTTPP","LatticeBasis");
    
    // First Size DOF
    DOF_.Resize(DOFS,0.0);
@@ -48,7 +47,7 @@ MultiChainTTPP::MultiChainTTPP(char *datafile,const char *prefix,int Echo,int Wi
    {
       AtomPositions_[i].Resize(DIM1);
       sprintf(tmp,"AtomPosition_%u",i);
-      if(!GetParameter(prefix,tmp,datafile,'l',&(AtomPositions_[i][0]))) exit(-1);
+      AtomPositions_[i][0] = Input.getDouble("MultiChainTTPP",tmp);
    }
    
    // Setup Bodyforce_
@@ -57,13 +56,12 @@ MultiChainTTPP::MultiChainTTPP(char *datafile,const char *prefix,int Echo,int Wi
       BodyForce_[i].Resize(DIM1,0.0);
    
    // Get Thermo parameters
-   if (!GetParameter(prefix,"Tref",datafile,'l',&Tref_)) exit(-1);
-   //if (!GetParameter(prefix,"PhiRef",datafile,'l',&PhiRef_)) exit(-1);
-   //if (!GetParameter(prefix,"EntropyRef",datafile,'l',&EntropyRef_)) exit(-1);
-   //if (!GetParameter(prefix,"HeatCapacityRef",datafile,'l',&HeatCapacityRef_)) exit(-1);
-   
-   if (!GetIntVectorParameter(prefix,"AtomSpecies",datafile,INTERNAL_ATOMS,AtomSpecies_))
-      exit(-1);
+   Tref_ = Input.getDouble("MultiChainTTPP","Tref");
+   //PhiRef_ = Input.getDouble("MultiChainTTPP","PhiRef");
+   //EntropyRef_ = Input.getDouble("MultiChainTTPP","EntropyRef");
+   //HeatCapacityRef_ = Input.getDouble("MultiChainTTPP","HeatCapacityRef");
+
+   Input.getIntVector(AtomSpecies_,INTERNAL_ATOMS,"MultiChainTTPP","AtomSpecies");
    NumberofSpecies_ = AtomSpecies_[0];
    for (int i=1;i<INTERNAL_ATOMS;++i)
       if (NumberofSpecies_ < AtomSpecies_[i])
@@ -92,10 +90,10 @@ MultiChainTTPP::MultiChainTTPP(char *datafile,const char *prefix,int Echo,int Wi
       for (int j=i;j<NumberofSpecies_;++j)
       {
          SpeciesPotential_[i][j] = SpeciesPotential_[j][i]
-            = InitializePairPotential(datafile,prefix,i,j);
+            = InitializePairPotential("MultiChainTTPP",Input,i,j);
       }
       sprintf(tmp,"AtomicMass_%u",i);
-      if (!GetParameter(prefix,tmp,datafile,'l',&(SpeciesMass_[i]))) exit(-1);
+      SpeciesMass_[i] = Input.getDouble("MultiChainTTPP",tmp);
    }
    
    for (int i=0;i<INTERNAL_ATOMS;++i)
@@ -111,36 +109,43 @@ MultiChainTTPP::MultiChainTTPP(char *datafile,const char *prefix,int Echo,int Wi
    
    // Get Lattice parameters
    NTemp_ = 1.0;
-   if(!GetParameter(prefix,"InfluenceDist",datafile,'l',&InfluenceDist_)) exit(-1);
-   if(!GetParameter(prefix,"NormModulus",datafile,'l',&NormModulus_)) exit(-1);
+   InfluenceDist_ = Input.getDouble("MultiChainTTPP","InfluenceDist");
+   NormModulus_ = Input.getDouble("MultiChainTTPP","NormModulus");
    
    // Get Loading parameters
-   const char *loadparams[] = {"Temperature","Load"};
-   int NoParams=2;
-   switch (GetStringParameter(prefix,"LoadingParameter",datafile,loadparams,NoParams))
+   const char *loadparam = Input.getString("MultiChainTTPP","LoadingParameter");
+   if (!strcmp("Temperature",loadparam))
    {
-      case 0: LoadParameter_ = Temperature; break;
-      case 1: LoadParameter_ = Load; break;
-      case -1: cerr << "Unknown Loading Parameter" << endl; exit(-1); break;
+      LoadParameter_ = Temperature;
+   }
+   else if (!strcmp("Load",loadparam))
+   {
+      LoadParameter_ = Load;
+   }
+   else
+   {
+      cerr << "Unknown Loading Parameter" << "\n"; exit(-1);
    }
    Lambda_ = 0.0;
    
    // needed to initialize reference length
    int iter;
-   if(!GetParameter(prefix,"MaxIterations",datafile,'u',&iter)) exit(-1);
-   if(!GetParameter(prefix,"BlochWaveGridSize",datafile,'u',&GridSize_)) exit(-1);
+   iter = Input.getUnsigned("MultiChainTTPP","MaxIterations");
+   GridSize_ = Input.getUnsigned("MultiChainTTPP","BlochWaveGridSize");
    
    //set LagrangeCB_
-   const char *CBKin[] = {"LagrangeCB","MixedCB"};
-   switch (GetStringParameter(prefix,"CBKinematics",datafile,CBKin,2,0))
+   const char *CBKin = Input.getString("MultiChainTTPP","CBKinematics");
+   if (!strcmp("LagrangeCB",CBKin))
    {
-      case 1:
-         LagrangeCB_ = 0;
-         break;
-      case 0:
-      default:
-         LagrangeCB_ = 1;
-         break;
+      LagrangeCB_ = 1;
+   }
+   else if (!strcmp("MixedCB",CBKin))
+   {
+      LagrangeCB_ = 0;
+   }
+   else
+   {
+      LagrangeCB_ = 0;
    }
    
    // Initiate the Lattice Sum object
@@ -148,26 +153,27 @@ MultiChainTTPP::MultiChainTTPP(char *datafile,const char *prefix,int Echo,int Wi
              &InfluenceDist_,&NTemp_);
    
    int err=0;
-   err=FindLatticeSpacing(datafile,prefix,iter);
+   err=FindLatticeSpacing(iter);
    if (err)
    {
-      cerr << "unable to find initial lattice spacing!" << endl;
+      cerr << "unable to find initial lattice spacing!" << "\n";
       exit(-1);
    }
    
    // Setup initial status for parameters
-   if(!GetParameter(prefix,"NTemp",datafile,'l',&NTemp_)) exit(-1);
-   if(!GetParameter(prefix,"Lambda",datafile,'l',&Lambda_)) exit(-1);
+   NTemp_ = Input.getDouble("MultiChainTTPP","NTemp");
+   Lambda_ = Input.getDouble("MultiChainTTPP","Lambda");
    // Make any changes to atomic potentials that might be required
-   strcpy(tmp,prefix); strcat(tmp,"Update-");
    for (int i=0;i<INTERNAL_ATOMS;++i)
    {
       for (int j=i;j<INTERNAL_ATOMS;++j)
       {
          if (AtomSpecies_[i] < AtomSpecies_[j])
-            UpdatePairPotential(datafile,tmp,AtomSpecies_[i],AtomSpecies_[j],Potential_[i][j]);
+            UpdatePairPotential("MultiChainTTPP",Input,
+                                AtomSpecies_[i],AtomSpecies_[j],Potential_[i][j]);
          else
-            UpdatePairPotential(datafile,tmp,AtomSpecies_[j],AtomSpecies_[i],Potential_[j][i]);
+            UpdatePairPotential("MultiChainTTPP",Input,
+                                AtomSpecies_[j],AtomSpecies_[i],Potential_[j][i]);
       }
    }
    ChainSum_.Recalc();
@@ -176,7 +182,7 @@ MultiChainTTPP::MultiChainTTPP(char *datafile,const char *prefix,int Echo,int Wi
    ChainIter_(GridSize_);
 }
 
-int MultiChainTTPP::FindLatticeSpacing(char *datafile,const char *prefix,int iter)
+int MultiChainTTPP::FindLatticeSpacing(int iter)
 {
    Lambda_=0.0;
    NTemp_=1.0;
@@ -325,7 +331,7 @@ double MultiChainTTPP::energy(PairPotentials::TDeriv dt)
    }
    else
    {
-      cerr << "Error in MultiChainTTPP::energy" << endl;
+      cerr << "Error in MultiChainTTPP::energy" << "\n";
       exit(-1);
    }
    
@@ -385,7 +391,7 @@ Matrix MultiChainTTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
                NTemp_,ChainSum_.r2(),PairPotentials::DY,dt);
          else
          {
-            cerr << "Error in MultiChainTTPP::stress" << endl;
+            cerr << "Error in MultiChainTTPP::stress" << "\n";
             exit(-1);
          }
          
@@ -419,7 +425,7 @@ Matrix MultiChainTTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
    }
    else
    {
-      cerr << "Unknown LDeriv dl in MultiChainTpp::stress()" << endl;
+      cerr << "Unknown LDeriv dl in MultiChainTpp::stress()" << "\n";
       exit(-1);
    }
    
@@ -467,7 +473,7 @@ Matrix MultiChainTTPP::stiffness(PairPotentials::TDeriv dt,LDeriv dl)
          }
          else
          {
-            cerr << "Error in MultiChainTTPP::stiffness" << endl;
+            cerr << "Error in MultiChainTTPP::stiffness" << "\n";
             exit(-1);
          }
          
@@ -506,7 +512,7 @@ Matrix MultiChainTTPP::stiffness(PairPotentials::TDeriv dt,LDeriv dl)
    }
    else
    {
-      cerr << "Unknown LDeriv dl in MultiChainTpp::stiffness()" << endl;
+      cerr << "Unknown LDeriv dl in MultiChainTpp::stiffness()" << "\n";
       exit(-1);
    }
    
@@ -948,8 +954,8 @@ void MultiChainTTPP::ReferenceDispersionCurves(Vector K,int NoPTS,const char *pr
          out << setw(w) << EigVal[k][0][i];
          if (Echo_) cout << setw(w) << EigVal[k][0][i];
       }
-      out << endl;
-      if (Echo_) cout << endl;
+      out << "\n";
+      if (Echo_) cout << "\n";
    }
    int zero=0,one=1,two=2;
    for (int k=2;k<NoPTS;++k)
@@ -966,8 +972,8 @@ void MultiChainTTPP::ReferenceDispersionCurves(Vector K,int NoPTS,const char *pr
          out << setw(w) << EigVal[two][0][i];;
          if (Echo_) cout << setw(w) << EigVal[two][0][i];;
       }
-      out << endl;
-      if (Echo_) cout << endl;
+      out << "\n";
+      if (Echo_) cout << "\n";
       
       zero = (++zero)%3; one = (zero+1)%3; two = (one+1)%3;
    }
@@ -1025,9 +1031,9 @@ void MultiChainTTPP::NeighborDistances(int cutoff,ostream &out)
       {
          out << setw(W/4) << int(NeighborDist[i][1+j]);
       }
-      out << endl;
+      out << "\n";
    }
-   out << endl;
+   out << "\n";
 }
 
 void MultiChainTTPP::Print(ostream &out,PrintDetail flag)
@@ -1078,116 +1084,116 @@ void MultiChainTTPP::Print(ostream &out,PrintDetail flag)
    switch (flag)
    {
       case PrintLong:
-         out << "MultiChainTTPP:" << endl << endl;
-         out << "LagrangeCB: " << LagrangeCB_ << endl;
+         out << "MultiChainTTPP:" << "\n" << "\n";
+         out << "LagrangeCB: " << LagrangeCB_ << "\n";
          out << "RefLattice_ : " << setw(W) << RefLattice_;
          for (int i=0;i<INTERNAL_ATOMS;++i)
          {
             out << "Atom_" << i << "          "
                 << "Species : " << setw(5) << AtomSpecies_[i]
-                << "          Position : " << setw(W) << AtomPositions_[i] << endl;
+                << "          Position : " << setw(W) << AtomPositions_[i] << "\n";
          }
-         out << "Influence Distance   : " << setw(W) << InfluenceDist_ << endl;
+         out << "Influence Distance   : " << setw(W) << InfluenceDist_ << "\n";
          for (int i=0;i<NumberofSpecies_;++i)
          {
             out << "Atomic Mass " << i << "  : "
-                << setw(W) << SpeciesMass_[i] << endl;
+                << setw(W) << SpeciesMass_[i] << "\n";
          }
-         out << "Tref = " << setw(W) << Tref_ << endl;
+         out << "Tref = " << setw(W) << Tref_ << "\n";
          //<< "PhiRef = " << setw(W) << PhiRef_ << "; "
          //<< "EntropyRef = " << setw(W) << EntropyRef_ << "; "
-         //<< "HeatCapacityRef = " << setw(W) << HeatCapacityRef_ << endl;
-         out << "Potential Parameters : " << endl;
+         //<< "HeatCapacityRef = " << setw(W) << HeatCapacityRef_ << "\n";
+         out << "Potential Parameters : " << "\n";
          for (int i=0;i<NumberofSpecies_;++i)
          {
             for (int j=i;j<NumberofSpecies_;j++)
             {
                out << "[" << i << "][" << j << "] -- "
-                   << setw(W) << SpeciesPotential_[i][j] << endl;
+                   << setw(W) << SpeciesPotential_[i][j] << "\n";
             }
          }
-         out << "Normalization Modulus : " << setw(W) << NormModulus_ << endl;
+         out << "Normalization Modulus : " << setw(W) << NormModulus_ << "\n";
          // also send to cout
          if (Echo_)
          {
-            cout << "MultiChainTTPP:" << endl << endl;
-            cout << "LagrangeCB: " << LagrangeCB_ << endl;
+            cout << "MultiChainTTPP:" << "\n" << "\n";
+            cout << "LagrangeCB: " << LagrangeCB_ << "\n";
             cout << "RefLattice_ : " << setw(W) << RefLattice_;
             for (int i=0;i<INTERNAL_ATOMS;++i)
             {
                cout << "Atom_" << i << "          "
                     << "Species : " << setw(5) << AtomSpecies_[i]
-                    << "          Position : " << setw(W) << AtomPositions_[i] << endl;
+                    << "          Position : " << setw(W) << AtomPositions_[i] << "\n";
             }
-            cout << "Influence Distance   : " << setw(W) << InfluenceDist_ << endl;
+            cout << "Influence Distance   : " << setw(W) << InfluenceDist_ << "\n";
             for (int i=0;i<NumberofSpecies_;++i)
             {
                cout << "Atomic Mass " << i << "  : "
-                    << setw(W) << SpeciesMass_[i] << endl;
+                    << setw(W) << SpeciesMass_[i] << "\n";
             }
-            cout << "Tref = " << setw(W) << Tref_ << endl;
+            cout << "Tref = " << setw(W) << Tref_ << "\n";
             //<< "PhiRef = " << setw(W) << PhiRef_ << "; "
             //<< "EntropyRef = " << setw(W) << EntropyRef_ << "; "
-            //<< "HeatCapacityRef = " << setw(W) << HeatCapacityRef_ << endl;
-            cout << "Potential Parameters : " << endl;
+            //<< "HeatCapacityRef = " << setw(W) << HeatCapacityRef_ << "\n";
+            cout << "Potential Parameters : " << "\n";
             for (int i=0;i<NumberofSpecies_;++i)
             {
                for (int j=i;j<NumberofSpecies_;j++)
                {
                   cout << "[" << i << "][" << j << "] -- "
-                       << setw(W) << SpeciesPotential_[i][j] << endl;
+                       << setw(W) << SpeciesPotential_[i][j] << "\n";
                }
             }
-            cout << "Normalization Modulus : " << setw(W) << NormModulus_ << endl;
+            cout << "Normalization Modulus : " << setw(W) << NormModulus_ << "\n";
          }
          // passthrough to short
       case PrintShort:
-         out << "Temperature (Ref Normalized): " << setw(W) << NTemp_ << endl
-             << "Lambda (Normalized): " << setw(W) << Lambda_ << endl
-             << "DOF's :" << endl << setw(W) << DOF_ << endl
-             << "Potential Value (Normalized):" << setw(W) << engy << endl
-             << "Entropy:" << setw(W) << entropy << endl
-             << "HeatCapacity:" << setw(W) << heatcapacity << endl;
+         out << "Temperature (Ref Normalized): " << setw(W) << NTemp_ << "\n"
+             << "Lambda (Normalized): " << setw(W) << Lambda_ << "\n"
+             << "DOF's :" << "\n" << setw(W) << DOF_ << "\n"
+             << "Potential Value (Normalized):" << setw(W) << engy << "\n"
+             << "Entropy:" << setw(W) << entropy << "\n"
+             << "HeatCapacity:" << setw(W) << heatcapacity << "\n";
          for (int i=0;i<INTERNAL_ATOMS;++i)
          {
             out << "BodyForce Value " << i << " (Inf Normalized):"
-                << setw(W) << BodyForce_[i] << endl;
+                << setw(W) << BodyForce_[i] << "\n";
          }
-         out << "Stress (Normalized):" << setw(W) << str << endl
+         out << "Stress (Normalized):" << setw(W) << str << "\n"
              << "Stiffness (Normalized):" << setw(W) << stiff
-             << "Eigenvalue Info:"  <<endl<< setw(W) << TestFunctVals<<endl
-             << "Bifurcation Info:" << setw(W) << 0.0 << setw(W) << NoNegTestFunctions << endl
+             << "Eigenvalue Info:"  <<"\n"<< setw(W) << TestFunctVals<<"\n"
+             << "Bifurcation Info:" << setw(W) << 0.0 << setw(W) << NoNegTestFunctions << "\n"
              << "Condensed Moduli (Normalized):" << setw(W) << CondModuli
              << "CondEV Info:" << setw(W) << CondEV
-             << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << endl
+             << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << "\n"
              << "BlochWave Stability:" << setw(W) << BlochWaveStable << ", "
-             << setw(W) << K << endl;
+             << setw(W) << K << "\n";
          // send to cout also
          if (Echo_)
          {
-            cout << "Temperature (Ref Normalized): " << setw(W) << NTemp_ << endl
-                 << "Lambda (Normalized): " << setw(W) << Lambda_ << endl
-                 << "DOF's :" << endl << setw(W) << DOF_ << endl
-                 << "Potential Value (Normalized):" << setw(W) << engy << endl
-                 << "Entropy:" << setw(W) << entropy << endl
-                 << "HeatCapacity:" << setw(W) << heatcapacity << endl;
+            cout << "Temperature (Ref Normalized): " << setw(W) << NTemp_ << "\n"
+                 << "Lambda (Normalized): " << setw(W) << Lambda_ << "\n"
+                 << "DOF's :" << "\n" << setw(W) << DOF_ << "\n"
+                 << "Potential Value (Normalized):" << setw(W) << engy << "\n"
+                 << "Entropy:" << setw(W) << entropy << "\n"
+                 << "HeatCapacity:" << setw(W) << heatcapacity << "\n";
             for (int i=0;i<INTERNAL_ATOMS;++i)
             {
                cout << "BodyForce Value " << i << " (Inf Normalized):"
-                    << setw(W) << BodyForce_[i] << endl;
+                    << setw(W) << BodyForce_[i] << "\n";
             }
-            cout << "Stress (Normalized):" << setw(W) << str << endl
+            cout << "Stress (Normalized):" << setw(W) << str << "\n"
                  << "Stiffness (Normalized):" << setw(W) << stiff
-                 << "Eigenvalue Info (Translations->1.0):"  << endl
-                 <<setw(W) <<  TestFunctVals<<endl
+                 << "Eigenvalue Info (Translations->1.0):"  << "\n"
+                 <<setw(W) <<  TestFunctVals<<"\n"
                  << "Bifurcation Info:" << setw(W) << 0.0 << setw(W) << NoNegTestFunctions
-                 << endl
+                 << "\n"
                  << "Condensed Moduli (Normalized):" << setw(W) << CondModuli
                  << "CondEV Info:" << setw(W) << CondEV
-                 << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << endl
+                 << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << "\n"
                  << "BlochWave Stability (GridSize=" << GridSize_ << "):"
                  << setw(W) << BlochWaveStable << ", "
-                 << setw(W) << K << endl;
+                 << setw(W) << K << "\n";
          }
          break;
    }
@@ -1274,30 +1280,30 @@ void MultiChainTTPP::DebugMode()
    {
       indx=0;
       if (!strcmp(response,Commands[indx++]))
-         cout << "INTERNAL_ATOMS = " << INTERNAL_ATOMS << endl;
+         cout << "INTERNAL_ATOMS = " << INTERNAL_ATOMS << "\n";
       else if (!strcmp(response,Commands[indx++]))
-         cout << "DOFS = " << DOFS << endl;
+         cout << "DOFS = " << DOFS << "\n";
       else if (!strcmp(response,Commands[indx++]))
-         cout << "InfluenceDist_ = " << InfluenceDist_ << endl;
+         cout << "InfluenceDist_ = " << InfluenceDist_ << "\n";
       else if (!strcmp(response,Commands[indx++]))
-         cout << "NTemp_ = " << NTemp_ << endl;
+         cout << "NTemp_ = " << NTemp_ << "\n";
       else if (!strcmp(response,Commands[indx++]))
       {
          for (int i=0;i<DOFS;++i)
-            cout << "DOF_[" << i << "] = " << DOF_[i] << endl;
+            cout << "DOF_[" << i << "] = " << DOF_[i] << "\n";
       }
       else if (!strcmp(response,Commands[indx++]))
          cout << "RefLattice_= " << setw(W) << RefLattice_;
       else if (!strcmp(response,Commands[indx++]))
-         cout << "NormModulus_= " << NormModulus_ << endl;
+         cout << "NormModulus_= " << NormModulus_ << "\n";
       else if (!strcmp(response,Commands[indx++]))
-         cout << "Lambda_= " << Lambda_ << endl;
+         cout << "Lambda_= " << Lambda_ << "\n";
       else if (!strcmp(response,Commands[indx++]))
       {
          for (int i=0;i<INTERNAL_ATOMS;++i)
          {
             cout << "BodyForce_[" << i << "]= " << setw(W)
-                 << BodyForce_[i] << endl;
+                 << BodyForce_[i] << "\n";
          }
       }
       else if (!strcmp(response,Commands[indx++]))
@@ -1305,18 +1311,18 @@ void MultiChainTTPP::DebugMode()
          for (int i=0;i<INTERNAL_ATOMS;++i)
          {
             cout << "AtomicMass_[" << i << "]= " << setw(W)
-                 << AtomicMass_[i] << endl;
+                 << AtomicMass_[i] << "\n";
          }
       }
       else if (!strcmp(response,Commands[indx++]))
-         cout << "GridSize_= " << GridSize_ << endl;
+         cout << "GridSize_= " << GridSize_ << "\n";
       else if (!strcmp(response,Commands[indx++]))
       {
          for (int i=0;i<INTERNAL_ATOMS;++i)
             for (int j=i;j<INTERNAL_ATOMS;++j)
             {
                cout << "Potential_[" << i << "][" << j << "]= "
-                    << setw(W) << Potential_[i][j] << endl;
+                    << setw(W) << Potential_[i][j] << "\n";
             }
       }
       else if (!strcmp(response,Commands[indx++]))
@@ -1348,7 +1354,7 @@ void MultiChainTTPP::DebugMode()
       else if (!strcmp(response,Commands[indx++]))
       {
          Vector K(1,0.0);
-         cout << "ReferenceBlochWave= " << ReferenceBlochWave(K) << "\t" << K << endl;
+         cout << "ReferenceBlochWave= " << ReferenceBlochWave(K) << "\t" << K << "\n";
       }
       else if (!strcmp(response,Commands[indx++]))
       {
@@ -1357,7 +1363,7 @@ void MultiChainTTPP::DebugMode()
          cin >> K;
          cin.sync(); // clear input
          cout << "ReferenceDynamicalStiffness= "
-              << setw(W) << ReferenceDynamicalStiffness(K) << endl;
+              << setw(W) << ReferenceDynamicalStiffness(K) << "\n";
       }
       else if (!strcmp(response,Commands[indx++]))
       {
@@ -1388,7 +1394,7 @@ void MultiChainTTPP::DebugMode()
          SetInfluenceDist(dist);
       }
       else if (!strcmp(response,Commands[indx++]))
-         cout << "energy= " << energy() << endl;
+         cout << "energy= " << energy() << "\n";
       else if (!strcmp(response,Commands[indx++]))
          cout << "E0= " << setw(W) << E0();
       else if (!strcmp(response,Commands[indx++]))
@@ -1452,17 +1458,10 @@ void MultiChainTTPP::DebugMode()
       else if (!strcmp(response,Commands[indx++]))
       {
          int iter;
-         char datafl[265],prefix[265];
-         cout << "\tdatafile > ";
-         cin >> datafl;
-         cin.sync(); // clear input
-         cout << "\tprefix > ";
-         cin >> prefix;
-         cin.sync(); // clear input
          cout << "\titer > ";
          cin >> iter;
          cin.sync(); // clear input
-         FindLatticeSpacing(datafl,prefix,iter);
+         FindLatticeSpacing(iter);
       }
       else if (!strcmp(response,Commands[indx++]))
       {
@@ -1479,7 +1478,7 @@ void MultiChainTTPP::DebugMode()
       }
       else if (!strcmp(response,Commands[indx++]))
       {
-         cout << "dbg_ = " << dbg_ << endl;
+         cout << "dbg_ = " << dbg_ << "\n";
       }
       else if (!strcmp(response,Commands[indx++]))
       {
@@ -1493,7 +1492,7 @@ void MultiChainTTPP::DebugMode()
       }
       else if (!strcmp(response,Commands[indx++]))
       {
-         cout << "Entropy = " << setw(W) << Entropy() << endl;
+         cout << "Entropy = " << setw(W) << Entropy() << "\n";
       }
       else if (!strcmp(response,"?") ||
                !strcasecmp(response,"help"))
@@ -1503,20 +1502,20 @@ void MultiChainTTPP::DebugMode()
          {
             cout << "  " << setw(30) << Commands[i];
             if (i==NOcommands/2 && !NOcommands%2)
-               cout << endl;
+               cout << "\n";
             else
-               cout << setw(30) << Commands[NOcommands/2+i] << endl;
+               cout << setw(30) << Commands[NOcommands/2+i] << "\n";
             
             if (!((i+1)%30))
             {
-               cout << "more...." << endl;
+               cout << "more...." << "\n";
                char ans;
                cin.sync(); // clear input
                ans=kbhitWait();
                if (ans=='q') break;
             }
          }
-         cout << resetiosflags(ios::left) << endl;
+         cout << resetiosflags(ios::left) << "\n";
       }
       else if (!strcmp(response,"\n") ||
                !strcmp(response,""))
@@ -1524,10 +1523,10 @@ void MultiChainTTPP::DebugMode()
       }
       else
       {
-         cout << "!--- Error - Unknown command ---!" << endl << endl;
+         cout << "!--- Error - Unknown command ---!" << "\n" << "\n";
       }
       
-      cout << endl << prompt;
+      cout << "\n" << prompt;
       cin.getline(response,LINELENGTH);
    }
 }
@@ -1557,7 +1556,7 @@ void MultiChainTTPP::RefineEqbm(double Tol,int MaxItr,ostream *out)
       {
          *out << setw(20) << Stress;
          
-         *out << itr << "\tdx " << dx.Norm() << "\tstress " << Stress.Norm() << endl;
+         *out << itr << "\tdx " << dx.Norm() << "\tstress " << Stress.Norm() << "\n";
       }
    }
 }

@@ -22,7 +22,7 @@ double RadiiMorse::A(double NTemp,TDeriv dt)
          retval = 0.0;
          break;
       default:
-         cerr << "Error in RadiiMorse::A" << endl;
+         cerr << "Error in RadiiMorse::A" << "\n";
          exit(-1);
    }
    
@@ -45,7 +45,7 @@ double RadiiMorse::Beta(double NTemp,TDeriv dt)
          retval = 0.0;
          break;
       default:
-         cerr << "Error in RadiiMorse::Beta" << endl;
+         cerr << "Error in RadiiMorse::Beta" << "\n";
          exit(-1);
    }
    
@@ -69,7 +69,7 @@ double RadiiMorse::Rhat(double NTemp,TDeriv dt)
          rhat = Rtheta1_*Rtheta2_ + Rtheta2_*Rtheta1_;
          break;
       default:
-         cerr << "Error in RadiiMorse::Rhat" << endl;
+         cerr << "Error in RadiiMorse::Rhat" << "\n";
          exit(-1);
    }
    
@@ -110,7 +110,7 @@ double RadiiMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
                       + a(NTemp,D2T)*g(NTemp,r2,Y0,T0)*(g(NTemp,r2,Y0,T0)-2.0));
                break;
             default:
-               cerr << "Error in RadiiMorse::PairPotential -- Y0,D3T" << endl;
+               cerr << "Error in RadiiMorse::PairPotential -- Y0,D3T" << "\n";
                exit(-1);
                break;
          }
@@ -135,7 +135,7 @@ double RadiiMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
                       + 4.0*a(NTemp,DT)*g(NTemp,r2,DY,T0)*g(NTemp,r2,Y0,DT));
                break;
             default:
-               cerr << "Error in RadiiMorse::PairPotential -- DY,D3T" << endl;
+               cerr << "Error in RadiiMorse::PairPotential -- DY,D3T" << "\n";
                exit(-1);
                break;
          }
@@ -167,7 +167,7 @@ double RadiiMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
                       + 8.0*a(NTemp,DT)*g(NTemp,r2,DY,DT)*g(NTemp,r2,DY,T0));
                break;
             default:
-               cerr << "Error in RadiiMorse::PairPotential -- D2Y,D3T" << endl;
+               cerr << "Error in RadiiMorse::PairPotential -- D2Y,D3T" << "\n";
                exit(-1);
                break;
          }
@@ -207,7 +207,7 @@ double RadiiMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
                       + 4.0*a(NTemp,DT)*g(NTemp,r2,D3Y,T0)*g(NTemp,r2,Y0,DT));
                break;
             default:
-               cerr << "Error in RadiiMorse::PairPotential -- D3Y,D3T" << endl;
+               cerr << "Error in RadiiMorse::PairPotential -- D3Y,D3T" << "\n";
                exit(-1);
                break;
          }
@@ -249,13 +249,13 @@ double RadiiMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
                       + 4.0*a(NTemp,DT)*g(NTemp,r2,D4Y,T0)*g(NTemp,r2,Y0,DT));
                break;
             default:
-               cerr << "Error in RadiiMorse::PairPotential -- D4Y,D3T" << endl;
+               cerr << "Error in RadiiMorse::PairPotential -- D4Y,D3T" << "\n";
                exit(-1);
                break;
          }
          break;
       default:
-         cerr << "Error in RadiiMorse::PairPotential -- D5Y" << endl;
+         cerr << "Error in RadiiMorse::PairPotential -- D5Y" << "\n";
          exit(-1);
          break;
    }
@@ -285,7 +285,7 @@ double RadiiMorse::I(double NTemp,TDeriv dt)
             );
          break;
       default:
-         cerr << "Error in RadiiMorse::I -- D3T" << endl;
+         cerr << "Error in RadiiMorse::I -- D3T" << "\n";
          exit(-1);
          break;
    }
@@ -320,7 +320,7 @@ double RadiiMorse::G(double NTemp,double r2,YDeriv dy,TDeriv dt)
                      - b(NTemp,D2T)*(r/rhat(NTemp) - 1.0))*G(NTemp,r2,Y0,T0);
                break;
             default:
-               cerr << "Error in RadiiMorse::G -- Y0,D3T" << endl;
+               cerr << "Error in RadiiMorse::G -- Y0,D3T" << "\n";
                exit(-1);
          }
          break;
@@ -338,7 +338,7 @@ double RadiiMorse::G(double NTemp,double r2,YDeriv dy,TDeriv dt)
                       + i(NTemp)*G(NTemp,r2,Y0,D2T))/r;
                break;
             default:
-               cerr << "Error in RadiiMorse::G -- DY,D3T" << endl;
+               cerr << "Error in RadiiMorse::G -- DY,D3T" << "\n";
                exit(-1);
          }
          break;
@@ -358,7 +358,7 @@ double RadiiMorse::G(double NTemp,double r2,YDeriv dy,TDeriv dt)
                       + i(NTemp)*(G(NTemp,r2,DY,D2T)/r - G(NTemp,r2,Y0,D2T)/(2.0*r2*r)));
                break;
             default:
-               cerr << "Error in RadiiMorse::G -- D2Y,D3T" << endl;
+               cerr << "Error in RadiiMorse::G -- D2Y,D3T" << "\n";
                exit(-1);
          }
          break;
@@ -384,7 +384,7 @@ double RadiiMorse::G(double NTemp,double r2,YDeriv dy,TDeriv dt)
                                   + 3.0*G(NTemp,r2,Y0,D2T)/(4.0*r2*r2*r)));
                break;
             default:
-               cerr << "Error in RadiiMorse::G -- D3Y,D3T" << endl;
+               cerr << "Error in RadiiMorse::G -- D3Y,D3T" << "\n";
                exit(-1);
          }
          break;
@@ -418,12 +418,12 @@ double RadiiMorse::G(double NTemp,double r2,YDeriv dy,TDeriv dt)
                                   - 15.0*G(NTemp,r2,Y0,D2T)/(8.0*r2*r2*r2*r)));
                break;
             default:
-               cerr << "Error in RadiiMorse::G -- D4Y,D3T" << endl;
+               cerr << "Error in RadiiMorse::G -- D4Y,D3T" << "\n";
                exit(-1);
          }
          break;
       default:
-         cerr << "Error in RadiiMorse::G -- D5Y" << endl;
+         cerr << "Error in RadiiMorse::G -- D5Y" << "\n";
          exit(-1);
    }
    

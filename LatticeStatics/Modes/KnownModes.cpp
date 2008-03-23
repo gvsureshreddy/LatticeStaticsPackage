@@ -1,24 +1,17 @@
 #include "KnownModes.h"
 
-#include "UtilityFunctions.h"
-
-LatticeMode *InitializeMode(Lattice *Lat,const char *datafile,const char *prefix)
+LatticeMode *InitializeMode(Lattice *Lat,PerlInput &Input)
 {
-   const int NoModes = KNOWNMODES;
-   const char *Modes[]={"MultiMode"};
-   
-   switch (GetStringParameter(prefix,"MainModeType",datafile,Modes,NoModes))
+   const char *Mode = Input.getString("Mode","Type");
+
+   if (!strcmp("MultiMode",Mode))
    {
-      case 0:
-      {
-         return new MultiMode(Lat,datafile,prefix);
-      }
-      case -1:
-      {
-         cerr << "Unknown Mode Type" << endl;
-         exit(-1);
-      }
-      break;
+      return new MultiMode(Lat,Input);
+   }
+   else
+   {
+      cerr << "Unknown Mode Type" << "\n";
+      exit(-1);
    }
    
    return NULL;

@@ -1,32 +1,21 @@
 #include "CBKinematics.h"
 
-CBKinematics::CBKinematics(int InternalAtoms,const char* prefix,const char* datafile):
-   InternalAtoms_(InternalAtoms)
+#define LINELENGTH 600
+
+CBKinematics::CBKinematics(int InternalAtoms,PerlInput &Input)
+   : InternalAtoms_(InternalAtoms)
 {
-   char tmp[LINELENGTH];
-   
    // Set RefLattice_
    RefLattice_.Resize(DIM3,DIM3);
-   Vector hold(DIM3);
-   for (int i=0;i<DIM3;++i)
-   {
-      sprintf(tmp,"LatticeBasis_%u",i);
-      if(!GetVectorParameter(prefix,tmp,datafile,&hold)) exit(-1);
-      for (int j=0;j<DIM3;++j)
-      {
-         RefLattice_[i][j] = hold[j];
-      }
-   }
+   Input.getMatrix(RefLattice_,"CBKinematics","LatticeBasis");
    
    // Set AtomPositions_
    InternalPOS_ = new Vector[InternalAtoms_];
    for (int i=0;i<InternalAtoms_;++i)
    {
       InternalPOS_[i].Resize(DIM3);
-      sprintf(tmp,"AtomPosition_%u",i);
-      if(!GetVectorParameter(prefix,tmp,datafile,&(InternalPOS_[i]))) exit(-1);
-   }
-   
+      Input.getVector(InternalPOS_[i],"CBKinematics","AtomPositions",i);
+   }   
 }
 
 void CBKinematics::InfluenceRegion(double *InfluenceRegion)

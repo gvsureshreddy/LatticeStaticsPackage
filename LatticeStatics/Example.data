@@ -1,147 +1,132 @@
-// FCC lattice
+# Main Parameters
+use Math::Trig;
 
-// Main Parameters
-MainFieldWidth = 20
-MainPrecision = 10
-MainBisectCP = Yes
-CriticalPoint_T2 = No
-MainEcho = 1
+%Main = (FieldWidth     => 20,
+         Precision      => 12,
+         Echo           => 1,
+         BisectCP       => Yes,
+         );
 
-MainLatticeType = MultiLatticeTPP
-MainModeType = MultiMode
-MainSolutionMethod = ArcLength
+$spacing = 1.17984390811391227;
+$DEG2RAD = atan2(1,1)*4/180;
 
-// Lattice Definition
-InternalAtoms = 4
-LatticeBasis_0 = "1.0 0.0 0.0"
-LatticeBasis_1 = "0.0 1.0 0.0"
-LatticeBasis_2 = "0.0 0.0 1.0"
+$PotType = RadiiMorse;
+$B0_0_0  = 4.0;
+$A0_0_0  = 0.0135279320059;
+$Rref2_0_0 = 1.0;
+$Rtheta2_0_0 = -0.137957188144 - 0.0082;
 
-AtomPosition_0 = "0.0 0.0 0.0"
-AtomPosition_1 = "0.5 0.5 0.0"
-AtomPosition_2 = "0.5 0.0 0.5"
-AtomPosition_3 = "0.0 0.5 0.5"
+$B0_1_1  = 7.0;
+$Rtheta1_1_1 = 0.275914376289;
 
-// Lattice Parameters
-MaxIterations = 40
+%Lattice = (Type       => MultiLatticeTPP,
+            OrderedTFs => No,
+            ThirdOrder => No,
+            MultiLatticeTPP => 
+            {InternalAtoms       => 4,
+             MaxIterations       => 100,
+             CriticalPoint_T2    => No,
+             CBKinematics        => LagrangeCB, 
+             RotationConstraint  => [FullRotationConstraint],
+             #RotationConstraint  => [OneRotationConstraint,
+             #                        [1.0, 1.0, 0.0],
+             #                        [-1.0, 1.0, 0.0]],
+             Tref                => 300.0,
+             AtomSpecies         => [0, 1, 0, 1],
+             # Ni-Ni
+             PotentialType_0_0   => {Type    => $PotType,
+                                     B0      => $B0_0_0,
+                                     A0      => $A0_0_0,
+                                     Alpha   => 0.0,
+                                     Rref1   => 1.0,
+                                     Rtheta1 => 0.0,
+                                     Rref2   => $Rref2_0_0,
+                                     Rtheta2 => $Rtheta2_0_0},
+             # Ni-Ti
+             PotentialType_0_1   => {Type    => $PotType,
+                                     B0      => ($B0_0_0 + $B0_1_1)/2,
+                                     A0      => $A0_0_0,
+                                     Alpha   => 0.0,
+                                     Rref1   => 1.07080874762,
+                                     Rtheta1 => $Rtheta1_1_1/2,
+                                     Rref2   => $Rref2_0_0,
+                                     Rtheta2 => $Rtheta2_0_0},
+             # Ti-Ti
+             PotentialType_1_1   => {Type    => $PotType,
+                                     B0      => $B0_1_1,
+                                     A0      => $A0_0_0,
+                                     Alpha   => 0.0,
+                                     Rref1   => 1.14924078091,
+                                     Rtheta1 => 0.275914376289,
+                                     Rref2   => $Rref2_0_0,
+                                     Rtheta2 => $Rtheta2_0_0},
+             AtomicMasses        => [1.0, 47.88/58.69],
+             InfluenceDist       => 7.0,
+             NormModulus         => 1.0,
+             ConvexityDX         => 1.0*$DEG2RAD,
+             LoadingParameter    => Temperature,
+             EulerAngle_X        => 0.0,
+             EulerAngle_Y        => 0.0,
+             EulerAngle_Z        => 45.0*$DEG2RAD,
+             LoadProportions     => [1.0, 0.0, 0.0],
+             BlochWaveGridSize   => 5,
+             NTemp               => 1.0,
+             Lambda              => 0.0
+               }
+            );
 
-Tref = 300
+%CBKinematics = (Type => LagrangeCB,
+                 LatticeBasis => [[$spacing, $spacing, 0.0],
+                                  [-$spacing, $spacing, 0.0],
+                                  [0.0, 0.0, $spacing]],
+                 AtomPositions => [[0.0, 0.0, 0.0],
+                                   [0.5, 0.0, 0.5],
+                                   [0.5, 0.5, 0.0],
+                                   [0.0, 0.5, 0.5]]
+                 );
 
-PotentialType_0_0 = RadiiMorse
-B0_0_0 = 4
-A0_0_0 = 1
-Rref_0_0 = 1
-Alpha_0_0 = 0
-Rtheta_0_0 = 0
-Tmelt_0_0 = 1445 + 273
 
-PotentialType_0_1 = <PotentialType_0_0>
-B0_0_1 = <B0_0_0>
-A0_0_1 = <A0_0_0>
-Rref_0_1 = <Rref_0_0>
-Alpha_0_1 = <Alpha_0_0>
-Rtheta_0_1 = <Rtheta_0_0>
-Tmelt_0_1 = <Tmelt_0_0>
+%Mode = (Type      => MultiMode,
+         MultiMode => {DOFS     => 1,
+                       DOF_0    => [[0, 4, 8],
+                                    [1.0, 1.0, 1.0]]
+                                      }
+         );
 
-PotentialType_0_2 = <PotentialType_0_0>
-B0_0_2 = <B0_0_0>
-A0_0_2 = <A0_0_0>
-Rref_0_2 = <Rref_0_0>
-Alpha_0_2 = <Alpha_0_0>
-Rtheta_0_2 = <Rtheta_0_0>
-Tmelt_0_2 = <Tmelt_0_0>
 
-PotentialType_0_3 = <PotentialType_0_0>
-B0_0_3 = <B0_0_0>
-A0_0_3 = <A0_0_0>
-Rref_0_3 = <Rref_0_0>
-Alpha_0_3 = <Alpha_0_0>
-Rtheta_0_3 = <Rtheta_0_0>
-Tmelt_0_3 = <Tmelt_0_0>
 
-PotentialType_1_1 = <PotentialType_0_0>
-B0_1_1 = <B0_0_0>
-A0_1_1 = <A0_0_0>
-Rref_1_1 = <Rref_0_0>
-Alpha_1_1 = <Alpha_0_0>
-Rtheta_1_1 = <Rtheta_0_0>
-Tmelt_1_1 = <Tmelt_0_0>
+#SolutionMethod Parameters
+$ArcLenDSMax = 0.01;
 
-PotentialType_1_2 = <PotentialType_0_0>
-B0_1_2 = <B0_0_0>
-A0_1_2 = <A0_0_0>
-Rref_1_2 = <Rref_0_0>
-Alpha_1_2 = <Alpha_0_0>
-Rtheta_1_2 = <Rtheta_0_0>
-Tmelt_1_2 = <Tmelt_0_0>
+%SolutionMethod = (Type => ArcLength,
+                   ArcLengthSolution => {MaxIterations => 50,
+                                         Tolerance     => 1.0e-13,
+                                         DSMax         => $ArcLenDSMax,
+                                         DSStart       => 0.01,
+                                         DSMin         => $ArcLenDSMax*1.0e-3,
+                                         AngleCutoff   => 25*$DEG2RAD,
+                                         AngleIncrease => 10*$DEG2RAD,
+                                         Aspect        => 1.0,
+                                         NumSolutions  => 1000
+                                           },
+                   ScanningSolution => {DefParam           => 0,
+                                        MaxIterations      => 50,
+                                        Tolerance          => 1.0e-13,
+                                        NewtonTolerance    => 1.0e-13,
+                                        FullField          => No,
+                                        InitialDeformation => [1.0, 1.0],
+                                        Direction          => Deformation,
+                                        Start              => 1.000,
+                                        End                => 1.015,
+                                        Step               => 0.010,
+                                        LineStart          => 0.94,
+                                        LineEnd            => 1.10,
+                                        LineStep           => 0.05
+                                          }
+                   );
 
-PotentialType_1_3 = <PotentialType_0_0>
-B0_1_3 = <B0_0_0>
-A0_1_3 = <A0_0_0>
-Rref_1_3 = <Rref_0_0>
-Alpha_1_3 = <Alpha_0_0>
-Rtheta_1_3 = <Rtheta_0_0>
-Tmelt_1_3 = <Tmelt_0_0>
 
-PotentialType_2_2 = <PotentialType_0_0>
-B0_2_2 = <B0_0_0>
-A0_2_2 = <A0_0_0>
-Rref_2_2 = <Rref_0_0>
-Alpha_2_2 = <Alpha_0_0>
-Rtheta_2_2 = <Rtheta_0_0>
-Tmelt_2_2 = <Tmelt_0_0>
-
-PotentialType_2_3 = <PotentialType_0_0>
-B0_2_3 = <B0_0_0>
-A0_2_3 = <A0_0_0>
-Rref_2_3 = <Rref_0_0>
-Alpha_2_3 = <Alpha_0_0>
-Rtheta_2_3 = <Rtheta_0_0>
-Tmelt_2_3 = <Tmelt_0_0>
-
-PotentialType_3_3 = <PotentialType_0_0>
-B0_3_3 = <B0_0_0>
-A0_3_3 = <A0_0_0>
-Rref_3_3 = <Rref_0_0>
-Alpha_3_3 = <Alpha_0_0>
-Rtheta_3_3 = <Rtheta_0_0>
-Tmelt_3_3 = <Tmelt_0_0>
-
-AtomicMass_0 = 1
-AtomicMass_1 = <AtomicMass_0>
-AtomicMass_2 = <AtomicMass_0>
-AtomicMass_3 = <AtomicMass_0>
-
-RefLen = 1.2
-InfluanceDist = 7
-NTemp=1
-Pressure=0
-ConvexityDX=1.0*<DEG2RAD>
-BlochWaveGridSize = 2
-
-// Scanning Parameters
-ScanningMaxIterations = 100
-ScanningTolerance = 1.0e-13
-ScanningNewtonTolerance = 1.0e-13
-ScanningFullField = No
-ScanningInitialDeformation = "0.0"
-ScanningDirection = Deformation
-ScanningStart = 2.00
-ScanningEnd = 1.95
-ScanningStep = -0.05
-ScanningLineStart = 1.4
-ScanningLineEnd = 0.5
-ScanningLineStep = -0.02
-
-// ArcLength Parameters
-DEG2RAD = atan2(1,1)*4/180
-ArcLenMaxIterations = 50
-ArcLenTolerance = 1.0e-13
-ArcLenDSMax = 0.05
-ArcLenDSStart = 0.05
-ArcLenDSMin = <ArcLenDSMax>*1.0e-3
-ArcLenAngleCutoff = 25*<DEG2RAD>
-ArcLenAngleIncrease = 10*<DEG2RAD>
-ArcLenAspect = 1
-ArcLenNumSolutions = 100
-
+%StartType = (Type => Continuation,
+              Solution1 => [1.000000000000, 1.000000000000],
+              Solution2 => [1.000033386242, 1.010000000000]
+              );

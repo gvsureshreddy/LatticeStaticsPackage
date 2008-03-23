@@ -1,7 +1,6 @@
 #include "MultiLatticeTPP.h"
-#include <cmath>
-
 #include "UtilityFunctions.h"
+#include <cmath>
 
 using namespace std;
 
@@ -23,87 +22,88 @@ MultiLatticeTPP::~MultiLatticeTPP()
    delete CBK_;
 }
 
-MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int Width,int Debug):
-   Lattice(datafile,prefix)
+MultiLatticeTPP::MultiLatticeTPP(PerlInput &Input,int Echo,int Width,int Debug)
+   : Lattice(Input)
 {
    Echo_ = Echo;
    dbg_ = Debug;
    // Get Lattice definition
-   char tmp[LINELENGTH];
-   if(!GetParameter(prefix,"InternalAtoms",datafile,'u',&INTERNAL_ATOMS)) exit(-1);
+   PerlInput::HashStruct Hash = Input.getHash("Lattice","MultiLatticeTPP");
+   INTERNAL_ATOMS = Input.getUnsigned(Hash,"InternalAtoms");
    
    // Set default values
    KillTranslations_ = 1; // 1-true, 0-false
+   int needKillRotations = 1;
    KillRotations_ = 0; // 0-do nothing, 1-kill one rotation, 2-kill three rotations
-   // Initiate the CBK object (default to SymLagrangeCB)
-   const char *CBKin[] = {"SymLagrangeCB","SymLagrangeWTransCB",
-                          "LagrangeCB","MixedCB","EulerCB"};
-   int cbktype=GetStringParameter(prefix,"CBKinematics",datafile,CBKin,4,0);
-   switch (cbktype)
+
+   const char *CBKin = Input.getString(Hash,"CBKinematics");
+   if (!strcmp("SymLagrangeCB",CBKin))
    {
-      case 4:
-         CBK_ = new EulerCB(INTERNAL_ATOMS,prefix,datafile);
-         break;
-      case 3:
-         CBK_ = new MixedCB(INTERNAL_ATOMS,prefix,datafile);
-         break;
-      case 2:
-         CBK_ = new LagrangeCB(INTERNAL_ATOMS,prefix,datafile);
-         break;
-      case 1:
-         CBK_ = new SymLagrangeWTransCB(INTERNAL_ATOMS,prefix,datafile);
-         break;
-      case 0:
-         CBK_ = new SymLagrangeCB(INTERNAL_ATOMS,prefix,datafile);
-         KillTranslations_ = 0;
-         break;
-      default:
-         cerr << "Error Unknown CBKinematics specified" << endl;
-         exit(-9);
-         break;
+      CBK_ = new SymLagrangeCB(INTERNAL_ATOMS,Input);
+      KillTranslations_ = 0;
+      needKillRotations = 0;
    }
-   // Update KillRotations_ if needed
-   if (cbktype > 1)
+   else if (!strcmp("SymLagrangeWTransCB",CBKin))
    {
-      const char *KillRot[] = {"NoRotationConstraint","OneRotationConstraint",
-                               "FullRotationConstraint"};
-      int KillRotType=GetStringParameter(prefix,"RotationConstraint",datafile,KillRot,3);
-      if (KillRotType==-1) exit(-2);
-      
+      CBK_ = new SymLagrangeWTransCB(INTERNAL_ATOMS,Input);
+      needKillRotations = 0;
+   }
+   else if (!strcmp("LagrangeCB",CBKin))
+   {
+      CBK_ = new LagrangeCB(INTERNAL_ATOMS,Input);
+   }
+   else if (!strcmp("MixedCB",CBKin))
+   {
+      CBK_ = new MixedCB(INTERNAL_ATOMS,Input);
+   }
+   else if (!strcmp("EulerCB",CBKin))
+   {
+      CBK_ = new EulerCB(INTERNAL_ATOMS,Input);
+   }
+   else
+   {
+      cerr << "Error Unknown MultiLattice{CBKinematics} specified" << "\n";
+      exit(-9);
+   }    
+   // Update KillRotations_ if needed
+   if (needKillRotations)
+   {
       Vector R(DIM3),r(DIM3);
       double norm;
-      switch (KillRotType)
+      const char *KillRot = Input.getString(Hash,"RotationConstraint",0);
+      if (!strcmp("FullRotationConstraint",KillRot))
       {
-         case 2:
-            KillRotations_=2;
-            break;
-         case 1:
-            KillRotations_=1;
-            if(!GetVectorParameter(prefix,"OneRotationConstraint_R",datafile,&R)) exit(-1);
-            if(!GetVectorParameter(prefix,"OneRotationConstraint_r",datafile,&r)) exit(-1);
-            KillOneRotation_.Resize(CBK_->DOFS(),0.0);
-            for (int i=0;i<DIM3;++i)
-               for (int j=0;j<DIM3;++j)
-               {
-                  KillOneRotation_[CBK_->INDF(i,j)] = r[i]*R[j];
-               }
-            norm=KillOneRotation_.Norm();
-            for (unsigned i=0;i<KillOneRotation_.Dim();++i)
-               KillOneRotation_[i] /= norm;
-            break;
-         case 0:
+         KillRotations_=2;
+      }
+      else if (!strcmp("OneRotationConstraint",KillRot))
+      {
+         KillRotations_=1;
+         Input.getVector(r,Hash,"RotationConstraint",1);
+         Input.getVector(R,Hash,"RotationConstraint",2);
+         KillOneRotation_.Resize(CBK_->DOFS(),0.0);
+         for (int i=0;i<DIM3;++i)
+            for (int j=0;j<DIM3;++j)
+            {
+               KillOneRotation_[CBK_->INDF(i,j)] = r[i]*R[j];
+            }
+         norm=KillOneRotation_.Norm();
+         for (unsigned i=0;i<KillOneRotation_.Dim();++i)
+            KillOneRotation_[i] /= norm;
+      }
+      else if (!strcmp("NoRotationConstraint",KillRot))
+      {
             KillRotations_=0;
-            break;
-         default:
-            cerr << "Error (MultiLatticeTPP()): Unknown RotationConstraint type" << endl;
-            exit(-2);
-            break;
+      }
+      else
+      {
+         cerr << "Error (MultiLatticeTPP()): Unknown RotationConstraint type" << "\n";
+         exit(-2);
       }
    }
    
    if (DOFMAX < CBK_->DOFS())
    {
-      cerr << "Error (MultiLatticeTPP()): DOFMAX < " << CBK_->DOFS() << " in Lattice.h" << endl;
+      cerr << "Error (MultiLatticeTPP()): DOFMAX < " << CBK_->DOFS() << " in Lattice.h" << "\n";
       exit(-5);
    }
    
@@ -113,13 +113,12 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
       BodyForce_[i].Resize(DIM3,0.0);
    
    // Get Thermo parameters
-   if (!GetParameter(prefix,"Tref",datafile,'l',&Tref_)) exit(-1);
-   //if (!GetParameter(prefix,"PhiRef",datafile,'l',&PhiRef_)) exit(-1);
-   //if (!GetParameter(prefix,"EntropyRef",datafile,'l',&EntropyRef_)) exit(-1);
-   //if (!GetParameter(prefix,"HeatCapacityRef",datafile,'l',&HeatCapacityRef_)) exit(-1);
-   
-   if (!GetIntVectorParameter(prefix,"AtomSpecies",datafile,INTERNAL_ATOMS,AtomSpecies_))
-      exit(-1);
+   Tref_ = Input.getDouble(Hash,"Tref");
+   //PhiRef_ = Input.getDouble(Hash,"PhiRef");
+   //EntropyRef_ = Input.getDouble(Hash,"EntropyRef");
+   //HeatCapacityRef_ = Input.getDouble(Hash,"HeatCapacityRef");
+
+   Input.getIntVector(AtomSpecies_,INTERNAL_ATOMS,Hash,"AtomSpecies");
    NumberofSpecies_ = AtomSpecies_[0];
    for (int i=1;i<INTERNAL_ATOMS;++i)
       if (NumberofSpecies_ < AtomSpecies_[i])
@@ -148,10 +147,9 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
       for (int j=i;j<NumberofSpecies_;++j)
       {
          SpeciesPotential_[i][j] = SpeciesPotential_[j][i]
-            = InitializePairPotential(datafile,prefix,i,j);
+            = InitializePairPotential(Hash,Input,i,j);
       }
-      sprintf(tmp,"AtomicMass_%u",i);
-      if (!GetParameter(prefix,tmp,datafile,'l',&(SpeciesMass_[i]))) exit(-1);
+      SpeciesMass_[i] = Input.getDouble(Hash,"AtomicMasses",i);
    }
    
    for (int i=0;i<INTERNAL_ATOMS;++i)
@@ -167,25 +165,31 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
    
    // Get Lattice parameters
    NTemp_ = 1.0;
-   if(!GetParameter(prefix,"InfluanceDist",datafile,'l',&InfluenceDist_)) exit(-1);
-   if(!GetParameter(prefix,"NormModulus",datafile,'l',&NormModulus_)) exit(-1);
-   if(!GetParameter(prefix,"ConvexityDX",datafile,'l',&ConvexityDX_)) exit(-1);
+   InfluenceDist_ = Input.getDouble(Hash,"InfluenceDist");
+   NormModulus_ = Input.getDouble(Hash,"NormModulus");
+   ConvexityDX_ = Input.getDouble(Hash,"ConvexityDX");
    
    // Get Loading parameters
-   const char *loadparams[] = {"Temperature","Load"};
-   int NoParams=2;
-   switch (GetStringParameter(prefix,"LoadingParameter",datafile,loadparams,NoParams))
+   const char *loadparam = Input.getString(Hash,"LoadingParameter");
+   if (!strcmp("Temperature",loadparam))
    {
-      case 0: LoadParameter_ = Temperature; break;
-      case 1: LoadParameter_ = Load; break;
-      case -1: cerr << "Unknown Loading Parameter" << endl; exit(-1); break;
+      LoadParameter_ = Temperature;
+   }
+   else if (!strcmp("Load",loadparam))
+   {
+      LoadParameter_ = Load;
+   }
+   else
+   {
+      cerr << "Unknown Loading Parameter" << "\n";
+      exit(-1);
    }
    Lambda_ = 0.0;
-   if(!GetParameter(prefix,"EulerAngle_X",datafile,'l',&(EulerAng_[0]))) exit(-1);
-   if(!GetParameter(prefix,"EulerAngle_Y",datafile,'l',&(EulerAng_[1]))) exit(-1);
-   if(!GetParameter(prefix,"EulerAngle_Z",datafile,'l',&(EulerAng_[2]))) exit(-1);
+   EulerAng_[0] = Input.getDouble(Hash,"EulerAngle_X");
+   EulerAng_[1] = Input.getDouble(Hash,"EulerAngle_Y");
+   EulerAng_[2] = Input.getDouble(Hash,"EulerAngle_Z");
    LoadingProportions_.Resize(DIM3);
-   if(!GetVectorParameter(prefix,"LoadProportions",datafile,&LoadingProportions_)) exit(-1);
+   Input.getVector(LoadingProportions_,Hash,"LoadProportions");
    // Calculate Rotation and Loading
    // Euler angles transformation Rotation_ = Z*Y*X
    Rotation_.Resize(DIM3,DIM3,0.0);
@@ -213,33 +217,34 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
    
    // needed to initialize reference length
    int iter;
-   if(!GetParameter(prefix,"MaxIterations",datafile,'u',&iter)) exit(-1);
-   if(!GetParameter(prefix,"BlochWaveGridSize",datafile,'u',&GridSize_)) exit(-1);
+   iter = Input.getUnsigned(Hash,"MaxIterations");
+   GridSize_ = Input.getUnsigned(Hash,"BlochWaveGridSize");
    
    // Initiate the Lattice Sum object
    LatSum_(CBK_,INTERNAL_ATOMS,Potential_,&InfluenceDist_,&NTemp_);
    
    int err=0;
-   err=FindLatticeSpacing(datafile,prefix,iter);
+   err=FindLatticeSpacing(iter);
    if (err)
    {
-      cerr << "unable to find initial lattice spacing!" << endl;
+      cerr << "unable to find initial lattice spacing!" << "\n";
       exit(-1);
    }
    
    // Setup initial status for parameters
-   if(!GetParameter(prefix,"NTemp",datafile,'l',&NTemp_)) exit(-1);
-   if(!GetParameter(prefix,"Lambda",datafile,'l',&Lambda_)) exit(-1);
+   NTemp_ = Input.getDouble(Hash,"NTemp");
+   Lambda_ = Input.getDouble(Hash,"Lambda");
    // Make any changes to atomic potentials that might be required
-   strcpy(tmp,prefix); strcat(tmp,"Update-");
    for (int i=0;i<INTERNAL_ATOMS;++i)
    {
       for (int j=i;j<INTERNAL_ATOMS;++j)
       {
          if (AtomSpecies_[i] < AtomSpecies_[j])
-            UpdatePairPotential(datafile,tmp,AtomSpecies_[i],AtomSpecies_[j],Potential_[i][j]);
+            UpdatePairPotential(Hash,Input,
+                                AtomSpecies_[i],AtomSpecies_[j],Potential_[i][j]);
          else
-            UpdatePairPotential(datafile,tmp,AtomSpecies_[j],AtomSpecies_[i],Potential_[j][i]);
+            UpdatePairPotential(Hash,Input,
+                                AtomSpecies_[j],AtomSpecies_[i],Potential_[j][i]);
       }
    }
    LatSum_.Recalc();
@@ -248,7 +253,7 @@ MultiLatticeTPP::MultiLatticeTPP(char *datafile,const char *prefix,int Echo,int 
    UCIter_(GridSize_);
 }
 
-int MultiLatticeTPP::FindLatticeSpacing(char *datafile,const char *prefix,int iter)
+int MultiLatticeTPP::FindLatticeSpacing(int iter)
 {
    Lambda_=0.0;
    NTemp_=1.0;
@@ -369,7 +374,7 @@ double MultiLatticeTPP::energy(PairPotentials::TDeriv dt)
    }
    else
    {
-      cerr << "Error in MultiLatticeTPP::energy" << endl;
+      cerr << "Error in MultiLatticeTPP::energy" << "\n";
       exit(-1);
    }
    
@@ -471,7 +476,7 @@ Matrix MultiLatticeTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
                NTemp_,LatSum_.r2(),PairPotentials::DY,dt);
          else
          {
-            cerr << "Error in MultiLatticeTPP::stress" << endl;
+            cerr << "Error in MultiLatticeTPP::stress" << "\n";
             exit(-1);
          }
          
@@ -524,7 +529,7 @@ Matrix MultiLatticeTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
    }
    else
    {
-      cerr << "Unknown LDeriv dl in MultiLatticeTpp::stress()" << endl;
+      cerr << "Unknown LDeriv dl in MultiLatticeTpp::stress()" << "\n";
       exit(-1);
    }
    
@@ -604,7 +609,7 @@ Matrix MultiLatticeTPP::stiffness(PairPotentials::TDeriv dt,LDeriv dl)
          }
          else
          {
-            cerr << "Error in MultiLatticeTPP::stiffness" << endl;
+            cerr << "Error in MultiLatticeTPP::stiffness" << "\n";
             exit(-1);
          }
          
@@ -672,7 +677,7 @@ Matrix MultiLatticeTPP::stiffness(PairPotentials::TDeriv dt,LDeriv dl)
    }
    else
    {
-      cerr << "Unknown LDeriv dl in MultiLatticeTpp::stiffness()" << endl;
+      cerr << "Unknown LDeriv dl in MultiLatticeTpp::stiffness()" << "\n";
       exit(-1);
    }
    return Phi;
@@ -1368,8 +1373,8 @@ void MultiLatticeTPP::ReferenceDispersionCurves(Vector K,int NoPTS,const char *p
          out << setw(w) << EigVal[k][0][i];
          if (Echo_) cout << setw(w) << EigVal[k][0][i];
       }
-      out << endl;
-      if (Echo_) cout << endl;
+      out << "\n";
+      if (Echo_) cout << "\n";
    }
    int zero=0,one=1,two=2;
    for (int k=2;k<NoPTS;++k)
@@ -1386,8 +1391,8 @@ void MultiLatticeTPP::ReferenceDispersionCurves(Vector K,int NoPTS,const char *p
          out << setw(w) << EigVal[two][0][i];;
          if (Echo_) cout << setw(w) << EigVal[two][0][i];;
       }
-      out << endl;
-      if (Echo_) cout << endl;
+      out << "\n";
+      if (Echo_) cout << "\n";
       
       zero = (++zero)%3; one = (zero+1)%3; two = (one+1)%3;
    }
@@ -1538,8 +1543,8 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, int gridsize,const char *p
                   Phi[3*j+i][3*l+k]);
             }
    
-   cout << "Condensed Moduli Check!:" << endl;
-   cout << setw(w) << Lp-SymPhi << endl;
+   cout << "Condensed Moduli Check!:" << "\n";
+   cout << setw(w) << Lp-SymPhi << "\n";
    
    
    
@@ -1611,11 +1616,11 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, int gridsize,const char *p
             if (Echo_) cout << setw(w)
                             << (ModEigVal[0][i]-BlkEigVal[0][i])/ModEigVal[0][i];
          }
-         out << endl;
-         if (Echo_) cout << endl;
+         out << "\n";
+         if (Echo_) cout << "\n";
       }
-      out << endl;
-      if (Echo_) cout << endl;
+      out << "\n";
+      if (Echo_) cout << "\n";
    }
 }
 
@@ -1633,9 +1638,9 @@ void MultiLatticeTPP::NeighborDistances(int cutoff,ostream &out)
       {
          out << setw(W/4) << int(NeighborDist[i][1+j]);
       }
-      out << endl;
+      out << "\n";
    }
-   out << endl;
+   out << "\n";
 }
 
 void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
@@ -1672,7 +1677,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
    CondModuli = CondensedModuli();
    
    CondEV=SymEigVal(CondModuli);
-   RankOneConvex = FullScanRank1Convex3D(CondModuli,ConvexityDX_);
+   RankOneConvex = FullScanRank1Convex3D(CBK_,CondModuli,ConvexityDX_);
    
    K.Resize(DIM3,0.0);
    if (RankOneConvex)
@@ -1688,132 +1693,132 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
    switch (flag)
    {
       case PrintLong:
-         out << "MultiLatticeTPP:" << endl << endl;
-         out << "Using: " << (*CBK_) << " Kinematics" << endl;
+         out << "MultiLatticeTPP:" << "\n" << "\n";
+         out << "Using: " << (*CBK_) << " Kinematics" << "\n";
          out << "RefLattice_ : " << setw(W) << CBK_->RefLattice();
          for (int i=0;i<INTERNAL_ATOMS;++i)
          {
             out << "Atom_" << i << "          "
                 << "Species : " << setw(5) << AtomSpecies_[i]
-                << "          Position : " << setw(W) << CBK_->AtomPositions(i) << endl;
+                << "          Position : " << setw(W) << CBK_->AtomPositions(i) << "\n";
          }
-         out << "Influence Distance   : " << setw(W) << InfluenceDist_ << endl;
+         out << "Influence Distance   : " << setw(W) << InfluenceDist_ << "\n";
          for (int i=0;i<NumberofSpecies_;++i)
          {
             out << "Atomic Mass " << i << "  : "
-                << setw(W) << SpeciesMass_[i] << endl;
+                << setw(W) << SpeciesMass_[i] << "\n";
          }
-         out << "Tref = " << setw(W) << Tref_ << endl;
+         out << "Tref = " << setw(W) << Tref_ << "\n";
          //<< "PhiRef = " << setw(W) << PhiRef_ << "; "
          //<< "EntropyRef = " << setw(W) << EntropyRef_ << "; "
-         //<< "HeatCapacityRef = " << setw(W) << HeatCapacityRef_ << endl;
-         out << "Potential Parameters : " << endl;
+         //<< "HeatCapacityRef = " << setw(W) << HeatCapacityRef_ << "\n";
+         out << "Potential Parameters : " << "\n";
          for (int i=0;i<NumberofSpecies_;++i)
          {
             for (int j=i;j<NumberofSpecies_;j++)
             {
                out << "[" << i << "][" << j << "] -- "
-                   << setw(W) << SpeciesPotential_[i][j] << endl;
+                   << setw(W) << SpeciesPotential_[i][j] << "\n";
             }
          }
-         out << "Normalization Modulus : " << setw(W) << NormModulus_ << endl;
+         out << "Normalization Modulus : " << setw(W) << NormModulus_ << "\n";
          out << "EulerAngles : " << setw(W) << EulerAng_[0]
-             << setw(W) << EulerAng_[1] << setw(W) << EulerAng_[2] << endl;
-         out << "Loading Proportions : " << setw(W) << LoadingProportions_ << endl;
+             << setw(W) << EulerAng_[1] << setw(W) << EulerAng_[2] << "\n";
+         out << "Loading Proportions : " << setw(W) << LoadingProportions_ << "\n";
          // also send to cout
          if (Echo_)
          {
-            cout << "MultiLatticeTPP:" << endl << endl;
-            cout << "Using: " << (*CBK_) << " Kinematics" << endl;
+            cout << "MultiLatticeTPP:" << "\n" << "\n";
+            cout << "Using: " << (*CBK_) << " Kinematics" << "\n";
             cout << "RefLattice_ : " << setw(W) << CBK_->RefLattice();
             for (int i=0;i<INTERNAL_ATOMS;++i)
             {
                cout << "Atom_" << i << "          "
                     << "Species : " <<setw(5) << AtomSpecies_[i]
-                    << "          Position : " << setw(W) << CBK_->AtomPositions(i) << endl;
+                    << "          Position : " << setw(W) << CBK_->AtomPositions(i) << "\n";
             }
-            cout << "Influence Distance   : " << setw(W) << InfluenceDist_ << endl;
+            cout << "Influence Distance   : " << setw(W) << InfluenceDist_ << "\n";
             for (int i=0;i<NumberofSpecies_;++i)
             {
                cout << "Atomic Mass " << i << "  : "
-                    << setw(W) << SpeciesMass_[i] << endl;
+                    << setw(W) << SpeciesMass_[i] << "\n";
             }
-            cout << "Tref = " << setw(W) << Tref_ << endl;
+            cout << "Tref = " << setw(W) << Tref_ << "\n";
             //<< "PhiRef = " << setw(W) << PhiRef_ << "; "
             //<< "EntropyRef = " << setw(W) << EntropyRef_ << "; "
-            //<< "HeatCapacityRef = " << setw(W) << HeatCapacityRef_ << endl;
-            cout << "Potential Parameters : " << endl;
+            //<< "HeatCapacityRef = " << setw(W) << HeatCapacityRef_ << "\n";
+            cout << "Potential Parameters : " << "\n";
             for (int i=0;i<NumberofSpecies_;++i)
             {
                for (int j=i;j<NumberofSpecies_;j++)
                {
                   cout << "[" << i << "][" << j << "] -- "
-                       << setw(W) << SpeciesPotential_[i][j] << endl;
+                       << setw(W) << SpeciesPotential_[i][j] << "\n";
                }
             }
-            cout << "Normalization Modulus : " << setw(W) << NormModulus_ << endl;
+            cout << "Normalization Modulus : " << setw(W) << NormModulus_ << "\n";
             cout << "EulerAngles : " << setw(W) << EulerAng_[0]
-                 << setw(W) << EulerAng_[1] << setw(W) << EulerAng_[2] << endl;
-            cout << "Loading Proportions : " << setw(W) << LoadingProportions_ << endl;
+                 << setw(W) << EulerAng_[1] << setw(W) << EulerAng_[2] << "\n";
+            cout << "Loading Proportions : " << setw(W) << LoadingProportions_ << "\n";
          }
          // passthrough to short
       case PrintShort:
-         out << "Temperature (Ref Normalized): " << setw(W) << NTemp_ << endl
-             << "Lambda (Normalized): " << setw(W) << Lambda_ << endl
-             << "DOF's :" << endl << setw(W) << CBK_->DOF() << endl
-             << "Potential Value (Normalized):" << setw(W) << engy << endl
+         out << "Temperature (Ref Normalized): " << setw(W) << NTemp_ << "\n"
+             << "Lambda (Normalized): " << setw(W) << Lambda_ << "\n"
+             << "DOF's :" << "\n" << setw(W) << CBK_->DOF() << "\n"
+             << "Potential Value (Normalized):" << setw(W) << engy << "\n"
              << "Thermal Expansion:" << setw(W) << TE
-             << "Entropy:" << setw(W) << entropy << endl
-             << "HeatCapacity:" << setw(W) << heatcapacity << endl;
+             << "Entropy:" << setw(W) << entropy << "\n"
+             << "HeatCapacity:" << setw(W) << heatcapacity << "\n";
          for (int i=0;i<INTERNAL_ATOMS;++i)
          {
             out << "BodyForce Value " << i << " (Inf Normalized):"
-                << setw(W) << BodyForce_[i] << endl;
+                << setw(W) << BodyForce_[i] << "\n";
          }
-         out << "Stress (Normalized):" << setw(W) << str << endl
+         out << "Stress (Normalized):" << setw(W) << str << "\n"
              << "Stiffness (Normalized):" << setw(W) << stiff
             //<< "Eigenvalue Info (Rots->1,2,3; Trans->4,5,6):"  << setw(W) << EigenValues
             //<< "Bifurcation Info:" << setw(W) << MinEigVal
-            //<< setw(W) << NoNegEigVal << endl
-             << "Eigenvalue Info (Rots->1,2,3; Trans->4,5,6):" << endl<<setw(W)
-             << TestFunctVals<< endl
-             << "Bifurcation Info:" << setw(W) << 0.0 << setw(W) << NoNegTestFunctions << endl
+            //<< setw(W) << NoNegEigVal << "\n"
+             << "Eigenvalue Info (Rots->1,2,3; Trans->4,5,6):" << "\n"<<setw(W)
+             << TestFunctVals<< "\n"
+             << "Bifurcation Info:" << setw(W) << 0.0 << setw(W) << NoNegTestFunctions << "\n"
              << "Condensed Moduli (Normalized):" << setw(W) << CondModuli
              << "CondEV Info:" << setw(W) << CondEV
-             << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << endl
+             << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << "\n"
              << "BlochWave Stability (GridSize=" << GridSize_ << "):"
              << setw(W) << BlochWaveStable << ", "
-             << setw(W) << K << endl;
+             << setw(W) << K << "\n";
          // send to cout also
          if (Echo_)
          {
-            cout << "Temperature (Ref Normalized): " << setw(W) << NTemp_ << endl
-                 << "Lambda (Normalized): " << setw(W) << Lambda_ << endl
-                 << "DOF's :" << endl << setw(W) << CBK_->DOF() << endl
-                 << "Potential Value (Normalized):" << setw(W) << engy << endl
+            cout << "Temperature (Ref Normalized): " << setw(W) << NTemp_ << "\n"
+                 << "Lambda (Normalized): " << setw(W) << Lambda_ << "\n"
+                 << "DOF's :" << "\n" << setw(W) << CBK_->DOF() << "\n"
+                 << "Potential Value (Normalized):" << setw(W) << engy << "\n"
                  << "Thermal Expansion:" << setw(W) << TE
-                 << "Entropy:" << setw(W) << entropy << endl
-                 << "HeatCapacity:" << setw(W) << heatcapacity << endl;
+                 << "Entropy:" << setw(W) << entropy << "\n"
+                 << "HeatCapacity:" << setw(W) << heatcapacity << "\n";
             for (int i=0;i<INTERNAL_ATOMS;++i)
             {
                cout << "BodyForce Value " << i << " (Inf Normalized):"
-                    << setw(W) << BodyForce_[i] << endl;
+                    << setw(W) << BodyForce_[i] << "\n";
             }
-            cout << "Stress (Normalized):" << setw(W) << str << endl
+            cout << "Stress (Normalized):" << setw(W) << str << "\n"
                  << "Stiffness (Normalized):" << setw(W) << stiff
                //<< "Eigenvalue Info (Rots->1,2,3; Trans->4,5,6):"  << setw(W) << EigenValues
                //<< "Bifurcation Info:" << setw(W) << MinEigVal
-               //<< setw(W) << NoNegEigVal << endl
-                 << "Eigenvalue Info (Rots->1,2,3; Trans->4,5,6):" << endl<<setw(W)
-                 << TestFunctVals << endl
+               //<< setw(W) << NoNegEigVal << "\n"
+                 << "Eigenvalue Info (Rots->1,2,3; Trans->4,5,6):" << "\n"<<setw(W)
+                 << TestFunctVals << "\n"
                  << "Bifurcation Info:" << setw(W) << 0.0 << setw(W) << NoNegTestFunctions
-                 << endl
+                 << "\n"
                  << "Condensed Moduli (Normalized):" << setw(W) << CondModuli
                  << "CondEV Info:" << setw(W) << CondEV
-                 << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << endl
+                 << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << "\n"
                  << "BlochWave Stability (GridSize=" << GridSize_ << "):"
                  << setw(W) << BlochWaveStable << ", "
-                 << setw(W) << K << endl;
+                 << setw(W) << K << "\n";
          }
          break;
    }
@@ -1909,30 +1914,30 @@ void MultiLatticeTPP::DebugMode()
    {
       indx=0;
       if (!strcmp(response,Commands[indx++]))
-         cout << "INTERNAL_ATOMS = " << INTERNAL_ATOMS << endl;
+         cout << "INTERNAL_ATOMS = " << INTERNAL_ATOMS << "\n";
       else if (!strcmp(response,Commands[indx++]))
-         cout << "CBK_->DOFS() = " << CBK_->DOFS() << endl;
+         cout << "CBK_->DOFS() = " << CBK_->DOFS() << "\n";
       else if (!strcmp(response,Commands[indx++]))
-         cout << "InfluenceDist_ = " << InfluenceDist_ << endl;
+         cout << "InfluenceDist_ = " << InfluenceDist_ << "\n";
       else if (!strcmp(response,Commands[indx++]))
-         cout << "NTemp_ = " << NTemp_ << endl;
+         cout << "NTemp_ = " << NTemp_ << "\n";
       else if (!strcmp(response,Commands[indx++]))
       {
          for (int i=0;i<CBK_->DOFS();++i)
-            cout << "DOF_[" << i << "] = " << (CBK_->DOF())[i] << endl;
+            cout << "DOF_[" << i << "] = " << (CBK_->DOF())[i] << "\n";
       }
       else if (!strcmp(response,Commands[indx++]))
          cout << "RefLattice_= " << setw(W) << CBK_->RefLattice();
       else if (!strcmp(response,Commands[indx++]))
-         cout << "NormModulus_= " << NormModulus_ << endl;
+         cout << "NormModulus_= " << NormModulus_ << "\n";
       else if (!strcmp(response,Commands[indx++]))
-         cout << "Lambda_= " << Lambda_ << endl;
+         cout << "Lambda_= " << Lambda_ << "\n";
       else if (!strcmp(response,Commands[indx++]))
       {
          for (int i=0;i<INTERNAL_ATOMS;++i)
          {
             cout << "BodyForce_[" << i << "]= " << setw(W)
-                 << BodyForce_[i] << endl;
+                 << BodyForce_[i] << "\n";
          }
       }
       else if (!strcmp(response,Commands[indx++]))
@@ -1940,22 +1945,22 @@ void MultiLatticeTPP::DebugMode()
          for (int i=0;i<INTERNAL_ATOMS;++i)
          {
             cout << "AtomicMass_[" << i << "]= " << setw(W)
-                 << AtomicMass_[i] << endl;
+                 << AtomicMass_[i] << "\n";
          }
       }
       else if (!strcmp(response,Commands[indx++]))
-         cout << "GridSize_= " << GridSize_ << endl;
+         cout << "GridSize_= " << GridSize_ << "\n";
       else if (!strcmp(response,Commands[indx++]))
       {
          for (int i=0;i<INTERNAL_ATOMS;++i)
             for (int j=i;j<INTERNAL_ATOMS;++j)
             {
                cout << "Potential_[" << i << "][" << j << "]= "
-                    << setw(W) << Potential_[i][j] << endl;
+                    << setw(W) << Potential_[i][j] << "\n";
             }
       }
       else if (!strcmp(response,Commands[indx++]))
-         cout << "ConvexityDX_= " << ConvexityDX_ << endl;
+         cout << "ConvexityDX_= " << ConvexityDX_ << "\n";
       else if (!strcmp(response,Commands[indx++]))
          cout << "stress= " << setw(W) << stress();
       else if (!strcmp(response,Commands[indx++]))
@@ -1985,7 +1990,7 @@ void MultiLatticeTPP::DebugMode()
       else if (!strcmp(response,Commands[indx++]))
       {
          Vector K(DIM3,0.0);
-         cout << "ReferenceBlochWave= " << ReferenceBlochWave(K) << "\t" << K << endl;
+         cout << "ReferenceBlochWave= " << ReferenceBlochWave(K) << "\t" << K << "\n";
       }
       else if (!strcmp(response,Commands[indx++]))
       {
@@ -1994,7 +1999,7 @@ void MultiLatticeTPP::DebugMode()
          cin >> K;
          cin.sync(); // clear input
          cout << "ReferenceDynamicalStiffness= "
-              << setw(W) << ReferenceDynamicalStiffness(K) << endl;
+              << setw(W) << ReferenceDynamicalStiffness(K) << "\n";
       }
       else if (!strcmp(response,Commands[indx++]))
       {
@@ -2025,13 +2030,13 @@ void MultiLatticeTPP::DebugMode()
          SetInfluenceDist(dist);
       }
       else if (!strcmp(response,Commands[indx++]))
-         cout << "energy= " << energy() << endl;
+         cout << "energy= " << energy() << "\n";
       else if (!strcmp(response,Commands[indx++]))
-         cout << "E0= " << E0() << endl;
+         cout << "E0= " << E0() << "\n";
       else if (!strcmp(response,Commands[indx++]))
-         cout << "E1= " << setw(W) << E1() << endl;
+         cout << "E1= " << setw(W) << E1() << "\n";
       else if (!strcmp(response,Commands[indx++]))
-         cout << "E2= " << setw(W) << E2() << endl;
+         cout << "E2= " << setw(W) << E2() << "\n";
       else if (!strcmp(response,Commands[indx++]))
          cout << "E3= " << setw(W) << E3();
       else if (!strcmp(response,Commands[indx++]))
@@ -2090,17 +2095,10 @@ void MultiLatticeTPP::DebugMode()
       else if (!strcmp(response,Commands[indx++]))
       {
          int iter;
-         char datafl[265],prefix[265];
-         cout << "\tdatafile > ";
-         cin >> datafl;
-         cin.sync(); // clear input
-         cout << "\tprefix > ";
-         cin >> prefix;
-         cin.sync(); // clear input
          cout << "\titer > ";
          cin >> iter;
          cin.sync(); // clear input
-         FindLatticeSpacing(datafl,prefix,iter);
+         FindLatticeSpacing(iter);
       }
       else if (!strcmp(response,Commands[indx++]))
       {
@@ -2117,7 +2115,7 @@ void MultiLatticeTPP::DebugMode()
       }
       else if (!strcmp(response,Commands[indx++]))
       {
-         cout << "dbg_ = " << dbg_ << endl;
+         cout << "dbg_ = " << dbg_ << "\n";
       }
       else if (!strcmp(response,Commands[indx++]))
       {
@@ -2134,17 +2132,17 @@ void MultiLatticeTPP::DebugMode()
          cout << "EulerAng_ = "
               << setw(W) << EulerAng_[0]
               << setw(W) << EulerAng_[1]
-              << setw(W) << EulerAng_[2] << endl;
+              << setw(W) << EulerAng_[2] << "\n";
       }
       else if (!strcmp(response,Commands[indx++]))
       {
          cout << "Rotation_ = "
-              << setw(W) << Rotation_ << endl;
+              << setw(W) << Rotation_ << "\n";
       }
       else if (!strcmp(response,Commands[indx++]))
       {
          cout << "Loading_ = "
-              << setw(W) << Loading_ << endl;
+              << setw(W) << Loading_ << "\n";
       }
       else if (!strcmp(response,Commands[indx++]))
       {
@@ -2153,15 +2151,15 @@ void MultiLatticeTPP::DebugMode()
       }
       else if (!strcmp(response,Commands[indx++]))
       {
-         cout << "ThermalExpansion = " << setw(W) << ThermalExpansion() << endl;
+         cout << "ThermalExpansion = " << setw(W) << ThermalExpansion() << "\n";
       }
       else if (!strcmp(response,Commands[indx++]))
       {
-         cout << "Entropy = " << setw(W) << Entropy() << endl;
+         cout << "Entropy = " << setw(W) << Entropy() << "\n";
       }
       else if (!strcmp(response,Commands[indx++]))
       {
-         cout << "HeatCapacity = " << setw(W) << HeatCapacity() << endl;
+         cout << "HeatCapacity = " << setw(W) << HeatCapacity() << "\n";
       }
       else if (!strcmp(response,Commands[indx++]))
       {
@@ -2169,7 +2167,7 @@ void MultiLatticeTPP::DebugMode()
          cout << "\tNoAtoms > ";
          cin >> n;
          cout << "P.Transpose()\n"
-              << setw(20) << TranslationProjection1D(n).Transpose() << endl;
+              << setw(20) << TranslationProjection1D(n).Transpose() << "\n";
       }
       else if (!strcmp(response,Commands[indx++]))
       {
@@ -2179,7 +2177,7 @@ void MultiLatticeTPP::DebugMode()
          cout << "\tNoAtoms > ";
          cin >> n;
          cout << "P.Transpose()\n"
-              << setw(20) << TranslationProjection3D(f,n).Transpose() << endl;
+              << setw(20) << TranslationProjection3D(f,n).Transpose() << "\n";
       }
       else if (!strcmp(response,"?") ||
                !strcasecmp(response,"help"))
@@ -2189,20 +2187,20 @@ void MultiLatticeTPP::DebugMode()
          {
             cout << "  " << setw(30) << Commands[i];
             if (i==NOcommands/2 && !NOcommands%2)
-               cout << endl;
+               cout << "\n";
             else
-               cout << setw(30) << Commands[NOcommands/2+i] << endl;
+               cout << setw(30) << Commands[NOcommands/2+i] << "\n";
             
             if (!((i+1)%30))
             {
-               cout << "more...." << endl;
+               cout << "more...." << "\n";
                char ans;
                cin.sync(); // clear input
                ans=kbhitWait();
                if (ans=='q') break;
             }
          }
-         cout << resetiosflags(ios::left) << endl;
+         cout << resetiosflags(ios::left) << "\n";
       }
       else if (!strcmp(response,"\n") ||
                !strcmp(response,""))
@@ -2210,10 +2208,10 @@ void MultiLatticeTPP::DebugMode()
       }
       else
       {
-         cout << "!--- Error - Unknown command ---!" << endl << endl;
+         cout << "!--- Error - Unknown command ---!" << "\n" << "\n";
       }
       
-      cout << endl << prompt;
+      cout << "\n" << prompt;
       cin.getline(response,LINELENGTH);
    }
 }
@@ -2242,7 +2240,7 @@ void MultiLatticeTPP::RefineEqbm(double Tol,int MaxItr,ostream *out)
       {
          *out << setw(20) << Stress;
          
-         *out << itr << "\tdx " << dx.Norm() << "\tstress " << Stress.Norm() << endl;
+         *out << itr << "\tdx " << dx.Norm() << "\tstress " << Stress.Norm() << "\n";
       }
    }
 }
@@ -2261,8 +2259,8 @@ void MultiLatticeTPP::PrintCurrentCrystalParamaters(ostream &out)
    }
    
    
-   out << "TITLE LatticeStatics crystal structure scaled by 10.0" << endl;
-   out << "DIMENSION 3" << endl;
+   out << "TITLE LatticeStatics crystal structure scaled by 10.0" << "\n";
+   out << "DIMENSION 3" << "\n";
    out << "CELL" << setw(W) << 10.0*CurrentLattice[0].Norm()
        << setw(W) << 10.0*CurrentLattice[1].Norm()
        << setw(W) << 10.0*CurrentLattice[2].Norm();
@@ -2279,25 +2277,25 @@ void MultiLatticeTPP::PrintCurrentCrystalParamaters(ostream &out)
    
    out << setw(W) << alpha*180.0/pi
        << setw(W) << beta*180.0/pi
-       << setw(W) << gamma*180.0/pi << endl;
+       << setw(W) << gamma*180.0/pi << "\n";
    
-   out << "SYMMETRY  NUMBER 1  LABEL P1  " << endl;
-   out << "SYM MAT  1.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  1.0 0.0000 0.0000 0.0000" << endl;
-   out << endl << "ATOMS" << endl
-       << "NAME" << setw(W) << "X" << setw(W) << "Y" << setw(W) << "Z" << endl;
+   out << "SYMMETRY  NUMBER 1  LABEL P1  " << "\n";
+   out << "SYM MAT  1.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  1.0 0.0000 0.0000 0.0000" << "\n";
+   out << "\n" << "ATOMS" << "\n"
+       << "NAME" << setw(W) << "X" << setw(W) << "Y" << setw(W) << "Z" << "\n";
    char const *species[] = {"Ni","Ti","C"};
    out << setw(4) << species[(AtomSpecies_[0] > 3)?3:AtomSpecies_[0]]
-       << setw(W) << CBK_->FractionalPosVec(0) << endl;
+       << setw(W) << CBK_->FractionalPosVec(0) << "\n";
    for (int i=1;i<INTERNAL_ATOMS;++i)
    {
       out << setw(4) << species[(AtomSpecies_[i] > 3)?3:AtomSpecies_[i]];
-      out << setw(W) << CBK_->FractionalPosVec(i) << endl;
+      out << setw(W) << CBK_->FractionalPosVec(i) << "\n";
    }
    
-   out << "EOF" << endl;
+   out << "EOF" << "\n";
    
-   out << endl
-       << "Temperature : " << setw(W) << NTemp_ << endl
-       << "Lambda : " << setw(W) << Lambda_ << endl
-       << "DOFs : " << setw(W) << CBK_->DOF() << endl;
+   out << "\n"
+       << "Temperature : " << setw(W) << NTemp_ << "\n"
+       << "Lambda : " << setw(W) << Lambda_ << "\n"
+       << "DOFs : " << setw(W) << CBK_->DOF() << "\n";
 }

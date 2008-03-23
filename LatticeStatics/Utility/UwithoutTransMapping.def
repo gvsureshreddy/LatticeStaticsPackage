@@ -14,7 +14,7 @@
    {
       if (!i)
       {
-         cerr << "Error: INDS(i,j) i==0!!!!!" << endl;
+         cerr << "Error: INDS(i,j) i==0!!!!!" << "\n";
          exit(-1);
       }
       
@@ -51,7 +51,7 @@
    {
       if (!k || !m)
       {
-         cerr << "Error : INDSS(k,l,m,n) i==0 OR m==0!!!!!!" << endl;
+         cerr << "Error : INDSS(k,l,m,n) i==0 OR m==0!!!!!!" << "\n";
          exit(-1);
       }
       
@@ -64,7 +64,7 @@
    {
       if (!m)
       {
-         cerr << "Error : INDFS(i,j,m,n) m==0!!!!!!" << endl;
+         cerr << "Error : INDFS(i,j,m,n) m==0!!!!!!" << "\n";
          exit(-1);
       }
       
@@ -82,7 +82,7 @@
    {
       if (!m)
       {
-         cerr << "Error : INDSF(m,n,i,j) m==0!!!!!!" << endl;
+         cerr << "Error : INDSF(m,n,i,j) m==0!!!!!!" << "\n";
          exit(-1);
       }
       

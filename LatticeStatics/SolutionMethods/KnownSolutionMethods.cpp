@@ -1,31 +1,25 @@
 #include "KnownSolutionMethods.h"
 
-#include "UtilityFunctions.h"
-
-SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
-                                   char *startfile,Lattice *Lat,fstream &out,int Width,
-                                   int Echo)
+SolutionMethod *InitializeSolution(LatticeMode *Mode,PerlInput &Input,Lattice *Lat,
+                                   fstream &out,int Width,int Echo)
 {
-   char slvmthd[LINELENGTH];
-   
    enum solution {Scanning,ArcLen,NewtonPC,NewtonUpdatePC,NewtonQRUpdatePC};
    solution solu;
-   
-   if(!GetParameter("^","MainSolutionMethod",datafile,'s',slvmthd)) exit(-1);
-   if ((!strcmp("Scanning",slvmthd))
-       || (!strcmp("scanning",slvmthd)))
+
+   const char *slvmthd = Input.getString("SolutionMethod","Type");
+   if (!strcmp("Scanning",slvmthd))
       solu = Scanning;
-   else if ((!strcmp("ArcLength",slvmthd)) || (!strcmp("arclength",slvmthd)))
+   else if (!strcmp("ArcLength",slvmthd))
       solu = ArcLen;
-   else if ((!strcmp("NewtonPC",slvmthd)) || (!strcmp("newtonpc",slvmthd)))
+   else if (!strcmp("NewtonPC",slvmthd))
       solu = NewtonPC;
-   else if ((!strcmp("NewtonUpdatePC",slvmthd)) || (!strcmp("newtonupdatepc",slvmthd)))
+   else if (!strcmp("NewtonUpdatePC",slvmthd))
       solu = NewtonUpdatePC;
-   else if ((!strcmp("NewtonQRUpdatePC",slvmthd)) || (!strcmp("newtonqrupdatepc",slvmthd)))
+   else if (!strcmp("NewtonQRUpdatePC",slvmthd))
       solu = NewtonQRUpdatePC;
    else
    {
-      cerr << "Unknown SolutionMethod : " << slvmthd << endl;
+      cerr << "Unknown SolutionMethod : " << slvmthd << "\n";
       exit(-1);
    }
    
@@ -33,7 +27,7 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
    {
       case Scanning:
       {
-         return new ScanningSolution(Mode,datafile,"^",Echo);
+         return new ScanningSolution(Mode,Input,Echo);
       }
       case ArcLen:
       {
@@ -42,9 +36,13 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
          Vector One = Mode->ModeDOF(),
             Two = Mode->ModeDOF();
          
-         if ( startfile == NULL)
+         if (Input.HashOK("StartType"))
          {
-            ScanningSolution ScanMe(Mode,datafile,"^",Echo);
+            return new ArcLengthSolution(Mode,Input,Echo);
+         }
+         else
+         {
+            ScanningSolution ScanMe(Mode,Input,Echo);
             
             while (!ScanMe.AllSolutionsFound())
             {
@@ -53,7 +51,7 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
                if (good)
                {
                   count++;
-                  out << setw(Width) << Lat << "Success = 1" << endl;
+                  out << setw(Width) << Lat << "Success = 1" << "\n";
                   Two = Mode->ModeDOF();
                }
             }
@@ -61,95 +59,82 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,char *datafile,
             if (count < 2)
             {
                cout << "Did not find two solutions with Scanning Solutions with "
-                    << "which to initialize ArcLengthSolution." << endl;
+                    << "which to initialize ArcLengthSolution." << "\n";
                exit(-55);
             }
             else
             {
-               return new ArcLengthSolution(Mode,datafile,"^",One,Two,Echo);
+               return new ArcLengthSolution(Mode,Input,One,Two,Echo);
             }
-         }
-         else
-         {
-            return new ArcLengthSolution(Mode,datafile,"^",startfile,out,Echo);
          }
       }
       case NewtonPC:
       {
          int good=1;
          int count=0;
-         int Direction;
          Vector One(Mode->ModeDOF().Dim());
-         if (startfile == NULL)
+         if (Input.HashOK("StartType"))
          {
-            if(!GetParameter("^","Direction",datafile,'u',&Direction)) exit(-1);
-            
-            ScanningSolution ScanMe(Mode,datafile,"^",Echo);
+            return new NewtonPCSolution(Mode,Input,Echo);
+         }
+         else
+         {
+            ScanningSolution ScanMe(Mode,Input,Echo);
             
             good = ScanMe.FindNextSolution();
             if (good)
             {
                count++;
-               out << setw(Width) << Lat << "Success = 1" << endl;
+               out << setw(Width) << Lat << "Success = 1" << "\n";
                One = Mode->ModeDOF();
-               return new NewtonPCSolution(Mode,datafile,"^", One,Echo, Direction);
+               return new NewtonPCSolution(Mode,Input,One,Echo);
             }
-         }
-         else
-         {
-            return new NewtonPCSolution(Mode,datafile,"^",startfile,out,Echo);
          }
       }
       case NewtonUpdatePC:
       {
          int good=1;
          int count=0;
-         int Direction;
          Vector One(Mode->ModeDOF().Dim());
-         if (startfile == NULL)
+         if (Input.HashOK("StartType"))
          {
-            if(!GetParameter("^","Direction",datafile,'u',&Direction)) exit(-1);
-            
-            ScanningSolution ScanMe(Mode,datafile,"^",Echo);
+            return new NewtonUpdatePCSolution(Mode,Input,Echo);
+         }
+         else
+         {
+            ScanningSolution ScanMe(Mode,Input,Echo);
             
             good = ScanMe.FindNextSolution();
             if (good)
             {
                count++;
-               out << setw(Width) << Lat << "Success = 1" << endl;
+               out << setw(Width) << Lat << "Success = 1" << "\n";
                One = Mode->ModeDOF();
-               return new NewtonUpdatePCSolution(Mode,datafile,"^", One,Echo, Direction);
+               return new NewtonUpdatePCSolution(Mode,Input,One,Echo);
             }
-         }
-         else
-         {
-            return new NewtonUpdatePCSolution(Mode,datafile,"^",startfile,out,Echo);
          }
       }
       case NewtonQRUpdatePC:
       {
          int good=1;
          int count=0;
-         int Direction;
          Vector One(Mode->ModeDOF().Dim());
-         if ( startfile == NULL)
+         if (Input.HashOK("StartType"))
          {
-            if(!GetParameter("^","Direction",datafile,'u',&Direction)) exit(-1);
-            
-            ScanningSolution ScanMe(Mode,datafile,"^",Echo);
+            return new NewtonQRUpdatePCSolution(Mode,Input,Echo);
+         }
+         else
+         {
+            ScanningSolution ScanMe(Mode,Input,Echo);
             
             good = ScanMe.FindNextSolution();
             if (good)
             {
                count++;
-               out << setw(Width) << Lat << "Success = 1" << endl;
+               out << setw(Width) << Lat << "Success = 1" << "\n";
                One = Mode->ModeDOF();
-               return new NewtonQRUpdatePCSolution(Mode,datafile,"^", One,Echo, Direction);
+               return new NewtonQRUpdatePCSolution(Mode,Input,One,Echo);
             }
-         }
-         else
-         {
-            return new NewtonQRUpdatePCSolution(Mode,datafile,"^",startfile,out,Echo);
          }
       }
    }

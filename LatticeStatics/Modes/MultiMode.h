@@ -1,5 +1,7 @@
 #ifndef __MultiMode
 #define __MultiMode
+
+#include "PerlInput.h"
 #include "LatticeMode.h"
 #include "Lattice.h"
 
@@ -21,7 +23,7 @@ private:
    
    void UpdateLatticeState();
 public:
-   MultiMode(Lattice *M,const char *datafile,const char *prefix);
+   MultiMode(Lattice *M,PerlInput &Input);
    
    ~MultiMode() {}
    

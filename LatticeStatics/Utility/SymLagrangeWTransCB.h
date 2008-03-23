@@ -3,6 +3,7 @@
 
 #include <Matrix.h>
 #include <Vector.h>
+#include "PerlInput.h"
 #include "CBKinematics.h"
 
 using namespace std;
@@ -13,7 +14,7 @@ private:
    virtual void Reset();
    
 public:
-   SymLagrangeWTransCB(int InternalAtoms,const char* prefix,const char* datafile);
+   SymLagrangeWTransCB(int InternalAtoms,PerlInput &Input);
    virtual ~SymLagrangeWTransCB() {};
    
 #include "UwithTransMapping.def"

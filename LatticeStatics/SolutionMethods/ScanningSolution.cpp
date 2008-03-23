@@ -1,63 +1,87 @@
-#include "ScanningSolution.h"
 #include <cmath>
-
-#include "UtilityFunctions.h"
+#include "ScanningSolution.h"
 
 using namespace std;
 
-ScanningSolution::ScanningSolution(LatticeMode *Mode,char *datafile,const char *prefix,
-                                   int Echo)
+ScanningSolution::ScanningSolution(LatticeMode *Mode,
+                                   int MaxIter,double Tolerance,double NewtonTolerance,
+                                   YN ScanFullField,Vector &InitialDef,
+                                   unsigned ScnDefParam,ScanDir Direction,
+                                   double ScanStart,double ScanEnd,double ScanStep,
+                                   double LineStart,double LineEnd,double LineStep,
+                                   YN OnSolution,int Echo)
+   : Echo_(Echo),
+     Mode_(Mode),
+     ModeDOFS_(Mode_->ModeDOF().Dim()),
+     MaxIter_(MaxIter),
+     Tolerance_(Tolerance),
+     NewtonTolerance_(NewtonTolerance),
+     ScanFullField_(ScanFullField),
+     OnSolution_(OnSolution),
+     InitialDef_(InitialDef),
+     ScnDefParam_(ScnDefParam),
+     Direction_(Direction),
+     ScanStart_(ScanStart),
+     ScanEnd_(ScanEnd),
+     ScanStep_(ScanStep),
+     LineStart_(LineStart),
+     LineEnd_(LineEnd),
+     LineStep_(LineStep),
+     CurrentScanLine_(ScanStart)
+{
+   InitializeLine();
+}
+
+ScanningSolution::ScanningSolution(LatticeMode *Mode,PerlInput &Input,int Echo)
    : Echo_(Echo),
      Mode_(Mode)
 {
    ModeDOFS_=Mode_->ModeDOF().Dim();
-   const char *yn[]={"No","Yes"};
-   int ans;
    // Get parameters
-   if(!GetParameter(prefix,"ScanningMaxIterations",datafile,'u',&MaxIter_)) exit(-1);
-   if(!GetParameter(prefix,"ScanningTolerance",datafile,'l',&Tolerance_)) exit(-1);
-   if(!GetParameter(prefix,"ScanningNewtonTolerance",datafile,'l',&NewtonTolerance_)) exit(-1);
-   ans=GetStringParameter(prefix,"ScanningFullField",datafile,yn,2);
-   if (ans == 1)
+   PerlInput::HashStruct Hash = Input.getHash("SolutionMethod","ScanningSolution");
+   MaxIter_ = Input.getUnsigned(Hash,"MaxIterations");
+   Tolerance_ = Input.getDouble(Hash,"Tolerance");
+   NewtonTolerance_ = Input.getDouble(Hash,"NewtonTolerance");
+   const char *fullfld = Input.getString(Hash,"FullField");
+   if (!strcmp("Yes",fullfld))
       ScanFullField_ = Yes;
-   else if (ans == 0)
+   else if (!strcmp("No",fullfld))
       ScanFullField_ = No;
    else
    {
-      cerr << "Error: Unknown ScanningFullField value!" << endl;
+      cerr << "Error ScanningSolution: Unknown FullField string!" << "\n";
       exit(-1);
    }
    
    InitialDef_.Resize(ModeDOFS_);
-   if(!GetVectorParameter(prefix,"ScanningInitialDeformation",datafile,&InitialDef_)) exit(-1);
+   Input.getVector(InitialDef_,Hash,"InitialDeformation");
    
-   const char *dir[]={"Loading","Deformation"};
-   ans=GetStringParameter(prefix,"ScanningDirection",datafile,dir,2);
-   if (ans == 0)
+   const char *dir = Input.getString(Hash,"Direction");
+   if (!strcmp("Loading",dir))
       Direction_ = Loading;
-   else if (ans == 1)
+   else if (!strcmp("Deformation",dir))
       Direction_ = Deformation;
    else
    {
-      cerr << "Unknown Scanning direction" << endl;
+      cerr << "Error ScanningSolution: Unknown Direction string!" << "\n";
       exit(-1);
    }
-   
-   if (!GetParameter(prefix,"ScanningDefParam",datafile,'u',&ScnDefParam_))
-      exit(-1);
-   if ((ScnDefParam_ < 0) || (ScnDefParam_ >= ModeDOFS_-1))
+
+   ScnDefParam_ = Input.getUnsigned(Hash,"DefParam");
+
+   if (ScnDefParam_ >= (unsigned) ModeDOFS_-1)
    {
-      cerr << "ScanningSolution: ScanningDefParam too small or too big!" << endl;
+      cerr << "ScanningSolution: ScanningDefParam too big!" << "\n";
       exit(-1);
    }
-   
-   if(!GetParameter(prefix,"ScanningStart",datafile,'l',&ScanStart_)) exit(-1);
-   if(!GetParameter(prefix,"ScanningEnd",datafile,'l',&ScanEnd_)) exit(-1);
-   if(!GetParameter(prefix,"ScanningStep",datafile,'l',&ScanStep_)) exit(-1);
-   if(!GetParameter(prefix,"ScanningLineStart",datafile,'l',&LineStart_)) exit(-1);
-   if(!GetParameter(prefix,"ScanningLineStep",datafile,'l',&LineStep_)) exit(-1);
-   if(!GetParameter(prefix,"ScanningLineEnd",datafile,'l',&LineEnd_)) exit(-1);
-   
+
+   ScanStart_ = Input.getDouble(Hash,"Start");
+   ScanEnd_ = Input.getDouble(Hash,"End");
+   ScanStep_ = Input.getDouble(Hash,"Step");
+   LineStart_ = Input.getDouble(Hash,"LineStart");
+   LineEnd_ = Input.getDouble(Hash,"LineEnd");
+   LineStep_ = Input.getDouble(Hash,"LineStep");
+      
    // Initialize Lattice to be ready to
    // find a solution
    CurrentScanLine_ = ScanStart_;
@@ -141,7 +165,7 @@ Vector ScanningSolution::ScanningForce()
    
    if (ModeDOFS_ != 2)
    {
-      for (int i=0;i<ModeDOFS_-1;++i)
+      for (unsigned i=0;i<ModeDOFS_-1;++i)
       {
          if (i != ScnDefParam_)
          {
@@ -166,7 +190,7 @@ Vector ScanningSolution::ScanningDef()
    
    if (ModeDOFS_ != 2)
    {
-      for (int i=0;i<ModeDOFS_-1;++i)
+      for (unsigned i=0;i<ModeDOFS_-1;++i)
       {
          if (i != ScnDefParam_)
          {
@@ -187,7 +211,7 @@ void ScanningSolution::ScanningSet(const Vector &val)
    
    ModeDOF = Mode_->ModeDOF();
    
-   for (int i=0;i<ModeDOFS_-1;++i)
+   for (unsigned i=0;i<ModeDOFS_-1;++i)
    {
       if (i != ScnDefParam_)
       {
@@ -204,7 +228,7 @@ void ScanningSolution::ScanningUpdate(const Vector &newval)
    
    ModeDOF = Mode_->ModeDOF();
    
-   for (int i=0;i<ModeDOFS_-1;++i)
+   for (unsigned i=0;i<ModeDOFS_-1;++i)
    {
       if (i != ScnDefParam_)
       {
@@ -224,11 +248,11 @@ Matrix ScanningSolution::ScanningStiffness()
    
    if (ModeDOFS_ != 2)
    {
-      for (int i=0;i<ModeDOFS_-1;++i)
+      for (unsigned i=0;i<ModeDOFS_-1;++i)
       {
          if (i != ScnDefParam_)
          {
-            for (int j=0;j<ModeDOFS_-1;++j)
+            for (unsigned j=0;j<ModeDOFS_-1;++j)
             {
                if (j != ScnDefParam_)
                {
@@ -319,7 +343,7 @@ int ScanningSolution::FindNextSolution()
          
          if (Echo_) cout << ScanningDefParameter();
       }
-      if (Echo_) cout << "\t" << ScanningStressParameter() << endl;
+      if (Echo_) cout << "\t" << ScanningStressParameter() << "\n";
       
       if (Direction_ == Loading)
          ScanningLoadParamUpdate(LineStep_);
@@ -336,6 +360,7 @@ int ScanningSolution::FindNextSolution()
    // Iterate onto solution
    stepsize = LineStep_;
    while ((fabs(ScanningStressParameter()) > Tolerance_)
+          && (fabs(val - oldval) > Tolerance_)
           && (iteration < MaxIter_))
    {
       if (Echo_)
@@ -344,7 +369,7 @@ int ScanningSolution::FindNextSolution()
             cout << ScanningLoadParameter();
          else
             cout << ScanningDefParameter();
-         cout << "\t" << ScanningStressParameter() << endl;
+         cout << "\t" << ScanningStressParameter() << "\n";
       }
       
       iteration++;
@@ -383,18 +408,18 @@ int ScanningSolution::FindNextSolution()
          cout << ScanningLoadParameter();
       else
          cout << ScanningDefParameter();
-      cout << "\t" << ScanningStressParameter() << endl;
+      cout << "\t" << ScanningStressParameter() << "\n";
    }
    
    if (iteration >= MaxIter_)
    {
       good = 0;
-      cerr << "Final Convergence Not Reached -- ScanningSolution" << endl;
+      cerr << "Final Convergence Not Reached -- ScanningSolution" << "\n";
    }
    
    if (!good)
    {
-      cerr << "ScanningNewton did not converge -- ScanningSolution" << endl;
+      cerr << "ScanningNewton did not converge -- ScanningSolution" << "\n";
    }
    
    OnSolution_ = Yes;
@@ -457,12 +482,12 @@ void ScanningSolution::ScanningNewton(int &good)
       
       ScanningUpdate(dx);
       if (Echo_) cout << "ScanningNewton(dx) = " << setw(20) << dx
-                      << ", RHS = " << setw(20) << ScanningForce() << endl;
+                      << ", RHS = " << setw(20) << ScanningForce() << "\n";
    }
    
    if (itr >= MaxIter_)
    {
-      cerr << "Convergence Not Reached -- ScanningNewton" << endl;
+      cerr << "Convergence Not Reached -- ScanningNewton" << "\n";
       good = 0;
    }
    else

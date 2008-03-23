@@ -22,7 +22,7 @@ double RadiiMorse2::A(double NTemp,TDeriv dt)
          retval = 0.0;
          break;
       default:
-         cerr << "Error in RadiiMorse2::A" << endl;
+         cerr << "Error in RadiiMorse2::A" << "\n";
          exit(-1);
    }
    
@@ -45,7 +45,7 @@ double RadiiMorse2::Beta(double NTemp,TDeriv dt)
          retval = 0.0;
          break;
       default:
-         cerr << "Error in RadiiMorse2::Beta" << endl;
+         cerr << "Error in RadiiMorse2::Beta" << "\n";
          exit(-1);
    }
    
@@ -69,7 +69,7 @@ double RadiiMorse2::Rhat(double NTemp,TDeriv dt)
          rhat = Rtheta1_*Rtheta2_ + Rtheta2_*Rtheta1_;
          break;
       default:
-         cerr << "Error in RadiiMorse2::Rhat" << endl;
+         cerr << "Error in RadiiMorse2::Rhat" << "\n";
          exit(-1);
    }
    
@@ -112,7 +112,7 @@ double RadiiMorse2::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
                   *Exp_temp*(2.0*Exp_temp - 2.0);
                break;
             default:
-               cerr << "Error in RadiiMorese::PairPotential" << endl;
+               cerr << "Error in RadiiMorese::PairPotential" << "\n";
                exit(-1);}
          break;
       case DY:
@@ -132,7 +132,7 @@ double RadiiMorse2::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
                    *(2.0*Exp_temp - 1.0));
                break;
             default:
-               cerr << "Error in RadiiMorse2::PairPotential -- DY,D2T not programmed" << endl;
+               cerr << "Error in RadiiMorse2::PairPotential -- DY,D2T not programmed" << "\n";
                exit(-1);
          }
          break;
@@ -163,7 +163,7 @@ double RadiiMorse2::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
                       *(2.0*Exp_temp*Exp_temp - Exp_temp)));
                break;
             default:
-               cerr << "Error in RadiiMorse2::PairPotential -- D2Y,D2T not programmed" << endl;
+               cerr << "Error in RadiiMorse2::PairPotential -- D2Y,D2T not programmed" << "\n";
                exit(-1);
          }
          break;
@@ -178,11 +178,11 @@ double RadiiMorse2::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
                     *Exp_temp*Exp_temp);
                break;
             case DT:
-               cerr << "D4phi/Dy3DT Not Coded... " << endl;
+               cerr << "D4phi/Dy3DT Not Coded... " << "\n";
                exit(-1);
                break;
             default:
-               cerr << "Error in RadiiMorse2::PairPotential -- D3Y,D2T not programmed" << endl;
+               cerr << "Error in RadiiMorse2::PairPotential -- D3Y,D2T not programmed" << "\n";
                exit(-1);
          }
          break;
@@ -199,11 +199,11 @@ double RadiiMorse2::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
                              *(8.0*Exp_temp - 1.0));
                break;
             case DT:
-               cerr << "D5phi/Dy4DT Not Coded... " << endl;
+               cerr << "D5phi/Dy4DT Not Coded... " << "\n";
                exit(-1);
                break;
             default:
-               cerr << "Error in RadiiMorse2::PairPotential -- D4Y,D2T not programmed" << endl;
+               cerr << "Error in RadiiMorse2::PairPotential -- D4Y,D2T not programmed" << "\n";
                exit(-1);
          }
          break;

@@ -1,12 +1,15 @@
-#include "UtilityFunctions.h"
+#include "PerlInput.h"
 #include "KnownPairPotentials.h"
 
+char *builddate();
 
 int main(int argc, char *argv[])
 {
    if (argc < 10)
    {
-      cerr << "Usage: " << argv[0] << " inputfile Aatom Batom Tempstart Tempend temppts ystart yend points [print numerical derivatives?(1/0)]" <<endl;
+      cerr << "Usage: "
+           << argv[0] << " inputfile Aatom Batom Tempstart Tempend temppts ystart "
+         "yend points [print numerical derivatives?(1/0)]" <<"\n";
       exit(-1);
    }
    
@@ -32,12 +35,21 @@ int main(int argc, char *argv[])
       deriv=atoi(argv[10]);
    else
       deriv = 0;
+
+   PerlInput Input(argv[1]);
    
-   pot = InitializePairPotential(argv[1],"^",i,j);
+   pot = InitializePairPotential("PrintPotentials",Input,i,j);
    
    int Width,Precision;
-   if(!GetParameter("^","MainFieldWidth",argv[1],'i',&Width)) Width=20;
-   if(!GetParameter("^","MainPrecision",argv[1],'i',&Precision)) Precision=10;
+   Width = Input.getInt("Main","FieldWidth");
+   if (Input.ParameterOK("Main","Precision"))
+   {
+      Precision = Input.getInt("Main","Precision");
+   }
+   else
+   {
+      Precision = 10;
+   }
    
    cout << setiosflags(ios::fixed) << setprecision(Precision);
    double inc=(yend-ystart)/pts,
@@ -72,7 +84,7 @@ int main(int argc, char *argv[])
    if (deriv) cout << setw(Width) << "numerical";
    cout << setw(Width) << "D4YD2T";
    if (deriv) cout << setw(Width) << "numerical";
-   cout << endl;
+   cout << "\n";
    
    
    for (double t=tempst;t<=tempend;t+=tempinc)
@@ -160,9 +172,9 @@ int main(int argc, char *argv[])
                  << (pot->PairPotential(t+tempinc,q,PairPotentials::D4Y,PairPotentials::DT)
                      -pot->PairPotential(t-tempinc,q,PairPotentials::D4Y,PairPotentials::DT))
                /(2.0*tempinc);
-         cout << endl;
+         cout << "\n";
       }
-      cout << endl;
+      cout << "\n";
    }
    delete pot;
 }
