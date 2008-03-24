@@ -7,15 +7,15 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,PerlInput &Input,Lattice *L
    solution solu;
 
    const char *slvmthd = Input.getString("SolutionMethod","Type");
-   if (!strcmp("Scanning",slvmthd))
+   if (!strcmp("ScanningSolution",slvmthd))
       solu = Scanning;
-   else if (!strcmp("ArcLength",slvmthd))
+   else if (!strcmp("ArcLengthSolution",slvmthd))
       solu = ArcLen;
-   else if (!strcmp("NewtonPC",slvmthd))
+   else if (!strcmp("NewtonPCSolution",slvmthd))
       solu = NewtonPC;
-   else if (!strcmp("NewtonUpdatePC",slvmthd))
+   else if (!strcmp("NewtonUpdatePCSolution",slvmthd))
       solu = NewtonUpdatePC;
-   else if (!strcmp("NewtonQRUpdatePC",slvmthd))
+   else if (!strcmp("NewtonQRUpdatePCSolution",slvmthd))
       solu = NewtonQRUpdatePC;
    else
    {

@@ -26,7 +26,9 @@ MultiChainTPP::MultiChainTPP(PerlInput &Input,int Echo,int Width,int Debug)
    dbg_ = Debug;
    // Get Lattice definition
    char tmp[LINELENGTH];
-   INTERNAL_ATOMS = Input.getUnsigned("MultiChainTPP","InternalAtoms");
+
+   PerlInput::HashStruct Hash = Input.getHash("Lattice","MultiChainTPP");
+   INTERNAL_ATOMS = Input.getUnsigned(Hash,"InternalAtoms");
    DOFS = INTERNAL_ATOMS;
    if (DOFMAX < DOFS)
    {
@@ -36,7 +38,7 @@ MultiChainTPP::MultiChainTPP(PerlInput &Input,int Echo,int Width,int Debug)
    
    // Set RefLattice_
    RefLattice_.Resize(DIM1,DIM1);
-   RefLattice_[0][0] = Input.getDouble("MultiChainTPP","LatticeBasis");
+   RefLattice_[0][0] = Input.getDouble(Hash,"LatticeBasis");
    
    // First Size DOF
    DOF_.Resize(DOFS,0.0);
@@ -47,7 +49,7 @@ MultiChainTPP::MultiChainTPP(PerlInput &Input,int Echo,int Width,int Debug)
    {
       AtomPositions_[i].Resize(DIM1);
       sprintf(tmp,"AtomPosition_%u",i);
-      AtomPositions_[i][0] = Input.getDouble("MultiChainTPP",tmp);
+      AtomPositions_[i][0] = Input.getDouble(Hash,tmp);
    }
    
    // Setup Bodyforce_
@@ -56,12 +58,12 @@ MultiChainTPP::MultiChainTPP(PerlInput &Input,int Echo,int Width,int Debug)
       BodyForce_[i].Resize(DIM1,0.0);
    
    // Get Thermo parameters
-   Tref_ = Input.getDouble("MultiChainTPP","Tref");
-   //PhiRef_ = Input.getDouble("MultiChainTPP","PhiRef");
-   //EntropyRef_ = Input.getDouble("MultiChainTPP","EntropyRef");
-   //HeatCapacityRef_ = Input.getDouble("MultiChainTPP","HeatCapacityRef");
+   Tref_ = Input.getDouble(Hash,"Tref");
+   //PhiRef_ = Input.getDouble(Hash,"PhiRef");
+   //EntropyRef_ = Input.getDouble(Hash,"EntropyRef");
+   //HeatCapacityRef_ = Input.getDouble(Hash,"HeatCapacityRef");
 
-   Input.getIntVector(AtomSpecies_,INTERNAL_ATOMS,"MultiChainTPP","AtomSpecies");
+   Input.getIntVector(AtomSpecies_,INTERNAL_ATOMS,Hash,"AtomSpecies");
 
    NumberofSpecies_ = AtomSpecies_[0];
    for (int i=1;i<INTERNAL_ATOMS;++i)
@@ -91,10 +93,10 @@ MultiChainTPP::MultiChainTPP(PerlInput &Input,int Echo,int Width,int Debug)
       for (int j=i;j<NumberofSpecies_;++j)
       {
          SpeciesPotential_[i][j] = SpeciesPotential_[j][i]
-            = InitializePairPotential("MultiChainTPP",Input,i,j);
+            = InitializePairPotential(Hash,Input,i,j);
       }
       sprintf(tmp,"AtomicMass_%u",i);
-      SpeciesMass_[i] = Input.getDouble("MultiChainTPP",tmp);
+      SpeciesMass_[i] = Input.getDouble(Hash,tmp);
    }
    
    for (int i=0;i<INTERNAL_ATOMS;++i)
@@ -110,11 +112,11 @@ MultiChainTPP::MultiChainTPP(PerlInput &Input,int Echo,int Width,int Debug)
    
    // Get Lattice parameters
    NTemp_ = 1.0;
-   InfluenceDist_ = Input.getDouble("MultiChainTPP","InfluenceDist");
-   NormModulus_ = Input.getDouble("MultiChainTPP","NormModulus");
+   InfluenceDist_ = Input.getDouble(Hash,"InfluenceDist");
+   NormModulus_ = Input.getDouble(Hash,"NormModulus");
       
    // Get Loading parameters
-   const char *loadparameter = Input.getString("MultiChainTPP","LoadingParameter");
+   const char *loadparameter = Input.getString(Hash,"LoadingParameter");
    if (!strcmp("Temperature",loadparameter))
    {
       LoadParameter_ = Temperature;
@@ -131,11 +133,11 @@ MultiChainTPP::MultiChainTPP(PerlInput &Input,int Echo,int Width,int Debug)
    
    // needed to initialize reference length
    int iter;
-   iter = Input.getUnsigned("MultiChainTPP","MaxIterations");
-   GridSize_ = Input.getUnsigned("MultiChainTPP","BlochWaveGridSize");
+   iter = Input.getUnsigned(Hash,"MaxIterations");
+   GridSize_ = Input.getUnsigned(Hash,"BlochWaveGridSize");
    
    //set LagrangeCB_
-   const char *CBKin = Input.getString("MultiLatticeTPP","CBKinematics");
+   const char *CBKin = Input.getString(Hash,"CBKinematics");
    if (!strcmp("LagrangeCB",CBKin))
    {
          LagrangeCB_ = 1;
@@ -146,7 +148,7 @@ MultiChainTPP::MultiChainTPP(PerlInput &Input,int Echo,int Width,int Debug)
    }
    else
    {
-      LagrangeCB_ = 0;
+      LagrangeCB_ = 1;
    }
    
    // Initiate the Lattice Sum object
@@ -162,18 +164,18 @@ MultiChainTPP::MultiChainTPP(PerlInput &Input,int Echo,int Width,int Debug)
    }
    
    // Setup initial status for parameters
-   NTemp_ = Input.getDouble("MultiChainTPP","NTemp");
-   Lambda_ = Input.getDouble("MultiChainTPP","Lambda");
+   NTemp_ = Input.getDouble(Hash,"NTemp");
+   Lambda_ = Input.getDouble(Hash,"Lambda");
    // Make any changes to atomic potentials that might be required
    for (int i=0;i<INTERNAL_ATOMS;++i)
    {
       for (int j=i;j<INTERNAL_ATOMS;++j)
       {
          if (AtomSpecies_[i] < AtomSpecies_[j])
-            UpdatePairPotential("MultiChainTPP",Input,
+            UpdatePairPotential(Hash,Input,
                                 AtomSpecies_[i],AtomSpecies_[j],Potential_[i][j]);
          else
-            UpdatePairPotential("MultiChainTPP",Input,
+            UpdatePairPotential(Hash,Input,
                                 AtomSpecies_[j],AtomSpecies_[i],Potential_[j][i]);
       }
    }

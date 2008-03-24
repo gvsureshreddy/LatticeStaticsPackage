@@ -4,8 +4,8 @@ use Math::Trig;
 # Main LatticeStatics Program Parameters
 %Main = (FieldWidth     => 20,
          Precision      => 12,
-         Echo           => 1,
-         BisectCP       => Yes,
+         #Echo           => 1, # Default value = 1
+         BisectCP       => Yes, # Yes, No
          );
 
 # Lattice Parameters
@@ -21,23 +21,22 @@ $Rtheta2_0_0 = -0.137957188144 - 0.0082;
 $B0_1_1  = 7.0;
 $Rtheta1_1_1 = 0.275914376289;
 
-%Lattice = (Type       => MultiLatticeTPP,
-            OrderedTFs => No,
-            ThirdOrder => No,
+%Lattice = (Type            => MultiLatticeTPP, # MultiLatticeTPP, MultiChainTPP, MultiChainTTPP
+            #OrderedTFs     => No, # Default value = No, Yes
+            #ThirdOrder     => No, # Default value = No, Yes
             MultiLatticeTPP => 
-            {MaxIterations       => 100,
-             CriticalPoint_T2    => No,
-             CBKinematics        => {Type => LagrangeCB,
+            {CBKinematics        => {Type => LagrangeCB, # SymLagrangeCB, SymLagrangeWTransCB, LagrangeCB, MixedCB, EulerCB
                                      InternalAtoms => 4,
                                      LatticeBasis  => [[$spacing, $spacing, 0.0],
-                                                      [-$spacing, $spacing, 0.0],
-                                                      [0.0, 0.0, $spacing]],
+                                                       [-$spacing, $spacing, 0.0],
+                                                       [0.0, 0.0, $spacing]],
                                      AtomPositions => [[0.0, 0.0, 0.0],
                                                        [0.5, 0.0, 0.5],
                                                        [0.5, 0.5, 0.0],
                                                        [0.0, 0.5, 0.5]]
-                                                         },
+                                    },
              RotationConstraint  => [FullRotationConstraint],
+             #RotationConstraint  => [NoRotationConstraint],
              #RotationConstraint  => [OneRotationConstraint,
              #                        [1.0, 1.0, 0.0],
              #                        [-1.0, 1.0, 0.0]],
@@ -74,23 +73,65 @@ $Rtheta1_1_1 = 0.275914376289;
              InfluenceDist       => 7.0,
              NormModulus         => 1.0,
              ConvexityDX         => 1.0*$DEG2RAD,
-             LoadingParameter    => Temperature,
+             LoadingParameter    => Temperature, # Temperature, Load
              EulerAngle_X        => 0.0,
              EulerAngle_Y        => 0.0,
              EulerAngle_Z        => 45.0*$DEG2RAD,
              LoadProportions     => [1.0, 0.0, 0.0],
+             MaxIterations       => 100,
              BlochWaveGridSize   => 5,
              NTemp               => 1.0,
              Lambda              => 0.0
-               }
-            );
+            },
+            MultiChainTPP  => {InternalAtoms     => 4,
+                               LatticeBasis      => 1.00,
+                               AtomPosition_0    => 0.00,
+                               AtomPosition_1    => 0.25,
+                               AtomPosition_2    => 0.50,
+                               AtomPosition_3    => 0.75,
+                               Tref              => 300.0,
+                               AtomSpecies       => [0, 1, 0, 1],
+                               AtomicMass_0      => 1.0,
+                               AtomicMass_1      => 1.1,
+                               InfluenceDist     => 7.0,
+                               NormModulus       => 1.0,
+                               LoadingParameter  => Temperature, # Temperature, Load
+                               MaxIterations     => 50,
+                               BlochWaveGridSize => 5,
+                               CBKinematics      => LagrangeCB, # Default value = LagrangeCB; MixedCB
+                               NTemp             => 1.0,
+                               Lambda            => 0.0
+                                 },              
+            MultiChainTTPP => {InternalAtoms     => 4,
+                               LatticeBasis      => 1.00,
+                               AtomPosition_0    => 0.00,
+                               AtomPosition_1    => 0.25,
+                               AtomPosition_2    => 0.50,
+                               AtomPosition_3    => 0.75,
+                               Tref              => 300.0,
+                               AtomSpecies       => [0, 1, 0, 1],
+                               AtomicMass_0      => 1.0,
+                               AtomicMass_1      => 1.1,
+                               InfluenceDist     => 7.0,
+                               NormModulus       => 1.0,
+                               LoadingParameter  => Temperature, # Temperature, Load
+                               MaxIterations     => 50,
+                               BlochWaveGridSize => 5,
+                               CBKinematics      => LagrangeCB, # Default value = LagrangeCB; MixedCB
+                               NTemp             => 1.0,
+                               Lambda            => 0.0
+                                 }
+          );
 
 # Mode Parameters
 %Mode = (Type      => MultiMode,
-         MultiMode => {DOFS     => 1,
-                       DOF_0    => [[0, 4, 8],
-                                    [1.0, 1.0, 1.0]]
-                                      }
+         MultiMode => {DOFS                  => 1,
+                       DOF_0                 => [[0, 4, 8],
+                                                 [1.0, 1.0, 1.0]]#,
+                       #Baseline_DOFS        => 1, # Default value = 0
+                       #Baseline_DOF_Index_0 => 0,
+                       #Baseline_DOF_Value_0 => 0.0
+                         }
          );
 
 
@@ -98,35 +139,99 @@ $Rtheta1_1_1 = 0.275914376289;
 #SolutionMethod Parameters
 $ArcLenDSMax = 0.01;
 
-%SolutionMethod = (Type => ArcLength,
-                   ArcLengthSolution => {MaxIterations => 50,
-                                         Tolerance     => 1.0e-13,
-                                         DSMax         => $ArcLenDSMax,
-                                         DSStart       => 0.01,
-                                         DSMin         => $ArcLenDSMax*1.0e-3,
-                                         AngleCutoff   => 25*$DEG2RAD,
-                                         AngleIncrease => 10*$DEG2RAD,
-                                         Aspect        => 1.0,
-                                         NumSolutions  => 1000
-                                           },
-                   ScanningSolution => {DefParam           => 0,
-                                        MaxIterations      => 50,
-                                        Tolerance          => 1.0e-13,
-                                        NewtonTolerance    => 1.0e-13,
-                                        FullField          => No,
-                                        InitialDeformation => [1.0, 1.0],
-                                        Direction          => Deformation,
-                                        Start              => 1.000,
-                                        End                => 1.015,
-                                        Step               => 0.010,
-                                        LineStart          => 0.94,
-                                        LineEnd            => 1.10,
-                                        LineStep           => 0.05
-                                          }
+%SolutionMethod = (Type => ArcLengthSolution,
+                   ArcLengthSolution        => {MaxIterations   => 50,
+                                                Tolerance       => 1.0e-13,
+                                                DSMax           => $ArcLenDSMax,
+                                                DSStart         => 0.01,
+                                                DSMin           => $ArcLenDSMax*1.0e-3,
+                                                AngleCutoff     => 25*$DEG2RAD,
+                                                AngleIncrease   => 10*$DEG2RAD,
+                                                Aspect          => 1.0,
+                                                NumSolutions    => 1000#,
+                                                #ClosedLoopStart => 30 # Default value = 30
+                                              },
+                   ScanningSolution         => {MaxIterations      => 50,
+                                                Tolerance          => 1.0e-13,
+                                                NewtonTolerance    => 1.0e-13,
+                                                FullField          => No, # Yes, No
+                                                InitialDeformation => [1.0, 1.0],
+                                                Direction          => Deformation, # Loading, Deformation
+                                                DefParam           => 0,
+                                                Start              => 1.000,
+                                                End                => 1.015,
+                                                Step               => 0.010,
+                                                LineStart          => 0.94,
+                                                LineEnd            => 1.10,
+                                                LineStep           => 0.05
+                                                  },
+                   NewtonPCSolution         => {NumSolutions     => 1000,
+                                                MaxDS            => 1.0,
+                                                Contraction      => 1.0,
+                                                Distance         => 1.0,
+                                                Angle            => 1.0,
+                                                ConvergeCriteria => 1e-12,
+                                                MinDSRatio       => 1.0#,
+                                                #ClosedLoopStart  => 30, # Default value = 30
+                                                #Direction        => 1 # Default value = 1
+                                                  },
+                   NewtonUpdatePCSolution   => {NumSolutions     => 1000,
+                                                MaxDS            => 1.0,
+                                                Contraction      => 1.0,
+                                                Distance         => 1.0,
+                                                Angle            => 1.0,
+                                                ConvergeCriteria => 1e-12,
+                                                MinDSRatio       => 1.0#,
+                                                #ClosedLoopStart  => 30, # Default value = 30
+                                                #Direction        => 1 # Default value = 1
+                                                  },
+                   NewtonQRUpdatePCSolution => {NumSolutions     => 1000,
+                                                MaxDS            => 1.0,
+                                                Contraction      => 1.0,
+                                                Distance         => 1.0,
+                                                Angle            => 1.0,
+                                                ConvergeCriteria => 1e-12,
+                                                MinDSRatio       => 1.0#,
+                                                #ClosedLoopStart  => 30, # Default value = 30
+                                                #Direction        => 1 # Default value = 1
+                                                  }
                    );
 
 # Start/Restart Parameters (can be put into start file OR input file)
-%StartType = (Type => Continuation,
+
+# ArcLength Solution StartTypes: Bifurcation, Continuation, ConsistencyCheck
+#%StartType = (Type             => Bifurcation,
+#              Epsilon          => 1e-5,
+#              Tangent          => [1.0000000000,  0.0000000000],
+#              BifurcationPoint => [1.0000000000,  1.0000000000]
+#              );
+
+%StartType = (Type      => Continuation,
               Solution1 => [1.000000000000, 1.000000000000],
-              Solution2 => [1.000033386242, 1.010000000000]
+              Solution2 => [1.000033386242, 1.010000000000]#,
+              #ClosedLoopFirstSolution => [0.990000000000, 0.980000000000] # Default value = Solution1
               );
+
+#%StartType = (Type  => ConsistencyCheck,
+#              Solution1 => [1.000000000000, 1.000000000000],
+#              Solution2 => [1.000033386242, 1.010000000000],
+#              ConsistencyEpsilon => 1e-8
+#              );
+              
+# NewtonPCSolution StartTypes: Bifurcation, Continuation, ConsistencyCheck
+# NewtonUpdatePCSolution StartTypes: Bifurcation, Continuation, ConsistencyCheck
+# NewtonQRUpdatePCSolution StartTypes: Bifurcation, Continuation, ConsistencyCheck
+#%StartType = (Type             => Bifurcation,
+#              Tangent          => [1.0000000000,  0.0000000000],
+#              BifurcationPoint => [1.0000000000,  1.0000000000],
+#              #Direction        => 1 # Default taken from Lattice{Newton*PCSolution}
+#              );
+
+#%StartType = (Type      => Continuation,
+#              Solution1 => [1.000000000000, 1.000000000000],
+#              #Direction => 1 # Default taken from Lattice{Newton*PCSolution}
+#              );
+
+#%StartType = (Type  => ConsistencyCheck#,
+#              # not programmed at present
+#              );

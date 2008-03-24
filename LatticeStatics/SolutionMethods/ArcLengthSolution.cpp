@@ -129,14 +129,15 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,PerlInput &Input,int Echo
    }
    else if (!strcmp("Continuation",starttype))
    {
+      // Get solution1
+      Vector one(ArcLenDef().Dim());
+      Input.getVector(one,"StartType","Solution1");
+
       // Set Lattice state to Solution2
-      Vector two(ArcLenDef().Dim());
+      Vector two(one.Dim());
       Input.getVector(two,"StartType","Solution2");
       ArcLenSet(two);
       
-      // Get solution1
-      Vector one(two.Dim());
-      Input.getVector(one,"StartType","Solution1");
       // Set Difference_ to   two - one
       Difference_.Resize(two.Dim());
       Difference_ = two - one;
@@ -160,8 +161,8 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,PerlInput &Input,int Echo
       Vector Solution1(Dim),
          Solution2(Dim);
 
-      Input.getVector(Solution2,"StartType","Solution2");
       Input.getVector(Solution1,"StartType","Solution1");
+      Input.getVector(Solution2,"StartType","Solution2");
       // Get Epsilon and Width
       ConsistencyEpsilon = Input.getDouble("StartType","ConsistenceEpsilon");
       Width = Input.getInt("Main","FieldWidth");

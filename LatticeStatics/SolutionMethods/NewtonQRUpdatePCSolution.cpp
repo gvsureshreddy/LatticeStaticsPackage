@@ -157,12 +157,12 @@ NewtonQRUpdatePCSolution::NewtonQRUpdatePCSolution(LatticeMode *Mode,PerlInput &
       Tangent1_.Resize(count);
       Tangent2_.Resize(count);
 
-      Input.getVector(one,"StartType","Solution1");
       Input.getVector(Tangent1_,"StartType","Tangent");
+      Input.getVector(one,"StartType","BifurcationPoint");
       // override direction with start file value
       if (Input.ParameterOK("StartType","Direction"))
       {
-         Direction_ = Input.getUnsigned("StartType","Direction");
+         Direction_ = Input.getInt("StartType","Direction");
       }
       
       FirstSolution_.Resize(one.Dim());
@@ -194,7 +194,7 @@ NewtonQRUpdatePCSolution::NewtonQRUpdatePCSolution(LatticeMode *Mode,PerlInput &
       // override direction with start file value
       if (Input.ParameterOK("StartType","Direction"))
       {
-         Direction_ = Input.getUnsigned("StartType","Direction");
+         Direction_ = Input.getInt("StartType","Direction");
       }
       
       FirstSolution_.Resize(one.Dim());
