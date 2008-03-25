@@ -936,7 +936,7 @@ void MultiChainTPP::ReferenceDispersionCurves(Vector K,int NoPTS,const char *pre
       out << "\n";
       if (Echo_) cout << "\n";
       
-      zero = (++zero)%3; one = (zero+1)%3; two = (one+1)%3;
+      zero = (zero+1)%3; one = (zero+1)%3; two = (one+1)%3;
    }
 }
 
