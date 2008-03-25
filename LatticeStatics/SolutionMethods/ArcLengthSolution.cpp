@@ -699,6 +699,7 @@ void ArcLengthSolution::ZBrent(Lattice *Lat,int track,double fa,double fb,
    b=OriginalDS;
    c=b;
    a=0.0;
+   d=e=0.0; // arbitrary initial values.
    
    fc = fb;
    //cout << " a = " << a << "\n" << "fa = " << fa << "\n"
