@@ -4,6 +4,8 @@
 
 using namespace std;
 
+const int MultiChainTTPP::DIM1 = 1;
+
 MultiChainTTPP::~MultiChainTTPP()
 {
    delete [] BodyForce_;

@@ -13,7 +13,7 @@ using namespace std;
 class MultiChainTPP : public Lattice
 {
 private:
-   const static int DIM1 = 1;
+   const static int DIM1;
    
    int INTERNAL_ATOMS;
    int DOFS;
