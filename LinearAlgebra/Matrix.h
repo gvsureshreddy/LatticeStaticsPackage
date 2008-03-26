@@ -32,11 +32,11 @@ public:
 protected:
 
    Elm **Elements_;
-   unsigned Rows_;
-   unsigned Cols_;
+   int Rows_;
+   int Cols_;
 
    // Used by Det()
-   Matrix Minor(unsigned i,unsigned j) const;
+   Matrix Minor(int i,int j) const;
 
 public:
 
@@ -51,15 +51,15 @@ public:
    //   allocated and each element set to Initial Value
    // Defaults: Rows=0,Cols=0,Initial Value= (Uninitialized)
 
-   Matrix(unsigned Rows=0,unsigned Cols=0,Elm InitVal=SENTINAL);
+   Matrix(int Rows=0,int Cols=0,Elm InitVal=SENTINAL);
    Matrix(const Matrix& A);
 
    // Deconstructor...
    ~Matrix();
 
    // Size Access...
-   unsigned Rows() const {return Rows_;}
-   unsigned Cols() const {return Cols_;}
+   int Rows() const {return Rows_;}
+   int Cols() const {return Cols_;}
    
    // Mathematical Operations...
 
@@ -84,12 +84,12 @@ public:
 
 #ifdef CHECK_BOUNDS
    // Note: Index checking on Rows but not on Columns....
-   Elm* operator[](unsigned i);
-   Elm* operator[](unsigned i) const;
+   Elm* operator[](int i);
+   Elm* operator[](int i) const;
 #else
    // Note: NO Index checking
-   Elm* operator[](unsigned i) {return Elements_[i];}
-   Elm* operator[](unsigned i) const {return Elements_[i];}
+   Elm* operator[](int i) {return Elements_[i];}
+   Elm* operator[](int i) const {return Elements_[i];}
 #endif
    
    // Assignment Operations
@@ -102,7 +102,7 @@ public:
 
    // Misc. Matrix Operatons
    
-   Matrix& SetIdentity(unsigned Size=0);
+   Matrix& SetIdentity(int Size=0);
    Matrix Transpose() const;
    Matrix Inverse() const;
    int IsSquare() const {return Rows_==Cols_;}
@@ -110,7 +110,7 @@ public:
 
    // Destructively Resize Matrix
    // No change if size does not change
-   void Resize(unsigned Rows=0,unsigned Cols=0,Elm InitVal=SENTINAL);
+   void Resize(int Rows=0,int Cols=0,Elm InitVal=SENTINAL);
    
    // Operations & Etc...
 
@@ -156,7 +156,7 @@ public:
    // Tol - tolerance for convergence
    //
    // Note: Assumes A is SYMMETRIC
-   friend Matrix SymEigVal(Matrix A,Matrix *B=NULL,const unsigned MaxItr=100,
+   friend Matrix SymEigVal(Matrix A,Matrix *B=NULL,const int MaxItr=100,
 			   const double Tol=1.0e-13);
    
    // Cholesky Decomposition of Matrix

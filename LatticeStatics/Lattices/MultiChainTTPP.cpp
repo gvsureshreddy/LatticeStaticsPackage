@@ -28,7 +28,7 @@ MultiChainTTPP::MultiChainTTPP(PerlInput &Input,int Echo,int Width,int Debug)
    char tmp[LINELENGTH];
 
    PerlInput::HashStruct Hash = Input.getHash("Lattice","MultiChainTTPP");
-   INTERNAL_ATOMS = Input.getUnsigned(Hash,"InternalAtoms");
+   INTERNAL_ATOMS = Input.getPosInt(Hash,"InternalAtoms");
    DOFS = 1+INTERNAL_ATOMS;
    if (DOFMAX < DOFS)
    {
@@ -132,8 +132,8 @@ MultiChainTTPP::MultiChainTTPP(PerlInput &Input,int Echo,int Width,int Debug)
    
    // needed to initialize reference length
    int iter;
-   iter = Input.getUnsigned(Hash,"MaxIterations");
-   GridSize_ = Input.getUnsigned(Hash,"BlochWaveGridSize");
+   iter = Input.getPosInt(Hash,"MaxIterations");
+   GridSize_ = Input.getPosInt(Hash,"BlochWaveGridSize");
    
    //set LagrangeCB_
    const char *CBKin = Input.getString(Hash,"CBKinematics");
@@ -855,7 +855,7 @@ void MultiChainTTPP::interpolate(Matrix *EigVals,int zero,int one,int two)
    EigVals[zero] = 2.0*EigVals[one] - EigVals[zero];
    
    double delta,dtmp;
-   unsigned i,j,pos;
+   int i,j,pos;
    
    for (i=0;i<EigVals[0].Cols();++i)
    {
@@ -988,7 +988,7 @@ int MultiChainTTPP::ReferenceBlochWave(Vector &K)
    static double InverseLat;
    static Vector Z(1);
    
-   for (unsigned i=0;i<K.Dim();++i) K[i]=0.0;
+   for (int i=0;i<K.Dim();++i) K[i]=0.0;
    
    InverseLat = 1.0/RefLattice_[0][0];
    
@@ -1014,7 +1014,7 @@ int MultiChainTTPP::ReferenceBlochWave(Vector &K)
    return 1;
 }
 
-void MultiChainTTPP::LongWavelengthModuli(double dk, unsigned gridsize,const char *prefix,
+void MultiChainTTPP::LongWavelengthModuli(double dk, int gridsize,const char *prefix,
                                           ostream &out)
 {
 }

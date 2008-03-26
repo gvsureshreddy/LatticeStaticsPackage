@@ -14,7 +14,7 @@ private:
    virtual void Reset();
    
 public:
-   LagrangeCB(unsigned InternalAtoms,Matrix &RefLattice,Vector *AtomPositions);
+   LagrangeCB(int InternalAtoms,Matrix &RefLattice,Vector *AtomPositions);
    LagrangeCB(PerlInput &Input,PerlInput::HashStruct *ParentHash=NULL);
    virtual ~LagrangeCB() {};
    

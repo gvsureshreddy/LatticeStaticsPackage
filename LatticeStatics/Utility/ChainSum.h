@@ -27,8 +27,8 @@ private:
    PairPotentials ***Potential_;
    double *Ntemp_;
    
-   unsigned CurrentPOS_;
-   unsigned Pairs_;
+   int CurrentPOS_;
+   int Pairs_;
    
    double F_;
    int Translations_;

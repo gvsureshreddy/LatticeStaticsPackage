@@ -25,8 +25,8 @@ private:
    double *Ntemp_;
    CBKinematics *CBK_;
    
-   unsigned CurrentPOS_;
-   unsigned Pairs_;
+   int CurrentPOS_;
+   int Pairs_;
    
    Matrix RelPosDATA_;
    

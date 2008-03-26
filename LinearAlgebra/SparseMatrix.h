@@ -21,11 +21,11 @@ public:
 
 //protected:
 public:
-   unsigned NoNonZero_;
-   unsigned Rows_;
-   unsigned Cols_;
-   unsigned *Row_id_;
-   unsigned *Column_id_;
+   int NoNonZero_;
+   int Rows_;
+   int Cols_;
+   int *Row_id_;
+   int *Column_id_;
    Elm *Nonzero_entry_;
 
 public:
@@ -39,18 +39,18 @@ public:
    // Defaults: Rows=0,Cols=0,Initial Value= (Uninitialized)
    SparseMatrix() {NoNonZero_ = 0;}
    SparseMatrix(const Matrix& A);
-   SparseMatrix(const Matrix& A,unsigned NoEntries);
+   SparseMatrix(const Matrix& A,int NoEntries);
    SparseMatrix(const SparseMatrix& A);
-   SparseMatrix(unsigned NoNonZero, unsigned Rows, unsigned Cols);
+   SparseMatrix(int NoNonZero, int Rows, int Cols);
 	
 	
    // Deconstructor...
    ~SparseMatrix();
 
    // Size Access...
-   unsigned Rows() const {return Rows_;}
-   unsigned Cols() const {return Cols_;}
-   unsigned NoNonZero() const {return NoNonZero_;}
+   int Rows() const {return Rows_;}
+   int Cols() const {return Cols_;}
+   int NoNonZero() const {return NoNonZero_;}
    
    // Mathematical Operations...
    friend SparseMatrix& operator+(SparseMatrix& A){return A;}
@@ -74,7 +74,7 @@ public:
    
    //Miscellaneous Matrix operations
    SparseMatrix Transpose() const;
-   friend SparseMatrix SparseIdentity(unsigned Size);
+   friend SparseMatrix SparseIdentity(int Size);
    friend Matrix ReverseSparse(const SparseMatrix& A);
 	
    int IsNull() const {return NoNonZero_==0;}

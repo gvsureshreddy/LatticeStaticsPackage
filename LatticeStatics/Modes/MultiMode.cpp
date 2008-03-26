@@ -5,7 +5,7 @@ MultiMode::MultiMode(Lattice *M,PerlInput &Input)
    char tmp[LINELENGTH];
 
    PerlInput::HashStruct Hash = Input.getHash("Mode","MultiMode");
-   DOFS_ = Input.getUnsigned(Hash,"DOFS");
+   DOFS_ = Input.getPosInt(Hash,"DOFS");
    ModeDOF_.Resize(DOFS_+1,0.0);
    
    for (int i=0;i<DOFS_;++i)
@@ -21,12 +21,12 @@ MultiMode::MultiMode(Lattice *M,PerlInput &Input)
    
    //Baseline DOF Initialization
    int temp1 = (Lattice_->DOF()).Dim();
-   unsigned temp2;
+   int temp2;
    double temp3;
-   unsigned Baseline_DOFS;
+   int Baseline_DOFS;
    if (Input.ParameterOK(Hash,"Baseline_DOFS"))
    {
-      Baseline_DOFS = Input.getUnsigned(Hash,"Baseline_DOFS");
+      Baseline_DOFS = Input.getPosInt(Hash,"Baseline_DOFS");
    }
    else
    {
@@ -35,10 +35,10 @@ MultiMode::MultiMode(Lattice *M,PerlInput &Input)
    
    BaselineDOF_.Resize(temp1,0.0);
    
-   for(unsigned i=0; i < Baseline_DOFS ; ++i)
+   for(int i=0; i < Baseline_DOFS ; ++i)
    {
       sprintf(tmp,"Baseline_DOF_Index_%u",i);
-      temp2 = Input.getUnsigned(Hash,tmp);
+      temp2 = Input.getPosInt(Hash,tmp);
       sprintf(tmp,"Baseline_DOF_Value_%u",i);
       temp3 = Input.getDouble(Hash,tmp);
       

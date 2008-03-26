@@ -14,7 +14,7 @@ private:
    virtual void Reset();
    
 public:
-   MixedCB(unsigned InternalAtoms,Matrix &RefLattice,Vector *AtomPositions);
+   MixedCB(int InternalAtoms,Matrix &RefLattice,Vector *AtomPositions);
    MixedCB(PerlInput &Input,PerlInput::HashStruct *ParentHash=NULL);
    virtual ~MixedCB() {};
    

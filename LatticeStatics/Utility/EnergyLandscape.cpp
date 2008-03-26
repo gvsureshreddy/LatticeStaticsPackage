@@ -44,7 +44,7 @@ int main(int argc,char *argv[])
    Mode = InitializeMode(Lat,Input);
    
    int NoDims;
-   NoDims = Input.getUnsigned("EnergyLandscape","Directions");
+   NoDims = Input.getPosInt("EnergyLandscape","Directions");
    char tmp[LINELENGTH];
    int *divs;
    divs = new int[NoDims+1];

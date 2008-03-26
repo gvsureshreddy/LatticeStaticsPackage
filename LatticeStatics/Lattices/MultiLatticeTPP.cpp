@@ -4,7 +4,7 @@
 
 using namespace std;
 
-const unsigned MultiLatticeTPP::DIM3 = 3;
+const int MultiLatticeTPP::DIM3 = 3;
 
 const double RoEig_[3] = {1.0,2.0,3.0};
 const double TrEig_[3] = {4.0,5.0,6.0};
@@ -15,8 +15,8 @@ MultiLatticeTPP::~MultiLatticeTPP()
    delete [] BodyForce_;
    delete [] SpeciesMass_;
    delete [] AtomicMass_;
-   for (unsigned i=0;i<NumberofSpecies_;++i)
-      for (unsigned j=i;j<NumberofSpecies_;++j)
+   for (int i=0;i<NumberofSpecies_;++i)
+      for (int j=i;j<NumberofSpecies_;++j)
          delete SpeciesPotential_[i][j];
    delete [] SpeciesPotential_[0];
    delete [] SpeciesPotential_;
@@ -87,13 +87,13 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput &Input,int Echo,int Width,int Debug)
          Input.getVector(r,Hash,"RotationConstraint",1);
          Input.getVector(R,Hash,"RotationConstraint",2);
          KillOneRotation_.Resize(CBK_->DOFS(),0.0);
-         for (unsigned i=0;i<DIM3;++i)
-            for (unsigned j=0;j<DIM3;++j)
+         for (int i=0;i<DIM3;++i)
+            for (int j=0;j<DIM3;++j)
             {
                KillOneRotation_[CBK_->INDF(i,j)] = r[i]*R[j];
             }
          norm=KillOneRotation_.Norm();
-         for (unsigned i=0;i<KillOneRotation_.Dim();++i)
+         for (int i=0;i<KillOneRotation_.Dim();++i)
             KillOneRotation_[i] /= norm;
       }
       else if (!strcmp("NoRotationConstraint",KillRot))
@@ -115,7 +115,7 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput &Input,int Echo,int Width,int Debug)
    
    // Setup Bodyforce_
    BodyForce_ = new Vector[InternalAtoms_];
-   for (unsigned i=0;i<InternalAtoms_;++i)
+   for (int i=0;i<InternalAtoms_;++i)
       BodyForce_[i].Resize(DIM3,0.0);
    
    // Get Thermo parameters
@@ -124,9 +124,9 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput &Input,int Echo,int Width,int Debug)
    //EntropyRef_ = Input.getDouble(Hash,"EntropyRef");
    //HeatCapacityRef_ = Input.getDouble(Hash,"HeatCapacityRef");
 
-   Input.getUnsignedVector(AtomSpecies_,InternalAtoms_,Hash,"AtomSpecies");
+   Input.getPosIntVector(AtomSpecies_,InternalAtoms_,Hash,"AtomSpecies");
    NumberofSpecies_ = AtomSpecies_[0];
-   for (unsigned i=1;i<InternalAtoms_;++i)
+   for (int i=1;i<InternalAtoms_;++i)
       if (NumberofSpecies_ < AtomSpecies_[i])
          NumberofSpecies_ = AtomSpecies_[i];
    NumberofSpecies_++;
@@ -134,13 +134,13 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput &Input,int Echo,int Width,int Debug)
    // Get Potential Parameters
    SpeciesPotential_ = new PairPotentials**[NumberofSpecies_];
    SpeciesPotential_[0] = new PairPotentials*[NumberofSpecies_*NumberofSpecies_];
-   for (unsigned i=1;i<NumberofSpecies_;++i)
+   for (int i=1;i<NumberofSpecies_;++i)
    {
       SpeciesPotential_[i] = SpeciesPotential_[i-1] + NumberofSpecies_;
    }
    Potential_ = new PairPotentials**[InternalAtoms_];
    Potential_[0] = new PairPotentials*[InternalAtoms_*InternalAtoms_];
-   for (unsigned i=1;i<InternalAtoms_;++i)
+   for (int i=1;i<InternalAtoms_;++i)
    {
       Potential_[i] = Potential_[i-1] + InternalAtoms_;
    }
@@ -148,9 +148,9 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput &Input,int Echo,int Width,int Debug)
    SpeciesMass_ = new double[NumberofSpecies_];
    AtomicMass_ = new double[InternalAtoms_];
    
-   for (unsigned i=0;i<NumberofSpecies_;++i)
+   for (int i=0;i<NumberofSpecies_;++i)
    {
-      for (unsigned j=i;j<NumberofSpecies_;++j)
+      for (int j=i;j<NumberofSpecies_;++j)
       {
          SpeciesPotential_[i][j] = SpeciesPotential_[j][i]
             = InitializePairPotential(Hash,Input,i,j);
@@ -158,9 +158,9 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput &Input,int Echo,int Width,int Debug)
       SpeciesMass_[i] = Input.getDouble(Hash,"AtomicMasses",i);
    }
    
-   for (unsigned i=0;i<InternalAtoms_;++i)
+   for (int i=0;i<InternalAtoms_;++i)
    {
-      for (unsigned j=i;j<InternalAtoms_;++j)
+      for (int j=i;j<InternalAtoms_;++j)
       {
          Potential_[i][j] = Potential_[j][i]
             = SpeciesPotential_[AtomSpecies_[i]][AtomSpecies_[j]];
@@ -216,16 +216,16 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput &Input,int Echo,int Width,int Debug)
    //
    // Loading_ = R*Lambda*R^T
    Loading_.Resize(DIM3,DIM3,0.0);
-   for (unsigned i=0;i<DIM3;++i)
-      for (unsigned j=0;j<DIM3;++j)
-         for (unsigned k=0;k<DIM3;++k)
+   for (int i=0;i<DIM3;++i)
+      for (int j=0;j<DIM3;++j)
+         for (int k=0;k<DIM3;++k)
             Loading_[i][j] += Rotation_[i][k]*LoadingProportions_[k]*Rotation_[j][k];
    
    
    // needed to initialize reference length
    int iter;
-   iter = Input.getUnsigned(Hash,"MaxIterations");
-   GridSize_ = Input.getUnsigned(Hash,"BlochWaveGridSize");
+   iter = Input.getPosInt(Hash,"MaxIterations");
+   GridSize_ = Input.getPosInt(Hash,"BlochWaveGridSize");
    
    // Initiate the Lattice Sum object
    LatSum_(CBK_,InternalAtoms_,Potential_,&InfluenceDist_,&NTemp_);
@@ -242,9 +242,9 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput &Input,int Echo,int Width,int Debug)
    NTemp_ = Input.getDouble(Hash,"NTemp");
    Lambda_ = Input.getDouble(Hash,"Lambda");
    // Make any changes to atomic potentials that might be required
-   for (unsigned i=0;i<InternalAtoms_;++i)
+   for (int i=0;i<InternalAtoms_;++i)
    {
-      for (unsigned j=i;j<InternalAtoms_;++j)
+      for (int j=i;j<InternalAtoms_;++j)
       {
          if (AtomSpecies_[i] < AtomSpecies_[j])
             UpdatePairPotential(Hash,Input,
@@ -298,10 +298,10 @@ double MultiLatticeTPP::E0()
    
    if (KillTranslations_)
    {
-      for (unsigned j=0;j<DIM3;++j)
+      for (int j=0;j<DIM3;++j)
       {
          Tsq[j]=0.0;
-         for (unsigned i=0;i<InternalAtoms_;++i)
+         for (int i=0;i<InternalAtoms_;++i)
          {
             Tsq[j]+=CBK_->DOF()[CBK_->INDS(i,j)];
          }
@@ -315,15 +315,15 @@ double MultiLatticeTPP::E0()
          Rsq[0] = (CBK_->DOF()[CBK_->INDF(0,1)] - CBK_->DOF()[CBK_->INDF(1,0)]);
          Rsq[1] = (CBK_->DOF()[CBK_->INDF(1,2)] - CBK_->DOF()[CBK_->INDF(2,1)]);
          Rsq[2] = (CBK_->DOF()[CBK_->INDF(2,0)] - CBK_->DOF()[CBK_->INDF(0,2)]);
-         for (unsigned i=0;i<DIM3;++i)
+         for (int i=0;i<DIM3;++i)
             Rsq[i] *= 0.5*Rsq[i];
          break;
       case 1:
          // Kill one rotation
-         for (unsigned i=0;i<DIM3;++i)
+         for (int i=0;i<DIM3;++i)
          {
             Rsq[i]=0.0;
-            for (unsigned j=0;j<DIM3;++j)
+            for (int j=0;j<DIM3;++j)
                Rsq[0] += KillOneRotation_[CBK_->INDF(i,j)]*CBK_->DOF()[CBK_->INDF(i,j)];
          }
          Rsq[0] *= Rsq[0];
@@ -355,8 +355,8 @@ double MultiLatticeTPP::energy(PairPotentials::TDeriv dt)
    if (dt == PairPotentials::T0)
    {
       // Loading
-      for (unsigned i=0;i<DIM3;++i)
-         for (unsigned j=0;j<DIM3;++j)
+      for (int i=0;i<DIM3;++i)
+         for (int j=0;j<DIM3;++j)
             Phi -= Lambda_*Loading_[i][j]*((CBK_->DOF())[CBK_->INDF(j,i)] - Del(j,i));
       
       // Thermal term
@@ -396,15 +396,15 @@ Matrix MultiLatticeTPP::E1()
    
    if (KillTranslations_)
    {
-      for (unsigned j=0;j<DIM3;++j)
+      for (int j=0;j<DIM3;++j)
       {
          T[j]=0.0;
-         for (unsigned i=0;i<InternalAtoms_;++i)
+         for (int i=0;i<InternalAtoms_;++i)
             T[j]+=CBK_->DOF()[CBK_->INDS(i,j)];
          T[j]/=InternalAtoms_;
       }
-      for (unsigned i=0;i<InternalAtoms_;++i)
-         for (unsigned j=0;j<DIM3;++j)
+      for (int i=0;i<InternalAtoms_;++i)
+         for (int j=0;j<DIM3;++j)
             E1[0][CBK_->INDS(i,j)] += TrEig_[j]*T[j];
    }
    
@@ -424,14 +424,14 @@ Matrix MultiLatticeTPP::E1()
          break;
       case 1:
          // Kill one rotation
-         for (unsigned i=0;i<DIM3;++i)
+         for (int i=0;i<DIM3;++i)
          {
             R[i]=0.0;
-            for (unsigned j=0;j<DIM3;++j)
+            for (int j=0;j<DIM3;++j)
                R[0] += KillOneRotation_[CBK_->INDF(i,j)]*CBK_->DOF()[CBK_->INDF(i,j)];
          }
          
-         for (unsigned i=0;i<E1.Cols();++i)
+         for (int i=0;i<E1.Cols();++i)
             E1[0][i] += RoEig_[0]*R[0]*KillOneRotation_[i];
          break;
    }
@@ -444,7 +444,7 @@ Matrix MultiLatticeTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
    static Matrix S;
    double ForceNorm = 0.0;
    double phi,Vr;
-   unsigned i,j;
+   int i,j;
    
    S.Resize(1,CBK_->DOFS(),0.0);
    
@@ -551,9 +551,9 @@ Matrix MultiLatticeTPP::E2()
    if (KillTranslations_)
    {
       
-      for (unsigned i=0;i<InternalAtoms_;++i)
-         for (unsigned j=0;j<DIM3;++j)
-            for (unsigned k=0;k<InternalAtoms_;++k)
+      for (int i=0;i<InternalAtoms_;++i)
+         for (int j=0;j<DIM3;++j)
+            for (int k=0;k<InternalAtoms_;++k)
             {
                E2[CBK_->INDS(i,j)][CBK_->INDS(k,j)] += TrEig_[j]/InternalAtoms_;
             }
@@ -580,8 +580,8 @@ Matrix MultiLatticeTPP::E2()
          break;
       case 1:
          // Kill one rotation
-         for (unsigned i=0;i<E2.Rows();++i)
-            for (unsigned j=0;j<E2.Cols();++j)
+         for (int i=0;i<E2.Rows();++i)
+            for (int j=0;j<E2.Cols();++j)
                E2[i][j] += RoEig_[0]*KillOneRotation_[i]*KillOneRotation_[j];
          break;
    }
@@ -594,7 +594,7 @@ Matrix MultiLatticeTPP::stiffness(PairPotentials::TDeriv dt,LDeriv dl)
    static Matrix Phi;
    Matrix F(DIM3,DIM3);
    double phi,phi1;
-   unsigned i,j,k,l;
+   int i,j,k,l;
    
    Phi.Resize(CBK_->DOFS(),CBK_->DOFS(),0.0);
    
@@ -694,7 +694,7 @@ Matrix MultiLatticeTPP::E3()
 {
    static Matrix Phi;
    double phi,phi1,phi2;
-   unsigned i,j,k,l,m,n;
+   int i,j,k,l,m,n;
    
    Phi.Resize(CBK_->DOFS()*CBK_->DOFS(),CBK_->DOFS(),0.0);
    
@@ -814,7 +814,7 @@ Matrix MultiLatticeTPP::E4()
 {
    static Matrix Phi;
    double phi,phi1,phi2,phi3;
-   unsigned i,j,k,l,m,n,s,t;
+   int i,j,k,l,m,n,s,t;
    
    Phi.Resize(CBK_->DOFS()*CBK_->DOFS(),CBK_->DOFS()*CBK_->DOFS(),0.0);
    
@@ -1262,7 +1262,7 @@ void MultiLatticeTPP::interpolate(Matrix *EigVals,int zero,int one,int two)
    EigVals[zero] = 2.0*EigVals[one] - EigVals[zero];
    
    double delta,dtmp;
-   unsigned i,j,pos;
+   int i,j,pos;
    
    for (i=0;i<EigVals[0].Cols();++i)
    {
@@ -1290,7 +1290,7 @@ CMatrix MultiLatticeTPP::ReferenceDynamicalStiffness(Vector &K)
    static double pi = 4.0*atan(1.0);
    static MyComplexDouble Ic(0,1);
    static MyComplexDouble A = 2.0*pi*Ic;
-   unsigned i,j;
+   int i,j;
    
    Dk.Resize(InternalAtoms_*DIM3,InternalAtoms_*DIM3,0.0);
    
@@ -1331,8 +1331,8 @@ CMatrix MultiLatticeTPP::ReferenceDynamicalStiffness(Vector &K)
       }
    }
    // Normalize through the Mass Matrix
-   for (unsigned p=0;p<InternalAtoms_;++p)
-      for (unsigned q=0;q<InternalAtoms_;++q)
+   for (int p=0;p<InternalAtoms_;++p)
+      for (int q=0;q<InternalAtoms_;++q)
          for (i=0;i<DIM3;++i)
             for (j=0;j<DIM3;++j)
             {
@@ -1353,10 +1353,10 @@ void MultiLatticeTPP::ReferenceDispersionCurves(Vector K,int NoPTS,const char *p
    InverseLat = (CBK_->RefLattice()).Inverse();
    
    Matrix EigVal[DIM3];
-   for (unsigned i=0;i<DIM3;++i) EigVal[i].Resize(1,InternalAtoms_*DIM3);
+   for (int i=0;i<DIM3;++i) EigVal[i].Resize(1,InternalAtoms_*DIM3);
    
    Vector Z1(DIM3),Z2(DIM3);
-   for (unsigned k=0;k<DIM3;++k)
+   for (int k=0;k<DIM3;++k)
    {
       Z1[k] = K[k];
       Z2[k] = K[DIM3 + k];
@@ -1367,7 +1367,7 @@ void MultiLatticeTPP::ReferenceDispersionCurves(Vector K,int NoPTS,const char *p
    Vector Z(DIM3),
       DZ=Z2-Z1;
    double dz = 1.0/(NoPTS-1);
-   for (unsigned k=0;k<2;++k)
+   for (int k=0;k<2;++k)
    {
       Z = Z1 + (k*dz)*DZ;
       EigVal[k] = HermiteEigVal(ReferenceDynamicalStiffness(Z));
@@ -1375,7 +1375,7 @@ void MultiLatticeTPP::ReferenceDispersionCurves(Vector K,int NoPTS,const char *p
       
       out << prefix << setw(w) << k*dz;
       if (Echo_) cout << prefix << setw(w) << k*dz;
-      for (unsigned i=0;i<InternalAtoms_*DIM3;++i)
+      for (int i=0;i<InternalAtoms_*DIM3;++i)
       {
          out << setw(w) << EigVal[k][0][i];
          if (Echo_) cout << setw(w) << EigVal[k][0][i];
@@ -1383,7 +1383,7 @@ void MultiLatticeTPP::ReferenceDispersionCurves(Vector K,int NoPTS,const char *p
       out << "\n";
       if (Echo_) cout << "\n";
    }
-   unsigned zero=0,one=1,two=2;
+   int zero=0,one=1,two=2;
    for (int k=2;k<NoPTS;++k)
    {
       Z = Z1 + (k*dz)*DZ;
@@ -1393,7 +1393,7 @@ void MultiLatticeTPP::ReferenceDispersionCurves(Vector K,int NoPTS,const char *p
       
       out << prefix << setw(w) << k*dz;
       if (Echo_) cout << prefix << setw(w) << k*dz;
-      for (unsigned i=0;i<InternalAtoms_*DIM3;++i)
+      for (int i=0;i<InternalAtoms_*DIM3;++i)
       {
          out << setw(w) << EigVal[two][0][i];;
          if (Echo_) cout << setw(w) << EigVal[two][0][i];;
@@ -1417,7 +1417,7 @@ int MultiLatticeTPP::ReferenceBlochWave(Vector &K)
    // Iterate over points in cubic unit cell
    for (UCIter_.Reset();!UCIter_.Done();++UCIter_)
    {
-      for (unsigned i=0;i<DIM3;++i)
+      for (int i=0;i<DIM3;++i)
       {
          K[i] = UCIter_[i];
       }
@@ -1427,7 +1427,7 @@ int MultiLatticeTPP::ReferenceBlochWave(Vector &K)
       
       EigVals = HermiteEigVal(A);
       
-      for (unsigned i=0;i<InternalAtoms_*DIM3;++i)
+      for (int i=0;i<InternalAtoms_*DIM3;++i)
       {
          // if w^2 <= 0.0 --> Re(i*w*x) > 0 --> growing solutions --> unstable
          if ( EigVals[0][i] <= 0.0 )
@@ -1440,7 +1440,7 @@ int MultiLatticeTPP::ReferenceBlochWave(Vector &K)
 }
 
 //---- needs to be updated----//
-void MultiLatticeTPP::LongWavelengthModuli(double dk, unsigned gridsize,const char *prefix,
+void MultiLatticeTPP::LongWavelengthModuli(double dk, int gridsize,const char *prefix,
                                            ostream &out)
 {
    static double pi = 4*atan(1.0);
@@ -1467,13 +1467,13 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, unsigned gridsize,const ch
       phi1 = LatSum_.phi1();
       
       // upper 9x9 block
-      for (unsigned i=0;i<DIM3;i++)
+      for (int i=0;i<DIM3;i++)
       {
-         for (unsigned j=0;j<DIM3;j++)
+         for (int j=0;j<DIM3;j++)
          {
-            for (unsigned k=0;k<DIM3;k++)
+            for (int k=0;k<DIM3;k++)
             {
-               for (unsigned l=0;l<DIM3;l++)
+               for (int l=0;l<DIM3;l++)
                {
                   Phi[3*i+j][3*k+l]+=
                      4.0*phi*(LatSum_.Dx(i)*LatSum_.DX(j))
@@ -1485,13 +1485,13 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, unsigned gridsize,const ch
       }
       
       // lower block
-      for (unsigned i=1;i<InternalAtoms_;++i)
+      for (int i=1;i<InternalAtoms_;++i)
       {
-         for (unsigned j=0;j<DIM3;++j)
+         for (int j=0;j<DIM3;++j)
          {
-            for (unsigned k=1;k<InternalAtoms_;++k)
+            for (int k=1;k<InternalAtoms_;++k)
             {
-               for (unsigned l=0;l<DIM3;++l)
+               for (int l=0;l<DIM3;++l)
                {
                   Dpp[3*(i-1)+j][3*(k-1)+l]+=
                      phi*CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),LatSum_.Atom(1),i,j)
@@ -1503,21 +1503,21 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, unsigned gridsize,const ch
       }
       
       // off-diagonal block
-      for (unsigned i=0;i<DIM3;++i)
-         for (unsigned j=0;j<DIM3;++j)
-            for (unsigned l=0;l<DIM3;++l)
+      for (int i=0;i<DIM3;++i)
+         for (int j=0;j<DIM3;++j)
+            for (int l=0;l<DIM3;++l)
             {
                tmp[i][j][l] = 0.0;
-               for (unsigned k=0;k<DIM3;++k)
+               for (int k=0;k<DIM3;++k)
                {
                   tmp[i][j][l] += (CBK_->RefLattice())[l][k]*(CBK_->DOF())[CBK_->INDF(k,i)]*LatSum_.DX(j)
                      +(CBK_->RefLattice())[l][k]*(CBK_->DOF())[CBK_->INDF(i,k)]*LatSum_.DX(j);
                }
             }
-      for (unsigned k=1;k<InternalAtoms_;++k)
-         for (unsigned l=0;l<DIM3;++l)
-            for (unsigned i=0;i<DIM3;++i)
-               for (unsigned j=0;j<DIM3;++j)
+      for (int k=1;k<InternalAtoms_;++k)
+         for (int l=0;l<DIM3;++l)
+            for (int i=0;i<DIM3;++i)
+               for (int j=0;j<DIM3;++j)
                {
                   Dfp[3*(k-1)+l][3*i+j] +=
                      phi*(2.0*LatSum_.Dx(i)*LatSum_.DX(j))
@@ -1538,10 +1538,10 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, unsigned gridsize,const ch
    
    Matrix SymPhi(6,6,0.0);
    
-   for (unsigned i=0;i<DIM3;++i)
-      for (unsigned j=i;j<DIM3;++j)
-         for (unsigned k=0;k<DIM3;++k)
-            for (unsigned l=k;l<DIM3;++l)
+   for (int i=0;i<DIM3;++i)
+      for (int j=i;j<DIM3;++j)
+         for (int k=0;k<DIM3;++k)
+            for (int l=k;l<DIM3;++l)
             {
                SymPhi[CBK_->INDF(i,j)][CBK_->INDF(k,l)] = 0.25*(
                   Phi[3*i+j][3*k+l] +
@@ -1561,14 +1561,14 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, unsigned gridsize,const ch
    
    double Mc=0.0;
    double Vc=CBK_->RefVolume();
-   for (unsigned i=0;i<InternalAtoms_;++i)
+   for (int i=0;i<InternalAtoms_;++i)
    {
       Mc += AtomicMass_[i];
    }
    
-   for (unsigned phi=0;phi<gridsize;++phi)
+   for (int phi=0;phi<gridsize;++phi)
    {
-      for (unsigned theta=0;theta<gridsize;++theta)
+      for (int theta=0;theta<gridsize;++theta)
       {
          K[0] = sin(pi*(phi/GS))*cos(twopi*(theta/GS));
          K[1] = sin(pi*(phi/GS))*sin(twopi*(theta/GS));
@@ -1580,18 +1580,18 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, unsigned gridsize,const ch
          // sort by absolute value
          qsort(BlkEigVal[0],InternalAtoms_*DIM3,sizeof(double),&abscomp);
          
-         for (unsigned i=0;i<DIM3;++i)
+         for (int i=0;i<DIM3;++i)
          {
             // wave speed squared
             BlkEigVal[0][i] /= (twopi*dk*twopi*dk);
          }
          
-         for (unsigned i=0;i<DIM3;++i)
-            for (unsigned j=0;j<DIM3;++j)
+         for (int i=0;i<DIM3;++i)
+            for (int j=0;j<DIM3;++j)
             {
                A[i][j] = 0.0;
-               for (unsigned k=0;k<DIM3;++k)
-                  for (unsigned l=0;l<DIM3;++l)
+               for (int k=0;k<DIM3;++k)
+                  for (int l=0;l<DIM3;++l)
                   {
                      A[i][j] += Phi[3*i+k][3*j+l]*K[k]*K[l];
                   }
@@ -1599,7 +1599,7 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, unsigned gridsize,const ch
          
          ModEigVal = SymEigVal(A);
          qsort(ModEigVal[0],DIM3,sizeof(double),&abscomp);
-         for (unsigned i=0;i<3;++i)
+         for (int i=0;i<3;++i)
          {
             // normalize by G/(Mc/Vc)
             ModEigVal[0][i] *= NormModulus_/(Mc/Vc);
@@ -1607,17 +1607,17 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, unsigned gridsize,const ch
          
          out << prefix << setw(w/2) << phi << setw(w/2) << theta;
          if (Echo_) cout << prefix << setw(w/2) << phi << setw(w/2) << theta;
-         for (unsigned i=0;i<DIM3;++i)
+         for (int i=0;i<DIM3;++i)
          {
             out << setw(w) << ModEigVal[0][i];
             if (Echo_) cout << setw(w) << ModEigVal[0][i];
          }
-         for (unsigned i=0;i<DIM3;++i)
+         for (int i=0;i<DIM3;++i)
          {
             out << setw(w) << BlkEigVal[0][i];
             if (Echo_) cout << setw(w) << BlkEigVal[0][i];
          }
-         for (unsigned i=0;i<DIM3;++i)
+         for (int i=0;i<DIM3;++i)
          {
             out << setw(w) << (ModEigVal[0][i]-BlkEigVal[0][i])/ModEigVal[0][i];
             if (Echo_) cout << setw(w)
@@ -1703,14 +1703,14 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
          out << "MultiLatticeTPP:" << "\n" << "\n";
          out << "Using: " << (*CBK_) << " Kinematics" << "\n";
          out << "RefLattice_ : " << setw(W) << CBK_->RefLattice();
-         for (unsigned i=0;i<InternalAtoms_;++i)
+         for (int i=0;i<InternalAtoms_;++i)
          {
             out << "Atom_" << i << "          "
                 << "Species : " << setw(5) << AtomSpecies_[i]
                 << "          Position : " << setw(W) << CBK_->AtomPositions(i) << "\n";
          }
          out << "Influence Distance   : " << setw(W) << InfluenceDist_ << "\n";
-         for (unsigned i=0;i<NumberofSpecies_;++i)
+         for (int i=0;i<NumberofSpecies_;++i)
          {
             out << "Atomic Mass " << i << "  : "
                 << setw(W) << SpeciesMass_[i] << "\n";
@@ -1720,9 +1720,9 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
          //<< "EntropyRef = " << setw(W) << EntropyRef_ << "; "
          //<< "HeatCapacityRef = " << setw(W) << HeatCapacityRef_ << "\n";
          out << "Potential Parameters : " << "\n";
-         for (unsigned i=0;i<NumberofSpecies_;++i)
+         for (int i=0;i<NumberofSpecies_;++i)
          {
-            for (unsigned j=i;j<NumberofSpecies_;j++)
+            for (int j=i;j<NumberofSpecies_;j++)
             {
                out << "[" << i << "][" << j << "] -- "
                    << setw(W) << SpeciesPotential_[i][j] << "\n";
@@ -1738,14 +1738,14 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
             cout << "MultiLatticeTPP:" << "\n" << "\n";
             cout << "Using: " << (*CBK_) << " Kinematics" << "\n";
             cout << "RefLattice_ : " << setw(W) << CBK_->RefLattice();
-            for (unsigned i=0;i<InternalAtoms_;++i)
+            for (int i=0;i<InternalAtoms_;++i)
             {
                cout << "Atom_" << i << "          "
                     << "Species : " <<setw(5) << AtomSpecies_[i]
                     << "          Position : " << setw(W) << CBK_->AtomPositions(i) << "\n";
             }
             cout << "Influence Distance   : " << setw(W) << InfluenceDist_ << "\n";
-            for (unsigned i=0;i<NumberofSpecies_;++i)
+            for (int i=0;i<NumberofSpecies_;++i)
             {
                cout << "Atomic Mass " << i << "  : "
                     << setw(W) << SpeciesMass_[i] << "\n";
@@ -1755,9 +1755,9 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
             //<< "EntropyRef = " << setw(W) << EntropyRef_ << "; "
             //<< "HeatCapacityRef = " << setw(W) << HeatCapacityRef_ << "\n";
             cout << "Potential Parameters : " << "\n";
-            for (unsigned i=0;i<NumberofSpecies_;++i)
+            for (int i=0;i<NumberofSpecies_;++i)
             {
-               for (unsigned j=i;j<NumberofSpecies_;j++)
+               for (int j=i;j<NumberofSpecies_;j++)
                {
                   cout << "[" << i << "][" << j << "] -- "
                        << setw(W) << SpeciesPotential_[i][j] << "\n";
@@ -1777,7 +1777,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
              << "Thermal Expansion:" << setw(W) << TE
              << "Entropy:" << setw(W) << entropy << "\n"
              << "HeatCapacity:" << setw(W) << heatcapacity << "\n";
-         for (unsigned i=0;i<InternalAtoms_;++i)
+         for (int i=0;i<InternalAtoms_;++i)
          {
             out << "BodyForce Value " << i << " (Inf Normalized):"
                 << setw(W) << BodyForce_[i] << "\n";
@@ -1806,7 +1806,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
                  << "Thermal Expansion:" << setw(W) << TE
                  << "Entropy:" << setw(W) << entropy << "\n"
                  << "HeatCapacity:" << setw(W) << heatcapacity << "\n";
-            for (unsigned i=0;i<InternalAtoms_;++i)
+            for (int i=0;i<InternalAtoms_;++i)
             {
                cout << "BodyForce Value " << i << " (Inf Normalized):"
                     << setw(W) << BodyForce_[i] << "\n";
@@ -1941,7 +1941,7 @@ void MultiLatticeTPP::DebugMode()
          cout << "Lambda_= " << Lambda_ << "\n";
       else if (!strcmp(response,Commands[indx++]))
       {
-         for (unsigned i=0;i<InternalAtoms_;++i)
+         for (int i=0;i<InternalAtoms_;++i)
          {
             cout << "BodyForce_[" << i << "]= " << setw(W)
                  << BodyForce_[i] << "\n";
@@ -1949,7 +1949,7 @@ void MultiLatticeTPP::DebugMode()
       }
       else if (!strcmp(response,Commands[indx++]))
       {
-         for (unsigned i=0;i<InternalAtoms_;++i)
+         for (int i=0;i<InternalAtoms_;++i)
          {
             cout << "AtomicMass_[" << i << "]= " << setw(W)
                  << AtomicMass_[i] << "\n";
@@ -1959,8 +1959,8 @@ void MultiLatticeTPP::DebugMode()
          cout << "GridSize_= " << GridSize_ << "\n";
       else if (!strcmp(response,Commands[indx++]))
       {
-         for (unsigned i=0;i<InternalAtoms_;++i)
-            for (unsigned j=i;j<InternalAtoms_;++j)
+         for (int i=0;i<InternalAtoms_;++i)
+            for (int j=i;j<InternalAtoms_;++j)
             {
                cout << "Potential_[" << i << "][" << j << "]= "
                     << setw(W) << Potential_[i][j] << "\n";
@@ -2259,7 +2259,7 @@ void MultiLatticeTPP::PrintCurrentCrystalParamaters(ostream &out)
    int W=out.width();
    out.width(0);
    
-   for (unsigned i=0;i<DIM3;++i)
+   for (int i=0;i<DIM3;++i)
    {
       CurrentLattice[i].Resize(DIM3);
       CurrentLattice[i] = CBK_->CurrentLatticeVec(i);
@@ -2293,7 +2293,7 @@ void MultiLatticeTPP::PrintCurrentCrystalParamaters(ostream &out)
    char const *species[] = {"Ni","Ti","C"};
    out << setw(4) << species[(AtomSpecies_[0] > 3)?3:AtomSpecies_[0]]
        << setw(W) << CBK_->FractionalPosVec(0) << "\n";
-   for (unsigned i=1;i<InternalAtoms_;++i)
+   for (int i=1;i<InternalAtoms_;++i)
    {
       out << setw(4) << species[(AtomSpecies_[i] > 3)?3:AtomSpecies_[i]];
       out << setw(W) << CBK_->FractionalPosVec(i) << "\n";

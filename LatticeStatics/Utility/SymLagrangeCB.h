@@ -14,7 +14,7 @@ private:
    virtual void Reset();
    
 public:
-   SymLagrangeCB(unsigned InternalAtoms,Matrix &RefLattice,Vector *AtomPositions);
+   SymLagrangeCB(int InternalAtoms,Matrix &RefLattice,Vector *AtomPositions);
    SymLagrangeCB(PerlInput &Input,PerlInput::HashStruct *ParentHash=NULL);
    virtual ~SymLagrangeCB() {};
    

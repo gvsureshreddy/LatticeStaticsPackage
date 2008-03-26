@@ -19,9 +19,9 @@ using namespace std;
 class MultiLatticeTPP : public Lattice
 {
 private:
-   const static unsigned DIM3;
+   const static int DIM3;
 
-   unsigned InternalAtoms_;
+   int InternalAtoms_;
    
    double InfluenceDist_;
    double NTemp_;
@@ -52,11 +52,11 @@ private:
    PPSum LatSum_;
    
    UnitCellIterator UCIter_;
-   unsigned GridSize_;
+   int GridSize_;
    
    //Pair Potential data
-   unsigned NumberofSpecies_;
-   unsigned AtomSpecies_[100]; // Max number of atoms in unit cell. might need to be changed...
+   int NumberofSpecies_;
+   int AtomSpecies_[100]; // Max number of atoms in unit cell. might need to be changed...
    PairPotentials ***SpeciesPotential_;
    PairPotentials ***Potential_;
    
@@ -110,9 +110,9 @@ public:
    {ReferenceDispersionCurves(K,NoPTS,prefix,out);}
    virtual int BlochWave(Vector &K)
    {return ReferenceBlochWave(K);}
-   virtual void LongWavelengthModuli(double dk,unsigned gridsize,const char *prefix,
+   virtual void LongWavelengthModuli(double dk,int gridsize,const char *prefix,
                                      ostream &out);
-   virtual void SetGridSize(unsigned Grid) {GridSize_=Grid; UCIter_(GridSize_);}
+   virtual void SetGridSize(int Grid) {GridSize_=Grid; UCIter_(GridSize_);}
    virtual void NeighborDistances(int cutoff,ostream &out);
    virtual void DebugMode();
    virtual void Print(ostream &out,PrintDetail flag);

@@ -17,8 +17,8 @@ private:
    LatticeMode *Mode_;
    
    int Echo_;
-   unsigned CurrentSolution_;
-   unsigned NumSolutions_;
+   int CurrentSolution_;
+   int NumSolutions_;
    
    double MaxDS_;
    double CurrentDS_;           //initial Steplength h > 0
@@ -27,7 +27,7 @@ private:
    double alpha_nom_;           //Nominal angle to curve
    double Converge_;            //Convergence criteria
    double MinDSRatio_;          // Minimum Stepsize ratio
-   unsigned ClosedLoopStart_;   //Closed loop test variable
+   int ClosedLoopStart_;   //Closed loop test variable
    int Direction_;              //Direction of tangent
    
    Vector FirstSolution_;       //Initial point on curve
@@ -40,11 +40,11 @@ private:
 public:
    Vector Previous_Solution_;
    NewtonQRUpdatePCSolution(LatticeMode *Mode,const Vector &one,
-                            unsigned CurrentSolution,unsigned NumSolutions,double MaxDS,
+                            int CurrentSolution,int NumSolutions,double MaxDS,
                             double CurrentDS,double cont_rate_nom,double delta_nom,
                             double alpha_nom,double Converge,double MinDSRatio,
                             const Vector &FirstSolution,int Direction=1,
-                            unsigned ClosedLoopStart=CLOSEDDEFAULT,int Echo=1);
+                            int ClosedLoopStart=CLOSEDDEFAULT,int Echo=1);
    NewtonQRUpdatePCSolution(LatticeMode *Mode,PerlInput &Input,const Vector &one,int Echo=1);
    NewtonQRUpdatePCSolution(LatticeMode *Mode,PerlInput &Input,int Echo);
    ~NewtonQRUpdatePCSolution() {}

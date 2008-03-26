@@ -5,11 +5,11 @@
 using namespace std;
 
 NewtonPCSolution::NewtonPCSolution(LatticeMode *Mode,const Vector &one,
-                                   unsigned CurrentSolution,unsigned NumSolutions,double MaxDS,
+                                   int CurrentSolution,int NumSolutions,double MaxDS,
                                    double CurrentDS,double cont_rate_nom,double delta_nom,
                                    double alpha_nom,double Converge,double MinDSRatio,
                                    const Vector &FirstSolution,
-                                   int Direction,unsigned ClosedLoopStart,int Echo)
+                                   int Direction,int ClosedLoopStart,int Echo)
    : Mode_(Mode),
      Echo_(Echo),
      CurrentSolution_(CurrentSolution),
@@ -51,7 +51,7 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode *Mode,PerlInput &Input,
 {
    // get needed parameters
    PerlInput::HashStruct Hash = Input.getHash("SolutionMethod","NewtonPCSolution");
-   NumSolutions_ = Input.getUnsigned(Hash,"NumSolutions");
+   NumSolutions_ = Input.getPosInt(Hash,"NumSolutions");
    MaxDS_ = Input.getDouble(Hash,"MaxDS");
    cont_rate_nom_ = Input.getDouble(Hash,"Contraction");
    delta_nom_ = Input.getDouble(Hash,"Distance");
@@ -60,7 +60,7 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode *Mode,PerlInput &Input,
    MinDSRatio_ = Input.getDouble(Hash,"MinDSRatio");
    if (Input.ParameterOK(Hash,"ClosedLoopStart"))
    {
-      ClosedLoopStart_ = Input.getUnsigned(Hash,"ClosedLoopStart");
+      ClosedLoopStart_ = Input.getPosInt(Hash,"ClosedLoopStart");
    }
    else
    {
@@ -111,7 +111,7 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode *Mode,PerlInput &Input,int Echo)
 {
    // get needed parameters
    PerlInput::HashStruct Hash = Input.getHash("SolutionMethod","NewtonPCSolution");
-   NumSolutions_ = Input.getUnsigned(Hash,"NumSolutions");
+   NumSolutions_ = Input.getPosInt(Hash,"NumSolutions");
    MaxDS_ = Input.getDouble(Hash,"MaxDS");
    cont_rate_nom_ = Input.getDouble(Hash,"Contraction");
    delta_nom_ = Input.getDouble(Hash,"Distance");
@@ -120,7 +120,7 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode *Mode,PerlInput &Input,int Echo)
    MinDSRatio_ = Input.getDouble(Hash,"MinDSRatio");
    if (Input.ParameterOK(Hash,"ClosedLoopStart"))
    {
-      ClosedLoopStart_ = Input.getUnsigned(Hash,"ClosedLoopStart");
+      ClosedLoopStart_ = Input.getPosInt(Hash,"ClosedLoopStart");
    }
    else
    {

@@ -7,13 +7,13 @@
 #include "Matrix.h"
 
 // Global IDString
-char CVectorID[]="$Id: CVector.cpp,v 1.6 2008/03/23 21:01:27 elliott Exp $";
+char CVectorID[]="$Id: CVector.cpp,v 1.7 2008/03/26 02:35:29 elliott Exp $";
 
 // Private Functions...
 
 // Public Functions...
 
-CVector::CVector(const unsigned& Cols,const CVector::Elm& InitVal)
+CVector::CVector(const int& Cols,const CVector::Elm& InitVal)
 {
    Cols_=Cols;
 
@@ -27,7 +27,7 @@ CVector::CVector(const unsigned& Cols,const CVector::Elm& InitVal)
 
       if (InitVal!=SENTINAL)
       {
-	 for (register unsigned j=0;j<Cols_;j++)
+	 for (register int j=0;j<Cols_;j++)
 	    Elements_[j]=InitVal;
       }
    }
@@ -48,7 +48,7 @@ CVector::CVector(const CVector& A)
       Elements_=new CVector::Elm[Cols_];
    }
 
-   for (unsigned i=0;i<Cols_;i++)
+   for (int i=0;i<Cols_;i++)
    {
       Elements_[i] = A.Elements_[i];
    }
@@ -112,7 +112,7 @@ CVector::CVector(const Vector& A)
       Elements_=new CVector::Elm[Cols_];
    }
 
-   for (unsigned i=0;i<Cols_;i++)
+   for (int i=0;i<Cols_;i++)
    {
       Elements_[i] = CVector::Elm(A[i]);
    }
@@ -142,7 +142,7 @@ CVector::CVector(const Matrix& A)
          Elements_=new CVector::Elm[Cols_];
       }
 
-      for (unsigned i=0;i<Cols_;i++)
+      for (int i=0;i<Cols_;i++)
       {
 	 Elements_[i] = CVector::Elm(A[0][i]);
       }
@@ -160,7 +160,7 @@ CVector::CVector(const Matrix& A)
          Elements_=new CVector::Elm[Cols_];
       }
 
-      for (unsigned i=0;i<Cols_;i++)
+      for (int i=0;i<Cols_;i++)
       {
 	 Elements_[i] = CVector::Elm(A[0][i]);
       }
@@ -187,7 +187,7 @@ CVector operator+(const CVector& A,const CVector& B)
 
    CVector C(A.Cols_);
    
-   for (register unsigned j=0;j<A.Cols_;j++)
+   for (register int j=0;j<A.Cols_;j++)
    {
       C.Elements_[j]=A.Elements_[j]+B.Elements_[j];
    }
@@ -206,7 +206,7 @@ CVector operator-(const CVector& A,const CVector& B)
 
    CVector C(A.Cols_);
    
-   for (register unsigned j=0;j<A.Cols_;j++)
+   for (register int j=0;j<A.Cols_;j++)
    {
       C.Elements_[j]=A.Elements_[j]-B.Elements_[j];
    }
@@ -218,7 +218,7 @@ CVector operator-(const CVector& A)
 {
    CVector B(A.Cols_);
 
-   for (register unsigned i=0;i<A.Cols_;i++)
+   for (register int i=0;i<A.Cols_;i++)
       B.Elements_[i]=-A.Elements_[i];
 
    return B;
@@ -236,7 +236,7 @@ CVector::Elm operator*(const CVector& A,const CVector& B)
    
    CVector::Elm sum=0;
 
-   for (register unsigned i=0;i<A.Cols_;i++)
+   for (register int i=0;i<A.Cols_;i++)
    {
       sum+=A.Elements_[i]*(B.Elements_[i].conj());
    }
@@ -255,9 +255,9 @@ CVector operator*(const CMatrix& A,const CVector& B)
 
    CVector C(A.Rows(),0);
    
-   for (register unsigned i=0;i<A.Rows();i++)
+   for (register int i=0;i<A.Rows();i++)
    {
-      for (register unsigned k=0;k<B.Cols_;k++)
+      for (register int k=0;k<B.Cols_;k++)
       {
 	 C.Elements_[i]+=A[i][k]*B.Elements_[k];
       }
@@ -277,9 +277,9 @@ CVector operator*(const CVector& A,const CMatrix& B)
 
    CVector C(A.Cols_,0);
    
-   for (register unsigned i=0;i<B.Cols();i++)
+   for (register int i=0;i<B.Cols();i++)
    {
-      for (register unsigned k=0;k<A.Cols_;k++)
+      for (register int k=0;k<A.Cols_;k++)
       {
 	 C.Elements_[i]+=A.Elements_[k]*B[k][i];
       }
@@ -292,7 +292,7 @@ CVector operator*(const CVector::Elm& A,const CVector& B)
 {
    CVector C(B.Cols_);
 
-   for (register unsigned i=0;i<B.Cols_;i++)
+   for (register int i=0;i<B.Cols_;i++)
    {
       C.Elements_[i]=A*B.Elements_[i];
    }
@@ -304,7 +304,7 @@ CVector operator*(const CVector& A,const CVector::Elm& B)
 {
    CVector C(A.Cols_);
 
-   for (register unsigned i=0;i<A.Cols_;i++)
+   for (register int i=0;i<A.Cols_;i++)
    {
       C.Elements_[i]=B*A.Elements_[i];
    }
@@ -316,7 +316,7 @@ CVector operator/(const CVector& A,const CVector::Elm& B)
 {
    CVector C(A.Cols_);
 
-   for (register unsigned i=0;i<A.Cols_;i++)
+   for (register int i=0;i<A.Cols_;i++)
    {
       C.Elements_[i]=A.Elements_[i]/B;
    }
@@ -325,7 +325,7 @@ CVector operator/(const CVector& A,const CVector::Elm& B)
 }
 
 #ifdef CHECK_BOUNDS
-CVector::Elm& CVector::operator[](const unsigned& i)
+CVector::Elm& CVector::operator[](const int& i)
 {
    if (i>=Cols_)
    {
@@ -337,7 +337,7 @@ CVector::Elm& CVector::operator[](const unsigned& i)
    return Elements_[i];
 }
 
-const CVector::Elm CVector::operator[](const unsigned& i) const
+const CVector::Elm CVector::operator[](const int& i) const
 {
    if (i>=Cols_)
    {
@@ -365,7 +365,7 @@ CVector& CVector::operator=(const CVector& B)
    return *this;
 }
 
-void CVector::Resize(const unsigned& Cols,const CVector::Elm& InitVal)
+void CVector::Resize(const int& Cols,const CVector::Elm& InitVal)
 {
    if (Cols!=Cols_)
    {
@@ -384,7 +384,7 @@ void CVector::Resize(const unsigned& Cols,const CVector::Elm& InitVal)
 
       if (InitVal!=SENTINAL)
       {
-	 for (register unsigned j=0;j<Cols_;j++)
+	 for (register int j=0;j<Cols_;j++)
 	 {
 	    Elements_[j]=InitVal;
 	 }
@@ -403,7 +403,7 @@ CVector SolvePLU(const CMatrix& A,const CVector& B)
 {
    CMatrix C(B.Cols_,1);
 
-   for(register unsigned i=0;i<B.Cols_;i++)
+   for(register int i=0;i<B.Cols_;i++)
    {
       C[i][0]=B.Elements_[i];
    }
@@ -415,7 +415,7 @@ ostream& operator<<(ostream& out,const CVector& A)
 {
    int W=out.width();
 
-   for (register unsigned i=0;i<A.Cols_;i++)
+   for (register int i=0;i<A.Cols_;i++)
    {
       out << setw(W) << A.Elements_[i];
    }
@@ -425,7 +425,7 @@ ostream& operator<<(ostream& out,const CVector& A)
 
 istream& operator>>(istream& in,CVector& A)
 {
-   for (register unsigned i=0;i<A.Cols_;i++)
+   for (register int i=0;i<A.Cols_;i++)
       in >> A.Elements_[i];
 
    return in;

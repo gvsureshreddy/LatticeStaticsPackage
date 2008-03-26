@@ -38,7 +38,7 @@ private:
    ChainSum ChainSum_;
    
    ChainIterator ChainIter_;
-   unsigned GridSize_;
+   int GridSize_;
    
    //Pair Potential data
    int NumberofSpecies_;
@@ -97,9 +97,9 @@ public:
    {ReferenceDispersionCurves(K,NoPTS,prefix,out);}
    virtual int BlochWave(Vector &K)
    {return ReferenceBlochWave(K);}
-   virtual void LongWavelengthModuli(double dk,unsigned gridsize,const char *prefix,
+   virtual void LongWavelengthModuli(double dk,int gridsize,const char *prefix,
                                      ostream &out);
-   virtual void SetGridSize(unsigned Grid) {GridSize_=Grid; ChainIter_(GridSize_);}
+   virtual void SetGridSize(int Grid) {GridSize_=Grid; ChainIter_(GridSize_);}
    virtual void NeighborDistances(int cutoff,ostream &out);
    virtual void DebugMode();
    virtual void Print(ostream &out,PrintDetail flag);

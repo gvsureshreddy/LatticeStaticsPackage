@@ -25,11 +25,11 @@ protected:
    typedef MyComplexDouble Elm;
 
    Elm **Elements_;
-   unsigned Rows_;
-   unsigned Cols_;
+   int Rows_;
+   int Cols_;
 
    // Used by Det()
-   CMatrix Minor(unsigned i,unsigned j) const;
+   CMatrix Minor(int i,int j) const;
 
 public:
 
@@ -44,7 +44,7 @@ public:
    //   allocated and each element set to Initial Value
    // Defaults: Rows=0,Cols=0,Initial Value= (Uninitialized)
 
-   CMatrix(unsigned Rows=0,unsigned Cols=0,Elm InitVal=SENTINAL);
+   CMatrix(int Rows=0,int Cols=0,Elm InitVal=SENTINAL);
    CMatrix(const CMatrix& A);
    CMatrix(const Matrix& A);
 
@@ -52,8 +52,8 @@ public:
    ~CMatrix();
 
    // Size Access...
-   unsigned Rows() const {return Rows_;}
-   unsigned Cols() const {return Cols_;}
+   int Rows() const {return Rows_;}
+   int Cols() const {return Cols_;}
    
    // Mathematical Operations...
 
@@ -76,12 +76,12 @@ public:
 
 #ifdef CHECK_BOUNDS
    // Note: Index checking on Rows but not on Columns....
-   Elm* operator[](unsigned i);
-   Elm* operator[](unsigned i) const;
+   Elm* operator[](int i);
+   Elm* operator[](int i) const;
 #else
    // Note: NO Index checking
-   Elm* operator[](unsigned i) {return Elements_[i];}
-   Elm* operator[](unsigned i) const {return Elements_[i];}
+   Elm* operator[](int i) {return Elements_[i];}
+   Elm* operator[](int i) const {return Elements_[i];}
 #endif
    
    // Assignment Operations
@@ -94,7 +94,7 @@ public:
 
    // Misc. CMatrix Operatons
    
-   CMatrix& SetIdentity(unsigned Size=0);
+   CMatrix& SetIdentity(int Size=0);
    CMatrix Transpose() const;
    CMatrix Conjugate() const;
    CMatrix ConjTrans() {return (this->Transpose()).Conjugate();}
@@ -104,7 +104,7 @@ public:
 
    // Destructively Resize CMatrix
    // No change if size does not change
-   void Resize(unsigned Rows=0,unsigned Cols=0,Elm InitVal=SENTINAL);
+   void Resize(int Rows=0,int Cols=0,Elm InitVal=SENTINAL);
    
    // Operations & Etc...
 
@@ -126,7 +126,7 @@ public:
    // Tol - tolerance for convergence
    //
    // Note: Assumes A is HERMITIAN
-   friend Matrix HermiteEigVal(CMatrix A,CMatrix *B=NULL,const unsigned MaxItr=100,
+   friend Matrix HermiteEigVal(CMatrix A,CMatrix *B=NULL,const int MaxItr=100,
 			       const double Tol=1.0e-13);
 
    // Cholesky Decomposition of CMatrix

@@ -8,21 +8,21 @@ class UnitCellIterator
 {
 private:
    // Cubic grid of size (GridSize_)^3
-   unsigned GridSize_;
+   int GridSize_;
    int VectorsLen_;
    double **Vectors_;
    int CurrentPOS_;
    
-   void Initialize(unsigned GridSize,int DoHalfOnly,int SkipZero);
+   void Initialize(int GridSize,int DoHalfOnly,int SkipZero);
    
 public:
    
    UnitCellIterator(): Vectors_(NULL) {}
-   UnitCellIterator(unsigned GridSize,int DoHalfOnly=1,int SkipZero=1)
+   UnitCellIterator(int GridSize,int DoHalfOnly=1,int SkipZero=1)
       :Vectors_(NULL) {Initialize(GridSize,DoHalfOnly,SkipZero);}
    ~UnitCellIterator();
    
-   void operator()(unsigned GridSize,int DoHalfOnly=1,int SkipZero=1)
+   void operator()(int GridSize,int DoHalfOnly=1,int SkipZero=1)
    {Initialize(GridSize,DoHalfOnly,SkipZero);}
    
    void Reset() {CurrentPOS_ = 0;}

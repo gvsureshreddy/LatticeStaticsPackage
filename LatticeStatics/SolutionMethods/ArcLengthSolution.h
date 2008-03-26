@@ -16,8 +16,8 @@ class ArcLengthSolution : public SolutionMethod
 private:
    int Echo_;
    LatticeMode *Mode_;
-   unsigned ModeDOFS_;
-   unsigned MaxIter_;
+   int ModeDOFS_;
+   int MaxIter_;
    double Tolerance_;
    double BisectTolerance_;
    
@@ -28,9 +28,9 @@ private:
    double AngleIncrease_;
    double Aspect_;
    
-   unsigned NumSolutions_;
-   unsigned CurrentSolution_;
-   unsigned ClosedLoopStart_;
+   int NumSolutions_;
+   int CurrentSolution_;
+   int ClosedLoopStart_;
    Vector FirstSolution_;
    
    Vector Difference_;
@@ -52,11 +52,11 @@ private:
    
 public:
    ArcLengthSolution(LatticeMode *Mode,const Vector &dofs,
-                     unsigned MaxIter,double Tolerance,double BisectTolerance,double DSMax,
+                     int MaxIter,double Tolerance,double BisectTolerance,double DSMax,
                      double DSMin,double CurrentDS,double AngleCutoff,double AngleIncrease,
-                     double Aspect,unsigned NumSolutions,unsigned CurrentSolution,
+                     double Aspect,int NumSolutions,int CurrentSolution,
                      const Vector &FirstSolution,const Vector &Difference,
-                     unsigned ClosedLoopStart=CLOSEDDEFAULT,int Echo=1);
+                     int ClosedLoopStart=CLOSEDDEFAULT,int Echo=1);
    ArcLengthSolution(LatticeMode *Mode,PerlInput &Input,
                      const Vector &one,const Vector &two,int Echo=1);
    ArcLengthSolution(LatticeMode *Mode,PerlInput &Input,int Echo=1);

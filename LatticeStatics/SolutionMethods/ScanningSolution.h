@@ -14,8 +14,8 @@ class ScanningSolution : public SolutionMethod
 private:
    int Echo_;
    LatticeMode *Mode_;
-   unsigned ModeDOFS_;
-   unsigned MaxIter_;
+   int ModeDOFS_;
+   int MaxIter_;
    double Tolerance_;
    double NewtonTolerance_;
    enum YN {No,Yes};
@@ -25,7 +25,7 @@ private:
    Vector InitialDef_;
    
    enum ScanDir {Loading,Deformation};
-   unsigned ScnDefParam_;
+   int ScnDefParam_;
    ScanDir Direction_;
    double ScanStart_;
    double ScanEnd_;
@@ -58,7 +58,7 @@ public:
    ScanningSolution(LatticeMode *Mode,PerlInput &Input,int Echo=1);
    ScanningSolution(LatticeMode *Mode,
                     int MaxIter,double Tolerance,double NewtonTolerance,YN ScanFullField,
-                    Vector &InitialDef,unsigned ScnDefParam,ScanDir Direction,
+                    Vector &InitialDef,int ScnDefParam,ScanDir Direction,
                     double ScanStart,double ScanEnd,double ScanStep,
                     double LineStart,double LineEnd,double LineStep,
                     YN OnSolution=No,int Echo=1);

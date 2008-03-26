@@ -82,9 +82,9 @@ public:
    friend Vector3D operator*(const Vector3D& A,const SparseMatrix& B);	
    
    // Element Access methods
-   inline Elm& operator[](const unsigned& i) {return Elements_[i];}
+   inline Elm& operator[](const int& i) {return Elements_[i];}
       
-   inline Elm operator[](const unsigned& i) const {return Elements_[i];}
+   inline Elm operator[](const int& i) const {return Elements_[i];}
 
    // Assignment Operatons
 

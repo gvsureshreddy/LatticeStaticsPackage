@@ -14,7 +14,7 @@ private:
    virtual void Reset();
    
 public:
-   EulerCB(unsigned InternalAtoms,Matrix &RefLattice,Vector *AtomPositions);
+   EulerCB(int InternalAtoms,Matrix &RefLattice,Vector *AtomPositions);
    EulerCB(PerlInput &Input,PerlInput::HashStruct *ParentHash=NULL);
    virtual ~EulerCB() {};
    

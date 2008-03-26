@@ -20,7 +20,7 @@ class Vector
 {
 protected:
    typedef double Elm;
-   unsigned Cols_;
+   int Cols_;
    Elm *Elements_;
    
 public:
@@ -32,7 +32,7 @@ public:
    // Postcond. Vector of size 1xCols allocated and
    // each element set to Inital Value (or not set at all)
    // Devaults: Cols-0,Initial Value= (un initialized)
-   Vector(const unsigned& Cols=0,const Elm& InitVal=SENTINAL);
+   Vector(const int& Cols=0,const Elm& InitVal=SENTINAL);
    Vector(const Vector& A);
    Vector(const Vector3D& A);
    Vector(const Matrix& A);
@@ -64,12 +64,12 @@ public:
    // Element Access methods
 #ifdef CHECK_BOUNDS
    // With Bounds checking!!!
-   Elm& operator[](const unsigned& i);
-   Elm operator[](const unsigned& i) const;
+   Elm& operator[](const int& i);
+   Elm operator[](const int& i) const;
 #else
    // Without Bounds Checking!!!
-   inline Elm& operator[](const unsigned& i) {return Elements_[i];}
-   inline Elm operator[](const unsigned& i) const {return Elements_[i];}
+   inline Elm& operator[](const int& i) {return Elements_[i];}
+   inline Elm operator[](const int& i) const {return Elements_[i];}
 #endif
    
    // Assignment Operatons
@@ -81,10 +81,10 @@ public:
 
    // Destructively Resize Vector
    // No change if size dosen't change
-   void Resize(const unsigned& Cols=0,const Elm& InitVal=SENTINAL);
+   void Resize(const int& Cols=0,const Elm& InitVal=SENTINAL);
 
    // Operations & Etc...
-   unsigned Dim() const {return Cols_;}
+   int Dim() const {return Cols_;}
    // Standard IR^n Norm
    Matrix::Elm Norm();
 

@@ -30,7 +30,11 @@ double RadiiMorseCutoff::CutoffFunction(double NTemp,double r2,YDeriv dy,TDeriv 
          val = -(RadiiMorse::PairPotential(NTemp,c2,D2Y,dt)/c2)*r2;
          break;
       case D3Y:
+         val = -(RadiiMorse::PairPotential(NTemp,c2,D2Y,dt)/c2);
+         break;
       case D4Y:
+         val = 0.0;
+         break;
       case DYmax:
       default:
          cerr << "Error in RadiiMorseCutoff::CutoffFunction()\n";

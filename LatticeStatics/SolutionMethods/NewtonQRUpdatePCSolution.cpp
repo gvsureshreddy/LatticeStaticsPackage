@@ -6,13 +6,13 @@
 using namespace std;
 
 NewtonQRUpdatePCSolution::NewtonQRUpdatePCSolution(LatticeMode *Mode,
-                                                   const Vector &one,unsigned CurrentSolution,
-                                                   unsigned NumSolutions,double MaxDS,
+                                                   const Vector &one,int CurrentSolution,
+                                                   int NumSolutions,double MaxDS,
                                                    double CurrentDS,double cont_rate_nom,
                                                    double delta_nom,double alpha_nom,
                                                    double Converge,double MinDSRatio,
                                                    const Vector &FirstSolution,int Direction,
-                                                   unsigned ClosedLoopStart,int Echo)
+                                                   int ClosedLoopStart,int Echo)
    : Mode_(Mode),
      Echo_(Echo),
      CurrentSolution_(CurrentSolution),
@@ -54,7 +54,7 @@ NewtonQRUpdatePCSolution::NewtonQRUpdatePCSolution(LatticeMode *Mode,PerlInput &
 {
    // get needed parameters
    PerlInput::HashStruct Hash = Input.getHash("SolutionMethod","NewtonQRUpdatePCSolution");
-   NumSolutions_ = Input.getUnsigned(Hash,"NumSolutions");
+   NumSolutions_ = Input.getPosInt(Hash,"NumSolutions");
    MaxDS_ = Input.getDouble(Hash,"StepLength");
    cont_rate_nom_ = Input.getDouble(Hash,"Contraction");
    delta_nom_ = Input.getDouble(Hash,"Distance");
@@ -63,7 +63,7 @@ NewtonQRUpdatePCSolution::NewtonQRUpdatePCSolution(LatticeMode *Mode,PerlInput &
    MinDSRatio_ = Input.getDouble(Hash,"MinDSRatio");
    if (Input.ParameterOK(Hash,"ClosedLoopStart"))
    {
-      ClosedLoopStart_ = Input.getUnsigned(Hash,"ClosedLoopStart");
+      ClosedLoopStart_ = Input.getPosInt(Hash,"ClosedLoopStart");
    }
    else
    {
@@ -116,7 +116,7 @@ NewtonQRUpdatePCSolution::NewtonQRUpdatePCSolution(LatticeMode *Mode,PerlInput &
 {
    // get needed parameters
    PerlInput::HashStruct Hash = Input.getHash("SolutionMethod","NewtonQRUpdatePCSolution");
-   NumSolutions_ = Input.getUnsigned(Hash,"NumSolutions");
+   NumSolutions_ = Input.getPosInt(Hash,"NumSolutions");
    MaxDS_ = Input.getDouble(Hash,"StepLength");
    cont_rate_nom_ = Input.getDouble(Hash,"Contraction");
    delta_nom_ = Input.getDouble(Hash,"Distance");
@@ -125,7 +125,7 @@ NewtonQRUpdatePCSolution::NewtonQRUpdatePCSolution(LatticeMode *Mode,PerlInput &
    MinDSRatio_ = Input.getDouble(Hash,"MinDSRatio");
    if (Input.ParameterOK(Hash,"ClosedLoopStart"))
    {
-      ClosedLoopStart_ = Input.getUnsigned(Hash,"ClosedLoopStart");
+      ClosedLoopStart_ = Input.getPosInt(Hash,"ClosedLoopStart");
    }
    else
    {

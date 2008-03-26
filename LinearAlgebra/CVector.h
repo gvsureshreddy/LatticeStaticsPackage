@@ -21,7 +21,7 @@ class CVector
 {
 protected:
    typedef MyComplexDouble Elm;
-   unsigned Cols_;
+   int Cols_;
    Elm *Elements_;
    
 public:
@@ -33,7 +33,7 @@ public:
    // Postcond. CVector of size 1xCols allocated and
    // each element set to Inital Value (or not set at all)
    // Devaults: Cols-0,Initial Value= (un initialized)
-   CVector(const unsigned& Cols=0,const Elm& InitVal=SENTINAL);
+   CVector(const int& Cols=0,const Elm& InitVal=SENTINAL);
    CVector(const CVector& A);
    CVector(const CMatrix& A);
    CVector(const Vector& A);
@@ -60,12 +60,12 @@ public:
    // Element Access methods
 #ifdef CHECK_BOUNDS
    // With Bounds checking!!!
-   Elm& operator[](const unsigned& i);
-   const Elm operator[](const unsigned& i) const;
+   Elm& operator[](const int& i);
+   const Elm operator[](const int& i) const;
 #else
    // Without Bounds Checking!!!
-   inline Elm& operator[](const unsigned& i) {return Elements_[i];}
-   inline Elm operator[](const unsigned& i) const {return Elements_[i];}
+   inline Elm& operator[](const int& i) {return Elements_[i];}
+   inline Elm operator[](const int& i) const {return Elements_[i];}
 #endif
    
    // Assignment Operatons
@@ -77,10 +77,10 @@ public:
 
    // Destructively Resize CVector
    // No change if size dosen't change
-   void Resize(const unsigned& Cols=0,const Elm& InitVal=SENTINAL);
+   void Resize(const int& Cols=0,const Elm& InitVal=SENTINAL);
 
    // Operations & Etc...
-   unsigned Dim() const {return Cols_;}
+   int Dim() const {return Cols_;}
    // Standard IC^n Norm
    Elm Norm();
 

@@ -48,14 +48,14 @@ int main(int argc,char *argv[])
    fstream out;
    InitializeOutputFile(out,outputfile,datafile,argc,Lat,Precision,Width,Echo);
    
-   unsigned NoLines,NoPTS;
-   NoLines = Input.getUnsigned("DispersionCurves","NoLines");
-   NoPTS = Input.getUnsigned("DispersionCurves","Points");
+   int NoLines,NoPTS;
+   NoLines = Input.getPosInt("DispersionCurves","NoLines");
+   NoPTS = Input.getPosInt("DispersionCurves","Points");
    
    Vector *Line;
    Line = new Vector[NoLines];
 
-   for (unsigned i=0;i<NoLines;++i)
+   for (int i=0;i<NoLines;++i)
    {
       Line[i].Resize(6);
       Input.getVector(Line[i],"DispersionCurves","Lines",i);
@@ -63,7 +63,7 @@ int main(int argc,char *argv[])
 
    if (argc >= 4)
    {
-      for (unsigned i=0;i<NoLines;++i)
+      for (int i=0;i<NoLines;++i)
       {
          out << "#" << setw(Width) << Line[i] << "\n" << setw(Width);
          if (Echo) cout << "#" << setw(Width) << Line[i] << "\n" << setw(Width);
@@ -84,7 +84,7 @@ int main(int argc,char *argv[])
       char tmp[LINELENGTH];
       sprintf(strng,format,datafile);
       
-      for (unsigned i=0;i<NoLines;++i)
+      for (int i=0;i<NoLines;++i)
       {
          out << "#" << setw(Width) << Line[i] << "\n";
          if (Echo) cout << "#" << setw(Width) << Line[i] << "\n";
@@ -98,7 +98,7 @@ int main(int argc,char *argv[])
          {
             temp = atof(tmp);
             fscanf(pipe,"%lf",&lambda);
-            for (unsigned j=0;j<DOF.Dim();++j)
+            for (int j=0;j<DOF.Dim();++j)
             {
                fscanf(pipe,"%lf",&(DOF[j]));
             }

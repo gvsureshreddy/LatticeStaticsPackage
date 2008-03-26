@@ -6,7 +6,7 @@
 #include <cstdlib>
 
 // Global IDString
-char MatrixID[]="$Id: Matrix.cpp,v 1.21 2008/03/23 21:01:27 elliott Exp $";
+char MatrixID[]="$Id: Matrix.cpp,v 1.22 2008/03/26 02:35:29 elliott Exp $";
 
 // Private Methods...
 
@@ -29,15 +29,15 @@ Matrix::Elm pythag(Matrix::Elm a,Matrix::Elm b)
 
 // Returns matrix of size Rows_-1 x Cols_-1 with ith row and
 //   jth column removed
-Matrix Matrix::Minor(unsigned i,unsigned j) const
+Matrix Matrix::Minor(int i,int j) const
 {
    Matrix A(Rows_-1,Cols_-1);
    
    if (!IsNull() || !A.IsNull())
    {
-      for (register unsigned a=0;a<A.Rows_;a++)
+      for (register int a=0;a<A.Rows_;a++)
       {
-	 for (register unsigned b=0;b<A.Cols_;b++)
+	 for (register int b=0;b<A.Cols_;b++)
 	 {
 	    if (a < i)
 	    {
@@ -72,7 +72,7 @@ Matrix Matrix::Minor(unsigned i,unsigned j) const
 
 int Matrix::MathematicaPrintFlag = 0;
 
-Matrix::Matrix(unsigned Rows,unsigned Cols,Matrix::Elm InitVal)
+Matrix::Matrix(int Rows,int Cols,Matrix::Elm InitVal)
 {
    Rows_=Rows;
    Cols_=Cols;
@@ -86,16 +86,16 @@ Matrix::Matrix(unsigned Rows,unsigned Cols,Matrix::Elm InitVal)
       Elements_=new Matrix::Elm*[Rows_];
       Elements_[0]=new Matrix::Elm[Rows_*Cols_];
 
-      for (register unsigned i=1;i<Rows_;i++)
+      for (register int i=1;i<Rows_;i++)
       {
 	 Elements_[i]=Elements_[i-1]+Cols_;
       }
 
       if (InitVal!=SENTINAL)
       {
-	 for (register unsigned i=0;i<Rows_;i++)
+	 for (register int i=0;i<Rows_;i++)
 	 {
-	    for (register unsigned j=0;j<Cols_;j++)
+	    for (register int j=0;j<Cols_;j++)
 	       Elements_[i][j]=InitVal;
 	 }
       }
@@ -117,7 +117,7 @@ Matrix::Matrix(const Matrix& A)
       Elements_=new Matrix::Elm*[Rows_];
       Elements_[0]=new Matrix::Elm[Rows_*Cols_];
 
-      for (register unsigned i=1;i<Rows_;i++)
+      for (register int i=1;i<Rows_;i++)
       {
 	 Elements_[i]=Elements_[i-1]+Cols_;
       }
@@ -150,9 +150,9 @@ Matrix operator+(const Matrix& A,const Matrix& B)
 
    Matrix C(A.Rows_,A.Cols_);
    
-   for (register unsigned i=0;i<A.Rows_;i++)
+   for (register int i=0;i<A.Rows_;i++)
    {
-      for (register unsigned j=0;j<A.Cols_;j++)
+      for (register int j=0;j<A.Cols_;j++)
       {
 	 C.Elements_[i][j]=A.Elements_[i][j]+B.Elements_[i][j];
       }
@@ -165,9 +165,9 @@ Matrix operator-(const Matrix& A)
 {
    Matrix B(A.Rows_,A.Cols_);
 
-   for (register unsigned i=0;i<A.Rows_;i++)
+   for (register int i=0;i<A.Rows_;i++)
    {
-      for(unsigned j=0;j<A.Cols_;j++)
+      for(int j=0;j<A.Cols_;j++)
       {
 	 B.Elements_[i][j]=-A.Elements_[i][j];
       }
@@ -187,9 +187,9 @@ Matrix operator-(const Matrix& A,const Matrix& B)
 
    Matrix C(A.Rows_,A.Cols_);
    
-   for (register unsigned i=0;i<A.Rows_;i++)
+   for (register int i=0;i<A.Rows_;i++)
    {
-      for (register unsigned j=0;j<A.Cols_;j++)
+      for (register int j=0;j<A.Cols_;j++)
       {
 	 C.Elements_[i][j]=A.Elements_[i][j]-B.Elements_[i][j];
       }
@@ -209,11 +209,11 @@ Matrix operator*(const Matrix& A,const Matrix& B)
 
    Matrix C(A.Rows_,B.Cols_,0);
    
-   for (register unsigned i=0;i<A.Rows_;i++)
+   for (register int i=0;i<A.Rows_;i++)
    {
-      for (register unsigned j=0;j<B.Cols_;j++)
+      for (register int j=0;j<B.Cols_;j++)
       {
-	 for (register unsigned k=0;k<A.Cols_;k++)
+	 for (register int k=0;k<A.Cols_;k++)
 	 {
 	    C.Elements_[i][j]+=A.Elements_[i][k]*B.Elements_[k][j];
 	 }
@@ -227,9 +227,9 @@ Matrix operator*(const Matrix::Elm& A,const Matrix& B)
 {
    Matrix C(B.Rows_,B.Cols_);
 
-   for (register unsigned i=0;i<B.Rows_;i++)
+   for (register int i=0;i<B.Rows_;i++)
    {
-      for (register unsigned j=0;j<B.Cols_;j++)
+      for (register int j=0;j<B.Cols_;j++)
       {
 	 C.Elements_[i][j]=A*B.Elements_[i][j];
       }
@@ -242,9 +242,9 @@ Matrix operator*(const Matrix& A,const Matrix::Elm& B)
 {
    Matrix C(A.Rows_,A.Cols_);
 
-   for (register unsigned i=0;i<A.Rows_;i++)
+   for (register int i=0;i<A.Rows_;i++)
    {
-      for (register unsigned j=0;j<A.Cols_;j++)
+      for (register int j=0;j<A.Cols_;j++)
       {
 	 C.Elements_[i][j]=B*A.Elements_[i][j];
       }
@@ -264,9 +264,9 @@ Matrix operator/(const Matrix& A,const Matrix::Elm& B)
    
    Matrix C(A.Rows_,A.Cols_);
 
-   for (register unsigned i=0;i<A.Rows_;i++)
+   for (register int i=0;i<A.Rows_;i++)
    {
-      for (register unsigned j=0;j<A.Cols_;j++)
+      for (register int j=0;j<A.Cols_;j++)
       {
 	 C.Elements_[i][j]=A.Elements_[i][j]/B;
       }
@@ -276,7 +276,7 @@ Matrix operator/(const Matrix& A,const Matrix::Elm& B)
 }
 
 #ifdef CHECK_BOUNDS
-Matrix::Elm* Matrix::operator[](unsigned i)
+Matrix::Elm* Matrix::operator[](int i)
 {
    if (i >= Rows_)
    {
@@ -287,7 +287,7 @@ Matrix::Elm* Matrix::operator[](unsigned i)
    return Elements_[i];
 }
 
-Matrix::Elm* Matrix::operator[](unsigned i) const
+Matrix::Elm* Matrix::operator[](int i) const
 {
    if (i >= Rows_)
    {
@@ -314,14 +314,14 @@ Matrix& Matrix::operator=(const Matrix& B)
    return *this;
 }
 
-Matrix& Matrix::SetIdentity(unsigned Size)
+Matrix& Matrix::SetIdentity(int Size)
 {
    if (Rows_!=Size || Cols_!=Size)
       Resize(Size,Size);
 
-   for (register unsigned i=0;i<Size;i++)
+   for (register int i=0;i<Size;i++)
    {
-      for (register unsigned j=0;j<Size;j++)
+      for (register int j=0;j<Size;j++)
       {
 	 if (i==j)
 	    Elements_[i][i]=1.0;
@@ -337,9 +337,9 @@ Matrix Matrix::Transpose() const
 {
    Matrix A(Cols_,Rows_);
 
-   for (register unsigned i=0;i<Rows_;i++)
+   for (register int i=0;i<Rows_;i++)
    {
-      for (register unsigned j=0;j<Cols_;j++)
+      for (register int j=0;j<Cols_;j++)
       {
 	 A.Elements_[j][i]=Elements_[i][j];
       }
@@ -360,7 +360,7 @@ Matrix Matrix::Inverse() const
 
    B.Elements_[0][0]=1.0;
 
-   for (register unsigned i=0;i<Cols_;i++)
+   for (register int i=0;i<Cols_;i++)
    {
 #ifdef SOLVE_SVD
       X=SolveSVD(*this,B);
@@ -368,7 +368,7 @@ Matrix Matrix::Inverse() const
       X=SolvePLU(*this,B);
 #endif
 
-      for (register unsigned j=0;j<Rows_;j++)
+      for (register int j=0;j<Rows_;j++)
 	 C.Elements_[j][i]=X.Elements_[j][0];
 
       B.Elements_[i][0]=0;
@@ -378,7 +378,7 @@ Matrix Matrix::Inverse() const
    return C;
 }
 
-void Matrix::Resize(unsigned Rows,unsigned Cols,Matrix::Elm InitVal)
+void Matrix::Resize(int Rows,int Cols,Matrix::Elm InitVal)
 {
    if (Rows!=Rows_ || Cols!=Cols_)
    {
@@ -400,7 +400,7 @@ void Matrix::Resize(unsigned Rows,unsigned Cols,Matrix::Elm InitVal)
 	 Elements_=new Matrix::Elm*[Rows_];
 	 Elements_[0]=new Matrix::Elm[Rows_*Cols_];
 
-	 for (register unsigned i=1;i<Rows_;i++)
+	 for (register int i=1;i<Rows_;i++)
 	 {
 	    Elements_[i]=Elements_[i-1]+Cols_;
 	 }
@@ -409,9 +409,9 @@ void Matrix::Resize(unsigned Rows,unsigned Cols,Matrix::Elm InitVal)
    
    if (InitVal!=SENTINAL)
    {
-      for (register unsigned i=0;i<Rows_;i++)
+      for (register int i=0;i<Rows_;i++)
       {
-	 for (register unsigned j=0;j<Cols_;j++)
+	 for (register int j=0;j<Cols_;j++)
 	 {
 	    Elements_[i][j]=InitVal;
 	 }
@@ -437,7 +437,7 @@ Matrix::Elm Matrix::Det() const
    {
       Matrix::Elm det=0;
 
-      for (register unsigned i=0;i<Cols_;i++)
+      for (register int i=0;i<Cols_;i++)
       {
 	 det+=(1-2*(i%2))*Elements_[0][i]*(Minor(0,i).Det());
       }
@@ -465,27 +465,27 @@ void PLU(const Matrix& A,Matrix& P,Matrix& L,Matrix& U)
    int *Ipivot;
    Ipivot = new int[A.Rows_];
 
-   for (register unsigned i=0;i<A.Rows_;i++)
+   for (register int i=0;i<A.Rows_;i++)
    {
       Ipivot[i]=i;
    }
 
-   for (register unsigned i=0;i<A.Rows_;i++)
+   for (register int i=0;i<A.Rows_;i++)
    {
-      for (register unsigned j=0;j<A.Cols_;j++)
+      for (register int j=0;j<A.Cols_;j++)
       {
 	 if (fabs(Temp.Elements_[i][j]) > S.Elements_[i][0])
 	    S.Elements_[i][0]=fabs(Temp.Elements_[i][j]);
       }
    }
 
-   for (register unsigned i=0;i<A.Rows_;i++)
+   for (register int i=0;i<A.Rows_;i++)
    {
       Matrix::Elm temp1;
       temp1=fabs(Temp.Elements_[i][i]/S.Elements_[i][0]);
 
-      unsigned k=i;
-      for (register unsigned j=i;j<A.Rows_;j++)
+      int k=i;
+      for (register int j=i;j<A.Rows_;j++)
       {
 	 if (fabs(Temp.Elements_[j][i]) > temp1)
 	 {
@@ -498,14 +498,14 @@ void PLU(const Matrix& A,Matrix& P,Matrix& L,Matrix& U)
       {
 	 Matrix::Elm *Switch;
 	 Switch = new Matrix::Elm[A.Rows_];
-	 for (register unsigned j=i;j<A.Rows_;j++)
+	 for (register int j=i;j<A.Rows_;j++)
 	 {
 	    Switch[j]=Temp.Elements_[i][j];
 	    Temp.Elements_[i][j]=Temp.Elements_[k][j];
 	    Temp.Elements_[k][j]=Switch[j];
 	 }
 
-	 for (register unsigned j=0;j<i;j++)
+	 for (register int j=0;j<i;j++)
 	 {
 	    Switch[j]=L.Elements_[i][j];
 	    L.Elements_[i][j]=L.Elements_[k][j];
@@ -523,29 +523,29 @@ void PLU(const Matrix& A,Matrix& P,Matrix& L,Matrix& U)
 	 Ipivot[k]=tempi1;
       }
 
-      for (register unsigned j=i+1;j<A.Rows_;j++)
+      for (register int j=i+1;j<A.Rows_;j++)
       {
 	 L.Elements_[j][i]=Temp.Elements_[j][i]/Temp.Elements_[i][i];
       }
 
-      for (register unsigned j=i+1;j<A.Rows_;j++)
+      for (register int j=i+1;j<A.Rows_;j++)
       {
-	 for (register unsigned k=i+1;k<A.Rows_;k++)
+	 for (register int k=i+1;k<A.Rows_;k++)
 	 {
 	    Temp.Elements_[j][k]=Temp.Elements_[j][k]-(L.Elements_[j][i]*Temp.Elements_[i][k]);
 	 }
       }
    }
 
-   for (register unsigned i=0;i<A.Rows_;i++)
+   for (register int i=0;i<A.Rows_;i++)
    {
-      for (register unsigned j=i;j<A.Rows_;j++)
+      for (register int j=i;j<A.Rows_;j++)
       {
 	 U.Elements_[i][j]=Temp.Elements_[i][j];
       }
    }
 
-   for (register unsigned i=0;i<A.Rows_;i++)
+   for (register int i=0;i<A.Rows_;i++)
    {
       P.Elements_[i][Ipivot[i]]=1;
    }
@@ -558,7 +558,7 @@ void PLU(const Matrix& A,Matrix& P,Matrix& L,Matrix& U)
 // find QR factorization of A or A.Transpose()
 void QR(const Matrix& A,Matrix& Q,Matrix& R,int CalcTranspose)
 {
-   unsigned i,j,k,m,n;
+   int i,j,k,m,n;
    Matrix::Elm c,s,r,A1,A2;
 
    if (CalcTranspose)
@@ -650,7 +650,7 @@ Matrix::Elm SVD(const Matrix& A,Matrix& U,Matrix& W,Matrix& V,
    g=scale=anorm=0.0;
 
    // Householder reduction to bidiagonal form.
-   for (unsigned i=0;i<A.Cols_;i++)
+   for (int i=0;i<A.Cols_;i++)
    {
       l = i+1;
       temp[i] = scale*g;
@@ -658,10 +658,10 @@ Matrix::Elm SVD(const Matrix& A,Matrix& U,Matrix& W,Matrix& V,
 
       if (i < A.Rows_)
       {
-	 for (unsigned k=i;k<A.Rows_;k++) scale += fabs(U.Elements_[k][i]);
+	 for (int k=i;k<A.Rows_;k++) scale += fabs(U.Elements_[k][i]);
 	 if (scale)
 	 {
-	    for (unsigned k=i;k<A.Rows_;k++)
+	    for (int k=i;k<A.Rows_;k++)
 	    {
 	       U.Elements_[k][i] /= scale;
 	       s += U.Elements_[k][i]*U.Elements_[k][i];
@@ -670,17 +670,17 @@ Matrix::Elm SVD(const Matrix& A,Matrix& U,Matrix& W,Matrix& V,
 	    g = - ( f >= 0.0 ? fabs(sqrt(s)) : -fabs(sqrt(s)) );
 	    h = f*g - s;
 	    U.Elements_[i][i] = f-g;
-	    for (unsigned j=l;j<A.Cols_;j++)
+	    for (int j=l;j<A.Cols_;j++)
 	    {
 	       s = 0.0;
-	       for (unsigned k=i;k<A.Rows_;k++)
+	       for (int k=i;k<A.Rows_;k++)
 		  s += U.Elements_[k][i]*U.Elements_[k][j];
 	       f = s/h;
-	       for (unsigned k=i;k<A.Rows_;k++)
+	       for (int k=i;k<A.Rows_;k++)
 		  U.Elements_[k][j] += f*U.Elements_[k][i];
 	    }
 
-	    for (unsigned k=i;k<A.Rows_;k++) U.Elements_[k][i] *= scale;
+	    for (int k=i;k<A.Rows_;k++) U.Elements_[k][i] *= scale;
 	 }
       }
 
@@ -689,10 +689,10 @@ Matrix::Elm SVD(const Matrix& A,Matrix& U,Matrix& W,Matrix& V,
       g=s=scale=0.0;
       if ((i < A.Rows_) && (i != A.Cols_-1))
       {
-	 for (unsigned k=l;k<A.Cols_;k++) scale += fabs(U.Elements_[i][k]);
+	 for (int k=l;k<A.Cols_;k++) scale += fabs(U.Elements_[i][k]);
 	 if (scale)
 	 {
-	    for (unsigned k=l;k<A.Cols_;k++)
+	    for (int k=l;k<A.Cols_;k++)
 	    {
 	       U.Elements_[i][k] /= scale;
 	       s += U.Elements_[i][k]*U.Elements_[i][k];
@@ -701,15 +701,15 @@ Matrix::Elm SVD(const Matrix& A,Matrix& U,Matrix& W,Matrix& V,
 	    g = - ( f >= 0.0 ? fabs(sqrt(s)) : -fabs(sqrt(s)) );
 	    h = f*g - s;
 	    U.Elements_[i][l] = f-g;
-	    for (unsigned k=l;k<A.Cols_;k++) temp[k] = U.Elements_[i][k]/h;
-	    for (unsigned j=l;j<A.Rows_;j++)
+	    for (int k=l;k<A.Cols_;k++) temp[k] = U.Elements_[i][k]/h;
+	    for (int j=l;j<A.Rows_;j++)
 	    {
 	       s = 0.0;
-	       for (unsigned k=l;k<A.Cols_;k++)
+	       for (int k=l;k<A.Cols_;k++)
 		  s += U.Elements_[j][k]*U.Elements_[i][k];
-	       for (unsigned k=l;k<A.Cols_;k++) U.Elements_[j][k] += s*temp[k];
+	       for (int k=l;k<A.Cols_;k++) U.Elements_[j][k] += s*temp[k];
 	    }
-	    for (unsigned k=l;k<A.Cols_;k++) U.Elements_[i][k] *= scale;
+	    for (int k=l;k<A.Cols_;k++) U.Elements_[i][k] *= scale;
 	 }
       }
 
@@ -725,19 +725,19 @@ Matrix::Elm SVD(const Matrix& A,Matrix& U,Matrix& W,Matrix& V,
       {
 	 if (g)
 	 {
-	    for (unsigned j=l;j<A.Cols_;j++)
+	    for (int j=l;j<A.Cols_;j++)
                // Double division to avoid possible underflow
                V.Elements_[j][i] = (U.Elements_[i][j]/U.Elements_[i][l])/g;
-	    for (unsigned j=l;j<A.Cols_;j++)
+	    for (int j=l;j<A.Cols_;j++)
 	    {
 	       s = 0.0;
-	       for (unsigned k=l;k<A.Cols_;k++)
+	       for (int k=l;k<A.Cols_;k++)
 		  s += U.Elements_[i][k]*V.Elements_[k][j];
-	       for (unsigned k=l;k<A.Cols_;k++)
+	       for (int k=l;k<A.Cols_;k++)
 		  V.Elements_[k][j] += s*V.Elements_[k][i];
 	    }
 	 }
-	 for (unsigned j=l;j<A.Cols_;j++)
+	 for (int j=l;j<A.Cols_;j++)
 	    V.Elements_[i][j] = V.Elements_[j][i]=0.0;
       }
       V.Elements_[i][i]=1.0;
@@ -751,24 +751,24 @@ Matrix::Elm SVD(const Matrix& A,Matrix& U,Matrix& W,Matrix& V,
 
       l = i+1;
       g = W.Elements_[i][i];
-      for (unsigned j=l;j<A.Cols_;j++) U.Elements_[i][j] = 0.0;
+      for (int j=l;j<A.Cols_;j++) U.Elements_[i][j] = 0.0;
       if (g)
       {
 	 g = 1.0/g;
-	 for (unsigned j=l;j<A.Cols_;j++)
+	 for (int j=l;j<A.Cols_;j++)
 	 {
 	    s = 0.0;
-	    for (unsigned k=l;k<A.Rows_;k++)
+	    for (int k=l;k<A.Rows_;k++)
 	       s += U.Elements_[k][i]*U.Elements_[k][j];
 	    f = (s/U.Elements_[i][i])*g;
-	    for (unsigned k=i;k<A.Rows_;k++)
+	    for (int k=i;k<A.Rows_;k++)
 	       U.Elements_[k][j] += f*U.Elements_[k][i];
 	 }
-	 for (unsigned j=i;j<A.Rows_;j++) U.Elements_[j][i] *= g;
+	 for (int j=i;j<A.Rows_;j++) U.Elements_[j][i] *= g;
       }
       else
       {
-	 for (unsigned j=i;j<A.Rows_;j++) U.Elements_[j][i] = 0.0;
+	 for (int j=i;j<A.Rows_;j++) U.Elements_[j][i] = 0.0;
       }
       ++U.Elements_[i][i];
    }
@@ -777,7 +777,7 @@ Matrix::Elm SVD(const Matrix& A,Matrix& U,Matrix& W,Matrix& V,
    // -- over allowed iterations.
    for (int k=A.Cols_-1;k>=0;k--)
    {
-      for (unsigned its=0;its<30;its++)
+      for (int its=0;its<30;its++)
       {
 	 flag = 1;
 	 // Test for splitting
@@ -808,7 +808,7 @@ Matrix::Elm SVD(const Matrix& A,Matrix& U,Matrix& W,Matrix& V,
 	       h = 1.0/h;
 	       c = g*h;
 	       s = -f*h;
-	       for (unsigned j=0;j<A.Rows_;j++)
+	       for (int j=0;j<A.Rows_;j++)
 	       {
 		  y = U.Elements_[j][nm];
 		  z = U.Elements_[j][i];
@@ -826,7 +826,7 @@ Matrix::Elm SVD(const Matrix& A,Matrix& U,Matrix& W,Matrix& V,
 	    if (z < 0.0)
 	    {
 	       W.Elements_[k][k] = -z;
-	       for (unsigned j=0;j<A.Cols_;j++)
+	       for (int j=0;j<A.Cols_;j++)
 		  V.Elements_[j][k] = -V.Elements_[j][k];
 	    }
 	    break;
@@ -863,7 +863,7 @@ Matrix::Elm SVD(const Matrix& A,Matrix& U,Matrix& W,Matrix& V,
 	    g = g*c - x*s;
 	    h = y*s;
 	    y *= c;
-	    for (unsigned jj=0;jj<A.Cols_;jj++)
+	    for (int jj=0;jj<A.Cols_;jj++)
 	    {
 	       x = V.Elements_[jj][j];
 	       z = V.Elements_[jj][i];
@@ -881,7 +881,7 @@ Matrix::Elm SVD(const Matrix& A,Matrix& U,Matrix& W,Matrix& V,
 	    }
 	    f = c*g + s*y;
 	    x = c*y - s*g;
-	    for (unsigned jj=0;jj<A.Rows_;jj++)
+	    for (int jj=0;jj<A.Rows_;jj++)
 	    {
 	       y = U.Elements_[jj][j];
 	       z = U.Elements_[jj][i];
@@ -903,10 +903,10 @@ Matrix::Elm SVD(const Matrix& A,Matrix& U,Matrix& W,Matrix& V,
       ConditionNumber,
       wmax=0.0,
       wmin;
-   for (unsigned j=0;j<A.Cols_;j++)
+   for (int j=0;j<A.Cols_;j++)
       if (W.Elements_[j][j] > wmax) wmax = W.Elements_[j][j];
    wmin = wmax;
-   for (unsigned j=0;j<A.Cols_;j++)
+   for (int j=0;j<A.Cols_;j++)
       if (W.Elements_[j][j] < wmin) wmin = W.Elements_[j][j];
    
    ConditionNumber = wmax/wmin;
@@ -916,7 +916,7 @@ Matrix::Elm SVD(const Matrix& A,Matrix& U,Matrix& W,Matrix& V,
    }
 
    // Fix up any singular values that are "too small"
-   for (unsigned j=0;j<A.Cols_;j++)
+   for (int j=0;j<A.Cols_;j++)
       if (W.Elements_[j][j] < wmax/MaxCond)
       {
 	 W.Elements_[j][j] = 0.0;
@@ -927,9 +927,9 @@ Matrix::Elm SVD(const Matrix& A,Matrix& U,Matrix& W,Matrix& V,
    return ConditionNumber;
 }
 
-Matrix SymEigVal(Matrix A,Matrix *B,const unsigned MaxItr,const double Tol)
+Matrix SymEigVal(Matrix A,Matrix *B,const int MaxItr,const double Tol)
 {
-   unsigned count=0,
+   int count=0,
       converged=0;
    Matrix EigVals(1,A.Cols_);
    double theta,c,s,cc,ss,cs,aij1,aii1,ajj1,aki1,akj1,tmp;
@@ -942,9 +942,9 @@ Matrix SymEigVal(Matrix A,Matrix *B,const unsigned MaxItr,const double Tol)
    
    while ((count < MaxItr) && (!converged))
    {
-      for (unsigned i=0;i<A.Cols_;i++)
+      for (int i=0;i<A.Cols_;i++)
       {
-	 for (unsigned j=i+1;j<A.Cols_;j++)
+	 for (int j=i+1;j<A.Cols_;j++)
 	 {
 	    if (fabs(A.Elements_[i][j]) < Tol )
 	    {
@@ -980,7 +980,7 @@ Matrix SymEigVal(Matrix A,Matrix *B,const unsigned MaxItr,const double Tol)
 	    A.Elements_[j][j] = aii1*ss - 2.0*aij1*cs + ajj1*cc;
 	    A.Elements_[i][j] = A.Elements_[j][i] = 0.0;
 
-	    for (unsigned k=0;k<A.Cols_;k++)
+	    for (int k=0;k<A.Cols_;k++)
 	    {
 	       if (B != NULL)
 	       {
@@ -1006,8 +1006,8 @@ Matrix SymEigVal(Matrix A,Matrix *B,const unsigned MaxItr,const double Tol)
       count++;
 
       converged = 1;
-      for (unsigned i=0;i<A.Cols_;i++)
-	 for (unsigned j=i+1;j<A.Cols_;j++)
+      for (int i=0;i<A.Cols_;i++)
+	 for (int j=i+1;j<A.Cols_;j++)
 	 {
 	    if (fabs(A.Elements_[i][j]) > Tol)
 	    {
@@ -1022,7 +1022,7 @@ Matrix SymEigVal(Matrix A,Matrix *B,const unsigned MaxItr,const double Tol)
       exit(-1);
    }
 
-   for (unsigned i=0;i<A.Cols_;i++)
+   for (int i=0;i<A.Cols_;i++)
       EigVals.Elements_[0][i] = A.Elements_[i][i];
    
    return EigVals;
@@ -1040,22 +1040,22 @@ void Cholesky(const Matrix& A,Matrix& U,Matrix& D)
    D.Resize(A.Rows_,A.Cols_,0);
    
 
-   for (register unsigned i=0;i<A.Rows_;i++)
+   for (register int i=0;i<A.Rows_;i++)
    {
       D.Elements_[i][i]=A.Elements_[i][i];
       if (i > 0)
       {
-	 for (register unsigned k=0;k<i;k++)
+	 for (register int k=0;k<i;k++)
 	 {
 	    D.Elements_[i][i]-=D.Elements_[k][k]*U.Elements_[k][i]*U.Elements_[k][i];
 	 }
       }
-      for (register unsigned j=i+1;j<A.Rows_;j++)
+      for (register int j=i+1;j<A.Rows_;j++)
       {
 	 U.Elements_[i][j]=A.Elements_[i][j];
 	 if (i > 0)
 	 {
-	    for (register unsigned k=0;k<i;k++)
+	    for (register int k=0;k<i;k++)
 	    {
 	       U.Elements_[i][j]-=D.Elements_[k][k]*U.Elements_[k][i]*U.Elements_[k][j];
 	    }
@@ -1086,10 +1086,10 @@ Matrix SolvePLU(const Matrix& A,const Matrix& B)
    Matrix Temp=P*B;
 
    Y[0]=Temp.Elements_[0][0];
-   for (register unsigned i=1;i<B.Rows_;i++)
+   for (register int i=1;i<B.Rows_;i++)
    {
       Y[i]=Temp[i][0];
-      for (register unsigned j=0;j<i;j++)
+      for (register int j=0;j<i;j++)
       {
 	 Y[i]-=Y[j]*L.Elements_[i][j];
       }
@@ -1123,7 +1123,7 @@ Matrix SolveSVD(const Matrix& A,const Matrix& B,
 
    SVD(A,U,W,V,MaxCond,PrintFlag);
 
-   unsigned jj,j,i;
+   int jj,j,i;
    Matrix::Elm s,*tmp;
 
    // Allocate temp space
@@ -1166,9 +1166,9 @@ ostream& operator<<(ostream& out,const Matrix& A)
    out << "\n";
 
    if (Matrix::MathematicaPrintFlag) out << setw(0) << "{{";
-   for (register unsigned i=0;i<A.Rows_;i++)
+   for (register int i=0;i<A.Rows_;i++)
    {
-      for (register unsigned j=0;j<A.Cols_;j++)
+      for (register int j=0;j<A.Cols_;j++)
       {
 	 out << setw(W) << A.Elements_[i][j];
 	 if ((Matrix::MathematicaPrintFlag) && (j!=(A.Cols_-1)))
@@ -1193,8 +1193,8 @@ ostream& operator<<(ostream& out,const Matrix& A)
 
 istream& operator>>(istream& in,Matrix& A)
 {
-   for (register unsigned i=0;i<A.Rows_;i++)
-      for (register unsigned j=0;j<A.Cols_;j++)
+   for (register int i=0;i<A.Rows_;i++)
+      for (register int j=0;j<A.Cols_;j++)
 	 in >> A.Elements_[i][j];
 
    return in;

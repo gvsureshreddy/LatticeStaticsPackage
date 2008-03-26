@@ -13,17 +13,17 @@ private:
    virtual void Reset() = 0;
    
 public:
-   const static unsigned DIM3;
+   const static int DIM3;
    
    Vector DOF_;
-   unsigned InternalAtoms_;
+   int InternalAtoms_;
    Matrix RefLattice_;
    Vector *InternalPOS_;
    
    Matrix F_;
    Matrix S_;
 
-   CBKinematics(unsigned InternalAtoms,Matrix &RefLattice,Vector *AtomPositions);
+   CBKinematics(int InternalAtoms,Matrix &RefLattice,Vector *AtomPositions);
    CBKinematics(PerlInput &Input,PerlInput::HashStruct *ParentHash=NULL);
    virtual ~CBKinematics() {delete [] InternalPOS_;}
    
@@ -31,7 +31,7 @@ public:
    
    virtual void SetReferenceToCurrent();
    virtual void SetReferenceDOFs();
-   const unsigned InternalAtoms() {return InternalAtoms_;}
+   const int InternalAtoms() {return InternalAtoms_;}
    const Matrix& RefLattice() {return RefLattice_;}
    const double RefVolume() {return RefLattice_.Det();}
    const Vector &DOF() {return DOF_;}

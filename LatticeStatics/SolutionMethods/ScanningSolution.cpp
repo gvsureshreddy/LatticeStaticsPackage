@@ -6,7 +6,7 @@ using namespace std;
 ScanningSolution::ScanningSolution(LatticeMode *Mode,
                                    int MaxIter,double Tolerance,double NewtonTolerance,
                                    YN ScanFullField,Vector &InitialDef,
-                                   unsigned ScnDefParam,ScanDir Direction,
+                                   int ScnDefParam,ScanDir Direction,
                                    double ScanStart,double ScanEnd,double ScanStep,
                                    double LineStart,double LineEnd,double LineStep,
                                    YN OnSolution,int Echo)
@@ -39,7 +39,7 @@ ScanningSolution::ScanningSolution(LatticeMode *Mode,PerlInput &Input,int Echo)
    ModeDOFS_=Mode_->ModeDOF().Dim();
    // Get parameters
    PerlInput::HashStruct Hash = Input.getHash("SolutionMethod","ScanningSolution");
-   MaxIter_ = Input.getUnsigned(Hash,"MaxIterations");
+   MaxIter_ = Input.getPosInt(Hash,"MaxIterations");
    Tolerance_ = Input.getDouble(Hash,"Tolerance");
    NewtonTolerance_ = Input.getDouble(Hash,"NewtonTolerance");
    const char *fullfld = Input.getString(Hash,"FullField");
@@ -67,9 +67,9 @@ ScanningSolution::ScanningSolution(LatticeMode *Mode,PerlInput &Input,int Echo)
       exit(-1);
    }
 
-   ScnDefParam_ = Input.getUnsigned(Hash,"DefParam");
+   ScnDefParam_ = Input.getPosInt(Hash,"DefParam");
 
-   if (ScnDefParam_ >= (unsigned) ModeDOFS_-1)
+   if (ScnDefParam_ >= (int) ModeDOFS_-1)
    {
       cerr << "ScanningSolution: ScanningDefParam too big!" << "\n";
       exit(-1);
@@ -165,7 +165,7 @@ Vector ScanningSolution::ScanningForce()
    
    if (ModeDOFS_ != 2)
    {
-      for (unsigned i=0;i<ModeDOFS_-1;++i)
+      for (int i=0;i<ModeDOFS_-1;++i)
       {
          if (i != ScnDefParam_)
          {
@@ -190,7 +190,7 @@ Vector ScanningSolution::ScanningDef()
    
    if (ModeDOFS_ != 2)
    {
-      for (unsigned i=0;i<ModeDOFS_-1;++i)
+      for (int i=0;i<ModeDOFS_-1;++i)
       {
          if (i != ScnDefParam_)
          {
@@ -211,7 +211,7 @@ void ScanningSolution::ScanningSet(const Vector &val)
    
    ModeDOF = Mode_->ModeDOF();
    
-   for (unsigned i=0;i<ModeDOFS_-1;++i)
+   for (int i=0;i<ModeDOFS_-1;++i)
    {
       if (i != ScnDefParam_)
       {
@@ -228,7 +228,7 @@ void ScanningSolution::ScanningUpdate(const Vector &newval)
    
    ModeDOF = Mode_->ModeDOF();
    
-   for (unsigned i=0;i<ModeDOFS_-1;++i)
+   for (int i=0;i<ModeDOFS_-1;++i)
    {
       if (i != ScnDefParam_)
       {
@@ -248,11 +248,11 @@ Matrix ScanningSolution::ScanningStiffness()
    
    if (ModeDOFS_ != 2)
    {
-      for (unsigned i=0;i<ModeDOFS_-1;++i)
+      for (int i=0;i<ModeDOFS_-1;++i)
       {
          if (i != ScnDefParam_)
          {
-            for (unsigned j=0;j<ModeDOFS_-1;++j)
+            for (int j=0;j<ModeDOFS_-1;++j)
             {
                if (j != ScnDefParam_)
                {
@@ -279,7 +279,7 @@ int ScanningSolution::AllSolutionsFound()
 int ScanningSolution::FindNextSolution()
 {
    int good=0;
-   unsigned iteration=0;
+   int iteration=0;
    
    if (OnSolution_ == Yes)
    {
@@ -433,7 +433,7 @@ int ScanningSolution::FindNextSolution()
 
 void ScanningSolution::ScanningNewton(int &good)
 {
-   unsigned itr=0;
+   int itr=0;
    
    Vector RHS=-ScanningForce();
    Vector dx(RHS.Dim());

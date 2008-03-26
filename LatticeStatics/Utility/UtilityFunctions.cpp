@@ -97,7 +97,7 @@ int IND2D(int i,int j)
       return 1+i+j;
 }
 
-unsigned FullScanRank1Convex3D(CBKinematics *CBK, Matrix K, double dx)
+int FullScanRank1Convex3D(CBKinematics *CBK, Matrix K, double dx)
 {
    Matrix A(3,3);
    Matrix Eigvals(1,3);
@@ -136,7 +136,7 @@ unsigned FullScanRank1Convex3D(CBKinematics *CBK, Matrix K, double dx)
    return 1;
 }
 
-unsigned FullScanRank1Convex2D(Matrix K, double dx)
+int FullScanRank1Convex2D(Matrix K, double dx)
 {
    Matrix A(2,2);
    Matrix Eigvals(1,2);
@@ -170,7 +170,7 @@ unsigned FullScanRank1Convex2D(Matrix K, double dx)
    return 1;
 }
 
-unsigned Rank1Convex3D(CBKinematics *CBK,Matrix K,double dx)
+int Rank1Convex3D(CBKinematics *CBK,Matrix K,double dx)
 {
    double Pi=4.0*atan(1.0);
    MyComplexDouble A[3][3][3];
@@ -267,7 +267,7 @@ unsigned Rank1Convex3D(CBKinematics *CBK,Matrix K,double dx)
    return 1;
 }
 
-unsigned Rank1Convex2D(Matrix K,double dx)
+int Rank1Convex2D(Matrix K,double dx)
 {
    double Pi=4.0*atan(1.0);
    double A[2][2];

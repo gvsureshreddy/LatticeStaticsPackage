@@ -50,9 +50,9 @@ int main(int argc,char *argv[])
    fstream out;
    InitializeOutputFile(out,outputfile,datafile,argc,Lat,Precision,Width,Echo);
    
-   unsigned gridsize;
+   int gridsize;
    double dk;
-   gridsize = Input.getUnsigned("LongWavelengthModuli","GridSize");
+   gridsize = Input.getPosInt("LongWavelengthModuli","GridSize");
    dk = Input.getDouble("LongWavelengthModuli","DK");
    
    if (argc >= 4)
@@ -81,7 +81,7 @@ int main(int argc,char *argv[])
       while (strcmp("DONE",tmp))
       {
          temp = atof(tmp);
-         for (unsigned j=0;j<DOF.Dim();++j)
+         for (int j=0;j<DOF.Dim();++j)
          {
             fscanf(pipe,"%lf",&(DOF[j]));
          }

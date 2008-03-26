@@ -24,6 +24,8 @@ double LJCutoff::CutoffFunction(double NTemp,double r2,YDeriv dy,TDeriv dt)
          break;
       case D3Y:
       case D4Y:
+         val = 0.0;
+         break;
       case DYmax:
       default:
          cerr << "Error in LJCutoff::CutoffFunction()\n";

@@ -22,7 +22,7 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,char *startf
 int main(int argc, char *argv[])
 {
    // Check commandline arguments
-   if (argc < 3)
+   if ((argc < 3) || ((argc <4) && (!strcmp(argv[1],"--debug"))))
    {
       cerr << "Usage: " << argv[0]
            << " [--debug]"

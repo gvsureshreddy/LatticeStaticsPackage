@@ -8,12 +8,12 @@ using namespace std;
 #define ARCLENEPS 1.0e-15
 
 ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,const Vector &dofs,
-                                     unsigned MaxIter,double Tolerance,
+                                     int MaxIter,double Tolerance,
                                      double BisectTolerance,double DSMax,double DSMin,
                                      double CurrentDS,double AngleCutoff,double AngleIncrease,
-                                     double Aspect,unsigned NumSolutions,
-                                     unsigned CurrentSolution,const Vector &FirstSolution,
-                                     const Vector &Difference,unsigned ClosedLoopStart,int Echo)
+                                     double Aspect,int NumSolutions,
+                                     int CurrentSolution,const Vector &FirstSolution,
+                                     const Vector &Difference,int ClosedLoopStart,int Echo)
    : Echo_(Echo),
      Mode_(Mode),
      ModeDOFS_(Mode_->ModeDOF().Dim()),
@@ -44,7 +44,7 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,PerlInput &Input,
 {
    ModeDOFS_=Mode_->ModeDOF().Dim();
    PerlInput::HashStruct Hash = Input.getHash("SolutionMethod","ArcLengthSolution");
-   MaxIter_ = Input.getUnsigned(Hash,"MaxIterations");
+   MaxIter_ = Input.getPosInt(Hash,"MaxIterations");
    Tolerance_ = Input.getDouble(Hash,"Tolerance");
    DSMax_ = Input.getDouble(Hash,"DSMax");
    CurrentDS_ = Input.getDouble(Hash,"DSStart");
@@ -52,10 +52,10 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,PerlInput &Input,
    AngleCutoff_ = Input.getDouble(Hash,"AngleCutoff");
    AngleIncrease_ = Input.getDouble(Hash,"AngleIncrease");
    Aspect_ = Input.getDouble(Hash,"Aspect");
-   NumSolutions_ = Input.getUnsigned(Hash,"NumSolutions");
+   NumSolutions_ = Input.getPosInt(Hash,"NumSolutions");
    if (Input.ParameterOK(Hash,"ClosedLoopStart"))
    {
-      ClosedLoopStart_ = Input.getUnsigned(Hash,"ClosedLoopStart");
+      ClosedLoopStart_ = Input.getPosInt(Hash,"ClosedLoopStart");
    }
    else
    {
@@ -79,7 +79,7 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,PerlInput &Input,int Echo
 {
    ModeDOFS_=Mode_->ModeDOF().Dim();
    PerlInput::HashStruct Hash = Input.getHash("SolutionMethod","ArcLengthSolution");
-   MaxIter_ = Input.getUnsigned(Hash,"MaxIterations");
+   MaxIter_ = Input.getPosInt(Hash,"MaxIterations");
    Tolerance_ = Input.getDouble(Hash,"Tolerance");
    DSMax_ = Input.getDouble(Hash,"DSMax");
    CurrentDS_ = Input.getDouble(Hash,"DSStart");
@@ -87,10 +87,10 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,PerlInput &Input,int Echo
    AngleCutoff_ = Input.getDouble(Hash,"AngleCutoff");
    AngleIncrease_ = Input.getDouble(Hash,"AngleIncrease");
    Aspect_ = Input.getDouble(Hash,"Aspect");
-   NumSolutions_ = Input.getUnsigned(Hash,"NumSolutions");
+   NumSolutions_ = Input.getPosInt(Hash,"NumSolutions");
    if (Input.ParameterOK(Hash,"ClosedLoopStart"))
    {
-      ClosedLoopStart_ = Input.getUnsigned(Hash,"ClosedLoopStart");
+      ClosedLoopStart_ = Input.getPosInt(Hash,"ClosedLoopStart");
    }
    else
    {
@@ -185,7 +185,7 @@ Vector ArcLengthSolution::ArcLenForce(double DS,const Vector &Diff,
    mdfc = Mode_->ModeForce();
    
    force[ModeDOFS_-1] = DS*DS - Diff[ModeDOFS_-1]*Diff[ModeDOFS_-1]/(Aspect*Aspect);
-   for (unsigned i=0;i<ModeDOFS_-1;++i)
+   for (int i=0;i<ModeDOFS_-1;++i)
    {
       force[i] = mdfc[i];
       force[ModeDOFS_-1] -= Diff[i]*Diff[i];
@@ -201,9 +201,9 @@ Matrix ArcLengthSolution::ArcLenStiffness(const Vector &Diff,double Aspect)
    
    ModeK = Mode_->ModeStiffness();
    
-   for (unsigned i=0;i<ModeDOFS_-1;++i)
+   for (int i=0;i<ModeDOFS_-1;++i)
    {
-      for (unsigned j=0;j<=ModeDOFS_-1;++j)
+      for (int j=0;j<=ModeDOFS_-1;++j)
       {
          K[i][j] = ModeK[i][j];
       }
@@ -265,7 +265,7 @@ void ArcLengthSolution::ConsistencyCheck(Vector &Solution1,Vector &Solution2,
    Stiff = ConsistencyEpsilon*ArcLenStiffness(Difference_,1.0);
    if (Echo_) cout << setw(Width) << Stiff << "\n";
    out << setw(Width) << Stiff << "\n";
-   for (unsigned i=0;i<Difference_.Dim();i++)
+   for (int i=0;i<Difference_.Dim();i++)
    {
       // Get RHS
       Difference_ = Solution2 - Solution1;
@@ -384,8 +384,8 @@ int ArcLengthSolution::FindNextSolution()
 
 void ArcLengthSolution::ArcLengthNewton(int &good)
 {
-   unsigned itr = 0;
-   unsigned Dim=ArcLenDef().Dim();
+   int itr = 0;
+   int Dim=ArcLenDef().Dim();
    
    Vector Dx(Dim),
       RHS(Dim);
@@ -449,7 +449,7 @@ int ArcLengthSolution::OldFindCriticalPoint(int LHN,double LHEV,int RHN,double R
    double CurrentMinEV=1.0, OldMinEV=1.0;
    double Delta_DS=0.0;
    int dummy = 1;
-   unsigned loops = 0;
+   int loops = 0;
    int RighthandTestValue = RHN;
    int CurrentTestValue = RHN;
    int LefthandTestValue = LHN;
@@ -693,7 +693,7 @@ void ArcLengthSolution::ZBrent(Lattice *Lat,int track,double fa,double fb,
    double LastDS=CurrentDS_;
    double a,b,c,d,e,xm,p,fc, tol1,s,q,r,min1,min2;
    int dummy = 1;
-   unsigned loops = 0;
+   int loops = 0;
    double factor = 0.0;
    
    b=OriginalDS;

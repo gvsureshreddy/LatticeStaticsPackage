@@ -51,7 +51,7 @@ void PerlInput::Readfile(const char *datafile,const char *prefix)
       cerr << "Perl Error in file: " << datafile << ", exiting...\n";
       exit(-2);
    }
-
+   
    retval = eval_pv("eval $___dmy;",TRUE);
    if (!SvOK(retval))
    {
@@ -78,7 +78,7 @@ PerlInput::~PerlInput()
 PerlInput::HashStruct PerlInput::getHash(char *HashName)
 {
    int Errno = -7;
-
+   
    HashStruct Hash;
    Hash.Ptr = get_hv(HashName,FALSE);
    if (Hash.Ptr == NULL)
@@ -86,7 +86,7 @@ PerlInput::HashStruct PerlInput::getHash(char *HashName)
       cerr << "Error: Perl hash variable: " << HashName << " does not exist.\n";
       exit(Errno);
    }
-
+   
    strcpy(Hash.Name,HashName);
    return Hash;
 }
@@ -256,7 +256,7 @@ PerlInput::HashStruct PerlInput::getHash(HashStruct Hash,char *ParamName,int a,i
    HashStruct NewHash;
    
    SV *ParamVal = getScalar(Hash,ParamName,a,b,c,d,e);
-
+   
    if ((SvTYPE(ParamVal) != SVt_RV) || (SvTYPE(SvRV(ParamVal)) != SVt_PVHV))
    {
       cerr << "Error: Perl hash variable: " << Hash.Name
@@ -269,7 +269,7 @@ PerlInput::HashStruct PerlInput::getHash(HashStruct Hash,char *ParamName,int a,i
       cerr << " does not contain a hash.\n";
       exit(Errno);
    }
-
+   
    NewHash.Ptr = (HV*) SvRV(ParamVal);
    if (e > -1)
       sprintf(NewHash.Name,"%s{%s}[%u][%u][%u][%u][%u]",Hash.Name,ParamName,a,b,c,d,e);
@@ -289,13 +289,13 @@ PerlInput::HashStruct PerlInput::getHash(HashStruct Hash,char *ParamName,int a,i
 int PerlInput::HashOK(char *HashName)
 {
    int exists = 1;
-
+   
    HV *HashPtr = get_hv(HashName,FALSE);
    if (HashPtr == NULL)
    {
       exists = 0;
    }
-
+   
    return exists;
 }
 
@@ -308,12 +308,12 @@ int PerlInput::ParameterOK(HashStruct Hash,char *ParamName)
    {
       exists = 0;
    }
-
+   
    return exists;
 }
 
-unsigned PerlInput::getArrayLength(HashStruct Hash,char *ParamName,
-                                   int a,int b,int c,int d)
+int PerlInput::getArrayLength(HashStruct Hash,char *ParamName,
+                              int a,int b,int c,int d)
 {
    SV *ParamVal = getScalar(Hash,ParamName,a,b,c,d);
    int Errno=-4;
@@ -377,7 +377,7 @@ int PerlInput::getInt(HashStruct Hash,char *ParamName,int a,int b,int c,int d,in
    }
 }
 
-int PerlInput::getUnsigned(HashStruct Hash,char *ParamName,int a,int b,int c,int d,int e)
+int PerlInput::getPosInt(HashStruct Hash,char *ParamName,int a,int b,int c,int d,int e)
 {
    SV *ParamVal = getScalar(Hash,ParamName,a,b,c,d,e);
    int Errno=-5;
@@ -409,7 +409,7 @@ int PerlInput::getUnsigned(HashStruct Hash,char *ParamName,int a,int b,int c,int
          exit(Errno);
       }
       
-      return (unsigned) tmp;
+      return tmp;
    }
 }
 
@@ -578,8 +578,8 @@ void PerlInput::getMatrix(Matrix &Mtrx,HashStruct Hash,char *ParamName,int a,int
    }
 }
 
-void PerlInput::getIntVector(int *IntArry,unsigned len,HashStruct Hash,char *ParamName,
-                                  int a,int b,int c,int d)
+void PerlInput::getIntVector(int *IntArry,int len,HashStruct Hash,char *ParamName,
+                             int a,int b,int c,int d)
 {
    int Errno = -5;
    SV *ParamVal = getScalar(Hash,ParamName,a,b,c,d);
@@ -598,7 +598,7 @@ void PerlInput::getIntVector(int *IntArry,unsigned len,HashStruct Hash,char *Par
    
    AV *ArrayPtr = (AV*) SvRV(ParamVal);
    
-   if ((unsigned) (av_len(ArrayPtr)+1) != len)
+   if ((av_len(ArrayPtr)+1) != len)
    {
       cerr << "Error: Perl hash variable: " << Hash.Name
            << "{" << ParamName << "}";
@@ -611,7 +611,7 @@ void PerlInput::getIntVector(int *IntArry,unsigned len,HashStruct Hash,char *Par
    }
    
    SV **ParamValPtr;
-   for (unsigned i=0;i<len;++i)
+   for (int i=0;i<len;++i)
    {
       ParamValPtr = av_fetch(ArrayPtr,i,FALSE); // Should always be ok because of len check.
       ParamVal = *ParamValPtr;
@@ -633,8 +633,8 @@ void PerlInput::getIntVector(int *IntArry,unsigned len,HashStruct Hash,char *Par
    }
 }
 
-void PerlInput::getUnsignedVector(unsigned *UnsignedArry,unsigned len,HashStruct Hash,
-                                  char *ParamName,int a,int b,int c,int d)
+void PerlInput::getPosIntVector(int *PosIntArry,int len,HashStruct Hash,
+                                char *ParamName,int a,int b,int c,int d)
 {
    int Errno = -5;
    SV *ParamVal = getScalar(Hash,ParamName,a,b,c,d);
@@ -653,7 +653,7 @@ void PerlInput::getUnsignedVector(unsigned *UnsignedArry,unsigned len,HashStruct
    
    AV *ArrayPtr = (AV*) SvRV(ParamVal);
    
-   if ((unsigned) (av_len(ArrayPtr)+1) != len)
+   if ((av_len(ArrayPtr)+1) != len)
    {
       cerr << "Error: Perl hash variable: " << Hash.Name
            << "{" << ParamName << "}";
@@ -666,7 +666,7 @@ void PerlInput::getUnsignedVector(unsigned *UnsignedArry,unsigned len,HashStruct
    }
    
    SV **ParamValPtr;
-   for (unsigned i=0;i<len;++i)
+   for (int i=0;i<len;++i)
    {
       ParamValPtr = av_fetch(ArrayPtr,i,FALSE); // Should always be ok because of len check.
       ParamVal = *ParamValPtr;
@@ -695,14 +695,14 @@ void PerlInput::getUnsignedVector(unsigned *UnsignedArry,unsigned len,HashStruct
             cerr << " is negative!\n";
             exit(Errno);
          }
-      
-         UnsignedArry[i] = (unsigned) tmp;
+         
+         PosIntArry[i] = tmp;
       }
    }
 }
 
-void PerlInput::getIntMatrix(int *IntMtrx,unsigned rows,unsigned cols,HashStruct Hash,
-                                  char *ParamName,int a,int b,int c)
+void PerlInput::getIntMatrix(int *IntMtrx,int rows,int cols,HashStruct Hash,
+                             char *ParamName,int a,int b,int c)
 {
    int Errno = -5;
    SV *ParamVal = getScalar(Hash,ParamName,a,b,c);
@@ -721,7 +721,7 @@ void PerlInput::getIntMatrix(int *IntMtrx,unsigned rows,unsigned cols,HashStruct
    
    AV *ArrayPtr = (AV*) SvRV(ParamVal);
    
-   if ((unsigned) (av_len(ArrayPtr)+1) != rows)
+   if ((av_len(ArrayPtr)+1) != rows)
    {
       cerr << "Error: Perl hash variable: " << Hash.Name
            << "{" << ParamName << "}";
@@ -735,7 +735,7 @@ void PerlInput::getIntMatrix(int *IntMtrx,unsigned rows,unsigned cols,HashStruct
    SV **RowValPtr, **ParamValPtr;
    SV *RowVal;
    AV *Row;
-   for (unsigned i=0;i<rows;++i)
+   for (int i=0;i<rows;++i)
    {
       RowValPtr = av_fetch(ArrayPtr,i,FALSE); // Should always be ok because of len check.
       RowVal = *RowValPtr;
@@ -751,7 +751,7 @@ void PerlInput::getIntMatrix(int *IntMtrx,unsigned rows,unsigned cols,HashStruct
       }
       
       Row = (AV*) SvRV(RowVal);
-      if ((unsigned) (av_len(Row)+1) != cols)
+      if ((av_len(Row)+1) != cols)
       {
          cerr << "Error: Perl hash variable: " << Hash.Name
               << "{" << ParamName << "}";
@@ -763,7 +763,7 @@ void PerlInput::getIntMatrix(int *IntMtrx,unsigned rows,unsigned cols,HashStruct
          exit(Errno);
       }
       
-      for (unsigned j=0;j<cols;++j)
+      for (int j=0;j<cols;++j)
       {
          ParamValPtr = av_fetch(Row,j,FALSE); // Should be ok because of len check
          ParamVal = *ParamValPtr;
@@ -786,8 +786,8 @@ void PerlInput::getIntMatrix(int *IntMtrx,unsigned rows,unsigned cols,HashStruct
    }
 }
 
-void PerlInput::getUnsignedMatrix(unsigned *UnsignedMtrx,unsigned rows,unsigned cols,
-                                  HashStruct Hash,char *ParamName,int a,int b,int c)
+void PerlInput::getPosIntMatrix(int *PosIntMtrx,int rows,int cols,
+                                HashStruct Hash,char *ParamName,int a,int b,int c)
 {
    int Errno = -5;
    SV *ParamVal = getScalar(Hash,ParamName,a,b,c);
@@ -806,7 +806,7 @@ void PerlInput::getUnsignedMatrix(unsigned *UnsignedMtrx,unsigned rows,unsigned 
    
    AV *ArrayPtr = (AV*) SvRV(ParamVal);
    
-   if ((unsigned) (av_len(ArrayPtr)+1) != rows)
+   if ((av_len(ArrayPtr)+1) != rows)
    {
       cerr << "Error: Perl hash variable: " << Hash.Name
            << "{" << ParamName << "}";
@@ -820,7 +820,7 @@ void PerlInput::getUnsignedMatrix(unsigned *UnsignedMtrx,unsigned rows,unsigned 
    SV **RowValPtr, **ParamValPtr;
    SV *RowVal;
    AV *Row;
-   for (unsigned i=0;i<rows;++i)
+   for (int i=0;i<rows;++i)
    {
       RowValPtr = av_fetch(ArrayPtr,i,FALSE); // Should always be ok because of len check.
       RowVal = *RowValPtr;
@@ -836,7 +836,7 @@ void PerlInput::getUnsignedMatrix(unsigned *UnsignedMtrx,unsigned rows,unsigned 
       }
       
       Row = (AV*) SvRV(RowVal);
-      if ((unsigned) (av_len(Row)+1) != cols)
+      if ((av_len(Row)+1) != cols)
       {
          cerr << "Error: Perl hash variable: " << Hash.Name
               << "{" << ParamName << "}";
@@ -848,7 +848,7 @@ void PerlInput::getUnsignedMatrix(unsigned *UnsignedMtrx,unsigned rows,unsigned 
          exit(Errno);
       }
       
-      for (unsigned j=0;j<cols;++j)
+      for (int j=0;j<cols;++j)
       {
          ParamValPtr = av_fetch(Row,j,FALSE); // Should be ok because of len check
          ParamVal = *ParamValPtr;
@@ -877,7 +877,7 @@ void PerlInput::getUnsignedMatrix(unsigned *UnsignedMtrx,unsigned rows,unsigned 
                exit(Errno);
             }
             
-            UnsignedMtrx[i*cols + j] = (unsigned) tmp;
+            PosIntMtrx[i*cols + j] = tmp;
          }
       }
    }

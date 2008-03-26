@@ -5,13 +5,13 @@
 #include <cmath>
 
 // Global IDString
-char VectorID[]="$Id: Vector.cpp,v 1.14 2008/03/23 21:01:27 elliott Exp $";
+char VectorID[]="$Id: Vector.cpp,v 1.15 2008/03/26 02:35:29 elliott Exp $";
 
 // Private Functions...
 
 // Public Functions...
 
-Vector::Vector(const unsigned& Cols,const Vector::Elm& InitVal)
+Vector::Vector(const int& Cols,const Vector::Elm& InitVal)
 {
    Cols_=Cols;
 
@@ -25,7 +25,7 @@ Vector::Vector(const unsigned& Cols,const Vector::Elm& InitVal)
 
       if (InitVal!=SENTINAL)
       {
-	 for (register unsigned j=0;j<Cols_;j++)
+	 for (register int j=0;j<Cols_;j++)
 	    Elements_[j]=InitVal;
       }
    }
@@ -64,7 +64,7 @@ Vector::Vector(const Vector3D& A)
       Elements_=new Vector::Elm[Cols_];
    }
 
-   for (unsigned i=0;i<3;i++)
+   for (int i=0;i<3;i++)
    {
       Elements_[i] = A[i];
    }
@@ -134,7 +134,7 @@ Vector operator+(const Vector& A,const Vector& B)
    {
       Vector C(A.Cols_);
 
-      for (register unsigned j=0;j<A.Cols_;j++)
+      for (register int j=0;j<A.Cols_;j++)
       {
 	 C.Elements_[j]=A.Elements_[j]+B.Elements_[j];
       }
@@ -156,7 +156,7 @@ Vector operator-(const Vector& A,const Vector& B)
    {
       Vector C(A.Cols_);
 
-      for (register unsigned j=0;j<A.Cols_;j++)
+      for (register int j=0;j<A.Cols_;j++)
       {
 	 C.Elements_[j]=A.Elements_[j]-B.Elements_[j];
       }
@@ -170,7 +170,7 @@ Vector operator-(const Vector& A)
 {
    Vector B(A.Cols_);
 
-   for (register unsigned i=0;i<A.Cols_;i++)
+   for (register int i=0;i<A.Cols_;i++)
       B.Elements_[i]=-A.Elements_[i];
 
    return B;
@@ -188,7 +188,7 @@ Vector::Elm operator*(const Vector& A,const Vector& B)
    
    Vector::Elm sum=0;
 
-   for (register unsigned i=0;i<A.Cols_;i++)
+   for (register int i=0;i<A.Cols_;i++)
    {
       sum+=A.Elements_[i]*B.Elements_[i];
    }
@@ -230,9 +230,9 @@ Vector operator*(const Matrix& A,const Vector& B)
    {
       Vector C(A.Rows(),0);
       
-      for (register unsigned i=0;i<A.Rows();i++)
+      for (register int i=0;i<A.Rows();i++)
       {
-	 for (register unsigned k=0;k<B.Cols_;k++)
+	 for (register int k=0;k<B.Cols_;k++)
 	 {
 	    C.Elements_[i]+=A.Elements_[i][k]*B.Elements_[k];
 	 }
@@ -255,9 +255,9 @@ Vector operator*(const Vector& A,const Matrix& B)
    {
       Vector C(A.Cols_,0);
       
-      for (register unsigned i=0;i<B.Cols();i++)
+      for (register int i=0;i<B.Cols();i++)
       {
-	 for (register unsigned k=0;k<A.Cols_;k++)
+	 for (register int k=0;k<A.Cols_;k++)
 	 {
 	    C.Elements_[i]+=A.Elements_[k]*B.Elements_[k][i];
 	 }
@@ -272,7 +272,7 @@ Vector operator*(const Vector::Elm& A,const Vector& B)
 {
    Vector C(B.Cols_);
 
-   for (register unsigned i=0;i<B.Cols_;i++)
+   for (register int i=0;i<B.Cols_;i++)
    {
       C.Elements_[i]=A*B.Elements_[i];
    }
@@ -284,7 +284,7 @@ Vector operator*(const Vector& A,const Vector::Elm& B)
 {
    Vector C(A.Cols_);
 
-   for (register unsigned i=0;i<A.Cols_;i++)
+   for (register int i=0;i<A.Cols_;i++)
    {
       C.Elements_[i]=B*A.Elements_[i];
    }
@@ -296,7 +296,7 @@ Vector operator/(const Vector& A,const Vector::Elm& B)
 {
    Vector C(A.Cols_);
 
-   for (register unsigned i=0;i<A.Cols_;i++)
+   for (register int i=0;i<A.Cols_;i++)
    {
       C.Elements_[i]=A.Elements_[i]/B;
    }
@@ -305,7 +305,7 @@ Vector operator/(const Vector& A,const Vector::Elm& B)
 }
 
 #ifdef CHECK_BOUNDS
-Vector::Elm& Vector::operator[](const unsigned& i)
+Vector::Elm& Vector::operator[](const int& i)
 {
    if (i>=Cols_)
    {
@@ -316,7 +316,7 @@ Vector::Elm& Vector::operator[](const unsigned& i)
    return Elements_[i];
 }
 
-Vector::Elm Vector::operator[](const unsigned& i) const
+Vector::Elm Vector::operator[](const int& i) const
 {
    if (i>=Cols_)
    {
@@ -343,7 +343,7 @@ Vector& Vector::operator=(const Vector& B)
    return *this;
 }
 
-void Vector::Resize(const unsigned& Cols,const Matrix::Elm& InitVal)
+void Vector::Resize(const int& Cols,const Matrix::Elm& InitVal)
 {
    if (Cols!=Cols_)
    {
@@ -363,7 +363,7 @@ void Vector::Resize(const unsigned& Cols,const Matrix::Elm& InitVal)
 
    if (InitVal!=SENTINAL)
    {
-      for (register unsigned j=0;j<Cols_;j++)
+      for (register int j=0;j<Cols_;j++)
       {
 	 Elements_[j]=InitVal;
       }
@@ -381,7 +381,7 @@ Vector SolvePLU(const Matrix& A,const Vector& B)
 {
    Matrix C(B.Cols_,1);
 
-   for(register unsigned i=0;i<B.Cols_;i++)
+   for(register int i=0;i<B.Cols_;i++)
    {
       C[i][0]=B.Elements_[i];
    }
@@ -394,7 +394,7 @@ Vector SolveSVD(const Matrix& A,const Vector& B,const Vector::Elm MaxCond,
 {
    Matrix C(B.Cols_,1);
 
-   for(register unsigned i=0;i<B.Cols_;i++)
+   for(register int i=0;i<B.Cols_;i++)
    {
       C[i][0]=B.Elements_[i];
    }
@@ -406,7 +406,7 @@ ostream& operator<<(ostream& out,const Vector& A)
 {
    int W=out.width();
 
-   for (register unsigned i=0;i<A.Cols_;i++)
+   for (register int i=0;i<A.Cols_;i++)
    {
       out << setw(W) << A.Elements_[i];
    }
@@ -416,7 +416,7 @@ ostream& operator<<(ostream& out,const Vector& A)
 
 istream& operator>>(istream& in,Vector& A)
 {
-   for (register unsigned i=0;i<A.Cols_;i++)
+   for (register int i=0;i<A.Cols_;i++)
       in >> A.Elements_[i];
 
    return in;

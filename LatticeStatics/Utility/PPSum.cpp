@@ -142,7 +142,7 @@ Matrix PPSum::NeighborDistances(int cutoff,double eps)
    Reset();
    Matrix NeighborInfo(Pairs_,3);
    
-   for (unsigned i=0;i<Pairs_;++i)
+   for (int i=0;i<Pairs_;++i)
    {
       NeighborInfo[i][0] = RelPosDATA_[i][PPSUMr2start];
       NeighborInfo[i][1] = RelPosDATA_[i][PPSUMatomstart];

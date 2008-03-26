@@ -1,6 +1,6 @@
 #include "MixedCB.h"
 
-MixedCB::MixedCB(unsigned InternalAtoms,Matrix &RefLattice,Vector *AtomPositions)
+MixedCB::MixedCB(int InternalAtoms,Matrix &RefLattice,Vector *AtomPositions)
    : CBKinematics(InternalAtoms,RefLattice,AtomPositions)
 {
    F_.Resize(DIM3,DIM3);
@@ -22,7 +22,7 @@ MixedCB::MixedCB(PerlInput &Input,PerlInput::HashStruct *ParentHash)
 
 void MixedCB::Reset()
 {
-   unsigned i,j,q,p;
+   int i,j,q,p;
    for (i=0;i<DIM3;++i)
    {
       for (j=0;j<DIM3;++j)
@@ -46,10 +46,10 @@ Vector MixedCB::FractionalPosVec(int p)
    Vector fracpos(DIM3,0.0),tmp(DIM3,0.0);
    Matrix CurrentLattice(DIM3,DIM3,0.0),InverseLattice(DIM3,DIM3);
    
-   for (unsigned i=0;i<DIM3;++i)
+   for (int i=0;i<DIM3;++i)
    {
       tmp = CurrentLatticeVec(i);
-      for (unsigned j=0;j<DIM3;++j)
+      for (int j=0;j<DIM3;++j)
       {
          CurrentLattice[i][j] = tmp[j];
       }
@@ -57,10 +57,10 @@ Vector MixedCB::FractionalPosVec(int p)
    InverseLattice = CurrentLattice.Inverse();
    
    
-   for (unsigned i=0;i<DIM3;++i)
+   for (int i=0;i<DIM3;++i)
    {
       fracpos[i] += InternalPOS_[p][i];;
-      for (unsigned j=0;j<DIM3;++j)
+      for (int j=0;j<DIM3;++j)
          fracpos[i] += S_[p][j]*InverseLattice[j][i];
    }
    
@@ -71,7 +71,7 @@ double MixedCB::DX(double *X,int p,int q,int i)
 {
    double tmp=0.0;
    
-   for (unsigned j=0;j<DIM3;++j)
+   for (int j=0;j<DIM3;++j)
    {
       tmp += (X[j] + InternalPOS_[q][j] - InternalPOS_[p][j])*RefLattice_[j][i];
    }
@@ -83,7 +83,7 @@ double MixedCB::Dx(double *X,int p,int q,int i)
 {
    double tmp=0.0;
    
-   for (unsigned j=0;j<DIM3;++j)
+   for (int j=0;j<DIM3;++j)
    {
       tmp += F_[i][j]*DX(X,p,q,j);
    }

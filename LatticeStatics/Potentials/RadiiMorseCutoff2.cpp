@@ -27,6 +27,8 @@ double RadiiMorseCutoff2::CutoffFunction(double NTemp,double r2,YDeriv dy,TDeriv
          break;
       case D3Y:
       case D4Y:
+         val = 0.0;
+         break;
       case DYmax:
       default:
          cerr << "Error in RadiiMorseCutoff2::CutoffFunction()\n";

@@ -7,7 +7,7 @@
 #include "Matrix.h"
 
 // Global IDString
-char Vector3DID[]="$Id: Vector3D.cpp,v 1.6 2008/03/23 21:01:27 elliott Exp $";
+char Vector3DID[]="$Id: Vector3D.cpp,v 1.7 2008/03/26 02:35:29 elliott Exp $";
 
 // Private Functions...
 
@@ -15,7 +15,7 @@ char Vector3DID[]="$Id: Vector3D.cpp,v 1.6 2008/03/23 21:01:27 elliott Exp $";
 
 Vector3D::Vector3D(const Vector3D::Elm& InitVal)
 {
-   for (unsigned i=0;i<V3DLEN;i++)
+   for (int i=0;i<V3DLEN;i++)
       Elements_[i]=InitVal;
 }
 
@@ -62,9 +62,9 @@ Vector3D operator*(const Vector3D& A,const Matrix& B)
    }
 
    Vector3D z(0.0);
-   for (unsigned i=0;i<V3DLEN;i++)
+   for (int i=0;i<V3DLEN;i++)
    {
-      for (unsigned j=0;j<V3DLEN;j++)
+      for (int j=0;j<V3DLEN;j++)
       {
 	 z.Elements_[i] += A.Elements_[j]*B.Elements_[j][i];
       }
@@ -82,9 +82,9 @@ Vector3D operator*(const Matrix& A,const Vector3D& B)
    }
 
    Vector3D z(0.0);
-   for (unsigned i=0;i<V3DLEN;i++)
+   for (int i=0;i<V3DLEN;i++)
    {
-      for (unsigned j=0;j<V3DLEN;j++)
+      for (int j=0;j<V3DLEN;j++)
       {
 	 z.Elements_[i] += A.Elements_[i][j]*B.Elements_[j];
       }
@@ -97,7 +97,7 @@ ostream& operator<<(ostream& out,const Vector3D& A)
 {
    int W=out.width();
 
-   for (register unsigned i=0;i<V3DLEN;i++)
+   for (register int i=0;i<V3DLEN;i++)
    {
       out << setw(W) << A.Elements_[i];
    }
@@ -107,7 +107,7 @@ ostream& operator<<(ostream& out,const Vector3D& A)
 
 istream& operator>>(istream& in,Vector3D& A)
 {
-   for (register unsigned i=0;i<V3DLEN;i++)
+   for (register int i=0;i<V3DLEN;i++)
       in >> A.Elements_[i];
 
    return in;
