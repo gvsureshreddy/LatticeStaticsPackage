@@ -210,7 +210,7 @@ NewtonUpdatePCSolution::NewtonUpdatePCSolution(LatticeMode *Mode,PerlInput &Inpu
          Tangent1_[i] = Tangent2_[i] = Direction_ * Q[i][count_minus_one];
       }
    }
-   if (!strcmp("ConsistenceCheck",starttype))
+   else if (!strcmp("ConsistenceCheck",starttype))
    {
       // ConsistencyCheck
       
