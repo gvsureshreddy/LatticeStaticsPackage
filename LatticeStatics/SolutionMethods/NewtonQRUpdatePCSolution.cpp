@@ -413,6 +413,7 @@ int NewtonQRUpdatePCSolution::FindCriticalPoint(Lattice *Lat,PerlInput &Input,
    {
       tmp_ds += (Previous_Solution_[i]-tmp_DOF[i])*(Previous_Solution_[i]-tmp_DOF[i]);
    }
+   tmp_ds = sqrt(tmp_ds);
    
    //ArcLengthSolution S1(Mode_,Input,Previous_Solution_,Mode_->ModeDOF(),1);
    int MaxIter = 50;
