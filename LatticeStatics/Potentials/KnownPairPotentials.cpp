@@ -24,7 +24,7 @@ PairPotentials* InitializePairPotential(PerlInput::HashStruct ParentHash,PerlInp
 
       return new LJ(Eps0,Eps1,Sigma0,Sigma1);
    }
-   else if (!strcmp("LJCutofff",Input.getString(Hash,"Type")))
+   else if (!strcmp("LJCutoff",Input.getString(Hash,"Type")))
    {
       Eps0 = Input.getDouble(Hash,"Eps0");
       Eps1 = Input.getDouble(Hash,"Eps1");
