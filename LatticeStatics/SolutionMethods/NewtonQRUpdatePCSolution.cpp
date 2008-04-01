@@ -438,7 +438,7 @@ int NewtonQRUpdatePCSolution::FindNextSolution()
 int NewtonQRUpdatePCSolution::FindCriticalPoint(Lattice *Lat,PerlInput &Input,
                                                 int Width,fstream &out)
 {
-   static TotalNumCPs=0;
+   static int TotalNumCPs=0;
    int NumCPs;
    int sz=Previous_Solution_.Dim();
    Vector tmp_diff(sz),tmp_DOF(Mode_->ModeDOF());

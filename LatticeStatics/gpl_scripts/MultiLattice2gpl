@@ -144,10 +144,11 @@ sub loaddata {
 	$_ = <DATA>;
 	while (! m/^Mode:/)
 	{
-	  if (/^Input File:LoadingParameter/)
+	  if (/^Input File: *LoadingParameter/)
 	  {
-	    @fields=split(/=/,$_);
+	    @fields=split(/=>/,$_);
 	    $fields[1] =~ s/\s+//g;
+            $fields[1] =~ s/,//g;
 	    if ($fields[1] eq "Temperature")
 	    {
 	      $loadparam=1;
@@ -158,9 +159,10 @@ sub loaddata {
 	    }
 	  }
 
-	  if (/^Input File:BlochWaveGridSize/)
+	  if (/^Input File: *BlochWaveGridSize/)
 	  {
-	    @fields=split(/=/,$_);
+	    @fields=split(/=>/,$_);
+            $fields[1] =~ s/,//g;
 	    $gridsize = $fields[1];
 	  }
 	    $_ = <DATA>;
@@ -310,7 +312,7 @@ sub loaddata {
     {
 	$bifheader .= sprintf $StrSPEC,"DOF $i";
     }
-    $bifheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . "\n",
+    $bifheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . "\n",
     "Num Neg TFs","Rank 1 Convex","Blochwave";
 
     $turnheader .= sprintf "# Index " . ($_[2]+1) . "\n";
@@ -321,7 +323,7 @@ sub loaddata {
     {
 	$turnheader .= sprintf $StrSPEC,"DOF $i";
     }
-    $turnheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . "\n",
+    $turnheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . "\n",
     "Num Neg TFs","Rank 1 Convex","Blochwave";
 
     $reconstturnheader .= sprintf "# Index " . ($_[2]+2) . "\n";
@@ -332,7 +334,7 @@ sub loaddata {
     {
 	$reconstturnheader .= sprintf $StrSPEC,"DOF $i";
     }
-    $reconstturnheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . "\n",
+    $reconstturnheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . "\n",
     "Num Neg TFs","Rank 1 Convex","Blochwave";
     
     $stableheader .= sprintf "# Index " . ($_[2]+3) . "\n";
@@ -343,7 +345,7 @@ sub loaddata {
     {
 	$stableheader .= sprintf $StrSPEC,"DOF $i";
     }
-    $stableheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . "\n",
+    $stableheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . "\n",
     "Num Neg TFs","Rank 1 Convex","Blochwave";
 
     $unstableheader .= sprintf "# Index " . ($_[2]+4) . "\n";
@@ -354,7 +356,7 @@ sub loaddata {
     {
 	$unstableheader .= sprintf $StrSPEC,"DOF $i";
     }
-    $unstableheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . "\n",
+    $unstableheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . "\n",
     "Num Neg TFs","Rank 1 Convex","Blochwave";
     
     $firststable=1;
@@ -422,7 +424,7 @@ sub loaddata {
 	  {
 	    $biftmp .= sprintf $FSPEC,$DOF[0][$i];
 	  }
-	  $biftmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
+	  $biftmp .= sprintf $FSPEC . $FSPEC . $FSPEC . "\n",
 	  $noneg[0],$Convex[0],$blochwave[0];
 	}
 	else
@@ -434,7 +436,7 @@ sub loaddata {
 	  {
 	    $turntmp .= sprintf $FSPEC,$DOF[0][$i];
 	  }
-	  $turntmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
+	  $turntmp .= sprintf $FSPEC . $FSPEC . $FSPEC . "\n",
 	  $noneg[0],$Convex[0],$blochwave[0];
 	}
       }
@@ -449,7 +451,7 @@ sub loaddata {
 	  {
 	    $reconstturntmp .= sprintf $FSPEC,$DOF[0][$i];
 	  }
-	  $reconstturntmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
+	  $reconstturntmp .= sprintf $FSPEC . $FSPEC . $FSPEC . "\n",
 	  $noneg[0],$Convex[0],$blochwave[0];
 	}
       }
@@ -484,7 +486,7 @@ sub loaddata {
 	  {
 	    $stabletmp .= sprintf $FSPEC,$DOF[0][$i];
 	  }
-	  $stabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
+	  $stabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . "\n",
 	  $noneg[0],$Convex[0],$blochwave[0];
 	}
 	elsif ($stableflag == 0)
@@ -512,7 +514,7 @@ sub loaddata {
 	  {
 	    $unstabletmp .= sprintf $FSPEC,$DOF[0][$i];
 	  }
-	  $unstabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
+	  $unstabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . "\n",
 	  $noneg[0],$Convex[0],$blochwave[0];
 	}
       }
@@ -530,7 +532,7 @@ sub loaddata {
 	  $stabletmp .= sprintf $FSPEC,$DOF[0][$i];
 	}
 	shift(@DOF);
-	$stabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
+	$stabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . "\n",
 	shift(@noneg),shift(@Convex),shift(@blochwave);
       }
       else
@@ -545,7 +547,7 @@ sub loaddata {
 	  $unstabletmp .= sprintf $FSPEC,$DOF[0][$i];
 	}
 	shift(@DOF);
-	$unstabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
+	$unstabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . "\n",
 	shift(@noneg),shift(@Convex),shift(@blochwave);
       }
     }
