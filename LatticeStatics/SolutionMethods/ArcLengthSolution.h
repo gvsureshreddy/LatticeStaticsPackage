@@ -32,6 +32,7 @@ private:
    int CurrentSolution_;
    int ClosedLoopStart_;
    Vector FirstSolution_;
+   int StopAtFirstCP_;
    
    Vector Difference_;
    
@@ -56,7 +57,7 @@ public:
                      double DSMin,double CurrentDS,double AngleCutoff,double AngleIncrease,
                      double Aspect,int NumSolutions,int CurrentSolution,
                      const Vector &FirstSolution,const Vector &Difference,
-                     int ClosedLoopStart=CLOSEDDEFAULT,int Echo=1);
+                     int ClosedLoopStart=CLOSEDDEFAULT,int StopAtFirstCP=0,int Echo=1);
    ArcLengthSolution(LatticeMode *Mode,PerlInput &Input,
                      const Vector &one,const Vector &two,int Echo=1);
    ArcLengthSolution(LatticeMode *Mode,PerlInput &Input,int Echo=1);

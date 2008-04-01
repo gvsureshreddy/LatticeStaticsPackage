@@ -12,7 +12,7 @@ NewtonUpdatePCSolution::NewtonUpdatePCSolution(LatticeMode *Mode,
                                                double delta_nom,double alpha_nom,
                                                double Converge,double MinDSRatio,
                                                const Vector &FirstSolution,int Direction,
-                                               int ClosedLoopStart,int Echo)
+                                               int ClosedLoopStart,int StopAtFirstCP,int Echo)
    : Mode_(Mode),
      Echo_(Echo),
      CurrentSolution_(CurrentSolution),
@@ -25,6 +25,7 @@ NewtonUpdatePCSolution::NewtonUpdatePCSolution(LatticeMode *Mode,
      Converge_(Converge),
      MinDSRatio_(MinDSRatio),
      ClosedLoopStart_(ClosedLoopStart),
+     StopAtFirstCP_(StopAtFirstCP),
      Direction_(Direction),
      FirstSolution_(FirstSolution)
 {
@@ -71,9 +72,36 @@ NewtonUpdatePCSolution::NewtonUpdatePCSolution(LatticeMode *Mode,PerlInput &Inpu
       ClosedLoopStart_ = CLOSEDDEFAULT;
    }
 
+   if (Input.ParameterOK(Hash,"StopAtFirstCP"))
+   {
+      if (!strcmp("Yes",Input.getString(Hash,"StopAtFirstCP")))
+      {
+         StopAtFirstCP_ = 1;
+      }
+      else if (!strcmp("No",Input.getString(Hash,"StopAtFirstCP")))
+      {
+         StopAtFirstCP_ = 0;
+      }
+      else
+      {
+         cerr << "Unknown value for " << Hash.Name << "{StopAtFirstCP}" << "\n";
+         exit(-5);
+      }
+   }
+   else
+   {
+      // Set default value
+      StopAtFirstCP_ = 0;
+   }
+
    if (Input.ParameterOK(Hash,"Direction"))
    {
       Direction_ = Input.getInt(Hash,"Direction");
+      if ((Direction_ < -1) || (Direction_ > 1))
+      {
+         cerr << "Unknown value for " << Hash.Name << "{Direction}" << "\n";
+         exit(-6);
+      }
    }
    else
    {
@@ -133,16 +161,43 @@ NewtonUpdatePCSolution::NewtonUpdatePCSolution(LatticeMode *Mode,PerlInput &Inpu
       ClosedLoopStart_ = CLOSEDDEFAULT;
    }
 
+   if (Input.ParameterOK(Hash,"StopAtFirstCP"))
+   {
+      if (!strcmp("Yes",Input.getString(Hash,"StopAtFirstCP")))
+      {
+         StopAtFirstCP_ = 1;
+      }
+      else if (!strcmp("No",Input.getString(Hash,"StopAtFirstCP")))
+      {
+         StopAtFirstCP_ = 0;
+      }
+      else
+      {
+         cerr << "Unknown value for " << Hash.Name << "{StopAtFirstCP}" << "\n";
+         exit(-5);
+      }
+   }
+   else
+   {
+      // Set default value
+      StopAtFirstCP_ = 0;
+   }
+
    if (Input.ParameterOK(Hash,"Direction"))
    {
       Direction_ = Input.getInt(Hash,"Direction");
+      if ((Direction_ < -1) || (Direction_ > 1))
+      {
+         cerr << "Unknown value for " << Hash.Name << "{Direction}" << "\n";
+         exit(-6);
+      }
    }
    else
    {
       // Default to positive;
       Direction_ = 1;
    }
-   
+
    CurrentDS_ = MaxDS_;
    
    const char *starttype = Input.getString("StartType","Type");
@@ -474,9 +529,14 @@ int NewtonUpdatePCSolution::FindCriticalPoint(Lattice *Lat,PerlInput &Input,
                         tmp_ds,tmp_ds,1.0,0.5,1.0,1,0,Previous_Solution_,
                         Mode_->ModeDOF()-Previous_Solution_,10,Echo_);
    S1.FindCriticalPoint(Lat,Input,Width,out);
-   return 1;
-}
 
+   // Check to see if we should stop
+   if (StopAtFirstCP_)
+      CurrentSolution_ = NumSolutions_;
+   
+   return 1;
+}  
+   
 void NewtonUpdatePCSolution::MoorePenrose(const Matrix& Q,const Matrix& R,const Vector& Force,
                                           Vector& Corrector)
 {

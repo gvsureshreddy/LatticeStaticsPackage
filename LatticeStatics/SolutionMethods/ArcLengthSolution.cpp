@@ -13,7 +13,8 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,const Vector &dofs,
                                      double CurrentDS,double AngleCutoff,double AngleIncrease,
                                      double Aspect,int NumSolutions,
                                      int CurrentSolution,const Vector &FirstSolution,
-                                     const Vector &Difference,int ClosedLoopStart,int Echo)
+                                     const Vector &Difference,int ClosedLoopStart,
+                                     int StopAtFirstCP,int Echo)
    : Echo_(Echo),
      Mode_(Mode),
      ModeDOFS_(Mode_->ModeDOF().Dim()),
@@ -30,6 +31,7 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,const Vector &dofs,
      CurrentSolution_(CurrentSolution),
      ClosedLoopStart_(ClosedLoopStart),
      FirstSolution_(FirstSolution),
+     StopAtFirstCP_(StopAtFirstCP),
      Difference_(Difference)
 {
    ArcLenSet(dofs);
@@ -96,6 +98,27 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,PerlInput &Input,int Echo
    {
       // Set default value
       ClosedLoopStart_ = CLOSEDDEFAULT;
+   }
+   if (Input.ParameterOK(Hash,"StopAtFirstCP"))
+   {
+      if (!strcmp("Yes",Input.getString(Hash,"StopAtFirstCP")))
+      {
+         StopAtFirstCP_ = 1;
+      }
+      else if (!strcmp("No",Input.getString(Hash,"StopAtFirstCP")))
+      {
+         StopAtFirstCP_ = 0;
+      }
+      else
+      {
+         cerr << "Unknown value for " << Hash.Name << "{StopAtFirstCP}" << "\n";
+         exit(-5);
+      }
+   }
+   else
+   {
+      // Set default value
+      StopAtFirstCP_ = 0;
    }
    
    BisectTolerance_ = Tolerance_;
@@ -529,6 +552,10 @@ int ArcLengthSolution::OldFindCriticalPoint(int LHN,double LHEV,int RHN,double R
    ArcLenUpdate(OriginalDiff-Difference_);
    CurrentDS_ = OriginalDS;
    Difference_ = OriginalDiff;
+
+   // Check to see if we should stop
+   if (StopAtFirstCP_)
+      CurrentSolution_ = NumSolutions_;
    
    return 1;
 }
@@ -681,6 +708,10 @@ int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,PerlInput &Input,int Width
    ArcLenUpdate(OriginalDiff-Difference_);
    CurrentDS_ = OriginalDS;
    Difference_ = OriginalDiff;
+
+   // Check to see if we should stop
+   if (StopAtFirstCP_)
+      CurrentSolution_ = NumSolutions_;
    
    return 1;
 }
