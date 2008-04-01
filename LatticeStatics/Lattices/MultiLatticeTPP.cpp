@@ -1789,7 +1789,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
             //<< setw(W) << NoNegEigVal << "\n"
              << "Eigenvalue Info (Rots->1,2,3; Trans->4,5,6):" << "\n"<<setw(W)
              << TestFunctVals<< "\n"
-             << "Bifurcation Info:" << setw(W) << 0.0 << setw(W) << NoNegTestFunctions << "\n"
+             << "Bifurcation Info:" << setw(W) << NoNegTestFunctions << "\n"
              << "Condensed Moduli (Normalized):" << setw(W) << CondModuli
              << "CondEV Info:" << setw(W) << CondEV
              << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << "\n"
@@ -1818,8 +1818,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
                //<< setw(W) << NoNegEigVal << "\n"
                  << "Eigenvalue Info (Rots->1,2,3; Trans->4,5,6):" << "\n"<<setw(W)
                  << TestFunctVals << "\n"
-                 << "Bifurcation Info:" << setw(W) << 0.0 << setw(W) << NoNegTestFunctions
-                 << "\n"
+                 << "Bifurcation Info:" << setw(W) << NoNegTestFunctions << "\n"
                  << "Condensed Moduli (Normalized):" << setw(W) << CondModuli
                  << "CondEV Info:" << setw(W) << CondEV
                  << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << "\n"

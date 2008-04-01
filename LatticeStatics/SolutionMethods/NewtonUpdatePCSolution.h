@@ -28,7 +28,7 @@ private:
    double Converge_;            //Convergence criteria
    double MinDSRatio_;          //Minimum Stepsize ratio
    int ClosedLoopStart_;        //Closed loop test variable
-   int StopAtFirstCP_;          //Stop at first critical point test flag
+   int StopAtCPNum_;            //Stop at critical point test flag
    int Direction_;              //Direction of tangent
    
    Vector FirstSolution_;       //Initial point on curve
@@ -44,7 +44,7 @@ public:
                           double CurrentDS,double cont_rate_nom,double delta_nom,
                           double alpha_nom,double Converge,double MinDSRatio,
                           const Vector &FirstSolution,int Direction=1,
-                          int ClosedLoopStart=CLOSEDDEFAULT,int StopAtFirstCP=0,int Echo=1);
+                          int ClosedLoopStart=CLOSEDDEFAULT,int StopAtCPNum=-1,int Echo=1);
    NewtonUpdatePCSolution(LatticeMode *Mode,PerlInput &Input,const Vector &one,int Echo=1);
    NewtonUpdatePCSolution(LatticeMode *Mode,PerlInput &Input,int Echo);
    ~NewtonUpdatePCSolution() {}

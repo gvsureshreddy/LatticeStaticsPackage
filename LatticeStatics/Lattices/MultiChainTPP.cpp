@@ -1125,7 +1125,7 @@ void MultiChainTPP::Print(ostream &out,PrintDetail flag)
          out << "Stress (Normalized):" << setw(W) << str << "\n"
              << "Stiffness (Normalized):" << setw(W) << stiff
              << "Eigenvalue Info:"  << "\n"<<setw(W) << TestFunctVals<< "\n"
-             << "Bifurcation Info:" << setw(W) << 0.0 << setw(W) << NoNegTestFunctions << "\n"
+             << "Bifurcation Info:" << setw(W) << NoNegTestFunctions << "\n"
              << "Condensed Moduli (Normalized):" << setw(W) << CondModuli
              << "CondEV Info:" << setw(W) << CondEV
              << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << "\n"
@@ -1148,8 +1148,7 @@ void MultiChainTPP::Print(ostream &out,PrintDetail flag)
             cout << "Stress (Normalized):" << setw(W) << str << "\n"
                  << "Stiffness (Normalized):" << setw(W) << stiff
                  << "Eigenvalue Info:"  << "\n"<<setw(W) << TestFunctVals <<"\n"
-                 << "Bifurcation Info:" << setw(W) << 0.0 << setw(W) << NoNegTestFunctions
-                 << "\n"
+                 << "Bifurcation Info:" << setw(W) << NoNegTestFunctions << "\n"
                  << "Condensed Moduli (Normalized):" << setw(W) << CondModuli
                  << "CondEV Info:" << setw(W) << CondEV
                  << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << "\n"

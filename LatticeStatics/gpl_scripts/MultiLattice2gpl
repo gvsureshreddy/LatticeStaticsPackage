@@ -103,7 +103,7 @@ close(GNUPLOT);
 #
 sub loaddata {
     my(@fields,@temp,@bifpt,@stress,@DOF,
-       @potential,@entropy,@heatcapacity,@mineigval,@noneg,@blochwave,
+       @potential,@entropy,@heatcapacity,@noneg,@blochwave,
        $stableflag,$stable_nodata,$unstable_nodata,$bifflag,$bifpoints,$turnpoints,
        $reconstturnpts,$gridsize,$loadparam,$loadgrad,$oldloadgrad,$recalc,$BWrecalc,
        $outputfl);
@@ -247,8 +247,7 @@ sub loaddata {
 	    if (/^Bifurcation/)
 	    {
 		@fields = split;
-		push(@mineigval,$fields[2]);
-		push(@noneg,$fields[3]);
+		push(@noneg,$fields[2]);
 	    }
 
 	    if (/^Condensed Moduli Rank1Convex/)
@@ -312,7 +311,7 @@ sub loaddata {
 	$bifheader .= sprintf $StrSPEC,"DOF $i";
     }
     $bifheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . "\n",
-    "Min EigVal","Num Neg Eig Vals","Rank 1 Convex","Blochwave";
+    "Num Neg TFs","Rank 1 Convex","Blochwave";
 
     $turnheader .= sprintf "# Index " . ($_[2]+1) . "\n";
     $turnheader .= sprintf "# $_[0]/$_[1] --- Turning Points\n";
@@ -323,7 +322,7 @@ sub loaddata {
 	$turnheader .= sprintf $StrSPEC,"DOF $i";
     }
     $turnheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . "\n",
-    "Min EigVal","Num Neg Eig Vals","Rank 1 Convex","Blochwave";
+    "Num Neg TFs","Rank 1 Convex","Blochwave";
 
     $reconstturnheader .= sprintf "# Index " . ($_[2]+2) . "\n";
     $reconstturnheader .= sprintf "# $_[0]/$_[1] --- Reconstructive Turning Points\n";
@@ -334,7 +333,7 @@ sub loaddata {
 	$reconstturnheader .= sprintf $StrSPEC,"DOF $i";
     }
     $reconstturnheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . "\n",
-    "Min EigVal","Num Neg Eig Vals","Rank 1 Convex","Blochwave";
+    "Num Neg TFs","Rank 1 Convex","Blochwave";
     
     $stableheader .= sprintf "# Index " . ($_[2]+3) . "\n";
     $stableheader .= sprintf "# $_[0]/$_[1] --- Stable\n";
@@ -345,7 +344,7 @@ sub loaddata {
 	$stableheader .= sprintf $StrSPEC,"DOF $i";
     }
     $stableheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . "\n",
-    "Min EigVal","Num Neg Eig Vals","Rank 1 Convex","Blochwave";
+    "Num Neg TFs","Rank 1 Convex","Blochwave";
 
     $unstableheader .= sprintf "# Index " . ($_[2]+4) . "\n";
     $unstableheader .= sprintf "# $_[0]/$_[1] --- Unstable\n";
@@ -356,7 +355,7 @@ sub loaddata {
 	$unstableheader .= sprintf $StrSPEC,"DOF $i";
     }
     $unstableheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . "\n",
-    "Min EigVal","Num Neg Eig Vals","Rank 1 Convex","Blochwave";
+    "Num Neg TFs","Rank 1 Convex","Blochwave";
     
     $firststable=1;
     $firstunstable=1;
@@ -424,7 +423,7 @@ sub loaddata {
 	    $biftmp .= sprintf $FSPEC,$DOF[0][$i];
 	  }
 	  $biftmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
-	  $mineigval[0],$noneg[0],$Convex[0],$blochwave[0];
+	  $noneg[0],$Convex[0],$blochwave[0];
 	}
 	else
 	{
@@ -436,7 +435,7 @@ sub loaddata {
 	    $turntmp .= sprintf $FSPEC,$DOF[0][$i];
 	  }
 	  $turntmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
-	  $mineigval[0],$noneg[0],$Convex[0],$blochwave[0];
+	  $noneg[0],$Convex[0],$blochwave[0];
 	}
       }
       else
@@ -451,7 +450,7 @@ sub loaddata {
 	    $reconstturntmp .= sprintf $FSPEC,$DOF[0][$i];
 	  }
 	  $reconstturntmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
-	  $mineigval[0],$noneg[0],$Convex[0],$blochwave[0];
+	  $noneg[0],$Convex[0],$blochwave[0];
 	}
       }
       shift(@bifpt);
@@ -486,7 +485,7 @@ sub loaddata {
 	    $stabletmp .= sprintf $FSPEC,$DOF[0][$i];
 	  }
 	  $stabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
-	  $mineigval[0],$noneg[0],$Convex[0],$blochwave[0];
+	  $noneg[0],$Convex[0],$blochwave[0];
 	}
 	elsif ($stableflag == 0)
 	{
@@ -514,7 +513,7 @@ sub loaddata {
 	    $unstabletmp .= sprintf $FSPEC,$DOF[0][$i];
 	  }
 	  $unstabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
-	  $mineigval[0],$noneg[0],$Convex[0],$blochwave[0];
+	  $noneg[0],$Convex[0],$blochwave[0];
 	}
       }
       
@@ -532,7 +531,7 @@ sub loaddata {
 	}
 	shift(@DOF);
 	$stabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
-	shift(@mineigval),shift(@noneg),shift(@Convex),shift(@blochwave);
+	shift(@noneg),shift(@Convex),shift(@blochwave);
       }
       else
       {
@@ -547,7 +546,7 @@ sub loaddata {
 	}
 	shift(@DOF);
 	$unstabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . "\n",
-	shift(@mineigval),shift(@noneg),shift(@Convex),shift(@blochwave);
+	shift(@noneg),shift(@Convex),shift(@blochwave);
       }
     }
     

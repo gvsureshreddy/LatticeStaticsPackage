@@ -190,7 +190,7 @@ $ArcLenDSMax = 0.01;
                                                 Aspect          => 1.0,
                                                 NumSolutions    => 1000#,
                                                 #ClosedLoopStart => 30#, # Default value = 30
-                                                #StopAtFirstCP   => No, # Default value = No, Yes
+                                                #StopAtCPNum     => -1, # Default value = -1
                                                   },
                    ScanningSolution         => {MaxIterations      => 50,
                                                 Tolerance          => 1.0e-13,
@@ -214,7 +214,7 @@ $ArcLenDSMax = 0.01;
                                                 ConvergeCriteria => 1e-13,
                                                 MinDSRatio       => 1e-8#,
                                                 #ClosedLoopStart  => 30, # Default value = 30
-                                                #StopAtFirstCP    => No, # Default value = No, Yes
+                                                #StopAtCPNum      => -1, # Default value = -1
                                                 #Direction        => 1 # Default value = 1
                                                   },
                    NewtonUpdatePCSolution   => {NumSolutions     => 1000,
@@ -225,7 +225,7 @@ $ArcLenDSMax = 0.01;
                                                 ConvergeCriteria => 1e-13,
                                                 MinDSRatio       => 1e-8#,
                                                 #ClosedLoopStart  => 30, # Default value = 30
-                                                #StopAtFirstCP    => No, # Default value = No, Yes
+                                                #StopAtCPNum      => -1, # Default value = -1
                                                 #Direction        => 1 # Default value = 1
                                                   },
                    NewtonQRUpdatePCSolution => {NumSolutions     => 1000,
@@ -236,7 +236,7 @@ $ArcLenDSMax = 0.01;
                                                 ConvergeCriteria => 1e-13,
                                                 MinDSRatio       => 1e-8#,
                                                 #ClosedLoopStart  => 30, # Default value = 30
-                                                #StopAtFirstCP    => No, # Default value = No, Yes
+                                                #StopAtCPNum      => -1, # Default value = -1
                                                 #Direction        => 1 # Default value = 1
                                                   }
                    );

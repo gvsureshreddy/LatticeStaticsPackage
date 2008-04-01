@@ -14,7 +14,7 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,const Vector &dofs,
                                      double Aspect,int NumSolutions,
                                      int CurrentSolution,const Vector &FirstSolution,
                                      const Vector &Difference,int ClosedLoopStart,
-                                     int StopAtFirstCP,int Echo)
+                                     int StopAtCPNum,int Echo)
    : Echo_(Echo),
      Mode_(Mode),
      ModeDOFS_(Mode_->ModeDOF().Dim()),
@@ -31,7 +31,7 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,const Vector &dofs,
      CurrentSolution_(CurrentSolution),
      ClosedLoopStart_(ClosedLoopStart),
      FirstSolution_(FirstSolution),
-     StopAtFirstCP_(StopAtFirstCP),
+     StopAtCPNum_(StopAtCPNum),
      Difference_(Difference)
 {
    ArcLenSet(dofs);
@@ -64,7 +64,16 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,PerlInput &Input,
       // Set default value
       ClosedLoopStart_ = CLOSEDDEFAULT;
    }
-   
+   if (Input.ParameterOK(Hash,"StopAtCPNum"))
+   {
+      StopAtCPNum_ = Input.getInt(Hash,"StopAtCPNum");
+   }
+   else
+   {
+      // Set default value
+      StopAtCPNum_ = -1;
+   }
+
    BisectTolerance_ = Tolerance_;
    
    FirstSolution_.Resize(one.Dim());
@@ -99,26 +108,14 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,PerlInput &Input,int Echo
       // Set default value
       ClosedLoopStart_ = CLOSEDDEFAULT;
    }
-   if (Input.ParameterOK(Hash,"StopAtFirstCP"))
+   if (Input.ParameterOK(Hash,"StopAtCPNum"))
    {
-      if (!strcmp("Yes",Input.getString(Hash,"StopAtFirstCP")))
-      {
-         StopAtFirstCP_ = 1;
-      }
-      else if (!strcmp("No",Input.getString(Hash,"StopAtFirstCP")))
-      {
-         StopAtFirstCP_ = 0;
-      }
-      else
-      {
-         cerr << "Unknown value for " << Hash.Name << "{StopAtFirstCP}" << "\n";
-         exit(-5);
-      }
+      StopAtCPNum_ = Input.getInt(Hash,"StopAtCPNum");
    }
    else
    {
       // Set default value
-      StopAtFirstCP_ = 0;
+      StopAtCPNum_ = -1;
    }
    
    BisectTolerance_ = Tolerance_;
@@ -467,6 +464,7 @@ int ArcLengthSolution::OldFindCriticalPoint(int LHN,double LHEV,int RHN,double R
                                             Lattice *Lat,PerlInput &Input,
                                             int Width,fstream &out)
 {
+   static int TotalNumCPs=0;
    Vector OriginalDiff=Difference_;
    double OriginalDS = CurrentDS_;
    double CurrentMinEV=1.0, OldMinEV=1.0;
@@ -554,7 +552,8 @@ int ArcLengthSolution::OldFindCriticalPoint(int LHN,double LHEV,int RHN,double R
    Difference_ = OriginalDiff;
 
    // Check to see if we should stop
-   if (StopAtFirstCP_)
+   TotalNumCPs += 1;
+   if ((StopAtCPNum_ > -1) && (TotalNumCPs >= StopAtCPNum_))
       CurrentSolution_ = NumSolutions_;
    
    return 1;
@@ -562,6 +561,8 @@ int ArcLengthSolution::OldFindCriticalPoint(int LHN,double LHEV,int RHN,double R
 
 int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,PerlInput &Input,int Width,fstream &out)
 {
+   static int TotalNumCPs=0;
+   int NumCPs;
    Vector OriginalDiff=Difference_;
    double OriginalDS = CurrentDS_;
    int TestValueDiff;
@@ -710,10 +711,11 @@ int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,PerlInput &Input,int Width
    Difference_ = OriginalDiff;
 
    // Check to see if we should stop
-   if (StopAtFirstCP_)
+   TotalNumCPs += TestValueDiff;
+   if ((StopAtCPNum_ > -1) && (TotalNumCPs >= StopAtCPNum_))
       CurrentSolution_ = NumSolutions_;
    
-   return 1;
+   return TestValueDiff;
 }
 
 void ArcLengthSolution::ZBrent(Lattice *Lat,int track,double fa,double fb,
