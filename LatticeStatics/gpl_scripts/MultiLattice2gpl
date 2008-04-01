@@ -11,7 +11,7 @@ if (scalar(@ARGV) < 3)
 }
 
 $DOFSize = $ARGV[0];
-$StateSize = $DOFSize + 9;
+$StateSize = $DOFSize + 8;
 $StrSPEC = "%14s";
 $FSPEC = "%14.6f";
 
@@ -306,58 +306,58 @@ sub loaddata {
 
     $bifheader .= sprintf "# Index $_[2]\n";
     $bifheader .= sprintf "# $_[0]/$_[1] --- Bifurcation Points\n";
-    $bifheader .= sprintf "#" . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
-    "Temperature","Stress","Potential","Entropy","HeatCapacity";
+    $bifheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
+    "# Temperature","Stress","Potential","Entropy","HeatCapacity";
     for (my $i=0;$i<$DOFSize;$i+=1)
     {
 	$bifheader .= sprintf $StrSPEC,"DOF $i";
     }
     $bifheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . "\n",
-    "Num Neg TFs","Rank 1 Convex","Blochwave";
+    "NumNeg TFs","Rk 1 Convex","Blochwave";
 
     $turnheader .= sprintf "# Index " . ($_[2]+1) . "\n";
     $turnheader .= sprintf "# $_[0]/$_[1] --- Turning Points\n";
-    $turnheader .= sprintf "#" . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
-    "Temperature","Stress","Potential","Entropy","HeatCapacity";
+    $turnheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
+    "# Temperature","Stress","Potential","Entropy","HeatCapacity";
     for (my $i=0;$i<$DOFSize;$i+=1)
     {
 	$turnheader .= sprintf $StrSPEC,"DOF $i";
     }
     $turnheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . "\n",
-    "Num Neg TFs","Rank 1 Convex","Blochwave";
+    "NumNeg TFs","Rk 1 Convex","Blochwave";
 
     $reconstturnheader .= sprintf "# Index " . ($_[2]+2) . "\n";
     $reconstturnheader .= sprintf "# $_[0]/$_[1] --- Reconstructive Turning Points\n";
-    $reconstturnheader .= sprintf "#" . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
-    "Temperature","Stress","Potential","Entropy","HeatCapacity";
+    $reconstturnheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
+    "# Temperature","Stress","Potential","Entropy","HeatCapacity";
     for (my $i=0;$i<$DOFSize;$i+=1)
     {
 	$reconstturnheader .= sprintf $StrSPEC,"DOF $i";
     }
     $reconstturnheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . "\n",
-    "Num Neg TFs","Rank 1 Convex","Blochwave";
+    "NumNeg TFs","Rk 1 Convex","Blochwave";
     
     $stableheader .= sprintf "# Index " . ($_[2]+3) . "\n";
     $stableheader .= sprintf "# $_[0]/$_[1] --- Stable\n";
-    $stableheader .= sprintf "#" . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
-    "Temperature","Stress","Potential","Entropy","HeatCapacity";
+    $stableheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
+    "# Temperature","Stress","Potential","Entropy","HeatCapacity";
     for (my $i=0;$i<$DOFSize;$i+=1)
     {
 	$stableheader .= sprintf $StrSPEC,"DOF $i";
     }
     $stableheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . "\n",
-    "Num Neg TFs","Rank 1 Convex","Blochwave";
+    "NumNeg TFs","Rk 1 Convex","Blochwave";
 
     $unstableheader .= sprintf "# Index " . ($_[2]+4) . "\n";
     $unstableheader .= sprintf "# $_[0]/$_[1] --- Unstable\n";
-    $unstableheader .= sprintf "#" . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
-    "Temperature","Stress","Potential","Entropy","HeatCapacity";
+    $unstableheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
+    "# Temperature","Stress","Potential","Entropy","HeatCapacity";
     for (my $i=0;$i<$DOFSize;$i+=1)
     {
 	$unstableheader .= sprintf $StrSPEC,"DOF $i";
     }
     $unstableheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . "\n",
-    "Num Neg TFs","Rank 1 Convex","Blochwave";
+    "NumNeg TFs","Rk 1 Convex","Blochwave";
     
     $firststable=1;
     $firstunstable=1;
