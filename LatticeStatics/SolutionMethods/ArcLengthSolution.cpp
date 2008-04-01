@@ -526,8 +526,8 @@ int ArcLengthSolution::OldFindCriticalPoint(int LHN,double LHEV,int RHN,double R
    }
    if (Echo_) cout << "\n";
    out << "\n";
-   
-   if (Echo_) cout << setw(Width) << Lat << "\n";
+
+   // Lattice takes care of echo
    out << setw(Width) << Lat << "\n";
       
    for (int i=0;i<70;i++)
@@ -562,7 +562,6 @@ int ArcLengthSolution::OldFindCriticalPoint(int LHN,double LHEV,int RHN,double R
 int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,PerlInput &Input,int Width,fstream &out)
 {
    static int TotalNumCPs=0;
-   int NumCPs;
    Vector OriginalDiff=Difference_;
    double OriginalDS = CurrentDS_;
    int TestValueDiff;
@@ -601,8 +600,8 @@ int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,PerlInput &Input,int Width
       TestValueDiff = -TestValueDiff;
    }
    
-   cout << "TF_LHS = " << setw(15) << TF_LHS<< "\n";
-   cout << "TF_RHS = " << setw(15) << TF_RHS << "\n";
+   cout << "TF_LHS = " << setw(Width) << TF_LHS<< "\n";
+   cout << "TF_RHS = " << setw(Width) << TF_RHS << "\n";
    
    int *Index;
    Index = new int[TestValueDiff];
@@ -626,7 +625,7 @@ int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,PerlInput &Input,int Width
       for (int i = 0; i < TestValueDiff; i++)
       {
          cout << "i = " << i<< "\n";
-         cout << "Index[i] =" << Index[i]<< "\n";
+         cout << "Index[i] = " << Index[i]<< "\n";
       }
    }
    
@@ -671,7 +670,7 @@ int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,PerlInput &Input,int Width
          if (Echo_) cout << "\n";
          in_string << "\n";
          
-         if (Echo_) cout << setw(Width) << Lat << "\n";
+         // Lattice takes care of echo
          in_string << setw(Width) << Lat << "\n";         
          
          for (int i=0;i<70;i++)
@@ -684,7 +683,7 @@ int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,PerlInput &Input,int Width
          
          // Call Lattice function to do any Lattice Specific things
          Lat->CriticalPointInfo(Mode_->DrDt(Difference_),Multiplicity,
-                                BisectTolerance_,Width,in_string);
+                                10.0*Tolerance_,Width,in_string);
          
          if (Echo_) cout << "Success = 1" << "\n";
          in_string << "Success = 1" << "\n";
@@ -728,6 +727,7 @@ void ArcLengthSolution::ZBrent(Lattice *Lat,int track,double fa,double fb,
    int dummy = 1;
    int loops = 0;
    double factor = 0.0;
+   int oldprecision = cout.precision();
    
    b=OriginalDS;
    c=b;
@@ -744,7 +744,7 @@ void ArcLengthSolution::ZBrent(Lattice *Lat,int track,double fa,double fb,
       if (Echo_)
       {
          cout << setprecision(30) << "CurrentMinTF = " << fb << "\n";
-         cout << "CurrentDS_ =" << CurrentDS_ << setprecision(10) << "\n";
+         cout << "CurrentDS_ = " << CurrentDS_ << setprecision(oldprecision) << "\n";
       }
       ArcLenUpdate(-Difference_);
       
@@ -771,7 +771,7 @@ void ArcLengthSolution::ZBrent(Lattice *Lat,int track,double fa,double fb,
       
       if(fabs(xm) <= tol1 || fb == 0.0)
       {
-         //cout << "Minimal Root found! XM too small! " < "\n";
+         cout << "Minimal Root found! XM too small! " << "\n";
          CurrentDS_ = LastDS;
          Difference_ = LastDiff;
          ArcLenUpdate(Difference_);
@@ -780,7 +780,7 @@ void ArcLengthSolution::ZBrent(Lattice *Lat,int track,double fa,double fb,
          if(Echo_)
          {
             cout <<setprecision(30)<<"CurrentMinTF = " << fb << "\n";
-            cout << "CurrentDS_ =" << CurrentDS_ <<setprecision(10)<< "\n";
+            cout << "CurrentDS_ = " << CurrentDS_ <<setprecision(oldprecision)<< "\n";
          }
          break;
       }
@@ -848,7 +848,7 @@ void ArcLengthSolution::ZBrent(Lattice *Lat,int track,double fa,double fb,
       fb=CurrentTF[track];
       loops++;
       
-      //cout << "CurrentTF = " << "\n" << setw(15) << CurrentTF << "\n" << "\n";
+      //cout << "CurrentTF = " << "\n" << setw(Width) << CurrentTF << "\n" << "\n";
       //cout << "CurrentTF[track] = " << "\n" << CurrentTF[track]<< "\n"<< "\n";
    }
 }

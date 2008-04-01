@@ -438,7 +438,7 @@ int NewtonPCSolution::FindCriticalPoint(Lattice *Lat,PerlInput &Input,int Width,
    
    //ArcLengthSolution S1(Mode_,Input,Previous_Solution_,Mode_->ModeDOF(),1);
    int MaxIter = 50;
-   ArcLengthSolution S1(Mode_,Mode_->ModeDOF(),MaxIter,Converge_,0.1*Converge_,tmp_ds,
+   ArcLengthSolution S1(Mode_,Mode_->ModeDOF(),MaxIter,Converge_,Converge_,tmp_ds,
                         tmp_ds,tmp_ds,1.0,0.5,1.0,1,0,Previous_Solution_,
                         Mode_->ModeDOF()-Previous_Solution_,10,Echo_);
    NumCPs=S1.FindCriticalPoint(Lat,Input,Width,out);
