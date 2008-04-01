@@ -91,11 +91,31 @@ $Rtheta1_1_1 = 0.275914376289;
                                AtomPosition_3    => 0.75,
                                Tref              => 300.0,
                                AtomSpecies       => [0, 1, 0, 1],
+                               PotentialType_0_0 => {Type    => LJCutoff,
+                                                     Cutoff  => 2.0,
+                                                     Eps0    => 1.0,
+                                                     Eps1    => 0.0,
+                                                     Sigma0  => 1.0,
+                                                     Sigma1  => 0.0},
+                               # Ni-Ti
+                               PotentialType_0_1 => {Type    => LJCutoff,
+                                                     Cutoff  => 2.0,
+                                                     Eps0    => 0.1,
+                                                     Eps1    => 0.0,
+                                                     Sigma0  => 0.475,
+                                                     Sigma1  => 0.0},
+                               # Ti-Ti
+                               PotentialType_1_1 => {Type    => LJCutoff,
+                                                     Cutoff  => 2.0,
+                                                     Eps0    => 1.0,
+                                                     Eps1    => 0.0,
+                                                     Sigma0  => 0.85,
+                                                     Sigma1  => 0.0},
                                AtomicMass_0      => 1.0,
                                AtomicMass_1      => 1.1,
                                InfluenceDist     => 7.0,
                                NormModulus       => 1.0,
-                               LoadingParameter  => Temperature, # Temperature, Load
+                               LoadingParameter  => Load, # Temperature, Load
                                MaxIterations     => 50,
                                BlochWaveGridSize => 5,
                                CBKinematics      => LagrangeCB, # Default value = LagrangeCB; MixedCB
@@ -110,11 +130,31 @@ $Rtheta1_1_1 = 0.275914376289;
                                AtomPosition_3    => 0.75,
                                Tref              => 300.0,
                                AtomSpecies       => [0, 1, 0, 1],
+                               PotentialType_0_0 => {Type    => LJCutoff,
+                                                     Cutoff  => 2.0,
+                                                     Eps0    => 1.0,
+                                                     Eps1    => 0.0,
+                                                     Sigma0  => 1.0,
+                                                     Sigma1  => 0.0},
+                               # Ni-Ti
+                               PotentialType_0_1 => {Type    => LJCutoff,
+                                                     Cutoff  => 2.0,
+                                                     Eps0    => 0.1,
+                                                     Eps1    => 0.0,
+                                                     Sigma0  => 0.475,
+                                                     Sigma1  => 0.0},
+                               # Ti-Ti
+                               PotentialType_1_1 => {Type    => LJCutoff,
+                                                     Cutoff  => 2.0,
+                                                     Eps0    => 1.0,
+                                                     Eps1    => 0.0,
+                                                     Sigma0  => 0.85,
+                                                     Sigma1  => 0.0},
                                AtomicMass_0      => 1.0,
                                AtomicMass_1      => 1.1,
                                InfluenceDist     => 7.0,
                                NormModulus       => 1.0,
-                               LoadingParameter  => Temperature, # Temperature, Load
+                               LoadingParameter  => Load, # Temperature, Load
                                MaxIterations     => 50,
                                BlochWaveGridSize => 5,
                                CBKinematics      => LagrangeCB, # Default value = LagrangeCB; MixedCB
@@ -149,7 +189,8 @@ $ArcLenDSMax = 0.01;
                                                 AngleIncrease   => 10*$DEG2RAD,
                                                 Aspect          => 1.0,
                                                 NumSolutions    => 1000#,
-                                                #ClosedLoopStart => 30 # Default value = 30
+                                                #ClosedLoopStart => 30#, # Default value = 30
+                                                #StopAtFirstCP   => No, # Default value = No, Yes
                                                   },
                    ScanningSolution         => {MaxIterations      => 50,
                                                 Tolerance          => 1.0e-13,
@@ -173,6 +214,7 @@ $ArcLenDSMax = 0.01;
                                                 ConvergeCriteria => 1e-13,
                                                 MinDSRatio       => 1e-8#,
                                                 #ClosedLoopStart  => 30, # Default value = 30
+                                                #StopAtFirstCP    => No, # Default value = No, Yes
                                                 #Direction        => 1 # Default value = 1
                                                   },
                    NewtonUpdatePCSolution   => {NumSolutions     => 1000,
@@ -183,6 +225,7 @@ $ArcLenDSMax = 0.01;
                                                 ConvergeCriteria => 1e-13,
                                                 MinDSRatio       => 1e-8#,
                                                 #ClosedLoopStart  => 30, # Default value = 30
+                                                #StopAtFirstCP    => No, # Default value = No, Yes
                                                 #Direction        => 1 # Default value = 1
                                                   },
                    NewtonQRUpdatePCSolution => {NumSolutions     => 1000,
@@ -193,6 +236,7 @@ $ArcLenDSMax = 0.01;
                                                 ConvergeCriteria => 1e-13,
                                                 MinDSRatio       => 1e-8#,
                                                 #ClosedLoopStart  => 30, # Default value = 30
+                                                #StopAtFirstCP    => No, # Default value = No, Yes
                                                 #Direction        => 1 # Default value = 1
                                                   }
                    );
