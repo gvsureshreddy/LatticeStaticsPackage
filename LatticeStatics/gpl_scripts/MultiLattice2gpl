@@ -148,7 +148,7 @@ sub loaddata {
 	  {
 	    @fields=split(/=>/,$_);
 	    $fields[1] =~ s/\s+//g;
-            $fields[1] =~ s/,//g;
+            $fields[1] =~ s/,.*//g;
 	    if ($fields[1] eq "Temperature")
 	    {
 	      $loadparam=1;
@@ -162,7 +162,7 @@ sub loaddata {
 	  if (/^Input File: *BlochWaveGridSize/)
 	  {
 	    @fields=split(/=>/,$_);
-            $fields[1] =~ s/,//g;
+            $fields[1] =~ s/,.*//g;
 	    $gridsize = $fields[1];
 	  }
 	    $_ = <DATA>;
