@@ -60,7 +60,7 @@ int main(int argc,char *argv[])
    {
       Corners[i].Resize(Mode->ModeDOF().Dim());
       sprintf(tmp,"Corner_%u",i);
-      Input.getVector(Corners[i],"EnergyLandscape","Corners",i-1);
+      Input.getVector(Corners[i],"EnergyLandscape",tmp);
    }
    
    Vector *Directions;
