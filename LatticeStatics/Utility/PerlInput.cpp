@@ -246,7 +246,7 @@ SV *getScalar(PerlInput::HashStruct Hash,char *ParamName,int a,int b,int c,int d
    }
    else
    {
-      return ScalarLevel4;
+      return ScalarLevel5;
    }
 }
 
@@ -474,7 +474,11 @@ void PerlInput::getVector(Vector &Vctr,HashStruct Hash,char *ParamName,
    {
       ParamValPtr = av_fetch(ArrayPtr,i,FALSE); // Should always be ok because of len check.
       ParamVal = *ParamValPtr;
-      if (SvTYPE(ParamVal) != SVt_NV)
+      if ((SvTYPE(ParamVal) == SVt_NV) || (SvTYPE(ParamVal) == SVt_PVNV))
+      {
+         Vctr[i] = SvNV(ParamVal);
+      }
+      else
       {
          cerr << "Error: Perl hash variable: " << Hash.Name
               << "{" << ParamName << "}";
@@ -484,10 +488,6 @@ void PerlInput::getVector(Vector &Vctr,HashStruct Hash,char *ParamName,
          if (d > -1) cerr << "[" << d << "]";
          cerr << "[" << i << "] is not of type double\n";
          exit(Errno);
-      }
-      else
-      {
-         Vctr[i] = SvNV(ParamVal);
       }
    }
 }
@@ -560,7 +560,11 @@ void PerlInput::getMatrix(Matrix &Mtrx,HashStruct Hash,char *ParamName,int a,int
          ParamValPtr = av_fetch(Row,j,FALSE); // Should be ok because of len check
          ParamVal = *ParamValPtr;
          
-         if (SvTYPE(ParamVal) != SVt_NV)
+         if ((SvTYPE(ParamVal) == SVt_NV) || (SvTYPE(ParamVal) == SVt_PVNV))
+         {
+            Mtrx[i][j] = SvNV(ParamVal);
+         }
+         else
          {
             cerr << "Error: Perl hash variable: " << Hash.Name
                  << "{" << ParamName << "}";
@@ -569,10 +573,6 @@ void PerlInput::getMatrix(Matrix &Mtrx,HashStruct Hash,char *ParamName,int a,int
             if (c > -1) cerr << "[" << c << "]";
             cerr << "[" << i << "][" << j << "] is not of type double\n";
             exit(Errno);
-         }
-         else
-         {
-            Mtrx[i][j] = SvNV(ParamVal);
          }
       }
    }
@@ -615,7 +615,11 @@ void PerlInput::getIntVector(int *IntArry,int len,HashStruct Hash,char *ParamNam
    {
       ParamValPtr = av_fetch(ArrayPtr,i,FALSE); // Should always be ok because of len check.
       ParamVal = *ParamValPtr;
-      if (SvTYPE(ParamVal) != SVt_IV)
+      if ((SvTYPE(ParamVal) == SVt_IV) || (SvTYPE(ParamVal) == SVt_PVIV))
+      {
+         IntArry[i] = SvIV(ParamVal);
+      }
+      else
       {
          cerr << "Error: Perl hash variable: " << Hash.Name
               << "{" << ParamName << "}";
@@ -625,10 +629,6 @@ void PerlInput::getIntVector(int *IntArry,int len,HashStruct Hash,char *ParamNam
          if (d > -1) cerr << "[" << d << "]";
          cerr << "[" << i << "] is not of type int\n";
          exit(Errno);
-      }
-      else
-      {
-         IntArry[i] = SvIV(ParamVal);
       }
    }
 }
@@ -670,18 +670,7 @@ void PerlInput::getPosIntVector(int *PosIntArry,int len,HashStruct Hash,
    {
       ParamValPtr = av_fetch(ArrayPtr,i,FALSE); // Should always be ok because of len check.
       ParamVal = *ParamValPtr;
-      if (SvTYPE(ParamVal) != SVt_IV)
-      {
-         cerr << "Error: Perl hash variable: " << Hash.Name
-              << "{" << ParamName << "}";
-         if (a > -1) cerr << "[" << a << "]";
-         if (b > -1) cerr << "[" << b << "]";
-         if (c > -1) cerr << "[" << c << "]";
-         if (d > -1) cerr << "[" << d << "]";
-         cerr << "[" << i << "] is not of type int\n";
-         exit(Errno);
-      }
-      else
+      if ((SvTYPE(ParamVal) == SVt_IV) || (SvTYPE(ParamVal) == SVt_PVIV))
       {
          int tmp = SvIV(ParamVal);
          if (tmp < 0)
@@ -697,6 +686,17 @@ void PerlInput::getPosIntVector(int *PosIntArry,int len,HashStruct Hash,
          }
          
          PosIntArry[i] = tmp;
+      }
+      else
+      {
+         cerr << "Error: Perl hash variable: " << Hash.Name
+              << "{" << ParamName << "}";
+         if (a > -1) cerr << "[" << a << "]";
+         if (b > -1) cerr << "[" << b << "]";
+         if (c > -1) cerr << "[" << c << "]";
+         if (d > -1) cerr << "[" << d << "]";
+         cerr << "[" << i << "] is not of type int\n";
+         exit(Errno);
       }
    }
 }
@@ -768,7 +768,11 @@ void PerlInput::getIntMatrix(int *IntMtrx,int rows,int cols,HashStruct Hash,
          ParamValPtr = av_fetch(Row,j,FALSE); // Should be ok because of len check
          ParamVal = *ParamValPtr;
          
-         if (SvTYPE(ParamVal) != SVt_IV)
+         if ((SvTYPE(ParamVal) == SVt_IV) || (SvTYPE(ParamVal) == SVt_PVIV))
+         {
+            IntMtrx[i*cols + j] = SvIV(ParamVal);
+         }
+         else
          {
             cerr << "Error: Perl hash variable: " << Hash.Name
                  << "{" << ParamName << "}";
@@ -777,10 +781,6 @@ void PerlInput::getIntMatrix(int *IntMtrx,int rows,int cols,HashStruct Hash,
             if (c > -1) cerr << "[" << c << "]";
             cerr << "[" << i << "][" << j << "] is not of type double\n";
             exit(Errno);
-         }
-         else
-         {
-            IntMtrx[i*cols + j] = SvIV(ParamVal);
          }
       }
    }
@@ -853,17 +853,7 @@ void PerlInput::getPosIntMatrix(int *PosIntMtrx,int rows,int cols,
          ParamValPtr = av_fetch(Row,j,FALSE); // Should be ok because of len check
          ParamVal = *ParamValPtr;
          
-         if (SvTYPE(ParamVal) != SVt_IV)
-         {
-            cerr << "Error: Perl hash variable: " << Hash.Name
-                 << "{" << ParamName << "}";
-            if (a > -1) cerr << "[" << a << "]";
-            if (b > -1) cerr << "[" << b << "]";
-            if (c > -1) cerr << "[" << c << "]";
-            cerr << "[" << i << "][" << j << "] is not of type int.\n";
-            exit(Errno);
-         }
-         else
+         if ((SvTYPE(ParamVal) == SVt_IV) || (SvTYPE(ParamVal) == SVt_PVIV))
          {
             int tmp = SvIV(ParamVal);
             if (tmp < 0)
@@ -878,6 +868,16 @@ void PerlInput::getPosIntMatrix(int *PosIntMtrx,int rows,int cols,
             }
             
             PosIntMtrx[i*cols + j] = tmp;
+         }
+         else
+         {
+            cerr << "Error: Perl hash variable: " << Hash.Name
+                 << "{" << ParamName << "}";
+            if (a > -1) cerr << "[" << a << "]";
+            if (b > -1) cerr << "[" << b << "]";
+            if (c > -1) cerr << "[" << c << "]";
+            cerr << "[" << i << "][" << j << "] is not of type int.\n";
+            exit(Errno);
          }
       }
    }
