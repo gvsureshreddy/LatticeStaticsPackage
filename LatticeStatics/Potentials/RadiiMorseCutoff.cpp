@@ -6,6 +6,12 @@ RadiiMorseCutoff::RadiiMorseCutoff(double A0,double B0,double Alpha,double Rref1
 {
 }
 
+void RadiiMorseCutoff::SetParameters(double *Vals)
+{
+   SetCutoff(Vals[0]);
+   RadiiMorse::SetParameters(&(Vals[1]));
+}
+
 double RadiiMorseCutoff::CutoffFunction(double NTemp,double r2,YDeriv dy,TDeriv dt)
 {
    double c2=Cutoff_*Cutoff_;

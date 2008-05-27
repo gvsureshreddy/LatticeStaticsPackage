@@ -6,6 +6,16 @@ TempMorse::TempMorse(double A0,double B0,double Alpha,double Rref,double Tref,
 {
 }
 
+void TempMorse::SetParameters(double *Vals)
+{
+   SetA0(Vals[0]);
+   SetB0(Vals[1]);
+   SetAlpha(Vals[2]);
+   SetRref(Vals[3]);
+   SetTref(Vals[4]);
+   SetTmelt(Vals[5]);
+}
+
 double TempMorse::Beta(double NTemp,TDeriv dt)
 {
    double retval;

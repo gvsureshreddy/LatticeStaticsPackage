@@ -290,6 +290,18 @@ int MultiLatticeTPP::FindLatticeSpacing(int iter)
    return 0;
 }
 
+void MultiLatticeTPP::SetParameters(double *Vals)
+{
+   int no = SpeciesPotential_[0][0]->GetNoParameters();
+   int cur = 0;
+   for (int i=0;i<NumberofSpecies_;++i)
+      for (int j=i;j<NumberofSpecies_;++j)
+      {
+         SpeciesPotential_[i][j]->SetParameters(&(Vals[cur]));
+         cur += no;
+      }
+}
+
 // Lattice Routines
 double MultiLatticeTPP::E0()
 {
@@ -1902,8 +1914,9 @@ void MultiLatticeTPP::DebugMode()
       "HeatCapacity",
       "TranslationProjection1D",
       "TranslationProjection3D",
+      "SetParameters"
    };
-   int NOcommands=50;
+   int NOcommands=51;
    
    char response[LINELENGTH];
    char prompt[] = "Debug > ";
@@ -2184,6 +2197,17 @@ void MultiLatticeTPP::DebugMode()
          cin >> n;
          cout << "P.Transpose()\n"
               << setw(20) << TranslationProjection3D(f,n).Transpose() << "\n";
+      }
+      else if (!strcmp(response,Commands[indx++]))
+      {
+         int no = SpeciesPotential_[0][0]->GetNoParameters();
+         double *vals;
+         int sze = no*((NumberofSpecies_+1)*(NumberofSpecies_)/2);
+         vals = new double[sze];
+         cout << "\tEnter new Parameter values > ";
+         for (int i=0;i<sze;++i)
+            cin >> vals[i];
+         SetParameters(vals);
       }
       else if (!strcmp(response,"?") ||
                !strcasecmp(response,"help"))

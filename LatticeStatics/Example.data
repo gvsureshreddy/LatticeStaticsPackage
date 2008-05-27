@@ -1,3 +1,4 @@
+# -*- mode: Perl -*-
 # Main Parameters
 use Math::Trig;
 

@@ -17,6 +17,8 @@ public:
    ~TempMorse() {};
    friend ostream &operator<<(ostream &out,TempMorse &A);
    double PairPotential(double NTemp,double r2,YDeriv dy=Y0,TDeriv dt=T0);
+   virtual int GetNoParameters() {return 6;}
+   virtual void SetParameters(double *Vals);
    virtual void Print(ostream &out);
    virtual const char* Type() {return "TempMorse";}
    

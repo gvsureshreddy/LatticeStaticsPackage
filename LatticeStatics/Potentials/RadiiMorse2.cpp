@@ -7,6 +7,17 @@ RadiiMorse2::RadiiMorse2(double A0,double B0,double Alpha,double Rref1,double Rr
 {
 }
 
+void RadiiMorse2::SetParameters(double *Vals)
+{
+   SetA0(Vals[0]);
+   SetB0(Vals[1]);
+   SetAlpha(Vals[2]);
+   SetRref1(Vals[3]);
+   SetRref2(Vals[4]);
+   SetRtheta1(Vals[5]);
+   SetRtheta2(Vals[6]);
+}
+
 double RadiiMorse2::A(double NTemp,TDeriv dt)
 {
    double retval;

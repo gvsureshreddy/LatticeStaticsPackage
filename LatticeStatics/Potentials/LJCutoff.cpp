@@ -5,6 +5,12 @@ LJCutoff::LJCutoff(double Eps0,double Eps1,double Sigma0,double Sigma1,double Cu
 {
 }
 
+void LJCutoff::SetParameters(double *Vals)
+{
+   SetCutoff(Vals[0]);
+   LJ::SetParameters(&(Vals[1]));
+}
+
 double LJCutoff::CutoffFunction(double NTemp,double r2,YDeriv dy,TDeriv dt)
 {
    double val=0;

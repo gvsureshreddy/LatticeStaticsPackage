@@ -229,6 +229,18 @@ int MultiChainTPP::FindLatticeSpacing(int iter)
    return 0;
 }
 
+void MultiChainTPP::SetParameters(double *Vals)
+{
+   int no = SpeciesPotential_[0][0]->GetNoParameters();
+   int cur = 0;
+   for (int i=0;i<NumberofSpecies_;++i)
+      for (int j=i;j<NumberofSpecies_;++j)
+      {
+         SpeciesPotential_[i][j]->SetParameters(&(Vals[cur]));
+         cur += no;
+      }
+}
+
 // Lattice Routines
 
 double MultiChainTPP::PI(double *Dx,double *DX)
@@ -1222,9 +1234,10 @@ void MultiChainTPP::DebugMode()
       "ConsistencyCheck",
       "dbg_",
       "RefineEqbm",
-      "Entropy"
+      "Entropy",
+      "SetParameters"
    };
-   int NOcommands=41;
+   int NOcommands=42;
    
    char response[LINELENGTH];
    char prompt[] = "Debug > ";
@@ -1454,6 +1467,17 @@ void MultiChainTPP::DebugMode()
       else if (!strcmp(response,Commands[indx++]))
       {
          cout << "Entropy = " << setw(W) << Entropy() << "\n";
+      }
+      else if (!strcmp(response,Commands[indx++]))
+      {
+         int no = SpeciesPotential_[0][0]->GetNoParameters();
+         double *vals;
+         int sze = no*((NumberofSpecies_+1)*(NumberofSpecies_)/2);
+         vals = new double[sze];
+         cout << "\tEnter new Parameter values > ";
+         for (int i=0;i<sze;++i)
+            cin >> vals[i];
+         SetParameters(vals);
       }
       else if (!strcmp(response,"?") ||
                !strcasecmp(response,"help"))

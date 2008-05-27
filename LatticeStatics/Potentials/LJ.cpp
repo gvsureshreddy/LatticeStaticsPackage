@@ -5,6 +5,14 @@ LJ::LJ(double Eps0,double Eps1,double Sigma0,double Sigma1):
 {
 }
 
+void LJ::SetParameters(double *Vals)
+{
+   SetEps0(Vals[0]);
+   SetEps1(Vals[1]);
+   SetSigma0(Vals[2]);
+   SetSigma1(Vals[3]);
+}
+
 double LJ::Eps(double NTemp,TDeriv dt)
 {
    double retval;

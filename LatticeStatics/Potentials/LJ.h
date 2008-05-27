@@ -27,6 +27,8 @@ public:
    ~LJ() {};
    friend ostream &operator<<(ostream &out,LJ &A);
    double PairPotential(double NTemp,double r2,YDeriv dy=Y0,TDeriv dt=T0);
+   virtual int GetNoParameters() {return 4;}
+   virtual void SetParameters(double *Vals);
    virtual void Print(ostream &out);
    virtual const char* Type() {return "LJ";}
    
