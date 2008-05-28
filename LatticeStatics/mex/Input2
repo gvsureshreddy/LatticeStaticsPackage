@@ -1,0 +1,80 @@
+# Main Parameters
+use Math::Trig;
+
+# Lattice Parameters
+$spacing = 1.17984390811391227;
+$DEG2RAD = atan2(1,1)*4/180;
+
+$PotType = RadiiMorse;
+$B0_0_0  = 4.0;
+$A0_0_0  = 0.0135279320059;
+$Rref2_0_0 = 1.0;
+$Rtheta2_0_0 = -0.137957188144 - 0.0082;
+
+$B0_1_1  = 7.0;
+$Rtheta1_1_1 = 0.275914376289;
+
+%Lattice = (Type       => MultiLatticeTPP,
+            OrderedTFs => No,
+            ThirdOrder => No,
+            MultiLatticeTPP => 
+            {MaxIterations       => 100,
+             CriticalPoint_T2    => No,
+             CBKinematics        => {Type => LagrangeCB,
+                                     InternalAtoms => 4,
+                                     LatticeBasis  => [[$spacing, $spacing, 0.0],
+                                                      [-$spacing, $spacing, 0.0],
+                                                      [0.0, 0.0, $spacing]],
+                                     AtomPositions => [[0.0, 0.0, 0.0],
+                                                       [0.5, 0.0, 0.5],
+                                                       [0.5, 0.5, 0.0],
+                                                       [0.0, 0.5, 0.5]]
+                                                         },
+             RotationConstraint  => [FullRotationConstraint],
+             #RotationConstraint  => [OneRotationConstraint,
+             #                        [1.0, 1.0, 0.0],
+             #                        [-1.0, 1.0, 0.0]],
+             Tref                => 300.0,
+             AtomSpecies         => [1, 1, 1, 1],
+             # Ni-Ni
+             PotentialType_0_0   => {Type    => $PotType,
+                                     B0      => $B0_0_0,
+                                     A0      => $A0_0_0,
+                                     Alpha   => 0.0,
+                                     Rref1   => 1.0,
+                                     Rtheta1 => 0.0,
+                                     Rref2   => $Rref2_0_0,
+                                     Rtheta2 => $Rtheta2_0_0},
+             # Ni-Ti
+             PotentialType_0_1   => {Type    => $PotType,
+                                     B0      => ($B0_0_0 + $B0_1_1)/2,
+                                     A0      => $A0_0_0,
+                                     Alpha   => 0.0,
+                                     Rref1   => 1.07080874762,
+                                     Rtheta1 => $Rtheta1_1_1/2,
+                                     Rref2   => $Rref2_0_0,
+                                     Rtheta2 => $Rtheta2_0_0},
+             # Ti-Ti
+             PotentialType_1_1   => {Type    => $PotType,
+                                     B0      => $B0_1_1,
+                                     A0      => $A0_0_0,
+                                     Alpha   => 0.0,
+                                     Rref1   => 1.14924078091,
+                                     Rtheta1 => 0.275914376289,
+                                     Rref2   => $Rref2_0_0,
+                                     Rtheta2 => $Rtheta2_0_0},
+             AtomicMasses        => [1.0, 47.88/58.69],
+             InfluenceDist       => 7.0,
+             NormModulus         => 1.0,
+             ConvexityDX         => 1.0*$DEG2RAD,
+             LoadingParameter    => Temperature,
+             EulerAngle_X        => 0.0,
+             EulerAngle_Y        => 0.0,
+             EulerAngle_Z        => 45.0*$DEG2RAD,
+             LoadProportions     => [1.0, 0.0, 0.0],
+             BlochWaveGridSize   => 5,
+             NTemp               => 1.0,
+             Lambda              => 0.0
+               }
+            );
+
