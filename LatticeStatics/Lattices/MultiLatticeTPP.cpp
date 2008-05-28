@@ -172,6 +172,14 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput &Input,int Echo,int Width,int Debug)
    // Get Lattice parameters
    NTemp_ = 1.0;
    InfluenceDist_ = Input.getDouble(Hash,"InfluenceDist");
+   if (Input.ParameterOK(Hash,"Density"))
+   {
+      Density_ = Input.getInt(Hash,"Density");
+   }
+   else
+   {
+      Density_ = 1;
+   }
    NormModulus_ = Input.getDouble(Hash,"NormModulus");
    ConvexityDX_ = Input.getDouble(Hash,"ConvexityDX");
    
@@ -290,7 +298,7 @@ int MultiLatticeTPP::FindLatticeSpacing(int iter)
    return 0;
 }
 
-void MultiLatticeTPP::SetParameters(double *Vals)
+void MultiLatticeTPP::SetParameters(double *Vals,int ResetRef)
 {
    int no = SpeciesPotential_[0][0]->GetNoParameters();
    int cur = 0;
@@ -300,6 +308,12 @@ void MultiLatticeTPP::SetParameters(double *Vals)
          SpeciesPotential_[i][j]->SetParameters(&(Vals[cur]));
          cur += no;
       }
+
+   LatSum_.Recalc();
+   if (ResetRef)
+   {
+      FindLatticeSpacing(50);
+   }
 }
 
 // Lattice Routines
@@ -360,7 +374,7 @@ double MultiLatticeTPP::energy(PairPotentials::TDeriv dt)
    }
    
    // Phi = Phi/(2*Vr*NormModulus)
-   Vr = CBK_->RefVolume();
+   Vr = Density_ ? CBK_->RefVolume() : 1.0;
    Phi *= 1.0/(2.0*(Vr*NormModulus_));
    
    // Apply loading potential and Thermal term
@@ -460,7 +474,7 @@ Matrix MultiLatticeTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
    
    S.Resize(1,CBK_->DOFS(),0.0);
    
-   Vr = CBK_->RefVolume();
+   Vr = Density_ ? CBK_->RefVolume() : 1.0;
    
    if (dl==L0)
    {
@@ -688,7 +702,7 @@ Matrix MultiLatticeTPP::stiffness(PairPotentials::TDeriv dt,LDeriv dl)
       }
       
       // Phi = Phi/(2*Vr*NormModulus)
-      Phi *= 1.0/(2.0*(CBK_->RefVolume()*NormModulus_));
+      Phi *= 1.0/((2.0*(Density_ ? CBK_->RefVolume() : 1.0)*NormModulus_));
    }
    else if (dl==DL)
    {
@@ -817,7 +831,7 @@ Matrix MultiLatticeTPP::E3()
    
    
    // Phi = Phi/(2*Vr*NormModulus)
-   Phi *= 1.0/(2.0*(CBK_->RefVolume()*NormModulus_));
+   Phi *= 1.0/(2.0*((Density_ ? CBK_->RefVolume() : 1.0)*NormModulus_));
    
    return Phi;
 }
@@ -1166,7 +1180,7 @@ Matrix MultiLatticeTPP::E4()
    
    
    // Phi = Phi/(2*Vr*NormModulus)
-   Phi *= 1.0/(2.0*(CBK_->RefVolume()*NormModulus_));
+   Phi *= 1.0/(2.0*((Density_ ? CBK_->RefVolume() : 1.0)*NormModulus_));
    
    return Phi;
 }
@@ -1544,7 +1558,7 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, int gridsize,const char *p
    // Condense moduli.
    Phi -= (Dfp.Transpose())*(Dpp.Inverse())*Dfp;
    // Phi = Phi/(2*Vr*NormModulus)
-   Phi *= 1.0/(2.0*(CBK_->RefVolume()*NormModulus_));
+   Phi *= 1.0/(2.0*((Density_ ? CBK_->RefVolume() : 1.0)*NormModulus_));
    
    //-----------------------------------------------------------------------------
    
@@ -1572,7 +1586,7 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, int gridsize,const char *p
    Matrix ModEigVal(1,DIM3);
    
    double Mc=0.0;
-   double Vc=CBK_->RefVolume();
+   double Vc= Density_ ? CBK_->RefVolume() : 1.0;
    for (int i=0;i<InternalAtoms_;++i)
    {
       Mc += AtomicMass_[i];
@@ -1713,6 +1727,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
    {
       case PrintLong:
          out << "MultiLatticeTPP:" << "\n" << "\n";
+         out << "Density_ = " << Density_ << "\n";
          out << "Using: " << (*CBK_) << " Kinematics" << "\n";
          out << "RefLattice_ : " << setw(W) << CBK_->RefLattice();
          for (int i=0;i<InternalAtoms_;++i)
@@ -1748,6 +1763,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
          if (Echo_)
          {
             cout << "MultiLatticeTPP:" << "\n" << "\n";
+            cout << "Density_ = " << Density_ << "\n";
             cout << "Using: " << (*CBK_) << " Kinematics" << "\n";
             cout << "RefLattice_ : " << setw(W) << CBK_->RefLattice();
             for (int i=0;i<InternalAtoms_;++i)
@@ -1870,6 +1886,7 @@ void MultiLatticeTPP::DebugMode()
       "NTemp_",
       "DOF_",
       "RefLattice_",
+      "Density_",
       "NormModulus_",
       "Lambda_",
       "BodyForce_",
@@ -1916,7 +1933,7 @@ void MultiLatticeTPP::DebugMode()
       "TranslationProjection3D",
       "SetParameters"
    };
-   int NOcommands=51;
+   int NOcommands=52;
    
    char response[LINELENGTH];
    char prompt[] = "Debug > ";
@@ -1947,6 +1964,8 @@ void MultiLatticeTPP::DebugMode()
       }
       else if (!strcmp(response,Commands[indx++]))
          cout << "RefLattice_= " << setw(W) << CBK_->RefLattice();
+      else if (!strcmp(response,Commands[indx++]))
+         cout << "Density_= " << Density_ << "\n";
       else if (!strcmp(response,Commands[indx++]))
          cout << "NormModulus_= " << NormModulus_ << "\n";
       else if (!strcmp(response,Commands[indx++]))

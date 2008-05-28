@@ -34,6 +34,7 @@ private:
    int KillRotations_;
    int KillTranslations_;
    Vector KillOneRotation_;
+   int Density_;
    double NormModulus_;
    double Tref_;
    double PhiRef_;
@@ -112,7 +113,7 @@ public:
    {return ReferenceBlochWave(K);}
    virtual void LongWavelengthModuli(double dk,int gridsize,const char *prefix,
                                      ostream &out);
-   virtual void SetParameters(double *Vals);
+   virtual void SetParameters(double *Vals,int ResetRef = 1);
    virtual void SetGridSize(int Grid) {GridSize_=Grid; UCIter_(GridSize_);}
    virtual void NeighborDistances(int cutoff,ostream &out);
    virtual void DebugMode();

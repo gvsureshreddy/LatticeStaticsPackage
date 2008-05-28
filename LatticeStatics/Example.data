@@ -72,6 +72,7 @@ $Rtheta1_1_1 = 0.275914376289;
                                      Rtheta2 => $Rtheta2_0_0},
              AtomicMasses        => [1.0, 47.88/58.69],
              InfluenceDist       => 7.0,
+             Density             => 1, # Default value = 1; 0
              NormModulus         => 1.0,
              ConvexityDX         => 1.0*$DEG2RAD,
              LoadingParameter    => Temperature, # Temperature, Load
@@ -115,6 +116,7 @@ $Rtheta1_1_1 = 0.275914376289;
                                AtomicMass_0      => 1.0,
                                AtomicMass_1      => 1.1,
                                InfluenceDist     => 7.0,
+                               Density           => 1, # Default value = 1; 0
                                NormModulus       => 1.0,
                                LoadingParameter  => Load, # Temperature, Load
                                MaxIterations     => 50,
@@ -154,6 +156,7 @@ $Rtheta1_1_1 = 0.275914376289;
                                AtomicMass_0      => 1.0,
                                AtomicMass_1      => 1.1,
                                InfluenceDist     => 7.0,
+                               Density           => 1, # Default value = 1; 0
                                NormModulus       => 1.0,
                                LoadingParameter  => Load, # Temperature, Load
                                MaxIterations     => 50,

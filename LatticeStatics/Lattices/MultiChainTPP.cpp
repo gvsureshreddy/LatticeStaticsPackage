@@ -115,6 +115,14 @@ MultiChainTPP::MultiChainTPP(PerlInput &Input,int Echo,int Width,int Debug)
    // Get Lattice parameters
    NTemp_ = 1.0;
    InfluenceDist_ = Input.getDouble(Hash,"InfluenceDist");
+   if (Input.ParameterOK(Hash,"Density"))
+   {
+      Density_ = Input.getInt(Hash,"Density");
+   }
+   else
+   {
+      Density_ = 1;
+   }
    NormModulus_ = Input.getDouble(Hash,"NormModulus");
       
    // Get Loading parameters
@@ -229,7 +237,7 @@ int MultiChainTPP::FindLatticeSpacing(int iter)
    return 0;
 }
 
-void MultiChainTPP::SetParameters(double *Vals)
+void MultiChainTPP::SetParameters(double *Vals,int ResetRef)
 {
    int no = SpeciesPotential_[0][0]->GetNoParameters();
    int cur = 0;
@@ -239,6 +247,12 @@ void MultiChainTPP::SetParameters(double *Vals)
          SpeciesPotential_[i][j]->SetParameters(&(Vals[cur]));
          cur += no;
       }
+
+   ChainSum_.Recalc();
+   if (ResetRef)
+   {
+      FindLatticeSpacing(50);
+   }
 }
 
 // Lattice Routines
@@ -309,7 +323,7 @@ double MultiChainTPP::energy(PairPotentials::TDeriv dt)
    }
    
    // Phi = Phi/(2*Vr*NormModulus)
-   Vr = RefLattice_.Det();
+   Vr = Density_ ? RefLattice_.Det() : 1.0;
    Phi *= 1.0/(2.0*(Vr*NormModulus_));
    
    // Apply loading potential and Thermal term
@@ -352,7 +366,7 @@ Matrix MultiChainTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
    
    S.Resize(1,DOFS,0.0);
    
-   Vr = RefLattice_.Det();
+   Vr = Density_ ? RefLattice_.Det() : 1.0;
    
    if (dl==L0)
    {
@@ -480,7 +494,7 @@ Matrix MultiChainTPP::stiffness(PairPotentials::TDeriv dt,LDeriv dl)
                            ChainSum_.Atom(0),ChainSum_.Atom(1),i);
          }
       }
-      Phi *= 1.0/(2.0*(RefLattice_.Det()*NormModulus_));
+      Phi *= 1.0/(2.0*((Density_ ? RefLattice_.Det() : 1.0)*NormModulus_));
    }
    else if (dl==DL)
    {
@@ -570,7 +584,7 @@ Matrix MultiChainTPP::E3()
    
    
    // Phi = Phi/(2*Vr*NormModulus)
-   Phi *= 1.0/(2.0*(RefLattice_.Det()*NormModulus_));
+   Phi *= 1.0/(2.0*((Density_ ? RefLattice_.Det() : 1.0)*NormModulus_));
    
    return Phi;
 }
@@ -764,7 +778,7 @@ Matrix MultiChainTPP::E4()
    
    
    // Phi = Phi/(2*Vr*NormModulus)
-   Phi *= 1.0/(2.0*(RefLattice_.Det()*NormModulus_));
+   Phi *= 1.0/(2.0*((Density_ ? RefLattice_.Det() : 1.0)*NormModulus_));
    
    return Phi;
 }
@@ -1060,6 +1074,7 @@ void MultiChainTPP::Print(ostream &out,PrintDetail flag)
    {
       case PrintLong:
          out << "MultiChainTPP:" << "\n" << "\n";
+         out << "Density_ : " << Density_ << "\n";
          out << "LagrangeCB: " << LagrangeCB_ << "\n";
          out << "RefLattice_ : " << setw(W) << RefLattice_;
          for (int i=0;i<INTERNAL_ATOMS;++i)
@@ -1092,6 +1107,7 @@ void MultiChainTPP::Print(ostream &out,PrintDetail flag)
          if (Echo_)
          {
             cout << "MultiChainTPP:" << "\n" << "\n";
+            cout << "Density_ : " << Density_ << "\n";
             cout << "LagrangeCB: " << LagrangeCB_ << "\n";
             cout << "RefLattice_ : " << setw(W) << RefLattice_;
             for (int i=0;i<INTERNAL_ATOMS;++i)
@@ -1200,6 +1216,7 @@ void MultiChainTPP::DebugMode()
       "NTemp_",
       "DOF_",
       "RefLattice_",
+      "Density_",
       "NormModulus_",
       "Lambda_",
       "BodyForce_",
@@ -1237,7 +1254,7 @@ void MultiChainTPP::DebugMode()
       "Entropy",
       "SetParameters"
    };
-   int NOcommands=42;
+   int NOcommands=43;
    
    char response[LINELENGTH];
    char prompt[] = "Debug > ";
@@ -1268,6 +1285,8 @@ void MultiChainTPP::DebugMode()
       }
       else if (!strcmp(response,Commands[indx++]))
          cout << "RefLattice_= " << setw(W) << RefLattice_;
+      else if (!strcmp(response,Commands[indx++]))
+         cout << "Density_= " << Density_ << "\n";
       else if (!strcmp(response,Commands[indx++]))
          cout << "NormModulus_= " << NormModulus_ << "\n";
       else if (!strcmp(response,Commands[indx++]))
