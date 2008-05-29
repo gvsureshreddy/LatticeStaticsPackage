@@ -25,7 +25,7 @@
 #SELECTION_TAG_MEX_OPT: Template Options file for building gcc MEX-files
 #
 # Copyright 1984-2004 The MathWorks, Inc.
-# $Revision: 1.1 $  $Date: 2008/05/28 18:25:25 $
+# $Revision: 1.1 $  $Date: 2008/05/29 21:22:30 $
 #----------------------------------------------------------------------------
 #
     TMW_ROOT="$MATLAB"
@@ -64,8 +64,9 @@
             CDEBUGFLAGS='-g'
 #           
             CXX='g++'
-            CXXFLAGS='-fPIC -ansi -D_GNU_SOURCE -pthread `perl -MExtUtils::Embed -e ccopts`'
-            CXXLIBS="$RPATH $MLIBS -lm `perl -MExtUtils::Embed -e ldopts` ./lib/*.o ../lib/*.o ~/lib/lib* ../Utility/builddate.cpp"
+#            CXXFLAGS='-fPIC -ansi -D_GNU_SOURCE -pthread  -DSOLVE_SVD -DUNIX_TERMINAL `perl -MExtUtils::Embed -e ccopts` -I. -I ../Utility -I ../Lattices -I ../Modes -I ../Potentials -I ../../include'
+            CXXFLAGS='-fPIC -ansi -D_GNU_SOURCE -pthread  -DSOLVE_SVD -DUNIX_TERMINAL `perl -MExtUtils::Embed -e ccopts` -I. -I ../Utility -I ../Lattices -I ../Modes -I ../Potentials -I ~/include'
+            CXXLIBS="$RPATH $MLIBS -lm `perl -MExtUtils::Embed -e ldopts` ../lib/*.o ~/lib/lib* ../Utility/builddate.cpp"
             CXXOPTIMFLAGS='-O -DNDEBUG'
             CXXDEBUGFLAGS='-g'
 #
