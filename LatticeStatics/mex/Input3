@@ -1,5 +1,13 @@
+# -*- mode: Perl -*-
 # Main Parameters
 use Math::Trig;
+
+# Main LatticeStatics Program Parameters
+%Main = (FieldWidth     => 20,
+         Precision      => 12,
+         #Echo           => 1, # Default value = 1
+         BisectCP       => Yes, # Yes, No
+         );
 
 # Lattice Parameters
 $spacing = 1.17984390811391227;

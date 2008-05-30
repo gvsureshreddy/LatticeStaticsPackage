@@ -13,8 +13,8 @@ void RadiiMorse::SetParameters(double *Vals)
    SetB0(Vals[1]);
    SetAlpha(Vals[2]);
    SetRref1(Vals[3]);
-   SetRref2(Vals[4]);
-   SetRtheta1(Vals[5]);
+   SetRtheta1(Vals[4]);
+   SetRref2(Vals[5]);
    SetRtheta2(Vals[6]);
 }
 

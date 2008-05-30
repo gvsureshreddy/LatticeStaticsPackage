@@ -1,5 +1,13 @@
+# -*- mode: Perl -*-
 # Main Parameters
 use Math::Trig;
+
+# Main LatticeStatics Program Parameters
+%Main = (FieldWidth     => 20,
+         Precision      => 12,
+         #Echo           => 1, # Default value = 1
+         BisectCP       => Yes, # Yes, No
+         );
 
 # Lattice Parameters
 $spacing = 1.17984390811391227;
@@ -35,27 +43,9 @@ $Rtheta1_1_1 = 0.275914376289;
              #                        [1.0, 1.0, 0.0],
              #                        [-1.0, 1.0, 0.0]],
              Tref                => 300.0,
-             AtomSpecies         => [1, 1, 1, 1],
-             # Ni-Ni
-             PotentialType_0_0   => {Type    => $PotType,
-                                     B0      => $B0_0_0,
-                                     A0      => $A0_0_0,
-                                     Alpha   => 0.0,
-                                     Rref1   => 1.0,
-                                     Rtheta1 => 0.0,
-                                     Rref2   => $Rref2_0_0,
-                                     Rtheta2 => $Rtheta2_0_0},
-             # Ni-Ti
-             PotentialType_0_1   => {Type    => $PotType,
-                                     B0      => ($B0_0_0 + $B0_1_1)/2,
-                                     A0      => $A0_0_0,
-                                     Alpha   => 0.0,
-                                     Rref1   => 1.07080874762,
-                                     Rtheta1 => $Rtheta1_1_1/2,
-                                     Rref2   => $Rref2_0_0,
-                                     Rtheta2 => $Rtheta2_0_0},
+             AtomSpecies         => [0, 0, 0, 0],
              # Ti-Ti
-             PotentialType_1_1   => {Type    => $PotType,
+             PotentialType_0_0   => {Type    => $PotType,
                                      B0      => $B0_1_1,
                                      A0      => $A0_0_0,
                                      Alpha   => 0.0,

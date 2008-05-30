@@ -5,11 +5,18 @@
 #include <Vector.h>
 #include "KnownLattices.h"
 
+#define param0 7
+#define param1 7
+#define param2 21
+#define totparams 35
+// RadiiMorse has 7 parameters
+// [A0, B0, Alpha, Rref1, Rtheta1, Rref2, Rtheta2]
+// Lat0 -- FCC Ni; Lat1 -- FCC Ti; Lat2 -- B2 NiTi
+
 void mexFunction(int nlhs, mxArray *plhs[ ],int nrhs, const mxArray *prhs[ ]) 
 {
    int j;
    double *output;
-   double energy[3];
 
    static int flag=1;
 
@@ -33,26 +40,32 @@ void mexFunction(int nlhs, mxArray *plhs[ ],int nrhs, const mxArray *prhs[ ])
    }
    static MultiLatticeTPP Lat2(Input);
 
-   static int dofs[3];
-   if (flag)
-   {
-      dofs[0] = (Lat0.DOF()).Dim();
-      dofs[1] = (Lat1.DOF()).Dim();
-      dofs[2] = (Lat2.DOF()).Dim();
-   }
    flag=0;
 
-   energy[0] = Lat0.E0();
-   energy[1] = Lat1.E0();
-   energy[2] = Lat2.E0();
+   int m,n;
+   m = mxGetM(prhs[0]);
+   n = mxGetN(prhs[0]);
+   if ((m != 1) && (n != totparams))
+   {
+      mexPrintf("Input must be of size 1x%i\n",totparams);
+      mexErrMsgTxt("Input wrong size. exiting");
+   }
+
+   double *params;
+
+   params = mxGetPr(prhs[0]);
+
+   Lat0.SetParameters(&(params[0]));
+   Lat1.SetParameters(&(params[param0]));
+   Lat2.SetParameters(&(params[param0+param1]));
 
 // Create the array
    plhs[0] = mxCreateDoubleMatrix(1,3,mxREAL);
    output = mxGetPr(plhs[0]);
 
 
-   for (j = 0; j < 3; j++)
-   {
-      output[j] = energy[j];
-   }
+   output[0] = Lat0.E0();
+   output[1] = Lat1.E0();
+   output[2] = Lat2.E0();
+
 }

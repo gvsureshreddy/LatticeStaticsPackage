@@ -25,7 +25,7 @@
 #SELECTION_TAG_MEX_OPT: Template Options file for building gcc MEX-files
 #
 # Copyright 1984-2004 The MathWorks, Inc.
-# $Revision: 1.1 $  $Date: 2008/05/29 21:22:30 $
+# $Revision: 1.1 $  $Date: 2008/05/30 14:06:07 $
 #----------------------------------------------------------------------------
 #
     TMW_ROOT="$MATLAB"
