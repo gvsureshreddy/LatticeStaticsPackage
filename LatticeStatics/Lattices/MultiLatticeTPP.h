@@ -68,7 +68,6 @@ private:
    Matrix stress(PairPotentials::TDeriv dt=PairPotentials::T0,LDeriv dl=L0);
    Matrix stiffness(PairPotentials::TDeriv dt=PairPotentials::T0,
                     LDeriv dl=L0);
-   Matrix CondensedModuli();
    
    void ReferenceDispersionCurves(Vector K,int NoPTS,const char *prefix,ostream &out);
    int ReferenceBlochWave(Vector &K);
@@ -129,6 +128,7 @@ public:
    inline double Del(int i,int j) {return i==j;}
    Vector BodyForce(int i) {return BodyForce_[i]; }
    double NormModulus() const {return NormModulus_;}
+   Matrix CondensedModuli();
    Matrix ThermalExpansion();
    friend ostream &operator<<(ostream &out,MultiLatticeTPP &A);
    
