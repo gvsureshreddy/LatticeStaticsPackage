@@ -28,7 +28,7 @@ $Rtheta1_1_1 = 0.275914376289;
             MultiLatticeTPP => 
             {MaxIterations       => 100,
              CriticalPoint_T2    => No,
-             CBKinematics        => {Type => LagrangeCB,
+             CBKinematics        => {Type => SymLagrangeCB,
                                      InternalAtoms => 4,
                                      LatticeBasis  => [[$spacing, $spacing, 0.0],
                                                       [-$spacing, $spacing, 0.0],
@@ -38,10 +38,6 @@ $Rtheta1_1_1 = 0.275914376289;
                                                        [0.5, 0.5, 0.0],
                                                        [0.0, 0.5, 0.5]]
                                                          },
-             RotationConstraint  => [FullRotationConstraint],
-             #RotationConstraint  => [OneRotationConstraint,
-             #                        [1.0, 1.0, 0.0],
-             #                        [-1.0, 1.0, 0.0]],
              Tref                => 300.0,
              AtomSpecies         => [0, 0, 0, 0],
              # Ti-Ti
