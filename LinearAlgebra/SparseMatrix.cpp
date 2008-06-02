@@ -9,7 +9,7 @@
 #include <cstdlib>
 
 // Global IDString
-char SparseMatrixID[]="$Id: SparseMatrix.cpp,v 1.5 2008/03/26 02:35:29 elliott Exp $";
+char SparseMatrixID[]="$Id: SparseMatrix.cpp,v 1.6 2008/06/02 20:50:14 elliott Exp $";
 
 SparseMatrix::SparseMatrix(const Matrix& A)
 {
@@ -576,17 +576,30 @@ SparseMatrix SparseMatrix::Transpose() const
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-SparseMatrix SparseIdentity(int Size)
+SparseMatrix& SparseMatrix::SetSparseIdentity(int Size)
 {
-   SparseMatrix A(Size, Size, Size);
-	
+   if (!IsNull())
+   {
+      delete [] Row_id_;
+      delete [] Column_id_;
+      delete [] Nonzero_entry_;
+   }
+   
+   NoNonZero_ = Size;
+   Rows_ = Size;
+   Cols_ = Size;
+   Row_id_ = new int[NoNonZero_];
+   Column_id_ = new int[NoNonZero_];
+   Nonzero_entry_ = new Elm[NoNonZero_];
+   
    for(register int i=0; i<Size;i++)
    {
-      A.Row_id_[i] = i;
-      A.Column_id_[i] = i;
-      A.Nonzero_entry_[i] = 1;
+      Row_id_[i] = i;
+      Column_id_[i] = i;
+      Nonzero_entry_[i] = 1;
    }
-   return A;
+   
+   return *this;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////

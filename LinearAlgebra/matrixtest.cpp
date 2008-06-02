@@ -555,8 +555,8 @@ void sparsematrixtest()
 	<< "A.Transpose = " << "\n" << setw(20) << ReverseSparse(A.Transpose())<<"\n";
 	
    //Identity SparseMatrix
-   cout << "Identity SparseMatrix= " <<"\n" << setw(20)<<SparseIdentity(6)<< "\n";
-   cout << "Identity Matrix= " << "\n" << setw(20) << ReverseSparse(SparseIdentity(6)) <<"\n";
+   cout << "Identity SetSparseMatrix= " <<"\n" << setw(20)<< SparseMatrix().SetSparseIdentity(6) << "\n";
+   cout << "Identity Matrix= " << "\n" << setw(20) << ReverseSparse(SparseMatrix().SetSparseIdentity(6)) <<"\n";
 }
 
 //Returns matrix of size Rows_ x Cols_

@@ -74,7 +74,7 @@ public:
    
    //Miscellaneous Matrix operations
    SparseMatrix Transpose() const;
-   friend SparseMatrix SparseIdentity(int Size);
+   SparseMatrix& SetSparseIdentity(int Size);
    friend Matrix ReverseSparse(const SparseMatrix& A);
 	
    int IsNull() const {return NoNonZero_==0;}
