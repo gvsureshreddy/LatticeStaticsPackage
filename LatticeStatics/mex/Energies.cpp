@@ -20,31 +20,29 @@ void mexFunction(int nlhs, mxArray *plhs[ ],int nrhs, const mxArray *prhs[ ])
 
    static int flag=1;
 
-   PerlInput *Input;
+   static PerlInput Input;
    if (flag)
    {
       cerr << "setup 1\n";
-      Input = new PerlInput("Input1");
+      Input.Readfile("Input1");
    }
-   static MultiLatticeTPP Lat0(*Input);
+   static MultiLatticeTPP Lat0(Input);
    if (flag)
    {
-      delete Input;
+      Input.ClearHash("Main");
+      Input.ClearHash("Lattice");
       cerr << "setup 2\n";
-      Input = new PerlInput("Input2");
+      Input.Readfile("Input2");
    }
-   static MultiLatticeTPP Lat1(*Input);
+   static MultiLatticeTPP Lat1(Input);
    if (flag)
    {
-      delete Input;
+      Input.ClearHash("Main");
+      Input.ClearHash("Lattice");
       cerr << "setup 3\n";
-      Input = new PerlInput("Input3");
+      Input.Readfile("Input3");
    }
-   static MultiLatticeTPP Lat2(*Input);
-   if (flag)
-   {
-      delete Input;
-   }
+   static MultiLatticeTPP Lat2(Input);
 
    flag=0;
 
