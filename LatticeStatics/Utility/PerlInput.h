@@ -29,6 +29,7 @@ public:
    
    void Readfile(const char *datafile);
    void Readfile(const char *datafile,const char *prefix);
+   void ClearHash(const char *hashname);
    
    int HashOK(char *HashName);
    int ParameterOK(HashStruct Hash,char *ParamName);

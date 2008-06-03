@@ -21,6 +21,16 @@ void PerlInput::Initialize()
    perl_run(my_perl);
 }
 
+void PerlInput::ClearHash(const char *hashname)
+{
+   char tmp[256];
+   SV *retval;
+
+   sprintf(tmp,"undef %%%s;",hashname);
+   retval = eval_pv(tmp,TRUE);
+   // retval is always "undefined"
+}
+
 void PerlInput::Readfile(const char *datafile)
 {
    char tmp[256];
