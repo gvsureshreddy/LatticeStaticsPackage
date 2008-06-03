@@ -128,6 +128,7 @@ public:
    inline double Del(int i,int j) {return i==j;}
    Vector BodyForce(int i) {return BodyForce_[i]; }
    double NormModulus() const {return NormModulus_;}
+   const Matrix& RefLattice() {return CBK_->RefLattice();}
    Matrix CondensedModuli();
    Matrix ThermalExpansion();
    friend ostream &operator<<(ostream &out,MultiLatticeTPP &A);
@@ -135,7 +136,34 @@ public:
 private:
    int FindLatticeSpacing(int iter);
    void RefineEqbm(double Tol,int MaxItr,ostream *out);
-   
+
+   // member variables used to avoid repeated memory allocation/deallocation
+   // and thus, improve performance.
+
+   // E0
+   double Phi0, Tsq[3], Rsq[3];
+   // E1
+   Matrix ME1;
+   double T[3], R[3];
+   // stress
+   Matrix S;
+   // E2
+   Matrix ME2;
+   // stiffness
+   Matrix Phi2;
+   // E3
+   Matrix Phi3;
+   // E4
+   Matrix Phi4;
+   // ReferenceDynamicalStiffness
+   CMatrix Dk;
+   // ReferenceBlochWave
+   CMatrix A;
+   Matrix EigVals, InverseLat;
+   Vector Z;
+   // Print
+   Matrix str, stiff, CondEV, TE, CondModuli;
+   Vector TestFunctVals, K;
 };
 
 #endif
