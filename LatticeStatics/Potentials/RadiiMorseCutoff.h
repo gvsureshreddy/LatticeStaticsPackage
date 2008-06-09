@@ -13,7 +13,7 @@ private:
 public:
    
    RadiiMorseCutoff() {};
-   RadiiMorseCutoff(double A0,double B0,double Alpha,double Rref1,double Rref2,
+   RadiiMorseCutoff(double A0,double AT,double B0,double BT,double Rref1,double Rref2,
                     double Rtheta1,double Rtheta2,double Cutoff);
    ~RadiiMorseCutoff() {};
    friend ostream &operator<<(ostream &out,RadiiMorseCutoff &A);

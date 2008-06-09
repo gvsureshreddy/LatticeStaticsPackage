@@ -19,12 +19,12 @@ protected:
       Gval_[DYmax][DTmax],
       Ival_[DTmax];
    
-   double A0_, B0_, Alpha_, Rref1_, Rref2_, Rtheta1_, Rtheta2_;
+   double A0_, AT_, B0_, BT_, Rref1_, Rref2_, Rtheta1_, Rtheta2_;
    
 public:
    
    RadiiMorse() {};
-   RadiiMorse(double A0,double B0,double Alpha,double Rref1,double Rref2,
+   RadiiMorse(double A0,double AT,double B0,double BT,double Rref1,double Rref2,
               double Rtheta1,double Rtheta2);
    ~RadiiMorse() {};
    friend ostream &operator<<(ostream &out,RadiiMorse &A);
@@ -35,16 +35,18 @@ public:
    virtual const char* Type() {return "RadiiMorse";}
    
    double A0() {return A0_;}
+   double AT() {return AT_;}
    double B0() {return B0_;}
-   double Alpha() {return Alpha_;}
+   double BT() {return BT_;}
    double Rref1() {return Rref1_;}
    double Rtheta1() {return Rtheta1_;}
    double Rref2() {return Rref2_;}
    double Rtheta2() {return Rtheta2_;}
    
    void SetA0(double A0) {A0_=A0;}
+   void SetAT(double AT) {AT_=AT;}
    void SetB0(double B0) {B0_=B0;}
-   void SetAlpha(double Alpha) {Alpha_=Alpha;}
+   void SetBT(double BT) {BT_=BT;}
    void SetRref1(double Rref1) {Rref1_=Rref1;}
    void SetRtheta1(double Rtheta1) {Rtheta1_=Rtheta1;}
    void SetRref2(double Rref2) {Rref2_=Rref2;}

@@ -1,8 +1,8 @@
 #include "RadiiMorseCutoff2.h"
 
-RadiiMorseCutoff2::RadiiMorseCutoff2(double A0,double B0,double Alpha,double Rref1,double Rref2,
-                                   double Rtheta1,double Rtheta2,double Cutoff):
-   RadiiMorse(A0,B0,Alpha,Rref1,Rref2,Rtheta1,Rtheta2),Cutoff_(Cutoff)
+RadiiMorseCutoff2::RadiiMorseCutoff2(double A0,double AT,double B0,double BT,double Rref1,
+                                     double Rref2,double Rtheta1,double Rtheta2,double Cutoff):
+   RadiiMorse(A0,AT,B0,BT,Rref1,Rref2,Rtheta1,Rtheta2),Cutoff_(Cutoff)
 {
 }
 
@@ -59,8 +59,9 @@ void RadiiMorseCutoff2::Print(ostream &out)
    out.width(0);
    
    out << "A0=" << setw(W) << A0_
+       << "; AT=" << setw(W) << AT_
        << "; B0=" << setw(W) << B0_
-       << "; Alpha=" << setw(W) << Alpha_
+       << "; BT=" << setw(W) << BT_
        << "; Rref1=" << setw(W) << Rref1_
        << "; Rtheta1=" << setw(W) << Rtheta1_
        << "; Rref2=" << setw(W) << Rref2_

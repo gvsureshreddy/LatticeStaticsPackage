@@ -10,7 +10,7 @@ PairPotentials* InitializePairPotential(PerlInput::HashStruct ParentHash,PerlInp
 {
    char tmp[LINELENGTH];
    double Eps0,Eps1,Sigma0,Sigma1,rcut;
-   double Tref,A0,B0,Alpha,Rref1,Rref2,Tmelt;
+   double Tref,A0,AT,B0,BT,Alpha,Rref1,Rref2,Tmelt;
    double Rtheta1,Rtheta2,Cutoff;
    
    sprintf(tmp,"PotentialType_%u_%u",i,j);
@@ -37,52 +37,43 @@ PairPotentials* InitializePairPotential(PerlInput::HashStruct ParentHash,PerlInp
    else if (!strcmp("RadiiMorse",Input.getString(Hash,"Type")))
    {
       A0 = Input.getDouble(Hash,"A0");
+      AT = Input.getDouble(Hash,"AT");
       B0 = Input.getDouble(Hash,"B0");
-      Alpha = Input.getDouble(Hash,"Alpha");
+      BT = Input.getDouble(Hash,"BT");
       Rref1 = Input.getDouble(Hash,"Rref1");
       Rtheta1 = Input.getDouble(Hash,"Rtheta1");
       Rref2 = Input.getDouble(Hash,"Rref2");
       Rtheta2 = Input.getDouble(Hash,"Rtheta2");
       
-      return new RadiiMorse(A0,B0,Alpha,Rref1,Rref2,Rtheta1,Rtheta2);
-   }
-   else if (!strcmp("RadiiMorse2",Input.getString(Hash,"Type")))
-   {
-      A0 = Input.getDouble(Hash,"A0");
-      B0 = Input.getDouble(Hash,"B0");
-      Alpha = Input.getDouble(Hash,"Alpha");
-      Rref1 = Input.getDouble(Hash,"Rref1");
-      Rtheta1 = Input.getDouble(Hash,"Rtheta1");
-      Rref2 = Input.getDouble(Hash,"Rref2");
-      Rtheta2 = Input.getDouble(Hash,"Rtheta2");
-      
-      return new RadiiMorse2(A0,B0,Alpha,Rref1,Rref2,Rtheta1,Rtheta2);
+      return new RadiiMorse(A0,AT,B0,BT,Rref1,Rref2,Rtheta1,Rtheta2);
    }
    else if (!strcmp("RadiiMorseCutoff",Input.getString(Hash,"Type")))
    {
       A0 = Input.getDouble(Hash,"A0");
+      AT = Input.getDouble(Hash,"AT");
       B0 = Input.getDouble(Hash,"B0");
-      Alpha = Input.getDouble(Hash,"Alpha");
+      BT = Input.getDouble(Hash,"BT");
       Rref1 = Input.getDouble(Hash,"Rref1");
       Rtheta1 = Input.getDouble(Hash,"Rtheta1");
       Rref2 = Input.getDouble(Hash,"Rref2");
       Rtheta2 = Input.getDouble(Hash,"Rtheta2");
       Cutoff = Input.getDouble(Hash,"Cutoff");
 
-      return new RadiiMorseCutoff(A0,B0,Alpha,Rref1,Rref2,Rtheta1,Rtheta2,Cutoff);
+      return new RadiiMorseCutoff(A0,AT,B0,BT,Rref1,Rref2,Rtheta1,Rtheta2,Cutoff);
    }
    else if (!strcmp("RadiiMorseCutoff2",Input.getString(Hash,"Type")))
    {
       A0 = Input.getDouble(Hash,"A0");
+      AT = Input.getDouble(Hash,"AT");
       B0 = Input.getDouble(Hash,"B0");
-      Alpha = Input.getDouble(Hash,"Alpha");
+      BT = Input.getDouble(Hash,"BT");
       Rref1 = Input.getDouble(Hash,"Rref1");
       Rtheta1 = Input.getDouble(Hash,"Rtheta1");
       Rref2 = Input.getDouble(Hash,"Rref2");
       Rtheta2 = Input.getDouble(Hash,"Rtheta2");
       Cutoff = Input.getDouble(Hash,"Cutoff");
 
-      return new RadiiMorseCutoff2(A0,B0,Alpha,Rref1,Rref2,Rtheta1,Rtheta2,Cutoff);
+      return new RadiiMorseCutoff2(A0,AT,B0,BT,Rref1,Rref2,Rtheta1,Rtheta2,Cutoff);
    }
    else if (!strcmp("TempMorse",Input.getString(Hash,"Type")))
    {
@@ -124,7 +115,7 @@ void UpdatePairPotential(PerlInput::HashStruct ParentHash,PerlInput &Input,int i
 {
    char tmp[LINELENGTH];
    double Eps0,Eps1,Sigma0,Sigma1,rcut;
-   double Tref,A0,B0,Alpha,Rref1,Rref2,Tmelt;
+   double Tref,A0,AT,B0,BT,Alpha,Rref1,Rref2,Tmelt;
    double Rtheta1,Rtheta2,Cutoff;
 
    sprintf(tmp,"PotentialType_%u_%u",i,j);
@@ -204,51 +195,10 @@ void UpdatePairPotential(PerlInput::HashStruct ParentHash,PerlInput &Input,int i
          RM->SetA0(A0);
       }
 
-      if (Input.ParameterOK(Hash,"Update-B0"))
+      if (Input.ParameterOK(Hash,"Update-AT"))
       {
-         B0 = Input.getDouble(Hash,"Update-B0");
-         RM->SetB0(B0);
-      }
-
-      if (Input.ParameterOK(Hash,"Update-Alpha"))
-      {
-         Alpha = Input.getDouble(Hash,"Update-Alpha");
-         RM->SetAlpha(Alpha);
-      }
-
-      if (Input.ParameterOK(Hash,"Update-Rref1"))
-      {
-         Rref1 = Input.getDouble(Hash,"Update-Rref1");
-         RM->SetRref1(Rref1);
-      }
-      
-      if (Input.ParameterOK(Hash,"Update-Rtheta1"))
-      {
-         Rtheta1 = Input.getDouble(Hash,"Update-Rtheta1");
-         RM->SetRtheta1(Rtheta1);
-      }
-      
-      if (Input.ParameterOK(Hash,"Update-Rref2"))
-      {
-         Rref2 = Input.getDouble(Hash,"Update-Rref2");
-         RM->SetRref2(Rref2);
-      }
-      
-      if (Input.ParameterOK(Hash,"Update-Rtheta2"))
-      {
-         Rtheta2 = Input.getDouble(Hash,"Update-Rtheta2");
-         RM->SetRtheta2(Rtheta2);
-      }
-   }
-   else if (!strcmp(Potential->Type(),"RadiiMorse2"))
-   {
-      RadiiMorse2 *RM;
-      RM = dynamic_cast<RadiiMorse2 *>(Potential);
-      
-      if (Input.ParameterOK(Hash,"Update-A0"))
-      {
-         A0 = Input.getDouble(Hash,"Update-A0");
-         RM->SetA0(A0);
+         AT = Input.getDouble(Hash,"Update-AT");
+         RM->SetAT(AT);
       }
 
       if (Input.ParameterOK(Hash,"Update-B0"))
@@ -257,10 +207,10 @@ void UpdatePairPotential(PerlInput::HashStruct ParentHash,PerlInput &Input,int i
          RM->SetB0(B0);
       }
 
-      if (Input.ParameterOK(Hash,"Update-Alpha"))
+      if (Input.ParameterOK(Hash,"Update-BT"))
       {
-         Alpha = Input.getDouble(Hash,"Update-Alpha");
-         RM->SetAlpha(Alpha);
+         BT = Input.getDouble(Hash,"Update-BT");
+         RM->SetBT(BT);
       }
 
       if (Input.ParameterOK(Hash,"Update-Rref1"))
@@ -298,16 +248,22 @@ void UpdatePairPotential(PerlInput::HashStruct ParentHash,PerlInput &Input,int i
          RM->SetA0(A0);
       }
 
+      if (Input.ParameterOK(Hash,"Update-AT"))
+      {
+         AT = Input.getDouble(Hash,"Update-AT");
+         RM->SetAT(AT);
+      }
+
       if (Input.ParameterOK(Hash,"Update-B0"))
       {
          B0 = Input.getDouble(Hash,"Update-B0");
          RM->SetB0(B0);
       }
 
-      if (Input.ParameterOK(Hash,"Update-Alpha"))
+      if (Input.ParameterOK(Hash,"Update-BT"))
       {
-         Alpha = Input.getDouble(Hash,"Update-Alpha");
-         RM->SetAlpha(Alpha);
+         BT = Input.getDouble(Hash,"Update-BT");
+         RM->SetBT(BT);
       }
 
       if (Input.ParameterOK(Hash,"Update-Rref1"))
@@ -351,16 +307,22 @@ void UpdatePairPotential(PerlInput::HashStruct ParentHash,PerlInput &Input,int i
          RM->SetA0(A0);
       }
 
+      if (Input.ParameterOK(Hash,"Update-AT"))
+      {
+         AT = Input.getDouble(Hash,"Update-AT");
+         RM->SetAT(AT);
+      }
+
       if (Input.ParameterOK(Hash,"Update-B0"))
       {
          B0 = Input.getDouble(Hash,"Update-B0");
          RM->SetB0(B0);
       }
 
-      if (Input.ParameterOK(Hash,"Update-Alpha"))
+      if (Input.ParameterOK(Hash,"Update-BT"))
       {
-         Alpha = Input.getDouble(Hash,"Update-Alpha");
-         RM->SetAlpha(Alpha);
+         BT = Input.getDouble(Hash,"Update-BT");
+         RM->SetBT(BT);
       }
 
       if (Input.ParameterOK(Hash,"Update-Rref1"))

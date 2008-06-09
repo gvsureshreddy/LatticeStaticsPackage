@@ -5,12 +5,12 @@
 #include <Vector.h>
 #include "KnownLattices.h"
 
-#define param0 7
-#define param1 7
-#define param2 21
-#define totparams 35
-// RadiiMorse has 7 parameters
-// [A0, B0, Alpha, Rref1, Rtheta1, Rref2, Rtheta2]
+#define param0 8
+#define param1 8
+#define param2 24
+#define totparams 40
+// RadiiMorse has 8 parameters
+// [A0, AT, B0, BT, Rref1, Rtheta1, Rref2, Rtheta2]
 // Lat0 -- FCC Ni; Lat1 -- FCC Ti; Lat2 -- B2 NiTi
 
 void mexFunction(int nlhs, mxArray *plhs[ ],int nrhs, const mxArray *prhs[ ]) 

@@ -1,8 +1,8 @@
 #include "RadiiMorse.h"
 
-RadiiMorse::RadiiMorse(double A0,double B0,double Alpha,double Rref1,double Rref2,
+RadiiMorse::RadiiMorse(double A0,double AT,double B0,double BT,double Rref1,double Rref2,
                        double Rtheta1,double Rtheta2):
-   A0_(A0),B0_(B0),Alpha_(Alpha),Rref1_(Rref1),Rref2_(Rref2),
+   A0_(A0),AT_(AT),B0_(B0),BT_(BT),Rref1_(Rref1),Rref2_(Rref2),
    Rtheta1_(Rtheta1),Rtheta2_(Rtheta2)
 {
 }
@@ -10,12 +10,13 @@ RadiiMorse::RadiiMorse(double A0,double B0,double Alpha,double Rref1,double Rref
 void RadiiMorse::SetParameters(double *Vals)
 {
    SetA0(Vals[0]);
-   SetB0(Vals[1]);
-   SetAlpha(Vals[2]);
-   SetRref1(Vals[3]);
-   SetRtheta1(Vals[4]);
-   SetRref2(Vals[5]);
-   SetRtheta2(Vals[6]);
+   SetAT(Vals[1]);
+   SetB0(Vals[2]);
+   SetBT(Vals[3]);
+   SetRref1(Vals[4]);
+   SetRtheta1(Vals[5]);
+   SetRref2(Vals[6]);
+   SetRtheta2(Vals[7]);
 }
 
 double RadiiMorse::A(double NTemp,TDeriv dt)
@@ -24,10 +25,10 @@ double RadiiMorse::A(double NTemp,TDeriv dt)
    switch (dt)
    {
       case T0:
-         retval = A0_;
+         retval = A0_ + AT_*(NTemp-1.0);
          break;
       case DT:
-         retval = 0.0;
+         retval = AT_;
          break;
       case D2T:
          retval = 0.0;
@@ -47,10 +48,10 @@ double RadiiMorse::Beta(double NTemp,TDeriv dt)
    switch (dt)
    {
       case T0:
-         retval = B0_ + Alpha_*(NTemp-1.0);
+         retval = B0_ + BT_*(NTemp-1.0);
          break;
       case DT:
-         retval = Alpha_;
+         retval = BT_;
          break;
       case D2T:
          retval = 0.0;
@@ -448,8 +449,9 @@ void RadiiMorse::Print(ostream &out)
    out.width(0);
    
    out << "A0=" << setw(W) << A0_
+       << "; AT=" << setw(W) << AT_
        << "; B0=" << setw(W) << B0_
-       << "; Alpha=" << setw(W) << Alpha_
+       << "; BT=" << setw(W) << BT_
        << "; Rref1=" << setw(W) << Rref1_
        << "; Rtheta1=" << setw(W) << Rtheta1_
        << "; Rref2=" << setw(W) << Rref2_

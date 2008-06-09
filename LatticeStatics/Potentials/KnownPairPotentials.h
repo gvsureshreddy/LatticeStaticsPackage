@@ -5,7 +5,6 @@
 #include "LJ.h"
 #include "LJCutoff.h"
 #include "RadiiMorse.h"
-#include "RadiiMorse2.h"
 #include "RadiiMorseCutoff.h"
 #include "RadiiMorseCutoff2.h"
 #include "TempMorse.h"
