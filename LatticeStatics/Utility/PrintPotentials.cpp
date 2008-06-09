@@ -37,8 +37,9 @@ int main(int argc, char *argv[])
       deriv = 0;
 
    PerlInput Input(argv[1]);
-   
-   pot = InitializePairPotential("PrintPotentials",Input,i,j);
+   PerlInput::HashStruct Hash = Input.getHash("Lattice");
+   Hash = Input.getHash(Hash,Input.getString(Hash,"Type"));
+   pot = InitializePairPotential(Hash,Input,i,j);
    
    int Width,Precision;
    Width = Input.getInt("Main","FieldWidth");

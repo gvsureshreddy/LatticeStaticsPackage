@@ -70,7 +70,7 @@ void PerlInput::Readfile(const char *datafile,const char *prefix)
    }
 }
 
-PerlInput::PerlInput(char *datafile)
+PerlInput::PerlInput(const char *datafile)
 {
    Initialize();
    Readfile(datafile);
@@ -85,7 +85,7 @@ PerlInput::~PerlInput()
    my_perl = NULL;
 }
 
-PerlInput::HashStruct PerlInput::getHash(char *HashName)
+PerlInput::HashStruct PerlInput::getHash(const char *HashName)
 {
    int Errno = -7;
    
@@ -101,10 +101,11 @@ PerlInput::HashStruct PerlInput::getHash(char *HashName)
    return Hash;
 }
 
-SV *getScalar(PerlInput::HashStruct Hash,char *ParamName,
+SV *getScalar(const PerlInput::HashStruct &Hash,const char *ParamName,
               int a=-1,int b=-1,int c=-1,int d=-1,int e=-1);
 
-SV *getScalar(PerlInput::HashStruct Hash,char *ParamName,int a,int b,int c,int d,int e)
+SV *getScalar(const PerlInput::HashStruct &Hash,const char *ParamName,
+              int a,int b,int c,int d,int e)
 {
    int Errno = -5;
    
@@ -260,7 +261,8 @@ SV *getScalar(PerlInput::HashStruct Hash,char *ParamName,int a,int b,int c,int d
    }
 }
 
-PerlInput::HashStruct PerlInput::getHash(HashStruct Hash,char *ParamName,int a,int b,int c,int d,int e)
+PerlInput::HashStruct PerlInput::getHash(const HashStruct &Hash,const char *ParamName,
+                                         int a,int b,int c,int d,int e)
 {
    int Errno = -6;
    HashStruct NewHash;
@@ -296,7 +298,7 @@ PerlInput::HashStruct PerlInput::getHash(HashStruct Hash,char *ParamName,int a,i
    return NewHash;
 }
 
-int PerlInput::HashOK(char *HashName)
+int PerlInput::HashOK(const char *HashName)
 {
    int exists = 1;
    
@@ -309,7 +311,7 @@ int PerlInput::HashOK(char *HashName)
    return exists;
 }
 
-int PerlInput::ParameterOK(HashStruct Hash,char *ParamName)
+int PerlInput::ParameterOK(const HashStruct &Hash,const char *ParamName)
 {
    int exists = 1;
    
@@ -322,7 +324,7 @@ int PerlInput::ParameterOK(HashStruct Hash,char *ParamName)
    return exists;
 }
 
-int PerlInput::getArrayLength(HashStruct Hash,char *ParamName,
+int PerlInput::getArrayLength(const HashStruct &Hash,const char *ParamName,
                               int a,int b,int c,int d)
 {
    SV *ParamVal = getScalar(Hash,ParamName,a,b,c,d);
@@ -343,7 +345,8 @@ int PerlInput::getArrayLength(HashStruct Hash,char *ParamName,
 }
 
 
-double PerlInput::getDouble(HashStruct Hash,char *ParamName,int a,int b,int c,int d,int e)
+double PerlInput::getDouble(const HashStruct &Hash,const char *ParamName,
+                            int a,int b,int c,int d,int e)
 {
    SV *ParamVal = getScalar(Hash,ParamName,a,b,c,d,e);
    int Errno=-5;
@@ -365,7 +368,8 @@ double PerlInput::getDouble(HashStruct Hash,char *ParamName,int a,int b,int c,in
    }
 }
 
-int PerlInput::getInt(HashStruct Hash,char *ParamName,int a,int b,int c,int d,int e)
+int PerlInput::getInt(const HashStruct &Hash,const char *ParamName,
+                      int a,int b,int c,int d,int e)
 {
    SV *ParamVal = getScalar(Hash,ParamName,a,b,c,d,e);
    int Errno=-5;
@@ -387,7 +391,8 @@ int PerlInput::getInt(HashStruct Hash,char *ParamName,int a,int b,int c,int d,in
    }
 }
 
-int PerlInput::getPosInt(HashStruct Hash,char *ParamName,int a,int b,int c,int d,int e)
+int PerlInput::getPosInt(const HashStruct &Hash,const char *ParamName,
+                         int a,int b,int c,int d,int e)
 {
    SV *ParamVal = getScalar(Hash,ParamName,a,b,c,d,e);
    int Errno=-5;
@@ -423,7 +428,8 @@ int PerlInput::getPosInt(HashStruct Hash,char *ParamName,int a,int b,int c,int d
    }
 }
 
-const char *PerlInput::getString(HashStruct Hash,char *ParamName,int a,int b,int c,int d,int e)
+const char *PerlInput::getString(const HashStruct &Hash,const char *ParamName,
+                                 int a,int b,int c,int d,int e)
 {
    SV *ParamVal = getScalar(Hash,ParamName,a,b,c,d,e);
    int Errno=-5;
@@ -445,7 +451,7 @@ const char *PerlInput::getString(HashStruct Hash,char *ParamName,int a,int b,int
    }
 }
 
-void PerlInput::getVector(Vector &Vctr,HashStruct Hash,char *ParamName,
+void PerlInput::getVector(Vector &Vctr,const HashStruct &Hash,const char *ParamName,
                           int a,int b,int c,int d)
 {
    int Errno = -5;
@@ -502,7 +508,8 @@ void PerlInput::getVector(Vector &Vctr,HashStruct Hash,char *ParamName,
    }
 }
 
-void PerlInput::getMatrix(Matrix &Mtrx,HashStruct Hash,char *ParamName,int a,int b,int c)
+void PerlInput::getMatrix(Matrix &Mtrx,const HashStruct &Hash,const char *ParamName,
+                          int a,int b,int c)
 {
    int Errno = -5;
    int rows=Mtrx.Rows(),cols=Mtrx.Cols();
@@ -588,7 +595,7 @@ void PerlInput::getMatrix(Matrix &Mtrx,HashStruct Hash,char *ParamName,int a,int
    }
 }
 
-void PerlInput::getIntVector(int *IntArry,int len,HashStruct Hash,char *ParamName,
+void PerlInput::getIntVector(int *IntArry,int len,const HashStruct &Hash,const char *ParamName,
                              int a,int b,int c,int d)
 {
    int Errno = -5;
@@ -643,8 +650,8 @@ void PerlInput::getIntVector(int *IntArry,int len,HashStruct Hash,char *ParamNam
    }
 }
 
-void PerlInput::getPosIntVector(int *PosIntArry,int len,HashStruct Hash,
-                                char *ParamName,int a,int b,int c,int d)
+void PerlInput::getPosIntVector(int *PosIntArry,int len,const HashStruct &Hash,
+                                const char *ParamName,int a,int b,int c,int d)
 {
    int Errno = -5;
    SV *ParamVal = getScalar(Hash,ParamName,a,b,c,d);
@@ -711,8 +718,8 @@ void PerlInput::getPosIntVector(int *PosIntArry,int len,HashStruct Hash,
    }
 }
 
-void PerlInput::getIntMatrix(int *IntMtrx,int rows,int cols,HashStruct Hash,
-                             char *ParamName,int a,int b,int c)
+void PerlInput::getIntMatrix(int *IntMtrx,int rows,int cols,const HashStruct &Hash,
+                             const char *ParamName,int a,int b,int c)
 {
    int Errno = -5;
    SV *ParamVal = getScalar(Hash,ParamName,a,b,c);
@@ -797,7 +804,7 @@ void PerlInput::getIntMatrix(int *IntMtrx,int rows,int cols,HashStruct Hash,
 }
 
 void PerlInput::getPosIntMatrix(int *PosIntMtrx,int rows,int cols,
-                                HashStruct Hash,char *ParamName,int a,int b,int c)
+                                const HashStruct &Hash,const char *ParamName,int a,int b,int c)
 {
    int Errno = -5;
    SV *ParamVal = getScalar(Hash,ParamName,a,b,c);
