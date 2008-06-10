@@ -141,29 +141,29 @@ private:
    // and thus, improve performance.
 
    // E0
-   double Phi0, Tsq[3], Rsq[3];
+   double Phi0_static, Tsq_static[3], Rsq_static[3];
    // E1
-   Matrix ME1;
-   double T[3], R[3];
+   Matrix ME1_static;
+   double T_static[3], R_static[3];
    // stress
-   Matrix S;
+   Matrix S_static;
    // E2
-   Matrix ME2;
+   Matrix ME2_static;
    // stiffness
-   Matrix Phi2;
+   Matrix Phi2_static;
    // E3
-   Matrix Phi3;
+   Matrix Phi3_static;
    // E4
-   Matrix Phi4;
+   Matrix Phi4_static;
    // ReferenceDynamicalStiffness
-   CMatrix Dk;
+   CMatrix Dk_static;
    // ReferenceBlochWave
-   CMatrix A;
-   Matrix EigVals, InverseLat;
-   Vector Z;
+   CMatrix A_static;
+   Matrix EigVals_static, InverseLat_static;
+   Vector Z_static;
    // Print
-   Matrix str, stiff, CondEV, TE, CondModuli;
-   Vector TestFunctVals, K;
+   Matrix str_static, stiff_static, CondEV_static, TE_static, CondModuli_static;
+   Vector TestFunctVals_static, K_static;
 };
 
 #endif
