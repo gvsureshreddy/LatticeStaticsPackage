@@ -132,6 +132,29 @@ private:
    int FindLatticeSpacing(int iter);
    void RefineEqbm(double Tol,int MaxItr,ostream *out);
    
+   // "static" member variables
+   // E1
+   Matrix Phi1_static;
+   Matrix Trans_static;
+   //stress
+   Matrix stress_static;
+   // E2
+   Matrix Phi2_static;
+   // stiffness
+   Matrix stiff_static;
+   // E3
+   Matrix Phi3_static;
+   // E4
+   Matrix Phi4_static;
+   // ReferenceDynamicalStiffness
+   CMatrix Dk_static;
+   // ReferenceBlochWave
+   CMatrix A_static;
+   Matrix EigVals_static;
+   // Print
+   Matrix str_static;
+   Matrix pstiff_static;
+   Vector TestFunctVals_static;
 };
 
 #endif

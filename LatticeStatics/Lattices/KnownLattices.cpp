@@ -17,6 +17,10 @@ Lattice *InitializeLattice(PerlInput &Input,int Echo,int Width,int Debug)
    {
       return new MultiChainTTPP(Input,Echo,Width,Debug);
    }
+   else if (!strcmp("TwoBarTruss",Lat))
+   {
+      return new TwoBarTruss(Input,Echo,Width);
+   }
    else
    {
       cerr << "Unknown Lattice Type " << "\n";

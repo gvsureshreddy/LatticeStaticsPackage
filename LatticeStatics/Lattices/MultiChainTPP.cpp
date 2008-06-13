@@ -28,7 +28,7 @@ MultiChainTPP::MultiChainTPP(PerlInput &Input,int Echo,int Width,int Debug)
    dbg_ = Debug;
    // Get Lattice definition
    char tmp[LINELENGTH];
-
+   
    PerlInput::HashStruct Hash = Input.getHash("Lattice","MultiChainTPP");
    INTERNAL_ATOMS = Input.getPosInt(Hash,"InternalAtoms");
    DOFS = INTERNAL_ATOMS;
@@ -64,9 +64,9 @@ MultiChainTPP::MultiChainTPP(PerlInput &Input,int Echo,int Width,int Debug)
    //PhiRef_ = Input.getDouble(Hash,"PhiRef");
    //EntropyRef_ = Input.getDouble(Hash,"EntropyRef");
    //HeatCapacityRef_ = Input.getDouble(Hash,"HeatCapacityRef");
-
+   
    Input.getIntVector(AtomSpecies_,INTERNAL_ATOMS,Hash,"AtomSpecies");
-
+   
    NumberofSpecies_ = AtomSpecies_[0];
    for (int i=1;i<INTERNAL_ATOMS;++i)
       if (NumberofSpecies_ < AtomSpecies_[i])
@@ -124,7 +124,7 @@ MultiChainTPP::MultiChainTPP(PerlInput &Input,int Echo,int Width,int Debug)
       Density_ = 1;
    }
    NormModulus_ = Input.getDouble(Hash,"NormModulus");
-      
+   
    // Get Loading parameters
    const char *loadparameter = Input.getString(Hash,"LoadingParameter");
    if (!strcmp("Temperature",loadparameter))
@@ -150,7 +150,7 @@ MultiChainTPP::MultiChainTPP(PerlInput &Input,int Echo,int Width,int Debug)
    const char *CBKin = Input.getString(Hash,"CBKinematics");
    if (!strcmp("LagrangeCB",CBKin))
    {
-         LagrangeCB_ = 1;
+      LagrangeCB_ = 1;
    }
    else if (!strcmp("MixedCB",CBKin))
    {
@@ -247,7 +247,7 @@ void MultiChainTPP::SetParameters(double *Vals,int ResetRef)
          SpeciesPotential_[i][j]->SetParameters(&(Vals[cur]));
          cur += no;
       }
-
+   
    ChainSum_.Recalc();
    if (ResetRef)
    {
@@ -359,12 +359,11 @@ double MultiChainTPP::energy(PairPotentials::TDeriv dt)
 
 Matrix MultiChainTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
 {
-   static Matrix S;
    double ForceNorm = 0.0;
    double phi,Vr;
    int i;
    
-   S.Resize(1,DOFS,0.0);
+   Phi1_static.Resize(1,DOFS,0.0);
    
    Vr = Density_ ? RefLattice_.Det() : 1.0;
    
@@ -400,10 +399,11 @@ Matrix MultiChainTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
             exit(-1);
          }
          
-         S[0][0] += phi*PI(ChainSum_.pDx(),ChainSum_.pDX());
+         Phi1_static[0][0] += phi*PI(ChainSum_.pDx(),ChainSum_.pDX());
          for (i=1;i<INTERNAL_ATOMS;i++)
          {
-            S[0][i] += phi*OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i);
+            Phi1_static[0][i]
+               += phi*OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i);
          }
       }
       
@@ -413,20 +413,20 @@ Matrix MultiChainTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
          BodyForce_[i][0] /= ForceNorm;
       }
       
-      // S = S/(2*Vr*NormModulus)
-      S *= 1.0/(2.0*(Vr*NormModulus_));
+      // Phi1_static = Phi1_static/(2*Vr*NormModulus)
+      Phi1_static *= 1.0/(2.0*(Vr*NormModulus_));
       
       // Load terms
       if (dt == PairPotentials::T0)
       {
-         S[0][0] -= Lambda_;
+         Phi1_static[0][0] -= Lambda_;
       }
       
    }
    else if (dl==DL)
    {
       // dl=DL
-      S[0][0] -= 1.0;
+      Phi1_static[0][0] -= 1.0;
    }
    else
    {
@@ -434,16 +434,15 @@ Matrix MultiChainTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
       exit(-1);
    }
    
-   return S;
+   return Phi1_static;
 }
 
 Matrix MultiChainTPP::stiffness(PairPotentials::TDeriv dt,LDeriv dl)
 {
-   static Matrix Phi;
    double phi,phi1;
    int i,j;
    
-   Phi.Resize(DOFS,DOFS,0.0);
+   Phi2_static.Resize(DOFS,DOFS,0.0);
    
    if (dl==L0)
    {
@@ -468,8 +467,8 @@ Matrix MultiChainTPP::stiffness(PairPotentials::TDeriv dt,LDeriv dl)
          }
          
          //Upper Diag Block (1,1)
-         Phi[0][0] += phi*(PI(ChainSum_.pDx(),ChainSum_.pDX())
-                           *PI(ChainSum_.pDx(),ChainSum_.pDX()))
+         Phi2_static[0][0] += phi*(PI(ChainSum_.pDx(),ChainSum_.pDX())
+                                   *PI(ChainSum_.pDx(),ChainSum_.pDX()))
             +phi1*PSI(ChainSum_.pDX());
          
          //Lower Diag Block (INTERNAL_ATOMS-1,INTERNAL_ATOMS-1)
@@ -477,7 +476,7 @@ Matrix MultiChainTPP::stiffness(PairPotentials::TDeriv dt,LDeriv dl)
          {
             for (j=1;j<INTERNAL_ATOMS;j++)
             {
-               Phi[i][j] +=
+               Phi2_static[i][j] +=
                   phi*(OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
                        *OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),j))
                   +phi1*SIGMA(ChainSum_.Atom(0),ChainSum_.Atom(1),i,j);
@@ -487,34 +486,33 @@ Matrix MultiChainTPP::stiffness(PairPotentials::TDeriv dt,LDeriv dl)
          //Off Diag Blocks
          for (i=1;i<INTERNAL_ATOMS;i++)
          {
-            Phi[0][i] = Phi[i][0] +=
+            Phi2_static[0][i] = Phi2_static[i][0] +=
                phi*(PI(ChainSum_.pDx(),ChainSum_.pDX())
                     *OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i))
                +phi1*GAMMA(ChainSum_.pDx(),ChainSum_.pDX(),
                            ChainSum_.Atom(0),ChainSum_.Atom(1),i);
          }
       }
-      Phi *= 1.0/(2.0*((Density_ ? RefLattice_.Det() : 1.0)*NormModulus_));
+      Phi2_static *= 1.0/(2.0*((Density_ ? RefLattice_.Det() : 1.0)*NormModulus_));
    }
    else if (dl==DL)
    {
-      // Nothing to do: Phi is zero
+      // Nothing to do: Phi2_static is zero
    }
    else
    {
       cerr << "Unknown LDeriv dl in MultiChainTpp::stiffness()" << "\n";
       exit(-1);
    }
-   return Phi;
+   return Phi2_static;
 }
 
 Matrix MultiChainTPP::E3()
 {
-   static Matrix Phi;
    double phi,phi1,phi2;
    int i,j,k;
    
-   Phi.Resize(DOFS*DOFS,DOFS,0.0);
+   Phi3_static.Resize(DOFS*DOFS,DOFS,0.0);
    
    for (ChainSum_.Reset();!ChainSum_.Done();++ChainSum_)
    {
@@ -524,7 +522,7 @@ Matrix MultiChainTPP::E3()
       phi2=ChainSum_.phi1();
       
       // DF^3 block
-      Phi[0][0] +=
+      Phi3_static[0][0] +=
          phi*(PI(ChainSum_.pDx(),ChainSum_.pDX())
               *PI(ChainSum_.pDx(),ChainSum_.pDX())
               *PI(ChainSum_.pDx(),ChainSum_.pDX()))
@@ -535,7 +533,7 @@ Matrix MultiChainTPP::E3()
          for (j=1;j<INTERNAL_ATOMS;j++)
             for (k=1;k<INTERNAL_ATOMS;k++)
             {
-               Phi[i*DOFS + j][k] +=
+               Phi3_static[i*DOFS + j][k] +=
                   phi*(OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
                        *OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),j)
                        *OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),k))
@@ -549,7 +547,7 @@ Matrix MultiChainTPP::E3()
       // DU^2DV blocks
       for (i=1;i<INTERNAL_ATOMS;i++)
       {
-         Phi[0][i] = Phi[i*DOFS][0] = Phi[i][0] += (
+         Phi3_static[0][i] = Phi3_static[i*DOFS][0] = Phi3_static[i][0] += (
             phi*(PI(ChainSum_.pDx(),ChainSum_.pDX())
                  *PI(ChainSum_.pDx(),ChainSum_.pDX())
                  *OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i))
@@ -565,8 +563,8 @@ Matrix MultiChainTPP::E3()
       for (i=1;i<INTERNAL_ATOMS;i++)
          for (j=1;j<INTERNAL_ATOMS;j++)
          {
-            Phi[i*DOFS + j][0] = Phi[i*DOFS][j] =
-               Phi[i][j] += (
+            Phi3_static[i*DOFS + j][0] = Phi3_static[i*DOFS][j] =
+               Phi3_static[i][j] += (
                   phi*(OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
                        *OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),j)
                        *PI(ChainSum_.pDx(),ChainSum_.pDX()))
@@ -583,19 +581,18 @@ Matrix MultiChainTPP::E3()
    }
    
    
-   // Phi = Phi/(2*Vr*NormModulus)
-   Phi *= 1.0/(2.0*((Density_ ? RefLattice_.Det() : 1.0)*NormModulus_));
+   // Phi3_static = Phi3_static/(2*Vr*NormModulus)
+   Phi3_static *= 1.0/(2.0*((Density_ ? RefLattice_.Det() : 1.0)*NormModulus_));
    
-   return Phi;
+   return Phi3_static;
 }
 
 Matrix MultiChainTPP::E4()
 {
-   static Matrix Phi;
    double phi,phi1,phi2,phi3;
    int i,j,k,m;
    
-   Phi.Resize(DOFS*DOFS,DOFS*DOFS,0.0);
+   Phi4_static.Resize(DOFS*DOFS,DOFS*DOFS,0.0);
    
    for (ChainSum_.Reset();!ChainSum_.Done();++ChainSum_)
    {
@@ -607,7 +604,7 @@ Matrix MultiChainTPP::E4()
       phi3=ChainSum_.phi1();
       
       // DU^4 block
-      Phi[0][0]+=
+      Phi4_static[0][0]+=
          phi*(PI(ChainSum_.pDx(),ChainSum_.pDX())
               *PI(ChainSum_.pDx(),ChainSum_.pDX())
               *PI(ChainSum_.pDx(),ChainSum_.pDX())
@@ -625,7 +622,7 @@ Matrix MultiChainTPP::E4()
             for (k=1;k<INTERNAL_ATOMS;k++)
                for (m=1;m<INTERNAL_ATOMS;m++)
                {
-                  Phi[i*DOFS+j][k*DOFS+m] +=
+                  Phi4_static[i*DOFS+j][k*DOFS+m] +=
                      phi*(OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
                           *OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),j)
                           *OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),k)
@@ -661,32 +658,37 @@ Matrix MultiChainTPP::E4()
       // DU^3DV blocks
       for (i=1;i<INTERNAL_ATOMS;i++)
       {
-         Phi[0][i] = Phi[0][i*DOFS] = Phi[i][0] = Phi[i*DOFS][0] += (
-            phi*(
-               PI(ChainSum_.pDx(),ChainSum_.pDX())
-               *PI(ChainSum_.pDx(),ChainSum_.pDX())
-               *PI(ChainSum_.pDx(),ChainSum_.pDX())
-               *OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i))
-            +phi1*(
-               3.0*PI(ChainSum_.pDx(),ChainSum_.pDX())
-               *PI(ChainSum_.pDx(),ChainSum_.pDX())
-               *GAMMA(ChainSum_.pDx(),ChainSum_.pDX(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
-               +3.0*PI(ChainSum_.pDx(),ChainSum_.pDX())
-               *OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
-               *PSI(ChainSum_.pDX()))
-            +phi2*(
-               3.0*PI(ChainSum_.pDx(),ChainSum_.pDX())
-               *THETA(ChainSum_.pDX(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
-               +3.0*GAMMA(ChainSum_.pDx(),ChainSum_.pDX(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
-               *PSI(ChainSum_.pDX())));
+         Phi4_static[0][i] =
+            Phi4_static[0][i*DOFS] =
+            Phi4_static[i][0] =
+            Phi4_static[i*DOFS][0] += (
+               phi*(
+                  PI(ChainSum_.pDx(),ChainSum_.pDX())
+                  *PI(ChainSum_.pDx(),ChainSum_.pDX())
+                  *PI(ChainSum_.pDx(),ChainSum_.pDX())
+                  *OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i))
+               +phi1*(
+                  3.0*PI(ChainSum_.pDx(),ChainSum_.pDX())
+                  *PI(ChainSum_.pDx(),ChainSum_.pDX())
+                  *GAMMA(ChainSum_.pDx(),ChainSum_.pDX(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
+                  +3.0*PI(ChainSum_.pDx(),ChainSum_.pDX())
+                  *OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
+                  *PSI(ChainSum_.pDX()))
+               +phi2*(
+                  3.0*PI(ChainSum_.pDx(),ChainSum_.pDX())
+                  *THETA(ChainSum_.pDX(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
+                  +3.0*GAMMA(ChainSum_.pDx(),ChainSum_.pDX(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
+                  *PSI(ChainSum_.pDX())));
       }
       // DV^3DU blocks
       for (i=1;i<INTERNAL_ATOMS;i++)
          for (j=1;j<INTERNAL_ATOMS;j++)
             for (k=1;k<INTERNAL_ATOMS;k++)
             {
-               Phi[i*DOFS+j][k*DOFS] = Phi[i*DOFS+j][k] = Phi[i*DOFS][j*DOFS+k] =
-                  Phi[i][j*DOFS+k] += (
+               Phi4_static[i*DOFS+j][k*DOFS] =
+                  Phi4_static[i*DOFS+j][k] =
+                  Phi4_static[i*DOFS][j*DOFS+k] =
+                  Phi4_static[i][j*DOFS+k] += (
                      phi*(
                         OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i)
                         *OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),j)
@@ -735,10 +737,10 @@ Matrix MultiChainTPP::E4()
       for (i=1;i<INTERNAL_ATOMS;i++)
          for (j=1;j<INTERNAL_ATOMS;j++)
          {
-            Phi[0][i*DOFS+j] =
-               Phi[j*DOFS][i] =
-               Phi[i*DOFS+j][0] =
-               Phi[i][j*DOFS] += (
+            Phi4_static[0][i*DOFS+j] =
+               Phi4_static[j*DOFS][i] =
+               Phi4_static[i*DOFS+j][0] =
+               Phi4_static[i][j*DOFS] += (
                   phi*(
                      PI(ChainSum_.pDx(),ChainSum_.pDX())
                      *PI(ChainSum_.pDx(),ChainSum_.pDX())
@@ -777,10 +779,10 @@ Matrix MultiChainTPP::E4()
    }
    
    
-   // Phi = Phi/(2*Vr*NormModulus)
-   Phi *= 1.0/(2.0*((Density_ ? RefLattice_.Det() : 1.0)*NormModulus_));
+   // Phi4_static = Phi4_static/(2*Vr*NormModulus)
+   Phi4_static *= 1.0/(2.0*((Density_ ? RefLattice_.Det() : 1.0)*NormModulus_));
    
-   return Phi;
+   return Phi4_static;
 }
 
 Matrix MultiChainTPP::CondensedModuli()
@@ -866,12 +868,11 @@ void MultiChainTPP::interpolate(Matrix *EigVals,int zero,int one,int two)
 
 CMatrix MultiChainTPP::ReferenceDynamicalStiffness(Vector &K)
 {
-   static CMatrix Dk;
-   static double pi = 4.0*atan(1.0);
-   static MyComplexDouble Ic(0,1);
-   static MyComplexDouble A = 2.0*pi*Ic;
+   double pi = 4.0*atan(1.0);
+   MyComplexDouble Ic(0,1);
+   MyComplexDouble A = 2.0*pi*Ic;
    
-   Dk.Resize(INTERNAL_ATOMS,INTERNAL_ATOMS,0.0);
+   Dk_static.Resize(INTERNAL_ATOMS,INTERNAL_ATOMS,0.0);
    
    for (ChainSum_.Reset();!ChainSum_.Done();++ChainSum_)
    {
@@ -879,18 +880,18 @@ CMatrix MultiChainTPP::ReferenceDynamicalStiffness(Vector &K)
       if (ChainSum_.Atom(0) != ChainSum_.Atom(1))
       {
          // y != y' terms (i.e., off diagonal terms)
-         Dk[ChainSum_.Atom(0)][ChainSum_.Atom(1)] +=
+         Dk_static[ChainSum_.Atom(0)][ChainSum_.Atom(1)] +=
             (-2.0*ChainSum_.phi1()
              -4.0*ChainSum_.Dx(0)*ChainSum_.Dx(0)*ChainSum_.phi2())
             *exp(A*K[0]*ChainSum_.DX(0));
          
          // y==y' components (i.e., Phi(0,y,y) term)
-         Dk[ChainSum_.Atom(0)][ChainSum_.Atom(0)] +=
+         Dk_static[ChainSum_.Atom(0)][ChainSum_.Atom(0)] +=
             (2.0*ChainSum_.phi1()+4.0*ChainSum_.Dx(0)*ChainSum_.Dx(0)*ChainSum_.phi2());
       }
       else
       {
-         Dk[ChainSum_.Atom(0)][ChainSum_.Atom(1)] +=
+         Dk_static[ChainSum_.Atom(0)][ChainSum_.Atom(1)] +=
             (-2.0*ChainSum_.phi1()
              -4.0*ChainSum_.Dx(0)*ChainSum_.Dx(0)*ChainSum_.phi2())
             *(exp(A*K[0]*ChainSum_.DX(0)) - 1.0);
@@ -900,10 +901,10 @@ CMatrix MultiChainTPP::ReferenceDynamicalStiffness(Vector &K)
    for (int p=0;p<INTERNAL_ATOMS;++p)
       for (int q=0;q<INTERNAL_ATOMS;++q)
       {
-         Dk[p][q] /= sqrt(AtomicMass_[p]*AtomicMass_[q]);
+         Dk_static[p][q] /= sqrt(AtomicMass_[p]*AtomicMass_[q]);
       }
    
-   return Dk;
+   return Dk_static;
 }
 
 void MultiChainTPP::ReferenceDispersionCurves(Vector K,int NoPTS,const char *prefix,
@@ -970,10 +971,10 @@ void MultiChainTPP::ReferenceDispersionCurves(Vector K,int NoPTS,const char *pre
 
 int MultiChainTPP::ReferenceBlochWave(Vector &K)
 {
-   static CMatrix A(INTERNAL_ATOMS,INTERNAL_ATOMS);
-   static Matrix EigVals(1,INTERNAL_ATOMS);
-   static double InverseLat;
-   static Vector Z(1);
+   A_static.Resize(INTERNAL_ATOMS,INTERNAL_ATOMS);
+   EigVals_static.Resize(1,INTERNAL_ATOMS);
+   double InverseLat;
+   Vector Z(1);
    
    for (int i=0;i<K.Dim();++i) K[i]=0.0;
    
@@ -985,14 +986,14 @@ int MultiChainTPP::ReferenceBlochWave(Vector &K)
       K[0] = ChainIter_[0];
       
       Z = InverseLat*K;
-      A = ReferenceDynamicalStiffness(Z);
+      A_static = ReferenceDynamicalStiffness(Z);
       
-      EigVals = HermiteEigVal(A);
+      EigVals_static = HermiteEigVal(A_static);
       
       for (int i=0;i<INTERNAL_ATOMS;++i)
       {
          // if w^2 <= 0.0 --> Re(i*w*x) > 0 --> growing solutions --> unstable
-         if ( EigVals[0][i] <= 0.0 )
+         if ( EigVals_static[0][i] <= 0.0 )
          {
             return 0;
          }
@@ -1027,19 +1028,17 @@ void MultiChainTPP::NeighborDistances(int cutoff,ostream &out)
 
 void MultiChainTPP::Print(ostream &out,PrintDetail flag)
 {
-   static int W;
-   static int NoNegTestFunctions;
-   static double engy,entropy,heatcapacity;
-   static Matrix
-      str(1,DOFS),
-      stiff(DOFS,DOFS),
-      CondEV(1,1);
-   static Matrix
-      CondModuli(1,1);
-   static Vector TestFunctVals(DOFS);
-   static int RankOneConvex;
-   static Vector K(1);
-   static int BlochWaveStable;
+   int W;
+   int NoNegTestFunctions;
+   double engy,entropy,heatcapacity;
+   str_static.Resize(1,DOFS);
+   stiff_static.Resize(DOFS,DOFS);
+   Matrix CondEV(1,1);
+   Matrix CondModuli(1,1);
+   TestFunctVals_static.Resize(DOFS);
+   int RankOneConvex;
+   Vector K(1);
+   int BlochWaveStable;
    
    W=out.width();
    
@@ -1049,10 +1048,10 @@ void MultiChainTPP::Print(ostream &out,PrintDetail flag)
    engy = energy();
    entropy = Entropy();
    heatcapacity = HeatCapacity();
-   str = stress();
-   stiff = stiffness();
+   str_static = stress();
+   stiff_static = stiffness();
    
-   NoNegTestFunctions=TestFunctions(TestFunctVals,LHS);
+   NoNegTestFunctions=TestFunctions(TestFunctVals_static,LHS);
    
    CondModuli = CondensedModuli();
    
@@ -1150,9 +1149,9 @@ void MultiChainTPP::Print(ostream &out,PrintDetail flag)
             out << "BodyForce Value " << i << " (Inf Normalized):"
                 << setw(W) << BodyForce_[i] << "\n";
          }
-         out << "Stress (Normalized):" << setw(W) << str << "\n"
-             << "Stiffness (Normalized):" << setw(W) << stiff
-             << "Eigenvalue Info:"  << "\n"<<setw(W) << TestFunctVals<< "\n"
+         out << "Stress (Normalized):" << setw(W) << str_static << "\n"
+             << "Stiffness (Normalized):" << setw(W) << stiff_static
+             << "Eigenvalue Info:"  << "\n"<<setw(W) << TestFunctVals_static << "\n"
              << "Bifurcation Info:" << setw(W) << NoNegTestFunctions << "\n"
              << "Condensed Moduli (Normalized):" << setw(W) << CondModuli
              << "CondEV Info:" << setw(W) << CondEV
@@ -1173,9 +1172,9 @@ void MultiChainTPP::Print(ostream &out,PrintDetail flag)
                cout << "BodyForce Value " << i << " (Inf Normalized):"
                     << setw(W) << BodyForce_[i] << "\n";
             }
-            cout << "Stress (Normalized):" << setw(W) << str << "\n"
-                 << "Stiffness (Normalized):" << setw(W) << stiff
-                 << "Eigenvalue Info:"  << "\n"<<setw(W) << TestFunctVals <<"\n"
+            cout << "Stress (Normalized):" << setw(W) << str_static << "\n"
+                 << "Stiffness (Normalized):" << setw(W) << stiff_static
+                 << "Eigenvalue Info:"  << "\n"<<setw(W) << TestFunctVals_static <<"\n"
                  << "Bifurcation Info:" << setw(W) << NoNegTestFunctions << "\n"
                  << "Condensed Moduli (Normalized):" << setw(W) << CondModuli
                  << "CondEV Info:" << setw(W) << CondEV

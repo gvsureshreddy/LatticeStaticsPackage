@@ -67,6 +67,21 @@ public:
    virtual void Print(ostream &out,PrintDetail flag) = 0;
    friend ostream &operator<<(ostream &out,Lattice *L)
    {L->Print(out,PrintShort); return out;}
+
+private:
+   // "static" member variables
+   // TestFunctions
+   int test_flag_static;
+   Matrix Stiffness_1_static;
+   Matrix Stiffness_2_static;
+   Matrix Stiffness_3_static;
+   Matrix Stiffness_temp_static;
+   Matrix Stiffness_diagonalized_static;
+   Matrix EigVect_static;
+   Matrix EigVectRHS_static;
+   Matrix EigVectLHS_static;
+   Matrix EV1_static;
+   Matrix EV2_static;
 };
 
 #endif
