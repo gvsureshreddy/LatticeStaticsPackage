@@ -32,7 +32,12 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,const Vector &dofs,
      ClosedLoopStart_(ClosedLoopStart),
      FirstSolution_(FirstSolution),
      StopAtCPNum_(StopAtCPNum),
-     Difference_(Difference)
+     TotalNumCPs_(0),
+     Difference_(Difference),
+     force_static(ModeDOFS_),
+     mdfc_static(ModeDOFS_-1),
+     K_static(ModeDOFS_,ModeDOFS_),
+     ModeK_static(ModeDOFS_-1,ModeDOFS_)
 {
    ArcLenSet(dofs);
 }
@@ -42,9 +47,17 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,PerlInput &Input,
    : Echo_(Echo),
      Mode_(Mode),
      CurrentSolution_(0),
+     TotalNumCPs_(0),
      Difference_(two-one)
 {
    ModeDOFS_=Mode_->ModeDOF().Dim();
+   // initialize "static" members variables
+   force_static.Resize(ModeDOFS_);
+   mdfc_static.Resize(ModeDOFS_-1);
+   K_static.Resize(ModeDOFS_,ModeDOFS_);
+   ModeK_static.Resize(ModeDOFS_-1,ModeDOFS_);
+
+   
    PerlInput::HashStruct Hash = Input.getHash("SolutionMethod","ArcLengthSolution");
    MaxIter_ = Input.getPosInt(Hash,"MaxIterations");
    Tolerance_ = Input.getDouble(Hash,"Tolerance");
@@ -57,7 +70,7 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,PerlInput &Input,
    NumSolutions_ = Input.getPosInt(Hash,"NumSolutions");
    if (Input.ParameterOK(Hash,"ClosedLoopStart"))
    {
-      ClosedLoopStart_ = Input.getPosInt(Hash,"ClosedLoopStart");
+      ClosedLoopStart_ = Input.getInt(Hash,"ClosedLoopStart");
    }
    else
    {
@@ -86,9 +99,16 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,PerlInput &Input,
 ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,PerlInput &Input,int Echo)
    :  Echo_(Echo),
       Mode_(Mode),
-      CurrentSolution_(0)
+      CurrentSolution_(0),
+      TotalNumCPs_(0)
 {
    ModeDOFS_=Mode_->ModeDOF().Dim();
+   // initialize "static" memver variables
+   force_static.Resize(ModeDOFS_);
+   mdfc_static.Resize(ModeDOFS_-1);
+   K_static.Resize(ModeDOFS_,ModeDOFS_);
+   ModeK_static.Resize(ModeDOFS_-1,ModeDOFS_);
+
    PerlInput::HashStruct Hash = Input.getHash("SolutionMethod","ArcLengthSolution");
    MaxIter_ = Input.getPosInt(Hash,"MaxIterations");
    Tolerance_ = Input.getDouble(Hash,"Tolerance");
@@ -101,7 +121,7 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,PerlInput &Input,int Echo
    NumSolutions_ = Input.getPosInt(Hash,"NumSolutions");
    if (Input.ParameterOK(Hash,"ClosedLoopStart"))
    {
-      ClosedLoopStart_ = Input.getPosInt(Hash,"ClosedLoopStart");
+      ClosedLoopStart_ = Input.getInt(Hash,"ClosedLoopStart");
    }
    else
    {
@@ -200,38 +220,33 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,PerlInput &Input,int Echo
 Vector ArcLengthSolution::ArcLenForce(double DS,const Vector &Diff,
                                       double Aspect)
 {
-   static Vector force(ModeDOFS_);
-   static Vector mdfc(ModeDOFS_-1);
-   mdfc = Mode_->ModeForce();
+   mdfc_static = Mode_->ModeForce();
    
-   force[ModeDOFS_-1] = DS*DS - Diff[ModeDOFS_-1]*Diff[ModeDOFS_-1]/(Aspect*Aspect);
+   force_static[ModeDOFS_-1] = DS*DS - Diff[ModeDOFS_-1]*Diff[ModeDOFS_-1]/(Aspect*Aspect);
    for (int i=0;i<ModeDOFS_-1;++i)
    {
-      force[i] = mdfc[i];
-      force[ModeDOFS_-1] -= Diff[i]*Diff[i];
+      force_static[i] = mdfc_static[i];
+      force_static[ModeDOFS_-1] -= Diff[i]*Diff[i];
    }
    
-   return force;
+   return force_static;
 }
 
 Matrix ArcLengthSolution::ArcLenStiffness(const Vector &Diff,double Aspect)
 {
-   static Matrix K(ModeDOFS_,ModeDOFS_);
-   static Matrix ModeK(ModeDOFS_-1,ModeDOFS_);
-   
-   ModeK = Mode_->ModeStiffness();
+   ModeK_static = Mode_->ModeStiffness();
    
    for (int i=0;i<ModeDOFS_-1;++i)
    {
       for (int j=0;j<=ModeDOFS_-1;++j)
       {
-         K[i][j] = ModeK[i][j];
+         K_static[i][j] = ModeK_static[i][j];
       }
-      K[ModeDOFS_-1][i] = -2.0*Diff[i];
+      K_static[ModeDOFS_-1][i] = -2.0*Diff[i];
    }
-   K[ModeDOFS_-1][ModeDOFS_-1] = -2.0*Diff[ModeDOFS_-1]/(Aspect*Aspect);
+   K_static[ModeDOFS_-1][ModeDOFS_-1] = -2.0*Diff[ModeDOFS_-1]/(Aspect*Aspect);
    
-   return K;
+   return K_static;
 }
 
 double ArcLengthSolution::ArcLenAngle(Vector Old,Vector New,double Aspect)
@@ -464,7 +479,6 @@ int ArcLengthSolution::OldFindCriticalPoint(int LHN,double LHEV,int RHN,double R
                                             Lattice *Lat,PerlInput &Input,
                                             int Width,fstream &out)
 {
-   static int TotalNumCPs=0;
    Vector OriginalDiff=Difference_;
    double OriginalDS = CurrentDS_;
    double CurrentMinEV=1.0, OldMinEV=1.0;
@@ -552,8 +566,8 @@ int ArcLengthSolution::OldFindCriticalPoint(int LHN,double LHEV,int RHN,double R
    Difference_ = OriginalDiff;
 
    // Check to see if we should stop
-   TotalNumCPs += 1;
-   if ((StopAtCPNum_ > -1) && (TotalNumCPs >= StopAtCPNum_))
+   TotalNumCPs_ += 1;
+   if ((StopAtCPNum_ > -1) && (TotalNumCPs_ >= StopAtCPNum_))
       CurrentSolution_ = NumSolutions_;
    
    return 1;
@@ -561,15 +575,14 @@ int ArcLengthSolution::OldFindCriticalPoint(int LHN,double LHEV,int RHN,double R
 
 int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,PerlInput &Input,int Width,fstream &out)
 {
-   static int TotalNumCPs=0;
    Vector OriginalDiff=Difference_;
    double OriginalDS = CurrentDS_;
    int TestValueDiff;
    int temp;
    int size = Lat->DOF().Dim();
-   static Vector TF_LHS(size);
-   static Vector TF_RHS(size);
-   static Vector CurrentTF(size);
+   TF_LHS_static.Resize(size);
+   TF_RHS_static.Resize(size);
+   CurrentTF_static.Resize(size);
    double fa,fb;
    int Multiplicity;
    int track;
@@ -581,7 +594,7 @@ int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,PerlInput &Input,int Width
    // Setup in_string ios
    in_string << setiosflags(ios::fixed) << setprecision(out.precision());
    
-   TestValueDiff = Lat->TestFunctions(TF_LHS, Lattice::RHS, &TF_RHS);
+   TestValueDiff = Lat->TestFunctions(TF_LHS_static, Lattice::RHS, &TF_RHS_static);
    if (TestValueDiff < 0)
    {
       out << "Note: TestFunctions found a discrepancy between the\n"
@@ -600,8 +613,8 @@ int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,PerlInput &Input,int Width
       TestValueDiff = -TestValueDiff;
    }
    
-   cout << "TF_LHS = " << setw(Width) << TF_LHS<< "\n";
-   cout << "TF_RHS = " << setw(Width) << TF_RHS << "\n";
+   cout << "TF_LHS_static = " << setw(Width) << TF_LHS_static<< "\n";
+   cout << "TF_RHS_static = " << setw(Width) << TF_RHS_static << "\n";
    
    int *Index;
    Index = new int[TestValueDiff];
@@ -612,7 +625,7 @@ int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,PerlInput &Input,int Width
    temp = 0;
    for (int i = 0; i< size; i++)
    {
-      if ((TF_LHS[i]*TF_RHS[i]) < 0.0)
+      if ((TF_LHS_static[i]*TF_RHS_static[i]) < 0.0)
       {
          Index[temp] = i;
          temp++;
@@ -633,17 +646,17 @@ int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,PerlInput &Input,int Width
    for (CP= 0; CP < TestValueDiff; CP++)
    {
       track = Index[CP];
-      fa = TF_LHS[track];
-      fb = TF_RHS[track];
+      fa = TF_LHS_static[track];
+      fb = TF_RHS_static[track];
       
       if(track>=0) //START OF IF STATEMENT
       {
-         ZBrent(Lat, track,fa, fb, OriginalDiff, OriginalDS, CurrentTF);
+         ZBrent(Lat, track,fa, fb, OriginalDiff, OriginalDS, CurrentTF_static);
          Multiplicity = 1;
          for(int i=CP+1;i<TestValueDiff;i++)
          {
             temp = Index[i];
-            if(fabs(CurrentTF[temp]) <= BisectTolerance_)
+            if(fabs(CurrentTF_static[temp]) <= BisectTolerance_)
             {
                Index[i] = -1;
                Multiplicity++;
@@ -710,8 +723,8 @@ int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,PerlInput &Input,int Width
    Difference_ = OriginalDiff;
 
    // Check to see if we should stop
-   TotalNumCPs += TestValueDiff;
-   if ((StopAtCPNum_ > -1) && (TotalNumCPs >= StopAtCPNum_))
+   TotalNumCPs_ += TestValueDiff;
+   if ((StopAtCPNum_ > -1) && (TotalNumCPs_ >= StopAtCPNum_))
       CurrentSolution_ = NumSolutions_;
    
    return TestValueDiff;

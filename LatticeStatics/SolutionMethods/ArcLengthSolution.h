@@ -33,6 +33,7 @@ private:
    int ClosedLoopStart_;
    Vector FirstSolution_;
    int StopAtCPNum_;
+   int TotalNumCPs_;
    
    Vector Difference_;
    
@@ -67,6 +68,19 @@ public:
    virtual int AllSolutionsFound();
    virtual int FindNextSolution();
    virtual int FindCriticalPoint(Lattice *Lat,PerlInput &Input,int Width,fstream &out);
+
+private:
+   // "static" member variables
+   // ArcLenForce
+   Vector force_static;
+   Vector mdfc_static;
+   // ArcLenStiffness
+   Matrix K_static;
+   Matrix ModeK_static;
+   // FindCriticalPoint
+   Vector TF_LHS_static;
+   Vector TF_RHS_static;
+   Vector CurrentTF_static;
 };
 
 #endif

@@ -3,9 +3,9 @@
 SolutionMethod *InitializeSolution(LatticeMode *Mode,PerlInput &Input,Lattice *Lat,
                                    fstream &out,int Width,int Echo)
 {
-   enum solution {Scanning,ArcLen,NewtonPC,NewtonUpdatePC,NewtonQRUpdatePC};
+   enum solution {Scanning,ArcLen,NewtonPC};
    solution solu;
-
+   
    const char *slvmthd = Input.getString("SolutionMethod","Type");
    if (!strcmp("ScanningSolution",slvmthd))
       solu = Scanning;
@@ -13,10 +13,6 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,PerlInput &Input,Lattice *L
       solu = ArcLen;
    else if (!strcmp("NewtonPCSolution",slvmthd))
       solu = NewtonPC;
-   else if (!strcmp("NewtonUpdatePCSolution",slvmthd))
-      solu = NewtonUpdatePC;
-   else if (!strcmp("NewtonQRUpdatePCSolution",slvmthd))
-      solu = NewtonQRUpdatePC;
    else
    {
       cerr << "Unknown SolutionMethod : " << slvmthd << "\n";
@@ -88,52 +84,6 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,PerlInput &Input,Lattice *L
                out << setw(Width) << Lat << "Success = 1" << "\n";
                One = Mode->ModeDOF();
                return new NewtonPCSolution(Mode,Input,One,Echo);
-            }
-         }
-      }
-      case NewtonUpdatePC:
-      {
-         int good=1;
-         int count=0;
-         Vector One(Mode->ModeDOF().Dim());
-         if (Input.HashOK("StartType"))
-         {
-            return new NewtonUpdatePCSolution(Mode,Input,Echo);
-         }
-         else
-         {
-            ScanningSolution ScanMe(Mode,Input,Echo);
-            
-            good = ScanMe.FindNextSolution();
-            if (good)
-            {
-               count++;
-               out << setw(Width) << Lat << "Success = 1" << "\n";
-               One = Mode->ModeDOF();
-               return new NewtonUpdatePCSolution(Mode,Input,One,Echo);
-            }
-         }
-      }
-      case NewtonQRUpdatePC:
-      {
-         int good=1;
-         int count=0;
-         Vector One(Mode->ModeDOF().Dim());
-         if (Input.HashOK("StartType"))
-         {
-            return new NewtonQRUpdatePCSolution(Mode,Input,Echo);
-         }
-         else
-         {
-            ScanningSolution ScanMe(Mode,Input,Echo);
-            
-            good = ScanMe.FindNextSolution();
-            if (good)
-            {
-               count++;
-               out << setw(Width) << Lat << "Success = 1" << "\n";
-               One = Mode->ModeDOF();
-               return new NewtonQRUpdatePCSolution(Mode,Input,One,Echo);
             }
          }
       }

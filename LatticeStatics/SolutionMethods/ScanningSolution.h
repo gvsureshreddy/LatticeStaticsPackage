@@ -15,6 +15,7 @@ private:
    int Echo_;
    LatticeMode *Mode_;
    int ModeDOFS_;
+   Vector ModeDOF_;
    int MaxIter_;
    double Tolerance_;
    double NewtonTolerance_;

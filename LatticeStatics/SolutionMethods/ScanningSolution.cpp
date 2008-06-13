@@ -13,6 +13,7 @@ ScanningSolution::ScanningSolution(LatticeMode *Mode,
    : Echo_(Echo),
      Mode_(Mode),
      ModeDOFS_(Mode_->ModeDOF().Dim()),
+     ModeDOF_(Mode_->ModeDOF()),
      MaxIter_(MaxIter),
      Tolerance_(Tolerance),
      NewtonTolerance_(NewtonTolerance),
@@ -37,6 +38,8 @@ ScanningSolution::ScanningSolution(LatticeMode *Mode,PerlInput &Input,int Echo)
      Mode_(Mode)
 {
    ModeDOFS_=Mode_->ModeDOF().Dim();
+   ModeDOF_.Resize(ModeDOFS_);
+   ModeDOF_=Mode_->ModeDOF();
    // Get parameters
    PerlInput::HashStruct Hash = Input.getHash("SolutionMethod","ScanningSolution");
    MaxIter_ = Input.getPosInt(Hash,"MaxIterations");
@@ -112,44 +115,36 @@ void ScanningSolution::InitializeLine()
 //----------------------------------------------------------------
 double ScanningSolution::ScanningDefParameter()
 {
-   return Mode_->ModeDOF()[ScnDefParam_];
+   return ModeDOF_[ScnDefParam_];
 }
 
 void ScanningSolution::ScanningDefParamSet(const double val)
 {
-   static Vector ModeDOF(ModeDOFS_);
-   ModeDOF = Mode_->ModeDOF();
-   ModeDOF[ScnDefParam_] = val;
-   Mode_->SetModeDOF(ModeDOF);
+   ModeDOF_[ScnDefParam_] = val;
+   Mode_->SetModeDOF(ModeDOF_);
 }
 
 void ScanningSolution::ScanningDefParamUpdate(const double newval)
 {
-   static Vector ModeDOF(ModeDOFS_);
-   ModeDOF = Mode_->ModeDOF();
-   ModeDOF[ScnDefParam_] += newval;
-   Mode_->SetModeDOF(ModeDOF);
+   ModeDOF_[ScnDefParam_] += newval;
+   Mode_->SetModeDOF(ModeDOF_);
 }
 
 double ScanningSolution::ScanningLoadParameter()
 {
-   return Mode_->ModeDOF()[ModeDOFS_-1];
+   return ModeDOF_[ModeDOFS_-1];
 }
 
 void ScanningSolution::ScanningLoadParamSet(const double val)
 {
-   static Vector ModeDOF(ModeDOFS_);
-   ModeDOF = Mode_->ModeDOF();
-   ModeDOF[ModeDOFS_-1] = val;
-   Mode_->SetModeDOF(ModeDOF);
+   ModeDOF_[ModeDOFS_-1] = val;
+   Mode_->SetModeDOF(ModeDOF_);
 }
 
 void ScanningSolution::ScanningLoadParamUpdate(const double newval)
 {
-   static Vector ModeDOF(ModeDOFS_);
-   ModeDOF = Mode_->ModeDOF();
-   ModeDOF[ModeDOFS_-1] += newval;
-   Mode_->SetModeDOF(ModeDOF);
+   ModeDOF_[ModeDOFS_-1] += newval;
+   Mode_->SetModeDOF(ModeDOF_);
 }
 
 double ScanningSolution::ScanningStressParameter()
@@ -182,10 +177,8 @@ Vector ScanningSolution::ScanningForce()
 
 Vector ScanningSolution::ScanningDef()
 {
-   static Vector ModeDOF(ModeDOFS_);
-   static Vector DEF(ModeDOFS_-2,0.0);
+   Vector DEF(ModeDOFS_-2,0.0);
    
-   ModeDOF = Mode_->ModeDOF();
    int a=0;
    
    if (ModeDOFS_ != 2)
@@ -194,7 +187,7 @@ Vector ScanningSolution::ScanningDef()
       {
          if (i != ScnDefParam_)
          {
-            DEF[a] = ModeDOF[i];
+            DEF[a] = ModeDOF_[i];
             ++a;
          }
       }
@@ -207,42 +200,34 @@ Vector ScanningSolution::ScanningDef()
 
 void ScanningSolution::ScanningSet(const Vector &val)
 {
-   static Vector ModeDOF(ModeDOFS_);
-   
-   ModeDOF = Mode_->ModeDOF();
-   
    for (int i=0;i<ModeDOFS_-1;++i)
    {
       if (i != ScnDefParam_)
       {
-         ModeDOF[i] = val[i];
+         ModeDOF_[i] = val[i];
       }
    }
    
-   Mode_->SetModeDOF(ModeDOF);
+   Mode_->SetModeDOF(ModeDOF_);
 }
 
 void ScanningSolution::ScanningUpdate(const Vector &newval)
 {
-   static Vector ModeDOF(ModeDOFS_);
-   
-   ModeDOF = Mode_->ModeDOF();
-   
    for (int i=0;i<ModeDOFS_-1;++i)
    {
       if (i != ScnDefParam_)
       {
-         ModeDOF[i] += newval[(i>ScnDefParam_)?i-1:i];
+         ModeDOF_[i] += newval[(i>ScnDefParam_)?i-1:i];
       }
    }
    
-   Mode_->SetModeDOF(ModeDOF);
+   Mode_->SetModeDOF(ModeDOF_);
 }
 
 Matrix ScanningSolution::ScanningStiffness()
 {
-   static Matrix ModeK(ModeDOFS_,ModeDOFS_+1);
-   static Matrix K(ModeDOFS_-2,ModeDOFS_-2);
+   Matrix ModeK(ModeDOFS_,ModeDOFS_+1);
+   Matrix K(ModeDOFS_-2,ModeDOFS_-2);
    
    int a=0,b=0;
    

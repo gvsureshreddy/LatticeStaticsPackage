@@ -18,6 +18,7 @@ private:
    
    int Echo_;
    int CurrentSolution_;
+   int UpdateType_;             // 0-QR update (default), 1-Stiffness update, 2-none
    int NumSolutions_;
    
    double MaxDS_;
@@ -35,16 +36,18 @@ private:
    Vector Tangent1_;            //Tangent vector of ith point
    Vector Tangent2_;            //Tangent Vector of ith + 1 point
    
-   void MoorePenrose(const Matrix &Q, const Matrix &R, const Vector &Force, Vector &Corrector);
+   void GetQR(Vector& Force,Vector& diff,Matrix& Q,Matrix& R);
+   void MoorePenrose(const Matrix& Q,const Matrix& R,const Vector& Force,Vector& Corrector);
+   void QRUpdate(const Vector& Force,const Vector& difference,Matrix& Q,Matrix& R);
    
 public:
    Vector Previous_Solution_;
    NewtonPCSolution(LatticeMode *Mode,const Vector &one,
-                    int CurrentSolution,int NumSolutions,double MaxDS,
-                    double CurrentDS,double cont_rate_nom,double delta_nom,double alpha_nom,
-                    double Converge,double MinDSRatio,const Vector &FirstSolution,
-                    int Direction=1,int ClosedLoopStart=CLOSEDDEFAULT,int StopAtCPNum=-1,
-                    int Echo=1);
+                    int CurrentSolution,int UpdateType,int NumSolutions,double MaxDS,
+                    double CurrentDS,double cont_rate_nom,double delta_nom,
+                    double alpha_nom,double Converge,double MinDSRatio,
+                    const Vector &FirstSolution,int Direction=1,
+                    int ClosedLoopStart=CLOSEDDEFAULT,int StopAtCPNum=-1,int Echo=1);
    NewtonPCSolution(LatticeMode *Mode,PerlInput &Input,const Vector &one,int Echo=1);
    NewtonPCSolution(LatticeMode *Mode,PerlInput &Input,int Echo);
    ~NewtonPCSolution() {}
@@ -53,6 +56,25 @@ public:
    virtual int AllSolutionsFound();
    virtual int FindNextSolution();
    virtual int FindCriticalPoint(Lattice *Lat,PerlInput &Input,int Width,fstream &out);
+   
+private:
+   // "static" member variables
+   // FindNextSolution
+   Vector v_static;
+   Vector w_static;
+   Vector Force_static;
+   Vector Corrector_static;
+   Vector difference_static;
+   Matrix Q_static;
+   Matrix R_static;
+   // GetQR
+   Matrix Stiff_static;
+   // MoorePenrose
+   Vector y_static;
+   // QRUpdate
+   Vector u_static;
+   Vector a_static;
+   Vector e_static;
 };
 
 #endif
