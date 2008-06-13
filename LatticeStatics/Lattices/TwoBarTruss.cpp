@@ -20,6 +20,7 @@ TwoBarTruss::TwoBarTruss(PerlInput& Input,int Echo,int Width):
    E1CachedValue_(1,2),
    E2CachedValue_(2,2)
 {
+   LoadParameter_ = Load;
    for (int i=0;i<3;++i)
    {
       Cached_[i] = 0;
@@ -75,7 +76,7 @@ Matrix TwoBarTruss::E1()
       Cached_[1] = 1;
       CallCount_[1]++;
    }
-   
+
    return E1CachedValue_;
 }
 
@@ -132,10 +133,12 @@ void TwoBarTruss::Print(ostream &out,PrintDetail flag)
    {
       case PrintLong:
          out << "TwoBarTruss:" << "\n" << "\n";
+         out << "Theta:" << setw(W) << Theta_ << "\n";
 
          if (Echo_)
          {
             cout << "TwoBarTruss:" << "\n" << "\n";
+            cout << "Theta:" << setw(W) << Theta_ << "\n";
          }
          // passthrough to short
       case PrintShort:
