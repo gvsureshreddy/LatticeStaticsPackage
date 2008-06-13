@@ -31,6 +31,4 @@ RadiiMorse2.d
 RadiiMorseCutoff.d
 RadiiMorseCutoff2.d
 NewtonPCSolution.d
-NewtonUpdatePCSolution.d
-NewtonQRUpdatePCSolution.d
-
+TwoBarTruss.d
