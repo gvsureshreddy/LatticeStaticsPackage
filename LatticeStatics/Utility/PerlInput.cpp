@@ -6,18 +6,18 @@ static PerlInterpreter *my_perl = NULL;
 
 void PerlInput::Initialize()
 {
-   char *args[] = {"","-e ''"};
+   char *args[] = {"perl","-W","-e","0"};
    if (my_perl != NULL)
    {
       cerr << "PerlInput Error: Can only have one instance of PerlInput!\n";
       exit(-3);
    }
    
-   PERL_SYS_INIT3(2,args,NULL);
+   PERL_SYS_INIT3(4,args,NULL);
    my_perl = perl_alloc();
    perl_construct(my_perl);
    PL_exit_flags|=PERL_EXIT_DESTRUCT_END;
-   perl_parse(my_perl,NULL,2,args, (char **)NULL);
+   perl_parse(my_perl,NULL,4,args, (char **)NULL);
    perl_run(my_perl);
 }
 
