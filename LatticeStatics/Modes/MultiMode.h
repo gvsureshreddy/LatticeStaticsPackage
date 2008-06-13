@@ -39,6 +39,19 @@ public:
    virtual void UpdateModeDOF(const Vector &dr);
    //----------------------------------------------------------------
    virtual char *ModeName() {return "MultiMode";}
+
+private:
+   // "static" member variables
+   // UpdateLatticeState
+   int size_static;
+   Vector DOF_static;
+   // ModeForce
+   Vector force_static;
+   Matrix stress_static;
+   // ModeStiffness
+   Matrix K_static;
+   Matrix Stiff_static;
+   Matrix stressdt_static;
 };
 
 #endif

@@ -54,10 +54,10 @@ void PPSum::Reset()
 
 void PPSum::Initialize()
 {
-   static double X[3];
-   static double Influencedist[3],tmp;
-   static int p,q,i;
-   static int Top[3],Bottom[3],CurrentInfluenceDist;
+   double X[3];
+   double Influencedist[3],tmp;
+   int p,q,i;
+   int Top[3],Bottom[3],CurrentInfluenceDist;
    
    CBK_->InfluenceRegion(Influencedist);
    for (i=0;i<3;i++)

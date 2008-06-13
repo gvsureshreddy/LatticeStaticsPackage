@@ -62,10 +62,10 @@ void ChainSum::Reset()
 
 void ChainSum::Initialize()
 {
-   static double X;
-   static double Influancedist,tmp;
-   static int p,q;
-   static int Top,Bottom,CurrentInfluanceDist;
+   double X;
+   double Influancedist,tmp;
+   int p,q;
+   int Top,Bottom,CurrentInfluanceDist;
    
    F_ = (*DOF_)[0];
    

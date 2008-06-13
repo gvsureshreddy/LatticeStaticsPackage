@@ -44,6 +44,16 @@ MultiMode::MultiMode(Lattice *M,PerlInput &Input)
       
       BaselineDOF_[temp2] =  temp3;
    }
+
+   // intitalize "static" member variables
+   size_static = (Lattice_->DOF()).Dim();
+   DOF_static.Resize(size_static);
+   force_static.Resize(DOFS_);
+   stress_static.Resize(1,size_static);
+   K_static.Resize(DOFS_,DOFS_+1);
+   Stiff_static.Resize(size_static,size_static);
+   stressdt_static.Resize(1,size_static);
+
 }
 
 // Functions required by LatticeMode
@@ -65,53 +75,44 @@ Vector MultiMode::DrDt(const Vector &Diff)
 //----------------------------------------------------------------
 void MultiMode::UpdateLatticeState()
 {
-   static int size = (Lattice_->DOF()).Dim();
-   static Vector DOF(size);
-   for (int i=0;i<size;++i)
+   for (int i=0;i<size_static;++i)
    {
-      DOF[i] = BaselineDOF_[i];
+      DOF_static[i] = BaselineDOF_[i];
    }
    
    for (int i=0;i<DOFS_;++i)
    {
       for (int j=0;j<DOFindlen_[i];++j)
       {
-         DOF[DOFindex_[i][j]] += DOFMult_[i][j]*ModeDOF_[i];
+         DOF_static[DOFindex_[i][j]] += DOFMult_[i][j]*ModeDOF_[i];
       }
    }
    
-   Lattice_->SetDOF(DOF);
+   Lattice_->SetDOF(DOF_static);
    Lattice_->SetLoadParameter(ModeDOF_[DOFS_]);
 }
 
 Vector MultiMode::ModeForce()
 {
-   static Vector force(DOFS_);
-   static Matrix stress(1,(Lattice_->DOF()).Dim());
-   
-   stress = Lattice_->E1();
+   stress_static = Lattice_->E1();
    
    for (int i=0;i<DOFS_;++i)
    {
-      force[i] = 0.0;
+      force_static[i] = 0.0;
       for (int j=0;j<DOFindlen_[i];j++)
       {
-         force[i] += DOFMult_[i][j]*stress[0][DOFindex_[i][j]];
+         force_static[i] += DOFMult_[i][j]*stress_static[0][DOFindex_[i][j]];
       }
    }
    
-   return force;
+   return force_static;
 }
 
 Matrix MultiMode::ModeStiffness()
 {
-   static Matrix K(DOFS_,DOFS_+1);
-   static Matrix Stiff((Lattice_->DOF()).Dim(),(Lattice_->DOF()).Dim());
-   static Matrix stressdt(1,(Lattice_->DOF()).Dim());
-   
-   K.Resize(DOFS_,DOFS_+1,0.0);
-   Stiff = Lattice_->E2();
-   stressdt = Lattice_->E1DLoad();
+   K_static.Resize(DOFS_,DOFS_+1,0.0);
+   Stiff_static = Lattice_->E2();
+   stressdt_static = Lattice_->E1DLoad();
    
    for (int i=0;i<DOFS_;++i)
    {
@@ -121,16 +122,16 @@ Matrix MultiMode::ModeStiffness()
          {
             for (int l=0;l<DOFindlen_[k];++l)
             {
-               K[i][k] +=
-                  DOFMult_[i][j]*(Stiff[DOFindex_[i][j]][DOFindex_[k][l]])*DOFMult_[k][l];
+               K_static[i][k] +=
+                  DOFMult_[i][j]*(Stiff_static[DOFindex_[i][j]][DOFindex_[k][l]])*DOFMult_[k][l];
             }
          }
          
-         K[i][DOFS_] += DOFMult_[i][j]*stressdt[0][DOFindex_[i][j]];
+         K_static[i][DOFS_] += DOFMult_[i][j]*stressdt_static[0][DOFindex_[i][j]];
       }
    }
    
-   return K;
+   return K_static;
 }
 
 void MultiMode::SetModeDOF(const Vector &dof)
