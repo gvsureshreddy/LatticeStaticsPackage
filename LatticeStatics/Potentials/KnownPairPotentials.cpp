@@ -11,7 +11,7 @@ PairPotentials* InitializePairPotential(PerlInput::HashStruct ParentHash,PerlInp
    char tmp[LINELENGTH];
    double Eps0,Eps1,Sigma0,Sigma1,rcut;
    double Tref,A0,AT,B0,BT,Alpha,Rref1,Rref2,Tmelt;
-   double Rtheta1,Rtheta2,Cutoff;
+   double Rtheta1,Rtheta1Pow,Rtheta2,Rtheta2Pow,Cutoff;
    
    sprintf(tmp,"PotentialType_%u_%u",i,j);
    PerlInput::HashStruct Hash = Input.getHash(ParentHash,tmp);
@@ -42,10 +42,12 @@ PairPotentials* InitializePairPotential(PerlInput::HashStruct ParentHash,PerlInp
       BT = Input.getDouble(Hash,"BT");
       Rref1 = Input.getDouble(Hash,"Rref1");
       Rtheta1 = Input.getDouble(Hash,"Rtheta1");
+      Rtheta1Pow = Input.getDouble(Hash,"Rtheta1Pow");
       Rref2 = Input.getDouble(Hash,"Rref2");
       Rtheta2 = Input.getDouble(Hash,"Rtheta2");
+      Rtheta2Pow = Input.getDouble(Hash,"Rtheta2Pow");
       
-      return new RadiiMorse(A0,AT,B0,BT,Rref1,Rref2,Rtheta1,Rtheta2);
+      return new RadiiMorse(A0,AT,B0,BT,Rref1,Rtheta1,Rtheta1Pow,Rref2,Rtheta2,Rtheta2Pow);
    }
    else if (!strcmp("RadiiMorseCutoff",Input.getString(Hash,"Type")))
    {
@@ -55,11 +57,14 @@ PairPotentials* InitializePairPotential(PerlInput::HashStruct ParentHash,PerlInp
       BT = Input.getDouble(Hash,"BT");
       Rref1 = Input.getDouble(Hash,"Rref1");
       Rtheta1 = Input.getDouble(Hash,"Rtheta1");
+      Rtheta1Pow = Input.getDouble(Hash,"Rtheta1Pow");
       Rref2 = Input.getDouble(Hash,"Rref2");
       Rtheta2 = Input.getDouble(Hash,"Rtheta2");
+      Rtheta2Pow = Input.getDouble(Hash,"Rtheta2Pow");
       Cutoff = Input.getDouble(Hash,"Cutoff");
 
-      return new RadiiMorseCutoff(A0,AT,B0,BT,Rref1,Rref2,Rtheta1,Rtheta2,Cutoff);
+      return new RadiiMorseCutoff(A0,AT,B0,BT,Rref1,Rtheta1,Rtheta1Pow,Rref2,Rtheta2,
+                                  Rtheta2Pow,Cutoff);
    }
    else if (!strcmp("RadiiMorseCutoff2",Input.getString(Hash,"Type")))
    {
@@ -69,11 +74,14 @@ PairPotentials* InitializePairPotential(PerlInput::HashStruct ParentHash,PerlInp
       BT = Input.getDouble(Hash,"BT");
       Rref1 = Input.getDouble(Hash,"Rref1");
       Rtheta1 = Input.getDouble(Hash,"Rtheta1");
+      Rtheta1Pow = Input.getDouble(Hash,"Rtheta1Pow");
       Rref2 = Input.getDouble(Hash,"Rref2");
       Rtheta2 = Input.getDouble(Hash,"Rtheta2");
+      Rtheta2Pow = Input.getDouble(Hash,"Rtheta2Pow");
       Cutoff = Input.getDouble(Hash,"Cutoff");
 
-      return new RadiiMorseCutoff2(A0,AT,B0,BT,Rref1,Rref2,Rtheta1,Rtheta2,Cutoff);
+      return new RadiiMorseCutoff2(A0,AT,B0,BT,Rref1,Rtheta1,Rtheta1Pow,Rref2,Rtheta2,
+                                  Rtheta2Pow,Cutoff);
    }
    else if (!strcmp("TempMorse",Input.getString(Hash,"Type")))
    {

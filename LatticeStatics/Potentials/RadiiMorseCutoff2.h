@@ -13,8 +13,9 @@ private:
 public:
    
    RadiiMorseCutoff2() {};
-   RadiiMorseCutoff2(double A0,double AT,double B0,double BT,double Rref1,double Rref2,
-                    double Rtheta1,double Rtheta2,double Cutoff);
+   RadiiMorseCutoff2(double A0,double AT,double B0,double BT,double Rref1,double Rtheta1,
+                     double Rtheta1Pow,double Rref2,double Rtheta2,double Rtheta2Pow,
+                     double Cutoff);
    ~RadiiMorseCutoff2() {};
    friend ostream &operator<<(ostream &out,RadiiMorseCutoff2 &A);
    double PairPotential(double NTemp,double r2,YDeriv dy=Y0,TDeriv dt=T0);
