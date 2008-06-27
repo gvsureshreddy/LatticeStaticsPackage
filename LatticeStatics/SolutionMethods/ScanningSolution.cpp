@@ -226,11 +226,11 @@ void ScanningSolution::ScanningUpdate(const Vector &newval)
 
 Matrix ScanningSolution::ScanningStiffness()
 {
-   Matrix ModeK(ModeDOFS_,ModeDOFS_+1);
+   Matrix ModeK = Mode_->ModeStiffness();
    Matrix K(ModeDOFS_-2,ModeDOFS_-2);
    
    int a=0,b=0;
-   
+
    if (ModeDOFS_ != 2)
    {
       for (int i=0;i<ModeDOFS_-1;++i)
@@ -239,11 +239,12 @@ Matrix ScanningSolution::ScanningStiffness()
          {
             for (int j=0;j<ModeDOFS_-1;++j)
             {
+               b=0;
                if (j != ScnDefParam_)
                {
                   K[a][b] = ModeK[i][j];
+                  ++b;               
                }
-               ++b;
             }
             ++a;
          }
@@ -422,7 +423,7 @@ void ScanningSolution::ScanningNewton(int &good)
    
    Vector RHS=-ScanningForce();
    Vector dx(RHS.Dim());
-   
+
    if (Direction_ == Loading)
    {
       ScanningLoadParamUpdate(-LineStep_);
@@ -431,7 +432,7 @@ void ScanningSolution::ScanningNewton(int &good)
    {
       ScanningDefParamUpdate(-LineStep_);
    }
-   
+
 #ifdef SOLVE_SVD
    dx = SolveSVD(ScanningStiffness(),
                  RHS,
@@ -439,7 +440,7 @@ void ScanningSolution::ScanningNewton(int &good)
 #else
    dx = SolvePLU(ScanningStiffness(),RHS);
 #endif
-   
+
    ScanningUpdate(dx);
    
    if (Direction_ == Loading)
