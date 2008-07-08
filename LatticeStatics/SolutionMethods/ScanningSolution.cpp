@@ -3,13 +3,14 @@
 
 using namespace std;
 
-ScanningSolution::ScanningSolution(LatticeMode *Mode,
-                                   int MaxIter,double Tolerance,double NewtonTolerance,
-                                   YN ScanFullField,Vector &InitialDef,
-                                   int ScnDefParam,ScanDir Direction,
-                                   double ScanStart,double ScanEnd,double ScanStep,
-                                   double LineStart,double LineEnd,double LineStep,
-                                   YN OnSolution,int Echo)
+ScanningSolution::ScanningSolution(LatticeMode* const Mode,int const& MaxIter,
+                                   double const& Tolerance,double const& NewtonTolerance,
+                                   YN const& ScanFullField,Vector const& InitialDef,
+                                   int const& ScnDefParam,ScanDir const& Direction,
+                                   double const& ScanStart,double const& ScanEnd,
+                                   double const& ScanStep,double const& LineStart,
+                                   double const& LineEnd,double const& LineStep,
+                                   YN const& OnSolution,int const& Echo)
    : Echo_(Echo),
      Mode_(Mode),
      ModeDOFS_(Mode_->ModeDOF().Dim()),
@@ -28,12 +29,15 @@ ScanningSolution::ScanningSolution(LatticeMode *Mode,
      LineStart_(LineStart),
      LineEnd_(LineEnd),
      LineStep_(LineStep),
-     CurrentScanLine_(ScanStart)
+     CurrentScanLine_(ScanStart),
+     stress_static(ModeDOFS_-1),
+     ModeK_static(ModeDOFS_-1,ModeDOFS_)
 {
    InitializeLine();
 }
 
-ScanningSolution::ScanningSolution(LatticeMode *Mode,PerlInput &Input,int Echo)
+ScanningSolution::ScanningSolution(LatticeMode* const Mode,PerlInput const& Input,
+                                   int const& Echo)
    : Echo_(Echo),
      Mode_(Mode)
 {
@@ -84,6 +88,10 @@ ScanningSolution::ScanningSolution(LatticeMode *Mode,PerlInput &Input,int Echo)
    LineStart_ = Input.getDouble(Hash,"LineStart");
    LineEnd_ = Input.getDouble(Hash,"LineEnd");
    LineStep_ = Input.getDouble(Hash,"LineStep");
+
+   // Initialize various data storage space
+   stress_static.Resize(ModeDOFS_-1);
+   ModeK_static.Resize(ModeDOFS_-1,ModeDOFS_);
       
    // Initialize Lattice to be ready to
    // find a solution
@@ -113,49 +121,74 @@ void ScanningSolution::InitializeLine()
 }
 
 //----------------------------------------------------------------
-double ScanningSolution::ScanningDefParameter()
+double const& ScanningSolution::ScanningDefParameter() const
 {
    return ModeDOF_[ScnDefParam_];
 }
 
-void ScanningSolution::ScanningDefParamSet(const double val)
+void ScanningSolution::ScanningDefParamSet(double const& val)
 {
    ModeDOF_[ScnDefParam_] = val;
    Mode_->SetModeDOF(ModeDOF_);
 }
 
-void ScanningSolution::ScanningDefParamUpdate(const double newval)
+void ScanningSolution::ScanningDefParamUpdate(double const& newval)
 {
    ModeDOF_[ScnDefParam_] += newval;
    Mode_->SetModeDOF(ModeDOF_);
 }
 
-double ScanningSolution::ScanningLoadParameter()
+double const& ScanningSolution::ScanningLoadParameter() const
 {
    return ModeDOF_[ModeDOFS_-1];
 }
 
-void ScanningSolution::ScanningLoadParamSet(const double val)
+void ScanningSolution::ScanningLoadParamSet(double const& val)
 {
    ModeDOF_[ModeDOFS_-1] = val;
    Mode_->SetModeDOF(ModeDOF_);
 }
 
-void ScanningSolution::ScanningLoadParamUpdate(const double newval)
+void ScanningSolution::ScanningLoadParamUpdate(double const& newval)
 {
    ModeDOF_[ModeDOFS_-1] += newval;
    Mode_->SetModeDOF(ModeDOF_);
 }
 
-double ScanningSolution::ScanningStressParameter()
+double const& ScanningSolution::ScanningStressParameter() const
 {
    return (Mode_->ModeForce())[ScnDefParam_];
 }
 
-Vector ScanningSolution::ScanningForce()
+Vector const& ScanningSolution::ScanningForce() const
 {
-   Vector stress = Mode_->ModeForce();
-   Vector force(ModeDOFS_-2,0.0);
+   stress_static = Mode_->ModeForce();
+   force_static.Resize(ModeDOFS_-2,0.0);
+   int a=0;
+
+   if (ModeDOFS_ != 2)
+   {
+      for (int i=0;i<ModeDOFS_-1;++i)
+      {
+         if (i != ScnDefParam_)
+         {
+            force_static[a] = stress_static[i];
+            ++a;
+         }
+      }
+   }
+   else
+   {
+      force_static.Resize(1,0.0);
+   }
+   
+   return force_static;
+}
+
+Vector const& ScanningSolution::ScanningDef() const
+{
+   DEF_static.Resize(ModeDOFS_-2,0.0);
+   
    int a=0;
    
    if (ModeDOFS_ != 2)
@@ -164,41 +197,20 @@ Vector ScanningSolution::ScanningForce()
       {
          if (i != ScnDefParam_)
          {
-            force[a] = stress[i];
+            DEF_static[a] = ModeDOF_[i];
             ++a;
          }
       }
-      
-      return force;
    }
    else
-      return Vector(1,0.0);
-}
-
-Vector ScanningSolution::ScanningDef()
-{
-   Vector DEF(ModeDOFS_-2,0.0);
-   
-   int a=0;
-   
-   if (ModeDOFS_ != 2)
    {
-      for (int i=0;i<ModeDOFS_-1;++i)
-      {
-         if (i != ScnDefParam_)
-         {
-            DEF[a] = ModeDOF_[i];
-            ++a;
-         }
-      }
-      
-      return DEF;
+      DEF_static.Resize(1,0.0);
    }
-   else
-      return Vector(1,0.0);
+
+   return DEF_static;
 }
 
-void ScanningSolution::ScanningSet(const Vector &val)
+void ScanningSolution::ScanningSet(Vector const& val)
 {
    for (int i=0;i<ModeDOFS_-1;++i)
    {
@@ -211,7 +223,7 @@ void ScanningSolution::ScanningSet(const Vector &val)
    Mode_->SetModeDOF(ModeDOF_);
 }
 
-void ScanningSolution::ScanningUpdate(const Vector &newval)
+void ScanningSolution::ScanningUpdate(Vector const& newval)
 {
    for (int i=0;i<ModeDOFS_-1;++i)
    {
@@ -224,10 +236,10 @@ void ScanningSolution::ScanningUpdate(const Vector &newval)
    Mode_->SetModeDOF(ModeDOF_);
 }
 
-Matrix ScanningSolution::ScanningStiffness()
+Matrix const& ScanningSolution::ScanningStiffness() const
 {
-   Matrix ModeK = Mode_->ModeStiffness();
-   Matrix K(ModeDOFS_-2,ModeDOFS_-2);
+   ModeK_static = Mode_->ModeStiffness();
+   K_static.Resize(ModeDOFS_-2,ModeDOFS_-2);
    
    int a=0,b=0;
 
@@ -242,21 +254,24 @@ Matrix ScanningSolution::ScanningStiffness()
                b=0;
                if (j != ScnDefParam_)
                {
-                  K[a][b] = ModeK[i][j];
+                  K_static[a][b] = ModeK_static[i][j];
                   ++b;               
                }
             }
             ++a;
          }
       }
-      return K;
    }
    else
-      return Matrix(1,1,1.0);
+   {
+      K_static.Resize(1,1,1.0);
+   }
+
+   return K_static;
 }
 //----------------------------------------------------------------
 
-int ScanningSolution::AllSolutionsFound()
+int ScanningSolution::AllSolutionsFound() const
 {
    return CurrentScanLine_*(ScanStep_/fabs(ScanStep_))
       > ScanEnd_*(ScanStep_/fabs(ScanStep_));
@@ -281,9 +296,9 @@ int ScanningSolution::FindNextSolution()
             ScanningDefParamUpdate(LineStep_);
       }
    }
-   
+
    ScanningNewton(good);
-   
+
    double stepsize;
    double val = ScanningStressParameter(),
       oldval = val,
@@ -417,10 +432,10 @@ int ScanningSolution::FindNextSolution()
    return good;
 }
 
-void ScanningSolution::ScanningNewton(int &good)
+void ScanningSolution::ScanningNewton(int& good)
 {
    int itr=0;
-   
+
    Vector RHS=-ScanningForce();
    Vector dx(RHS.Dim());
 

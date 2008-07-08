@@ -1,6 +1,6 @@
 #include "MixedCB.h"
 
-MixedCB::MixedCB(int InternalAtoms,Matrix &RefLattice,Vector *AtomPositions)
+MixedCB::MixedCB(int const& InternalAtoms,Matrix& RefLattice,Vector* const AtomPositions)
    : CBKinematics(InternalAtoms,RefLattice,AtomPositions)
 {
    F_.Resize(DIM3,DIM3);
@@ -10,7 +10,7 @@ MixedCB::MixedCB(int InternalAtoms,Matrix &RefLattice,Vector *AtomPositions)
    Reset();
 }
 
-MixedCB::MixedCB(PerlInput &Input,PerlInput::HashStruct *ParentHash)
+MixedCB::MixedCB(PerlInput const& Input,PerlInput::HashStruct const* const ParentHash)
    : CBKinematics(Input,ParentHash)
 {
    F_.Resize(DIM3,DIM3);
@@ -41,7 +41,7 @@ void MixedCB::Reset()
    }
 }
 
-Vector MixedCB::FractionalPosVec(int p)
+Vector MixedCB::FractionalPosVec(int const& p) const
 {
    Vector fracpos(DIM3,0.0),tmp(DIM3,0.0);
    Matrix CurrentLattice(DIM3,DIM3,0.0),InverseLattice(DIM3,DIM3);
@@ -67,7 +67,7 @@ Vector MixedCB::FractionalPosVec(int p)
    return fracpos;;
 }
 
-double MixedCB::DX(double *X,int p,int q,int i)
+double MixedCB::DX(double const* const X,int const& p,int const& q,int const& i) const
 {
    double tmp=0.0;
    
@@ -79,7 +79,7 @@ double MixedCB::DX(double *X,int p,int q,int i)
    return tmp;
 }
 
-double MixedCB::Dx(double *X,int p,int q,int i)
+double MixedCB::Dx(double const* const X,int const& p,int const& q,int const& i) const
 {
    double tmp=0.0;
    
@@ -92,42 +92,52 @@ double MixedCB::Dx(double *X,int p,int q,int i)
    return tmp;
 }
 
-double MixedCB::DyDF(double *Dx,double *DX,int r, int s)
+double MixedCB::DyDF(double const* const Dx,double const* const DX,int const& r,int const& s)
+   const
 {
    return 2.0*Dx[r]*DX[s];
 }
 
-double MixedCB::D2yDFF(double *DX,int r, int s, int t, int u)
+double MixedCB::D2yDFF(double const* const DX,int const& r,int const& s,int const& t,
+                       int const& u) const
 {
    return 2.0*Del(r,t)*DX[s]*DX[u];
 }
 
-double MixedCB::DyDS(double *Dx,int p,int q,int i, int j)
+double MixedCB::DyDS(double const* const Dx,int const& p,int const& q,int const& i,
+                     int const& j) const
 {
    return 2.0*DELTA(i,p,q)*Dx[j];
 }
 
-double MixedCB::D2yDSS(int p,int q,int i,int j,int k,int l)
+double MixedCB::D2yDSS(int const& p,int const& q,int const& i,int const& j,int const& k,
+                       int const& l) const
 {
    return 2.0*DELTA(i,p,q)*DELTA(k,p,q)*Del(j,l);
 }
 
-double MixedCB::D2yDFS(double *Dx,double *DX,int p,int q,int i,int j,int k,int l)
+double MixedCB::D2yDFS(double const* const Dx,double const* const DX,int const& p,int const& q,
+                       int const& i,int const& j,int const& k,int const& l) const
 {
    return 2.0*DELTA(k,p,q)*Del(i,l)*DX[j];
 }
 
-double MixedCB::D3yDFFS(double *DX,int p,int q,int i,int j,int k,int l,int m, int n)
+double MixedCB::D3yDFFS(double const* const DX,int const& p,int const& q,int const& i,
+                        int const& j,int const& k,int const& l,int const& m,int const& n)
+   const
 {
    return 0.0;
 }
 
-double MixedCB::D3yDSSF(int p,int q,int i,int j,int k,int l,int m,int n)
+double MixedCB::D3yDSSF(int const& p,int const& q,int const& i,int const& j,int const& k,
+                        int const& l,int const& m,int const& n) const
 {
    return 0.0;
 }
 
-double MixedCB::D4yDFFSS(int p,int q,int i,int j,int k,int l,int m,int n,int a,int b)
+double MixedCB::D4yDFFSS(int const& p,int const& q,int const& i,int const& j,int const& k,
+                         int const& l,int const& m,int const& n,int const& a,int const& b)
+   const
 {
    return 0.0;
 }

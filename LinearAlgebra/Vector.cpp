@@ -5,19 +5,19 @@
 #include <cmath>
 
 // Global IDString
-char VectorID[]="$Id: Vector.cpp,v 1.15 2008/03/26 02:35:29 elliott Exp $";
+char VectorID[]="$Id: Vector.cpp,v 1.16 2008/07/08 04:18:33 elliott Exp $";
 
 // Private Functions...
 
 // Public Functions...
 
-Vector::Vector(const int& Cols,const Vector::Elm& InitVal)
+Vector::Vector(int const& Cols,Vector::Elm const& InitVal)
 {
    Cols_=Cols;
 
    if (Cols_==0)
    {
-      Elements_=NULL;
+      Elements_=0;
    }
    else
    {
@@ -33,13 +33,13 @@ Vector::Vector(const int& Cols,const Vector::Elm& InitVal)
    return;
 }
 
-Vector::Vector(const Vector& A)
+Vector::Vector(Vector const& A)
 {
    Cols_=A.Cols_;
    
    if (Cols_==0)
    {
-      Elements_=NULL;
+      Elements_=0;
    }
    else
    {
@@ -51,13 +51,13 @@ Vector::Vector(const Vector& A)
    return;
 }
 
-Vector::Vector(const Vector3D& A)
+Vector::Vector(Vector3D const& A)
 {
    Cols_=3;
    
    if (Cols_==0)
    {
-      Elements_=NULL;
+      Elements_=0;
    }
    else
    {
@@ -72,7 +72,7 @@ Vector::Vector(const Vector3D& A)
    return;
 }
 
-Vector::Vector(const Matrix& A)
+Vector::Vector(Matrix const& A)
 {
    if (A.IsNull() || (A.Rows()!=1 && A.Cols()!=1))
    {
@@ -87,7 +87,7 @@ Vector::Vector(const Matrix& A)
    
       if (Cols_==0)
       {
-         Elements_=NULL;
+         Elements_=0;
       }
       else
       {
@@ -102,7 +102,7 @@ Vector::Vector(const Matrix& A)
    
       if (Cols_==0)
       {
-         Elements_=NULL;
+         Elements_=0;
       }
       else
       {
@@ -122,7 +122,7 @@ Vector::~Vector()
    return;   
 }
 
-Vector operator+(const Vector& A,const Vector& B)
+Vector operator+(Vector const& A,Vector const& B)
 {
    if (A.Cols_!=B.Cols_ || A.Cols_==0 || B.Cols_==0)
    {
@@ -136,7 +136,7 @@ Vector operator+(const Vector& A,const Vector& B)
 
       for (register int j=0;j<A.Cols_;j++)
       {
-	 C.Elements_[j]=A.Elements_[j]+B.Elements_[j];
+	 C[j]=A[j]+B[j];
       }
 
       return C;
@@ -144,7 +144,7 @@ Vector operator+(const Vector& A,const Vector& B)
    return Vector(); // dummy statement to avoid warning
 }
 
-Vector operator-(const Vector& A,const Vector& B)
+Vector operator-(Vector const& A,Vector const& B)
 {
    if (A.Cols_!=B.Cols_ || A.Cols_==0 || B.Cols_==0)
    {
@@ -158,7 +158,7 @@ Vector operator-(const Vector& A,const Vector& B)
 
       for (register int j=0;j<A.Cols_;j++)
       {
-	 C.Elements_[j]=A.Elements_[j]-B.Elements_[j];
+	 C[j]=A[j]-B[j];
       }
 
       return C;
@@ -166,18 +166,18 @@ Vector operator-(const Vector& A,const Vector& B)
    return Vector(); // dummy statement to avoid warning
 }
 
-Vector operator-(const Vector& A)
+Vector operator-(Vector const& A)
 {
    Vector B(A.Cols_);
 
    for (register int i=0;i<A.Cols_;i++)
-      B.Elements_[i]=-A.Elements_[i];
+      B[i]=-A[i];
 
    return B;
 }
 
 // Dot Product
-Vector::Elm operator*(const Vector& A,const Vector& B)
+Vector::Elm const operator*(Vector const& A,Vector const& B)
 {
    if (A.Cols_==0 || B.Cols_==0 || A.Cols_!=B.Cols_)
    {
@@ -190,14 +190,14 @@ Vector::Elm operator*(const Vector& A,const Vector& B)
 
    for (register int i=0;i<A.Cols_;i++)
    {
-      sum+=A.Elements_[i]*B.Elements_[i];
+      sum+=A[i]*B[i];
    }
 
    return sum;
 }
 
 // Cross Product
-Vector operator%(const Vector& A,const Vector& B)
+Vector operator%(Vector const& A,Vector const& B)
 {
    if (A.Cols_==0 || B.Cols_==0 || A.Cols_!=B.Cols_ || A.Cols_!=3)
    {
@@ -208,17 +208,14 @@ Vector operator%(const Vector& A,const Vector& B)
    
    Vector C(A.Cols_);
 
-   C.Elements_[0]=A.Elements_[1]*B.Elements_[2]
-                  -A.Elements_[2]*B.Elements_[1];
-   C.Elements_[1]=-(A.Elements_[0]*B.Elements_[2]
-                  -A.Elements_[2]*B.Elements_[0]);
-   C.Elements_[2]=A.Elements_[0]*B.Elements_[1]
-                  -A.Elements_[1]*B.Elements_[0];
+   C[0]=A[1]*B[2]-A[2]*B[1];
+   C[1]=-(A[0]*B[2]-A[2]*B[0]);
+   C[2]=A[0]*B[1]-A[1]*B[0];
 
    return C;
 }
 
-Vector operator*(const Matrix& A,const Vector& B)
+Vector operator*(Matrix const& A,Vector const& B)
 {
    if (A.Cols()!=B.Cols_ || A.IsNull() || B.Cols_==0)
    {
@@ -234,7 +231,7 @@ Vector operator*(const Matrix& A,const Vector& B)
       {
 	 for (register int k=0;k<B.Cols_;k++)
 	 {
-	    C.Elements_[i]+=A.Elements_[i][k]*B.Elements_[k];
+	    C[i]+=A[i][k]*B[k];
 	 }
       }
 
@@ -243,7 +240,7 @@ Vector operator*(const Matrix& A,const Vector& B)
    return Vector(); // dummy statement to avoid warning
 }
 
-Vector operator*(const Vector& A,const Matrix& B)
+Vector operator*(Vector const& A,Matrix const& B)
 {
    if (B.Cols()!=A.Cols_ || B.IsNull() || A.Cols_==0)
    {
@@ -259,7 +256,7 @@ Vector operator*(const Vector& A,const Matrix& B)
       {
 	 for (register int k=0;k<A.Cols_;k++)
 	 {
-	    C.Elements_[i]+=A.Elements_[k]*B.Elements_[k][i];
+	    C[i]+=A[k]*B[k][i];
 	 }
       }
 
@@ -268,44 +265,44 @@ Vector operator*(const Vector& A,const Matrix& B)
    return Vector(); // dummy statement to avoid warning
 }
 
-Vector operator*(const Vector::Elm& A,const Vector& B)
+Vector operator*(Vector::Elm const& A,Vector const& B)
 {
    Vector C(B.Cols_);
 
    for (register int i=0;i<B.Cols_;i++)
    {
-      C.Elements_[i]=A*B.Elements_[i];
+      C[i]=A*B[i];
    }
 
    return C;
 }
 
-Vector operator*(const Vector& A,const Vector::Elm& B)
+Vector operator*(Vector const& A,Vector::Elm const& B)
 {
    Vector C(A.Cols_);
 
    for (register int i=0;i<A.Cols_;i++)
    {
-      C.Elements_[i]=B*A.Elements_[i];
+      C[i]=B*A[i];
    }
 
    return C;
 }
 
-Vector operator/(const Vector& A,const Vector::Elm& B)
+Vector operator/(Vector const& A,Vector::Elm const& B)
 {
    Vector C(A.Cols_);
 
    for (register int i=0;i<A.Cols_;i++)
    {
-      C.Elements_[i]=A.Elements_[i]/B;
+      C[i]=A[i]/B;
    }
 
    return C;
 }
 
 #ifdef CHECK_BOUNDS
-Vector::Elm& Vector::operator[](const int& i)
+Vector::Elm& Vector::operator[](int const& i)
 {
    if (i>=Cols_)
    {
@@ -316,7 +313,7 @@ Vector::Elm& Vector::operator[](const int& i)
    return Elements_[i];
 }
 
-Vector::Elm Vector::operator[](const int& i) const
+Vector::Elm const& Vector::operator[](int const& i) const
 {
    if (i>=Cols_)
    {
@@ -328,7 +325,7 @@ Vector::Elm Vector::operator[](const int& i) const
 }
 #endif
 
-Vector& Vector::operator=(const Vector& B)
+Vector& Vector::operator=(Vector const& B)
 {
    if (Cols_!=B.Cols_ || Cols_==0 || B.Cols_==0)
    {
@@ -343,7 +340,7 @@ Vector& Vector::operator=(const Vector& B)
    return *this;
 }
 
-void Vector::Resize(const int& Cols,const Matrix::Elm& InitVal)
+void Vector::Resize(int const& Cols,Matrix::Elm const& InitVal)
 {
    if (Cols!=Cols_)
    {
@@ -353,7 +350,7 @@ void Vector::Resize(const int& Cols,const Matrix::Elm& InitVal)
       
       if (Cols_==0)
       {
-	 Elements_=NULL;
+	 Elements_=0;
       }
       else
       {
@@ -372,43 +369,43 @@ void Vector::Resize(const int& Cols,const Matrix::Elm& InitVal)
    return;
 }
 
-Matrix::Elm Vector::Norm()
+Matrix::Elm Vector::Norm() const
 {
    return sqrt(*this*(*this));
 }
 
-Vector SolvePLU(const Matrix& A,const Vector& B)
+Vector SolvePLU(Matrix const& A,Vector const& B)
 {
    Matrix C(B.Cols_,1);
 
    for(register int i=0;i<B.Cols_;i++)
    {
-      C[i][0]=B.Elements_[i];
+      C[i][0]=B[i];
    }
 
       return SolvePLU(A,C);
 }
 
-Vector SolveSVD(const Matrix& A,const Vector& B,const Vector::Elm MaxCond,
-		const int PrintFlag)
+Vector SolveSVD(Matrix const& A,Vector const& B,Vector::Elm const& MaxCond,
+		int const& PrintFlag)
 {
    Matrix C(B.Cols_,1);
 
    for(register int i=0;i<B.Cols_;i++)
    {
-      C[i][0]=B.Elements_[i];
+      C[i][0]=B[i];
    }
 
       return SolveSVD(A,C,MaxCond,PrintFlag);
 }
 
-ostream& operator<<(ostream& out,const Vector& A)
+ostream& operator<<(ostream& out,Vector const& A)
 {
    int W=out.width();
 
    for (register int i=0;i<A.Cols_;i++)
    {
-      out << setw(W) << A.Elements_[i];
+      out << setw(W) << A[i];
    }
 
    return out;
@@ -417,12 +414,12 @@ ostream& operator<<(ostream& out,const Vector& A)
 istream& operator>>(istream& in,Vector& A)
 {
    for (register int i=0;i<A.Cols_;i++)
-      in >> A.Elements_[i];
+      in >> A[i];
 
    return in;
 }
 
-char* Vector::Revision()
+char const* const Vector::Revision()
 {
    return VectorID;
 }

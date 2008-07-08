@@ -32,11 +32,11 @@ public:
    // Postcond. Vector of size 1xCols allocated and
    // each element set to Inital Value (or not set at all)
    // Devaults: Cols-0,Initial Value= (un initialized)
-   Vector(const int& Cols=0,const Elm& InitVal=SENTINAL);
-   Vector(const Vector& A);
-   Vector(const Vector3D& A);
-   Vector(const Matrix& A);
-   friend Vector3D::Vector3D(const Vector& A);
+   Vector(int const& Cols=0,Elm const& InitVal=SENTINAL);
+   Vector(Vector const& A);
+   Vector(Vector3D const& A);
+   Vector(Matrix const& A);
+   friend Vector3D::Vector3D(Vector const& A);
 
    // Deconstructor...
    // Release dynamic memory.
@@ -45,62 +45,62 @@ public:
    // Algebraic Operators...
    
    friend Vector& operator+(Vector& A) {return A;}
-   friend Vector operator+(const Vector& A,const Vector& B);
-   friend Vector operator-(const Vector& A,const Vector& B);
-   friend Vector operator-(const Vector& A);
+   friend Vector operator+(Vector const& A,Vector const& B);
+   friend Vector operator-(Vector const& A,Vector const& B);
+   friend Vector operator-(Vector const& A);
    // Dot Product
-   friend Elm operator*(const Vector& A,const Vector& B);
+   friend Elm const operator*(Vector const& A,Vector const& B);
    // Cross Product (Cols_==3 Only)
-   friend Vector operator%(const Vector& A,const Vector& B);
-   friend Vector operator*(const Matrix& A,const Vector& B);
-   friend Vector operator*(const Vector& A,const Matrix& B);
-   friend Vector operator*(const Elm& A,const Vector& B);
-   friend Vector operator*(const Vector& A,const Elm& B);
-   friend Vector operator/(const Vector& A,const Elm& B);
-   friend Vector operator*(const SparseMatrix& A, const Vector& B);
-   friend Vector operator*(const Vector& A, const SparseMatrix& B);
+   friend Vector operator%(Vector const& A,Vector const& B);
+   friend Vector operator*(Matrix const& A,Vector const& B);
+   friend Vector operator*(Vector const& A,Matrix const& B);
+   friend Vector operator*(Elm const& A,Vector const& B);
+   friend Vector operator*(Vector const& A,Elm const& B);
+   friend Vector operator/(Vector const& A,Elm const& B);
+   friend Vector operator*(SparseMatrix const& A,Vector const& B);
+   friend Vector operator*(Vector const& A,SparseMatrix const& B);
    
    
    // Element Access methods
 #ifdef CHECK_BOUNDS
    // With Bounds checking!!!
-   Elm& operator[](const int& i);
-   Elm operator[](const int& i) const;
+   Elm& operator[](int const& i);
+   Elm const& operator[](int const& i) const;
 #else
    // Without Bounds Checking!!!
-   inline Elm& operator[](const int& i) {return Elements_[i];}
-   inline Elm operator[](const int& i) const {return Elements_[i];}
+   inline Elm& operator[](int const& i) {return Elements_[i];}
+   inline Elm const& operator[](int const& i) const {return Elements_[i];}
 #endif
    
    // Assignment Operatons
 
-   Vector& operator=(const Vector& B);
-   Vector operator+=(const Vector& B) {return *this=*this+B;}
-   Vector operator-=(const Vector& B) {return *this=*this-B;}
-   Vector operator*=(const Elm& B) {return *this=*this*B;}
+   Vector& operator=(Vector const& B);
+   Vector& operator+=(Vector const& B) {return *this=*this+B;}
+   Vector& operator-=(Vector const& B) {return *this=*this-B;}
+   Vector& operator*=(Elm const& B) {return *this=*this*B;}
 
    // Destructively Resize Vector
    // No change if size dosen't change
-   void Resize(const int& Cols=0,const Elm& InitVal=SENTINAL);
+   void Resize(int const& Cols=0,Elm const& InitVal=SENTINAL);
 
    // Operations & Etc...
-   int Dim() const {return Cols_;}
+   int const& Dim() const {return Cols_;}
    // Standard IR^n Norm
-   Matrix::Elm Norm();
+   Matrix::Elm Norm() const;
 
    // Operations & Etc...
 
    // Uses PLU decomposition with Forward and Backwards substitution
-   friend Vector SolvePLU(const Matrix& A,const Vector& B);
+   friend Vector SolvePLU(Matrix const& A,Vector const& B);
    // Uses SVD decomposition.
-   friend Vector SolveSVD(const Matrix& A,const Vector& B,const Elm MaxCond=MAXCONDITION,
-			  const int PrintFlag=0);
+   friend Vector SolveSVD(Matrix const& A,Vector const& B,Elm const& MaxCond=MAXCONDITION,
+                          int const& PrintFlag=0);
 
    // Output/Input Function
-   friend ostream& operator<<(ostream& out,const Vector& A);
+   friend ostream& operator<<(ostream& out,Vector const& A);
    friend istream& operator>>(istream& in,Vector& A);
 
-   static char* Revision();
+   static char const* const Revision();
 };
 
 #endif

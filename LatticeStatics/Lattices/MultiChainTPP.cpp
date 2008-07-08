@@ -4,7 +4,7 @@
 
 using namespace std;
 
-const int MultiChainTPP::DIM1=1;
+int const MultiChainTPP::DIM1=1;
 
 MultiChainTPP::~MultiChainTPP()
 {
@@ -21,7 +21,8 @@ MultiChainTPP::~MultiChainTPP()
    delete [] AtomPositions_;
 }
 
-MultiChainTPP::MultiChainTPP(PerlInput &Input,int Echo,int Width,int Debug)
+MultiChainTPP::MultiChainTPP(PerlInput const& Input,int const& Echo,int const& Width,
+                             int const& Debug)
    : Lattice(Input)
 {
    Echo_ = Echo;
@@ -195,7 +196,7 @@ MultiChainTPP::MultiChainTPP(PerlInput &Input,int Echo,int Width,int Debug)
    ChainIter_(GridSize_);
 }
 
-int MultiChainTPP::FindLatticeSpacing(int iter)
+int MultiChainTPP::FindLatticeSpacing(int const& iter)
 {
    Lambda_=0.0;
    NTemp_=1.0;
@@ -209,7 +210,7 @@ int MultiChainTPP::FindLatticeSpacing(int iter)
    if (Echo_)
       RefineEqbm(1.0e-13,iter,&cout);
    else
-      RefineEqbm(1.0e-13,iter,NULL);
+      RefineEqbm(1.0e-13,iter,0);
    
    // Clean up numerical round off (at least for zero values)
    for (int i=0;i<DOFS;++i)
@@ -237,7 +238,7 @@ int MultiChainTPP::FindLatticeSpacing(int iter)
    return 0;
 }
 
-void MultiChainTPP::SetParameters(double *Vals,int ResetRef)
+void MultiChainTPP::SetParameters(double const* const Vals,int const& ResetRef)
 {
    int no = SpeciesPotential_[0][0]->GetNoParameters();
    int cur = 0;
@@ -257,52 +258,53 @@ void MultiChainTPP::SetParameters(double *Vals,int ResetRef)
 
 // Lattice Routines
 
-double MultiChainTPP::PI(double *Dx,double *DX)
+double MultiChainTPP::PI(double const* const Dx,double const* const DX) const
 {
    return 2.0*Dx[0]*DX[0];
 }
 
-double MultiChainTPP::PSI(double *DX)
+double MultiChainTPP::PSI(double const* const DX) const
 {
    return 2.0*DX[0]*DX[0];
 }
 
-double MultiChainTPP::OMEGA(double *Dx,int p,int q,int i)
+double MultiChainTPP::OMEGA(double const* const Dx,int const& p,int const& q,int const& i) const
 {
    return LagrangeCB_ ?
       2.0*DOF_[0]*RefLattice_[0][0]*DELTA(i,p,q)*Dx[0] :
       2.0*DELTA(i,p,q)*Dx[0];
 }
 
-double MultiChainTPP::SIGMA(int p,int q,int i,int j)
+double MultiChainTPP::SIGMA(int const& p,int const& q,int const& i,int const& j) const
 {
    return LagrangeCB_ ?
       2.0*DOF_[0]*DOF_[0]*RefLattice_[0][0]*DELTA(i,p,q)*RefLattice_[0][0]*DELTA(j,p,q) :
       2.0*DELTA(i,p,q)*DELTA(j,p,q);
 }
 
-double MultiChainTPP::GAMMA(double *Dx,double *DX,int p,int q,int i)
+double MultiChainTPP::GAMMA(double const* const Dx,double const* const DX,int const& p,
+                            int const& q,int const& i) const
 {
    return LagrangeCB_ ?
       4.0*RefLattice_[0][0]*DELTA(i,p,q)*Dx[0] :
       2.0*DELTA(i,p,q)*DX[0];
 }
 
-double MultiChainTPP::THETA(double *DX,int p,int q,int i)
+double MultiChainTPP::THETA(double const* const DX,int const& p,int const& q,int const& i) const
 {
    return LagrangeCB_ ?
       4.0*RefLattice_[0][0]*DELTA(i,p,q)*DX[0] :
       0.0;
 }
 
-double MultiChainTPP::XI(int p,int q,int i,int j)
+double MultiChainTPP::XI(int const& p,int const& q,int const& i,int const& j) const
 {
    return LagrangeCB_ ?
       4.0*DOF_[0]*RefLattice_[0][0]*DELTA(i,p,q)*RefLattice_[0][0]*DELTA(j,p,q) :
       0.0;
 }
 
-double MultiChainTPP::LAMDA(int p,int q,int i,int j)
+double MultiChainTPP::LAMDA(int const& p,int const& q,int const& i,int const& j) const
 {
    return LagrangeCB_ ?
       4.0*RefLattice_[0][0]*DELTA(i,p,q)*RefLattice_[0][0]*DELTA(j,p,q) :
@@ -310,7 +312,7 @@ double MultiChainTPP::LAMDA(int p,int q,int i,int j)
 }
 
 
-double MultiChainTPP::energy(PairPotentials::TDeriv dt)
+double MultiChainTPP::energy(PairPotentials::TDeriv const& dt) const
 {
    double Phi = 0.0;
    double Vr;
@@ -357,7 +359,7 @@ double MultiChainTPP::energy(PairPotentials::TDeriv dt)
    return Phi;
 }
 
-Matrix MultiChainTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
+Matrix const& MultiChainTPP::stress(PairPotentials::TDeriv const& dt,LDeriv const& dl) const
 {
    double ForceNorm = 0.0;
    double phi,Vr;
@@ -437,7 +439,7 @@ Matrix MultiChainTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
    return Phi1_static;
 }
 
-Matrix MultiChainTPP::stiffness(PairPotentials::TDeriv dt,LDeriv dl)
+Matrix const& MultiChainTPP::stiffness(PairPotentials::TDeriv const& dt,LDeriv const& dl) const
 {
    double phi,phi1;
    int i,j;
@@ -507,7 +509,7 @@ Matrix MultiChainTPP::stiffness(PairPotentials::TDeriv dt,LDeriv dl)
    return Phi2_static;
 }
 
-Matrix MultiChainTPP::E3()
+Matrix const& MultiChainTPP::E3() const
 {
    double phi,phi1,phi2;
    int i,j,k;
@@ -587,7 +589,7 @@ Matrix MultiChainTPP::E3()
    return Phi3_static;
 }
 
-Matrix MultiChainTPP::E4()
+Matrix const& MultiChainTPP::E4() const
 {
    double phi,phi1,phi2,phi3;
    int i,j,k,m;
@@ -785,13 +787,14 @@ Matrix MultiChainTPP::E4()
    return Phi4_static;
 }
 
-Matrix MultiChainTPP::CondensedModuli()
+Matrix const& MultiChainTPP::CondensedModuli() const
 {
    Matrix stiff = stiffness();
    int intrn = DOFS-1;
-   Matrix CM(1,1), IM(intrn,intrn);
+   Matrix IM(intrn,intrn);
+   CM_static.Resize(1,1);
    
-   CM[0][0] = stiff[0][0];
+   CM_static[0][0] = stiff[0][0];
    
    // Make sure there are internal DOF's
    if (intrn)
@@ -807,14 +810,14 @@ Matrix MultiChainTPP::CondensedModuli()
       for (int m=0;m<intrn;m++)
          for (int n=0;n<intrn;n++)
          {
-            CM[0][0] -= stiff[0][1+m]*IM[m][n]*stiff[1+n][0];
+            CM_static[0][0] -= stiff[0][1+m]*IM[m][n]*stiff[1+n][0];
          }
    }
    
-   return CM;
+   return CM_static;
 }
 
-int MultiChainTPP::comp(const void *a,const void *b)
+int MultiChainTPP::comp(void const* const a,void const* const b)
 {
    double t;
    if( *((double*) a) == *((double*) b)) return 0;
@@ -826,7 +829,7 @@ int MultiChainTPP::comp(const void *a,const void *b)
    }
 }
 
-int MultiChainTPP::abscomp(const void *a,const void *b)
+int MultiChainTPP::abscomp(void const* const a,void const* const b)
 {
    double t;
    if( fabs(*((double*) a)) == fabs(*((double*) b))) return 0;
@@ -838,7 +841,8 @@ int MultiChainTPP::abscomp(const void *a,const void *b)
    }
 }
 
-void MultiChainTPP::interpolate(Matrix *EigVals,int zero,int one,int two)
+void MultiChainTPP::interpolate(Matrix* const EigVals,int const& zero,int const& one,
+                                int const& two)
 {
    // Calculate expected value for eigvals and store in zero position
    EigVals[zero] = 2.0*EigVals[one] - EigVals[zero];
@@ -866,7 +870,7 @@ void MultiChainTPP::interpolate(Matrix *EigVals,int zero,int one,int two)
    }
 }
 
-CMatrix MultiChainTPP::ReferenceDynamicalStiffness(Vector &K)
+CMatrix const& MultiChainTPP::ReferenceDynamicalStiffness(Vector const& K) const
 {
    double pi = 4.0*atan(1.0);
    MyComplexDouble Ic(0,1);
@@ -907,8 +911,8 @@ CMatrix MultiChainTPP::ReferenceDynamicalStiffness(Vector &K)
    return Dk_static;
 }
 
-void MultiChainTPP::ReferenceDispersionCurves(Vector K,int NoPTS,const char *prefix,
-                                              ostream &out)
+void MultiChainTPP::ReferenceDispersionCurves(Vector const& K,int const& NoPTS,
+                                              char const* const prefix,ostream& out) const
 {
    int w=out.width();
    out.width(0);
@@ -969,7 +973,7 @@ void MultiChainTPP::ReferenceDispersionCurves(Vector K,int NoPTS,const char *pre
    }
 }
 
-int MultiChainTPP::ReferenceBlochWave(Vector &K)
+int MultiChainTPP::ReferenceBlochWave(Vector& K) const
 {
    A_static.Resize(INTERNAL_ATOMS,INTERNAL_ATOMS);
    EigVals_static.Resize(1,INTERNAL_ATOMS);
@@ -1002,12 +1006,12 @@ int MultiChainTPP::ReferenceBlochWave(Vector &K)
    return 1;
 }
 
-void MultiChainTPP::LongWavelengthModuli(double dk, int gridsize,const char *prefix,
-                                         ostream &out)
+void MultiChainTPP::LongWavelengthModuli(double const& dk,int const& gridsize,
+                                         char const* const prefix,ostream& out) const
 {
 }
 
-void MultiChainTPP::NeighborDistances(int cutoff,ostream &out)
+void MultiChainTPP::NeighborDistances(int const& cutoff,ostream& out) const
 {
    Matrix NeighborDist =
       ChainSum_.NeighborDistances(cutoff,pow(double(10),double(-(out.precision()-1))));
@@ -1026,7 +1030,7 @@ void MultiChainTPP::NeighborDistances(int cutoff,ostream &out)
    out << "\n";
 }
 
-void MultiChainTPP::Print(ostream &out,PrintDetail flag)
+void MultiChainTPP::Print(ostream& out,PrintDetail const& flag)
 {
    int W;
    int NoNegTestFunctions;
@@ -1098,7 +1102,7 @@ void MultiChainTPP::Print(ostream &out,PrintDetail flag)
             for (int j=i;j<NumberofSpecies_;j++)
             {
                out << "[" << i << "][" << j << "] -- "
-                   << setw(W) << SpeciesPotential_[i][j] << "\n";
+                   << setw(W) << *SpeciesPotential_[i][j] << "\n";
             }
          }
          out << "Normalization Modulus : " << setw(W) << NormModulus_ << "\n";
@@ -1131,7 +1135,7 @@ void MultiChainTPP::Print(ostream &out,PrintDetail flag)
                for (int j=i;j<NumberofSpecies_;j++)
                {
                   cout << "[" << i << "][" << j << "] -- "
-                       << setw(W) << SpeciesPotential_[i][j] << "\n";
+                       << setw(W) << *SpeciesPotential_[i][j] << "\n";
                }
             }
             cout << "Normalization Modulus : " << setw(W) << NormModulus_ << "\n";
@@ -1196,7 +1200,7 @@ void MultiChainTPP::Print(ostream &out,PrintDetail flag)
    }
 }
 
-ostream &operator<<(ostream &out,MultiChainTPP &A)
+ostream& operator<<(ostream& out,MultiChainTPP& A)
 {
    A.Print(out,Lattice::PrintShort);
    return out;
@@ -1253,7 +1257,7 @@ void MultiChainTPP::DebugMode()
       "Entropy",
       "SetParameters"
    };
-   int NOcommands=43;
+   int const NOcommands=43;
    
    char response[LINELENGTH];
    char prompt[] = "Debug > ";
@@ -1535,7 +1539,7 @@ void MultiChainTPP::DebugMode()
 }
 
 
-void MultiChainTPP::RefineEqbm(double Tol,int MaxItr,ostream *out)
+void MultiChainTPP::RefineEqbm(double const& Tol,int const& MaxItr,ostream* const out)
 {
    Vector dx(DOFS,0.0);
    Vector Stress=stress();
@@ -1555,7 +1559,7 @@ void MultiChainTPP::RefineEqbm(double Tol,int MaxItr,ostream *out)
       
       Stress=stress();
       
-      if (out != NULL)
+      if (out != 0)
       {
          *out << setw(20) << Stress;
          

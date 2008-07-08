@@ -1,6 +1,6 @@
 #include "KnownModes.h"
 
-LatticeMode *InitializeMode(Lattice *Lat,PerlInput &Input)
+LatticeMode* const InitializeMode(Lattice* const Lat,PerlInput const& Input)
 {
    const char *Mode = Input.getString("Mode","Type");
 
@@ -14,6 +14,6 @@ LatticeMode *InitializeMode(Lattice *Lat,PerlInput &Input)
       exit(-1);
    }
    
-   return NULL;
+   return 0;
 }
 

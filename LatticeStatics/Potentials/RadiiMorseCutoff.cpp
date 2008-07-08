@@ -1,19 +1,22 @@
 #include "RadiiMorseCutoff.h"
 
-RadiiMorseCutoff::RadiiMorseCutoff(double A0,double AT,double B0,double BT,double Rref1,
-                                   double Rtheta1,double Rtheta1Pow,double Rref2,
-                                   double Rtheta2,double Rtheta2Pow,double Cutoff):
+RadiiMorseCutoff::RadiiMorseCutoff(double const& A0,double const& AT,double const& B0,
+                                   double const& BT,double const& Rref1,double const& Rtheta1,
+                                   double const& Rtheta1Pow,double const& Rref2,
+                                   double const& Rtheta2,double const& Rtheta2Pow,
+                                   double const& Cutoff):
    RadiiMorse(A0,AT,B0,BT,Rref1,Rtheta1,Rtheta1Pow,Rref2,Rtheta2,Rtheta2Pow),Cutoff_(Cutoff)
 {
 }
 
-void RadiiMorseCutoff::SetParameters(double *Vals)
+void RadiiMorseCutoff::SetParameters(double const* const Vals)
 {
    SetCutoff(Vals[0]);
    RadiiMorse::SetParameters(&(Vals[1]));
 }
 
-double RadiiMorseCutoff::CutoffFunction(double NTemp,double r2,YDeriv dy,TDeriv dt)
+double RadiiMorseCutoff::CutoffFunction(double const& NTemp,double const& r2,YDeriv const& dy,
+                                        TDeriv const& dt) const
 {
    double c2=Cutoff_*Cutoff_;
    double val=0;
@@ -50,7 +53,8 @@ double RadiiMorseCutoff::CutoffFunction(double NTemp,double r2,YDeriv dy,TDeriv 
    return val;
 }
 
-double RadiiMorseCutoff::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
+double RadiiMorseCutoff::PairPotential(double const& NTemp,double const& r2,YDeriv const& dy,
+                                       TDeriv const& dt) const
 {
    if (r2 >= Cutoff_*Cutoff_)
       return 0.0;
@@ -59,7 +63,7 @@ double RadiiMorseCutoff::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv d
               + CutoffFunction(NTemp,r2,dy,dt));
 }
 
-void RadiiMorseCutoff::Print(ostream &out)
+void RadiiMorseCutoff::Print(ostream& out) const
 {
    int W=out.width();
    
@@ -78,7 +82,7 @@ void RadiiMorseCutoff::Print(ostream &out)
        << "; Cutoff=" << setw(W) << Cutoff_;
 }
 
-ostream &operator<<(ostream &out,RadiiMorseCutoff &A)
+ostream& operator<<(ostream& out,RadiiMorseCutoff const& A)
 {
    A.Print(out);
    return out;

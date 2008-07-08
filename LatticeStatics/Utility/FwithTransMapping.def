@@ -1,22 +1,22 @@
-   virtual inline int Fsize() {return 9;}
-   virtual inline int Ssize() {return DIM3*InternalAtoms_;}
+   virtual inline int Fsize() const {return 9;}
+   virtual inline int Ssize() const {return DIM3*InternalAtoms_;}
 
-   virtual inline int NoTrans() {return 0;}
+   virtual inline int NoTrans() const {return 0;}
 
-   virtual inline int INDF(int i,int j)
+   virtual inline int INDF(int const& i,int const& j) const
    {return 3*i+j;}
 
-   virtual inline int INDS(int i,int j)
+   virtual inline int INDS(int const& i,int const& j) const
    {return 9 + 3*i + j;}
    
-   virtual inline int INDFF(int k,int l,int m,int n)
+   virtual inline int INDFF(int const& k,int const& l,int const& m,int const& n) const
    {return 9*(3*k+l)+3*m+n;}
 
-   virtual inline int INDSS(int k,int l,int m,int n)
+   virtual inline int INDSS(int const& k,int const& l,int const& m,int const& n) const
    {return 9*DOFS() + DOFS()*(3*k+l) + 9 + 3*m+n;}
    
-   virtual inline int INDFS(int i,int j,int m,int n)
+   virtual inline int INDFS(int const& i,int const& j,int const& m,int const& n) const
    {return DOFS()*(3*i+j) + 9 + 3*m+n;}
    
-   virtual inline int INDSF(int m,int n,int i,int j)
+   virtual inline int INDSF(int const& m,int const& n,int const& i,int const& j) const
    {return 9*DOFS() + DOFS()*(3*m+n) + 3*i+j;}

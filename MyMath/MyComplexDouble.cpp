@@ -1,13 +1,13 @@
 #include "MyComplexDouble.h"
 
 // Global IDString
-char MyComplexDoubleID[]="$Id: MyComplexDouble.cpp,v 1.4 2008/03/23 02:25:51 elliott Exp $";
+char MyComplexDoubleID[]="$Id: MyComplexDouble.cpp,v 1.5 2008/07/08 04:18:33 elliott Exp $";
 
 // Private Functions...
 
 // Public Functions...
 
-MyComplexDouble& MyComplexDouble::operator=(const MyComplexDouble& A)
+MyComplexDouble& MyComplexDouble::operator=(MyComplexDouble const& A)
 {
    Re_ = A.Re_;
    Im_ = A.Im_;
@@ -15,37 +15,37 @@ MyComplexDouble& MyComplexDouble::operator=(const MyComplexDouble& A)
    return *this;
 }
 
-MyComplexDouble operator-(const MyComplexDouble& A)
+MyComplexDouble operator-(MyComplexDouble const& A)
 {
    return MyComplexDouble(-A.Re_,-A.Im_);
 }
 
-MyComplexDouble operator+(const MyComplexDouble& A,const MyComplexDouble& B)
+MyComplexDouble operator+(MyComplexDouble const& A,MyComplexDouble const& B)
 {
    return MyComplexDouble(A.Re_+B.Re_,A.Im_+B.Im_);
 }
 
-MyComplexDouble operator-(const MyComplexDouble& A,const MyComplexDouble& B)
+MyComplexDouble operator-(MyComplexDouble const& A,MyComplexDouble const& B)
 {
    return MyComplexDouble(A.Re_-B.Re_,A.Im_-B.Im_);
 }
 
-MyComplexDouble operator*(const MyComplexDouble& A,const MyComplexDouble& B)
+MyComplexDouble operator*(MyComplexDouble const& A,MyComplexDouble const& B)
 {
    return MyComplexDouble(A.Re_*B.Re_-A.Im_*B.Im_, A.Im_*B.Re_+A.Re_*B.Im_);
 }
 
-MyComplexDouble operator*(const double& A,const MyComplexDouble& B)
+MyComplexDouble operator*(double const& A,MyComplexDouble const& B)
 {
    return MyComplexDouble(A*B.Re_, A*B.Im_);
 }
 
-MyComplexDouble operator*(const MyComplexDouble& A,const double& B)
+MyComplexDouble operator*(MyComplexDouble const& A,double const& B)
 {
    return MyComplexDouble(A.Re_*B, A.Im_*B);
 }
 
-MyComplexDouble operator/(const MyComplexDouble& A,const MyComplexDouble& B)
+MyComplexDouble operator/(MyComplexDouble const& A,MyComplexDouble const& B)
 {
    if ((B.Re_ == 0.0) && (B.Im_ == 0.0))
    {
@@ -59,7 +59,7 @@ MyComplexDouble operator/(const MyComplexDouble& A,const MyComplexDouble& B)
       (A.Im_*B.Re_ - A.Re_*B.Im_)/det);
 }
 
-MyComplexDouble operator/(const MyComplexDouble& A,const double& B)
+MyComplexDouble operator/(MyComplexDouble const& A,double const& B)
 {
    if (B == 0.0)
    {
@@ -70,7 +70,7 @@ MyComplexDouble operator/(const MyComplexDouble& A,const double& B)
    return MyComplexDouble(A.Re_/B,A.Im_/B);
 }
 
-MyComplexDouble sqrt(const MyComplexDouble& A)
+MyComplexDouble sqrt(MyComplexDouble const& A)
 {
    double
       x=A.Re_,
@@ -91,7 +91,7 @@ MyComplexDouble sqrt(const MyComplexDouble& A)
    }
 }
 
-ostream& operator<<(ostream& out, const MyComplexDouble& A)
+ostream& operator<<(ostream& out,MyComplexDouble const& A)
 {
    int W=out.width();
    out.width(0);
@@ -103,7 +103,7 @@ ostream& operator<<(ostream& out, const MyComplexDouble& A)
    return out;
 }
 
-istream & operator>>(istream& in,MyComplexDouble& A)
+istream& operator>>(istream& in,MyComplexDouble& A)
 {
    char ch;
    double re=0.0,im=0.0;
@@ -144,7 +144,7 @@ istream & operator>>(istream& in,MyComplexDouble& A)
    return in;
 }
 
-char* MyComplexDouble::Revision()
+char const* const MyComplexDouble::Revision()
 {
    return MyComplexDoubleID;
 }

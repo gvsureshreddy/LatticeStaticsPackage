@@ -7,6 +7,7 @@
 #include "MultiChainTTPP.h"
 #include "TwoBarTruss.h"
 
-Lattice *InitializeLattice(PerlInput &Input,int Echo,int Width=20,int Debug=0);
+Lattice* const InitializeLattice(PerlInput& Input,int const& Echo,int const& Width=20,
+                                 int const& Debug=0);
 
 #endif

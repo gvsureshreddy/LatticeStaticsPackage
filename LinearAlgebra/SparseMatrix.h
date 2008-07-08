@@ -38,50 +38,50 @@ public:
    //   allocated and each element set to Initial Value
    // Defaults: Rows=0,Cols=0,Initial Value= (Uninitialized)
    SparseMatrix() {NoNonZero_ = 0;}
-   SparseMatrix(const Matrix& A);
-   SparseMatrix(const Matrix& A,int NoEntries);
-   SparseMatrix(const SparseMatrix& A);
-   SparseMatrix(int NoNonZero, int Rows, int Cols);
+   SparseMatrix(Matrix const& A);
+   SparseMatrix(Matrix const& A,int const& NoEntries);
+   SparseMatrix(SparseMatrix const& A);
+   SparseMatrix(int const& NoNonZero,int const& Rows,int const& Cols);
 	
 	
    // Deconstructor...
    ~SparseMatrix();
 
    // Size Access...
-   int Rows() const {return Rows_;}
-   int Cols() const {return Cols_;}
-   int NoNonZero() const {return NoNonZero_;}
+   int const& Rows() const {return Rows_;}
+   int const& Cols() const {return Cols_;}
+   int const& NoNonZero() const {return NoNonZero_;}
    
    // Mathematical Operations...
    friend SparseMatrix& operator+(SparseMatrix& A){return A;}
-   friend Matrix operator+(const SparseMatrix& A,const SparseMatrix&B);
-   friend SparseMatrix operator-(const SparseMatrix& A);
-   friend Matrix operator-(const SparseMatrix& A,const SparseMatrix&B);
-   friend SparseMatrix operator*(const double A, const SparseMatrix& B);
-   friend SparseMatrix operator*(const SparseMatrix& B, const double A);
-   friend Matrix operator*(const SparseMatrix& A, const SparseMatrix& B);
-   friend Matrix operator*(const SparseMatrix& A, const Matrix& B);
-   friend Matrix operator*(const Matrix& A, const SparseMatrix& B);
-   friend Vector operator*(const SparseMatrix& A, const Vector& B);
-   friend Vector operator*(const Vector& A, const SparseMatrix& B);
-   friend Vector3D operator*(const SparseMatrix& A,const Vector3D& B);
-   friend Vector3D operator*(const Vector3D& A,const SparseMatrix& B);
+   friend Matrix operator+(SparseMatrix const& A,SparseMatrix const& B);
+   friend SparseMatrix operator-(SparseMatrix const& A);
+   friend Matrix operator-(SparseMatrix const& A,SparseMatrix const& B);
+   friend SparseMatrix operator*(double const& A,SparseMatrix const& B);
+   friend SparseMatrix operator*(SparseMatrix const& B,double const& A);
+   friend Matrix operator*(SparseMatrix const& A,SparseMatrix const& B);
+   friend Matrix operator*(SparseMatrix const& A,Matrix const& B);
+   friend Matrix operator*(Matrix const& A,SparseMatrix const& B);
+   friend Vector operator*(SparseMatrix const& A,Vector const& B);
+   friend Vector operator*(Vector const& A,SparseMatrix const& B);
+   friend Vector3D operator*(SparseMatrix const& A,Vector3D const& B);
+   friend Vector3D operator*(Vector3D const& A,SparseMatrix const& B);
 	
 
    //Assignment Operators
-   SparseMatrix& operator=(const Matrix& A);
+   SparseMatrix& operator=(Matrix const& A);
    
    
    //Miscellaneous Matrix operations
    SparseMatrix Transpose() const;
-   SparseMatrix& SetSparseIdentity(int Size);
-   friend Matrix ReverseSparse(const SparseMatrix& A);
+   SparseMatrix& SetSparseIdentity(int const& Size);
+   friend Matrix ReverseSparse(SparseMatrix const& A);
 	
    int IsNull() const {return NoNonZero_==0;}
 
-   friend ostream& operator<<(ostream& out,const SparseMatrix& A);
+   friend ostream& operator<<(ostream& out,SparseMatrix const& A);
 
-   static char* Revision();
+   static char const* const Revision();
 };
 
 #endif

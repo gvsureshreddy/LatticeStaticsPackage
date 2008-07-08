@@ -7,10 +7,11 @@ TwoBarTruss::~TwoBarTruss()
    cout << "TwoBarTruss Function Calls:\n"
         << "\tE0 calls - " << CallCount_[0] << "\n"
         << "\tE1 calls - " << CallCount_[1] << "\n"
-        << "\tE2 calls - " << CallCount_[2] << "\n";
+        << "\tE1DLoad calls - " << CallCount_[2] << "\n"
+        << "\tE2 calls - " << CallCount_[3] << "\n";
 }
 
-TwoBarTruss::TwoBarTruss(PerlInput& Input,int Echo,int Width):
+TwoBarTruss::TwoBarTruss(PerlInput const& Input,int const& Echo,int const& Width):
    Lattice(Input),
    DOFS_(2),
    DOF_(DOFS_,0.0),
@@ -18,10 +19,11 @@ TwoBarTruss::TwoBarTruss(PerlInput& Input,int Echo,int Width):
    Echo_(Echo),
    Width_(Width),
    E1CachedValue_(1,2),
+   E1DLoadCachedValue_(1,2),
    E2CachedValue_(2,2)
 {
    LoadParameter_ = Load;
-   for (int i=0;i<3;++i)
+   for (int i=0;i<4;++i)
    {
       Cached_[i] = 0;
       CallCount_[i] = 0;
@@ -43,7 +45,7 @@ TwoBarTruss::TwoBarTruss(PerlInput& Input,int Echo,int Width):
    SINTheta_ = sin(Theta_);
 }
 
-double TwoBarTruss::E0()
+double TwoBarTruss::E0() const
 {
    if ((!Caching_) || (!Cached_[0]))
    {
@@ -63,7 +65,7 @@ double TwoBarTruss::E0()
    return E0CachedValue_;
 }
 
-Matrix TwoBarTruss::E1()
+Matrix const& TwoBarTruss::E1() const
 {
    if ((!Caching_) || (!Cached_[1]))
    {
@@ -80,19 +82,23 @@ Matrix TwoBarTruss::E1()
    return E1CachedValue_;
 }
 
-Matrix TwoBarTruss::E1DLoad()
-{
-   Matrix Phi(1,DOFS_,0.0);
-
-   Phi[0][0] = 0.0;
-   Phi[0][1] = -1.0;
-   
-   return Phi;
-}
-
-Matrix TwoBarTruss::E2()
+Matrix const& TwoBarTruss::E1DLoad() const
 {
    if ((!Caching_) || (!Cached_[2]))
+   {
+      E1DLoadCachedValue_[0][0] = 0.0;
+      E1DLoadCachedValue_[0][1] = -1.0;
+
+      Cached_[2] = 1;
+      CallCount_[2]++;
+   }
+   
+   return E1DLoadCachedValue_;
+}
+
+Matrix const& TwoBarTruss::E2() const
+{
+   if ((!Caching_) || (!Cached_[3]))
    {
       E2CachedValue_[0][0] = 3.0*DOF_[0]*DOF_[0] + DOF_[1]*DOF_[1] - 2.0*SINTheta_*DOF_[1]
          + 2.0*COSTheta_*COSTheta_;
@@ -101,14 +107,14 @@ Matrix TwoBarTruss::E2()
       E2CachedValue_[1][1] = 3.0*DOF_[1]*DOF_[1] + DOF_[0]*DOF_[0] - 6.0*SINTheta_*DOF_[1]
          + 2.0*SINTheta_*SINTheta_;
 
-      Cached_[2] = 1;
-      CallCount_[2]++;
+      Cached_[3] = 1;
+      CallCount_[3]++;
    }
    
    return E2CachedValue_;
 }
 
-void TwoBarTruss::Print(ostream &out,PrintDetail flag)
+void TwoBarTruss::Print(ostream& out,PrintDetail const& flag)
 {
    int W;
    int NoNegTestFunctions;
@@ -166,7 +172,7 @@ void TwoBarTruss::Print(ostream &out,PrintDetail flag)
    }
 }
 
-ostream &operator<<(ostream &out,TwoBarTruss &A)
+ostream& operator<<(ostream& out,TwoBarTruss& A)
 {
    A.Print(out,Lattice::PrintShort);
    return out;

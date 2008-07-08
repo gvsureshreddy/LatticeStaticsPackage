@@ -7,7 +7,7 @@
 
 int main()
 {
-   const int m=6;
+   int const m=6;
    MyComplexDouble Coeff[m+1],tst;
 
    Coeff[0] = MyComplexDouble(6.0,0.0);

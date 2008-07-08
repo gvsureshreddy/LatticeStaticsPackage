@@ -23,65 +23,67 @@ public:
    enum LoadType {Temperature,Load};
    enum StateType {LHS,RHS,CRITPT};
    LoadType LoadParameter_;
-   LoadType LoadParameter() {return LoadParameter_;}
+   LoadType const& LoadParameter() const {return LoadParameter_;}
    int OrderedTFs_;
    int ThirdOrder_;
    
-   Lattice(PerlInput &Input);
+   Lattice(PerlInput const& Input);
    virtual ~Lattice() {}
    
-   virtual Vector DOF() = 0;
-   virtual void SetDOF(const Vector &dof) = 0;
-   virtual double Entropy() = 0;
-   virtual double HeatCapacity() = 0;
-   virtual Matrix StressDT() = 0;
-   virtual Matrix StiffnessDT() = 0;
-   virtual double Temp() = 0;
-   virtual void SetTemp(const double &temp) = 0;
-   virtual Matrix StressDL() = 0;
-   virtual Matrix StiffnessDL() = 0;
-   virtual double Lambda() = 0;
-   virtual void SetLambda(const double &lambda) = 0;
-   void SetLoadParameter(const double &load);
+   virtual Vector const& DOF() const = 0;
+   virtual void SetDOF(Vector const& dof) = 0;
+   virtual double Entropy() const = 0;
+   virtual double HeatCapacity() const = 0;
+   virtual Matrix const& StressDT() const = 0;
+   virtual Matrix const& StiffnessDT() const = 0;
+   virtual double Temp() const = 0;
+   virtual void SetTemp(double const& temp) = 0;
+   virtual Matrix const& StressDL() const = 0;
+   virtual Matrix const& StiffnessDL() const = 0;
+   virtual double Lambda() const = 0;
+   virtual void SetLambda(double const& lambda) = 0;
+   void SetLoadParameter(double const& load);
    
-   virtual double E0() = 0;
-   virtual Matrix E1() = 0;
-   virtual Matrix E1DLoad() = 0;
-   virtual Matrix E2() = 0;
-   virtual Matrix E3() = 0;
-   virtual Matrix E4() = 0;
-   virtual int TestFunctions(Vector &TF1, StateType State = LHS, Vector *EV2= NULL);
-   virtual void DispersionCurves(Vector K,int NoPTS,const char *prefix,ostream &out) {};
-   virtual int BlochWave(Vector &K) {return -1;}
-   virtual void LongWavelengthModuli(double dk,int gridsize,const char *prefix,
-                                     ostream &out) {};
-   virtual void SetParameters(double *Vals,int ResetRef = 1) = 0;
-   virtual void SetGridSize(int Grid) = 0;
-   virtual void NeighborDistances(int cutoff,ostream &out) {};
-   virtual void CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
-                                  double Tolerance,int Width,ostream &out);
-   void ConsistencyCheck(double ConsistencyEpsilon,int Width,ostream &out);
+   virtual double E0() const = 0;
+   virtual Matrix const& E1() const = 0;
+   virtual Matrix const& E1DLoad() const = 0;
+   virtual Matrix const& E2() const = 0;
+   virtual Matrix const& E3() const = 0;
+   virtual Matrix const& E4() const = 0;
+   virtual int TestFunctions(Vector& TF1,StateType const& State=LHS,
+                             Vector* const EV2=0) const;
+   virtual void DispersionCurves(Vector const& K,int const& NoPTS,char const* const prefix,
+                                 ostream& out) const {};
+   virtual int BlochWave(Vector& K) const {return -1;}
+   virtual void LongWavelengthModuli(double const& dk,int const& gridsize,
+                                     char const* const prefix,ostream& out) const {};
+   virtual void SetParameters(double const* const Vals,int const& ResetRef = 1) = 0;
+   virtual void SetGridSize(int const& Grid) = 0;
+   virtual void NeighborDistances(int const& cutoff,ostream& out) const {};
+   virtual void CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
+                                  double const& Tolerance,int const& Width,ostream& out);
+   void ConsistencyCheck(double const& ConsistencyEpsilon,int const& Width,ostream& out);
    virtual void DebugMode() {};
    
    enum PrintDetail {PrintLong,PrintShort};
-   virtual void Print(ostream &out,PrintDetail flag) = 0;
-   friend ostream &operator<<(ostream &out,Lattice *L)
-   {L->Print(out,PrintShort); return out;}
+   virtual void Print(ostream& out,PrintDetail const& flag) = 0;
+   friend ostream& operator<<(ostream& out,Lattice& L)
+   {L.Print(out,PrintShort); return out;}
 
 private:
    // "static" member variables
    // TestFunctions
-   int test_flag_static;
-   Matrix Stiffness_1_static;
-   Matrix Stiffness_2_static;
-   Matrix Stiffness_3_static;
-   Matrix Stiffness_temp_static;
-   Matrix Stiffness_diagonalized_static;
-   Matrix EigVect_static;
-   Matrix EigVectRHS_static;
-   Matrix EigVectLHS_static;
-   Matrix EV1_static;
-   Matrix EV2_static;
+   mutable int test_flag_static;
+   mutable Matrix Stiffness_1_static;
+   mutable Matrix Stiffness_2_static;
+   mutable Matrix Stiffness_3_static;
+   mutable Matrix Stiffness_temp_static;
+   mutable Matrix Stiffness_diagonalized_static;
+   mutable Matrix EigVect_static;
+   mutable Matrix EigVectRHS_static;
+   mutable Matrix EigVectLHS_static;
+   mutable Matrix EV1_static;
+   mutable Matrix EV2_static;
 };
 
 #endif

@@ -4,13 +4,13 @@
 #include <cmath>
 
 // Global IDString
-char CMatrixID[]="$Id: CMatrix.cpp,v 1.16 2008/03/26 02:35:29 elliott Exp $";
+char CMatrixID[]="$Id: CMatrix.cpp,v 1.17 2008/07/08 04:18:33 elliott Exp $";
 
 // Private Methods...
 
 // Returns matrix of size Rows_-1 x Cols_-1 with ith row and
 //   jth column removed
-CMatrix CMatrix::Minor(int i,int j) const
+CMatrix CMatrix::Minor(int const& i,int const& j) const
 {
    CMatrix A(Rows_-1,Cols_-1);
    
@@ -24,22 +24,22 @@ CMatrix CMatrix::Minor(int i,int j) const
 	    {
 	       if (b < j)
 	       {
-		  A.Elements_[a][b]=Elements_[a][b];
+		  A[a][b]=Elements_[a][b];
 	       }
 	       else
 	       {
-		  A.Elements_[a][b]=Elements_[a][b+1];
+		  A[a][b]=Elements_[a][b+1];
 	       }
 	    }
 	    else
 	    {
 	       if (b < j)
 	       {
-		  A.Elements_[a][b]=Elements_[a+1][b];
+		  A[a][b]=Elements_[a+1][b];
 	       }
 	       else
 	       {
-		  A.Elements_[a][b]=Elements_[a+1][b+1];
+		  A[a][b]=Elements_[a+1][b+1];
 	       }
 	    }
 	 }
@@ -53,12 +53,12 @@ CMatrix CMatrix::Minor(int i,int j) const
 
 int CMatrix::MathematicaPrintFlag = 0;
 
-CMatrix::CMatrix(int Rows,int Cols,CMatrix::Elm InitVal):
+CMatrix::CMatrix(int const& Rows,int const& Cols,CMatrix::Elm const& InitVal):
    Rows_(Rows), Cols_(Cols)
 {
    if (IsNull())
    {
-      Elements_=NULL;
+      Elements_=0;
    }
    else
    {
@@ -82,12 +82,12 @@ CMatrix::CMatrix(int Rows,int Cols,CMatrix::Elm InitVal):
    return;
 }
 
-CMatrix::CMatrix(const CMatrix& A):
+CMatrix::CMatrix(CMatrix const& A):
    Rows_(A.Rows_), Cols_(A.Cols_)
 {
    if (IsNull())
    {
-      Elements_=NULL;
+      Elements_=0;
    }
    else
    {
@@ -99,18 +99,18 @@ CMatrix::CMatrix(const CMatrix& A):
 	 Elements_[i]=Elements_[i-1]+Cols_;
       }
 
-      memmove(Elements_[0],A.Elements_[0],sizeof(CMatrix::Elm)*Rows_*Cols_);
+      memmove(Elements_[0],A[0],sizeof(CMatrix::Elm)*Rows_*Cols_);
    }
 
    return;
 }
 
-CMatrix::CMatrix(const Matrix& A):
+CMatrix::CMatrix(Matrix const& A):
    Rows_(A.Rows()), Cols_(A.Cols())
 {
    if (IsNull())
    {
-      Elements_=NULL;
+      Elements_=0;
    }
    else
    {
@@ -142,7 +142,7 @@ CMatrix::~CMatrix()
    return;
 }
 
-CMatrix operator+(const CMatrix& A,const CMatrix& B)
+CMatrix operator+(CMatrix const& A,CMatrix const& B)
 {
    if (A.Rows_!=B.Rows_ || A.Cols_!=B.Cols_ || A.IsNull() || B.IsNull())
    {
@@ -157,14 +157,14 @@ CMatrix operator+(const CMatrix& A,const CMatrix& B)
    {
       for (register int j=0;j<A.Cols_;j++)
       {
-	 C.Elements_[i][j]=A.Elements_[i][j]+B.Elements_[i][j];
+	 C[i][j]=A[i][j]+B[i][j];
       }
    }
    
    return C;
 }
 
-CMatrix operator-(const CMatrix& A)
+CMatrix operator-(CMatrix const& A)
 {
    CMatrix B(A.Rows_,A.Cols_);
 
@@ -172,14 +172,14 @@ CMatrix operator-(const CMatrix& A)
    {
       for(int j=0;j<A.Cols_;j++)
       {
-	 B.Elements_[i][j]=-A.Elements_[i][j];
+	 B[i][j]=-A[i][j];
       }
    }
 
    return B;
 }
 
-CMatrix operator-(const CMatrix& A,const CMatrix& B)
+CMatrix operator-(CMatrix const& A,CMatrix const& B)
 {
    if (A.Rows_!=B.Rows_ || A.Cols_!=B.Cols_ || A.IsNull() || B.IsNull())
    {
@@ -194,14 +194,14 @@ CMatrix operator-(const CMatrix& A,const CMatrix& B)
    {
       for (register int j=0;j<A.Cols_;j++)
       {
-	 C.Elements_[i][j]=A.Elements_[i][j]-B.Elements_[i][j];
+	 C[i][j]=A[i][j]-B[i][j];
       }
    }
    
    return C;
 }
 
-CMatrix operator*(const CMatrix& A,const CMatrix& B)
+CMatrix operator*(CMatrix const& A,CMatrix const& B)
 {
    if (A.Cols_!=B.Rows_ || A.IsNull() || B.IsNull())
    {
@@ -218,7 +218,7 @@ CMatrix operator*(const CMatrix& A,const CMatrix& B)
       {
 	 for (register int k=0;k<A.Cols_;k++)
 	 {
-	    C.Elements_[i][j]+=A.Elements_[i][k]*B.Elements_[k][j];
+	    C[i][j]+=A[i][k]*B[k][j];
 	 }
       }
    }
@@ -226,7 +226,7 @@ CMatrix operator*(const CMatrix& A,const CMatrix& B)
    return C;
 }
 
-CMatrix operator*(const CMatrix::Elm& A,const CMatrix& B)
+CMatrix operator*(CMatrix::Elm const& A,CMatrix const& B)
 {
    CMatrix C(B.Rows_,B.Cols_);
 
@@ -234,14 +234,14 @@ CMatrix operator*(const CMatrix::Elm& A,const CMatrix& B)
    {
       for (register int j=0;j<B.Cols_;j++)
       {
-	 C.Elements_[i][j]=A*B.Elements_[i][j];
+	 C[i][j]=A*B[i][j];
       }
    }
 
    return C;
 }
 
-CMatrix operator*(const CMatrix& A,const CMatrix::Elm& B)
+CMatrix operator*(CMatrix const& A,CMatrix::Elm const& B)
 {
    CMatrix C(A.Rows_,A.Cols_);
 
@@ -249,14 +249,14 @@ CMatrix operator*(const CMatrix& A,const CMatrix::Elm& B)
    {
       for (register int j=0;j<A.Cols_;j++)
       {
-	 C.Elements_[i][j]=B*A.Elements_[i][j];
+	 C[i][j]=B*A[i][j];
       }
    }
 
    return C;
 }
 
-CMatrix operator/(const CMatrix& A,const CMatrix::Elm& B)
+CMatrix operator/(CMatrix const& A,CMatrix::Elm const& B)
 {
    if (B == CMatrix::Elm(0.0,0.0))
    {
@@ -271,7 +271,7 @@ CMatrix operator/(const CMatrix& A,const CMatrix::Elm& B)
    {
       for (register int j=0;j<A.Cols_;j++)
       {
-	 C.Elements_[i][j]=A.Elements_[i][j]/B;
+	 C[i][j]=A[i][j]/B;
       }
    }
 
@@ -279,7 +279,7 @@ CMatrix operator/(const CMatrix& A,const CMatrix::Elm& B)
 }
 
 #ifdef CHECK_BOUNDS
-CMatrix::Elm* CMatrix::operator[](int i)
+CMatrix::Elm* const CMatrix::operator[](int const& i)
 {
    if (i >= Rows_)
    {
@@ -290,7 +290,7 @@ CMatrix::Elm* CMatrix::operator[](int i)
    return Elements_[i];
 }
 
-CMatrix::Elm* CMatrix::operator[](int i) const
+CMatrix::Elm const* const CMatrix::operator[](int const& i) const
 {
    if (i >= Rows_)
    {
@@ -302,7 +302,7 @@ CMatrix::Elm* CMatrix::operator[](int i) const
 }
 #endif
    
-CMatrix& CMatrix::operator=(const CMatrix& B)
+CMatrix& CMatrix::operator=(CMatrix const& B)
 {
    if (Rows_!=B.Rows_ || Cols_!=B.Cols_ || IsNull() || B.IsNull())
    {
@@ -312,12 +312,12 @@ CMatrix& CMatrix::operator=(const CMatrix& B)
       exit(-1);
    }
 
-   memmove(Elements_[0],B.Elements_[0],sizeof(CMatrix::Elm)*Rows_*Cols_);
+   memmove(Elements_[0],B[0],sizeof(CMatrix::Elm)*Rows_*Cols_);
 
    return *this;
 }
 
-CMatrix& CMatrix::SetIdentity(int Size)
+CMatrix& CMatrix::SetIdentity(int const& Size)
 {
    if (Rows_!=Size || Cols_!=Size)
       Resize(Size,Size);
@@ -344,7 +344,7 @@ CMatrix CMatrix::Transpose() const
    {
       for (register int j=0;j<Cols_;j++)
       {
-	 A.Elements_[j][i]=Elements_[i][j];
+	 A[j][i]=Elements_[i][j];
       }
    }
 
@@ -359,7 +359,7 @@ CMatrix CMatrix::Conjugate() const
    {
       for (register int j=0;j<Cols_;++j)
       {
-	 A.Elements_[i][j] = Elements_[i][j].conj();
+	 A[i][j] = Elements_[i][j].conj();
       }
    }
 
@@ -376,26 +376,26 @@ CMatrix CMatrix::Inverse() const
 
    CMatrix B(Rows_,1,0),X(Rows_,1),C(Rows_,Cols_);
 
-   B.Elements_[0][0]=1.0;
+   B[0][0]=1.0;
    for (register int i=0;i<Cols_;i++)
    {
       X=SolvePLU(*this,B);
 
       for (register int j=0;j<Rows_;j++)
-	 C.Elements_[j][i]=X.Elements_[j][0];
+	 C[j][i]=X[j][0];
 
-      B.Elements_[i][0]=0;
-      if (i!=Cols_-1) B.Elements_[i+1][0]=1.0;
+      B[i][0]=0;
+      if (i!=Cols_-1) B[i+1][0]=1.0;
    }
 
    return C;
 }
 
-void CMatrix::Resize(int Rows,int Cols,CMatrix::Elm InitVal)
+void CMatrix::Resize(int const& Rows,int const& Cols,CMatrix::Elm const& InitVal)
 {
    if (Rows!=Rows_ || Cols!=Cols_)
    {
-      if (Elements_!=NULL)
+      if (Elements_!=0)
       {
 	 delete [] Elements_[0];
 	 delete [] Elements_;
@@ -406,7 +406,7 @@ void CMatrix::Resize(int Rows,int Cols,CMatrix::Elm InitVal)
    
       if (IsNull())
       {
-	 Elements_=NULL;
+	 Elements_=0;
       }
       else
       {
@@ -458,7 +458,7 @@ CMatrix::Elm CMatrix::Det() const
 }
 
 // Decompose PA=LU using scaled partial pivoting.
-void PLU(const CMatrix& A,CMatrix& P,CMatrix& L,CMatrix& U)
+void PLU(CMatrix const& A,CMatrix& P,CMatrix& L,CMatrix& U)
 {
    if (!A.IsSquare() || A.IsNull())
    {
@@ -484,22 +484,22 @@ void PLU(const CMatrix& A,CMatrix& P,CMatrix& L,CMatrix& U)
    {
       for (register int j=0;j<A.Cols_;j++)
       {
-	 if (abs(Temp.Elements_[i][j]) > abs(S.Elements_[i][0]))
-	    S.Elements_[i][0]=Temp.Elements_[i][j];
+	 if (abs(Temp[i][j]) > abs(S[i][0]))
+	    S[i][0]=Temp[i][j];
       }
    }
 
    for (register int i=0;i<A.Rows_;i++)
    {
       CMatrix::Elm temp1;
-      temp1=Temp.Elements_[i][i]/S.Elements_[i][0];
+      temp1=Temp[i][i]/S[i][0];
 
       int k=i;
       for (register int j=i;j<A.Rows_;j++)
       {
-	 if (abs(Temp.Elements_[j][i]) > abs(temp1))
+	 if (abs(Temp[j][i]) > abs(temp1))
 	 {
-	    temp1=Temp.Elements_[j][i]/S.Elements_[j][0];
+	    temp1=Temp[j][i]/S[j][0];
 	    k=j;
 	 }
       }
@@ -510,23 +510,23 @@ void PLU(const CMatrix& A,CMatrix& P,CMatrix& L,CMatrix& U)
 	 Switch = new CMatrix::Elm[A.Rows_];
 	 for (register int j=i;j<A.Rows_;j++)
 	 {
-	    Switch[j]=Temp.Elements_[i][j];
-	    Temp.Elements_[i][j]=Temp.Elements_[k][j];
-	    Temp.Elements_[k][j]=Switch[j];
+	    Switch[j]=Temp[i][j];
+	    Temp[i][j]=Temp[k][j];
+	    Temp[k][j]=Switch[j];
 	 }
 
 	 for (register int j=0;j<i;j++)
 	 {
-	    Switch[j]=L.Elements_[i][j];
-	    L.Elements_[i][j]=L.Elements_[k][j];
-	    L.Elements_[k][j]=Switch[j];
+	    Switch[j]=L[i][j];
+	    L[i][j]=L[k][j];
+	    L[k][j]=Switch[j];
 	 }
 
 	 delete [] Switch;
 
-	 temp1=S.Elements_[i][0];
-	 S.Elements_[i][0]=S.Elements_[k][0];
-	 S.Elements_[k][0]=temp1;
+	 temp1=S[i][0];
+	 S[i][0]=S[k][0];
+	 S[k][0]=temp1;
 
 	 int tempi1=Ipivot[i];
 	 Ipivot[i]=Ipivot[k];
@@ -535,14 +535,14 @@ void PLU(const CMatrix& A,CMatrix& P,CMatrix& L,CMatrix& U)
 
       for (register int j=i+1;j<A.Rows_;j++)
       {
-	 L.Elements_[j][i]=Temp.Elements_[j][i]/Temp.Elements_[i][i];
+	 L[j][i]=Temp[j][i]/Temp[i][i];
       }
 
       for (register int j=i+1;j<A.Rows_;j++)
       {
 	 for (register int k=i+1;k<A.Rows_;k++)
 	 {
-	    Temp.Elements_[j][k]=Temp.Elements_[j][k]-(L.Elements_[j][i]*Temp.Elements_[i][k]);
+	    Temp[j][k]=Temp[j][k]-(L[j][i]*Temp[i][k]);
 	 }
       }
    }
@@ -551,13 +551,13 @@ void PLU(const CMatrix& A,CMatrix& P,CMatrix& L,CMatrix& U)
    {
       for (register int j=i;j<A.Rows_;j++)
       {
-	 U.Elements_[i][j]=Temp.Elements_[i][j];
+	 U[i][j]=Temp[i][j];
       }
    }
 
    for (register int i=0;i<A.Rows_;i++)
    {
-      P.Elements_[i][Ipivot[i]]=1;
+      P[i][Ipivot[i]]=1;
    }
 
    delete [] Ipivot;
@@ -565,7 +565,7 @@ void PLU(const CMatrix& A,CMatrix& P,CMatrix& L,CMatrix& U)
    return;
 }
 
-Matrix HermiteEigVal(CMatrix A,CMatrix *B,const int MaxItr,const double Tol)
+Matrix HermiteEigVal(CMatrix A,CMatrix* const B,int const& MaxItr,double const& Tol)
 {
    int count=0,
       converged=0;
@@ -573,7 +573,7 @@ Matrix HermiteEigVal(CMatrix A,CMatrix *B,const int MaxItr,const double Tol)
    MyComplexDouble tau,t1,t2,t,c,s,cc,ss,cs,ssbar,csbar,
       aij1,aii1,ajj1,aki1,akj1,tmp;
 
-   if (B != NULL)
+   if (B != 0)
    {
       B->SetIdentity(A.Cols_);
    }
@@ -584,26 +584,26 @@ Matrix HermiteEigVal(CMatrix A,CMatrix *B,const int MaxItr,const double Tol)
       {
 	 for (int j=i+1;j<A.Cols_;j++)
 	 {
-	    if (abs(A.Elements_[i][j]) < Tol )
+	    if (abs(A[i][j]) < Tol )
 	       continue;
 	    else
 	    {
-	       tau = (A.Elements_[i][i] - A.Elements_[j][j])
-		  /(2.0*(A.Elements_[i][j].conj()));
+	       tau = (A[i][i] - A[j][j])
+		  /(2.0*(A[i][j].conj()));
 
 	       // take care to make the sqrt well conditioned! (not overflow)
 	       if (abs(tau) > 1.0)
 	       {
-		  t1 = tau*(-1.0 - sqrt( 1.0 + (A.Elements_[i][j]
-						/((A.Elements_[i][j].conj())*tau*tau))));
-		  t2 = tau*(-1.0 + sqrt( 1.0 + (A.Elements_[i][j]
-						/((A.Elements_[i][j].conj())*tau*tau))));
+		  t1 = tau*(-1.0 - sqrt( 1.0 + (A[i][j]
+						/((A[i][j].conj())*tau*tau))));
+		  t2 = tau*(-1.0 + sqrt( 1.0 + (A[i][j]
+						/((A[i][j].conj())*tau*tau))));
 	       }
 	       else
 	       {
-		  t1 = -tau - sqrt( A.Elements_[i][j]/(A.Elements_[i][j].conj())
+		  t1 = -tau - sqrt( A[i][j]/(A[i][j].conj())
 				    + tau*tau);
-		  t2 = -tau + sqrt( A.Elements_[i][j]/(A.Elements_[i][j].conj())
+		  t2 = -tau + sqrt( A[i][j]/(A[i][j].conj())
 				    + tau*tau);
 	       }
 
@@ -619,23 +619,23 @@ Matrix HermiteEigVal(CMatrix A,CMatrix *B,const int MaxItr,const double Tol)
 	       ssbar =(s*(s.conj())).real();
 	       cs = c*s;
 	       csbar = c*(s.conj());
-	       aij1 = A.Elements_[i][j];
-	       aii1 = A.Elements_[i][i];
-	       ajj1 = A.Elements_[j][j];
+	       aij1 = A[i][j];
+	       aii1 = A[i][i];
+	       ajj1 = A[j][j];
 	       
-	       A.Elements_[i][i] = (aii1*cc + cs*(aij1.conj())
-				    + csbar*aij1 + ssbar*ajj1).real();
-	       A.Elements_[j][j] = (aii1*ssbar - cs*(aij1.conj())
-				    - csbar*aij1 + cc*ajj1).real();
-	       A.Elements_[i][j] = A.Elements_[j][i] = 0.0;
+	       A[i][i] = (aii1*cc + cs*(aij1.conj())
+                          + csbar*aij1 + ssbar*ajj1).real();
+	       A[j][j] = (aii1*ssbar - cs*(aij1.conj())
+                          - csbar*aij1 + cc*ajj1).real();
+	       A[i][j] = A[j][i] = 0.0;
 	       
 	       for (int k=0;k<A.Cols_;k++)
 	       {
-		  if (B != NULL)
+		  if (B != 0)
 		  {
-		     tmp = B->Elements_[k][i]*c + B->Elements_[k][j]*(s.conj());
-		     B->Elements_[k][j] = -B->Elements_[k][i]*s + B->Elements_[k][j]*c;
-		     B->Elements_[k][i] = tmp;
+		     tmp = (*B)[k][i]*c + (*B)[k][j]*(s.conj());
+		     (*B)[k][j] = -(*B)[k][i]*s + (*B)[k][j]*c;
+		     (*B)[k][i] = tmp;
 		  }
 		  
 		  
@@ -644,13 +644,13 @@ Matrix HermiteEigVal(CMatrix A,CMatrix *B,const int MaxItr,const double Tol)
 		     continue;
 		  }
 		     
-		  aki1 = A.Elements_[k][i];
-		  akj1 = A.Elements_[k][j];
+		  aki1 = A[k][i];
+		  akj1 = A[k][j];
 		  
-		  A.Elements_[k][i] = aki1*c + akj1*(s.conj());
-		  A.Elements_[i][k] = (A.Elements_[k][i].conj());
-		  A.Elements_[k][j] = -aki1*s + akj1*c;
-		  A.Elements_[j][k] = (A.Elements_[k][j].conj());
+		  A[k][i] = aki1*c + akj1*(s.conj());
+		  A[i][k] = (A[k][i].conj());
+		  A[k][j] = -aki1*s + akj1*c;
+		  A[j][k] = (A[k][j].conj());
 	       }
 	    }
 	 }
@@ -661,7 +661,7 @@ Matrix HermiteEigVal(CMatrix A,CMatrix *B,const int MaxItr,const double Tol)
       for (int i=0;i<A.Cols_;i++)
 	 for (int j=i+1;j<A.Cols_;j++)
 	 {
-	    if (abs(A.Elements_[i][j]) > Tol)
+	    if (abs(A[i][j]) > Tol)
 	    {
 	       converged = 0;
 	    }
@@ -676,13 +676,13 @@ Matrix HermiteEigVal(CMatrix A,CMatrix *B,const int MaxItr,const double Tol)
 
    for (int i=0;i<A.Cols_;i++)
    {
-      EigVals[0][i] = (A.Elements_[i][i]).real();
+      EigVals[0][i] = (A[i][i]).real();
    }
    
    return EigVals;
 }
 
-void Cholesky(const CMatrix& A,CMatrix& U,CMatrix& D)
+void Cholesky(CMatrix const& A,CMatrix& U,CMatrix& D)
 {
    if (!A.IsSquare() || A.IsNull())
    {
@@ -696,35 +696,35 @@ void Cholesky(const CMatrix& A,CMatrix& U,CMatrix& D)
 
    for (register int i=0;i<A.Rows_;i++)
    {
-      D.Elements_[i][i]=A.Elements_[i][i];
+      D[i][i]=A[i][i];
       if (i > 0)
       {
 	 for (register int k=0;k<i;k++)
 	 {
 
-	    D.Elements_[i][i]-=
-	       D.Elements_[k][k]*U.Elements_[k][i]*(U.Elements_[k][i].conj());
+	    D[i][i]-=
+	       D[k][k]*U[k][i]*(U[k][i].conj());
 	 }
       }
       for (register int j=i+1;j<A.Rows_;j++)
       {
-	 U.Elements_[i][j]=A.Elements_[i][j];
+	 U[i][j]=A[i][j];
 	 if (i > 0)
 	 {
 	    for (register int k=0;k<i;k++)
 	    {
-	       U.Elements_[i][j]-=
-		  D.Elements_[k][k]*(U.Elements_[k][i].conj())*U.Elements_[k][j];
+	       U[i][j]-=
+		  D[k][k]*(U[k][i].conj())*U[k][j];
 	    }
 	 }
-	 U.Elements_[i][j]/=D.Elements_[i][i];
+	 U[i][j]/=D[i][i];
       }
    }
    
    return;
 }
 
-CMatrix SolvePLU(const CMatrix& A,const CMatrix& B)
+CMatrix SolvePLU(CMatrix const& A,CMatrix const& B)
 {
    if (!A.IsSquare() || A.IsNull() || A.Cols_!=B.Rows_)
    {
@@ -742,27 +742,27 @@ CMatrix SolvePLU(const CMatrix& A,const CMatrix& B)
    Y = new CMatrix::Elm[B.Rows_];
    CMatrix Temp=P*B;
 
-   Y[0]=Temp.Elements_[0][0];
+   Y[0]=Temp[0][0];
    for (register int i=1;i<B.Rows_;i++)
    {
       Y[i]=Temp[i][0];
       for (register int j=0;j<i;j++)
       {
-	 Y[i]-=Y[j]*L.Elements_[i][j];
+	 Y[i]-=Y[j]*L[i][j];
       }
    }
 
    CMatrix X(B.Rows_,1,0);
 
-   X.Elements_[B.Rows_-1][0]=Y[B.Rows_-1]/U.Elements_[A.Rows_-1][A.Cols_-1];
+   X[B.Rows_-1][0]=Y[B.Rows_-1]/U[A.Rows_-1][A.Cols_-1];
    for (register int i=A.Rows_-2;i>=0;i--)
    {
-      X.Elements_[i][0]=Y[i];
+      X[i][0]=Y[i];
       for (register int j=A.Rows_-1;j>i;j--)
       {
-	 X.Elements_[i][0]-=X.Elements_[j][0]*U.Elements_[i][j];
+	 X[i][0]-=X[j][0]*U[i][j];
       }
-      X.Elements_[i][0]=X.Elements_[i][0]/U.Elements_[i][i];
+      X[i][0]=X[i][0]/U[i][i];
    }
 
    delete [] Y;
@@ -770,7 +770,7 @@ CMatrix SolvePLU(const CMatrix& A,const CMatrix& B)
    return X;
 }
 
-ostream& operator<<(ostream& out,const CMatrix& A)
+ostream& operator<<(ostream& out,CMatrix const& A)
 {
    int W=out.width();
    
@@ -781,7 +781,7 @@ ostream& operator<<(ostream& out,const CMatrix& A)
    {
       for (register int j=0;j<A.Cols_;j++)
       {
-	 out << setw(W) << A.Elements_[i][j];
+	 out << setw(W) << A[i][j];
 	 if ((CMatrix::MathematicaPrintFlag) && (j!=(A.Cols_-1)))
 	    out << ",";
       }
@@ -806,7 +806,7 @@ istream& operator>>(istream& in,CMatrix& A)
 {
    for (register int i=0;i<A.Rows_;i++)
       for (register int j=0;j<A.Cols_;j++)
-	 in >> A.Elements_[i][j];
+	 in >> A[i][j];
 
    return in;
 }

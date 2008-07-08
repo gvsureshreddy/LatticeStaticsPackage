@@ -36,45 +36,50 @@ private:
    Vector Tangent1_;            //Tangent vector of ith point
    Vector Tangent2_;            //Tangent Vector of ith + 1 point
    
-   void GetQR(Vector& Force,Vector& diff,Matrix& Q,Matrix& R);
-   void MoorePenrose(const Matrix& Q,const Matrix& R,const Vector& Force,Vector& Corrector);
-   void QRUpdate(const Vector& Force,const Vector& difference,Matrix& Q,Matrix& R);
+   void GetQR(Vector const& Force,Vector const& diff,Matrix& Q,Matrix& R) const;
+   void MoorePenrose(Matrix const& Q,Matrix const& R,Vector const& Force,Vector& Corrector)
+      const;
+   void QRUpdate(Vector const& Force,Vector const& difference,Matrix& Q,Matrix& R)
+      const;
    
 public:
    Vector Previous_Solution_;
-   NewtonPCSolution(LatticeMode *Mode,const Vector &one,
-                    int CurrentSolution,int UpdateType,int NumSolutions,double MaxDS,
-                    double CurrentDS,double cont_rate_nom,double delta_nom,
-                    double alpha_nom,double Converge,double MinDSRatio,
-                    const Vector &FirstSolution,int Direction=1,
-                    int ClosedLoopStart=CLOSEDDEFAULT,int StopAtCPNum=-1,int Echo=1);
-   NewtonPCSolution(LatticeMode *Mode,PerlInput &Input,const Vector &one,int Echo=1);
-   NewtonPCSolution(LatticeMode *Mode,PerlInput &Input,int Echo);
+   NewtonPCSolution(LatticeMode* const Mode,Vector const& one,
+                    int const& CurrentSolution,int const& UpdateType,int const& NumSolutions,
+                    double const& MaxDS,double const& CurrentDS,double const& cont_rate_nom,
+                    double const& delta_nom,double const& alpha_nom,double const& Converge,
+                    double const& MinDSRatio,Vector const& FirstSolution,int const& Direction=1,
+                    int const& ClosedLoopStart=CLOSEDDEFAULT,int const& StopAtCPNum=-1,
+                    int const& Echo=1);
+   NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Input,Vector const& one,
+                    int const& Echo=1);
+   NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Input,int const& Echo);
    ~NewtonPCSolution() {}
    
    // Functions required by SolutionMethod
-   virtual int AllSolutionsFound();
+   virtual int AllSolutionsFound() const;
    virtual int FindNextSolution();
-   virtual int FindCriticalPoint(Lattice *Lat,PerlInput &Input,int Width,fstream &out);
+   virtual int FindCriticalPoint(Lattice* const Lat,PerlInput const& Input,int const& Width,
+                                 fstream& out);
    
 private:
    // "static" member variables
    // FindNextSolution
-   Vector v_static;
-   Vector w_static;
-   Vector Force_static;
-   Vector Corrector_static;
-   Vector difference_static;
-   Matrix Q_static;
-   Matrix R_static;
+   mutable Vector v_static;
+   mutable Vector w_static;
+   mutable Vector Force_static;
+   mutable Vector Corrector_static;
+   mutable Vector difference_static;
+   mutable Matrix Q_static;
+   mutable Matrix R_static;
    // GetQR
-   Matrix Stiff_static;
+   mutable Matrix Stiff_static;
    // MoorePenrose
-   Vector y_static;
+   mutable Vector y_static;
    // QRUpdate
-   Vector u_static;
-   Vector a_static;
-   Vector e_static;
+   mutable Vector u_static;
+   mutable Vector a_static;
+   mutable Vector e_static;
 };
 
 #endif

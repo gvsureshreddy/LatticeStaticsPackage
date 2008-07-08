@@ -1,6 +1,6 @@
 #include "LagrangeCB.h"
 
-LagrangeCB::LagrangeCB(int InternalAtoms,Matrix &RefLattice,Vector *AtomPositions)
+LagrangeCB::LagrangeCB(int const& InternalAtoms,Matrix& RefLattice,Vector* const AtomPositions)
    : CBKinematics(InternalAtoms,RefLattice,AtomPositions)
 {
    F_.Resize(DIM3,DIM3);
@@ -10,7 +10,7 @@ LagrangeCB::LagrangeCB(int InternalAtoms,Matrix &RefLattice,Vector *AtomPosition
    Reset();
 }
 
-LagrangeCB::LagrangeCB(PerlInput &Input,PerlInput::HashStruct *ParentHash)
+LagrangeCB::LagrangeCB(PerlInput const& Input,PerlInput::HashStruct const* const ParentHash)
    : CBKinematics(Input,ParentHash)
 {
    F_.Resize(DIM3,DIM3);
@@ -41,7 +41,7 @@ void LagrangeCB::Reset()
    }
 }
 
-Vector LagrangeCB::FractionalPosVec(int p)
+Vector LagrangeCB::FractionalPosVec(int const& p) const
 {
    Vector pos(DIM3,0.0);
    
@@ -53,7 +53,7 @@ Vector LagrangeCB::FractionalPosVec(int p)
    return pos;
 }
 
-double LagrangeCB::DX(double *X,int p,int q,int i)
+double LagrangeCB::DX(double const* const X,int const& p,int const& q,int const& i) const
 {
    double tmp=0.0;
    
@@ -67,7 +67,7 @@ double LagrangeCB::DX(double *X,int p,int q,int i)
    return tmp;
 }
 
-double LagrangeCB::Dx(double *X,int p,int q,int i)
+double LagrangeCB::Dx(double const* const X,int const& p,int const& q,int const& i) const
 {
    double tmp=0.0;
    
@@ -79,17 +79,20 @@ double LagrangeCB::Dx(double *X,int p,int q,int i)
    return tmp;
 }
 
-double LagrangeCB::DyDF(double *Dx,double *DX,int r, int s)
+double LagrangeCB::DyDF(double const* const Dx,double const* const DX,int const& r,int const& s)
+   const
 {
    return 2.0*Dx[r]*DX[s];
 }
 
-double LagrangeCB::D2yDFF(double *DX,int r, int s, int t, int u)
+double LagrangeCB::D2yDFF(double const* const DX,int const& r,int const& s,int const& t,
+                          int const& u) const
 {
    return 2.0*Del(r,t)*DX[s]*DX[u];
 }
 
-double LagrangeCB::DyDS(double *Dx,int p,int q,int i, int j)
+double LagrangeCB::DyDS(double const* const Dx,int const& p,int const& q,int const& i,
+                        int const& j) const
 {
    double ret=0;
    
@@ -109,7 +112,8 @@ double LagrangeCB::DyDS(double *Dx,int p,int q,int i, int j)
    return ret;
 }
 
-double LagrangeCB::D2yDSS(int p,int q,int i,int j,int k,int l)
+double LagrangeCB::D2yDSS(int const& p,int const& q,int const& i,int const& j,int const& k,
+                          int const& l) const
 {
    double tmp=0;
    if (DELTA(i,p,q)*DELTA(k,p,q))
@@ -130,7 +134,9 @@ double LagrangeCB::D2yDSS(int p,int q,int i,int j,int k,int l)
    return tmp;
 }
 
-double LagrangeCB::D2yDFS(double *Dx,double *DX,int p,int q,int i,int j,int k,int l)
+double LagrangeCB::D2yDFS(double const* const Dx,double const* const DX,int const& p,
+                          int const& q,int const& i,int const& j,int const& k,int const& l)
+   const
 {
    double tmp=0;
    
@@ -146,12 +152,15 @@ double LagrangeCB::D2yDFS(double *Dx,double *DX,int p,int q,int i,int j,int k,in
    return tmp;
 }
 
-double LagrangeCB::D3yDFFS(double *DX,int p,int q,int i,int j,int k,int l,int m, int n)
+double LagrangeCB::D3yDFFS(double const* const DX,int const& p,int const& q,int const& i,
+                           int const& j,int const& k,int const& l,int const& m,int const& n)
+   const
 {
    return 2.0*DELTA(m,p,q)*Del(i,k)*(RefLattice_[n][j]*DX[l] + DX[j]*RefLattice_[n][l]);
 }
 
-double LagrangeCB::D3yDSSF(int p,int q,int i,int j,int k,int l,int m,int n)
+double LagrangeCB::D3yDSSF(int const& p,int const& q,int const& i,int const& j,int const& k,
+                           int const& l,int const& m,int const& n) const
 {
    double tmp=0;
    
@@ -168,7 +177,9 @@ double LagrangeCB::D3yDSSF(int p,int q,int i,int j,int k,int l,int m,int n)
    return tmp;
 }
 
-double LagrangeCB::D4yDFFSS(int p,int q,int i,int j,int k,int l,int m,int n,int a,int b)
+double LagrangeCB::D4yDFFSS(int const& p,int const& q,int const& i,int const& j,int const& k,
+                            int const& l,int const& m,int const& n,int const& a,int const& b)
+   const
 {
    return (2.0*DELTA(m,p,q)*DELTA(a,p,q)*Del(i,k)*
            (RefLattice_[n][j]*RefLattice_[b][l]

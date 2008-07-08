@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
       exit(-1);
    }
 
-   int size=atoi(argv[1]);
+   int const size=atoi(argv[1]);
    Matrix Z(size,size);
 
    cin >> Z;

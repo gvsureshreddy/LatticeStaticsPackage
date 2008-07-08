@@ -20,7 +20,7 @@ using namespace std;
   If things break bad, it returns -1.
 */
 
-int setblock  (int file_desc, int block)
+int setblock  (int const& file_desc,int const& block)
 {
    int flags;
    
@@ -87,9 +87,9 @@ char kbhitWait()
 }
 
 //======================================================================
-int IND2D(int i,int j);
+int IND2D(int const& i,int const& j);
 
-int IND2D(int i,int j)
+int IND2D(int const& i,int const& j)
 {
    if (i==j)
       return i;
@@ -97,7 +97,7 @@ int IND2D(int i,int j)
       return 1+i+j;
 }
 
-int FullScanRank1Convex3D(CBKinematics *CBK, Matrix K, double dx)
+int FullScanRank1Convex3D(CBKinematics const* const CBK,Matrix const& K,double const& dx)
 {
    Matrix A(3,3);
    Matrix Eigvals(1,3);
@@ -136,7 +136,7 @@ int FullScanRank1Convex3D(CBKinematics *CBK, Matrix K, double dx)
    return 1;
 }
 
-int FullScanRank1Convex2D(Matrix K, double dx)
+int FullScanRank1Convex2D(Matrix const& K,double const& dx)
 {
    Matrix A(2,2);
    Matrix Eigvals(1,2);
@@ -170,7 +170,7 @@ int FullScanRank1Convex2D(Matrix K, double dx)
    return 1;
 }
 
-int Rank1Convex3D(CBKinematics *CBK,Matrix K,double dx)
+int Rank1Convex3D(CBKinematics const* const CBK,Matrix const& K,double const& dx)
 {
    double Pi=4.0*atan(1.0);
    MyComplexDouble A[3][3][3];
@@ -267,7 +267,7 @@ int Rank1Convex3D(CBKinematics *CBK,Matrix K,double dx)
    return 1;
 }
 
-int Rank1Convex2D(Matrix K,double dx)
+int Rank1Convex2D(Matrix const& K,double const& dx)
 {
    double Pi=4.0*atan(1.0);
    double A[2][2];
@@ -303,8 +303,8 @@ int Rank1Convex2D(Matrix K,double dx)
    return 1;
 }
 
-int pow(int a,int b);
-int pow(int a,int b)
+int pow(int const& a,int const& b);
+int pow(int const& a,int const& b)
 {
    int c=1;
    for (int i=0;i<b;i++)
@@ -314,7 +314,7 @@ int pow(int a,int b)
    return c;
 }
 
-Matrix TranslationProjection1D(int NoAtoms)
+Matrix TranslationProjection1D(int const& NoAtoms)
 {
    int k=0;
    int h,i, j, p, q, r, g, t, m, Rows, Columns, pow2_i;
@@ -405,7 +405,7 @@ Matrix TranslationProjection1D(int NoAtoms)
    return P;
 }
 
-Matrix TranslationProjection3D(int Fsize, int NoAtoms)
+Matrix TranslationProjection3D(int const& Fsize,int const& NoAtoms)
 {
    int i, j, g, h, m,t, p, r, qx,qy,qz, kx,ky,kz, wx, wy, wz,pow2_i;
    double sum,y,log2_NoAtoms, R;

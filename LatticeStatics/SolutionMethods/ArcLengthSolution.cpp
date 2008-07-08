@@ -7,14 +7,15 @@ using namespace std;
 
 #define ARCLENEPS 1.0e-15
 
-ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,const Vector &dofs,
-                                     int MaxIter,double Tolerance,
-                                     double BisectTolerance,double DSMax,double DSMin,
-                                     double CurrentDS,double AngleCutoff,double AngleIncrease,
-                                     double Aspect,int NumSolutions,
-                                     int CurrentSolution,const Vector &FirstSolution,
-                                     const Vector &Difference,int ClosedLoopStart,
-                                     int StopAtCPNum,int Echo)
+ArcLengthSolution::ArcLengthSolution(LatticeMode* const Mode,Vector const& dofs,
+                                     int const& MaxIter,double const& Tolerance,
+                                     double const& BisectTolerance,double const& DSMax,
+                                     double const& DSMin,double const& CurrentDS,
+                                     double const& AngleCutoff,double const& AngleIncrease,
+                                     double const& Aspect,int const& NumSolutions,
+                                     int const& CurrentSolution,Vector const& FirstSolution,
+                                     Vector const& Difference,int const& ClosedLoopStart,
+                                     int const& StopAtCPNum,int const& Echo)
    : Echo_(Echo),
      Mode_(Mode),
      ModeDOFS_(Mode_->ModeDOF().Dim()),
@@ -42,8 +43,8 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,const Vector &dofs,
    ArcLenSet(dofs);
 }
 
-ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,PerlInput &Input,
-                                     const Vector &one,const Vector &two,int Echo)
+ArcLengthSolution::ArcLengthSolution(LatticeMode* const Mode,PerlInput const& Input,
+                                     Vector const& one,Vector const& two,int const& Echo)
    : Echo_(Echo),
      Mode_(Mode),
      CurrentSolution_(0),
@@ -96,7 +97,8 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,PerlInput &Input,
    ArcLenSet(two);
 }
 
-ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,PerlInput &Input,int Echo)
+ArcLengthSolution::ArcLengthSolution(LatticeMode* const Mode,PerlInput const& Input,
+                                     int const Echo)
    :  Echo_(Echo),
       Mode_(Mode),
       CurrentSolution_(0),
@@ -217,8 +219,8 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode *Mode,PerlInput &Input,int Echo
    }
 }
 
-Vector ArcLengthSolution::ArcLenForce(double DS,const Vector &Diff,
-                                      double Aspect)
+Vector const& ArcLengthSolution::ArcLenForce(double const& DS,Vector const& Diff,
+                                             double const& Aspect) const
 {
    mdfc_static = Mode_->ModeForce();
    
@@ -232,7 +234,8 @@ Vector ArcLengthSolution::ArcLenForce(double DS,const Vector &Diff,
    return force_static;
 }
 
-Matrix ArcLengthSolution::ArcLenStiffness(const Vector &Diff,double Aspect)
+Matrix const& ArcLengthSolution::ArcLenStiffness(Vector const& Diff,double const& Aspect)
+   const
 {
    ModeK_static = Mode_->ModeStiffness();
    
@@ -249,16 +252,32 @@ Matrix ArcLengthSolution::ArcLenStiffness(const Vector &Diff,double Aspect)
    return K_static;
 }
 
-double ArcLengthSolution::ArcLenAngle(Vector Old,Vector New,double Aspect)
+double ArcLengthSolution::ArcLenAngle(Vector const& Old,Vector const& New,double const& Aspect)
+   const
 {
-   Old[ModeDOFS_-1] /= Aspect;
-   New[ModeDOFS_-1] /= Aspect;
+   double angle = 0.0;
+   double NewNorm = 0.0;
+   double OldNorm = 0.0;
+
+   for (int i=0;i<ModeDOFS_-1;++i)
+   {
+      angle += Old[i]*New[i];
+      NewNorm += New[i]*New[i];
+      OldNorm += Old[i]*Old[i];
+   }
+
+   angle += Old[ModeDOFS_-1]*New[ModeDOFS_-1]/(Aspect*Aspect);
+   NewNorm += New[ModeDOFS_-1]*New[ModeDOFS_-1]/(Aspect*Aspect);
+   OldNorm += Old[ModeDOFS_-1]*Old[ModeDOFS_-1]/(Aspect*Aspect);
+   NewNorm = sqrt(NewNorm);
+   OldNorm = sqrt(OldNorm);
    
-   return fabs(acos( (Old*New)/(Old.Norm()*New.Norm()) ));
+   return fabs(acos( angle/(NewNorm*OldNorm) ));
 }
 
-void ArcLengthSolution::ConsistencyCheck(Vector &Solution1,Vector &Solution2,
-                                         double ConsistencyEpsilon,int Width,fstream &out)
+void ArcLengthSolution::ConsistencyCheck(Vector const& Solution1,Vector const& Solution2,
+                                         double const& ConsistencyEpsilon,int const& Width,
+                                         fstream& out)
 {
    double potential;
    int Dim=ArcLenDef().Dim();
@@ -353,7 +372,7 @@ void ArcLengthSolution::ConsistencyCheck(Vector &Solution1,Vector &Solution2,
    CurrentSolution_ = NumSolutions_;
 }
 
-int ArcLengthSolution::AllSolutionsFound()
+int ArcLengthSolution::AllSolutionsFound() const
 {
    return (CurrentSolution_ >= NumSolutions_);
 }
@@ -417,7 +436,7 @@ int ArcLengthSolution::FindNextSolution()
    return good;
 }
 
-void ArcLengthSolution::ArcLengthNewton(int &good)
+void ArcLengthSolution::ArcLengthNewton(int& good)
 {
    int itr = 0;
    int Dim=ArcLenDef().Dim();
@@ -475,9 +494,10 @@ void ArcLengthSolution::ArcLengthNewton(int &good)
    }
 }
 
-int ArcLengthSolution::OldFindCriticalPoint(int LHN,double LHEV,int RHN,double RHEV,
-                                            Lattice *Lat,PerlInput &Input,
-                                            int Width,fstream &out)
+int ArcLengthSolution::OldFindCriticalPoint(int const& LHN,double const& LHEV,int const& RHN,
+                                            double const& RHEV,Lattice* const Lat,
+                                            PerlInput const& Input,int const& Width,
+                                            fstream& out)
 {
    Vector OriginalDiff=Difference_;
    double OriginalDS = CurrentDS_;
@@ -542,7 +562,7 @@ int ArcLengthSolution::OldFindCriticalPoint(int LHN,double LHEV,int RHN,double R
    out << "\n";
 
    // Lattice takes care of echo
-   out << setw(Width) << Lat << "\n";
+   out << setw(Width) << *Lat << "\n";
       
    for (int i=0;i<70;i++)
    {
@@ -573,7 +593,8 @@ int ArcLengthSolution::OldFindCriticalPoint(int LHN,double LHEV,int RHN,double R
    return 1;
 }
 
-int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,PerlInput &Input,int Width,fstream &out)
+int ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,PerlInput const& Input,
+                                         int const& Width,fstream& out)
 {
    Vector OriginalDiff=Difference_;
    double OriginalDS = CurrentDS_;
@@ -651,7 +672,7 @@ int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,PerlInput &Input,int Width
       
       if(track>=0) //START OF IF STATEMENT
       {
-         ZBrent(Lat, track,fa, fb, OriginalDiff, OriginalDS, CurrentTF_static);
+         ZBrent(Lat,track,OriginalDiff,OriginalDS,fa,fb,CurrentTF_static);
          Multiplicity = 1;
          for(int i=CP+1;i<TestValueDiff;i++)
          {
@@ -684,7 +705,7 @@ int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,PerlInput &Input,int Width
          in_string << "\n";
          
          // Lattice takes care of echo
-         in_string << setw(Width) << Lat << "\n";         
+         in_string << setw(Width) << *Lat << "\n";         
          
          for (int i=0;i<70;i++)
          {
@@ -730,9 +751,8 @@ int ArcLengthSolution::FindCriticalPoint(Lattice *Lat,PerlInput &Input,int Width
    return TestValueDiff;
 }
 
-void ArcLengthSolution::ZBrent(Lattice *Lat,int track,double fa,double fb,
-                               const Vector &OriginalDiff,const double OriginalDS,
-                               Vector &CurrentTF)
+void ArcLengthSolution::ZBrent(Lattice* const Lat,int const& track,Vector const& OriginalDiff,
+                               double const& OriginalDS,double& fa,double& fb,Vector& CurrentTF)
 {
    Vector LastDiff(Difference_.Dim(),0.0);
    double LastDS=CurrentDS_;

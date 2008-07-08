@@ -4,10 +4,10 @@
 
 using namespace std;
 
-const int MultiLatticeTPP::DIM3 = 3;
+int const MultiLatticeTPP::DIM3 = 3;
 
-const double RoEig_[3] = {1.0,2.0,3.0};
-const double TrEig_[3] = {4.0,5.0,6.0};
+double const RoEig_[3] = {1.0,2.0,3.0};
+double const TrEig_[3] = {4.0,5.0,6.0};
 
 MultiLatticeTPP::~MultiLatticeTPP()
 {
@@ -25,7 +25,8 @@ MultiLatticeTPP::~MultiLatticeTPP()
    delete CBK_;
 }
 
-MultiLatticeTPP::MultiLatticeTPP(PerlInput &Input,int Echo,int Width,int Debug)
+MultiLatticeTPP::MultiLatticeTPP(PerlInput const& Input,int const& Echo,int const& Width,
+                                 int const& Debug)
    : Lattice(Input)
 {
    Echo_ = Echo;
@@ -284,7 +285,7 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput &Input,int Echo,int Width,int Debug)
    UCIter_(GridSize_);
 }
 
-int MultiLatticeTPP::FindLatticeSpacing(int iter)
+int MultiLatticeTPP::FindLatticeSpacing(int const& iter)
 {
    Lambda_=0.0;
    NTemp_=1.0;
@@ -295,7 +296,7 @@ int MultiLatticeTPP::FindLatticeSpacing(int iter)
    if (Echo_)
       RefineEqbm(1.0e-13,iter,&cout);
    else
-      RefineEqbm(1.0e-13,iter,NULL);
+      RefineEqbm(1.0e-13,iter,0);
 
    // Clean up numerical round off (at least for zero values)
    Vector doftmp(CBK_->DOFS(),0.0);
@@ -314,7 +315,7 @@ int MultiLatticeTPP::FindLatticeSpacing(int iter)
    return 0;
 }
 
-void MultiLatticeTPP::SetParameters(double *Vals,int ResetRef)
+void MultiLatticeTPP::SetParameters(double const* const Vals,int const& ResetRef)
 {
    int no = SpeciesPotential_[0][0]->GetNoParameters();
    int cur = 0;
@@ -333,7 +334,7 @@ void MultiLatticeTPP::SetParameters(double *Vals,int ResetRef)
 }
 
 // Lattice Routines
-double MultiLatticeTPP::E0()
+double MultiLatticeTPP::E0() const
 {
    Phi0_static = energy();
    
@@ -376,7 +377,7 @@ double MultiLatticeTPP::E0()
       + 0.5*(RoEig_[0]*Rsq_static[0] + RoEig_[1]*Rsq_static[1] + RoEig_[2]*Rsq_static[2]);
 }
 
-double MultiLatticeTPP::energy(PairPotentials::TDeriv dt)
+double MultiLatticeTPP::energy(PairPotentials::TDeriv const& dt) const
 {
    double Phi = 0.0;
    double Vr;
@@ -429,7 +430,7 @@ double MultiLatticeTPP::energy(PairPotentials::TDeriv dt)
    return Phi;
 }
 
-Matrix MultiLatticeTPP::E1()
+Matrix const& MultiLatticeTPP::E1() const
 {
    ME1_static = stress();
    
@@ -478,7 +479,7 @@ Matrix MultiLatticeTPP::E1()
    return ME1_static;
 }
 
-Matrix MultiLatticeTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
+Matrix const& MultiLatticeTPP::stress(PairPotentials::TDeriv const& dt,LDeriv const& dl) const
 {
    double ForceNorm = 0.0;
    double phi,Vr;
@@ -581,7 +582,7 @@ Matrix MultiLatticeTPP::stress(PairPotentials::TDeriv dt,LDeriv dl)
    return S_static;
 }
 
-Matrix MultiLatticeTPP::E2()
+Matrix const& MultiLatticeTPP::E2() const
 {
    ME2_static = stiffness();
    
@@ -626,7 +627,8 @@ Matrix MultiLatticeTPP::E2()
    return ME2_static;
 }
 
-Matrix MultiLatticeTPP::stiffness(PairPotentials::TDeriv dt,LDeriv dl)
+Matrix const& MultiLatticeTPP::stiffness(PairPotentials::TDeriv const& dt,LDeriv const& dl)
+   const
 {
    Matrix F(DIM3,DIM3);
    double phi,phi1;
@@ -726,7 +728,7 @@ Matrix MultiLatticeTPP::stiffness(PairPotentials::TDeriv dt,LDeriv dl)
    return Phi2_static;
 }
 
-Matrix MultiLatticeTPP::E3()
+Matrix const& MultiLatticeTPP::E3() const
 {
    double phi,phi1,phi2;
    int i,j,k,l,m,n;
@@ -845,7 +847,7 @@ Matrix MultiLatticeTPP::E3()
    return Phi3_static;
 }
 
-Matrix MultiLatticeTPP::E4()
+Matrix const& MultiLatticeTPP::E4() const
 {
    double phi,phi1,phi2,phi3;
    int i,j,k,l,m,n,s,t;
@@ -1193,18 +1195,19 @@ Matrix MultiLatticeTPP::E4()
    return Phi4_static;
 }
 
-Matrix MultiLatticeTPP::CondensedModuli()
+Matrix const& MultiLatticeTPP::CondensedModuli() const
 {
-   Matrix stiff = stiffness();
+   Matrix const& stiff = stiffness();
    int intrn = CBK_->Ssize();
    double factor = 1.0/(intrn/DIM3);
    int fsz = CBK_->Fsize();
-   Matrix CM(fsz,fsz), IM(intrn,intrn);
+   Matrix IM(intrn,intrn);
+   CM_static.Resize(fsz,fsz);
    
    for (int i=0;i<fsz;i++)
       for (int j=0;j<fsz;j++)
       {
-         CM[i][j] = stiff[i][j];
+         CM_static[i][j] = stiff[i][j];
       }
    
    // Make sure there are internal DOF's
@@ -1230,7 +1233,7 @@ Matrix MultiLatticeTPP::CondensedModuli()
             for (int m=0;m<intrn;m++)
                for (int n=0;n<intrn;n++)
                {
-                  CM[i][j] -= stiff[i][fsz+m]*IM[m][n]*stiff[fsz+n][j];
+                  CM_static[i][j] -= stiff[i][fsz+m]*IM[m][n]*stiff[fsz+n][j];
                }
          }
    }
@@ -1243,30 +1246,31 @@ Matrix MultiLatticeTPP::CondensedModuli()
       {
          for (int j=0;j<3;j++)
          {
-            CM[i][j] /= 2.0;
-            CM[j][i] /= 2.0;
+            CM_static[i][j] /= 2.0;
+            CM_static[j][i] /= 2.0;
          }
          
          for (int j=3;j<6;j++)
          {
-            CM[i][j] /= 4.0;
+            CM_static[i][j] /= 4.0;
          }
       }
    }
    
-   return CM;
+   return CM_static;
 }
 
-Matrix MultiLatticeTPP::ThermalExpansion()
+Matrix const& MultiLatticeTPP::ThermalExpansion() const
 {
+   ThermalExp_static.Resize(1,CBK_->DOFS());
 #ifdef SOLVE_SVD
-   return SolveSVD(E2(),-StressDT().Transpose()).Transpose();
+   return ThermalExp_static = SolveSVD(E2(),-StressDT().Transpose()).Transpose();
 #else
-   return SolvePLU(E2(),-StressDT().Transpose()).Transpose();
+   return ThermalExp_static = SolvePLU(E2(),-StressDT().Transpose()).Transpose();
 #endif
 }
 
-int MultiLatticeTPP::comp(const void *a,const void *b)
+int MultiLatticeTPP::comp(void const* const a,void const* const b)
 {
    double t;
    if( *((double*) a) == *((double*) b)) return 0;
@@ -1278,7 +1282,7 @@ int MultiLatticeTPP::comp(const void *a,const void *b)
    }
 }
 
-int MultiLatticeTPP::abscomp(const void *a,const void *b)
+int MultiLatticeTPP::abscomp(void const* const a,void const* const b)
 {
    double t;
    if( fabs(*((double*) a)) == fabs(*((double*) b))) return 0;
@@ -1290,7 +1294,8 @@ int MultiLatticeTPP::abscomp(const void *a,const void *b)
    }
 }
 
-void MultiLatticeTPP::interpolate(Matrix *EigVals,int zero,int one,int two)
+void MultiLatticeTPP::interpolate(Matrix* const EigVals,int const& zero,int const& one,
+                                  int const& two)
 {
    // Calculate expected value for eigvals and store in zero position
    EigVals[zero] = 2.0*EigVals[one] - EigVals[zero];
@@ -1318,7 +1323,7 @@ void MultiLatticeTPP::interpolate(Matrix *EigVals,int zero,int one,int two)
    }
 }
 
-CMatrix MultiLatticeTPP::ReferenceDynamicalStiffness(Vector &K)
+CMatrix const& MultiLatticeTPP::ReferenceDynamicalStiffness(Vector const& K) const
 {
    double pi = 4.0*atan(1.0);
    MyComplexDouble Ic(0,1);
@@ -1375,8 +1380,8 @@ CMatrix MultiLatticeTPP::ReferenceDynamicalStiffness(Vector &K)
    return Dk_static;
 }
 
-void MultiLatticeTPP::ReferenceDispersionCurves(Vector K,int NoPTS,const char *prefix,
-                                                ostream &out)
+void MultiLatticeTPP::ReferenceDispersionCurves(Vector const& K,int const& NoPTS,
+                                                char const* const prefix,ostream& out) const
 {
    int w=out.width();
    out.width(0);
@@ -1438,7 +1443,7 @@ void MultiLatticeTPP::ReferenceDispersionCurves(Vector K,int NoPTS,const char *p
    }
 }
 
-int MultiLatticeTPP::ReferenceBlochWave(Vector &K)
+int MultiLatticeTPP::ReferenceBlochWave(Vector& K) const
 {
    InverseLat_static = (CBK_->RefLattice()).Inverse();
    
@@ -1468,8 +1473,8 @@ int MultiLatticeTPP::ReferenceBlochWave(Vector &K)
 }
 
 //---- needs to be updated----//
-void MultiLatticeTPP::LongWavelengthModuli(double dk, int gridsize,const char *prefix,
-                                           ostream &out)
+void MultiLatticeTPP::LongWavelengthModuli(double const& dk,int const& gridsize,
+                                           char const* const prefix,ostream& out) const
 {
    double pi = 4*atan(1.0);
    double twopi = 2*pi;
@@ -1659,7 +1664,7 @@ void MultiLatticeTPP::LongWavelengthModuli(double dk, int gridsize,const char *p
    }
 }
 
-void MultiLatticeTPP::NeighborDistances(int cutoff,ostream &out)
+void MultiLatticeTPP::NeighborDistances(int const& cutoff,ostream& out) const
 {
    Matrix NeighborDist =
       LatSum_.NeighborDistances(cutoff,pow(double(10),double(-(out.precision()-1))));
@@ -1678,7 +1683,7 @@ void MultiLatticeTPP::NeighborDistances(int cutoff,ostream &out)
    out << "\n";
 }
 
-void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
+void MultiLatticeTPP::Print(ostream& out,PrintDetail const& flag)
 {
    int W;
    int NoNegTestFunctions;
@@ -1744,7 +1749,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
             for (int j=i;j<NumberofSpecies_;j++)
             {
                out << "[" << i << "][" << j << "] -- "
-                   << setw(W) << SpeciesPotential_[i][j] << "\n";
+                   << setw(W) << *SpeciesPotential_[i][j] << "\n";
             }
          }
          out << "Normalization Modulus : " << setw(W) << NormModulus_ << "\n";
@@ -1780,7 +1785,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
                for (int j=i;j<NumberofSpecies_;j++)
                {
                   cout << "[" << i << "][" << j << "] -- "
-                       << setw(W) << SpeciesPotential_[i][j] << "\n";
+                       << setw(W) << *SpeciesPotential_[i][j] << "\n";
                }
             }
             cout << "Normalization Modulus : " << setw(W) << NormModulus_ << "\n";
@@ -1859,7 +1864,7 @@ void MultiLatticeTPP::Print(ostream &out,PrintDetail flag)
    }
 }
 
-ostream &operator<<(ostream &out,MultiLatticeTPP &A)
+ostream& operator<<(ostream& out,MultiLatticeTPP& A)
 {
    A.Print(out,Lattice::PrintShort);
    return out;
@@ -2258,7 +2263,7 @@ void MultiLatticeTPP::DebugMode()
 }
 
 
-void MultiLatticeTPP::RefineEqbm(double Tol,int MaxItr,ostream *out)
+void MultiLatticeTPP::RefineEqbm(double const& Tol,int const& MaxItr,ostream* const out)
 {
    Vector dx(CBK_->DOFS(),0.0);
    Vector Stress=E1();
@@ -2275,7 +2280,7 @@ void MultiLatticeTPP::RefineEqbm(double Tol,int MaxItr,ostream *out)
 
       SetDOF(CBK_->DOF()-dx);
       Stress=E1();
-      if (out != NULL)
+      if (out != 0)
       {
          *out << setw(20) << Stress;
          
@@ -2284,7 +2289,7 @@ void MultiLatticeTPP::RefineEqbm(double Tol,int MaxItr,ostream *out)
    }
 }
 
-void MultiLatticeTPP::PrintCurrentCrystalParamaters(ostream &out)
+void MultiLatticeTPP::PrintCurrentCrystalParamaters(ostream& out) const
 {
    Matrix F(DIM3,DIM3,0.0);
    Vector CurrentLattice[DIM3];

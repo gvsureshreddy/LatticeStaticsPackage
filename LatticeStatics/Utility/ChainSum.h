@@ -18,14 +18,14 @@ class ChainSum
 {
 private:
    int Recalc_;
-   double *InfluanceDist_;
-   Vector *DOF_;
+   double const* InfluanceDist_;
+   Vector const* DOF_;
    int LagrangeCB_;
-   Matrix *RefLattice_;
+   Matrix const* RefLattice_;
    int InternalAtoms_;
-   Vector *InternalPOS_;
-   PairPotentials ***Potential_;
-   double *Ntemp_;
+   Vector const* InternalPOS_;
+   PairPotentials const* const* const* Potential_;
+   double const* Ntemp_;
    
    int CurrentPOS_;
    int Pairs_;
@@ -39,34 +39,37 @@ private:
    
 public:
    ChainSum() {}
-   ChainSum(Vector *DOF,int LagrangeCB,int Translations,Matrix *RefLat,
-            int InternalAtoms,Vector *InternalPOS,PairPotentials ***PairPot,
-            double *InfluDist,double *Ntemp);
+   ChainSum(Vector const* const DOF,int const& LagrangeCB,int const& Translations,
+            Matrix const* const RefLat,int const& InternalAtoms,Vector const* const InternalPOS,
+            PairPotentials const* const* const* const PairPot,
+            double const* const InfluDist,double const* const Ntemp);
    ~ChainSum() {}
    
-   void operator()(Vector *DOF,int LagrangeCB,int Translations,Matrix *RefLat,
-                   int InternalAtoms,Vector *InternalPOS,PairPotentials ***PairPot,
-                   double *InfluDist,double *Ntemp);
+   void operator()(Vector const* const DOF,int const& LagrangeCB,int const& Translations,
+                   Matrix const* const RefLat,int const& InternalAtoms,
+                   Vector const* const InternalPOS,
+                   PairPotentials const* const* const* const PairPot,
+                   double const* const InfluDist,double const* const Ntemp);
    
    void Reset();
    void Recalc() {Recalc_ = 1;}
-   int Done() {return CurrentPOS_ >= Pairs_;}
+   int Done() const {return CurrentPOS_ >= Pairs_;}
    void operator++() {++CurrentPOS_;}
    
-   double DX(int i) {return RelPosDATA_[CurrentPOS_][CHAINSUMdXstart+i];}
-   double *pDX() {return &(RelPosDATA_[CurrentPOS_][CHAINSUMdXstart]);}
-   double Dx(int i) {return RelPosDATA_[CurrentPOS_][CHAINSUMdxstart+i];}
-   double *pDx() {return &(RelPosDATA_[CurrentPOS_][CHAINSUMdxstart]);}
-   double r2() {return RelPosDATA_[CurrentPOS_][CHAINSUMr2start];}
-   int Atom(int i) {return int(RelPosDATA_[CurrentPOS_][CHAINSUMatomstart+i]);}
-   double phi1() {return RelPosDATA_[CurrentPOS_][CHAINSUMphi1start];}
-   double phi2() {return RelPosDATA_[CurrentPOS_][CHAINSUMphi2start];}
-   double J() {return F_;}
+   double DX(int const& i) const {return RelPosDATA_[CurrentPOS_][CHAINSUMdXstart+i];}
+   double const* const pDX() const {return &(RelPosDATA_[CurrentPOS_][CHAINSUMdXstart]);}
+   double Dx(int const& i) const {return RelPosDATA_[CurrentPOS_][CHAINSUMdxstart+i];}
+   double const* const pDx() const {return &(RelPosDATA_[CurrentPOS_][CHAINSUMdxstart]);}
+   double r2() const {return RelPosDATA_[CurrentPOS_][CHAINSUMr2start];}
+   int Atom(int const& i) const {return int(RelPosDATA_[CurrentPOS_][CHAINSUMatomstart+i]);}
+   double phi1() const {return RelPosDATA_[CurrentPOS_][CHAINSUMphi1start];}
+   double phi2() const {return RelPosDATA_[CurrentPOS_][CHAINSUMphi2start];}
+   double J() const {return F_;}
    
-   Matrix NeighborDistances(int cutoff,double eps);
+   Matrix NeighborDistances(int const& cutoff,double const& eps);
    
-   int Pairs() {return Pairs_;}
-   int Capacity() {return RelPosDATA_.Rows();}
+   int Pairs() const {return Pairs_;}
+   int Capacity() const {return RelPosDATA_.Rows();}
 };
 
 #endif

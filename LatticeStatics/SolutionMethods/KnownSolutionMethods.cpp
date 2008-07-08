@@ -1,7 +1,8 @@
 #include "KnownSolutionMethods.h"
 
-SolutionMethod *InitializeSolution(LatticeMode *Mode,PerlInput &Input,Lattice *Lat,
-                                   fstream &out,int Width,int Echo)
+SolutionMethod* InitializeSolution(LatticeMode* const Mode,PerlInput const& Input,
+                                   Lattice* const Lat,fstream& out,int const& Width,
+                                   int const& Echo)
 {
    enum solution {Scanning,ArcLen,NewtonPC};
    solution solu;
@@ -18,7 +19,7 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,PerlInput &Input,Lattice *L
       cerr << "Unknown SolutionMethod : " << slvmthd << "\n";
       exit(-1);
    }
-   
+
    switch (solu)
    {
       case Scanning:
@@ -31,7 +32,7 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,PerlInput &Input,Lattice *L
          int count = 0;
          Vector One = Mode->ModeDOF(),
             Two = Mode->ModeDOF();
-         
+
          if (Input.HashOK("StartType"))
          {
             return new ArcLengthSolution(Mode,Input,Echo);
@@ -39,7 +40,7 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,PerlInput &Input,Lattice *L
          else
          {
             ScanningSolution ScanMe(Mode,Input,Echo);
-            
+
             while (!ScanMe.AllSolutionsFound())
             {
                One = Two;
@@ -47,7 +48,7 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,PerlInput &Input,Lattice *L
                if (good)
                {
                   count++;
-                  out << setw(Width) << Lat << "Success = 1" << "\n";
+                  out << setw(Width) << *Lat << "Success = 1" << "\n";
                   Two = Mode->ModeDOF();
                }
             }
@@ -76,12 +77,12 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,PerlInput &Input,Lattice *L
          else
          {
             ScanningSolution ScanMe(Mode,Input,Echo);
-            
+
             good = ScanMe.FindNextSolution();
             if (good)
             {
                count++;
-               out << setw(Width) << Lat << "Success = 1" << "\n";
+               out << setw(Width) << *Lat << "Success = 1" << "\n";
                One = Mode->ModeDOF();
                return new NewtonPCSolution(Mode,Input,One,Echo);
             }
@@ -89,5 +90,5 @@ SolutionMethod *InitializeSolution(LatticeMode *Mode,PerlInput &Input,Lattice *L
       }
    }
    
-   return NULL;
+   return 0;
 }

@@ -15,9 +15,10 @@ char *builddate();
 using namespace std;
 
 enum YN {No,Yes};
-void GetMainSettings(int &Width, int &Precision,YN &BisectCP,int &Echo,PerlInput &Input);
-void InitializeOutputFile(fstream &out,char *outfile,char *datafile,char *startfile,
-                          int Precision,int Width,int Echo);
+void GetMainSettings(int& Width,int& Precision,YN& BisectCP,int& Echo,PerlInput const& Input);
+void InitializeOutputFile(fstream& out,char const* const outfile,char const* const datafile,
+                          char const* const startfile,int const& Precision,int const& Width,
+                          int const& Echo);
 
 int main(int argc, char *argv[])
 {
@@ -51,7 +52,7 @@ int main(int argc, char *argv[])
    }
    else
    {
-      startfile = NULL;
+      startfile = 0;
    }
    
    Lattice *Lat;
@@ -75,7 +76,7 @@ int main(int argc, char *argv[])
    if (Echo) cout << "Mode: " << Mode->ModeName() << "\n";
    
    SolveMe = InitializeSolution(Mode,Input,Lat,out,Width,Echo);
-   
+
    int success = 1;
    int TestValue=-1,
       OldTestValue=TestValue;
@@ -94,7 +95,7 @@ int main(int argc, char *argv[])
             SolveMe->FindCriticalPoint(Lat,Input,Width,out);
          
          // Send Output
-         out << setw(Width) << Lat << "Success = 1" << "\n";
+         out << setw(Width) << *Lat << "Success = 1" << "\n";
       }
    }
    
@@ -106,10 +107,7 @@ int main(int argc, char *argv[])
    return 0;
 }
 
-
-
-
-void GetMainSettings(int &Width, int &Precision,YN &BisectCP,int &Echo,PerlInput &Input)
+void GetMainSettings(int& Width,int& Precision,YN& BisectCP,int& Echo,PerlInput const& Input)
 {
    char bisect[LINELENGTH];
 
@@ -134,9 +132,9 @@ void GetMainSettings(int &Width, int &Precision,YN &BisectCP,int &Echo,PerlInput
    }
 }
 
-
-void InitializeOutputFile(fstream &out,char *outfile,char *datafile,char *startfile,
-                          int Precision,int Width,int Echo)
+void InitializeOutputFile(fstream& out,char const* const outfile,char const* const datafile,
+                          char const* const startfile,int const& Precision,int const& Width,
+                          int const& Echo)
 {
    fstream input,start;
    char dataline[LINELENGTH];
@@ -164,7 +162,7 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,char *startf
    
    input.close();
    
-   if (startfile != NULL)
+   if (startfile != 0)
    {
       start.open(startfile,ios::in);
       if (start.fail())

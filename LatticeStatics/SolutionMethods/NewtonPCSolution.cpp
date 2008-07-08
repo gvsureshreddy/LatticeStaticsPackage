@@ -5,15 +5,15 @@
 
 using namespace std;
 
-NewtonPCSolution::NewtonPCSolution(LatticeMode *Mode,
-                                   const Vector &one,int CurrentSolution,
-                                   int UpdateType,int NumSolutions,double MaxDS,
-                                   double CurrentDS,double cont_rate_nom,
-                                   double delta_nom,double alpha_nom,
-                                   double Converge,double MinDSRatio,
-                                   const Vector &FirstSolution,int Direction,
-                                   int ClosedLoopStart,int StopAtCPNum,
-                                   int Echo)
+NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,
+                                   Vector const& one,int const& CurrentSolution,
+                                   int const& UpdateType,int const& NumSolutions,
+                                   double const& MaxDS,double const& CurrentDS,
+                                   double const& cont_rate_nom,double const& delta_nom,
+                                   double const& alpha_nom,double const& Converge,
+                                   double const& MinDSRatio,Vector const& FirstSolution,
+                                   int const& Direction,int const& ClosedLoopStart,
+                                   int const& StopAtCPNum,int const& Echo)
    : Mode_(Mode),
      Echo_(Echo),
      CurrentSolution_(CurrentSolution),
@@ -58,8 +58,8 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode *Mode,
    }
 }
 
-NewtonPCSolution::NewtonPCSolution(LatticeMode *Mode,PerlInput &Input,
-                                   const Vector &one,int Echo)
+NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Input,
+                                   Vector const& one,int const& Echo)
    : Mode_(Mode),
      Echo_(Echo),
      CurrentSolution_(0)
@@ -135,11 +135,11 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode *Mode,PerlInput &Input,
    }
    
    CurrentDS_ = MaxDS_;
-   
+
    FirstSolution_.Resize(one.Dim());
    FirstSolution_ = one;
    Mode_->SetModeDOF(one);
-   
+
    Previous_Solution_.Resize(one.Dim());
    
    int count = (Mode_->ModeDOF()).Dim();
@@ -170,7 +170,8 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode *Mode,PerlInput &Input,
    }
 }
 
-NewtonPCSolution::NewtonPCSolution(LatticeMode *Mode,PerlInput &Input,int Echo)
+NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Input,
+                                   int const& Echo)
    : Mode_(Mode),
      Echo_(Echo),
      CurrentSolution_(0)
@@ -334,7 +335,7 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode *Mode,PerlInput &Input,int Echo)
    }
 }
 
-int NewtonPCSolution::AllSolutionsFound()
+int NewtonPCSolution::AllSolutionsFound() const
 {
    if (CurrentSolution_ < NumSolutions_)
    {
@@ -505,8 +506,8 @@ int NewtonPCSolution::FindNextSolution()
    return good;
 }
 
-int NewtonPCSolution::FindCriticalPoint(Lattice *Lat,PerlInput &Input,
-                                        int Width,fstream &out)
+int NewtonPCSolution::FindCriticalPoint(Lattice* const Lat,PerlInput const& Input,
+                                        int const& Width,fstream& out)
 {
    int TotalNumCPs=0;
    int NumCPs;
@@ -534,8 +535,8 @@ int NewtonPCSolution::FindCriticalPoint(Lattice *Lat,PerlInput &Input,
    return NumCPs;
 }
 
-void NewtonPCSolution::MoorePenrose(const Matrix& Q,const Matrix& R,const Vector& Force,
-                                    Vector& Corrector)
+void NewtonPCSolution::MoorePenrose(Matrix const& Q,Matrix const& R,Vector const& Force,
+                                    Vector& Corrector) const
 {
    double sum;
    int i,j;
@@ -569,7 +570,7 @@ void NewtonPCSolution::MoorePenrose(const Matrix& Q,const Matrix& R,const Vector
    }
 }
 
-void NewtonPCSolution::GetQR(Vector& Force,Vector& diff,Matrix& Q,Matrix& R)
+void NewtonPCSolution::GetQR(Vector const& Force,Vector const& diff,Matrix& Q,Matrix& R) const
 {
    int count = Mode_->ModeDOF().Dim();
    int count_minus_one = count - 1;
@@ -607,8 +608,8 @@ void NewtonPCSolution::GetQR(Vector& Force,Vector& diff,Matrix& Q,Matrix& R)
    }
 }
 
-void NewtonPCSolution::QRUpdate(const Vector& Force,  const Vector& difference,
-                                Matrix& QBar, Matrix& RBar)
+void NewtonPCSolution::QRUpdate(Vector const& Force,Vector const& difference,Matrix& QBar,
+                                Matrix& RBar) const
 {
    int count(Force.Dim());
    int count_plus = count + 1;

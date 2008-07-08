@@ -1,11 +1,11 @@
 #include "LJ.h"
 
-LJ::LJ(double Eps0,double Eps1,double Sigma0,double Sigma1):
+LJ::LJ(double const& Eps0,double const& Eps1,double const& Sigma0,double const& Sigma1):
    Eps0_(Eps0),Eps1_(Eps1),Sigma0_(Sigma0),Sigma1_(Sigma1)
 {
 }
 
-void LJ::SetParameters(double *Vals)
+void LJ::SetParameters(double const* const Vals)
 {
    SetEps0(Vals[0]);
    SetEps1(Vals[1]);
@@ -13,7 +13,7 @@ void LJ::SetParameters(double *Vals)
    SetSigma1(Vals[3]);
 }
 
-double LJ::Eps(double NTemp,TDeriv dt)
+double LJ::Eps(double const& NTemp,TDeriv const& dt) const
 {
    double retval;
    switch (dt)
@@ -35,7 +35,7 @@ double LJ::Eps(double NTemp,TDeriv dt)
    return retval;
 }
 
-double LJ::Sigma(double NTemp,TDeriv dt)
+double LJ::Sigma(double const& NTemp,TDeriv const& dt) const
 {
    double retval;
    
@@ -58,7 +58,7 @@ double LJ::Sigma(double NTemp,TDeriv dt)
    return retval;
 }
 
-double LJ::G(double NTemp,double r2,YDeriv dy,TDeriv dt)
+double LJ::G(double const& NTemp,double const& r2,YDeriv const& dy,TDeriv const& dt) const
 {
    double val;
    
@@ -106,7 +106,7 @@ double LJ::G(double NTemp,double r2,YDeriv dy,TDeriv dt)
    return val;
 }
 
-double LJ::H(double NTemp,double r2,YDeriv dy,TDeriv dt)
+double LJ::H(double const& NTemp,double const& r2,YDeriv const& dy,TDeriv const& dt) const
 {
    double val;
    
@@ -154,7 +154,8 @@ double LJ::H(double NTemp,double r2,YDeriv dy,TDeriv dt)
    return val;
 }
 
-double LJ::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
+double LJ::PairPotential(double const& NTemp,double const& r2,YDeriv const& dy,TDeriv const& dt)
+   const
 {
    for (int i=0;i<DTmax;++i)
    {
@@ -190,7 +191,7 @@ double LJ::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
    return val;
 }
 
-void LJ::Print(ostream &out)
+void LJ::Print(ostream& out) const
 {
    int W=out.width();
    
@@ -202,7 +203,7 @@ void LJ::Print(ostream &out)
        << "; Sigma1=" << setw(W) << Sigma1_;
 }
 
-ostream &operator<<(ostream &out,LJ &A)
+ostream& operator<<(ostream& out,LJ const& A)
 {
    A.Print(out);
    return out;

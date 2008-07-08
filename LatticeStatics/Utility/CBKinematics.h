@@ -13,7 +13,7 @@ private:
    virtual void Reset() = 0;
    
 public:
-   const static int DIM3;
+   static int const DIM3;
    
    Vector DOF_;
    int InternalAtoms_;
@@ -23,51 +23,63 @@ public:
    Matrix F_;
    Matrix S_;
 
-   CBKinematics(int InternalAtoms,Matrix &RefLattice,Vector *AtomPositions);
-   CBKinematics(PerlInput &Input,PerlInput::HashStruct *ParentHash=NULL);
+   CBKinematics(int const& InternalAtoms,Matrix& RefLattice,Vector* const AtomPositions);
+   CBKinematics(PerlInput const& Input,PerlInput::HashStruct const* const ParentHash=0);
    virtual ~CBKinematics() {delete [] InternalPOS_;}
    
-   virtual void InfluenceRegion(double *InfluenceRegion);
+   virtual void InfluenceRegion(double* const InfluenceRegion);
    
    virtual void SetReferenceToCurrent();
    virtual void SetReferenceDOFs();
-   const int InternalAtoms() {return InternalAtoms_;}
-   const Matrix& RefLattice() {return RefLattice_;}
-   const double RefVolume() {return RefLattice_.Det();}
-   const Vector &DOF() {return DOF_;}
-   void SetDOF(const Vector &dof) {DOF_ = dof; Reset();}
-   const Vector& AtomPositions(int i) {return InternalPOS_[i];}
+   int const& InternalAtoms() const {return InternalAtoms_;}
+   Matrix const& RefLattice() const {return RefLattice_;}
+   double RefVolume() const {return RefLattice_.Det();}
+   Vector const& DOF() const {return DOF_;}
+   void SetDOF(Vector const& dof) {DOF_ = dof; Reset();}
+   Vector const& AtomPositions(int const& i) const {return InternalPOS_[i];}
    
-   virtual inline int DOFS() {return Fsize() + Ssize();}
-   virtual int Fsize() = 0;
-   virtual int Ssize() = 0;
-   virtual int NoTrans() = 0;
-   virtual int INDF(int i,int j) = 0;
-   virtual int INDS(int i,int j) = 0;
-   virtual int INDFF(int k,int l,int m,int n) = 0;
-   virtual int INDSS(int k,int l,int m,int n) = 0;
-   virtual int INDFS(int i,int j,int m,int n) = 0;
-   virtual int INDSF(int m,int n,int i,int j) = 0;
+   virtual inline int DOFS() const {return Fsize() + Ssize();}
+   virtual int Fsize() const = 0;
+   virtual int Ssize() const = 0;
+   virtual int NoTrans() const = 0;
+   virtual int INDF(int const& i,int const& j) const = 0;
+   virtual int INDS(int const& i,int const& j) const = 0;
+   virtual int INDFF(int const& k,int const& l,int const& m,int const& n) const = 0;
+   virtual int INDSS(int const& k,int const& l,int const& m,int const& n) const = 0;
+   virtual int INDFS(int const& i,int const& j,int const& m,int const& n) const = 0;
+   virtual int INDSF(int const& m,int const& n,int const& i,int const& j) const = 0;
    
-   virtual Vector CurrentLatticeVec(int p);
-   virtual Vector FractionalPosVec(int p) {return Vector(DIM3,0.0);}
-   virtual double DX(double *X,int p,int q,int i) = 0;
-   virtual double Dx(double *X,int p,int q,int i) = 0;
+   virtual Vector CurrentLatticeVec(int const& p) const;
+   virtual Vector FractionalPosVec(int const& p) const {return Vector(DIM3,0.0);}
+   virtual double DX(double const* const X,int const& p,int const& q,int const& i) const = 0;
+   virtual double Dx(double const* const X,int const& p,int const& q,int const& i) const = 0;
    
-   virtual double DyDF(double *Dx,double *DX,int r,int s) = 0;
-   virtual double D2yDFF(double *DX,int r,int s,int t,int u) = 0;
-   virtual double DyDS(double *Dx,int p,int q,int i,int j) = 0;
-   virtual double D2yDSS(int p,int q,int i,int j,int k, int l) = 0;
-   virtual double D2yDFS(double *Dx,double *DX,int p,int q,int i,int j,int k,int l) = 0;
-   virtual double D3yDFFS(double *DX,int p,int q,int i,int j,int k,int l,int m,int n) = 0;
-   virtual double D3yDSSF(int p,int q,int i,int j,int k,int l,int m,int n) = 0;
-   virtual double D4yDFFSS(int p,int q,int i,int j,int k,int l,int m,int n,int a,int b) = 0;
+   virtual double DyDF(double const* const Dx,double const* const DX,int const& r,
+                       int const& s) const = 0;
+   virtual double D2yDFF(double const* const DX,int const& r,int const& s,int const& t,
+                         int const& u) const = 0;
+   virtual double DyDS(double const* const Dx,int const& p,int const& q,int const& i,
+                       int const& j) const = 0;
+   virtual double D2yDSS(int const& p,int const& q,int const& i,int const& j,int const& k,
+                         int const& l) const = 0;
+   virtual double D2yDFS(double const* const Dx,double const* const DX,int const& p,
+                         int const& q,int const& i,int const& j,int const& k,int const& l)
+      const = 0;
+   virtual double D3yDFFS(double const* const DX,int const& p,int const& q,int const& i,
+                          int const& j,int const& k,int const& l,int const& m,int const& n)
+      const = 0;
+   virtual double D3yDSSF(int const& p,int const& q,int const& i,int const& j,int const& k,
+                          int const& l,int const& m,int const& n) const = 0;
+   virtual double D4yDFFSS(int const& p,int const& q,int const& i,int const& j,int const& k,
+                           int const& l,int const& m,int const& n,int const& a,int const& b)
+      const = 0;
    
-   inline double Del(int i,int j) {return i==j;}
-   inline double DELTA(int s,int p,int q) {return Del(s,q) - Del(s,p);}
+   inline double Del(int const& i,int const& j) const {return i==j;}
+   inline double DELTA(int const& s,int const& p,int const& q) const
+   {return Del(s,q) - Del(s,p);}
    
-   virtual char *IDString() = 0;
-   friend ostream &operator<<(ostream &out,CBKinematics &CBK)
+   virtual char const* const IDString() const = 0;
+   friend ostream& operator<<(ostream &out,CBKinematics const& CBK)
    {out << CBK.IDString(); return out;}
 };
 

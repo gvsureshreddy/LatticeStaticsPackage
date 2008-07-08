@@ -25,13 +25,14 @@ using namespace std;
 #define EPS 2.0e-12
 //
 // Coeff[0..Degree] define the poly sum(i=0)(m) Coeff[i]x^i
-void PolyRootsLaguerre(MyComplexDouble Coeff[],int Degree,MyComplexDouble Roots[],
-		       int Polish);
+void PolyRootsLaguerre(MyComplexDouble const* const Coeff,int const& Degree,
+                       MyComplexDouble* const Roots,int const& Polish);
 // Lagurre's method to find a root of a polynomial near X
-int Laguerre(MyComplexDouble Coeff[],int Degree,MyComplexDouble *X);
+int Laguerre(MyComplexDouble const* const Coeff,int const& Degree,
+             MyComplexDouble* const X);
 
 // Multiply polynomials A and B with resulting poly of degree DegA+DegB
-void PolyMult(MyComplexDouble A[],int DegA,MyComplexDouble B[],int DegB,
-	      MyComplexDouble Result[]);
+void PolyMult(MyComplexDouble const* const A,int const& DegA,MyComplexDouble const* const B,
+              int const& DegB,MyComplexDouble* const Result);
 
 #endif

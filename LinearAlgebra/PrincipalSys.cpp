@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
       exit(-1);
    }
 
-   int size=3;
+   int const size=3;
    Matrix A(size,size);
    A[0][0] = atof(argv[1]);
    A[1][1] = atof(argv[2]);

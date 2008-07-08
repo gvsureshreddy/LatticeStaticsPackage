@@ -1,9 +1,10 @@
 #include "KnownLattices.h"
 #include "UtilityFunctions.h"
 
-Lattice *InitializeLattice(PerlInput &Input,int Echo,int Width,int Debug)
+Lattice* const InitializeLattice(PerlInput& Input,int const&  Echo,int const& Width,
+                                 int const& Debug)
 {
-   const char *Lat = Input.getString("Lattice","Type");
+   char const* const Lat = Input.getString("Lattice","Type");
 
    if (!strcmp("MultiLatticeTPP",Lat))
    {
@@ -27,5 +28,5 @@ Lattice *InitializeLattice(PerlInput &Input,int Echo,int Width,int Debug)
       exit(-1);
    }
    
-   return NULL;
+   return 0;
 }

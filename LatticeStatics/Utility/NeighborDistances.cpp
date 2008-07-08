@@ -6,7 +6,7 @@ char *builddate();
 
 using namespace std;
 
-void GetMainSettings(int &Width,int &Presision,PerlInput &Input);
+void GetMainSettings(int& Width,int& Presision,PerlInput const& Input);
 
 int main(int argc,char *argv[])
 {
@@ -21,13 +21,11 @@ int main(int argc,char *argv[])
       exit(-1);
    }
    
-   char *datafile = argv[1];
+   char const* const datafile = argv[1];
    int cutoff = atoi(argv[2]);
 
    PerlInput Input;
    Input.Readfile(datafile,"Input File:");
-   
-   Lattice *Lat;
    
    int Width,Precision,Echo=0;
    
@@ -35,7 +33,7 @@ int main(int argc,char *argv[])
    
    GetMainSettings(Width,Precision,Input);
    
-   Lat = InitializeLattice(Input,Echo);
+   Lattice* const Lat = InitializeLattice(Input,Echo);
    
    cout  << setiosflags(ios::fixed) << setprecision(Precision);
    
@@ -55,7 +53,7 @@ int main(int argc,char *argv[])
    return 1;
 }
 
-void GetMainSettings(int &Width, int &Precision,PerlInput &Input)
+void GetMainSettings(int& Width,int& Precision,PerlInput const& Input)
 {
    Width = Input.getInt("Main","FieldWidth");
    Precision = Input.getInt("Main","Precision");

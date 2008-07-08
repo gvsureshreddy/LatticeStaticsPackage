@@ -4,6 +4,6 @@
 #include "PerlInput.h"
 #include "MultiMode.h"
 
-LatticeMode *InitializeMode(Lattice *Lat,PerlInput &Input);
+LatticeMode* const InitializeMode(Lattice* const Lat,PerlInput const& Input);
 
 #endif

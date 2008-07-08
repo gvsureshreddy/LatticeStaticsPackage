@@ -9,7 +9,7 @@
 #include <ctime>
 
 void sparsematrixtest();
-Matrix project(int N);
+Matrix project(int const& N);
 
 int main()
 {
@@ -39,7 +39,7 @@ int main()
 
    Vector3D e,f;
    
-//   srand(time(NULL));
+//   srand(time(0));
    srand(1);
 
 //   Matrix::MathematicaPrintFlag=1;
@@ -561,7 +561,7 @@ void sparsematrixtest()
 
 //Returns matrix of size Rows_ x Cols_
 //Function does not take arguments. Size of array determined by Rows_ and Cols_
-Matrix project(int N)
+Matrix project(int const& N)
 {
    int k=0;
    int h,i, j, p, q, g, t;

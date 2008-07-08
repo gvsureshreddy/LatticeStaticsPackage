@@ -14,26 +14,37 @@ private:
    virtual void Reset();
    
 public:
-   MixedCB(int InternalAtoms,Matrix &RefLattice,Vector *AtomPositions);
-   MixedCB(PerlInput &Input,PerlInput::HashStruct *ParentHash=NULL);
+   MixedCB(int const& InternalAtoms,Matrix& RefLattice,Vector* const AtomPositions);
+   MixedCB(PerlInput const& Input,PerlInput::HashStruct const* const ParentHash=0);
    virtual ~MixedCB() {};
    
 #include "FwithTransMapping.def"
    
-   virtual Vector FractionalPosVec(int p);
-   virtual double DX(double *X,int p,int q,int i);
-   virtual double Dx(double *X,int p,int q,int i);
+   virtual Vector FractionalPosVec(int const& p) const;
+   virtual double DX(double const* const X,int const& p,int const& q,int const& i) const;
+   virtual double Dx(double const* const X,int const& p,int const& q,int const& i) const;
    
-   virtual double DyDF(double *Dx,double *DX,int r,int s);
-   virtual double D2yDFF(double *DX,int r,int s,int t,int u);
-   virtual double DyDS(double *Dx,int p,int q,int i,int j);
-   virtual double D2yDSS(int p,int q,int i,int j,int k, int l);
-   virtual double D2yDFS(double *Dx,double *DX,int p,int q,int i,int j,int k,int l);
-   virtual double D3yDFFS(double *DX,int p,int q,int i,int j,int k,int l,int m,int n);
-   virtual double D3yDSSF(int p,int q,int i,int j,int k,int l,int m,int n);
-   virtual double D4yDFFSS(int p,int q,int i,int j,int k,int l,int m,int n,int a,int b);
+   virtual double DyDF(double const* const Dx,double const* const DX,int const& r,int const& s)
+      const;
+   virtual double D2yDFF(double const* const DX,int const& r,int const& s,int const& t,
+                         int const& u) const;
+   virtual double DyDS(double const* const Dx,int const& p,int const& q,int const& i,
+                       int const& j) const;
+   virtual double D2yDSS(int const& p,int const& q,int const& i,int const& j,int const& k,
+                         int const& l) const;
+   virtual double D2yDFS(double const* const Dx,double const* const DX,int const& p,
+                         int const& q,int const& i,int const& j,int const& k,int const& l)
+      const;
+   virtual double D3yDFFS(double const* const DX,int const& p,int const& q,int const& i,
+                          int const& j,int const& k,int const& l,int const& m,int const& n)
+      const;
+   virtual double D3yDSSF(int const& p,int const& q,int const& i,int const& j,int const& k,
+                          int const& l,int const& m,int const& n) const;
+   virtual double D4yDFFSS(int const& p,int const& q,int const& i,int const& j,int const& k,
+                           int const& l,int const& m,int const& n,int const& a,int const& b)
+      const;
    
-   virtual char *IDString() {return "MixedCB";}
+   virtual char const* const IDString() const {return "MixedCB";}
    
 };
 

@@ -6,9 +6,10 @@ char *builddate();
 
 using namespace std;
 
-void GetMainSettings(int &Width,int &Presision,int &Echo,PerlInput &Input);
-void InitializeOutputFile(fstream &out,char *outfile,char *datafile,int argc,
-                          Lattice *Lat,int Precision,int Width,int Echo);
+void GetMainSettings(int& Width,int& Presision,int& Echo,PerlInput const& Input);
+void InitializeOutputFile(fstream& out,char const* const outfile,char const* const datafile,
+                          int const& argc,Lattice const* const Lat,int const& Precision,
+                          int const& Width,int const& Echo);
 
 int main(int argc,char *argv[])
 {
@@ -24,8 +25,8 @@ int main(int argc,char *argv[])
       exit(-1);
    }
    
-   char *datafile = argv[1],
-      *outputfile = argv[2];
+   char const* const datafile = argv[1];
+   char const* const outputfile = argv[2];
 
    PerlInput Input;
    if (argc >= 4)
@@ -37,13 +38,11 @@ int main(int argc,char *argv[])
       Input.Readfile(datafile,"Input File:");
    }
 
-   Lattice *Lat;
-   
    int Width,Precision,Echo;
    
    GetMainSettings(Width,Precision,Echo,Input);
 
-   Lat = InitializeLattice(Input,Echo);
+   Lattice* const Lat = InitializeLattice(Input,Echo);
 
    fstream out;
    InitializeOutputFile(out,outputfile,datafile,argc,Lat,Precision,Width,Echo);
@@ -52,8 +51,7 @@ int main(int argc,char *argv[])
    NoLines = Input.getPosInt("DispersionCurves","NoLines");
    NoPTS = Input.getPosInt("DispersionCurves","Points");
    
-   Vector *Line;
-   Line = new Vector[NoLines];
+   Vector* const Line = new Vector[NoLines];
 
    for (int i=0;i<NoLines;++i)
    {
@@ -74,7 +72,7 @@ int main(int argc,char *argv[])
    }
    else
    {
-      FILE *pipe;
+      FILE* pipe;
       char format[]=
          {"perl -e '$_=<>;while(! m/^Mode:/){$_=<>;}while(<>){if(/^Temperature/){"\
           "@fld=split(/:/,$_);print $fld[1];}if(/^Lambda/){@fld=split(/:/,$_);print $fld[1];}"\
@@ -138,7 +136,7 @@ int main(int argc,char *argv[])
 
 
 
-void GetMainSettings(int &Width,int &Precision,int &Echo,PerlInput &Input)
+void GetMainSettings(int& Width,int& Precision,int& Echo,PerlInput const& Input)
 {
    Width = Input.getInt("Main","FieldWidth");
    Precision = Input.getInt("Main","Precision");
@@ -152,8 +150,9 @@ void GetMainSettings(int &Width,int &Precision,int &Echo,PerlInput &Input)
    }
 }
 
-void InitializeOutputFile(fstream &out,char *outfile,char *datafile,int argc,
-                          Lattice *Lat,int Precision,int Width,int Echo)
+void InitializeOutputFile(fstream& out,char const* const outfile,char const* const datafile,
+                          int const& argc,Lattice const* const Lat,int const& Precision,
+                          int const& Width,int const& Echo)
 {
    fstream input;
    char dataline[LINELENGTH];
@@ -184,8 +183,8 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,int argc,
    else
    {
       input.getline(dataline,LINELENGTH-1);
-      while ((strstr(dataline,"Input File:") != NULL) ||
-             (strstr(dataline,"Start File:") != NULL))
+      while ((strstr(dataline,"Input File:") != 0) ||
+             (strstr(dataline,"Start File:") != 0))
       {
          out << "# " << dataline << "\n";
          input.getline(dataline,LINELENGTH-1);

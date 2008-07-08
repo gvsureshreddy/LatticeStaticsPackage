@@ -12,11 +12,13 @@
 
 #define LINELENGTH 600
 
-PairPotentials *InitializePairPotential(PerlInput::HashStruct ParentHash,PerlInput &Input,
-                                        int i,int j);
-PairPotentials *InitializePairPotential(char *HashName,PerlInput &Input,int i,int j);
-void UpdatePairPotential(PerlInput::HashStruct ParentHash,PerlInput &Input,
-                         int i,int j,PairPotentials *Potential);
-void UpdatePairPotential(char *HashName,PerlInput &Input,int i,int j,PairPotentials *Potential);
+PairPotentials* InitializePairPotential(PerlInput::HashStruct const& ParentHash,
+                                        PerlInput const& Input,int const& i,int const& j);
+PairPotentials* InitializePairPotential(char const* const HashName,PerlInput const& Input,
+                                        int const& i,int const& j);
+void UpdatePairPotential(PerlInput::HashStruct const& ParentHash,PerlInput const& Input,
+                         int const& i,int const& j,PairPotentials* const Potential);
+void UpdatePairPotential(char const* const HashName,PerlInput const& Input,int const& i,
+                         int const& j,PairPotentials* const Potential);
 
 #endif

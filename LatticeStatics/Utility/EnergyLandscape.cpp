@@ -7,9 +7,10 @@ char *builddate();
 
 using namespace std;
 
-void GetMainSettings(int &Width,int &Presision,int &Echo,PerlInput &Input);
-void InitializeOutputFile(fstream &out,char *outfile,char *datafile,int argc,
-                          Lattice *Lat,int Precision,int Width,int Echo);
+void GetMainSettings(int& Width,int& Presision,int& Echo,PerlInput const& Input);
+void InitializeOutputFile(fstream& out,char const* const outfile,char const* const datafile,
+                          int const& argc,Lattice const* const Lat,int const& Precision,
+                          int const& Width,int const& Echo);
 
 int main(int argc,char *argv[])
 {
@@ -24,19 +25,18 @@ int main(int argc,char *argv[])
       exit(-1);
    }
    
-   char *datafile = argv[1],
-      *outputfile = argv[2];
+   char const* const datafile = argv[1];
+   char const* const outputfile = argv[2];
 
    PerlInput Input(datafile);
    
-   Lattice *Lat;
    LatticeMode *Mode;
    
    int Width,Precision,Echo;
    
    GetMainSettings(Width,Precision,Echo,Input);
    
-   Lat = InitializeLattice(Input,Echo);
+   Lattice* const Lat = InitializeLattice(Input,Echo);
    
    fstream out;
    InitializeOutputFile(out,outputfile,datafile,argc,Lat,Precision,Width,Echo);
@@ -46,13 +46,11 @@ int main(int argc,char *argv[])
    int NoDims;
    NoDims = Input.getPosInt("EnergyLandscape","Directions");
    char tmp[LINELENGTH];
-   int *divs;
-   divs = new int[NoDims+1];
+   int* const divs = new int[NoDims+1];
    Input.getIntVector(divs,NoDims,"EnergyLandscape","DirectionDivisions");
    divs[NoDims]=1;
    
-   Vector *Corners;
-   Corners = new Vector[NoDims+1];
+   Vector* const Corners = new Vector[NoDims+1];
    
    Corners[0].Resize(Mode->ModeDOF().Dim());
    Input.getVector(Corners[0],"EnergyLandscape","Origin");
@@ -63,16 +61,14 @@ int main(int argc,char *argv[])
       Input.getVector(Corners[i],"EnergyLandscape",tmp);
    }
    
-   Vector *Directions;
-   Directions = new Vector[NoDims];
+   Vector* const Directions = new Vector[NoDims];
    for (int i=0;i<NoDims;++i)
    {
       Directions[i].Resize(Corners[0].Dim());
       Directions[i] = (Corners[i+1] - Corners[0])/(divs[i]);
    }
    
-   int *counter;
-   counter = new int[NoDims+1];
+   int* const counter = new int[NoDims+1];
    for (int i=0;i<=NoDims;++i) counter[i]=0;
    
    Vector state(Mode->ModeDOF().Dim());
@@ -98,7 +94,6 @@ int main(int argc,char *argv[])
    }
    while(counter[NoDims]==0);
    
-   
    delete [] Corners;
    delete [] divs;
    delete [] Directions;
@@ -111,10 +106,7 @@ int main(int argc,char *argv[])
    return 1;
 }
 
-
-
-
-void GetMainSettings(int &Width,int &Precision,int &Echo,PerlInput &Input)
+void GetMainSettings(int& Width,int& Precision,int& Echo,PerlInput const& Input)
 {
    Width = Input.getInt("Main","FieldWidth");
    Precision = Input.getInt("Main","Precision");
@@ -128,8 +120,9 @@ void GetMainSettings(int &Width,int &Precision,int &Echo,PerlInput &Input)
    }
 }
 
-void InitializeOutputFile(fstream &out,char *outfile,char *datafile,int argc,
-                          Lattice *Lat,int Precision,int Width,int Echo)
+void InitializeOutputFile(fstream& out,char const* const outfile,char const* const datafile,
+                          int const& argc,Lattice const* const Lat,int const& Precision,
+                          int const& Width,int const& Echo)
 {
    fstream input;
    char dataline[LINELENGTH];
@@ -160,8 +153,8 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,int argc,
    else
    {
       input.getline(dataline,LINELENGTH-1);
-      while ((strstr(dataline,"Input File:") != NULL) ||
-             (strstr(dataline,"Start File:") != NULL))
+      while ((strstr(dataline,"Input File:") != 0) ||
+             (strstr(dataline,"Start File:") != 0))
       {
          out << "# " << dataline << "\n";
          input.getline(dataline,LINELENGTH-1);
@@ -180,4 +173,3 @@ void InitializeOutputFile(fstream &out,char *outfile,char *datafile,int argc,
        << "# LinearAlgebra Build on: " << LinearAlgebraBuildDate() << "\n"
        << "# MyMath Built on:        " << MyMathBuildDate() << "\n";
 }
-

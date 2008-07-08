@@ -9,18 +9,18 @@ class LatticeMode
 public:
    virtual ~LatticeMode() {}
    
-   virtual double ModeEnergy() = 0;
-   virtual Vector DrDt(const Vector &Diff) = 0;
+   virtual double ModeEnergy() const = 0;
+   virtual Vector const& DrDt(Vector const& Diff) const = 0;
    
-   virtual Vector ModeForce() = 0;
-   virtual Matrix ModeStiffness() = 0;
-   virtual Vector ModeDOF() = 0;
-   virtual void SetModeDOF(const Vector &dof) = 0;
-   virtual void UpdateModeDOF(const Vector &dr) = 0;
+   virtual Vector const& ModeForce() const = 0;
+   virtual Matrix const& ModeStiffness() const = 0;
+   virtual Vector const& ModeDOF() const = 0;
+   virtual void SetModeDOF(Vector const& dof) = 0;
+   virtual void UpdateModeDOF(Vector const& dr) = 0;
    
-   virtual char *ModeName() = 0;
-   friend ostream &operator<<(ostream &out, LatticeMode *M)
-   {out << M->ModeName(); return out;}
+   virtual char const* const ModeName() const = 0;
+   friend ostream& operator<<(ostream& out,LatticeMode const& M)
+   {out << M.ModeName(); return out;}
 };
 
 #endif

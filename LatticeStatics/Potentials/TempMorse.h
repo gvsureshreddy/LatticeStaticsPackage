@@ -13,32 +13,34 @@ private:
    
 public:
    TempMorse() {};
-   TempMorse(double A0,double B0,double Alpha,double Rref,double Tref,double Tmelt);
+   TempMorse(double const& A0,double const& B0,double const& Alpha,double const& Rref,
+             double const& Tref,double const& Tmelt);
    ~TempMorse() {};
-   friend ostream &operator<<(ostream &out,TempMorse &A);
-   double PairPotential(double NTemp,double r2,YDeriv dy=Y0,TDeriv dt=T0);
-   virtual int GetNoParameters() {return 6;}
-   virtual void SetParameters(double *Vals);
-   virtual void Print(ostream &out);
-   virtual const char* Type() {return "TempMorse";}
+   friend ostream& operator<<(ostream& out,TempMorse const& A);
+   double PairPotential(double const& NTemp,double const& r2,YDeriv const& dy=Y0,
+                        TDeriv const& dt=T0) const;
+   virtual int GetNoParameters() const {return 6;}
+   virtual void SetParameters(double const* const Vals);
+   virtual void Print(ostream& out) const;
+   virtual char const* const Type() const{return "TempMorse";}
    
-   double A0() {return A0_;}
-   double B0() {return B0_;}
-   double Alpha() {return Alpha_;}
-   double Rref() {return Rref_;}
-   double Tref() {return Tref_;}
-   double Tmelt() {return Tmelt_;}
+   double const& A0() const {return A0_;}
+   double const& B0() const {return B0_;}
+   double const& Alpha() const {return Alpha_;}
+   double const& Rref() const {return Rref_;}
+   double const& Tref() const {return Tref_;}
+   double const& Tmelt() const {return Tmelt_;}
    
-   void SetA0(double A0) {A0_=A0;}
-   void SetB0(double B0) {B0_=B0;}
-   void SetAlpha(double Alpha) {Alpha_=Alpha;}
-   void SetRref(double Rref) {Rref_=Rref;}
-   void SetTref(double Tref) {Tref_=Tref;}
-   void SetTmelt(double Tmelt) {Tmelt_=Tmelt;}
+   void SetA0(double const& A0) {A0_=A0;}
+   void SetB0(double const& B0) {B0_=B0;}
+   void SetAlpha(double const& Alpha) {Alpha_=Alpha;}
+   void SetRref(double const& Rref) {Rref_=Rref;}
+   void SetTref(double const& Tref) {Tref_=Tref;}
+   void SetTmelt(double const& Tmelt) {Tmelt_=Tmelt;}
    
 private:
-   double Beta(double NTemp,TDeriv dt=T0);
-   double Rhat(double NTemp,TDeriv dt=T0);
+   double Beta(double const& NTemp,TDeriv const& dt=T0) const;
+   double Rhat(double const& NTemp,TDeriv const& dt=T0) const;
 };
 
 #endif

@@ -13,21 +13,24 @@ private:
 public:
    
    LJCutoff() {};
-   LJCutoff(double Eps0,double Eps1,double Sigma0,double Sigma1,double Cutoff);
+   LJCutoff(double const& Eps0,double const& Eps1,double const& Sigma0,double const& Sigma1,
+            double const& Cutoff);
    ~LJCutoff() {};
-   friend ostream &operator<<(ostream &out,LJCutoff &A);
-   double PairPotential(double NTemp,double r2,YDeriv dy=Y0,TDeriv dt=T0);
-   virtual int GetNoParameters() {return (1+LJ::GetNoParameters());}
-   virtual void SetParameters(double *Vals);
-   virtual void Print(ostream &out);
-   virtual const char* Type() {return "LJCutoff";}
+   friend ostream& operator<<(ostream& out,LJCutoff const& A);
+   double PairPotential(double const& NTemp,double const& r2,YDeriv const& dy=Y0,
+                        TDeriv const& dt=T0) const;
+   virtual int GetNoParameters() const {return (1+LJ::GetNoParameters());}
+   virtual void SetParameters(double const* const Vals);
+   virtual void Print(ostream& out) const;
+   virtual char const* const Type() const {return "LJCutoff";}
    
-   double Cutoff() {return Cutoff_;}
+   double const& Cutoff() const {return Cutoff_;}
    
-   void SetCutoff(double Cutoff) {Cutoff_=Cutoff;}
+   void SetCutoff(double const& Cutoff) {Cutoff_=Cutoff;}
 private:
    
-   double CutoffFunction(double NTemp,double r2,YDeriv dy=Y0,TDeriv dt=T0);
+   double CutoffFunction(double const& NTemp,double const& r2,YDeriv const& dy=Y0,
+                         TDeriv const& dt=T0) const;
    
 };
 

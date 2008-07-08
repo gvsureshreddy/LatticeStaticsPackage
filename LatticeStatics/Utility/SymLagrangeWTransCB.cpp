@@ -1,7 +1,7 @@
 #include "SymLagrangeWTransCB.h"
 
-SymLagrangeWTransCB::SymLagrangeWTransCB(int InternalAtoms,Matrix &RefLattice,
-                                         Vector *AtomPositions)
+SymLagrangeWTransCB::SymLagrangeWTransCB(int const& InternalAtoms,Matrix& RefLattice,
+                                         Vector* const AtomPositions)
    : CBKinematics(InternalAtoms,RefLattice,AtomPositions)
 {
    F_.Resize(DIM3,DIM3);
@@ -11,7 +11,8 @@ SymLagrangeWTransCB::SymLagrangeWTransCB(int InternalAtoms,Matrix &RefLattice,
    Reset();
 }
 
-SymLagrangeWTransCB::SymLagrangeWTransCB(PerlInput &Input,PerlInput::HashStruct *ParentHash)
+SymLagrangeWTransCB::SymLagrangeWTransCB(PerlInput const& Input,
+                                         PerlInput::HashStruct const* const ParentHash)
    : CBKinematics(Input,ParentHash)
 {
    F_.Resize(DIM3,DIM3);
@@ -42,7 +43,7 @@ void SymLagrangeWTransCB::Reset()
    }
 }
 
-Vector SymLagrangeWTransCB::FractionalPosVec(int p)
+Vector SymLagrangeWTransCB::FractionalPosVec(int const& p) const
 {
    Vector pos(DIM3,0.0);
    
@@ -54,7 +55,8 @@ Vector SymLagrangeWTransCB::FractionalPosVec(int p)
    return pos;
 }
 
-double SymLagrangeWTransCB::DX(double *X,int p,int q,int i)
+double SymLagrangeWTransCB::DX(double const* const X,int const& p,int const& q,int const& i)
+   const
 {
    double tmp=0.0;
    
@@ -68,7 +70,8 @@ double SymLagrangeWTransCB::DX(double *X,int p,int q,int i)
    return tmp;
 }
 
-double SymLagrangeWTransCB::Dx(double *X,int p,int q,int i)
+double SymLagrangeWTransCB::Dx(double const* const X,int const& p,int const& q,int const& i)
+   const
 {
    double tmp=0.0;
    
@@ -80,12 +83,14 @@ double SymLagrangeWTransCB::Dx(double *X,int p,int q,int i)
    return tmp;
 }
 
-double SymLagrangeWTransCB::DyDF(double *Dx,double *DX,int r, int s)
+double SymLagrangeWTransCB::DyDF(double const* const Dx,double const* const DX,int const& r,
+                                 int const& s) const
 {
    return (Dx[r]*DX[s] + Dx[s]*DX[r]);
 }
 
-double SymLagrangeWTransCB::D2yDFF(double *DX,int r, int s, int t, int u)
+double SymLagrangeWTransCB::D2yDFF(double const* const DX,int const& r,int const& s,
+                                   int const& t,int const& u) const
 {
    return 0.5*(Del(r,t)*DX[s]*DX[u] +
                Del(r,u)*DX[s]*DX[t] +
@@ -93,7 +98,8 @@ double SymLagrangeWTransCB::D2yDFF(double *DX,int r, int s, int t, int u)
                Del(s,u)*DX[r]*DX[t]);
 }
 
-double SymLagrangeWTransCB::DyDS(double *Dx,int p,int q,int i, int j)
+double SymLagrangeWTransCB::DyDS(double const* const Dx,int const& p,int const& q,int const& i,
+                                 int const& j) const
 {
    double ret=0;
    
@@ -113,7 +119,8 @@ double SymLagrangeWTransCB::DyDS(double *Dx,int p,int q,int i, int j)
    return ret;
 }
 
-double SymLagrangeWTransCB::D2yDSS(int p,int q,int i,int j,int k,int l)
+double SymLagrangeWTransCB::D2yDSS(int const& p,int const& q,int const& i,int const& j,
+                                   int const& k,int const& l) const
 {
    double tmp=0;
    if (DELTA(i,p,q)*DELTA(k,p,q))
@@ -134,7 +141,9 @@ double SymLagrangeWTransCB::D2yDSS(int p,int q,int i,int j,int k,int l)
    return tmp;
 }
 
-double SymLagrangeWTransCB::D2yDFS(double *Dx,double *DX,int p,int q,int i,int j,int k,int l)
+double SymLagrangeWTransCB::D2yDFS(double const* const Dx,double const* const DX,int const& p,
+                                   int const& q,int const& i,int const& j,int const& k,
+                                   int const& l) const
 {
    double tmp=0;
    
@@ -150,7 +159,9 @@ double SymLagrangeWTransCB::D2yDFS(double *Dx,double *DX,int p,int q,int i,int j
    return tmp;
 }
 
-double SymLagrangeWTransCB::D3yDFFS(double *DX,int p,int q,int i,int j,int k,int l,int m, int n)
+double SymLagrangeWTransCB::D3yDFFS(double const* const DX,int const& p,int const& q,
+                                    int const& i,int const& j,int const& k,int const& l,
+                                    int const& m,int const& n) const
 {
    return (0.5*DELTA(m,p,q)*(Del(i,k)*RefLattice_[n][l]*DX[j]
                              + Del(i,k)*DX[l]*RefLattice_[n][j]
@@ -162,7 +173,8 @@ double SymLagrangeWTransCB::D3yDFFS(double *DX,int p,int q,int i,int j,int k,int
                              + Del(j,l)*DX[k]*RefLattice_[n][i]));
 }
 
-double SymLagrangeWTransCB::D3yDSSF(int p,int q,int i,int j,int k,int l,int m,int n)
+double SymLagrangeWTransCB::D3yDSSF(int const& p,int const& q,int const& i,int const& j,
+                                    int const& k,int const& l,int const& m,int const& n) const
 {
    double tmp=0;
    
@@ -181,7 +193,9 @@ double SymLagrangeWTransCB::D3yDSSF(int p,int q,int i,int j,int k,int l,int m,in
    return tmp;
 }
 
-double SymLagrangeWTransCB::D4yDFFSS(int p,int q,int i,int j,int k,int l,int m,int n,int a,int b)
+double SymLagrangeWTransCB::D4yDFFSS(int const& p,int const& q,int const& i,int const& j,
+                                     int const& k,int const& l,int const& m,int const& n,
+                                     int const& a,int const& b) const
 {
    return (0.5*DELTA(m,p,q)*DELTA(a,p,q)*
            (Del(i,k)*RefLattice_[n][l]*RefLattice_[b][j]

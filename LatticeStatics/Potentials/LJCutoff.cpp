@@ -1,17 +1,19 @@
 #include "LJCutoff.h"
 
-LJCutoff::LJCutoff(double Eps0,double Eps1,double Sigma0,double Sigma1,double Cutoff):
+LJCutoff::LJCutoff(double const& Eps0,double const& Eps1,double const& Sigma0,
+                   double const& Sigma1,double const& Cutoff):
    LJ(Eps0,Eps1,Sigma0,Sigma1),Cutoff_(Cutoff)
 {
 }
 
-void LJCutoff::SetParameters(double *Vals)
+void LJCutoff::SetParameters(double const* const Vals)
 {
    SetCutoff(Vals[0]);
    LJ::SetParameters(&(Vals[1]));
 }
 
-double LJCutoff::CutoffFunction(double NTemp,double r2,YDeriv dy,TDeriv dt)
+double LJCutoff::CutoffFunction(double const& NTemp,double const& r2,YDeriv const& dy,
+                                TDeriv const& dt) const
 {
    double val=0;
    
@@ -41,7 +43,8 @@ double LJCutoff::CutoffFunction(double NTemp,double r2,YDeriv dy,TDeriv dt)
    return val;
 }
 
-double LJCutoff::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
+double LJCutoff::PairPotential(double const& NTemp,double const& r2,YDeriv const& dy,
+                               TDeriv const& dt) const
 {
    if (r2 >= Cutoff_*Cutoff_)
       return 0.0;
@@ -50,7 +53,7 @@ double LJCutoff::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
               + CutoffFunction(NTemp,r2,dy,dt));
 }
 
-void LJCutoff::Print(ostream &out)
+void LJCutoff::Print(ostream& out) const
 {
    int W=out.width();
    
@@ -63,7 +66,7 @@ void LJCutoff::Print(ostream &out)
        << "; Cutoff=" << setw(W) << Cutoff_;
 }
 
-ostream &operator<<(ostream &out,LJCutoff &A)
+ostream& operator<<(ostream& out,LJCutoff const& A)
 {
    A.Print(out);
    return out;

@@ -13,11 +13,8 @@ int main(int argc, char *argv[])
       exit(-1);
    }
    
-   PairPotentials *pot;
-   
-   int
-      i=atoi(argv[2]),
-      j=atoi(argv[3]);
+   int i=atoi(argv[2]);
+   int j=atoi(argv[3]);
    int tmp;
    if (i>j)
    {
@@ -39,7 +36,7 @@ int main(int argc, char *argv[])
    PerlInput Input(argv[1]);
    PerlInput::HashStruct Hash = Input.getHash("Lattice");
    Hash = Input.getHash(Hash,Input.getString(Hash,"Type"));
-   pot = InitializePairPotential(Hash,Input,i,j);
+   PairPotentials* const pot = InitializePairPotential(Hash,Input,i,j);
    
    int Width,Precision;
    Width = Input.getInt("Main","FieldWidth");

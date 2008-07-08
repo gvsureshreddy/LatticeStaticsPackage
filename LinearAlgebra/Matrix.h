@@ -36,7 +36,7 @@ protected:
    int Cols_;
 
    // Used by Det()
-   Matrix Minor(int i,int j) const;
+   Matrix Minor(int const& i,int const& j) const;
 
 public:
 
@@ -51,58 +51,58 @@ public:
    //   allocated and each element set to Initial Value
    // Defaults: Rows=0,Cols=0,Initial Value= (Uninitialized)
 
-   Matrix(int Rows=0,int Cols=0,Elm InitVal=SENTINAL);
-   Matrix(const Matrix& A);
+   Matrix(int const& Rows=0,int const& Cols=0,Elm const& InitVal=SENTINAL);
+   Matrix(Matrix const& A);
 
    // Deconstructor...
    ~Matrix();
 
    // Size Access...
-   int Rows() const {return Rows_;}
-   int Cols() const {return Cols_;}
+   int const& Rows() const {return Rows_;}
+   int const& Cols() const {return Cols_;}
    
    // Mathematical Operations...
 
    friend Matrix& operator+(Matrix& A) {return A;}
-   friend Matrix operator+(const Matrix& A,const Matrix&B);
-   friend Matrix operator-(const Matrix& A);
-   friend Matrix operator-(const Matrix& A,const Matrix& B);
-   friend Matrix operator*(const Matrix& A,const Matrix& B);
-   friend Matrix operator*(const Elm& A,const Matrix& B);
-   friend Matrix operator*(const Matrix& A,const Elm& B);
-   friend Matrix operator*(const SparseMatrix& A, const Matrix& B);
-   friend Matrix operator*(const Matrix& A, const SparseMatrix& B);
+   friend Matrix operator+(Matrix const& A,Matrix const&B);
+   friend Matrix operator-(Matrix const& A);
+   friend Matrix operator-(Matrix const& A,Matrix const& B);
+   friend Matrix operator*(Matrix const& A,Matrix const& B);
+   friend Matrix operator*(Elm const& A,Matrix const& B);
+   friend Matrix operator*(Matrix const& A,Elm const& B);
+   friend Matrix operator*(SparseMatrix const& A,Matrix const& B);
+   friend Matrix operator*(Matrix const& A,SparseMatrix const& B);
    // Below are defined in corresponding class --------------------
-   friend Vector operator*(const Matrix& A,const Vector& B);
-   friend Vector operator*(const Vector& A,const Matrix& B);
-   friend Vector3D operator*(const Matrix& A,const Vector3D& B);
-   friend Vector3D operator*(const Vector3D& A,const Matrix& B);
+   friend Vector operator*(Matrix const& A,Vector const& B);
+   friend Vector operator*(Vector const& A,Matrix const& B);
+   friend Vector3D operator*(Matrix const& A,Vector3D const& B);
+   friend Vector3D operator*(Vector3D const& A,Matrix const& B);
    // -------------------------------------------------------------
-   friend Matrix operator/(const Matrix& A,const Elm& B);
+   friend Matrix operator/(Matrix const& A,Elm const& B);
 
    // Element Access methods
 
 #ifdef CHECK_BOUNDS
    // Note: Index checking on Rows but not on Columns....
-   Elm* operator[](int i);
-   Elm* operator[](int i) const;
+   Elm* const operator[](int const& i);
+   Elm const* const operator[](int const& i) const;
 #else
    // Note: NO Index checking
-   Elm* operator[](int i) {return Elements_[i];}
-   Elm* operator[](int i) const {return Elements_[i];}
+   inline Elm* const operator[](int const& i) {return Elements_[i];}
+   inline Elm const* const operator[](int const& i) const {return Elements_[i];}
 #endif
    
    // Assignment Operations
 
-   Matrix& operator=(const Matrix& B);
-   Matrix operator+=(const Matrix& B) {return *this=*this+B;}
-   Matrix operator-=(const Matrix& B) {return *this=*this-B;}
-   Matrix operator*=(const Matrix& B) {return *this=*this*B;}
-   Matrix operator*=(const Elm& B)    {return *this=*this*B;}
+   Matrix& operator=(Matrix const& B);
+   Matrix& operator+=(Matrix const& B) {return *this=*this+B;}
+   Matrix& operator-=(Matrix const& B) {return *this=*this-B;}
+   Matrix& operator*=(Matrix const& B) {return *this=*this*B;}
+   Matrix& operator*=(Elm const& B)    {return *this=*this*B;}
 
    // Misc. Matrix Operatons
    
-   Matrix& SetIdentity(int Size=0);
+   Matrix& SetIdentity(int const& Size=0);
    Matrix Transpose() const;
    Matrix Inverse() const;
    int IsSquare() const {return Rows_==Cols_;}
@@ -110,7 +110,7 @@ public:
 
    // Destructively Resize Matrix
    // No change if size does not change
-   void Resize(int Rows=0,int Cols=0,Elm InitVal=SENTINAL);
+   void Resize(int const& Rows=0,int const& Cols=0,Elm const& InitVal=SENTINAL);
    
    // Operations & Etc...
 
@@ -119,7 +119,7 @@ public:
 
    // Set P,L,U to the corresponding matricies of the PLU
    //   decomposition of A
-   friend void PLU(const Matrix& A,Matrix& P,Matrix& L,Matrix& U);
+   friend void PLU(Matrix const& A,Matrix& P,Matrix& L,Matrix& U);
 
    // Singular Value Decomposition of A -- Algorithm from Numerical Recipies
    //
@@ -142,8 +142,8 @@ public:
    // NOTE: this situation may be detected by the calling program by compairing
    // -- the value of MaxCond with the returned condition number.
    //
-   friend Elm SVD(const Matrix& A,Matrix& U,Matrix& W,Matrix& V,
-		  const Elm MaxCond=MAXCONDITION,const int PrintFlag=0);
+   friend Elm SVD(Matrix const& A,Matrix& U,Matrix& W,Matrix& V,
+                  Elm const& MaxCond=MAXCONDITION,int const& PrintFlag=0);
 
    // SymEigVal -- determine the eigenvalues of A
    // Diag(eigen values) = B.Transpose()*A*B
@@ -156,8 +156,8 @@ public:
    // Tol - tolerance for convergence
    //
    // Note: Assumes A is SYMMETRIC
-   friend Matrix SymEigVal(Matrix A,Matrix *B=NULL,const int MaxItr=100,
-			   const double Tol=1.0e-13);
+   friend Matrix SymEigVal(Matrix A,Matrix* const B=0,int const& MaxItr=100,
+			   double const& Tol=1.0e-13);
    
    // Cholesky Decomposition of Matrix
    // A=U.Transpose()*D*U
@@ -166,14 +166,14 @@ public:
    //
    // Assumes Symmetric Matrix (thus uses only Upper Diagonal part of A
    // Note: will fail if A has EigenValue of 0.0
-   friend void QR(const Matrix& A,Matrix& Q,Matrix& R,int CalcTranspose=0);
+   friend void QR(Matrix const& A,Matrix& Q,Matrix& R,int const& CalcTranspose=0);
    // QR decomposition of A
 
-   friend void Cholesky(const Matrix& A,Matrix& U,Matrix& D);
+   friend void Cholesky(Matrix const& A,Matrix& U,Matrix& D);
 
    // Return solution x of the linear system A*x=B
    // Uses PLU decomposition and Forward and Backwards substitution
-   friend Matrix SolvePLU(const Matrix& A,const Matrix& B);
+   friend Matrix SolvePLU(Matrix const& A,Matrix const& B);
    
    // Return solution x of the linear system A*x=B
    // Uses SVD decomposition
@@ -181,15 +181,15 @@ public:
    // x = V*W.Inverse()*(U.Transpose()*B);
    // WHERE: W.Inverse() is actually calculated by hand and any
    // -- W[i][i] == 0.0 has inverse component 0.0
-   friend Matrix SolveSVD(const Matrix& A,const Matrix& B,
-			  const Elm MaxCond=MAXCONDITION,
-			  const int PrintFlag=0);
+   friend Matrix SolveSVD(Matrix const& A,Matrix const& B,
+			  Elm const& MaxCond=MAXCONDITION,
+			  int const& PrintFlag=0);
    
    // Output/Input Functions
-   friend ostream& operator<<(ostream& out,const Matrix& A);
+   friend ostream& operator<<(ostream& out,Matrix const& A);
    friend istream& operator>>(istream& in, Matrix& A);
 
-   static char* Revision();
+   static char const* const Revision();
 };
 
 #endif

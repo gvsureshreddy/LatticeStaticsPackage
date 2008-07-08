@@ -2,9 +2,10 @@
 
 #define LINELENGTH 600
 
-const int CBKinematics::DIM3 = 3;
+int const CBKinematics::DIM3 = 3;
 
-CBKinematics::CBKinematics(int InternalAtoms,Matrix &RefLattice,Vector *AtomPositions)
+CBKinematics::CBKinematics(int const& InternalAtoms,Matrix& RefLattice,
+                           Vector* const AtomPositions)
    : InternalAtoms_(InternalAtoms),
      RefLattice_(RefLattice)
 {
@@ -17,10 +18,10 @@ CBKinematics::CBKinematics(int InternalAtoms,Matrix &RefLattice,Vector *AtomPosi
    }
 }
 
-CBKinematics::CBKinematics(PerlInput &Input,PerlInput::HashStruct *ParentHash)
+CBKinematics::CBKinematics(PerlInput const& Input,PerlInput::HashStruct const* const ParentHash)
 {
    PerlInput::HashStruct Hash;
-   if (ParentHash != NULL)
+   if (ParentHash != 0)
    {
       Hash = Input.getHash(*ParentHash,"CBKinematics");
    }
@@ -45,7 +46,7 @@ CBKinematics::CBKinematics(PerlInput &Input,PerlInput::HashStruct *ParentHash)
    }   
 }
 
-void CBKinematics::InfluenceRegion(double *InfluenceRegion)
+void CBKinematics::InfluenceRegion(double* const InfluenceRegion)
 {
    Matrix Eigvals(1,DIM3);
    double tmp;
@@ -107,7 +108,7 @@ void CBKinematics::SetReferenceToCurrent()
    SetReferenceDOFs();
 }
 
-Vector CBKinematics::CurrentLatticeVec(int p)
+Vector CBKinematics::CurrentLatticeVec(int const& p) const
 {
    Vector tmp(DIM3,0.0);
    

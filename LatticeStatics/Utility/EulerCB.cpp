@@ -1,6 +1,6 @@
 #include "EulerCB.h"
 
-EulerCB::EulerCB(int InternalAtoms,Matrix &RefLattice,Vector *AtomPositions)
+EulerCB::EulerCB(int const& InternalAtoms,Matrix& RefLattice,Vector* const AtomPositions)
    : CBKinematics(InternalAtoms,RefLattice,AtomPositions)
 {
    F_.Resize(DIM3,DIM3);
@@ -10,7 +10,7 @@ EulerCB::EulerCB(int InternalAtoms,Matrix &RefLattice,Vector *AtomPositions)
    Reset();
 }
 
-EulerCB::EulerCB(PerlInput &Input,PerlInput::HashStruct *ParentHash)
+EulerCB::EulerCB(PerlInput const& Input,PerlInput::HashStruct const* const ParentHash)
    : CBKinematics(Input,ParentHash)
 {
    F_.Resize(DIM3,DIM3);
@@ -41,7 +41,7 @@ void EulerCB::Reset()
    }
 }
 
-Vector EulerCB::FractionalPosVec(int p)
+Vector EulerCB::FractionalPosVec(int const& p) const
 {
    Vector pos(DIM3,0.0),fracpos(DIM3,0.0),tmp(DIM3,0.0);
    Matrix CurrentLattice(DIM3,DIM3,0.0),InverseLattice(DIM3,DIM3);
@@ -68,7 +68,7 @@ Vector EulerCB::FractionalPosVec(int p)
    return fracpos;
 }
 
-double EulerCB::DX(double *X,int p,int q,int i)
+double EulerCB::DX(double const* const X,int const& p,int const& q,int const& i) const
 {
    double tmp=0.0;
    
@@ -80,7 +80,7 @@ double EulerCB::DX(double *X,int p,int q,int i)
    return tmp;
 }
 
-double EulerCB::Dx(double *X,int p,int q,int i)
+double EulerCB::Dx(double const* const X,int const& p,int const& q,int const& i) const
 {
    double tmp=0.0;
    
@@ -93,42 +93,50 @@ double EulerCB::Dx(double *X,int p,int q,int i)
    return tmp;
 }
 
-double EulerCB::DyDF(double *Dx,double *DX,int r, int s)
+double EulerCB::DyDF(double const* const Dx,double const* const DX,int const& r,int const& s)
+   const
 {
    return 2.0*Dx[r]*DX[s];
 }
 
-double EulerCB::D2yDFF(double *DX,int r, int s, int t, int u)
+double EulerCB::D2yDFF(double const* const DX,int const& r,int const& s,int const& t,
+                       int const& u) const
 {
    return 2.0*Del(r,t)*DX[s]*DX[u];
 }
 
-double EulerCB::DyDS(double *Dx,int p,int q,int i, int j)
+double EulerCB::DyDS(double const* const Dx,int const& p,int const& q,int const& i,
+                     int const& j) const
 {
    return 2.0*DELTA(i,p,q)*Dx[j];
 }
 
-double EulerCB::D2yDSS(int p,int q,int i,int j,int k,int l)
+double EulerCB::D2yDSS(int const& p,int const& q,int const& i,int const& j,int const& k,
+                       int const& l) const
 {
    return 2.0*DELTA(i,p,q)*DELTA(k,p,q)*Del(j,l);
 }
 
-double EulerCB::D2yDFS(double *Dx,double *DX,int p,int q,int i,int j,int k,int l)
+double EulerCB::D2yDFS(double const* const Dx,double const* const DX,int const& p,int const& q,
+                       int const& i,int const& j,int const& k,int const& l) const
 {
    return 2.0*DELTA(k,p,q)*Del(i,l)*DX[j];
 }
 
-double EulerCB::D3yDFFS(double *DX,int p,int q,int i,int j,int k,int l,int m, int n)
+double EulerCB::D3yDFFS(double const* const DX,int const& p,int const& q,int const& i,
+                        int const& j,int const& k,int const& l,int const& m,int const& n) const
 {
    return 0.0;
 }
 
-double EulerCB::D3yDSSF(int p,int q,int i,int j,int k,int l,int m,int n)
+double EulerCB::D3yDSSF(int const& p,int const& q,int const& i,int const& j,int const& k,
+                        int const& l,int const& m,int const& n) const
 {
    return 0.0;
 }
 
-double EulerCB::D4yDFFSS(int p,int q,int i,int j,int k,int l,int m,int n,int a,int b)
+double EulerCB::D4yDFFSS(int const& p,int const& q,int const& i,int const& j,int const& k,
+                         int const& l,int const& m,int const& n,int const& a,int const& b) const
 {
    return 0.0;
 }

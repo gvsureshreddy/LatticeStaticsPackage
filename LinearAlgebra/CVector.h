@@ -33,11 +33,11 @@ public:
    // Postcond. CVector of size 1xCols allocated and
    // each element set to Inital Value (or not set at all)
    // Devaults: Cols-0,Initial Value= (un initialized)
-   CVector(const int& Cols=0,const Elm& InitVal=SENTINAL);
-   CVector(const CVector& A);
-   CVector(const CMatrix& A);
-   CVector(const Vector& A);
-   CVector(const Matrix& A);
+   CVector(int const& Cols=0,Elm const& InitVal=SENTINAL);
+   CVector(CVector const& A);
+   CVector(CMatrix const& A);
+   CVector(Vector const& A);
+   CVector(Matrix const& A);
 
    // Deconstructor...
    // Release dynamic memory.
@@ -46,54 +46,54 @@ public:
    // Algebraic Operators...
    
    friend CVector& operator+(CVector& A) {return A;}
-   friend CVector operator+(const CVector& A,const CVector& B);
-   friend CVector operator-(const CVector& A,const CVector& B);
-   friend CVector operator-(const CVector& A);
+   friend CVector operator+(CVector const& A,CVector const& B);
+   friend CVector operator-(CVector const& A,CVector const& B);
+   friend CVector operator-(CVector const& A);
    // Dot Product
-   friend Elm operator*(const CVector& A,const CVector& B);
-   friend CVector operator*(const CMatrix& A,const CVector& B);
-   friend CVector operator*(const CVector& A,const CMatrix& B);
-   friend CVector operator*(const Elm& A,const CVector& B);
-   friend CVector operator*(const CVector& A,const Elm& B);
-   friend CVector operator/(const CVector& A,const Elm& B);
+   friend Elm const operator*(CVector const& A,CVector const& B);
+   friend CVector operator*(CMatrix const& A,CVector const& B);
+   friend CVector operator*(CVector const& A,CMatrix const& B);
+   friend CVector operator*(Elm const& A,CVector const& B);
+   friend CVector operator*(CVector const& A,Elm const& B);
+   friend CVector operator/(CVector const& A,Elm const& B);
    
    // Element Access methods
 #ifdef CHECK_BOUNDS
    // With Bounds checking!!!
-   Elm& operator[](const int& i);
-   const Elm operator[](const int& i) const;
+   Elm& operator[](int const& i);
+   Elm const& operator[](int const& i) const;
 #else
    // Without Bounds Checking!!!
-   inline Elm& operator[](const int& i) {return Elements_[i];}
-   inline Elm operator[](const int& i) const {return Elements_[i];}
+   inline Elm& operator[](int const& i) {return Elements_[i];}
+   inline Elm const& operator[](int const& i) const {return Elements_[i];}
 #endif
    
    // Assignment Operatons
 
-   CVector& operator=(const CVector& B);
-   CVector operator+=(const CVector& B) {return *this=*this+B;}
-   CVector operator-=(const CVector& B) {return *this=*this-B;}
-   CVector operator*=(const Elm& B) {return *this=(*this)*B;}
+   CVector& operator=(CVector const& B);
+   CVector& operator+=(CVector const& B) {return *this=*this+B;}
+   CVector& operator-=(CVector const& B) {return *this=*this-B;}
+   CVector& operator*=(Elm const& B) {return *this=(*this)*B;}
 
    // Destructively Resize CVector
    // No change if size dosen't change
-   void Resize(const int& Cols=0,const Elm& InitVal=SENTINAL);
+   void Resize(int const& Cols=0,Elm const& InitVal=SENTINAL);
 
    // Operations & Etc...
-   int Dim() const {return Cols_;}
+   int const& Dim() const {return Cols_;}
    // Standard IC^n Norm
-   Elm Norm();
+   Elm Norm() const;
 
    // Operations & Etc...
 
    // Uses PLU decomposition with Forward and Backwards substitution
-   friend CVector SolvePLU(const CMatrix& A,const CVector& B);
+   friend CVector SolvePLU(CMatrix const& A,CVector const& B);
 
    // Output/Input Function
-   friend ostream& operator<<(ostream& out,const CVector& A);
+   friend ostream& operator<<(ostream& out,CVector const& A);
    friend istream& operator>>(istream& in,CVector& A);
 
-   static char* Revision();
+   static char const* const Revision();
 };
 
 #endif

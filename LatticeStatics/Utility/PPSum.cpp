@@ -1,13 +1,13 @@
 #include "PPSum.h"
 
-int PPSUMcomp(const void *a,const void *b);
-int PPSUMind(double i,double j);
+int PPSUMcomp(void const* const a,void const* const b);
+int PPSUMind(double const& i,double const& j);
 #include <cstdlib>
 
 using namespace std;
 
-PPSum::PPSum(CBKinematics *CBK,int InternalAtoms,PairPotentials ***PairPot,double *InfluDist,
-             double *Ntemp)
+PPSum::PPSum(CBKinematics* const CBK,int const& InternalAtoms,PairPotentials*** const PairPot,
+             double* const InfluDist,double* const Ntemp)
    : Recalc_(0),
      InfluenceDist_(InfluDist),
      InternalAtoms_(InternalAtoms),
@@ -22,8 +22,9 @@ PPSum::PPSum(CBKinematics *CBK,int InternalAtoms,PairPotentials ***PairPot,doubl
    Initialize();
 }
 
-void PPSum::operator()(CBKinematics *CBK,int InternalAtoms,PairPotentials ***PairPot,
-                       double *InfluDist,double *Ntemp)
+void PPSum::operator()(CBKinematics* const CBK,int const& InternalAtoms,
+                       PairPotentials*** const PairPot,double* const InfluDist,
+                       double* const Ntemp)
 {
    CBK_=CBK;
    InternalAtoms_= InternalAtoms;
@@ -137,7 +138,7 @@ void PPSum::Initialize()
    CurrentPOS_ = 0;
 }
 
-Matrix PPSum::NeighborDistances(int cutoff,double eps)
+Matrix PPSum::NeighborDistances(int const& cutoff,double const& eps)
 {
    Reset();
    Matrix NeighborInfo(Pairs_,3);
@@ -169,7 +170,7 @@ Matrix PPSum::NeighborDistances(int cutoff,double eps)
 }
 
 
-int PPSUMcomp(const void *a,const void *b)
+int PPSUMcomp(void const* const a,void const* const b)
 {
    double t;
    if( *((double*) a) == *((double*) b) ) return 0;
@@ -181,7 +182,7 @@ int PPSUMcomp(const void *a,const void *b)
    }
 }
 
-int PPSUMind(double i,double j)
+int PPSUMind(double const& i,double const& j)
 {
    int I=int(i+1),J=int(j+1);
    

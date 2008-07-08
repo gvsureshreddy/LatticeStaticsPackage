@@ -1,7 +1,7 @@
 #include "Lattice.h"
 #include "UtilityFunctions.h"
 
-Lattice::Lattice(PerlInput &Input):
+Lattice::Lattice(PerlInput const& Input):
    test_flag_static(0)
 {
    if (Input.ParameterOK("Lattice","OrderedTFs"))
@@ -47,7 +47,7 @@ Lattice::Lattice(PerlInput &Input):
    }
 }
 
-void Lattice::SetLoadParameter(const double &load)
+void Lattice::SetLoadParameter(double const& load)
 {
    if (LoadParameter_==Temperature)
    {
@@ -59,7 +59,7 @@ void Lattice::SetLoadParameter(const double &load)
    }
 }
 
-int Lattice::TestFunctions(Vector &TF1, StateType State , Vector *TF2)
+int Lattice::TestFunctions(Vector &TF1,StateType const& State,Vector* const TF2) const
 {
    double sum;
    int NoNegEigVal = 0;
@@ -156,9 +156,9 @@ int Lattice::TestFunctions(Vector &TF1, StateType State , Vector *TF2)
       }
       if (State == RHS)
       {
-         if(TF2 == NULL)
+         if(TF2 == 0)
          {
-            cerr << "Error in Lattice::TestFunctions(): TF2 == NULL" << "\n";
+            cerr << "Error in Lattice::TestFunctions(): TF2 == 0" << "\n";
             exit(-53);
          }
          
@@ -246,9 +246,9 @@ int Lattice::TestFunctions(Vector &TF1, StateType State , Vector *TF2)
       }
       if (State == RHS)
       {
-         if(TF2 == NULL)
+         if(TF2 == 0)
          {
-            cerr << "Error in Lattice::TestFunctions(): TF2 == NULL" << "\n";
+            cerr << "Error in Lattice::TestFunctions(): TF2 == 0" << "\n";
             exit(-53);
          }
          
@@ -355,8 +355,8 @@ int Lattice::TestFunctions(Vector &TF1, StateType State , Vector *TF2)
    return retval;
 }
 
-void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
-                                double Tolerance,int Width,ostream &out)
+void Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
+                                double const& Tolerance,int const& Width,ostream& out)
 {
    Matrix
       D3=E3(),
@@ -781,7 +781,7 @@ void Lattice::CriticalPointInfo(const Vector &DrDt,int NumZeroEigenVals,
    return;
 }
 
-void Lattice::ConsistencyCheck(double ConsistencyEpsilon,int Width,ostream &out)
+void Lattice::ConsistencyCheck(double const& ConsistencyEpsilon,int const& Width,ostream& out)
 {
    double potential;
    int Dim=DOF().Dim();

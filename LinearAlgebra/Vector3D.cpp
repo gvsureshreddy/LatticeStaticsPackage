@@ -7,33 +7,33 @@
 #include "Matrix.h"
 
 // Global IDString
-char Vector3DID[]="$Id: Vector3D.cpp,v 1.7 2008/03/26 02:35:29 elliott Exp $";
+char Vector3DID[]="$Id: Vector3D.cpp,v 1.8 2008/07/08 04:18:33 elliott Exp $";
 
 // Private Functions...
 
 // Public Functions...
 
-Vector3D::Vector3D(const Vector3D::Elm& InitVal)
+Vector3D::Vector3D(Vector3D::Elm const& InitVal)
 {
    for (int i=0;i<V3DLEN;i++)
       Elements_[i]=InitVal;
 }
 
-Vector3D::Vector3D(const Vector3D::Elm& x,const Vector3D::Elm& y,const Vector3D::Elm& z)
+Vector3D::Vector3D(Vector3D::Elm const& x,Vector3D::Elm const& y,Vector3D::Elm const& z)
 {
    Elements_[0]=x;
    Elements_[1]=y;
    Elements_[2]=z;
 }
 
-Vector3D::Vector3D(const Vector3D& A)
+Vector3D::Vector3D(Vector3D const& A)
 {
    memmove(Elements_,A.Elements_,sizeof(Vector3D::Elm[V3DLEN]));
 
    return;
 }
 
-Vector3D::Vector3D(const Vector& A)
+Vector3D::Vector3D(Vector const& A)
 {
    if (A.Cols_ != V3DLEN)
    {
@@ -46,14 +46,14 @@ Vector3D::Vector3D(const Vector& A)
    return;
 }
 
-Vector3D& Vector3D::operator=(const Vector3D& B)
+Vector3D& Vector3D::operator=(Vector3D const& B)
 {
    memmove(Elements_,B.Elements_,sizeof(Vector3D::Elm[V3DLEN]));
 
    return *this;
 }
 
-Vector3D operator*(const Vector3D& A,const Matrix& B)
+Vector3D operator*(Vector3D const& A,Matrix const& B)
 {
    if (B.Rows_ != V3DLEN)
    {
@@ -66,14 +66,14 @@ Vector3D operator*(const Vector3D& A,const Matrix& B)
    {
       for (int j=0;j<V3DLEN;j++)
       {
-	 z.Elements_[i] += A.Elements_[j]*B.Elements_[j][i];
+	 z[i] += A[j]*B[j][i];
       }
    }
 
    return z;
 }
 
-Vector3D operator*(const Matrix& A,const Vector3D& B)
+Vector3D operator*(Matrix const& A,Vector3D const& B)
 {
    if (A.Cols_ != V3DLEN)
    {
@@ -86,20 +86,20 @@ Vector3D operator*(const Matrix& A,const Vector3D& B)
    {
       for (int j=0;j<V3DLEN;j++)
       {
-	 z.Elements_[i] += A.Elements_[i][j]*B.Elements_[j];
+	 z[i] += A[i][j]*B[j];
       }
    }
 
    return z;
 }
 
-ostream& operator<<(ostream& out,const Vector3D& A)
+ostream& operator<<(ostream& out,Vector3D const& A)
 {
    int W=out.width();
 
    for (register int i=0;i<V3DLEN;i++)
    {
-      out << setw(W) << A.Elements_[i];
+      out << setw(W) << A[i];
    }
 
    return out;
@@ -108,12 +108,12 @@ ostream& operator<<(ostream& out,const Vector3D& A)
 istream& operator>>(istream& in,Vector3D& A)
 {
    for (register int i=0;i<V3DLEN;i++)
-      in >> A.Elements_[i];
+      in >> A[i];
 
    return in;
 }
 
-char* Vector3D::Revision()
+char const* const Vector3D::Revision()
 {
    return Vector3DID;
 }

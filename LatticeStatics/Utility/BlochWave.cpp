@@ -6,7 +6,7 @@ char *builddate();
 
 using namespace std;
 
-void GetMainSettings(int &Width,int &Presision,PerlInput &Input);
+void GetMainSettings(int& Width,int& Presision,PerlInput const& Input);
 
 int main(int argc,char *argv[])
 {
@@ -22,7 +22,7 @@ int main(int argc,char *argv[])
    }
    
    char *datafile = argv[1];
-   int GridSize = atoi(argv[2]);
+   int const GridSize = atoi(argv[2]);
 
    PerlInput Input;
    Input.Readfile(datafile,"Input File:");
@@ -63,7 +63,7 @@ int main(int argc,char *argv[])
    return 1;
 }
 
-void GetMainSettings(int &Width, int &Precision,PerlInput &Input)
+void GetMainSettings(int& Width,int& Precision,PerlInput const& Input)
 {
    Width = Input.getInt("Main","FieldWidth");
    Precision = Input.getInt("Main","Precision");

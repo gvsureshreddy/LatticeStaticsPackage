@@ -24,91 +24,108 @@ public:
    };
    
    PerlInput() {Initialize();}
-   PerlInput(const char *datafile);
+   PerlInput(char const* const datafile);
    virtual ~PerlInput();
    
-   void Readfile(const char *datafile);
-   void Readfile(const char *datafile,const char *prefix);
-   void ClearHash(const char *hashname);
+   void Readfile(char const* const datafile);
+   void Readfile(char const* const datafile,char const* const prefix);
+   void ClearHash(char const* const hashname);
    
-   int HashOK(const char *HashName);
-   int ParameterOK(const HashStruct &Hash,const char *ParamName);
-   int ParameterOK(const char *HashName,const char *ParamName)
+   int HashOK(char const* const HashName) const;
+   int ParameterOK(HashStruct const& Hash,char const* const ParamName) const;
+   int ParameterOK(char const* const HashName,char const* const ParamName) const
    {return ParameterOK(getHash(HashName),ParamName);}
    
-   HashStruct getHash(const char *HashName);
-   HashStruct getHash(const HashStruct &Hash,const char *ParamName,
-                      int a=-1,int b=-1,int c=-1,int d=-1,int e=-1);
-   HashStruct getHash(const char *HashName,const char *ParamName,
-                      int a=-1,int b=-1,int c=-1,int d=-1,int e=-1)
+   HashStruct getHash(char const* const HashName) const;
+   HashStruct getHash(HashStruct const& Hash,char const* const ParamName,
+                      int const& a=-1,int const& b=-1,int const& c=-1,int const& d=-1,
+                      int const& e=-1) const;
+   HashStruct getHash(char const* const HashName,char const* const ParamName,
+                      int const& a=-1,int const& b=-1,int const& c=-1,int const& d=-1,
+                      int const& e=-1) const
    {return getHash(getHash(HashName),ParamName,a,b,c,d,e);}
    
-   int getArrayLength(const HashStruct &Hash,const char *ParamName,
-                      int a=-1,int b=-1,int c=-1,int d=-1);
-   int getArrayLength(const char *HashName,const char *ParamName,
-                      int a=-1,int b=-1,int c=-1,int d=-1)
+   int getArrayLength(HashStruct const& Hash,char const* const ParamName,
+                      int const& a=-1,int const& b=-1,int const& c=-1,int const& d=-1) const;
+   int getArrayLength(char const* const HashName,char const* const ParamName,
+                      int const& a=-1,int const& b=-1,int const& c=-1,int const& d=-1) const
    {return getArrayLength(getHash(HashName),ParamName,a,b,c,d);}
    
-   double getDouble(const HashStruct &Hash,const char *ParamName,
-                    int a=-1,int b=-1,int c=-1,int d=-1,int e=-1);
-   double getDouble(const char *HashName,const char *ParamName,
-                    int a=-1,int b=-1,int c=-1,int d=-1,int e=-1)
+   double getDouble(HashStruct const& Hash,char const* const ParamName,
+                    int const& a=-1,int const& b=-1,int const& c=-1,int const& d=-1,
+                    int const& e=-1) const;
+   double getDouble(char const* const HashName,char const* const ParamName,
+                    int const& a=-1,int const& b=-1,int const& c=-1,int const& d=-1,
+                    int const& e=-1) const
    {return getDouble(getHash(HashName),ParamName,a,b,c,d,e);}
    
-   int getInt(const HashStruct &Hash,const char *ParamName,
-              int a=-1,int b=-1,int c=-1,int d=-1,int e=-1);
-   int getInt(const char *HashName,const char *ParamName,
-              int a=-1,int b=-1,int c=-1,int d=-1,int e=-1)
+   int getInt(HashStruct const& Hash,char const* const ParamName,
+              int const& a=-1,int const&  b=-1,int const& c=-1,int const& d=-1,
+              int const& e=-1) const;
+   int getInt(char const* const HashName,char const* const ParamName,
+              int const& a=-1,int const& b=-1,int const& c=-1,int const& d=-1,int const& e=-1)
+      const
    {return getInt(getHash(HashName),ParamName,a,b,c,d,e);}
    
-   int getPosInt(const HashStruct &Hash,const char *ParamName,
-                 int a=-1,int b=-1,int c=-1,int d=-1,int e=-1);
-   int getPosInt(const char *HashName,const char *ParamName,
-                 int a=-1,int b=-1,int c=-1,int d=-1,int e=-1)
+   int getPosInt(HashStruct const& Hash,char const* const ParamName,
+                 int const& a=-1,int const& b=-1,int const& c=-1,int const& d=-1,
+                 int const& e=-1) const;
+   int getPosInt(char const* const HashName,char const* const ParamName,
+                 int const& a=-1,int const& b=-1,int const& c=-1,int const& d=-1,
+                 int const& e=-1) const
    {return getPosInt(getHash(HashName),ParamName,a,b,c,d,e);}
    
-   const char *getString(const HashStruct &Hash,const char *ParamName,
-                         int a=-1,int b=-1,int c=-1,int d=-1,int e=-1);
-   const char *getString(const char *HashName,const char *ParamName,
-                         int a=-1,int b=-1,int c=-1,int d=-1,int e=-1)
+   char const* const getString(HashStruct const& Hash,char const* const ParamName,
+                               int const& a=-1,int const& b=-1,int const& c=-1,int const& d=-1,
+                               int const& e=-1) const;
+   char const* const getString(char const* const HashName,char const* const ParamName,
+                               int const& a=-1,int const& b=-1,int const& c=-1,int const& d=-1,
+                               int const& e=-1) const
    {return getString(getHash(HashName),ParamName,a,b,c,d,e);}
    
-   void getVector(Vector &Vect,const HashStruct &Hash,const char *ParamName,
-                  int a=-1,int b=-1,int c=-1,int d=-1);
-   void getVector(Vector &Vect,const char *HashName,const char *ParamName,
-                  int a=-1,int b=-1,int c=-1,int d=-1)
+   void getVector(Vector& Vect,HashStruct const& Hash,char const* const ParamName,
+                  int const& a=-1,int const& b=-1,int const& c=-1,int const& d=-1) const;
+   void getVector(Vector& Vect,char const* const HashName,char const* const ParamName,
+                  int const& a=-1,int const& b=-1,int const& c=-1,int const& d=-1) const
    {getVector(Vect,getHash(HashName),ParamName,a,b,c,d);}
    
-   void getMatrix(Matrix &Mtrx,const HashStruct &Hash,const char *ParamName,
-                  int a=-1,int b=-1,int c=-1);
-   void getMatrix(Matrix &Mtrx,const char *HashName,const char *ParamName,
-                  int a=-1,int b=-1,int c=-1)
+   void getMatrix(Matrix& Mtrx,HashStruct const& Hash,char const* const ParamName,
+                  int const& a=-1,int const& b=-1,int const& c=-1) const;
+   void getMatrix(Matrix& Mtrx,char const* const HashName,char const* const ParamName,
+                  int const& a=-1,int const& b=-1,int const& c=-1) const
    {getMatrix(Mtrx,getHash(HashName),ParamName,a,b,c);}
    
    
-   void getIntVector(int *IntArry,int len,const HashStruct &Hash,const char *ParamName,
-                     int a=-1,int b=-1,int c=-1,int d=-1);
-   void getIntVector(int *IntArry,int len,const char *HashName,const char *ParamName,
-                     int a=-1,int b=-1,int c=-1,int d=-1)
+   void getIntVector(int* const IntArry,int const& len,HashStruct const& Hash,
+                     char const* const ParamName,int const& a=-1,int const& b=-1,
+                     int const& c=-1,int const& d=-1) const;
+   void getIntVector(int* const IntArry,int const& len,char const* const HashName,
+                     char const* const ParamName,int const& a=-1,int const& b=-1,
+                     int const& c=-1,int const& d=-1) const
    {getIntVector(IntArry,len,getHash(HashName),ParamName,a,b,c,d);}
    
-   void getPosIntVector(int *PosIntArry,int len,const HashStruct &Hash,const char *ParamName,
-                        int a=-1,int b=-1,int c=-1,int d=-1);
-   void getPosIntVector(int *PosIntArry,int len,const char *HashName,const char *ParamName,
-                        int a=-1,int b=-1,int c=-1,int d=-1)
+   void getPosIntVector(int* const PosIntArry,int const& len,HashStruct const& Hash,
+                        char const* const ParamName,int const& a=-1,int const& b=-1,
+                        int const& c=-1,int const& d=-1) const;
+   void getPosIntVector(int* const PosIntArry,int const& len,char const* const HashName,
+                        char const* const ParamName,int const& a=-1,int const& b=-1,
+                        int const& c=-1,int const& d=-1) const
    {getPosIntVector(PosIntArry,len,getHash(HashName),ParamName,a,b,c,d);}
    
-   void getIntMatrix(int *IntMtrx,int rows,int cols,const HashStruct &Hash,
-                     const char *ParamName,int a=-1,int b=-1,int c=-1);
-   void getIntMatrix(int *IntMtrx,int rows,int cols,const char *HashName,const char *ParamName,
-                     int a=-1,int b=-1,int c=-1)
+   void getIntMatrix(int* const IntMtrx,int const& rows,int const& cols,HashStruct const& Hash,
+                     char const* const ParamName,int const& a=-1,int const& b=-1,
+                     int const& c=-1) const;
+   void getIntMatrix(int* const IntMtrx,int const& rows,int const& cols,
+                     char const* const HashName,char const* const ParamName,
+                     int const& a=-1,int const& b=-1,int const& c=-1) const
    {getIntMatrix(IntMtrx,rows,cols,getHash(HashName),ParamName,a,b,c);}
    
-   void getPosIntMatrix(int *PosIntMtrx,int rows,int cols,
-                        const HashStruct &Hash,const char *ParamName,
-                        int a=-1,int b=-1,int c=-1);
-   void getPosIntMatrix(int *PosIntMtrx,int rows,int cols,
-                        const char *HashName,const char *ParamName,int a=-1,int b=-1,int c=-1)
+   void getPosIntMatrix(int* const PosIntMtrx,int const& rows,int const& cols,
+                        HashStruct const& Hash,char const* const ParamName,
+                        int const& a=-1,int const& b=-1,int const& c=-1) const;
+   void getPosIntMatrix(int* const PosIntMtrx,int const& rows,int const& cols,
+                        char const* const HashName,char const* const ParamName,
+                        int const& a=-1,int const& b=-1,int const& c=-1) const
    {getPosIntMatrix(PosIntMtrx,rows,cols,getHash(HashName),ParamName,a,b,c);}
 };
 

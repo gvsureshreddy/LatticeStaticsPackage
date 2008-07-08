@@ -7,19 +7,19 @@
 #include "Matrix.h"
 
 // Global IDString
-char CVectorID[]="$Id: CVector.cpp,v 1.7 2008/03/26 02:35:29 elliott Exp $";
+char CVectorID[]="$Id: CVector.cpp,v 1.8 2008/07/08 04:18:33 elliott Exp $";
 
 // Private Functions...
 
 // Public Functions...
 
-CVector::CVector(const int& Cols,const CVector::Elm& InitVal)
+CVector::CVector(int const& Cols,CVector::Elm const& InitVal)
 {
    Cols_=Cols;
 
    if (Cols_==0)
    {
-      Elements_=NULL;
+      Elements_=0;
    }
    else
    {
@@ -35,13 +35,13 @@ CVector::CVector(const int& Cols,const CVector::Elm& InitVal)
    return;
 }
 
-CVector::CVector(const CVector& A)
+CVector::CVector(CVector const& A)
 {
    Cols_=A.Cols_;
    
    if (Cols_==0)
    {
-      Elements_=NULL;
+      Elements_=0;
    }
    else
    {
@@ -50,13 +50,13 @@ CVector::CVector(const CVector& A)
 
    for (int i=0;i<Cols_;i++)
    {
-      Elements_[i] = A.Elements_[i];
+      Elements_[i] = A[i];
    }
 
    return;
 }
 
-CVector::CVector(const CMatrix& A)
+CVector::CVector(CMatrix const& A)
 {
    if (A.IsNull() || (A.Rows()!=1 && A.Cols()!=1))
    {
@@ -71,7 +71,7 @@ CVector::CVector(const CMatrix& A)
    
       if (Cols_==0)
       {
-         Elements_=NULL;
+         Elements_=0;
       }
       else
       {
@@ -86,7 +86,7 @@ CVector::CVector(const CMatrix& A)
    
       if (Cols_==0)
       {
-         Elements_=NULL;
+         Elements_=0;
       }
       else
       {
@@ -99,13 +99,13 @@ CVector::CVector(const CMatrix& A)
    return;
 }
 
-CVector::CVector(const Vector& A)
+CVector::CVector(Vector const& A)
 {
    Cols_=A.Dim();
    
    if (Cols_==0)
    {
-      Elements_=NULL;
+      Elements_=0;
    }
    else
    {
@@ -120,7 +120,7 @@ CVector::CVector(const Vector& A)
    return;
 }
 
-CVector::CVector(const Matrix& A)
+CVector::CVector(Matrix const& A)
 {
    if (A.IsNull() || (A.Rows()!=1 && A.Cols()!=1))
    {
@@ -135,7 +135,7 @@ CVector::CVector(const Matrix& A)
    
       if (Cols_==0)
       {
-         Elements_=NULL;
+         Elements_=0;
       }
       else
       {
@@ -153,7 +153,7 @@ CVector::CVector(const Matrix& A)
    
       if (Cols_==0)
       {
-         Elements_=NULL;
+         Elements_=0;
       }
       else
       {
@@ -176,7 +176,7 @@ CVector::~CVector()
    return;   
 }
 
-CVector operator+(const CVector& A,const CVector& B)
+CVector operator+(CVector const& A,CVector const& B)
 {
    if (A.Cols_!=B.Cols_ || A.Cols_==0 || B.Cols_==0)
    {
@@ -189,13 +189,13 @@ CVector operator+(const CVector& A,const CVector& B)
    
    for (register int j=0;j<A.Cols_;j++)
    {
-      C.Elements_[j]=A.Elements_[j]+B.Elements_[j];
+      C[j]=A[j]+B[j];
    }
    
    return C;
 }
 
-CVector operator-(const CVector& A,const CVector& B)
+CVector operator-(CVector const& A,CVector const& B)
 {
    if (A.Cols_!=B.Cols_ || A.Cols_==0 || B.Cols_==0)
    {
@@ -208,24 +208,24 @@ CVector operator-(const CVector& A,const CVector& B)
    
    for (register int j=0;j<A.Cols_;j++)
    {
-      C.Elements_[j]=A.Elements_[j]-B.Elements_[j];
+      C[j]=A[j]-B[j];
    }
    
    return C;
 }
 
-CVector operator-(const CVector& A)
+CVector operator-(CVector const& A)
 {
    CVector B(A.Cols_);
 
    for (register int i=0;i<A.Cols_;i++)
-      B.Elements_[i]=-A.Elements_[i];
+      B[i]=-A[i];
 
    return B;
 }
 
 // Dot Product
-CVector::Elm operator*(const CVector& A,const CVector& B)
+CVector::Elm const operator*(CVector const& A,CVector const& B)
 {
    if (A.Cols_==0 || B.Cols_==0 || A.Cols_!=B.Cols_)
    {
@@ -238,13 +238,13 @@ CVector::Elm operator*(const CVector& A,const CVector& B)
 
    for (register int i=0;i<A.Cols_;i++)
    {
-      sum+=A.Elements_[i]*(B.Elements_[i].conj());
+      sum+=A[i]*(B[i].conj());
    }
 
    return sum;
 }
 
-CVector operator*(const CMatrix& A,const CVector& B)
+CVector operator*(CMatrix const& A,CVector const& B)
 {
    if (A.Cols()!=B.Cols_ || A.IsNull() || B.Cols_==0)
    {
@@ -259,14 +259,14 @@ CVector operator*(const CMatrix& A,const CVector& B)
    {
       for (register int k=0;k<B.Cols_;k++)
       {
-	 C.Elements_[i]+=A[i][k]*B.Elements_[k];
+	 C[i]+=A[i][k]*B[k];
       }
    }
    
    return C;
 }
 
-CVector operator*(const CVector& A,const CMatrix& B)
+CVector operator*(CVector const& A,CMatrix const& B)
 {
    if (B.Cols()!=A.Cols_ || B.IsNull() || A.Cols_==0)
    {
@@ -281,51 +281,51 @@ CVector operator*(const CVector& A,const CMatrix& B)
    {
       for (register int k=0;k<A.Cols_;k++)
       {
-	 C.Elements_[i]+=A.Elements_[k]*B[k][i];
+	 C[i]+=A[k]*B[k][i];
       }
    }
    
    return C;
 }
 
-CVector operator*(const CVector::Elm& A,const CVector& B)
+CVector operator*(CVector::Elm const& A,CVector const& B)
 {
    CVector C(B.Cols_);
 
    for (register int i=0;i<B.Cols_;i++)
    {
-      C.Elements_[i]=A*B.Elements_[i];
+      C[i]=A*B[i];
    }
 
    return C;
 }
 
-CVector operator*(const CVector& A,const CVector::Elm& B)
+CVector operator*(CVector const& A,CVector::Elm const& B)
 {
    CVector C(A.Cols_);
 
    for (register int i=0;i<A.Cols_;i++)
    {
-      C.Elements_[i]=B*A.Elements_[i];
+      C[i]=B*A[i];
    }
 
    return C;
 }
 
-CVector operator/(const CVector& A,const CVector::Elm& B)
+CVector operator/(CVector const& A,CVector::Elm const& B)
 {
    CVector C(A.Cols_);
 
    for (register int i=0;i<A.Cols_;i++)
    {
-      C.Elements_[i]=A.Elements_[i]/B;
+      C[i]=A[i]/B;
    }
 
    return C;
 }
 
 #ifdef CHECK_BOUNDS
-CVector::Elm& CVector::operator[](const int& i)
+CVector::Elm& CVector::operator[](int const& i)
 {
    if (i>=Cols_)
    {
@@ -337,7 +337,7 @@ CVector::Elm& CVector::operator[](const int& i)
    return Elements_[i];
 }
 
-const CVector::Elm CVector::operator[](const int& i) const
+CVector::Elm const& CVector::operator[](int const& i) const
 {
    if (i>=Cols_)
    {
@@ -350,7 +350,7 @@ const CVector::Elm CVector::operator[](const int& i) const
 }
 #endif
 
-CVector& CVector::operator=(const CVector& B)
+CVector& CVector::operator=(CVector const& B)
 {
    if (Cols_!=B.Cols_ || Cols_==0 || B.Cols_==0)
    {
@@ -365,7 +365,7 @@ CVector& CVector::operator=(const CVector& B)
    return *this;
 }
 
-void CVector::Resize(const int& Cols,const CVector::Elm& InitVal)
+void CVector::Resize(int const& Cols,CVector::Elm const& InitVal)
 {
    if (Cols!=Cols_)
    {
@@ -375,7 +375,7 @@ void CVector::Resize(const int& Cols,const CVector::Elm& InitVal)
       
       if (Cols_==0)
       {
-	 Elements_=NULL;
+	 Elements_=0;
       }
       else
       {
@@ -394,30 +394,30 @@ void CVector::Resize(const int& Cols,const CVector::Elm& InitVal)
    return;
 }
 
-CVector::Elm CVector::Norm()
+CVector::Elm CVector::Norm() const
 {
    return sqrt(*this*(*this));
 }
 
-CVector SolvePLU(const CMatrix& A,const CVector& B)
+CVector SolvePLU(CMatrix const& A,CVector const& B)
 {
    CMatrix C(B.Cols_,1);
 
    for(register int i=0;i<B.Cols_;i++)
    {
-      C[i][0]=B.Elements_[i];
+      C[i][0]=B[i];
    }
 
       return SolvePLU(A,C);
 }
 
-ostream& operator<<(ostream& out,const CVector& A)
+ostream& operator<<(ostream& out,CVector const& A)
 {
    int W=out.width();
 
    for (register int i=0;i<A.Cols_;i++)
    {
-      out << setw(W) << A.Elements_[i];
+      out << setw(W) << A[i];
    }
 
    return out;
@@ -426,12 +426,12 @@ ostream& operator<<(ostream& out,const CVector& A)
 istream& operator>>(istream& in,CVector& A)
 {
    for (register int i=0;i<A.Cols_;i++)
-      in >> A.Elements_[i];
+      in >> A[i];
 
    return in;
 }
 
-char* CVector::Revision()
+char const* const CVector::Revision()
 {
    return CVectorID;
 }

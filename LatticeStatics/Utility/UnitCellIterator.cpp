@@ -1,6 +1,6 @@
 #include "UnitCellIterator.h"
 
-void UnitCellIterator::Initialize(int GridSize,int DoHalfOnly,int SkipZero)
+void UnitCellIterator::Initialize(int const& GridSize,int const& DoHalfOnly,int const& SkipZero)
 {
    GridSize_ = GridSize;
    CurrentPOS_ = 0;
@@ -16,7 +16,7 @@ void UnitCellIterator::Initialize(int GridSize,int DoHalfOnly,int SkipZero)
       : GridSize*GridSize*GridSize - SkipZero;
    
    // Be extra sure there are no memory leaks
-   if ( NULL != Vectors_)
+   if ( 0 != Vectors_)
    {
       delete [] Vectors_[0];
       delete [] Vectors_;

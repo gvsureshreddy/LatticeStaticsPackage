@@ -23,35 +23,37 @@ private:
    
    void UpdateLatticeState();
 public:
-   MultiMode(Lattice *M,PerlInput &Input);
+   MultiMode(Lattice* const M,PerlInput const& Input);
    
    ~MultiMode() {}
    
    // Functions required by LatticeMode
-   virtual double ModeEnergy() {return Lattice_->E0();}
-   virtual Vector DrDt(const Vector &Diff);
+   virtual double ModeEnergy() const {return Lattice_->E0();}
+   virtual Vector const& DrDt(Vector const& Diff) const;
    
    //----------------------------------------------------------------
-   virtual Vector ModeForce();
-   virtual Matrix ModeStiffness();
-   virtual Vector ModeDOF() {return ModeDOF_;}
-   virtual void SetModeDOF(const Vector &dof);
-   virtual void UpdateModeDOF(const Vector &dr);
+   virtual Vector const& ModeForce() const;
+   virtual Matrix const& ModeStiffness() const;
+   virtual Vector const& ModeDOF() const {return ModeDOF_;}
+   virtual void SetModeDOF(Vector const& dof);
+   virtual void UpdateModeDOF(Vector const& dr);
    //----------------------------------------------------------------
-   virtual char *ModeName() {return "MultiMode";}
+   virtual char const* const ModeName() const {return "MultiMode";}
 
 private:
    // "static" member variables
    // UpdateLatticeState
    int size_static;
    Vector DOF_static;
+   // DrDt
+   mutable Vector ddt_static;
    // ModeForce
-   Vector force_static;
-   Matrix stress_static;
+   mutable Vector force_static;
+   mutable Matrix stress_static;
    // ModeStiffness
-   Matrix K_static;
-   Matrix Stiff_static;
-   Matrix stressdt_static;
+   mutable Matrix K_static;
+   mutable Matrix Stiff_static;
+   mutable Matrix stressdt_static;
 };
 
 #endif

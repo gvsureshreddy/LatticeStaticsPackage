@@ -1,6 +1,6 @@
 #include "ChainIterator.h"
 
-void ChainIterator::Initialize(int GridSize,int DoHalfOnly,int SkipZero)
+void ChainIterator::Initialize(int const& GridSize,int const& DoHalfOnly,int const& SkipZero)
 {
    GridSize_ = GridSize;
    CurrentPOS_ = 0;
@@ -15,7 +15,7 @@ void ChainIterator::Initialize(int GridSize,int DoHalfOnly,int SkipZero)
       (GridSize/2+1) - SkipZero : GridSize - SkipZero;
    
    // Be extra sure there are no memory leaks
-   if ( NULL != Vectors_)
+   if ( 0 != Vectors_)
    {
       delete [] Vectors_[0];
       delete [] Vectors_;

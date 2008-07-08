@@ -17,33 +17,35 @@ private:
 public:
    
    Dobson() {};
-   Dobson(double Eps0,double Eps1,double Sigma0,double Sigma1,double rcut);
+   Dobson(double const& Eps0,double const& Eps1,double const& Sigma0,double const& Sigma1,
+          double const& rcut);
    ~Dobson() {};
-   friend ostream &operator<<(ostream &out,Dobson &A);
-   double PairPotential(double NTemp,double r2,YDeriv dy=Y0,TDeriv dt=T0);
-   virtual int GetNoParameters() {return 5;}
-   virtual void SetParameters(double *Vals);
-   virtual void Print(ostream &out);
-   virtual const char* Type() {return "Dobson";}
+   friend ostream& operator<<(ostream& out,Dobson const& A);
+   double PairPotential(double const& NTemp,double const& r2,YDeriv const& dy=Y0,
+                        TDeriv const& dt=T0) const;
+   virtual int GetNoParameters() const {return 5;}
+   virtual void SetParameters(double const* const Vals);
+   virtual void Print(ostream& out) const;
+   virtual char const* const Type() const {return "Dobson";}
    
-   double Eps0() {return Eps0_;}
-   double Eps1() {return Eps1_;}
-   double Sigma0() {return Sigma0_;}
-   double Sigma1() {return Sigma1_;}
-   double rcut() {return rcut_;}
+   double const& Eps0() const {return Eps0_;}
+   double const& Eps1() const {return Eps1_;}
+   double const& Sigma0() const {return Sigma0_;}
+   double const& Sigma1() const {return Sigma1_;}
+   double const& rcut() const {return rcut_;}
    
-   void SetEps0(double Eps0) {Eps0_=Eps0;}
-   void SetEps1(double Eps1) {Eps1_=Eps1;}
-   void SetSigma0(double Sigma0) {Sigma0_=Sigma0;}
-   void SetSigma1(double Sigma1) {Sigma1_=Sigma1;}
-   void Setrcut(double rcut) {rcut_ = rcut;}
+   void SetEps0(double const& Eps0) {Eps0_=Eps0;}
+   void SetEps1(double const& Eps1) {Eps1_=Eps1;}
+   void SetSigma0(double const& Sigma0) {Sigma0_=Sigma0;}
+   void SetSigma1(double const& Sigma1) {Sigma1_=Sigma1;}
+   void Setrcut(double const& rcut) {rcut_ = rcut;}
    
 private:
-   double Eps(double NTemp,TDeriv dt=T0);
-   double Sigma(double NTemp,TDeriv dt=T0);
-   double j(double NTemp,double r2,YDeriv dy=Y0,TDeriv dt=T0);
-   double A(double NTemp,TDeriv dt=T0);
-   double B(double NTemp,TDeriv dt=T0);
+   double Eps(double const& NTemp,TDeriv const& dt=T0) const;
+   double Sigma(double const& NTemp,TDeriv const& dt=T0) const;
+   double j(double const& NTemp,double const& r2,YDeriv const& dy=Y0,TDeriv const& dt=T0) const;
+   double A(double const& NTemp,TDeriv const& dt=T0) const;
+   double B(double const& NTemp,TDeriv const& dt=T0) const;
    
 };
 

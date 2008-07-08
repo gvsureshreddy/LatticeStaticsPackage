@@ -1,6 +1,7 @@
 #include "Dobson.h"
 
-Dobson::Dobson(double Eps0,double Eps1,double Sigma0,double Sigma1,double rcut):
+Dobson::Dobson(double const& Eps0,double const& Eps1,double const& Sigma0,double const& Sigma1,
+               double const& rcut):
    Eps0_(Eps0),Eps1_(Eps1),Sigma0_(Sigma0),Sigma1_(Sigma1),rcut_(rcut)
 {
    if (rcut_ < D3_RCUTU)
@@ -10,7 +11,7 @@ Dobson::Dobson(double Eps0,double Eps1,double Sigma0,double Sigma1,double rcut):
    }
 }
 
-void Dobson::SetParameters(double *Vals)
+void Dobson::SetParameters(double const* const Vals)
 {
    SetEps0(Vals[0]);
    SetEps1(Vals[1]);
@@ -19,7 +20,7 @@ void Dobson::SetParameters(double *Vals)
    Setrcut(Vals[4]);
 }
 
-double Dobson::Eps(double NTemp,TDeriv dt)
+double Dobson::Eps(double const& NTemp,TDeriv const& dt) const
 {
    double retval;
    switch (dt)
@@ -41,7 +42,7 @@ double Dobson::Eps(double NTemp,TDeriv dt)
    return retval;
 }
 
-double Dobson::Sigma(double NTemp,TDeriv dt)
+double Dobson::Sigma(double const& NTemp,TDeriv const& dt) const
 {
    double retval;
    
@@ -64,7 +65,7 @@ double Dobson::Sigma(double NTemp,TDeriv dt)
    return retval;
 }
 
-double Dobson::j(double NTemp,double r2,YDeriv dy,TDeriv dt)
+double Dobson::j(double const& NTemp,double const& r2,YDeriv const& dy,TDeriv const& dt) const
 {
    double val=0.0;
    
@@ -191,7 +192,7 @@ double Dobson::j(double NTemp,double r2,YDeriv dy,TDeriv dt)
 }
 
 
-double Dobson::A(double NTemp,TDeriv dt)
+double Dobson::A(double const& NTemp,TDeriv const& dt) const
 {
    double val=0.0;
    
@@ -225,7 +226,7 @@ double Dobson::A(double NTemp,TDeriv dt)
    return val;
 }
 
-double Dobson::B(double NTemp,TDeriv dt)
+double Dobson::B(double const& NTemp,TDeriv const& dt) const
 {
    double val=0.0;
    
@@ -260,7 +261,8 @@ double Dobson::B(double NTemp,TDeriv dt)
 
 
 
-double Dobson::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
+double Dobson::PairPotential(double const& NTemp,double const& r2,YDeriv const& dy,
+                             TDeriv const& dt) const
 {
    double S=Sigma(NTemp),
       E=Eps(NTemp),
@@ -381,7 +383,7 @@ double Dobson::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
    return val;
 }
 
-void Dobson::Print(ostream &out)
+void Dobson::Print(ostream& out) const
 {
    int W=out.width();
    
@@ -394,7 +396,7 @@ void Dobson::Print(ostream &out)
        << "; rcut=" << setw(W) << rcut_;
 }
 
-ostream &operator<<(ostream &out,Dobson &A)
+ostream& operator<<(ostream& out,Dobson const& A)
 {
    A.Print(out);
    return out;

@@ -1,12 +1,12 @@
 #include "TempMorse.h"
 
-TempMorse::TempMorse(double A0,double B0,double Alpha,double Rref,double Tref,
-                     double Tmelt):
+TempMorse::TempMorse(double const& A0,double const& B0,double const& Alpha,double const& Rref,
+                     double const& Tref,double const& Tmelt):
    A0_(A0),B0_(B0),Alpha_(Alpha),Rref_(Rref),Tref_(Tref),Tmelt_(Tmelt)
 {
 }
 
-void TempMorse::SetParameters(double *Vals)
+void TempMorse::SetParameters(double const* const Vals)
 {
    SetA0(Vals[0]);
    SetB0(Vals[1]);
@@ -16,7 +16,7 @@ void TempMorse::SetParameters(double *Vals)
    SetTmelt(Vals[5]);
 }
 
-double TempMorse::Beta(double NTemp,TDeriv dt)
+double TempMorse::Beta(double const& NTemp,TDeriv const& dt) const
 {
    double retval;
    switch (dt)
@@ -35,7 +35,7 @@ double TempMorse::Beta(double NTemp,TDeriv dt)
    return retval;
 }
 
-double TempMorse::Rhat(double NTemp,TDeriv dt)
+double TempMorse::Rhat(double const& NTemp,TDeriv const& dt) const
 {
    double num,den,rhat;
    
@@ -62,7 +62,8 @@ double TempMorse::Rhat(double NTemp,TDeriv dt)
    return rhat;
 }
 
-double TempMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
+double TempMorse::PairPotential(double const& NTemp,double const& r2,YDeriv const& dy,
+                                TDeriv const& dt) const
 {
    double beta=Beta(NTemp),
       rhat=Rhat(NTemp),
@@ -190,7 +191,7 @@ double TempMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
    return val;
 }
 
-void TempMorse::Print(ostream &out)
+void TempMorse::Print(ostream& out) const
 {
    int W=out.width();
    
@@ -204,7 +205,7 @@ void TempMorse::Print(ostream &out)
        << "; Tmelt=" << setw(W) << Tmelt_;
 }
 
-ostream &operator<<(ostream &out,TempMorse &A)
+ostream& operator<<(ostream& out,TempMorse const& A)
 {
    A.Print(out);
    return out;

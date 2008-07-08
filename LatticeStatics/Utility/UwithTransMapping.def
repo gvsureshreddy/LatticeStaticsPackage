@@ -1,8 +1,8 @@
-   virtual inline int Fsize() {return 6;}
-   virtual inline int Ssize() {return DIM3*InternalAtoms_;}
-   virtual inline int NoTrans() {return 0;}
+   virtual inline int Fsize() const {return 6;}
+   virtual inline int Ssize() const {return DIM3*InternalAtoms_;}
+   virtual inline int NoTrans() const {return 0;}
 
-   virtual inline int INDF(int i,int j)
+   virtual inline int INDF(int const& i,int const& j) const
    {
       if (i==j)
          return i;
@@ -10,12 +10,12 @@
          return 2+i+j;
    }
 
-   virtual inline int INDS(int i,int j)
+   virtual inline int INDS(int const& i,int const& j) const
    {
       return 6 + i*3 + j;
    }
    
-   virtual inline int INDFF(int k,int l,int m,int n)
+   virtual inline int INDFF(int const& k,int const& l,int const& m,int const& n) const
    {
       if (k==l)
       {
@@ -41,14 +41,14 @@
       }
    }
 
-   virtual inline int INDSS(int k,int l,int m,int n)
+   virtual inline int INDSS(int const& k,int const& l,int const& m,int const& n) const
    {
       return 6*DOFS() + 6
          + DOFS()*( k*3 + l )
          + ( m*3 + n );
    }
    
-   virtual inline int INDFS(int i,int j,int m,int n)
+   virtual inline int INDFS(int const& i,int const& j,int const& m,int const& n) const
    {
       if (i==j)
       {
@@ -60,7 +60,7 @@
       }
    }
    
-   virtual inline int INDSF(int m,int n,int i,int j)
+   virtual inline int INDSF(int const& m,int const& n,int const& i,int const& j) const
    {
       if (i==j)
       {

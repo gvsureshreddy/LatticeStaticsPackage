@@ -37,50 +37,54 @@ private:
    
    Vector Difference_;
    
-   void ArcLengthNewton(int &good);
-   void ConsistencyCheck(Vector &Solution1,Vector &Solution2,
-                         double ConsistencyEpsilon,int Width,fstream &out);
-   virtual int OldFindCriticalPoint(int LHN,double LHEV,int RHN,double RHEV,Lattice *Lat,
-                                    PerlInput &Input,int Width,fstream &out);
-   void ZBrent(Lattice *Lat,int track,double fa,double fb,const Vector &OriginalDiff,
-               const double OriginalDS,Vector &CurrentTF);
+   void ArcLengthNewton(int& good);
+   void ConsistencyCheck(Vector const& Solution1,Vector const& Solution2,
+                         double const& ConsistencyEpsilon,int const& Width,fstream& out);
+   virtual int OldFindCriticalPoint(int const& LHN,double const& LHEV,int const& RHN,
+                                    double const& RHEV,Lattice* const Lat,
+                                    PerlInput const& Input,int const& Width,fstream& out);
+   void ZBrent(Lattice* const Lat,int const& track,Vector const& OriginalDiff,
+               double const& OriginalDS,double& fa,double& fb,Vector& CurrentTF);
    
-   Vector ArcLenForce(double DS,const Vector &Diff,double Aspect);
-   Vector ArcLenDef() {return Mode_->ModeDOF();}
-   void ArcLenSet(const Vector &val) {Mode_->SetModeDOF(val);}
-   void ArcLenUpdate(const Vector &newval) {Mode_->UpdateModeDOF(newval);}
-   double ArcLenAngle(Vector Old,Vector New,double Aspect);
-   Matrix ArcLenStiffness(const Vector &Diff,double Aspect);
+   Vector const& ArcLenForce(double const& DS,Vector const& Diff,double const& Aspect) const;
+   Vector ArcLenDef() const {return Mode_->ModeDOF();}
+   void ArcLenSet(Vector const& val) {Mode_->SetModeDOF(val);}
+   void ArcLenUpdate(Vector const& newval) {Mode_->UpdateModeDOF(newval);}
+   double ArcLenAngle(Vector const& Old,Vector const& New,double const& Aspect) const;
+   Matrix const& ArcLenStiffness(Vector const& Diff,double const& Aspect) const;
    
 public:
-   ArcLengthSolution(LatticeMode *Mode,const Vector &dofs,
-                     int MaxIter,double Tolerance,double BisectTolerance,double DSMax,
-                     double DSMin,double CurrentDS,double AngleCutoff,double AngleIncrease,
-                     double Aspect,int NumSolutions,int CurrentSolution,
-                     const Vector &FirstSolution,const Vector &Difference,
-                     int ClosedLoopStart=CLOSEDDEFAULT,int StopAtCPNum=-1,int Echo=1);
-   ArcLengthSolution(LatticeMode *Mode,PerlInput &Input,
-                     const Vector &one,const Vector &two,int Echo=1);
-   ArcLengthSolution(LatticeMode *Mode,PerlInput &Input,int Echo=1);
+   ArcLengthSolution(LatticeMode* const Mode,Vector const& dofs,
+                     int const& MaxIter,double const& Tolerance,double const& BisectTolerance,
+                     double const& DSMax,double const& DSMin,double const& CurrentDS,
+                     double const& AngleCutoff,double const& AngleIncrease,
+                     double const& Aspect,int const& NumSolutions,int const& CurrentSolution,
+                     Vector const& FirstSolution,Vector const& Difference,
+                     int const& ClosedLoopStart=CLOSEDDEFAULT,int const& StopAtCPNum=-1,
+                     int const& Echo=1);
+   ArcLengthSolution(LatticeMode* const Mode,PerlInput const& Input,
+                     Vector const& one,Vector const& two,int const& Echo=1);
+   ArcLengthSolution(LatticeMode* const Mode,PerlInput const& Input,int const Echo=1);
    ~ArcLengthSolution() {}
    
    // Functions required by SolutionMethod
-   virtual int AllSolutionsFound();
+   virtual int AllSolutionsFound() const;
    virtual int FindNextSolution();
-   virtual int FindCriticalPoint(Lattice *Lat,PerlInput &Input,int Width,fstream &out);
+   virtual int FindCriticalPoint(Lattice* const Lat,PerlInput const& Input,int const& Width,
+                                 fstream& out);
 
 private:
    // "static" member variables
    // ArcLenForce
-   Vector force_static;
-   Vector mdfc_static;
+   mutable Vector force_static;
+   mutable Vector mdfc_static;
    // ArcLenStiffness
-   Matrix K_static;
-   Matrix ModeK_static;
+   mutable Matrix K_static;
+   mutable Matrix ModeK_static;
    // FindCriticalPoint
-   Vector TF_LHS_static;
-   Vector TF_RHS_static;
-   Vector CurrentTF_static;
+   mutable Vector TF_LHS_static;
+   mutable Vector TF_RHS_static;
+   mutable Vector CurrentTF_static;
 };
 
 #endif

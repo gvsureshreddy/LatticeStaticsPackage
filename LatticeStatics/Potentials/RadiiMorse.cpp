@@ -1,13 +1,14 @@
 #include "RadiiMorse.h"
 
-RadiiMorse::RadiiMorse(double A0,double AT,double B0,double BT,double Rref1,double Rtheta1,
-                       double Rtheta1Pow,double Rref2,double Rtheta2,double Rtheta2Pow):
+RadiiMorse::RadiiMorse(double const& A0,double const& AT,double const& B0,double const& BT,
+                       double const& Rref1,double const& Rtheta1,double const& Rtheta1Pow,
+                       double const& Rref2,double const& Rtheta2,double const& Rtheta2Pow):
    A0_(A0),AT_(AT),B0_(B0),BT_(BT),Rref1_(Rref1),Rtheta1_(Rtheta1),Rtheta1Pow_(Rtheta1Pow),
-   Rref2_(Rref2),Rtheta2_(Rtheta2),Rtheta2Pow_(Rtheta2)
+   Rref2_(Rref2),Rtheta2_(Rtheta2),Rtheta2Pow_(Rtheta2Pow)
 {
 }
 
-void RadiiMorse::SetParameters(double *Vals)
+void RadiiMorse::SetParameters(double const* const Vals)
 {
    SetA0(Vals[0]);
    SetAT(Vals[1]);
@@ -21,7 +22,7 @@ void RadiiMorse::SetParameters(double *Vals)
    SetRtheta2Pow(Vals[9]);
 }
 
-double RadiiMorse::A(double NTemp,TDeriv dt)
+double RadiiMorse::A(double const& NTemp,TDeriv const& dt) const
 {
    double retval;
    switch (dt)
@@ -43,7 +44,7 @@ double RadiiMorse::A(double NTemp,TDeriv dt)
    return retval;
 }
 
-double RadiiMorse::Beta(double NTemp,TDeriv dt)
+double RadiiMorse::Beta(double const& NTemp,TDeriv const& dt) const
 {
    double retval;
    
@@ -66,7 +67,7 @@ double RadiiMorse::Beta(double NTemp,TDeriv dt)
    return retval;
 }
 
-double RadiiMorse::Rhat(double NTemp,TDeriv dt)
+double RadiiMorse::Rhat(double const& NTemp,TDeriv const& dt) const
 {
    double rhat;
    
@@ -100,7 +101,8 @@ double RadiiMorse::Rhat(double NTemp,TDeriv dt)
    return rhat;
 }
 
-double RadiiMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
+double RadiiMorse::PairPotential(double const& NTemp,double const& r2,YDeriv const& dy,
+                                 TDeriv const& dt) const
 {
    for (int i=0;i<DTmax;++i)
    {
@@ -287,7 +289,7 @@ double RadiiMorse::PairPotential(double NTemp,double r2,YDeriv dy,TDeriv dt)
    return val;
 }
 
-double RadiiMorse::I(double NTemp,TDeriv dt)
+double RadiiMorse::I(double const& NTemp,TDeriv const& dt) const
 {
    double val;
    
@@ -317,7 +319,8 @@ double RadiiMorse::I(double NTemp,TDeriv dt)
    return val;
 }
 
-double RadiiMorse::G(double NTemp,double r2,YDeriv dy,TDeriv dt)
+double RadiiMorse::G(double const& NTemp,double const& r2,YDeriv const& dy,TDeriv const& dt)
+   const
 {
    double val;
    double r=sqrt(r2);
@@ -454,7 +457,7 @@ double RadiiMorse::G(double NTemp,double r2,YDeriv dy,TDeriv dt)
    return val;
 }
 
-void RadiiMorse::Print(ostream &out)
+void RadiiMorse::Print(ostream& out) const
 {
    int W=out.width();
    
@@ -472,7 +475,7 @@ void RadiiMorse::Print(ostream &out)
        << "; Rtheta2Pow=" << setw(W) << Rtheta2Pow_;
 }
 
-ostream &operator<<(ostream &out,RadiiMorse &A)
+ostream& operator<<(ostream& out,RadiiMorse const& A)
 {
    A.Print(out);
    return out;

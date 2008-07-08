@@ -13,22 +13,25 @@ private:
 public:
    
    RadiiMorseCutoff() {};
-   RadiiMorseCutoff(double A0,double AT,double B0,double BT,double Rref1,double Rtheta1,
-                    double Rtheta1Pow,double Rref2,double Rtheta2,double Rtheta2Pow,
-                    double Cutoff);
+   RadiiMorseCutoff(double const& A0,double const& AT,double const& B0,double const& BT,
+                    double const& Rref1,double const& Rtheta1,double const& Rtheta1Pow,
+                    double const& Rref2,double const& Rtheta2,double const& Rtheta2Pow,
+                    double const& Cutoff);
    ~RadiiMorseCutoff() {};
-   friend ostream &operator<<(ostream &out,RadiiMorseCutoff &A);
-   double PairPotential(double NTemp,double r2,YDeriv dy=Y0,TDeriv dt=T0);
-   virtual int GetNoParameters() {return (1+RadiiMorse::GetNoParameters());}
-   virtual void SetParameters(double *Vals);
-   virtual void Print(ostream &out);
-   virtual const char* Type() {return "RadiiMorseCutoff";}
+   friend ostream& operator<<(ostream& out,RadiiMorseCutoff const& A);
+   double PairPotential(double const& NTemp,double const& r2,YDeriv const& dy=Y0,
+                        TDeriv const& dt=T0) const;
+   virtual int GetNoParameters() const {return (1+RadiiMorse::GetNoParameters());}
+   virtual void SetParameters(double const* const Vals);
+   virtual void Print(ostream& out) const;
+   virtual char const* const Type() const {return "RadiiMorseCutoff";}
    
-   double Cutoff() {return Cutoff_;}
+   double const& Cutoff() const {return Cutoff_;}
    
-   void SetCutoff(double Cutoff) {Cutoff_=Cutoff;}
+   void SetCutoff(double const& Cutoff) {Cutoff_=Cutoff;}
 private:
-   double CutoffFunction(double NTemp,double r2,YDeriv dy=Y0,TDeriv dt=T0);
+   double CutoffFunction(double const& NTemp,double const& r2,YDeriv const& dy=Y0,
+                         TDeriv const& dt=T0) const;
    
 };
 

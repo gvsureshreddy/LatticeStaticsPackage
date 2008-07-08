@@ -9,9 +9,9 @@
 #include <cstdlib>
 
 // Global IDString
-char SparseMatrixID[]="$Id: SparseMatrix.cpp,v 1.6 2008/06/02 20:50:14 elliott Exp $";
+char SparseMatrixID[]="$Id: SparseMatrix.cpp,v 1.7 2008/07/08 04:18:33 elliott Exp $";
 
-SparseMatrix::SparseMatrix(const Matrix& A)
+SparseMatrix::SparseMatrix(Matrix const& A)
 {
    //This counts the number of nonzero entries
    
@@ -55,7 +55,7 @@ SparseMatrix::SparseMatrix(const Matrix& A)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-SparseMatrix::SparseMatrix(const SparseMatrix& A)
+SparseMatrix::SparseMatrix(SparseMatrix const& A)
 {
    Rows_=A.Rows();
    Cols_=A.Cols();
@@ -75,7 +75,7 @@ SparseMatrix::SparseMatrix(const SparseMatrix& A)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-SparseMatrix::SparseMatrix(int NoNonZero, int Rows, int Cols)
+SparseMatrix::SparseMatrix(int const& NoNonZero,int const& Rows,int const& Cols)
 {
    Rows_=Rows;
    Cols_=Cols;
@@ -95,7 +95,7 @@ SparseMatrix::SparseMatrix(int NoNonZero, int Rows, int Cols)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-SparseMatrix::SparseMatrix(const Matrix& A,int NoEntries)
+SparseMatrix::SparseMatrix(Matrix const& A,int const& NoEntries)
 {
    int i,j,k;
 
@@ -136,7 +136,7 @@ SparseMatrix::~SparseMatrix()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-Matrix operator+(const SparseMatrix& A,const SparseMatrix&B)
+Matrix operator+(SparseMatrix const& A,SparseMatrix const& B)
 {
    if (A.Rows_ != B.Rows_ || A.Cols_ != B.Cols_ ||  A.IsNull() || B.IsNull())
    {
@@ -174,7 +174,7 @@ Matrix operator+(const SparseMatrix& A,const SparseMatrix&B)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-SparseMatrix operator-(const SparseMatrix& A)
+SparseMatrix operator-(SparseMatrix const& A)
 {
    SparseMatrix B(A);
 	
@@ -189,7 +189,7 @@ SparseMatrix operator-(const SparseMatrix& A)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-Matrix operator-(const SparseMatrix& A,const SparseMatrix&B)
+Matrix operator-(SparseMatrix const& A,SparseMatrix const& B)
 {
    if (A.Rows_ != B.Rows_ || A.Cols_ != B.Cols_ ||  A.IsNull() || B.IsNull())
    {
@@ -227,7 +227,7 @@ Matrix operator-(const SparseMatrix& A,const SparseMatrix&B)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-SparseMatrix operator*(const double A, const SparseMatrix& B)
+SparseMatrix operator*(double const& A,SparseMatrix const& B)
 {
    SparseMatrix C(B);
 	
@@ -241,7 +241,7 @@ SparseMatrix operator*(const double A, const SparseMatrix& B)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-SparseMatrix operator*(const SparseMatrix& B, const double A)
+SparseMatrix operator*(SparseMatrix const& B,double const& A)
 {
    SparseMatrix C(B);
 	
@@ -255,7 +255,7 @@ SparseMatrix operator*(const SparseMatrix& B, const double A)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-Matrix operator*(const SparseMatrix& A, const SparseMatrix& B)
+Matrix operator*(SparseMatrix const& A,SparseMatrix const& B)
 {
    if (A.Cols_!=B.Rows_ || A.IsNull() || B.IsNull())
    {
@@ -301,7 +301,7 @@ Matrix operator*(const SparseMatrix& A, const SparseMatrix& B)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-Matrix operator*(const SparseMatrix& A, const Matrix& B)
+Matrix operator*(SparseMatrix const& A,Matrix const& B)
 {	
    if (A.Cols_!=B.Rows_ || A.IsNull() || B.IsNull())
    {
@@ -341,7 +341,7 @@ Matrix operator*(const SparseMatrix& A, const Matrix& B)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-Matrix operator*(const Matrix& A, const SparseMatrix& B)
+Matrix operator*(Matrix const& A,SparseMatrix const& B)
 {
    if (A.Cols_!=B.Rows_ || A.IsNull() || B.IsNull())
    {
@@ -379,7 +379,7 @@ Matrix operator*(const Matrix& A, const SparseMatrix& B)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-Vector operator*(const SparseMatrix& A, const Vector& B)
+Vector operator*(SparseMatrix const& A,Vector const& B)
 {
 	
    if (A.Cols()!=B.Cols_ || A.IsNull() || B.Cols_==0)
@@ -413,7 +413,7 @@ Vector operator*(const SparseMatrix& A, const Vector& B)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-Vector3D operator*(const SparseMatrix& A,const Vector3D& B)
+Vector3D operator*(SparseMatrix const& A,Vector3D const& B)
 {
    if (A.Cols() != V3DLEN)
    {
@@ -448,7 +448,7 @@ Vector3D operator*(const SparseMatrix& A,const Vector3D& B)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-Vector3D operator*(const Vector3D& A,const SparseMatrix& B)
+Vector3D operator*(Vector3D const& A,SparseMatrix const& B)
 {
    if (B.Rows() != V3DLEN)
    {
@@ -481,7 +481,7 @@ Vector3D operator*(const Vector3D& A,const SparseMatrix& B)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-Vector operator*(const Vector& A, const SparseMatrix& B)
+Vector operator*(Vector const& A,SparseMatrix const& B)
 {
    if (B.Rows()!=A.Cols_ || B.IsNull() || A.Cols_==0)
    {
@@ -516,7 +516,7 @@ Vector operator*(const Vector& A, const SparseMatrix& B)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-SparseMatrix& SparseMatrix::operator=(const Matrix& A)
+SparseMatrix& SparseMatrix::operator=(Matrix const& A)
 {
 //This counts the number of nonzero entries
    
@@ -576,7 +576,7 @@ SparseMatrix SparseMatrix::Transpose() const
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-SparseMatrix& SparseMatrix::SetSparseIdentity(int Size)
+SparseMatrix& SparseMatrix::SetSparseIdentity(int const& Size)
 {
    if (!IsNull())
    {
@@ -604,7 +604,7 @@ SparseMatrix& SparseMatrix::SetSparseIdentity(int Size)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-Matrix ReverseSparse(const SparseMatrix& A)
+Matrix ReverseSparse(SparseMatrix const& A)
 {
    Matrix B(A.Rows(),A.Cols(),0);
 	
@@ -626,7 +626,7 @@ Matrix ReverseSparse(const SparseMatrix& A)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-ostream& operator<<(ostream& out,const SparseMatrix& A)
+ostream& operator<<(ostream& out,SparseMatrix const& A)
 {
    int W=out.width();
    int NoNonZero = A.NoNonZero();
@@ -646,7 +646,7 @@ ostream& operator<<(ostream& out,const SparseMatrix& A)
    return out;
 }
 
-char* SparseMatrix::Revision()
+char const* const SparseMatrix::Revision()
 {
    return SparseMatrixID;
 }

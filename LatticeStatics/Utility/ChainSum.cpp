@@ -1,14 +1,16 @@
 #include "ChainSum.h"
 
-int CHAINSUMcomp(const void *a,const void *b);
-int CHAINSUMind(double i,double j);
+int CHAINSUMcomp(void const* const a,void const* const b);
+int CHAINSUMind(double const& i,double const& j);
 #include <cstdlib>
 
 using namespace std;
 
-ChainSum::ChainSum(Vector *DOF,int LagrangeCB,int Translations,Matrix *RefLat,
-                   int InternalAtoms,Vector *InternalPOS,PairPotentials ***PairPot,
-                   double *InfluDist,double *Ntemp)
+ChainSum::ChainSum(Vector const* const DOF,int const& LagrangeCB,int const& Translations,
+                   Matrix const* const RefLat,int const& InternalAtoms,
+                   Vector const* const InternalPOS,
+                   PairPotentials const* const* const* const PairPot,
+                   double const* const InfluDist,double const* const Ntemp)
    : Recalc_(0),
      InfluanceDist_(InfluDist),
      DOF_(DOF),
@@ -26,9 +28,11 @@ ChainSum::ChainSum(Vector *DOF,int LagrangeCB,int Translations,Matrix *RefLat,
    Initialize();
 }
 
-void ChainSum::operator()(Vector *DOF,int LagrangeCB,int Translations,Matrix *RefLat,
-                          int InternalAtoms,Vector *InternalPOS,PairPotentials ***PairPot,
-                          double *InfluDist,double *Ntemp)
+void ChainSum::operator()(Vector const* const DOF,int const& LagrangeCB,int const& Translations,
+                          Matrix const* const RefLat,int const& InternalAtoms,
+                          Vector const* const InternalPOS,
+                          PairPotentials const* const* const* const PairPot,
+                          double const* const InfluDist,double const* const Ntemp)
 {
    DOF_ = DOF;
    LagrangeCB_ = LagrangeCB;
@@ -165,7 +169,7 @@ void ChainSum::Initialize()
    CurrentPOS_ = 0;
 }
 
-Matrix ChainSum::NeighborDistances(int cutoff,double eps)
+Matrix ChainSum::NeighborDistances(int const& cutoff,double const& eps)
 {
    Reset();
    Matrix NeighborInfo(Pairs_,3);
@@ -197,7 +201,7 @@ Matrix ChainSum::NeighborDistances(int cutoff,double eps)
 }
 
 
-int CHAINSUMcomp(const void *a,const void *b)
+int CHAINSUMcomp(void const* const a,void const* const b)
 {
    double t;
    if( *((double*) a) == *((double*) b) ) return 0;
@@ -209,7 +213,7 @@ int CHAINSUMcomp(const void *a,const void *b)
    }
 }
 
-int CHAINSUMind(double i,double j)
+int CHAINSUMind(double const& i,double const& j)
 {
    int I=int(i+1),J=int(j+1);
    

@@ -14,8 +14,8 @@ int main(int argc, char *argv[])
       exit(1);
    }
    
-   double pi = 4.0*atan(1.0);
-   double Dx = strtod(argv[1],NULL);
+   double const pi = 4.0*atan(1.0);
+   double const Dx = strtod(argv[1],0);
 
    Vector pos(3,0.0);
    Matrix Id(3,3);

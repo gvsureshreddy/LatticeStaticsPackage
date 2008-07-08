@@ -1,6 +1,7 @@
 #include "SymLagrangeCB.h"
 
-SymLagrangeCB::SymLagrangeCB(int InternalAtoms,Matrix &RefLattice,Vector *AtomPositions)
+SymLagrangeCB::SymLagrangeCB(int const& InternalAtoms,Matrix& RefLattice,
+                             Vector* const AtomPositions)
    : CBKinematics(InternalAtoms,RefLattice,AtomPositions)
 {
    F_.Resize(DIM3,DIM3);
@@ -10,7 +11,8 @@ SymLagrangeCB::SymLagrangeCB(int InternalAtoms,Matrix &RefLattice,Vector *AtomPo
    Reset();
 }
 
-SymLagrangeCB::SymLagrangeCB(PerlInput &Input,PerlInput::HashStruct *ParentHash)
+SymLagrangeCB::SymLagrangeCB(PerlInput const& Input,
+                             PerlInput::HashStruct const* const ParentHash)
    : CBKinematics(Input,ParentHash)
 {
    F_.Resize(DIM3,DIM3);
@@ -44,7 +46,7 @@ void SymLagrangeCB::Reset()
    }
 }
 
-Vector SymLagrangeCB::FractionalPosVec(int p)
+Vector SymLagrangeCB::FractionalPosVec(int const& p) const
 {
    Vector pos(DIM3,0.0);
    
@@ -56,7 +58,7 @@ Vector SymLagrangeCB::FractionalPosVec(int p)
    return pos;
 }
 
-double SymLagrangeCB::DX(double *X,int p,int q,int i)
+double SymLagrangeCB::DX(double const* const X,int const& p,int const& q,int const& i) const
 {
    double tmp=0.0;
    
@@ -70,7 +72,7 @@ double SymLagrangeCB::DX(double *X,int p,int q,int i)
    return tmp;
 }
 
-double SymLagrangeCB::Dx(double *X,int p,int q,int i)
+double SymLagrangeCB::Dx(double const* const X,int const& p,int const& q,int const& i) const
 {
    double tmp=0.0;
    
@@ -82,12 +84,14 @@ double SymLagrangeCB::Dx(double *X,int p,int q,int i)
    return tmp;
 }
 
-double SymLagrangeCB::DyDF(double *Dx,double *DX,int r, int s)
+double SymLagrangeCB::DyDF(double const* const Dx,double const* const DX,int const& r,
+                           int const& s) const
 {
    return (Dx[r]*DX[s] + Dx[s]*DX[r]);
 }
 
-double SymLagrangeCB::D2yDFF(double *DX,int r, int s, int t, int u)
+double SymLagrangeCB::D2yDFF(double const* const DX,int const& r,int const& s,int const& t,
+                             int const& u) const
 {
    return 0.5*(Del(r,t)*DX[s]*DX[u] +
                Del(r,u)*DX[s]*DX[t] +
@@ -95,7 +99,8 @@ double SymLagrangeCB::D2yDFF(double *DX,int r, int s, int t, int u)
                Del(s,u)*DX[r]*DX[t]);
 }
 
-double SymLagrangeCB::DyDS(double *Dx,int p,int q,int i, int j)
+double SymLagrangeCB::DyDS(double const* const Dx,int const& p,int const& q,int const& i,
+                           int const& j) const
 {
    double ret=0;
    
@@ -115,7 +120,8 @@ double SymLagrangeCB::DyDS(double *Dx,int p,int q,int i, int j)
    return ret;
 }
 
-double SymLagrangeCB::D2yDSS(int p,int q,int i,int j,int k,int l)
+double SymLagrangeCB::D2yDSS(int const& p,int const& q,int const& i,int const& j,int const& k,
+                             int const& l) const
 {
    double tmp=0;
    if (DELTA(i,p,q)*DELTA(k,p,q))
@@ -136,7 +142,9 @@ double SymLagrangeCB::D2yDSS(int p,int q,int i,int j,int k,int l)
    return tmp;
 }
 
-double SymLagrangeCB::D2yDFS(double *Dx,double *DX,int p,int q,int i,int j,int k,int l)
+double SymLagrangeCB::D2yDFS(double const* const Dx,double const* const DX,int const& p,
+                             int const& q,int const& i,int const& j,int const& k,int const& l)
+   const
 {
    double tmp=0;
    
@@ -152,7 +160,9 @@ double SymLagrangeCB::D2yDFS(double *Dx,double *DX,int p,int q,int i,int j,int k
    return tmp;
 }
 
-double SymLagrangeCB::D3yDFFS(double *DX,int p,int q,int i,int j,int k,int l,int m, int n)
+double SymLagrangeCB::D3yDFFS(double const* const DX,int const& p,int const& q,int const& i,
+                              int const& j,int const& k,int const& l,int const& m,int const& n)
+   const
 {
    return (0.5*DELTA(m,p,q)*(Del(i,k)*RefLattice_[n][l]*DX[j]
                              + Del(i,k)*DX[l]*RefLattice_[n][j]
@@ -164,7 +174,8 @@ double SymLagrangeCB::D3yDFFS(double *DX,int p,int q,int i,int j,int k,int l,int
                              + Del(j,l)*DX[k]*RefLattice_[n][i]));
 }
 
-double SymLagrangeCB::D3yDSSF(int p,int q,int i,int j,int k,int l,int m,int n)
+double SymLagrangeCB::D3yDSSF(int const& p,int const& q,int const& i,int const& j,int const& k,
+                              int const& l,int const& m,int const& n) const
 {
    double tmp=0;
    
@@ -183,7 +194,9 @@ double SymLagrangeCB::D3yDSSF(int p,int q,int i,int j,int k,int l,int m,int n)
    return tmp;
 }
 
-double SymLagrangeCB::D4yDFFSS(int p,int q,int i,int j,int k,int l,int m,int n,int a,int b)
+double SymLagrangeCB::D4yDFFSS(int const& p,int const& q,int const& i,int const& j,int const& k,
+                               int const& l,int const& m,int const& n,int const& a,int const& b)
+   const
 {
    return (0.5*DELTA(m,p,q)*DELTA(a,p,q)*
            (Del(i,k)*RefLattice_[n][l]*RefLattice_[b][j]

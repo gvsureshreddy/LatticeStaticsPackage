@@ -1,6 +1,6 @@
 #include "MultiMode.h"
 
-MultiMode::MultiMode(Lattice *M,PerlInput &Input)
+MultiMode::MultiMode(Lattice* const M,PerlInput const& Input)
 {
    char tmp[LINELENGTH];
 
@@ -57,19 +57,19 @@ MultiMode::MultiMode(Lattice *M,PerlInput &Input)
 }
 
 // Functions required by LatticeMode
-Vector MultiMode::DrDt(const Vector &Diff)
+Vector const& MultiMode::DrDt(Vector const& Diff) const
 {
-   Vector ddt((Lattice_->DOF()).Dim(),0.0);
+   ddt_static.Resize(Lattice_->DOF().Dim(),0.0);
    
    for (int i=0;i<DOFS_;++i)
    {
       for (int j=0;j<DOFindlen_[i];++j)
       {
-         ddt[DOFindex_[i][j]] += DOFMult_[i][j]*(Diff[i]/Diff[DOFS_]);
+         ddt_static[DOFindex_[i][j]] += DOFMult_[i][j]*(Diff[i]/Diff[DOFS_]);
       }
    }
    
-   return ddt;
+   return ddt_static;
 }
 
 //----------------------------------------------------------------
@@ -92,7 +92,7 @@ void MultiMode::UpdateLatticeState()
    Lattice_->SetLoadParameter(ModeDOF_[DOFS_]);
 }
 
-Vector MultiMode::ModeForce()
+Vector const& MultiMode::ModeForce() const
 {
    stress_static = Lattice_->E1();
    
@@ -108,7 +108,7 @@ Vector MultiMode::ModeForce()
    return force_static;
 }
 
-Matrix MultiMode::ModeStiffness()
+Matrix const& MultiMode::ModeStiffness() const
 {
    K_static.Resize(DOFS_,DOFS_+1,0.0);
    Stiff_static = Lattice_->E2();
@@ -134,7 +134,7 @@ Matrix MultiMode::ModeStiffness()
    return K_static;
 }
 
-void MultiMode::SetModeDOF(const Vector &dof)
+void MultiMode::SetModeDOF(Vector const& dof)
 {
    for (int i=0;i<=DOFS_;++i)
    {
@@ -144,7 +144,7 @@ void MultiMode::SetModeDOF(const Vector &dof)
    UpdateLatticeState();
 }
 
-void MultiMode::UpdateModeDOF(const Vector &dr)
+void MultiMode::UpdateModeDOF(Vector const& dr)
 {
    for (int i=0;i<=DOFS_;++i)
    {

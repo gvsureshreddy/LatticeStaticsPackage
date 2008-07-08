@@ -1,12 +1,13 @@
 #include "KnownPairPotentials.h"
 
-PairPotentials* InitializePairPotential(char *HashName,PerlInput &Input,int i,int j)
+PairPotentials* InitializePairPotential(char const* const HashName,PerlInput const& Input,
+                                        int const& i,int const& j)
 {
    return InitializePairPotential(Input.getHash(HashName),Input,i,j);
 }
 
-PairPotentials* InitializePairPotential(PerlInput::HashStruct ParentHash,PerlInput &Input,
-                                        int i,int j)
+PairPotentials* InitializePairPotential(PerlInput::HashStruct const& ParentHash,
+                                        PerlInput const& Input,int const& i,int const& j)
 {
    char tmp[LINELENGTH];
    double Eps0,Eps1,Sigma0,Sigma1,rcut;
@@ -110,16 +111,16 @@ PairPotentials* InitializePairPotential(PerlInput::HashStruct ParentHash,PerlInp
       exit(-1);
    }
    
-   return NULL;
+   return 0;
 }
 
 
-void UpdatePairPotential(char *HashName,PerlInput &Input,int i,int j,
-                         PairPotentials *Potential)
+void UpdatePairPotential(char const* const HashName,PerlInput const& Input,int const& i,
+                         int const& j,PairPotentials* const Potential)
 {return UpdatePairPotential(Input.getHash(HashName),Input,i,j,Potential);}
 
-void UpdatePairPotential(PerlInput::HashStruct ParentHash,PerlInput &Input,int i,int j,
-                         PairPotentials *Potential)
+void UpdatePairPotential(PerlInput::HashStruct const& ParentHash,PerlInput const& Input,
+                         int const& i,int const& j,PairPotentials* const Potential)
 {
    char tmp[LINELENGTH];
    double Eps0,Eps1,Sigma0,Sigma1,rcut;

@@ -1,8 +1,8 @@
 #include <iomanip>
 #include "MyMath.h"
 
-void PolyRootsLaguerre(MyComplexDouble Coeff[],int Degree,MyComplexDouble Roots[],
-		       int Polish)
+void PolyRootsLaguerre(MyComplexDouble const* const Coeff,int const& Degree,
+                       MyComplexDouble* const Roots,int const& Polish)
 {
    int i,j,jj;
    MyComplexDouble x,b,c,ad[MAXDEGREE];
@@ -53,7 +53,8 @@ void PolyRootsLaguerre(MyComplexDouble Coeff[],int Degree,MyComplexDouble Roots[
 #define EPSS 1.0e-14
 #define FMAX(a,b) (a >= b ? a : b)
 
-int Laguerre(MyComplexDouble Coeff[],int Degree,MyComplexDouble *X)
+int Laguerre(MyComplexDouble const* const Coeff,int const& Degree,
+             MyComplexDouble* const X)
 {
    int iter,j;
    double abx,abp,abm,err;
@@ -106,8 +107,8 @@ int Laguerre(MyComplexDouble Coeff[],int Degree,MyComplexDouble *X)
    return iter;
 }
       
-void PolyMult(MyComplexDouble A[],int DegA,MyComplexDouble B[],int DegB,
-	      MyComplexDouble Result[])
+void PolyMult(MyComplexDouble const* const A,int const& DegA,MyComplexDouble const* const B,
+              int const& DegB,MyComplexDouble* const Result)
 {
    int DegC = DegA + DegB;
 
