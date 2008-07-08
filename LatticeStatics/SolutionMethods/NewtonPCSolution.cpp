@@ -408,6 +408,7 @@ int NewtonPCSolution::FindNextSolution()
       
       //CORRECTOR LOOP STARTS HERE
       Converge_Test = 0;
+      iterations = 0;
       do
       {
          for (i=0;i<count;i++)
