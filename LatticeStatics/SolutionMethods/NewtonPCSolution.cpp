@@ -94,6 +94,7 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
    }
    NumSolutions_ = Input.getPosInt(Hash,"NumSolutions");
    MaxDS_ = Input.getDouble(Hash,"MaxDS");
+   CurrentDS_ = Input.getDouble(Hash,"CurrentDS");
    cont_rate_nom_ = Input.getDouble(Hash,"Contraction");
    delta_nom_ = Input.getDouble(Hash,"Distance");
    alpha_nom_ = Input.getDouble(Hash,"Angle");
@@ -134,8 +135,6 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
       Direction_ = 1;
    }
    
-   CurrentDS_ = MaxDS_;
-
    FirstSolution_.Resize(one.Dim());
    FirstSolution_ = one;
    Mode_->SetModeDOF(one);
@@ -206,6 +205,7 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
    }
    NumSolutions_ = Input.getPosInt(Hash,"NumSolutions");
    MaxDS_ = Input.getDouble(Hash,"MaxDS");
+   CurrentDS_ = Input.getDouble(Hash,"CurrentDS");
    cont_rate_nom_ = Input.getDouble(Hash,"Contraction");
    delta_nom_ = Input.getDouble(Hash,"Distance");
    alpha_nom_ = Input.getDouble(Hash,"Angle");
@@ -245,8 +245,6 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
       // Default to positive;
       Direction_ = 1;
    }
-   
-   CurrentDS_ = MaxDS_;
    
    int count = (Mode_->ModeDOF()).Dim();
    int count_minus_one = count - 1;
@@ -358,7 +356,8 @@ int NewtonPCSolution::FindNextSolution()
    int oldprecision = cout.precision();
    int good=0;
    int omega=1;
-   int i, Converge_Test ;
+   int i, Converge_Test;
+   int iterations=0;
    double Kappa, Alpha, Delta, Magnitude1, Magnitude2, temp, f;
    double forcenorm;
    
@@ -478,8 +477,11 @@ int NewtonPCSolution::FindNextSolution()
                MoorePenrose(Q_static,R_static, Force_static,Corrector_static);
             }
          }
+         
+         ++iterations;
       }
       while (Converge_Test != 1);
+      cout << "Corrector Iterations: " << iterations << "\n";
    }
    while (f >= 2.0);
    
