@@ -642,8 +642,8 @@ void NewtonPCSolution::GetQR(Vector const& Force,Vector const& diff,Matrix& Q,Ma
    int count_minus_one = count - 1;
    int i,j;
    double temp = 0.0;
-   
-   for(i=0;i<count;i++)   switch (UpdateType_)
+
+   switch (UpdateType_)
    {
       case 0:
          QRUpdate(Force,diff,Q,R);
