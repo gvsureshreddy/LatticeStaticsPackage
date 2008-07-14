@@ -226,14 +226,15 @@ $ArcLenDSMax = 0.01;
                                                 NumSolutions     => 1000,
                                                 MaxDS            => 0.01,
                                                 CurrentDS        => 0.001,
+                                                MinDS            => 1e-12,
                                                 Contraction      => 0.001,
                                                 Distance         => 0.001,
                                                 Angle            => 60*$DEG2RAD,
-                                                ConvergeCriteria => 1e-13,
-                                                MinDSRatio       => 1e-8#,
+                                                ConvergeCriteria => 1e-13#,
                                                 #ClosedLoopStart  => 30, # Default value = 30
                                                 #StopAtCPNum      => -1, # Default value = -1
-                                                #Direction        => 1 # Default value = 1
+                                                #Direction        => 1, # Default value = 1
+                                                #Acceleration     => 2.0 # Default value = 2.0
                                                   },
                    );
 
@@ -262,7 +263,6 @@ $ArcLenDSMax = 0.01;
 #%StartType = (Type             => Bifurcation,
 #              Tangent          => [1.0000000000,  0.0000000000],
 #              BifurcationPoint => [1.0000000000,  1.0000000000],
-#              #Direction        => 1 # Default taken from Lattice{Newton*PCSolution}
 #              );
 
 #%StartType = (Type      => Continuation,

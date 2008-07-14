@@ -23,14 +23,16 @@ private:
    
    double MaxDS_;
    double CurrentDS_;           //Initial Steplength h > 0
-   double cont_rate_nom_;       //Nominal contraction rate
-   double delta_nom_;           //Nominal distance to (from predicted to corrected point) curve
-   double alpha_nom_;           //Nominal angle to curve
+   double MinDS_;               //Minimum Stepsize
+   double cont_rate_max_;       //Max contraction rate
+   double delta_max_;           //Max distance to (from predicted to corrected point) curve
+   double alpha_max_;           //Max angle to curve (must be less than pi/2)
    double Converge_;            //Convergence criteria
-   double MinDSRatio_;          //Minimum Stepsize ratio
    int ClosedLoopStart_;        //Closed loop test variable
    int StopAtCPNum_;            //Stop at critical point test flag
    int Direction_;              //Direction of tangent
+   double Omega_;               //Multiplier to help traverse bifurcation points
+   double accel_max_;           //Max acceleration rate
    
    Vector FirstSolution_;       //Initial point on curve
    Vector Tangent1_;            //Tangent vector of ith point
@@ -46,11 +48,11 @@ public:
    Vector Previous_Solution_;
    NewtonPCSolution(LatticeMode* const Mode,Vector const& one,
                     int const& CurrentSolution,int const& UpdateType,int const& NumSolutions,
-                    double const& MaxDS,double const& CurrentDS,double const& cont_rate_nom,
-                    double const& delta_nom,double const& alpha_nom,double const& Converge,
-                    double const& MinDSRatio,Vector const& FirstSolution,int const& Direction=1,
-                    int const& ClosedLoopStart=CLOSEDDEFAULT,int const& StopAtCPNum=-1,
-                    int const& Echo=1);
+                    double const& MaxDS,double const& CurrentDS,double const& MinDS,
+                    double const& cont_rate_max,double const& delta_max,double const& alpha_max,
+                    double const& Converge,Vector const& FirstSolution,int const& Direction=1,
+                    double const& accel_max=2.0,int const& ClosedLoopStart=CLOSEDDEFAULT,
+                    int const& StopAtCPNum=-1,int const& Echo=1);
    NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Input,Vector const& one,
                     int const& Echo=1);
    NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Input,int const& Echo);

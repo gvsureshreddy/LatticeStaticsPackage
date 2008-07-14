@@ -9,11 +9,12 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,
                                    Vector const& one,int const& CurrentSolution,
                                    int const& UpdateType,int const& NumSolutions,
                                    double const& MaxDS,double const& CurrentDS,
-                                   double const& cont_rate_nom,double const& delta_nom,
-                                   double const& alpha_nom,double const& Converge,
-                                   double const& MinDSRatio,Vector const& FirstSolution,
-                                   int const& Direction,int const& ClosedLoopStart,
-                                   int const& StopAtCPNum,int const& Echo)
+                                   double const& MinDS,double const& cont_rate_max,
+                                   double const& delta_max,double const& alpha_max,
+                                   double const& Converge,Vector const& FirstSolution,
+                                   int const& Direction,double const& accel_max,
+                                   int const& ClosedLoopStart,int const& StopAtCPNum,
+                                   int const& Echo)
    : Mode_(Mode),
      Echo_(Echo),
      CurrentSolution_(CurrentSolution),
@@ -21,16 +22,24 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,
      NumSolutions_(NumSolutions),
      MaxDS_(MaxDS),
      CurrentDS_(CurrentDS),
-     cont_rate_nom_(cont_rate_nom),
-     delta_nom_(delta_nom),
-     alpha_nom_(alpha_nom),
+     MinDS_(MinDS),
+     cont_rate_max_(cont_rate_max),
+     delta_max_(delta_max),
+     alpha_max_(alpha_max),
      Converge_(Converge),
-     MinDSRatio_(MinDSRatio),
      ClosedLoopStart_(ClosedLoopStart),
      StopAtCPNum_(StopAtCPNum),
      Direction_(Direction),
+     Omega_(1.0),
+     accel_max_(accel_max),
      FirstSolution_(FirstSolution)
 {
+   if (cos(alpha_max_) <= 0.0)
+   {
+      cerr << "error: NewtonPCSolution::Angle too large!\n";
+      exit(-22);
+   }
+   
    int count = (Mode_->ModeDOF()).Dim();
    int count_minus_one = count -1;
    //initialize "static" variables
@@ -62,7 +71,8 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
                                    Vector const& one,int const& Echo)
    : Mode_(Mode),
      Echo_(Echo),
-     CurrentSolution_(0)
+     CurrentSolution_(0),
+     Omega_(1.0)
 {
    // get needed parameters
    PerlInput::HashStruct Hash = Input.getHash("SolutionMethod","NewtonPCSolution");
@@ -95,11 +105,16 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
    NumSolutions_ = Input.getPosInt(Hash,"NumSolutions");
    MaxDS_ = Input.getDouble(Hash,"MaxDS");
    CurrentDS_ = Input.getDouble(Hash,"CurrentDS");
-   cont_rate_nom_ = Input.getDouble(Hash,"Contraction");
-   delta_nom_ = Input.getDouble(Hash,"Distance");
-   alpha_nom_ = Input.getDouble(Hash,"Angle");
+   MinDS_ = Input.getDouble(Hash,"MinDS");
+   cont_rate_max_ = Input.getDouble(Hash,"Contraction");
+   delta_max_ = Input.getDouble(Hash,"Distance");
+   alpha_max_ = Input.getDouble(Hash,"Angle");
+   if (cos(alpha_max_) <= 0.0)
+   {
+      cerr << "error: NewtonPCSolution::Angle too large!\n";
+      exit(-22);
+   }
    Converge_ = Input.getDouble(Hash,"ConvergeCriteria");
-   MinDSRatio_ = Input.getDouble(Hash,"MinDSRatio");
    if (Input.ParameterOK(Hash,"ClosedLoopStart"))
    {
       ClosedLoopStart_ = Input.getInt(Hash,"ClosedLoopStart");
@@ -134,7 +149,22 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
       // Default to positive;
       Direction_ = 1;
    }
-   
+
+   if (Input.ParameterOK(Hash,"Acceleration"))
+   {
+      accel_max_ = Input.getInt(Hash,"Acceleration");
+      if (accel_max_ <= 0.0)
+      {
+         cerr << "Invalid value for " << Hash.Name << "{Acceleration}" << "\n";
+         exit(-7);
+      }
+   }
+   else
+   {
+      // Default to 2.0
+      accel_max_ = 2.0;
+   }
+
    FirstSolution_.Resize(one.Dim());
    FirstSolution_ = one;
    Mode_->SetModeDOF(one);
@@ -173,7 +203,8 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
                                    int const& Echo)
    : Mode_(Mode),
      Echo_(Echo),
-     CurrentSolution_(0)
+     CurrentSolution_(0),
+     Omega_(1.0)
 {
    // get needed parameters
    PerlInput::HashStruct Hash = Input.getHash("SolutionMethod","NewtonPCSolution");
@@ -206,11 +237,16 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
    NumSolutions_ = Input.getPosInt(Hash,"NumSolutions");
    MaxDS_ = Input.getDouble(Hash,"MaxDS");
    CurrentDS_ = Input.getDouble(Hash,"CurrentDS");
-   cont_rate_nom_ = Input.getDouble(Hash,"Contraction");
-   delta_nom_ = Input.getDouble(Hash,"Distance");
-   alpha_nom_ = Input.getDouble(Hash,"Angle");
+   MinDS_ = Input.getDouble(Hash,"MinDS");
+   cont_rate_max_ = Input.getDouble(Hash,"Contraction");
+   delta_max_ = Input.getDouble(Hash,"Distance");
+   alpha_max_ = Input.getDouble(Hash,"Angle");
+   if (cos(alpha_max_) <= 0.0)
+   {
+      cerr << "error: NewtonPCSolution::Angle too large!\n";
+      exit(-22);
+   }   
    Converge_ = Input.getDouble(Hash,"ConvergeCriteria");
-   MinDSRatio_ = Input.getDouble(Hash,"MinDSRatio");
    if (Input.ParameterOK(Hash,"ClosedLoopStart"))
    {
       ClosedLoopStart_ = Input.getInt(Hash,"ClosedLoopStart");
@@ -245,6 +281,21 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
       // Default to positive;
       Direction_ = 1;
    }
+
+   if (Input.ParameterOK(Hash,"Acceleration"))
+   {
+      accel_max_ = Input.getInt(Hash,"Acceleration");
+      if (accel_max_ <= 0.0)
+      {
+         cerr << "Invalid value for " << Hash.Name << "{Acceleration}" << "\n";
+         exit(-7);
+      }
+   }
+   else
+   {
+      // Default to 2.0
+      accel_max_ = 2.0;
+   }
    
    int count = (Mode_->ModeDOF()).Dim();
    int count_minus_one = count - 1;
@@ -270,12 +321,8 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
       Tangent2_.Resize(count);
       
       Input.getVector(Tangent1_,"StartType","Tangent");
+      Tangent1_ = Tangent1_/Tangent1_.Norm();
       Input.getVector(one,"StartType","BifurcationPoint");
-      // override direction with start file value
-      if (Input.ParameterOK("StartType","Direction"))
-      {
-         Direction_ = Input.getInt("StartType","Direction");
-      }
       
       FirstSolution_.Resize(one.Dim());
       FirstSolution_ = one;
@@ -284,7 +331,7 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
       
       for(i=0; i<count; i++)
       {
-         Tangent1_[i] = Direction_ * Tangent1_[i];
+         Tangent1_[i] = Tangent1_[i];
          Tangent2_[i] = Tangent1_[i];
       }
    }
@@ -353,130 +400,141 @@ int NewtonPCSolution::FindNextSolution()
    //Force: N
    int count = FirstSolution_.Dim();
    int count_minus_one = count -1;
-   int oldprecision = cout.precision();
    int good=0;
-   int omega=1;
    int i, Converge_Test;
    int iterations=0;
-   double Kappa, Alpha, Delta, Magnitude1, Magnitude2, temp, f;
+   double Kappa=0.0;
+   double Magnitude1=0.0;
+   double Magnitude2=0.0;
+   double Dot=0.0;
+   double f;
    double forcenorm;
+   double const eta = 0.1;
    
    Previous_Solution_ = Mode_->ModeDOF();
    
-   temp=0.0;
    for(i=0;i<count;i++)
    {
-      temp = temp + Tangent1_[i] * Tangent2_[i];
-   }
-   
-   if (temp < 0.0)
-   {
-      omega = -omega;
-   }
-   for(i=0;i<count;i++)
-   {
-      Tangent1_[i] = Tangent2_[i] * omega;
+      Tangent1_[i] = Tangent2_[i];
    }
    
    do
    {
-      if(CurrentDS_/MaxDS_ < MinDSRatio_)
+      if(CurrentDS_ < MinDS_)
       {
-         cout << "Minimum StepSize ratio violated. Exit Solver.\n";
+         cout << "Minimum StepSize (MinDS) violated. Exit Solver.\n";
          exit(-53);
       }
+
+      // setup acceleration factor to as small as possible
+      f = 1.0/accel_max_;
       
       for (i=0;i<count;i++)
       {
-         v_static[i] = Previous_Solution_[i] + CurrentDS_ * Tangent1_[i];
+         v_static[i] = Previous_Solution_[i] + CurrentDS_*Omega_*Tangent1_[i];
       }
-      cout << "Taking Predictor Step. CurrentDS = " << CurrentDS_ << "\n";
+      cout << "Taking Predictor Step. CurrentDS = " << CurrentDS_;
       Mode_->SetModeDOF(v_static);
       Force_static = Mode_->ModeForce();
+      forcenorm = Force_static.Norm();
       
       Stiff_static = Mode_->ModeStiffness();
       QR(Stiff_static, Q_static, R_static, 1);
       
       for(i=0;i<count;i++)
       {
-         Tangent2_[i] = Direction_* Q_static[i][count_minus_one]*omega;
+         Tangent2_[i] = Direction_*Q_static[i][count_minus_one];
       }
-      
+
+      Dot=0.0;
+      for (i=0;i<count;++i)
+      {
+         Dot += Tangent1_[i]*Tangent2_[i];
+      }
+
+      cout << " \tDot = " << Dot << " \tOmega = " << Omega_ << " \talpha = "
+           << acos(fabs(Dot))*180.0/3.1415926 << "\n";
+      if (acos(fabs(Dot)) > alpha_max_)
+      {
+         f = accel_max_;
+         CurrentDS_ /= f;
+         continue;
+      }
+
       MoorePenrose(Q_static,R_static, Force_static, Corrector_static);
       
       Magnitude1 = Corrector_static.Norm();
+      Magnitude2 = Magnitude1;
+
+      cout << " \tForceNorm = " << forcenorm << " \tDeltaNorm = " << Magnitude1 << "\n";
+      if (Magnitude1 > delta_max_)
+      {
+         f = accel_max_;
+         CurrentDS_ /= f;
+         continue;
+      }
       
       //CORRECTOR LOOP STARTS HERE
       Converge_Test = 0;
-      iterations = 0;
+      iterations = 1;
       do
       {
          for (i=0;i<count;i++)
          {
             w_static[i] = v_static[i] - Corrector_static[i];
-            difference_static[i] = w_static[i] - v_static[i];
+            difference_static[i] = -Corrector_static[i];
          }
          
          Mode_->SetModeDOF(w_static);
          
          Force_static = Mode_->ModeForce();
          forcenorm = Force_static.Norm();
+         cout << "\tForceNorm = " << forcenorm;
          
          MoorePenrose(Q_static,R_static, Force_static,Corrector_static);
-         
+
          Magnitude2 = Corrector_static.Norm();
-         
-         temp = 0.0;
-         for (i=0;i<count;i++)
+         cout << " \tDeltaNorm = " << Magnitude2;
+         if (Magnitude2 > delta_max_)
          {
-            temp = temp + (Tangent1_[i] * Tangent2_[i]);
+            f = accel_max_;
+            CurrentDS_ /= f;
+            cout << "\n";
+            break;
+         }
+         f = max(f,sqrt(Magnitude2/delta_max_)*accel_max_);
+
+         Kappa = Magnitude2/(Magnitude1+Converge_*eta);
+         cout << " \tContraction = " << Kappa << "\n";
+         if (Kappa > cont_rate_max_)
+         {
+            f = accel_max_;
+            CurrentDS_ /= f;
+            break;
+         }
+         f = max(f,sqrt(Kappa/cont_rate_max_)*accel_max_);
+         Magnitude1=Magnitude2;
+         
+         // accpet iteration
+         for(i=0;i<count;i++)
+         {
+            v_static[i] = w_static[i];
          }
          
-         //checks parameters for steplength adaptation
-         Kappa = sqrt((Magnitude2/ Magnitude1)/cont_rate_nom_);
-         Alpha = sqrt(acos(temp)/alpha_nom_);
-         Delta = sqrt(Magnitude1/delta_nom_);
-         cout << setprecision(15);
-         cout << "\tForceNorm = " << forcenorm
-              << " \tCorrectorNorm = " << Magnitude2
-              << " \tKappa = " << Kappa
-              << " \tAlpha = " << Alpha
-              << " \tDelta = " << Delta << "\n";
-         cout << setprecision(oldprecision);
-         
-         temp = max(Kappa, Alpha);
-         f = max(temp, Delta);
-         
-         temp = min(f,2.0);
-         f = max(temp, 0.5);
-         
-         if(f >= 2.0)
+         if ((forcenorm <= Converge_) && (Magnitude2 <= Converge_))
          {
-            CurrentDS_ = CurrentDS_/2.0;
-            break;
+            Converge_Test = 1;
+            
+            CurrentDS_ = CurrentDS_/f;
+            if(CurrentDS_ > MaxDS_)
+            {
+               CurrentDS_ = MaxDS_;
+            }
          }
          else
          {
-            for(i=0;i<count;i++)
-            {
-               v_static[i] = w_static[i];
-            }
-            
-            if ((forcenorm <= Converge_) && (Magnitude2 <= Converge_))
-            {
-               Converge_Test = 1;
-               
-               CurrentDS_ = CurrentDS_/f;
-               if(CurrentDS_ > MaxDS_)
-               {
-                  CurrentDS_ = MaxDS_;
-               }
-            }
-            else
-            {
-               GetQR(Force_static,difference_static,Q_static,R_static);
-               MoorePenrose(Q_static,R_static, Force_static,Corrector_static);
-            }
+            GetQR(Force_static,difference_static,Q_static,R_static);
+            MoorePenrose(Q_static,R_static, Force_static,Corrector_static);
          }
          
          ++iterations;
@@ -484,10 +542,15 @@ int NewtonPCSolution::FindNextSolution()
       while (Converge_Test != 1);
       cout << "Corrector Iterations: " << iterations << "\n";
    }
-   while (f >= 2.0);
+   while (f >= accel_max_);
    
    cout << "Converged with ForceNorm = " << forcenorm
         << " and CorrectorNorm = " << Magnitude2 << "\n";
+
+   if (Dot <= 0.0)
+   {
+      Omega_ = -Omega_;
+   }
    
    if ((ClosedLoopStart_ >= 0) && (CurrentSolution_ > ClosedLoopStart_) &&
        ((Mode_->ModeDOF() - FirstSolution_).Norm() < MaxDS_))
@@ -505,7 +568,7 @@ int NewtonPCSolution::FindNextSolution()
    
    // always have current solution point printed
    good = 1;
-   
+
    return good;
 }
 
