@@ -77,7 +77,7 @@ public:
    void SetDOF(Vector const& dof) {DOF_ = dof; ChainSum_.Recalc();}
    // Entropy is NEGATIVE dE/dT
    double Entropy() const {return -energy(PairPotentials::DT);}
-   double HeatCapacity() const {return -(NTemp_*Tref_)*energy(PairPotentials::D2T);}
+   double HeatCapacity() const {return -NTemp_*energy(PairPotentials::D2T);}
    Matrix const& StressDT() const {return stress(PairPotentials::DT);}
    Matrix const& StiffnessDT() const {return stiffness(PairPotentials::DT);}
    double Temp() const {return NTemp_;}
