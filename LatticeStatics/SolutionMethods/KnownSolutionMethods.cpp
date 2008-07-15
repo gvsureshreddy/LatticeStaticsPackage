@@ -19,7 +19,7 @@ SolutionMethod* InitializeSolution(LatticeMode* const Mode,PerlInput const& Inpu
       cerr << "Unknown SolutionMethod : " << slvmthd << "\n";
       exit(-1);
    }
-
+   
    switch (solu)
    {
       case Scanning:

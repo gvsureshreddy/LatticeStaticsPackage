@@ -121,7 +121,7 @@ MultiChainTTPP::MultiChainTTPP(PerlInput const& Input,int const& Echo,int const&
    }
    else
    {
-      Density_ = 1;
+      Density_ = Input.useInt(1,Hash,"Density"); // Default Value
    }
    NormModulus_ = Input.getDouble(Hash,"NormModulus");
    
@@ -193,6 +193,8 @@ MultiChainTTPP::MultiChainTTPP(PerlInput const& Input,int const& Echo,int const&
    
    // Initiate the Unit Cell Iterator for Bloch wave calculations.
    ChainIter_(GridSize_);
+
+   Input.EndofInputSection();
 }
 
 int MultiChainTTPP::FindLatticeSpacing(int const& iter)

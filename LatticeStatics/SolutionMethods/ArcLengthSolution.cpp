@@ -75,8 +75,7 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode* const Mode,PerlInput const& In
    }
    else
    {
-      // Set default value
-      ClosedLoopStart_ = CLOSEDDEFAULT;
+      ClosedLoopStart_ = Input.useInt(CLOSEDDEFAULT,Hash,"ClosedLoopStart"); // Default Value
    }
    if (Input.ParameterOK(Hash,"StopAtCPNum"))
    {
@@ -84,10 +83,10 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode* const Mode,PerlInput const& In
    }
    else
    {
-      // Set default value
-      StopAtCPNum_ = -1;
+      StopAtCPNum_ = Input.useInt(-1,Hash,"StopAtCPNum"); // Default Value
    }
-
+   Input.EndofInputSection();
+   
    BisectTolerance_ = Tolerance_;
    
    FirstSolution_.Resize(one.Dim());
@@ -127,8 +126,7 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode* const Mode,PerlInput const& In
    }
    else
    {
-      // Set default value
-      ClosedLoopStart_ = CLOSEDDEFAULT;
+      ClosedLoopStart_ = Input.useInt(CLOSEDDEFAULT,Hash,"ClosedLoopStart"); // Default Value
    }
    if (Input.ParameterOK(Hash,"StopAtCPNum"))
    {
@@ -136,9 +134,9 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode* const Mode,PerlInput const& In
    }
    else
    {
-      // Set default value
-      StopAtCPNum_ = -1;
+      StopAtCPNum_ = Input.useInt(-1,Hash,"StopAtCPNum"); // Default Value
    }
+   Input.EndofInputSection();
    
    BisectTolerance_ = Tolerance_;
    
@@ -167,6 +165,7 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode* const Mode,PerlInput const& In
       else
       {
          FirstSolution_ = stat;
+         Input.useVector(FirstSolution_,"StartType","ClosedLoopFirstSolution"); // Default Value
       }
    }
    else if (!strcmp("Continuation",starttype))
@@ -193,6 +192,7 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode* const Mode,PerlInput const& In
       else
       {
          FirstSolution_ = one;
+         Input.useVector(FirstSolution_,"StartType","ClosedLoopFirstSolution");
       }
    }
    else if (!strcmp("ConsistenceCheck",starttype))
@@ -207,7 +207,7 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode* const Mode,PerlInput const& In
       Input.getVector(Solution2,"StartType","Solution2");
       // Get Epsilon and Width
       ConsistencyEpsilon = Input.getDouble("StartType","ConsistenceEpsilon");
-      Width = Input.getInt("Main","FieldWidth");
+      Width = Input.getPosInt("Main","FieldWidth");
 
       cout << "FIX UP CONSISTENCYCHECK!!!!!!\n";
       //ConsistencyCheck(Solution1,Solution2,ConsistencyEpsilon,Width,out);
@@ -217,6 +217,7 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode* const Mode,PerlInput const& In
       cerr << "Unknown StartType!" << "\n";
       exit(-1);
    }
+   Input.EndofInputSection();
 }
 
 Vector const& ArcLengthSolution::ArcLenForce(double const& DS,Vector const& Diff,

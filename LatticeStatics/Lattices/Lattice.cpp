@@ -6,11 +6,12 @@ Lattice::Lattice(PerlInput const& Input):
 {
    if (Input.ParameterOK("Lattice","OrderedTFs"))
    {
-      if (!strcmp("No",Input.getString("Lattice","OrderedTFs")))
+      char const* const orderedtfs = Input.getString("Lattice","OrderedTFs");
+      if (!strcmp("No",orderedtfs))
       {
          OrderedTFs_ = 0;
       }
-      else if (!strcmp("Yes",Input.getString("Lattice","OrderedTFs")))
+      else if (!strcmp("Yes",orderedtfs))
       {
          OrderedTFs_ = 1;
       }
@@ -23,15 +24,17 @@ Lattice::Lattice(PerlInput const& Input):
    else
    {
       OrderedTFs_ = 0;
+      Input.useString("No","Lattice","OrderedTFs"); // Default Value
    }
 
    if (Input.ParameterOK("Lattice","ThirdOrder"))
    {
-      if (!strcmp("Yes",Input.getString("Lattice","ThirdOrder")))
+      char const* const thirdorder = Input.getString("Lattice","ThirdOrder");
+      if (!strcmp("Yes",thirdorder))
       {
          ThirdOrder_ = 1;
       }
-      else if (!strcmp("No",Input.getString("Lattice","ThirdOrder")))
+      else if (!strcmp("No",thirdorder))
       {
          ThirdOrder_ = 0;
       }
@@ -44,7 +47,10 @@ Lattice::Lattice(PerlInput const& Input):
    else
    {
       ThirdOrder_ = 0;
+      Input.useString("No","Lattice","ThirdOrder"); // Default Value
    }
+   
+   Input.EndofInputSection();
 }
 
 void Lattice::SetLoadParameter(double const& load)

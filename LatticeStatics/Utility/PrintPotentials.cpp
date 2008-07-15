@@ -37,17 +37,19 @@ int main(int argc, char *argv[])
    PerlInput::HashStruct Hash = Input.getHash("Lattice");
    Hash = Input.getHash(Hash,Input.getString(Hash,"Type"));
    PairPotentials* const pot = InitializePairPotential(Hash,Input,i,j);
+   Input.EndofInputSection();
    
    int Width,Precision;
-   Width = Input.getInt("Main","FieldWidth");
+   Width = Input.getPosInt("Main","FieldWidth");
    if (Input.ParameterOK("Main","Precision"))
    {
-      Precision = Input.getInt("Main","Precision");
+      Precision = Input.getPosInt("Main","Precision");
    }
    else
    {
-      Precision = 10;
+      Precision = Input.usePosInt(10,"Main","Precision"); // Default Value
    }
+   Input.EndofInputSection();
    
    cout << setiosflags(ios::fixed) << setprecision(Precision);
    double inc=(yend-ystart)/pts,

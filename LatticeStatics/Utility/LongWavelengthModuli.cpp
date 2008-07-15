@@ -53,6 +53,7 @@ int main(int argc,char *argv[])
    double dk;
    gridsize = Input.getPosInt("LongWavelengthModuli","GridSize");
    dk = Input.getDouble("LongWavelengthModuli","DK");
+   Input.EndofInputSection();
    
    if (argc >= 4)
    {
@@ -114,16 +115,17 @@ int main(int argc,char *argv[])
 
 void GetMainSettings(int& Width,int& Precision,int& Echo,PerlInput const& Input)
 {
-   Width = Input.getInt("Main","FieldWidth");
-   Precision = Input.getInt("Main","Precision");
+   Width = Input.getPosInt("Main","FieldWidth");
+   Precision = Input.getPosInt("Main","Precision");
    if (Input.ParameterOK("Main","Echo"))
    {
-      Echo = Input.getInt("Main","Echo");
+      Echo = Input.getPosInt("Main","Echo");
    }
    else
    {
-      Echo = 1;
+      Echo = Input.usePosInt(1,"Main","Echo");  // Default Value
    }
+   Input.EndofInputSection();
 }
 
 void InitializeOutputFile(fstream& out,char const* const outfile,char const* const datafile,

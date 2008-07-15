@@ -41,6 +41,7 @@ TwoBarTruss::TwoBarTruss(PerlInput const& Input,int const& Echo,int const& Width
       Caching_ = 0;
    }
    Theta_ = Input.getDouble(Hash,"Theta");
+   Input.EndofInputSection();
    COSTheta_ = cos(Theta_);
    SINTheta_ = sin(Theta_);
 }

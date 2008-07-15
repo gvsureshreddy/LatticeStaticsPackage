@@ -1,11 +1,13 @@
 #include <cstdlib>
 #include <iostream>
+#include <iomanip>
 #include "PerlInput.h"
 
 static PerlInterpreter *my_perl = 0;
 
 void PerlInput::Initialize()
 {
+   ReconstructedInput_ << scientific << setprecision(14);
    char *args[] = {"perl","-W","-e","0"};
    if (my_perl != 0)
    {
@@ -98,6 +100,15 @@ PerlInput::HashStruct PerlInput::getHash(char const* const HashName) const
    }
    
    strcpy(Hash.Name,HashName);
+   return Hash;
+}
+
+PerlInput::HashStruct PerlInput::useHash(char const* const HashName) const
+{
+   HashStruct Hash;
+   Hash.Ptr = 0;
+   strcpy(Hash.Name,HashName);
+
    return Hash;
 }
 
@@ -367,8 +378,30 @@ double PerlInput::getDouble(HashStruct const& Hash,char const* const ParamName,
    }
    else
    {
+      ReconstructedInput_ << "$" << Hash.Name << "{" << ParamName << "}";
+      if (a > -1) ReconstructedInput_ << "[" << a << "]";
+      if (b > -1) ReconstructedInput_ << "[" << b << "]";
+      if (c > -1) ReconstructedInput_ << "[" << c << "]";
+      if (d > -1) ReconstructedInput_ << "[" << d << "]";
+      if (e > -1) ReconstructedInput_ << "[" << e << "]";
+      ReconstructedInput_ << " = " << SvNV(ParamVal) << ";\n";
       return SvNV(ParamVal);
    }
+}
+
+double PerlInput::useDouble(double const& DefaultValue,
+                            HashStruct const& Hash,char const* const ParamName,int const& a,
+                            int const& b,int const& c,int const& d,int const& e) const
+{
+   ReconstructedInput_ << "$" << Hash.Name << "{" << ParamName << "}";
+   if (a > -1) ReconstructedInput_ << "[" << a << "]";
+   if (b > -1) ReconstructedInput_ << "[" << b << "]";
+   if (c > -1) ReconstructedInput_ << "[" << c << "]";
+   if (d > -1) ReconstructedInput_ << "[" << d << "]";
+   if (e > -1) ReconstructedInput_ << "[" << e << "]";
+   ReconstructedInput_ << " = " << DefaultValue << ";                # Default Value\n";
+
+   return DefaultValue;
 }
 
 int PerlInput::getInt(HashStruct const& Hash,char const* const ParamName,
@@ -390,8 +423,30 @@ int PerlInput::getInt(HashStruct const& Hash,char const* const ParamName,
    }
    else
    {
+      ReconstructedInput_ << "$" << Hash.Name << "{" << ParamName << "}";
+      if (a > -1) ReconstructedInput_ << "[" << a << "]";
+      if (b > -1) ReconstructedInput_ << "[" << b << "]";
+      if (c > -1) ReconstructedInput_ << "[" << c << "]";
+      if (d > -1) ReconstructedInput_ << "[" << d << "]";
+      if (e > -1) ReconstructedInput_ << "[" << e << "]";
+      ReconstructedInput_ << " = " << SvIV(ParamVal) << ";\n";
       return SvIV(ParamVal);
    }
+}
+
+int PerlInput::useInt(int const& DefaultValue,
+                      HashStruct const& Hash,char const* const ParamName,int const& a,
+                      int const& b,int const& c,int const& d,int const& e) const
+{
+   ReconstructedInput_ << "$" << Hash.Name << "{" << ParamName << "}";
+   if (a > -1) ReconstructedInput_ << "[" << a << "]";
+   if (b > -1) ReconstructedInput_ << "[" << b << "]";
+   if (c > -1) ReconstructedInput_ << "[" << c << "]";
+   if (d > -1) ReconstructedInput_ << "[" << d << "]";
+   if (e > -1) ReconstructedInput_ << "[" << e << "]";
+   ReconstructedInput_ << " = " << DefaultValue << ";                # Default Value\n";
+   
+   return DefaultValue;
 }
 
 int PerlInput::getPosInt(HashStruct const& Hash,char const* const ParamName,
@@ -427,9 +482,44 @@ int PerlInput::getPosInt(HashStruct const& Hash,char const* const ParamName,
          cerr << " is negative!\n";
          exit(Errno);
       }
-      
+
+      ReconstructedInput_ << "$" << Hash.Name << "{" << ParamName << "}";
+      if (a > -1) ReconstructedInput_ << "[" << a << "]";
+      if (b > -1) ReconstructedInput_ << "[" << b << "]";
+      if (c > -1) ReconstructedInput_ << "[" << c << "]";
+      if (d > -1) ReconstructedInput_ << "[" << d << "]";
+      if (e > -1) ReconstructedInput_ << "[" << e << "]";
+      ReconstructedInput_ << " = " << tmp << ";\n";
       return tmp;
    }
+}
+
+int PerlInput::usePosInt(int const& DefaultValue,HashStruct const& Hash,
+                         char const* const ParamName,int const& a,int const& b,int const& c,
+                         int const& d,int const& e) const
+{
+   if (DefaultValue < 0)
+   {
+      cerr << "Error: Perl hash DEFAULT variable: " << Hash.Name
+           << "{" << ParamName << "}";
+      if (a > -1) cerr << "[" << a << "]";
+      if (b > -1) cerr << "[" << b << "]";
+      if (c > -1) cerr << "[" << c << "]";
+      if (d > -1) cerr << "[" << d << "]";
+      if (e > -1) cerr << "[" << e << "]";
+      cerr << " is negative!\n";
+      exit(34);
+   }
+   
+   ReconstructedInput_ << "$" << Hash.Name << "{" << ParamName << "}";
+   if (a > -1) ReconstructedInput_ << "[" << a << "]";
+   if (b > -1) ReconstructedInput_ << "[" << b << "]";
+   if (c > -1) ReconstructedInput_ << "[" << c << "]";
+   if (d > -1) ReconstructedInput_ << "[" << d << "]";
+   if (e > -1) ReconstructedInput_ << "[" << e << "]";
+   ReconstructedInput_ << " = " << DefaultValue << ";                # Default Value\n";
+
+   return DefaultValue;
 }
 
 char const* const PerlInput::getString(HashStruct const& Hash,char const* const ParamName,
@@ -452,8 +542,25 @@ char const* const PerlInput::getString(HashStruct const& Hash,char const* const 
    }
    else
    {
+      ReconstructedInput_ << "$" << Hash.Name << "{" << ParamName
+                          << "} = " << SvPV_nolen(ParamVal) << ";\n";
       return SvPV_nolen(ParamVal);
    }
+}
+
+char const* const PerlInput::useString(char const* const DefaultValue,HashStruct const& Hash,
+                                       char const* const ParamName,int const& a,int const& b,
+                                       int const& c,int const& d,int const& e) const
+{
+   ReconstructedInput_ << "$" << Hash.Name << "{" << ParamName << "}";
+   if (a > -1) ReconstructedInput_ << "[" << a << "]";
+   if (b > -1) ReconstructedInput_ << "[" << b << "]";
+   if (c > -1) ReconstructedInput_ << "[" << c << "]";
+   if (d > -1) ReconstructedInput_ << "[" << d << "]";
+   if (e > -1) ReconstructedInput_ << "[" << e << "]";
+   ReconstructedInput_ << " = " << DefaultValue << ";                # Default Value\n";
+
+   return DefaultValue;
 }
 
 void PerlInput::getVector(Vector& Vctr,HashStruct const& Hash,char const* const ParamName,
@@ -491,12 +598,19 @@ void PerlInput::getVector(Vector& Vctr,HashStruct const& Hash,char const* const 
    }
    
    SV **ParamValPtr;
+   ReconstructedInput_ << "$" << Hash.Name << "{" << ParamName << "}";
+   if (a > -1) ReconstructedInput_ << "[" << a << "]";
+   if (b > -1) ReconstructedInput_ << "[" << b << "]";
+   if (c > -1) ReconstructedInput_ << "[" << c << "]";
+   if (d > -1) ReconstructedInput_ << "[" << d << "]";
+   ReconstructedInput_ << " = [";
    for (int i=0;i<len;++i)
    {
       ParamValPtr = av_fetch(ArrayPtr,i,FALSE); // Should always be ok because of len check.
       ParamVal = *ParamValPtr;
       if ((SvTYPE(ParamVal) == SVt_NV) || (SvTYPE(ParamVal) == SVt_PVNV))
       {
+         ReconstructedInput_ << SvNV(ParamVal) << ((i<len-1) ? ", " : "];\n");
          Vctr[i] = SvNV(ParamVal);
       }
       else
@@ -513,11 +627,32 @@ void PerlInput::getVector(Vector& Vctr,HashStruct const& Hash,char const* const 
    }
 }
 
+void PerlInput::useVector(Vector const& DefaultVect,HashStruct const& Hash,
+                          char const* const ParamName,int const& a,int const& b,int const& c,
+                          int const& d) const
+{
+   ReconstructedInput_ << "$" << Hash.Name << "{" << ParamName << "}";
+   if (a > -1) ReconstructedInput_ << "[" << a << "]";
+   if (b > -1) ReconstructedInput_ << "[" << b << "]";
+   if (c > -1) ReconstructedInput_ << "[" << c << "]";
+   if (d > -1) ReconstructedInput_ << "[" << d << "]";
+   ReconstructedInput_ << " = [";
+   for (int i=0;i<DefaultVect.Dim()-1;++i)
+   {
+      ReconstructedInput_ << DefaultVect[i] << ", ";
+   }
+   ReconstructedInput_ << DefaultVect[DefaultVect.Dim()-1]
+                       << "];                # Default Value\n";
+}
+
+
+
 void PerlInput::getMatrix(Matrix& Mtrx,HashStruct const& Hash,char const* const ParamName,
                           int const& a,int const& b,int const& c) const
 {
    int Errno = -5;
    int rows=Mtrx.Rows(),cols=Mtrx.Cols();
+   int spaces=0;
    
    SV *ParamVal = getScalar(Hash,ParamName,a,b,c);
    
@@ -549,6 +684,12 @@ void PerlInput::getMatrix(Matrix& Mtrx,HashStruct const& Hash,char const* const 
    SV **RowValPtr, **ParamValPtr;
    SV *RowVal;
    AV *Row;
+   ReconstructedInput_ << "$" << Hash.Name << "{" << ParamName << "}";
+   spaces += 3+strlen(Hash.Name)+strlen(ParamName);
+   if (a > -1) {ReconstructedInput_ << "[" << a << "]"; spaces += 3;}
+   if (b > -1) {ReconstructedInput_ << "[" << b << "]"; spaces += 3;}
+   if (c > -1) {ReconstructedInput_ << "[" << c << "]"; spaces += 3;}
+   ReconstructedInput_ << " = [["; spaces += 4;
    for (int i=0;i<rows;++i)
    {
       RowValPtr = av_fetch(ArrayPtr,i,FALSE); // Should always be ok because of len check.
@@ -584,6 +725,7 @@ void PerlInput::getMatrix(Matrix& Mtrx,HashStruct const& Hash,char const* const 
          
          if ((SvTYPE(ParamVal) == SVt_NV) || (SvTYPE(ParamVal) == SVt_PVNV))
          {
+            ReconstructedInput_ << SvNV(ParamVal) << ((j<cols-1) ? ", " : "]");
             Mtrx[i][j] = SvNV(ParamVal);
          }
          else
@@ -596,6 +738,56 @@ void PerlInput::getMatrix(Matrix& Mtrx,HashStruct const& Hash,char const* const 
             cerr << "[" << i << "][" << j << "] is not of type double\n";
             exit(Errno);
          }
+      }
+      if (i<rows-1)
+      {
+         ReconstructedInput_ << ",\n";
+         for (int z=0;z<spaces;++z) ReconstructedInput_ << " ";
+         ReconstructedInput_ << "[";
+      }
+      else
+      {
+         ReconstructedInput_ << "];\n";
+      }
+   }
+}
+
+void PerlInput::useMatrix(Matrix const& DefaultMtrx,HashStruct const& Hash,
+                          char const* const ParamName,int const& a,int const& b,int const& c)
+   const
+{
+   int spaces = 0;
+   ReconstructedInput_ << "$" << Hash.Name << "{" << ParamName << "}";
+   spaces += 3+strlen(Hash.Name)+strlen(ParamName);
+   if (a > -1) {ReconstructedInput_ << "[" << a << "]"; spaces += 3;}
+   if (b > -1) {ReconstructedInput_ << "[" << b << "]"; spaces += 3;}
+   if (c > -1) {ReconstructedInput_ << "[" << c << "]"; spaces += 3;}
+   ReconstructedInput_ << " = [["; spaces += 4;
+   for (int i=0;i<DefaultMtrx.Rows();++i)
+   {
+      for (int j=0;j<DefaultMtrx.Cols()-1;++j)
+      {
+         ReconstructedInput_ << DefaultMtrx[i][j] << ", ";
+      }
+      ReconstructedInput_ << DefaultMtrx[i][DefaultMtrx.Cols()-1] << "]";
+      if (DefaultMtrx.Rows()-1 == i)
+      {
+         ReconstructedInput_ << "];";
+      }
+      else
+      {
+         ReconstructedInput_ << ",";
+      }
+      if (0 == i) ReconstructedInput_ << "                # Default Value";
+      if (DefaultMtrx.Rows()-1 > i)
+      {
+         ReconstructedInput_ << "\n";
+         for (int z=0;z<spaces;++z) ReconstructedInput_ << " ";
+         ReconstructedInput_ << "[";
+      }
+      else
+      {
+         ReconstructedInput_ << "\n";
       }
    }
 }
@@ -634,12 +826,19 @@ void PerlInput::getIntVector(int* const IntArry,int const& len,HashStruct const&
    }
    
    SV **ParamValPtr;
+   ReconstructedInput_ << "$" << Hash.Name << "{" << ParamName << "}";
+   if (a > -1) ReconstructedInput_ << "[" << a << "]";
+   if (b > -1) ReconstructedInput_ << "[" << b << "]";
+   if (c > -1) ReconstructedInput_ << "[" << c << "]";
+   if (d > -1) ReconstructedInput_ << "[" << d << "]";
+   ReconstructedInput_ << " = [";
    for (int i=0;i<len;++i)
    {
       ParamValPtr = av_fetch(ArrayPtr,i,FALSE); // Should always be ok because of len check.
       ParamVal = *ParamValPtr;
       if ((SvTYPE(ParamVal) == SVt_IV) || (SvTYPE(ParamVal) == SVt_PVIV))
       {
+         ReconstructedInput_ << SvIV(ParamVal) << ((i<len-1) ? ", " : "];\n");
          IntArry[i] = SvIV(ParamVal);
       }
       else
@@ -654,6 +853,24 @@ void PerlInput::getIntVector(int* const IntArry,int const& len,HashStruct const&
          exit(Errno);
       }
    }
+}
+
+void PerlInput::useIntVector(int const* const DefaultIntArry,int const& len,
+                             HashStruct const& Hash,char const* const ParamName,int const& a,
+                             int const& b,int const& c,int const& d) const
+{
+   ReconstructedInput_ << "$" << Hash.Name << "{" << ParamName << "}";
+   if (a > -1) ReconstructedInput_ << "[" << a << "]";
+   if (b > -1) ReconstructedInput_ << "[" << b << "]";
+   if (c > -1) ReconstructedInput_ << "[" << c << "]";
+   if (d > -1) ReconstructedInput_ << "[" << d << "]";
+   ReconstructedInput_ << " = [";
+   for (int i=0;i<len-1;++i)
+   {
+      ReconstructedInput_ << DefaultIntArry[i] << ", ";
+   }
+   ReconstructedInput_ << DefaultIntArry[len-1]
+                       << "];                # Default Value\n";
 }
 
 void PerlInput::getPosIntVector(int* const PosIntArry,int const& len,HashStruct const& Hash,
@@ -690,6 +907,12 @@ void PerlInput::getPosIntVector(int* const PosIntArry,int const& len,HashStruct 
    }
    
    SV **ParamValPtr;
+   ReconstructedInput_ << "$" << Hash.Name << "{" << ParamName << "}";
+   if (a > -1) ReconstructedInput_ << "[" << a << "]";
+   if (b > -1) ReconstructedInput_ << "[" << b << "]";
+   if (c > -1) ReconstructedInput_ << "[" << c << "]";
+   if (d > -1) ReconstructedInput_ << "[" << d << "]";
+   ReconstructedInput_ << " = [";
    for (int i=0;i<len;++i)
    {
       ParamValPtr = av_fetch(ArrayPtr,i,FALSE); // Should always be ok because of len check.
@@ -708,7 +931,8 @@ void PerlInput::getPosIntVector(int* const PosIntArry,int const& len,HashStruct 
             cerr << " is negative!\n";
             exit(Errno);
          }
-         
+
+         ReconstructedInput_ << tmp << ((i<len-1) ? ", " : "];\n");
          PosIntArry[i] = tmp;
       }
       else
@@ -725,11 +949,54 @@ void PerlInput::getPosIntVector(int* const PosIntArry,int const& len,HashStruct 
    }
 }
 
+void PerlInput::usePosIntVector(int const* const DefaultPosIntArry,int const& len,
+                                HashStruct const& Hash,char const* const ParamName,int const& a,
+                                int const& b,int const& c,int const& d) const
+{
+   ReconstructedInput_ << "$" << Hash.Name << "{" << ParamName << "}";
+   if (a > -1) ReconstructedInput_ << "[" << a << "]";
+   if (b > -1) ReconstructedInput_ << "[" << b << "]";
+   if (c > -1) ReconstructedInput_ << "[" << c << "]";
+   if (d > -1) ReconstructedInput_ << "[" << d << "]";
+   ReconstructedInput_ << " = [";
+   for (int i=0;i<len-1;++i)
+   {
+      if (DefaultPosIntArry[i] < 0)
+      {
+         cerr << "Error: Perl hash DEFAULT variable: " << Hash.Name
+              << "{" << ParamName << "}";
+         if (a > -1) cerr << "[" << a << "]";
+         if (b > -1) cerr << "[" << b << "]";
+         if (c > -1) cerr << "[" << c << "]";
+         if (d > -1) cerr << "[" << d << "]";
+         cerr << "[" << i << "]";
+         cerr << " is negative!\n";
+         exit(34);
+      }
+      ReconstructedInput_ << DefaultPosIntArry[i] << ", ";
+   }
+   if (DefaultPosIntArry[len-1] < 0)
+   {
+      cerr << "Error: Perl hash DEFAULT variable: " << Hash.Name
+           << "{" << ParamName << "}";
+      if (a > -1) cerr << "[" << a << "]";
+      if (b > -1) cerr << "[" << b << "]";
+      if (c > -1) cerr << "[" << c << "]";
+      if (d > -1) cerr << "[" << d << "]";
+      cerr << "[" << len-1 << "]";
+      cerr << " is negative!\n";
+      exit(34);
+   }
+   ReconstructedInput_ << DefaultPosIntArry[len-1]
+                       << "];                # Default Value\n";
+}
+
 void PerlInput::getIntMatrix(int* const IntMtrx,int const& rows,int const& cols,
                              HashStruct const &Hash,char const* const ParamName,int const& a,
                              int const& b,int const& c) const
 {
    int Errno = -5;
+   int spaces = 0;
    SV *ParamVal = getScalar(Hash,ParamName,a,b,c);
    
    if ((SvTYPE(ParamVal) != SVt_RV) || (SvTYPE(SvRV(ParamVal)) != SVt_PVAV))
@@ -760,6 +1027,13 @@ void PerlInput::getIntMatrix(int* const IntMtrx,int const& rows,int const& cols,
    SV **RowValPtr, **ParamValPtr;
    SV *RowVal;
    AV *Row;
+   ReconstructedInput_ << "$" << Hash.Name << "{" << ParamName << "}";
+   spaces += 3+strlen(Hash.Name)+strlen(ParamName);
+   if (a > -1) {ReconstructedInput_ << "[" << a << "]"; spaces += 3;}
+   if (b > -1) {ReconstructedInput_ << "[" << b << "]"; spaces += 3;}
+   if (c > -1) {ReconstructedInput_ << "[" << c << "]"; spaces += 3;}
+   ReconstructedInput_ << " = [[";
+   spaces += 4;
    for (int i=0;i<rows;++i)
    {
       RowValPtr = av_fetch(ArrayPtr,i,FALSE); // Should always be ok because of len check.
@@ -795,6 +1069,7 @@ void PerlInput::getIntMatrix(int* const IntMtrx,int const& rows,int const& cols,
          
          if ((SvTYPE(ParamVal) == SVt_IV) || (SvTYPE(ParamVal) == SVt_PVIV))
          {
+            ReconstructedInput_ << SvIV(ParamVal) << ((j<cols-1) ? ", " : "]");
             IntMtrx[i*cols + j] = SvIV(ParamVal);
          }
          else
@@ -808,6 +1083,56 @@ void PerlInput::getIntMatrix(int* const IntMtrx,int const& rows,int const& cols,
             exit(Errno);
          }
       }
+      if (i<rows-1)
+      {
+         ReconstructedInput_ << ",\n";
+         for (int z=0;z<spaces;++z) ReconstructedInput_ << " ";
+         ReconstructedInput_ << "[";
+      }
+      else
+      {
+         ReconstructedInput_ << "];\n";
+      }
+   }
+}
+
+void PerlInput::useIntMatrix(int const* const DefaultIntMtrx,int const& rows,int const& cols,
+                             HashStruct const& Hash,char const* const ParamName,int const& a,
+                             int const& b,int const& c) const
+{
+   int spaces = 0;
+   ReconstructedInput_ << "$" << Hash.Name << "{" << ParamName << "}";
+   spaces += 3+strlen(Hash.Name)+strlen(ParamName);
+   if (a > -1) {ReconstructedInput_ << "[" << a << "]"; spaces += 3;}
+   if (b > -1) {ReconstructedInput_ << "[" << b << "]"; spaces += 3;}
+   if (c > -1) {ReconstructedInput_ << "[" << c << "]"; spaces += 3;}
+   ReconstructedInput_ << " = [["; spaces += 4;
+   for (int i=0;i<rows;++i)
+   {
+      for (int j=0;j<cols-1;++j)
+      {
+         ReconstructedInput_ << DefaultIntMtrx[i*cols + j] << ", ";
+      }
+      ReconstructedInput_ << DefaultIntMtrx[i*cols + cols-1] << "]";
+      if (rows-1 == i)
+      {
+         ReconstructedInput_ << "];";
+      }
+      else
+      {
+         ReconstructedInput_ << ",";
+      }
+      if (0 == i) ReconstructedInput_ << "                # Default Value";
+      if (rows-1 > i)
+      {
+         ReconstructedInput_ << "\n";
+         for (int z=0;z<spaces;++z) ReconstructedInput_ << " ";
+         ReconstructedInput_ << "[";
+      }
+      else
+      {
+         ReconstructedInput_ << "\n";
+      }
    }
 }
 
@@ -816,6 +1141,7 @@ void PerlInput::getPosIntMatrix(int* const PosIntMtrx,int const& rows,int const&
                                 int const& a,int const& b,int const& c) const
 {
    int Errno = -5;
+   int spaces = 0;
    SV *ParamVal = getScalar(Hash,ParamName,a,b,c);
    
    if ((SvTYPE(ParamVal) != SVt_RV) || (SvTYPE(SvRV(ParamVal)) != SVt_PVAV))
@@ -846,6 +1172,13 @@ void PerlInput::getPosIntMatrix(int* const PosIntMtrx,int const& rows,int const&
    SV **RowValPtr, **ParamValPtr;
    SV *RowVal;
    AV *Row;
+   ReconstructedInput_ << "$" << Hash.Name << "{" << ParamName << "}";
+   spaces += 3+strlen(Hash.Name)+strlen(ParamName);
+   if (a > -1) {ReconstructedInput_ << "[" << a << "]"; spaces += 3;}
+   if (b > -1) {ReconstructedInput_ << "[" << b << "]"; spaces += 3;}
+   if (c > -1) {ReconstructedInput_ << "[" << c << "]"; spaces += 3;}
+   ReconstructedInput_ << " = [[";
+   spaces += 4;
    for (int i=0;i<rows;++i)
    {
       RowValPtr = av_fetch(ArrayPtr,i,FALSE); // Should always be ok because of len check.
@@ -892,7 +1225,8 @@ void PerlInput::getPosIntMatrix(int* const PosIntMtrx,int const& rows,int const&
                cerr << " is negative!\n";
                exit(Errno);
             }
-            
+
+            ReconstructedInput_ << tmp << ((j<cols-1) ? ", " : "]");
             PosIntMtrx[i*cols + j] = tmp;
          }
          else
@@ -906,6 +1240,78 @@ void PerlInput::getPosIntMatrix(int* const PosIntMtrx,int const& rows,int const&
             exit(Errno);
          }
       }
+      if (i<rows-1)
+      {
+         ReconstructedInput_ << ",\n";
+         for (int z=0;z<spaces;++z) ReconstructedInput_ << " ";
+         ReconstructedInput_ << "[";
+      }
+      else
+      {
+         ReconstructedInput_ << "];\n";
+      }
    }
 }
 
+void PerlInput::usePosIntMatrix(int const* const DefaultPosIntMtrx,int const& rows,
+                                int const& cols,HashStruct const& Hash,
+                                char const* const ParamName,int const& a,int const& b,
+                                int const& c) const
+{
+   int spaces = 0;
+   ReconstructedInput_ << "$" << Hash.Name << "{" << ParamName << "}";
+   spaces += 3+strlen(Hash.Name)+strlen(ParamName);
+   if (a > -1) {ReconstructedInput_ << "[" << a << "]"; spaces += 3;}
+   if (b > -1) {ReconstructedInput_ << "[" << b << "]"; spaces += 3;}
+   if (c > -1) {ReconstructedInput_ << "[" << c << "]"; spaces += 3;}
+   ReconstructedInput_ << " = [["; spaces += 4;
+   for (int i=0;i<rows;++i)
+   {
+      for (int j=0;j<cols-1;++j)
+      {
+         if (DefaultPosIntMtrx[i*cols + j] < 0)
+         {
+            cerr << "Error: Perl hash DEFAULT variable: " << Hash.Name
+                 << "{" << ParamName << "}";
+            if (a > -1) cerr << "[" << a << "]";
+            if (b > -1) cerr << "[" << b << "]";
+            if (c > -1) cerr << "[" << c << "]";
+            cerr << "[" << i << "][" << j << "]";
+            cerr << " is negative!\n";
+            exit(34);
+         }
+         ReconstructedInput_ << DefaultPosIntMtrx[i*cols + j] << ", ";
+      }
+      if (DefaultPosIntMtrx[i*cols + cols-1] < 0)
+      {
+         cerr << "Error: Perl hash DEFAULT variable: " << Hash.Name
+              << "{" << ParamName << "}";
+         if (a > -1) cerr << "[" << a << "]";
+         if (b > -1) cerr << "[" << b << "]";
+         if (c > -1) cerr << "[" << c << "]";
+         cerr << "[" << i << "][" << cols-1 << "]";
+         cerr << " is negative!\n";
+         exit(34);
+      }
+      ReconstructedInput_ << DefaultPosIntMtrx[i*cols + cols-1] << "]";
+      if (rows-1 == i)
+      {
+         ReconstructedInput_ << "];";
+      }
+      else
+      {
+         ReconstructedInput_ << ",";
+      }
+      if (0 == i) ReconstructedInput_ << "                # Default Value";
+      if (rows-1 > i)
+      {
+         ReconstructedInput_ << "\n";
+         for (int z=0;z<spaces;++z) ReconstructedInput_ << " ";
+         ReconstructedInput_ << "[";
+      }
+      else
+      {
+         ReconstructedInput_ << "\n";
+      }
+   }
+}

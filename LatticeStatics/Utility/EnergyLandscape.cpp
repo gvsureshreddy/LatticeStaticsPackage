@@ -60,6 +60,7 @@ int main(int argc,char *argv[])
       sprintf(tmp,"Corner_%u",i);
       Input.getVector(Corners[i],"EnergyLandscape",tmp);
    }
+   Input.EndofInputSection();
    
    Vector* const Directions = new Vector[NoDims];
    for (int i=0;i<NoDims;++i)
@@ -108,16 +109,17 @@ int main(int argc,char *argv[])
 
 void GetMainSettings(int& Width,int& Precision,int& Echo,PerlInput const& Input)
 {
-   Width = Input.getInt("Main","FieldWidth");
-   Precision = Input.getInt("Main","Precision");
+   Width = Input.getPosInt("Main","FieldWidth");
+   Precision = Input.getPosInt("Main","Precision");
    if (Input.ParameterOK("Main","Echo"))
    {
-      Echo = Input.getInt("Main","Echo");
+      Echo = Input.getPosInt("Main","Echo");
    }
    else
    {
-      Echo=1;
+      Echo = Input.usePosInt(1,"Main","Echo"); // Default Value
    }
+   Input.EndofInputSection();
 }
 
 void InitializeOutputFile(fstream& out,char const* const outfile,char const* const datafile,

@@ -65,6 +65,7 @@ int main(int argc,char *argv[])
 
 void GetMainSettings(int& Width,int& Precision,PerlInput const& Input)
 {
-   Width = Input.getInt("Main","FieldWidth");
-   Precision = Input.getInt("Main","Precision");
+   Width = Input.getPosInt("Main","FieldWidth");
+   Precision = Input.getPosInt("Main","Precision");
+   Input.EndofInputSection();
 }

@@ -43,7 +43,7 @@ CBKinematics::CBKinematics(PerlInput const& Input,PerlInput::HashStruct const* c
    {
       InternalPOS_[i].Resize(DIM3);
       Input.getVector(InternalPOS_[i],Hash,"AtomPositions",i);
-   }   
+   }
 }
 
 void CBKinematics::InfluenceRegion(double* const InfluenceRegion)

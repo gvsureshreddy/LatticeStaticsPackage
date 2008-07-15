@@ -49,7 +49,7 @@ ScanningSolution::ScanningSolution(LatticeMode* const Mode,PerlInput const& Inpu
    MaxIter_ = Input.getPosInt(Hash,"MaxIterations");
    Tolerance_ = Input.getDouble(Hash,"Tolerance");
    NewtonTolerance_ = Input.getDouble(Hash,"NewtonTolerance");
-   const char *fullfld = Input.getString(Hash,"FullField");
+   char const* const fullfld = Input.getString(Hash,"FullField");
    if (!strcmp("Yes",fullfld))
       ScanFullField_ = Yes;
    else if (!strcmp("No",fullfld))
@@ -63,7 +63,7 @@ ScanningSolution::ScanningSolution(LatticeMode* const Mode,PerlInput const& Inpu
    InitialDef_.Resize(ModeDOFS_);
    Input.getVector(InitialDef_,Hash,"InitialDeformation");
    
-   const char *dir = Input.getString(Hash,"Direction");
+   char const* const dir = Input.getString(Hash,"Direction");
    if (!strcmp("Loading",dir))
       Direction_ = Loading;
    else if (!strcmp("Deformation",dir))
@@ -88,7 +88,8 @@ ScanningSolution::ScanningSolution(LatticeMode* const Mode,PerlInput const& Inpu
    LineStart_ = Input.getDouble(Hash,"LineStart");
    LineEnd_ = Input.getDouble(Hash,"LineEnd");
    LineStep_ = Input.getDouble(Hash,"LineStep");
-
+   Input.EndofInputSection();
+   
    // Initialize various data storage space
    stress_static.Resize(ModeDOFS_-1);
    ModeK_static.Resize(ModeDOFS_-1,ModeDOFS_);

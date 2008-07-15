@@ -16,7 +16,9 @@ PairPotentials* InitializePairPotential(PerlInput::HashStruct const& ParentHash,
    
    sprintf(tmp,"PotentialType_%u_%u",i,j);
    PerlInput::HashStruct Hash = Input.getHash(ParentHash,tmp);
-   if (!strcmp("LJ",Input.getString(Hash,"Type")))
+
+   char const* const pptype = Input.getString(Hash,"Type");
+   if (!strcmp("LJ",pptype))
    {
       Eps0 = Input.getDouble(Hash,"Eps0");
       Eps1 = Input.getDouble(Hash,"Eps1");
@@ -25,7 +27,7 @@ PairPotentials* InitializePairPotential(PerlInput::HashStruct const& ParentHash,
 
       return new LJ(Eps0,Eps1,Sigma0,Sigma1);
    }
-   else if (!strcmp("LJCutoff",Input.getString(Hash,"Type")))
+   else if (!strcmp("LJCutoff",pptype))
    {
       Eps0 = Input.getDouble(Hash,"Eps0");
       Eps1 = Input.getDouble(Hash,"Eps1");
@@ -35,7 +37,7 @@ PairPotentials* InitializePairPotential(PerlInput::HashStruct const& ParentHash,
       
       return new LJCutoff(Eps0,Eps1,Sigma0,Sigma1,Cutoff);
    }
-   else if (!strcmp("RadiiMorse",Input.getString(Hash,"Type")))
+   else if (!strcmp("RadiiMorse",pptype))
    {
       A0 = Input.getDouble(Hash,"A0");
       AT = Input.getDouble(Hash,"AT");
@@ -50,7 +52,7 @@ PairPotentials* InitializePairPotential(PerlInput::HashStruct const& ParentHash,
       
       return new RadiiMorse(A0,AT,B0,BT,Rref1,Rtheta1,Rtheta1Pow,Rref2,Rtheta2,Rtheta2Pow);
    }
-   else if (!strcmp("RadiiMorseCutoff",Input.getString(Hash,"Type")))
+   else if (!strcmp("RadiiMorseCutoff",pptype))
    {
       A0 = Input.getDouble(Hash,"A0");
       AT = Input.getDouble(Hash,"AT");
@@ -67,7 +69,7 @@ PairPotentials* InitializePairPotential(PerlInput::HashStruct const& ParentHash,
       return new RadiiMorseCutoff(A0,AT,B0,BT,Rref1,Rtheta1,Rtheta1Pow,Rref2,Rtheta2,
                                   Rtheta2Pow,Cutoff);
    }
-   else if (!strcmp("RadiiMorseCutoff2",Input.getString(Hash,"Type")))
+   else if (!strcmp("RadiiMorseCutoff2",pptype))
    {
       A0 = Input.getDouble(Hash,"A0");
       AT = Input.getDouble(Hash,"AT");
@@ -84,7 +86,7 @@ PairPotentials* InitializePairPotential(PerlInput::HashStruct const& ParentHash,
       return new RadiiMorseCutoff2(A0,AT,B0,BT,Rref1,Rtheta1,Rtheta1Pow,Rref2,Rtheta2,
                                   Rtheta2Pow,Cutoff);
    }
-   else if (!strcmp("TempMorse",Input.getString(Hash,"Type")))
+   else if (!strcmp("TempMorse",pptype))
    {
       Tref = Input.getDouble(Hash,"Tref");
       A0 = Input.getDouble(Hash,"A0");
@@ -95,7 +97,7 @@ PairPotentials* InitializePairPotential(PerlInput::HashStruct const& ParentHash,
       
       return new TempMorse(A0,B0,Alpha,Rref1,Tref,Tmelt);
    }
-   else if (!strcmp("Dobson",Input.getString(Hash,"Type")))
+   else if (!strcmp("Dobson",pptype))
    {
       Eps0 = Input.getDouble(Hash,"Eps0");
       Eps1 = Input.getDouble(Hash,"Eps1");

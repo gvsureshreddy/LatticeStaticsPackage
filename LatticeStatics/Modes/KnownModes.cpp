@@ -13,6 +13,7 @@ LatticeMode* const InitializeMode(Lattice* const Lat,PerlInput const& Input)
       cerr << "Unknown Mode Type" << "\n";
       exit(-1);
    }
+   Input.EndofInputSection();
    
    return 0;
 }

@@ -27,6 +27,7 @@ Lattice* const InitializeLattice(PerlInput& Input,int const&  Echo,int const& Wi
       cerr << "Unknown Lattice Type " << "\n";
       exit(-1);
    }
+   Input.EndofInputSection();
    
    return 0;
 }

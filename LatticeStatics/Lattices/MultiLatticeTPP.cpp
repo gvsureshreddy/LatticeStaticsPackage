@@ -179,7 +179,7 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput const& Input,int const& Echo,int cons
    }
    else
    {
-      Density_ = 1;
+      Density_ = Input.useInt(1,Hash,"Density"); // Default Value
    }
    NormModulus_ = Input.getDouble(Hash,"NormModulus");
    ConvexityDX_ = Input.getDouble(Hash,"ConvexityDX");
@@ -283,6 +283,8 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput const& Input,int const& Echo,int cons
    
    // Initiate the Unit Cell Iterator for Bloch wave calculations.
    UCIter_(GridSize_);
+
+   Input.EndofInputSection();
 }
 
 int MultiLatticeTPP::FindLatticeSpacing(int const& iter)

@@ -119,17 +119,19 @@ void GetMainSettings(int& Width,int& Precision,YN& BisectCP,int& Echo,PerlInput 
    }
    else
    {
-      Echo = 1;
+      Echo = Input.useInt(1,"Main","Echo"); // Default value
    }
-   if (!strcmp("Yes",Input.getString("Main","BisectCP")))
+   char const* const bisectcp = Input.getString("Main","BisectCP");
+   if (!strcmp("Yes",bisectcp))
       BisectCP = Yes;
-   else if (!strcmp("No",Input.getString("Main","BisectCP")))
+   else if (!strcmp("No",bisectcp))
       BisectCP = No;
    else
    {
       cerr << "Unknown BisectCP option : " << bisect << "\n";
       exit(-1);
    }
+   Input.EndofInputSection();
 }
 
 void InitializeOutputFile(fstream& out,char const* const outfile,char const* const datafile,

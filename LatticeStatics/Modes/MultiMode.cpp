@@ -30,7 +30,7 @@ MultiMode::MultiMode(Lattice* const M,PerlInput const& Input)
    }
    else
    {
-      Baseline_DOFS=0;
+      Baseline_DOFS = Input.usePosInt(0,Hash,"Baseline_DOFS");
    }
    
    BaselineDOF_.Resize(temp1,0.0);
@@ -44,7 +44,8 @@ MultiMode::MultiMode(Lattice* const M,PerlInput const& Input)
       
       BaselineDOF_[temp2] =  temp3;
    }
-
+   Input.EndofInputSection();
+   
    // intitalize "static" member variables
    size_static = (Lattice_->DOF()).Dim();
    DOF_static.Resize(size_static);

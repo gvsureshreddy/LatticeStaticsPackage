@@ -80,7 +80,7 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
    PerlInput::HashStruct Hash = Input.getHash("SolutionMethod","NewtonPCSolution");
    if (Input.ParameterOK(Hash,"UpdateType"))
    {
-      const char* const updatetype=Input.getString(Hash,"UpdateType");
+      char const* const updatetype=Input.getString(Hash,"UpdateType");
       if (!strcmp("NoUpdate",updatetype))
       {
          UpdateType_ = NoUpdate;
@@ -127,8 +127,7 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
    }
    else
    {
-      // Set default value
-      ClosedLoopStart_ = CLOSEDDEFAULT;
+      ClosedLoopStart_ = Input.useInt(CLOSEDDEFAULT,Hash,"ClosedLoopStart"); // Default Value
    }
    
    if (Input.ParameterOK(Hash,"StopAtCPNum"))
@@ -137,8 +136,7 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
    }
    else
    {
-      // Set default value
-      StopAtCPNum_ = -1;
+      StopAtCPNum_ = Input.useInt(-1,Hash,"StopAtCPNum"); // Default Value
    }
    
    if (Input.ParameterOK(Hash,"Direction"))
@@ -152,13 +150,12 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
    }
    else
    {
-      // Default to positive;
-      Direction_ = 1;
+      Direction_ = Input.useInt(1,Hash,"Direction");
    }
 
    if (Input.ParameterOK(Hash,"Acceleration"))
    {
-      accel_max_ = Input.getInt(Hash,"Acceleration");
+      accel_max_ = Input.getDouble(Hash,"Acceleration");
       if (accel_max_ <= 0.0)
       {
          cerr << "Invalid value for " << Hash.Name << "{Acceleration}" << "\n";
@@ -167,10 +164,10 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
    }
    else
    {
-      // Default to 2.0
-      accel_max_ = 2.0;
+      accel_max_ = Input.useDouble(2.0,Hash,"Acceleration"); // Default Value
    }
-
+   Input.EndofInputSection();
+   
    FirstSolution_.Resize(one.Dim());
    FirstSolution_ = one;
    Mode_->SetModeDOF(one);
@@ -264,8 +261,7 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
    }
    else
    {
-      // Set default value
-      ClosedLoopStart_ = CLOSEDDEFAULT;
+      ClosedLoopStart_ = Input.useInt(CLOSEDDEFAULT,Hash,"ClosedLoopStart"); // Default Value
    }
    
    if (Input.ParameterOK(Hash,"StopAtCPNum"))
@@ -274,8 +270,7 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
    }
    else
    {
-      // Set default value
-      StopAtCPNum_ = -1;
+      StopAtCPNum_ = Input.useInt(-1,Hash,"StopAtCPNum"); // Default Value
    }
    
    if (Input.ParameterOK(Hash,"Direction"))
@@ -289,13 +284,12 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
    }
    else
    {
-      // Default to positive;
-      Direction_ = 1;
+      Direction_ = Input.useInt(1,Hash,"Direction"); // Default Value
    }
 
    if (Input.ParameterOK(Hash,"Acceleration"))
    {
-      accel_max_ = Input.getInt(Hash,"Acceleration");
+      accel_max_ = Input.getDouble(Hash,"Acceleration");
       if (accel_max_ <= 0.0)
       {
          cerr << "Invalid value for " << Hash.Name << "{Acceleration}" << "\n";
@@ -304,9 +298,9 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
    }
    else
    {
-      // Default to 2.0
-      accel_max_ = 2.0;
+      accel_max_ = Input.useDouble(2.0,Hash,"Acceleration"); // Default Value
    }
+   Input.EndofInputSection();
    
    int count = (Mode_->ModeDOF()).Dim();
    int count_minus_one = count - 1;
@@ -359,11 +353,6 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
       Tangent2_.Resize(count);
       
       Input.getVector(one,"StartType","Solution1");
-      // override direction with start file value
-      if (Input.ParameterOK("StartType","Direction"))
-      {
-         Direction_ = Input.getInt("StartType","Direction");
-      }
       
       FirstSolution_.Resize(one.Dim());
       FirstSolution_ = one;
@@ -389,6 +378,7 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
       cerr << "Unknown StartType!" << "\n";
       exit(-1);
    }
+   Input.EndofInputSection();
 }
 
 int NewtonPCSolution::AllSolutionsFound() const
