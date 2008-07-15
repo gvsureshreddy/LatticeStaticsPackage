@@ -13,12 +13,14 @@ class Lattice;
 
 class NewtonPCSolution : public SolutionMethod
 {
+public:
+   enum UpdateType {NoUpdate,QRUpdate,StiffnessUpdate,Exact};
 private:
    LatticeMode *Mode_;
    
    int Echo_;
    int CurrentSolution_;
-   int UpdateType_;             // 0-QR update (default), 1-Stiffness update, 2-none
+   UpdateType UpdateType_;             // 0-QR update (default), 1-Stiffness update, 2-none
    int NumSolutions_;
    
    double MaxDS_;
@@ -35,19 +37,19 @@ private:
    double accel_max_;           //Max acceleration rate
    
    Vector FirstSolution_;       //Initial point on curve
+   Vector PreviousSolution_;    //Previous point on curve
    Vector Tangent1_;            //Tangent vector of ith point
    Vector Tangent2_;            //Tangent Vector of ith + 1 point
    
    void GetQR(Vector const& Force,Vector const& diff,Matrix& Q,Matrix& R) const;
    void MoorePenrose(Matrix const& Q,Matrix const& R,Vector const& Force,Vector& Corrector)
       const;
-   void QRUpdate(Vector const& Force,Vector const& difference,Matrix& Q,Matrix& R)
+   void UpdateQR(Vector const& Force,Vector const& difference,Matrix& Q,Matrix& R)
       const;
    
 public:
-   Vector Previous_Solution_;
    NewtonPCSolution(LatticeMode* const Mode,Vector const& one,
-                    int const& CurrentSolution,int const& UpdateType,int const& NumSolutions,
+                    int const& CurrentSolution,UpdateType const& Type,int const& NumSolutions,
                     double const& MaxDS,double const& CurrentDS,double const& MinDS,
                     double const& cont_rate_max,double const& delta_max,double const& alpha_max,
                     double const& Converge,Vector const& FirstSolution,int const& Direction=1,

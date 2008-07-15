@@ -222,7 +222,7 @@ $ArcLenDSMax = 0.01;
                                                 LineEnd            => 1.10,
                                                 LineStep           => 0.05
                                                   },
-                   NewtonPCSolution         => {UpdateType       => QR, # Default value = QR; Stiffness, None
+                   NewtonPCSolution         => {UpdateType       => QRUpdate, # Default value = QRUpdate; NoUpdate, StiffnessUpdate, Exact
                                                 NumSolutions     => 1000,
                                                 MaxDS            => 0.01,
                                                 CurrentDS        => 0.001,
@@ -267,7 +267,6 @@ $ArcLenDSMax = 0.01;
 
 #%StartType = (Type      => Continuation,
 #              Solution1 => [1.000000000000, 1.000000000000],
-#              #Direction => 1 # Default taken from Lattice{Newton*PCSolution}
 #              );
 
 #%StartType = (Type  => ConsistencyCheck#,

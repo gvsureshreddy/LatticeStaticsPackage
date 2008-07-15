@@ -7,7 +7,7 @@ using namespace std;
 
 NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,
                                    Vector const& one,int const& CurrentSolution,
-                                   int const& UpdateType,int const& NumSolutions,
+                                   UpdateType const& Type,int const& NumSolutions,
                                    double const& MaxDS,double const& CurrentDS,
                                    double const& MinDS,double const& cont_rate_max,
                                    double const& delta_max,double const& alpha_max,
@@ -18,7 +18,7 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,
    : Mode_(Mode),
      Echo_(Echo),
      CurrentSolution_(CurrentSolution),
-     UpdateType_(UpdateType),
+     UpdateType_(Type),
      NumSolutions_(NumSolutions),
      MaxDS_(MaxDS),
      CurrentDS_(CurrentDS),
@@ -32,7 +32,8 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,
      Direction_(Direction),
      Omega_(1.0),
      accel_max_(accel_max),
-     FirstSolution_(FirstSolution)
+     FirstSolution_(FirstSolution),
+     PreviousSolution_(FirstSolution_.Dim())
 {
    if (cos(alpha_max_) <= 0.0)
    {
@@ -72,24 +73,29 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
    : Mode_(Mode),
      Echo_(Echo),
      CurrentSolution_(0),
-     Omega_(1.0)
+     Omega_(1.0),
+     PreviousSolution_(0)
 {
    // get needed parameters
    PerlInput::HashStruct Hash = Input.getHash("SolutionMethod","NewtonPCSolution");
    if (Input.ParameterOK(Hash,"UpdateType"))
    {
       const char* const updatetype=Input.getString(Hash,"UpdateType");
-      if (!strcmp("None",updatetype))
+      if (!strcmp("NoUpdate",updatetype))
       {
-         UpdateType_ = 2;
+         UpdateType_ = NoUpdate;
       }
-      else if (!strcmp("Stiffness",updatetype))
+      else if (!strcmp("QRUpdate",updatetype))
       {
-         UpdateType_ = 1;
+         UpdateType_ = QRUpdate;
       }
-      else if (!strcmp("QR",updatetype))
+      else if (!strcmp("StiffnessUpdate",updatetype))
       {
-         UpdateType_ = 0;
+         UpdateType_ = StiffnessUpdate;
+      }
+      else if (!strcmp("Exact",updatetype))
+      {
+         UpdateType_ = Exact;
       }
       else
       {
@@ -100,7 +106,7 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
    else
    {
       // default to QR
-      UpdateType_ = 0;
+      UpdateType_ = QRUpdate;
    }
    NumSolutions_ = Input.getPosInt(Hash,"NumSolutions");
    MaxDS_ = Input.getDouble(Hash,"MaxDS");
@@ -169,7 +175,7 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
    FirstSolution_ = one;
    Mode_->SetModeDOF(one);
 
-   Previous_Solution_.Resize(one.Dim());
+   PreviousSolution_.Resize(one.Dim());
    
    int count = (Mode_->ModeDOF()).Dim();
    int count_minus_one = count - 1;
@@ -211,17 +217,21 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
    if (Input.ParameterOK(Hash,"UpdateType"))
    {
       const char* const updatetype=Input.getString(Hash,"UpdateType");
-      if (!strcmp("None",updatetype))
+      if (!strcmp("NoUpdate",updatetype))
       {
-         UpdateType_ = 2;
+         UpdateType_ = NoUpdate;
       }
-      else if (!strcmp("Stiffness",updatetype))
+      else if (!strcmp("QRUpdate",updatetype))
       {
-         UpdateType_ = 1;
+         UpdateType_ = QRUpdate;
       }
-      else if (!strcmp("QR",updatetype))
+      else if (!strcmp("StiffnessUpdate",updatetype))
       {
-         UpdateType_ = 0;
+         UpdateType_ = StiffnessUpdate;
+      }
+      else if (!strcmp("Exact",updatetype))
+      {
+         UpdateType_ = Exact;
       }
       else
       {
@@ -232,8 +242,9 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
    else
    {
       // default to QR
-      UpdateType_ = 0;
+      UpdateType_ = QRUpdate;
    }
+   
    NumSolutions_ = Input.getPosInt(Hash,"NumSolutions");
    MaxDS_ = Input.getDouble(Hash,"MaxDS");
    CurrentDS_ = Input.getDouble(Hash,"CurrentDS");
@@ -316,7 +327,7 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
       // Get solution1
       int i;
       Vector one(count);
-      Previous_Solution_.Resize(count);
+      PreviousSolution_.Resize(count);
       Tangent1_.Resize(count);
       Tangent2_.Resize(count);
       
@@ -343,7 +354,7 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
       int i;
       Vector one(count);
       
-      Previous_Solution_.Resize(count);
+      PreviousSolution_.Resize(count);
       Tangent1_.Resize(count);
       Tangent2_.Resize(count);
       
@@ -402,7 +413,8 @@ int NewtonPCSolution::FindNextSolution()
    int count_minus_one = count -1;
    int good=0;
    int i, Converge_Test;
-   int iterations=0;
+   int predictions=1;
+   int corrections=0;
    double Kappa=0.0;
    double Magnitude1=0.0;
    double Magnitude2=0.0;
@@ -411,7 +423,7 @@ int NewtonPCSolution::FindNextSolution()
    double forcenorm;
    double const eta = 0.1;
    
-   Previous_Solution_ = Mode_->ModeDOF();
+   PreviousSolution_ = Mode_->ModeDOF();
    
    for(i=0;i<count;i++)
    {
@@ -420,6 +432,8 @@ int NewtonPCSolution::FindNextSolution()
    
    do
    {
+      corrections = 0;
+      
       if(CurrentDS_ < MinDS_)
       {
          cout << "Minimum StepSize (MinDS) violated. Exit Solver.\n";
@@ -431,7 +445,7 @@ int NewtonPCSolution::FindNextSolution()
       
       for (i=0;i<count;i++)
       {
-         v_static[i] = Previous_Solution_[i] + CurrentDS_*Omega_*Tangent1_[i];
+         v_static[i] = PreviousSolution_[i] + CurrentDS_*Omega_*Tangent1_[i];
       }
       cout << "Taking Predictor Step. CurrentDS = " << CurrentDS_;
       Mode_->SetModeDOF(v_static);
@@ -466,6 +480,7 @@ int NewtonPCSolution::FindNextSolution()
       Magnitude1 = Corrector_static.Norm();
       Magnitude2 = Magnitude1;
 
+      corrections++;
       cout << " \tForceNorm = " << forcenorm << " \tDeltaNorm = " << Magnitude1 << "\n";
       if (Magnitude1 > delta_max_)
       {
@@ -476,7 +491,6 @@ int NewtonPCSolution::FindNextSolution()
       
       //CORRECTOR LOOP STARTS HERE
       Converge_Test = 0;
-      iterations = 1;
       do
       {
          for (i=0;i<count;i++)
@@ -537,10 +551,11 @@ int NewtonPCSolution::FindNextSolution()
             MoorePenrose(Q_static,R_static, Force_static,Corrector_static);
          }
          
-         ++iterations;
+         ++corrections;
       }
       while (Converge_Test != 1);
-      cout << "Corrector Iterations: " << iterations << "\n";
+      cout << "Prediction " << predictions << " Corrector Iterations: " << corrections << "\n";
+      ++predictions;
    }
    while (f >= accel_max_);
    
@@ -577,20 +592,20 @@ int NewtonPCSolution::FindCriticalPoint(Lattice* const Lat,PerlInput const& Inpu
 {
    int TotalNumCPs=0;
    int NumCPs;
-   int sz=Previous_Solution_.Dim();
+   int sz=PreviousSolution_.Dim();
    Vector tmp_diff(sz),tmp_DOF(Mode_->ModeDOF());
    double tmp_ds=0.0;
    for (int i=0;i<sz;++i)
    {
-      tmp_ds += (Previous_Solution_[i]-tmp_DOF[i])*(Previous_Solution_[i]-tmp_DOF[i]);
+      tmp_ds += (PreviousSolution_[i]-tmp_DOF[i])*(PreviousSolution_[i]-tmp_DOF[i]);
    }
    tmp_ds = sqrt(tmp_ds);
    
-   //ArcLengthSolution S1(Mode_,Input,Previous_Solution_,Mode_->ModeDOF(),1);
+   //ArcLengthSolution S1(Mode_,Input,PreviousSolution_,Mode_->ModeDOF(),1);
    int MaxIter = 50;
    ArcLengthSolution S1(Mode_,Mode_->ModeDOF(),MaxIter,Converge_,Converge_,tmp_ds,
-                        tmp_ds,tmp_ds,1.0,0.5,1.0,1,0,Previous_Solution_,
-                        Mode_->ModeDOF()-Previous_Solution_,10,Echo_);
+                        tmp_ds,tmp_ds,1.0,0.5,1.0,1,0,PreviousSolution_,
+                        Mode_->ModeDOF()-PreviousSolution_,10,Echo_);
    NumCPs=S1.FindCriticalPoint(Lat,Input,Width,out);
    TotalNumCPs += NumCPs;
    
@@ -645,10 +660,12 @@ void NewtonPCSolution::GetQR(Vector const& Force,Vector const& diff,Matrix& Q,Ma
 
    switch (UpdateType_)
    {
-      case 0:
-         QRUpdate(Force,diff,Q,R);
+      case NoUpdate:
          break;
-      case 1:
+      case QRUpdate:
+         UpdateQR(Force,diff,Q,R);
+         break;
+      case StiffnessUpdate:
          for(i=0;i<count;i++)
          {
             temp = temp + (diff[i] * diff[i]);
@@ -664,7 +681,7 @@ void NewtonPCSolution::GetQR(Vector const& Force,Vector const& diff,Matrix& Q,Ma
          
          QR(Stiff_static, Q, R, 1);
          break;
-      case 2:
+      case Exact:
          QR(Mode_->ModeStiffness(),Q,R,1);
          break;
       default:
@@ -674,7 +691,7 @@ void NewtonPCSolution::GetQR(Vector const& Force,Vector const& diff,Matrix& Q,Ma
    }
 }
 
-void NewtonPCSolution::QRUpdate(Vector const& Force,Vector const& difference,Matrix& QBar,
+void NewtonPCSolution::UpdateQR(Vector const& Force,Vector const& difference,Matrix& QBar,
                                 Matrix& RBar) const
 {
    int count(Force.Dim());
