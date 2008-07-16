@@ -390,8 +390,6 @@ int ArcLengthSolution::FindNextSolution()
    
    do
    {
-      if (Echo_) cout << "DS= " << CurrentDS_ << "\n";
-      
       ArcLengthNewton(good);
       
       AngleTest = ArcLenAngle(OldDiff,Difference_,Aspect_);
@@ -409,7 +407,6 @@ int ArcLengthSolution::FindNextSolution()
    {
       CurrentDS_ *= 2.0;
       if (CurrentDS_ > DSMax_) CurrentDS_ = DSMax_;
-      if (Echo_) cout << "DS= " << CurrentDS_ << "\n";
    }
    
    if (!good)
@@ -441,25 +438,47 @@ void ArcLengthSolution::ArcLengthNewton(int& good)
 {
    int itr = 0;
    int Dim=ArcLenDef().Dim();
+   double ForceNorm = 0.0;
+   double Magnitude1 = 0.0;
+   double Magnitude2 = 0.0;
+   double Kappa = 0.0;
+   double const eta = 0.1;
    
    Vector Dx(Dim),
       RHS(Dim);
    Matrix stif(Dim,Dim);
    
    // Predictor step
+   if (Echo_) cout << "Taking Predictor Step. CurrentDS = " << CurrentDS_ << "\n";
    ArcLenUpdate(Difference_);
    
    // Iterate until convergence
-   if (Echo_) cout << setiosflags(ios::scientific)
-                   << "ArcLenNewton: Number of Iterations --\n";
-   
+
+   itr++;
    RHS = -ArcLenForce(CurrentDS_,Difference_,Aspect_);
+   ForceNorm = RHS.Norm();
    stif=ArcLenStiffness(Difference_,Aspect_);
-   
+#ifdef SOLVE_SVD
+   Dx = SolveSVD(
+      stif,
+      RHS,MAXCONDITION,Echo_);
+#else
+   Dx = SolvePLU(stif,RHS);
+#endif
+   Magnitude1 = Dx.Norm();
+   Magnitude2 = Magnitude1;
+
+   if (Echo_) cout << "\tForceNorm = " << ForceNorm << " \tDeltaNorm = " << Magnitude2 << "\n";
+
    do
    {
       itr++;
-      
+
+      ArcLenUpdate(Dx);
+      Difference_ += Dx;
+      RHS = -ArcLenForce(CurrentDS_,Difference_,Aspect_);
+      ForceNorm = RHS.Norm();
+      stif=ArcLenStiffness(Difference_,Aspect_);
 #ifdef SOLVE_SVD
       Dx = SolveSVD(
          stif,
@@ -467,22 +486,15 @@ void ArcLengthSolution::ArcLengthNewton(int& good)
 #else
       Dx = SolvePLU(stif,RHS);
 #endif
+      Magnitude2 = Dx.Norm();
+      Kappa = Magnitude2/(Magnitude1+Tolerance_*eta);
+      Magnitude1 = Magnitude2;
       
-      ArcLenUpdate(Dx);
-      Difference_ += Dx;
-      RHS = -ArcLenForce(CurrentDS_,Difference_,Aspect_);
-      stif=ArcLenStiffness(Difference_,Aspect_);
-      
-      if (Echo_) cout << itr << "("
-                      << setw(20) << RHS.Norm() << ","
-                      << setw(20) << Dx.Norm()  << "), ";
-#ifdef SOLVE_SVD
-      if (Echo_) cout << "\n";
-#endif
+      if (Echo_) cout << "\tForceNorm = " << ForceNorm
+                      << " \tDeltaNorm = " << Magnitude2
+                      << " \tContraction = " << Kappa << "\n";
    }
    while ((itr < MaxIter_) && ((RHS.Norm() > Tolerance_) || (Dx.Norm() > Tolerance_)));
-   
-   if (Echo_) cout << resetiosflags(ios::scientific) << "\n";
    
    if (itr >= MaxIter_)
    {
@@ -491,6 +503,7 @@ void ArcLengthSolution::ArcLengthNewton(int& good)
    }
    else
    {
+      if (Echo_) cout << "Prediction 1 Corrector Iterations: " << itr << "\n";
       good = 1;
    }
 }

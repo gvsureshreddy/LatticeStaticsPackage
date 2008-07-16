@@ -462,6 +462,9 @@ int NewtonPCSolution::FindNextSolution()
       {
          f = accel_max_;
          CurrentDS_ /= f;
+         cout << "Prediction " << predictions << " Corrector Iterations: "
+              << corrections << "\n";
+         ++predictions;
          continue;
       }
 
@@ -476,6 +479,9 @@ int NewtonPCSolution::FindNextSolution()
       {
          f = accel_max_;
          CurrentDS_ /= f;
+         cout << "Prediction " << predictions << " Corrector Iterations: "
+              << corrections << "\n";
+         ++predictions;
          continue;
       }
       
@@ -509,7 +515,7 @@ int NewtonPCSolution::FindNextSolution()
          f = max(f,sqrt(Magnitude2/delta_max_)*accel_max_);
 
          Kappa = Magnitude2/(Magnitude1+Converge_*eta);
-         cout << " \tContraction = " << Kappa << "\n";
+         cout << " \tContraction = " << Kappa;
          if (Kappa > cont_rate_max_)
          {
             f = accel_max_;
@@ -517,6 +523,7 @@ int NewtonPCSolution::FindNextSolution()
             break;
          }
          f = max(f,sqrt(Kappa/cont_rate_max_)*accel_max_);
+         cout << " \tAcceleration = " << 1.0/f << "\n";
          Magnitude1=Magnitude2;
          
          // accpet iteration
