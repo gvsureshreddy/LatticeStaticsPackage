@@ -65,7 +65,7 @@ int main(int argc,char *argv[])
    {
       FILE* pipe;
       char format[]=
-         {"perl -e '$_=<>;while(! m/^Mode:/){$_=<>;}while(<>){if(/^Temperature/){"\
+         {"perl -e '$_=<>;while(! m/^Restriction:/){$_=<>;}while(<>){if(/^Temperature/){"\
           "@fld=split(/:/,$_);print $fld[1];}if(/^DOF/){$_=<>;print $_;}}print"\
           "\"DONE\\n\";' %s"};
       

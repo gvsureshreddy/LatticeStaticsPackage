@@ -142,7 +142,7 @@ sub loaddata {
 
 	$bifflag=0;
 	$_ = <DATA>;
-	while (! m/^Mode:/)
+	while (! m/^Restriction:/)
 	{
 	  if (/^Input File: *LoadingParameter/)
 	  {

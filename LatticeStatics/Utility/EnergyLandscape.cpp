@@ -1,5 +1,5 @@
 #include "KnownLattices.h"
-#include "KnownModes.h"
+#include "KnownRestrictions.h"
 #include "PerlInput.h"
 #include <fstream>
 
@@ -30,7 +30,7 @@ int main(int argc,char *argv[])
 
    PerlInput Input(datafile);
    
-   LatticeMode *Mode;
+   Restriction *Restrict;
    
    int Width,Precision,Echo;
    
@@ -41,7 +41,7 @@ int main(int argc,char *argv[])
    fstream out;
    InitializeOutputFile(out,outputfile,datafile,argc,Lat,Precision,Width,Echo);
    
-   Mode = InitializeMode(Lat,Input);
+   Restrict = InitializeRestriction(Lat,Input);
    
    int NoDims;
    NoDims = Input.getPosInt("EnergyLandscape","Directions");
@@ -52,11 +52,11 @@ int main(int argc,char *argv[])
    
    Vector* const Corners = new Vector[NoDims+1];
    
-   Corners[0].Resize(Mode->ModeDOF().Dim());
+   Corners[0].Resize(Restrict->DOF().Dim());
    Input.getVector(Corners[0],"EnergyLandscape","Origin");
    for (int i=1;i<=NoDims;++i)
    {
-      Corners[i].Resize(Mode->ModeDOF().Dim());
+      Corners[i].Resize(Restrict->DOF().Dim());
       sprintf(tmp,"Corner_%u",i);
       Input.getVector(Corners[i],"EnergyLandscape",tmp);
    }
@@ -72,17 +72,17 @@ int main(int argc,char *argv[])
    int* const counter = new int[NoDims+1];
    for (int i=0;i<=NoDims;++i) counter[i]=0;
    
-   Vector state(Mode->ModeDOF().Dim());
+   Vector state(Restrict->DOF().Dim());
    int i;
    do
    {
       state=Corners[0];
       for (i=0;i<NoDims;++i) state += counter[i]*Directions[i];
       //cout << setw(Width) << state << "\n";
-      Mode->SetModeDOF(state);
+      Restrict->SetDOF(state);
       
       for (i=0;i<NoDims;++i) out << setw(Width) << counter[i];
-      out << setw(Width) << Mode->ModeEnergy() << "\n";
+      out << setw(Width) << Restrict->Energy() << "\n";
       
       ++(counter[0]);
       i=0;
@@ -100,7 +100,7 @@ int main(int argc,char *argv[])
    delete [] Directions;
    delete [] counter;
    
-   delete Mode;
+   delete Restrict;
    delete Lat;
    
    out.close();

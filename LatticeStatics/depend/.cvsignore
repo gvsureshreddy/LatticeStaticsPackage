@@ -1,13 +1,13 @@
 ArcLengthSolution.d
 KnownLattices.d
-KnownModes.d
+KnownRestrictions.d
 KnownPairPotentials.d
 KnownSolutionMethods.d
 Lattice.d
 LatticeStatics.d
 LJ.d
 MultiLatticeTPP.d
-MultiMode.d
+RestrictToSubSpaceOld.d
 PPSum.d
 RadiiMorse.d
 ScanningSolution.d

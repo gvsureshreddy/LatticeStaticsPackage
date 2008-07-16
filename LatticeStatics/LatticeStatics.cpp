@@ -1,6 +1,6 @@
 #include "PerlInput.h"
 #include "KnownLattices.h"
-#include "KnownModes.h"
+#include "KnownRestrictions.h"
 #include "KnownSolutionMethods.h"
 #include "ScanningSolution.h"
 #include "ArcLengthSolution.h"
@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
    }
    
    Lattice *Lat;
-   LatticeMode *Mode;
+   Restriction *Restrict;
    SolutionMethod *SolveMe;
    
    int Width,Precision,Echo;
@@ -70,12 +70,12 @@ int main(int argc, char *argv[])
    Lat = InitializeLattice(Input,Echo,Width,Debug);
    Lat->Print(out,Lattice::PrintLong);
    
-   Mode = InitializeMode(Lat,Input);
+   Restrict = InitializeRestriction(Lat,Input);
 
-   out << "Mode: " << Mode->ModeName() << "\n";
-   if (Echo) cout << "Mode: " << Mode->ModeName() << "\n";
+   out << "Restriction: " << Restrict->Name() << "\n";
+   if (Echo) cout << "Restriction: " << Restrict->Name() << "\n";
    
-   SolveMe = InitializeSolution(Mode,Input,Lat,out,Width,Echo);
+   SolveMe = InitializeSolution(Restrict,Input,Lat,out,Width,Echo);
 
    int success = 1;
    int TestValue=-1,
@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
    
    out.close();
    delete SolveMe;
-   delete Mode;
+   delete Restrict;
    delete Lat;
    
    return 0;

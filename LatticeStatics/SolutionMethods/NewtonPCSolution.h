@@ -3,7 +3,7 @@
 
 #include "PerlInput.h"
 #include "SolutionMethod.h"
-#include "LatticeMode.h"
+#include "Restriction.h"
 
 using namespace std;
 
@@ -16,7 +16,7 @@ class NewtonPCSolution : public SolutionMethod
 public:
    enum UpdateType {NoUpdate,QRUpdate,StiffnessUpdate,Exact};
 private:
-   LatticeMode *Mode_;
+   Restriction *Restrict_;
    
    int Echo_;
    int CurrentSolution_;
@@ -48,16 +48,16 @@ private:
       const;
    
 public:
-   NewtonPCSolution(LatticeMode* const Mode,Vector const& one,
+   NewtonPCSolution(Restriction* const Restrict,Vector const& one,
                     int const& CurrentSolution,UpdateType const& Type,int const& NumSolutions,
                     double const& MaxDS,double const& CurrentDS,double const& MinDS,
                     double const& cont_rate_max,double const& delta_max,double const& alpha_max,
                     double const& Converge,Vector const& FirstSolution,int const& Direction=1,
                     double const& accel_max=2.0,int const& ClosedLoopStart=CLOSEDDEFAULT,
                     int const& StopAtCPNum=-1,int const& Echo=1);
-   NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Input,Vector const& one,
+   NewtonPCSolution(Restriction* const Restrict,PerlInput const& Input,Vector const& one,
                     int const& Echo=1);
-   NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Input,int const& Echo);
+   NewtonPCSolution(Restriction* const Restrict,PerlInput const& Input,int const& Echo);
    ~NewtonPCSolution() {}
    
    // Functions required by SolutionMethod

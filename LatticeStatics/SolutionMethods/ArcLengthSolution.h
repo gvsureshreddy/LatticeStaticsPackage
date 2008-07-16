@@ -3,7 +3,7 @@
 
 #include "PerlInput.h"
 #include "SolutionMethod.h"
-#include "LatticeMode.h"
+#include "Restriction.h"
 
 using namespace std;
 
@@ -15,8 +15,8 @@ class ArcLengthSolution : public SolutionMethod
 {
 private:
    int Echo_;
-   LatticeMode *Mode_;
-   int ModeDOFS_;
+   Restriction *Restrict_;
+   int DOFS_;
    int MaxIter_;
    double Tolerance_;
    double BisectTolerance_;
@@ -47,14 +47,14 @@ private:
                double const& OriginalDS,double& fa,double& fb,Vector& CurrentTF);
    
    Vector const& ArcLenForce(double const& DS,Vector const& Diff,double const& Aspect) const;
-   Vector ArcLenDef() const {return Mode_->ModeDOF();}
-   void ArcLenSet(Vector const& val) {Mode_->SetModeDOF(val);}
-   void ArcLenUpdate(Vector const& newval) {Mode_->UpdateModeDOF(newval);}
+   Vector ArcLenDef() const {return Restrict_->DOF();}
+   void ArcLenSet(Vector const& val) {Restrict_->SetDOF(val);}
+   void ArcLenUpdate(Vector const& newval) {Restrict_->UpdateDOF(newval);}
    double ArcLenAngle(Vector const& Old,Vector const& New,double const& Aspect) const;
    Matrix const& ArcLenStiffness(Vector const& Diff,double const& Aspect) const;
    
 public:
-   ArcLengthSolution(LatticeMode* const Mode,Vector const& dofs,
+   ArcLengthSolution(Restriction* const Restrict,Vector const& dofs,
                      int const& MaxIter,double const& Tolerance,double const& BisectTolerance,
                      double const& DSMax,double const& DSMin,double const& CurrentDS,
                      double const& AngleCutoff,double const& AngleIncrease,
@@ -62,9 +62,9 @@ public:
                      Vector const& FirstSolution,Vector const& Difference,
                      int const& ClosedLoopStart=CLOSEDDEFAULT,int const& StopAtCPNum=-1,
                      int const& Echo=1);
-   ArcLengthSolution(LatticeMode* const Mode,PerlInput const& Input,
+   ArcLengthSolution(Restriction* const Restrict,PerlInput const& Input,
                      Vector const& one,Vector const& two,int const& Echo=1);
-   ArcLengthSolution(LatticeMode* const Mode,PerlInput const& Input,int const Echo=1);
+   ArcLengthSolution(Restriction* const Restrict,PerlInput const& Input,int const Echo=1);
    ~ArcLengthSolution() {}
    
    // Functions required by SolutionMethod
@@ -80,7 +80,7 @@ private:
    mutable Vector mdfc_static;
    // ArcLenStiffness
    mutable Matrix K_static;
-   mutable Matrix ModeK_static;
+   mutable Matrix RestrictK_static;
    // FindCriticalPoint
    mutable Vector TF_LHS_static;
    mutable Vector TF_RHS_static;

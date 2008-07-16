@@ -3,7 +3,7 @@
 
 #include "PerlInput.h"
 #include "SolutionMethod.h"
-#include "LatticeMode.h"
+#include "Restriction.h"
 
 using namespace std;
 
@@ -13,9 +13,9 @@ class ScanningSolution : public SolutionMethod
 {
 private:
    int Echo_;
-   LatticeMode *Mode_;
-   int ModeDOFS_;
-   Vector ModeDOF_;
+   Restriction *Restrict_;
+   int DOFS_;
+   Vector DOF_;
    int MaxIter_;
    double Tolerance_;
    double NewtonTolerance_;
@@ -57,8 +57,8 @@ private:
    virtual Matrix const& ScanningStiffness() const;
    
 public:
-   ScanningSolution(LatticeMode* const Mode,PerlInput const& Input,int const& Echo=1);
-   ScanningSolution(LatticeMode* const Mode,
+   ScanningSolution(Restriction* const Restrict,PerlInput const& Input,int const& Echo=1);
+   ScanningSolution(Restriction* const Restrict,
                     int const& MaxIter,double const& Tolerance,double const& NewtonTolerance,
                     YN const& ScanFullField,Vector const& InitialDef,int const& ScnDefParam,
                     ScanDir const& Direction,double const& ScanStart,double const& ScanEnd,
@@ -81,7 +81,7 @@ private:
    mutable Vector stress_static;
    mutable Vector force_static;
    // ScanningStiffness
-   mutable Matrix ModeK_static;
+   mutable Matrix RestrictK_static;
    mutable Matrix K_static;
 };
 

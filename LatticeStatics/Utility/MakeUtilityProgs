@@ -51,12 +51,12 @@ LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(LIBS_PERL)
 BIN_LOC    = ${HOME}/bin
 INCL_LOC   = ${HOME}/include
 LIB_LOC    = ${HOME}/lib
-SUBDIRS = ../Lattices ../Modes ../Potentials
+SUBDIRS = ../Lattices ../Restrictions ../Potentials
 #
 # Defines the source files needed #########################################
 include Makefile
 include ../Lattices/Makefile
-include ../Modes/Makefile
+include ../Restrictions/Makefile
 include ../Potentials/Makefile
 
 BSCSOURCES  = $(addprefix ./,$(UTILITY))
@@ -171,7 +171,7 @@ PrintPotentials:      $(PRINTPOTSOBJECTS) $(BSCOBJECTS) \
 # Defines the Program Target (linking command) ############################
 EnergyLandscape:      $(ENERGYLANDOBJECTS) $(BSCOBJECTS) \
 		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
-		      $(addprefix ../lib/,$(MODES:$(SRC_EXT)=$(OBJ_EXT))) \
+		      $(addprefix ../lib/,$(RESTRICTIONS:$(SRC_EXT)=$(OBJ_EXT))) \
 		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT)))
 		      $(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/builddate.o -c builddate.cpp
 		      $(PURE) $(CC) $(LFLAGS) \
@@ -179,7 +179,7 @@ EnergyLandscape:      $(ENERGYLANDOBJECTS) $(BSCOBJECTS) \
 		      $(addprefix lib/,$(ENERGYLANDOBJECTS)) \
 		      $(addprefix lib/,$(BSCOBJECTS)) \
 		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
-		      $(addprefix ../lib/,$(MODES:$(SRC_EXT)=$(OBJ_EXT))) \
+		      $(addprefix ../lib/,$(RESTRICTIONS:$(SRC_EXT)=$(OBJ_EXT))) \
 		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT))) \
 		      $(LIBS) ./lib/builddate.o
 		      /bin/rm -f ./lib/builddate.o

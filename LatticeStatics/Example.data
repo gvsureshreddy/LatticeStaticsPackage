@@ -179,16 +179,16 @@ $Rtheta1_1_1 = 0.275914376289;
                               }
             );
 
-# Mode Parameters
-%Mode = (Type      => MultiMode,
-         MultiMode => {DOFS                  => 1,
-                       DOF_0                 => [[0, 4, 8],
-                                                 [1.0, 1.0, 1.0]]#,
-                       #Baseline_DOFS        => 1, # Default value = 0
-                       #Baseline_DOF_Index_0 => 0,
-                       #Baseline_DOF_Value_0 => 0.0
-                         }
-         );
+# Restriction Parameters
+%Restriction = (Type        => RestrictToSubSpaceOld,
+                RestrictToSubSpaceOld => {DOFS                  => 1,
+                                          DOF_0                 => [[0, 4, 8],
+                                                                    [1.0, 1.0, 1.0]]#,
+                                          #Baseline_DOFS         => 1, # Default value = 0
+                                          #Baseline_DOF_Index_0  => 0,
+                                          #Baseline_DOF_Value_0  => 0.0
+                                        }
+                );
 
 
 
@@ -224,11 +224,11 @@ $ArcLenDSMax = 0.01;
                                                   },
                    NewtonPCSolution         => {UpdateType       => QRUpdate, # Default value = QRUpdate; NoUpdate, StiffnessUpdate, Exact
                                                 NumSolutions     => 1000,
-                                                MaxDS            => 0.01,
+                                                MaxDS            => 0.1,
                                                 CurrentDS        => 0.001,
                                                 MinDS            => 1e-12,
-                                                Contraction      => 0.001,
-                                                Distance         => 0.001,
+                                                Contraction      => 0.1,
+                                                Distance         => 0.01,
                                                 Angle            => 60*$DEG2RAD,
                                                 ConvergeCriteria => 1e-13#,
                                                 #ClosedLoopStart  => 30, # Default value = 30

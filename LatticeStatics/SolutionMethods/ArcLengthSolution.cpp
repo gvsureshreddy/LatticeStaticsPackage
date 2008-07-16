@@ -7,7 +7,7 @@ using namespace std;
 
 #define ARCLENEPS 1.0e-15
 
-ArcLengthSolution::ArcLengthSolution(LatticeMode* const Mode,Vector const& dofs,
+ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,Vector const& dofs,
                                      int const& MaxIter,double const& Tolerance,
                                      double const& BisectTolerance,double const& DSMax,
                                      double const& DSMin,double const& CurrentDS,
@@ -17,8 +17,8 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode* const Mode,Vector const& dofs,
                                      Vector const& Difference,int const& ClosedLoopStart,
                                      int const& StopAtCPNum,int const& Echo)
    : Echo_(Echo),
-     Mode_(Mode),
-     ModeDOFS_(Mode_->ModeDOF().Dim()),
+     Restrict_(Restrict),
+     DOFS_(Restrict_->DOF().Dim()),
      MaxIter_(MaxIter),
      Tolerance_(Tolerance),
      BisectTolerance_(BisectTolerance),
@@ -35,28 +35,28 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode* const Mode,Vector const& dofs,
      StopAtCPNum_(StopAtCPNum),
      TotalNumCPs_(0),
      Difference_(Difference),
-     force_static(ModeDOFS_),
-     mdfc_static(ModeDOFS_-1),
-     K_static(ModeDOFS_,ModeDOFS_),
-     ModeK_static(ModeDOFS_-1,ModeDOFS_)
+     force_static(DOFS_),
+     mdfc_static(DOFS_-1),
+     K_static(DOFS_,DOFS_),
+     RestrictK_static(DOFS_-1,DOFS_)
 {
    ArcLenSet(dofs);
 }
 
-ArcLengthSolution::ArcLengthSolution(LatticeMode* const Mode,PerlInput const& Input,
+ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const& Input,
                                      Vector const& one,Vector const& two,int const& Echo)
    : Echo_(Echo),
-     Mode_(Mode),
+     Restrict_(Restrict),
      CurrentSolution_(0),
      TotalNumCPs_(0),
      Difference_(two-one)
 {
-   ModeDOFS_=Mode_->ModeDOF().Dim();
+   DOFS_=Restrict_->DOF().Dim();
    // initialize "static" members variables
-   force_static.Resize(ModeDOFS_);
-   mdfc_static.Resize(ModeDOFS_-1);
-   K_static.Resize(ModeDOFS_,ModeDOFS_);
-   ModeK_static.Resize(ModeDOFS_-1,ModeDOFS_);
+   force_static.Resize(DOFS_);
+   mdfc_static.Resize(DOFS_-1);
+   K_static.Resize(DOFS_,DOFS_);
+   RestrictK_static.Resize(DOFS_-1,DOFS_);
 
    
    PerlInput::HashStruct Hash = Input.getHash("SolutionMethod","ArcLengthSolution");
@@ -96,19 +96,19 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode* const Mode,PerlInput const& In
    ArcLenSet(two);
 }
 
-ArcLengthSolution::ArcLengthSolution(LatticeMode* const Mode,PerlInput const& Input,
+ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const& Input,
                                      int const Echo)
    :  Echo_(Echo),
-      Mode_(Mode),
+      Restrict_(Restrict),
       CurrentSolution_(0),
       TotalNumCPs_(0)
 {
-   ModeDOFS_=Mode_->ModeDOF().Dim();
+   DOFS_=Restrict_->DOF().Dim();
    // initialize "static" memver variables
-   force_static.Resize(ModeDOFS_);
-   mdfc_static.Resize(ModeDOFS_-1);
-   K_static.Resize(ModeDOFS_,ModeDOFS_);
-   ModeK_static.Resize(ModeDOFS_-1,ModeDOFS_);
+   force_static.Resize(DOFS_);
+   mdfc_static.Resize(DOFS_-1);
+   K_static.Resize(DOFS_,DOFS_);
+   RestrictK_static.Resize(DOFS_-1,DOFS_);
 
    PerlInput::HashStruct Hash = Input.getHash("SolutionMethod","ArcLengthSolution");
    MaxIter_ = Input.getPosInt(Hash,"MaxIterations");
@@ -223,13 +223,13 @@ ArcLengthSolution::ArcLengthSolution(LatticeMode* const Mode,PerlInput const& In
 Vector const& ArcLengthSolution::ArcLenForce(double const& DS,Vector const& Diff,
                                              double const& Aspect) const
 {
-   mdfc_static = Mode_->ModeForce();
+   mdfc_static = Restrict_->Force();
    
-   force_static[ModeDOFS_-1] = DS*DS - Diff[ModeDOFS_-1]*Diff[ModeDOFS_-1]/(Aspect*Aspect);
-   for (int i=0;i<ModeDOFS_-1;++i)
+   force_static[DOFS_-1] = DS*DS - Diff[DOFS_-1]*Diff[DOFS_-1]/(Aspect*Aspect);
+   for (int i=0;i<DOFS_-1;++i)
    {
       force_static[i] = mdfc_static[i];
-      force_static[ModeDOFS_-1] -= Diff[i]*Diff[i];
+      force_static[DOFS_-1] -= Diff[i]*Diff[i];
    }
    
    return force_static;
@@ -238,17 +238,17 @@ Vector const& ArcLengthSolution::ArcLenForce(double const& DS,Vector const& Diff
 Matrix const& ArcLengthSolution::ArcLenStiffness(Vector const& Diff,double const& Aspect)
    const
 {
-   ModeK_static = Mode_->ModeStiffness();
+   RestrictK_static = Restrict_->Stiffness();
    
-   for (int i=0;i<ModeDOFS_-1;++i)
+   for (int i=0;i<DOFS_-1;++i)
    {
-      for (int j=0;j<=ModeDOFS_-1;++j)
+      for (int j=0;j<=DOFS_-1;++j)
       {
-         K_static[i][j] = ModeK_static[i][j];
+         K_static[i][j] = RestrictK_static[i][j];
       }
-      K_static[ModeDOFS_-1][i] = -2.0*Diff[i];
+      K_static[DOFS_-1][i] = -2.0*Diff[i];
    }
-   K_static[ModeDOFS_-1][ModeDOFS_-1] = -2.0*Diff[ModeDOFS_-1]/(Aspect*Aspect);
+   K_static[DOFS_-1][DOFS_-1] = -2.0*Diff[DOFS_-1]/(Aspect*Aspect);
    
    return K_static;
 }
@@ -260,16 +260,16 @@ double ArcLengthSolution::ArcLenAngle(Vector const& Old,Vector const& New,double
    double NewNorm = 0.0;
    double OldNorm = 0.0;
 
-   for (int i=0;i<ModeDOFS_-1;++i)
+   for (int i=0;i<DOFS_-1;++i)
    {
       angle += Old[i]*New[i];
       NewNorm += New[i]*New[i];
       OldNorm += Old[i]*Old[i];
    }
 
-   angle += Old[ModeDOFS_-1]*New[ModeDOFS_-1]/(Aspect*Aspect);
-   NewNorm += New[ModeDOFS_-1]*New[ModeDOFS_-1]/(Aspect*Aspect);
-   OldNorm += Old[ModeDOFS_-1]*Old[ModeDOFS_-1]/(Aspect*Aspect);
+   angle += Old[DOFS_-1]*New[DOFS_-1]/(Aspect*Aspect);
+   NewNorm += New[DOFS_-1]*New[DOFS_-1]/(Aspect*Aspect);
+   OldNorm += Old[DOFS_-1]*Old[DOFS_-1]/(Aspect*Aspect);
    NewNorm = sqrt(NewNorm);
    OldNorm = sqrt(OldNorm);
    
@@ -325,7 +325,7 @@ void ArcLengthSolution::ConsistencyCheck(Vector const& Solution1,Vector const& S
       // Get RHS
       Difference_ = Solution2 - Solution1;
       ArcLenSet(Solution2 + Difference_);
-      potential = Mode_->ModeEnergy();
+      potential = Restrict_->Energy();
       RHS = ArcLenForce(ConsistencyEpsilon,Difference_,1.0);
       
       // Perturb the lattice state
@@ -334,7 +334,7 @@ void ArcLengthSolution::ConsistencyCheck(Vector const& Solution1,Vector const& S
       Difference_ = Solution2 - Solution1 + ConsistencyEpsilon*pert;
       ArcLenSet(Solution2 + Difference_);
       // Get Check
-      potential = Mode_->ModeEnergy() - potential;
+      potential = Restrict_->Energy() - potential;
       // fix-up the arclength equation part of PerturbedForce
       if (i == RHS.Dim()-1) potential = ConsistencyEpsilon*RHS[i];
       PerturbedForce[i] = potential;
@@ -526,8 +526,8 @@ int ArcLengthSolution::OldFindCriticalPoint(int const& LHN,double const& LHEV,in
    
    Delta_DS = CurrentDS_;
    
-   Vector Original_DOF((Mode_->ModeDOF()).Dim(),0);
-   Original_DOF = Mode_->ModeDOF();
+   Vector Original_DOF((Restrict_->DOF()).Dim(),0);
+   Original_DOF = Restrict_->DOF();
    
    if (Echo_) cout << "LHN = " << LHN << "\n" << "RHN = " << RHN << "\n";
    
@@ -588,7 +588,7 @@ int ArcLengthSolution::OldFindCriticalPoint(int const& LHN,double const& LHEV,in
    // Call Lattice function to do any Lattice Specific things
    //  abs(RighthandNulity - LefthandNulity) is the number of zero eigenvalues
    //  in a perfect situation. should check to see if this is found to be true.
-   Lat->CriticalPointInfo(Mode_->DrDt(Difference_),abs(RighthandTestValue-LefthandTestValue),
+   Lat->CriticalPointInfo(Restrict_->DrDt(Difference_),abs(RighthandTestValue-LefthandTestValue),
                           BisectTolerance_,Width,out);
    
    if (Echo_) cout << "Success = 1" << "\n";
@@ -730,7 +730,7 @@ int ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,PerlInput const& Inp
          in_string << "\n";
          
          // Call Lattice function to do any Lattice Specific things
-         Lat->CriticalPointInfo(Mode_->DrDt(Difference_),Multiplicity,
+         Lat->CriticalPointInfo(Restrict_->DrDt(Difference_),Multiplicity,
                                 10.0*Tolerance_,Width,in_string);
          
          if (Echo_) cout << "Success = 1" << "\n";

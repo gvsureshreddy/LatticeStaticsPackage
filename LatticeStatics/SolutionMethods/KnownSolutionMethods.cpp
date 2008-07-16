@@ -1,6 +1,6 @@
 #include "KnownSolutionMethods.h"
 
-SolutionMethod* InitializeSolution(LatticeMode* const Mode,PerlInput const& Input,
+SolutionMethod* InitializeSolution(Restriction* const Restrict,PerlInput const& Input,
                                    Lattice* const Lat,fstream& out,int const& Width,
                                    int const& Echo)
 {
@@ -24,22 +24,22 @@ SolutionMethod* InitializeSolution(LatticeMode* const Mode,PerlInput const& Inpu
    {
       case Scanning:
       {
-         return new ScanningSolution(Mode,Input,Echo);
+         return new ScanningSolution(Restrict,Input,Echo);
       }
       case ArcLen:
       {
          int good = 1;
          int count = 0;
-         Vector One = Mode->ModeDOF(),
-            Two = Mode->ModeDOF();
+         Vector One = Restrict->DOF(),
+            Two = Restrict->DOF();
 
          if (Input.HashOK("StartType"))
          {
-            return new ArcLengthSolution(Mode,Input,Echo);
+            return new ArcLengthSolution(Restrict,Input,Echo);
          }
          else
          {
-            ScanningSolution ScanMe(Mode,Input,Echo);
+            ScanningSolution ScanMe(Restrict,Input,Echo);
 
             while (!ScanMe.AllSolutionsFound())
             {
@@ -49,7 +49,7 @@ SolutionMethod* InitializeSolution(LatticeMode* const Mode,PerlInput const& Inpu
                {
                   count++;
                   out << setw(Width) << *Lat << "Success = 1" << "\n";
-                  Two = Mode->ModeDOF();
+                  Two = Restrict->DOF();
                }
             }
             
@@ -61,7 +61,7 @@ SolutionMethod* InitializeSolution(LatticeMode* const Mode,PerlInput const& Inpu
             }
             else
             {
-               return new ArcLengthSolution(Mode,Input,One,Two,Echo);
+               return new ArcLengthSolution(Restrict,Input,One,Two,Echo);
             }
          }
       }
@@ -69,22 +69,22 @@ SolutionMethod* InitializeSolution(LatticeMode* const Mode,PerlInput const& Inpu
       {
          int good=1;
          int count=0;
-         Vector One(Mode->ModeDOF().Dim());
+         Vector One(Restrict->DOF().Dim());
          if (Input.HashOK("StartType"))
          {
-            return new NewtonPCSolution(Mode,Input,Echo);
+            return new NewtonPCSolution(Restrict,Input,Echo);
          }
          else
          {
-            ScanningSolution ScanMe(Mode,Input,Echo);
+            ScanningSolution ScanMe(Restrict,Input,Echo);
 
             good = ScanMe.FindNextSolution();
             if (good)
             {
                count++;
                out << setw(Width) << *Lat << "Success = 1" << "\n";
-               One = Mode->ModeDOF();
-               return new NewtonPCSolution(Mode,Input,One,Echo);
+               One = Restrict->DOF();
+               return new NewtonPCSolution(Restrict,Input,One,Echo);
             }
          }
       }

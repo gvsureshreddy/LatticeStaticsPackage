@@ -1,7 +1,7 @@
 #**************************************************************************
 #**************************************************************************
 
-VPATH = bin lib depend Lattices Modes SolutionMethods Potentials Utility
+VPATH = bin lib depend Lattices Restrictions SolutionMethods Potentials Utility
 
 UNAME      = $(shell uname)
 
@@ -51,13 +51,13 @@ LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(DATE_DEF) $(LIBS_PERL)
 BIN_LOC    = ${HOME}/bin
 INCL_LOC   = ${HOME}/include
 LIB_LOC    = ${HOME}/lib
-SUBDIRS    = Lattices Modes SolutionMethods Potentials Utility
+SUBDIRS    = Lattices Restrictions SolutionMethods Potentials Utility
 
 # Defines the source files needed #########################################
 include $(addsuffix /Makefile, $(SUBDIRS))
 SOURCES  = ./LatticeStatics.cpp\
 	   $(addprefix Lattices/,$(LATTICES))\
-	   $(addprefix Modes/,$(MODES))\
+	   $(addprefix Restrictions/,$(RESTRICTIONS))\
 	   $(addprefix SolutionMethods/,$(SOLUTIONMETHODS))\
 	   $(addprefix Potentials/,$(POTENTIALS))\
 	   $(addprefix Utility/,$(UTILITY))

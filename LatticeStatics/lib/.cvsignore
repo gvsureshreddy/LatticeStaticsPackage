@@ -2,8 +2,8 @@ ArcLengthSolution.o
 ArcLengthSolution.ti
 KnownLattices.o
 KnownLattices.ti
-KnownModes.o
-KnownModes.ti
+KnownRestrictions.o
+KnownRestrictions.ti
 KnownPairPotentials.o
 KnownPairPotentials.ti
 KnownSolutionMethods.o
@@ -15,8 +15,8 @@ LatticeStatics.o
 LatticeStatics.ti
 MultiLatticeTPP.o
 MultiLatticeTPP.ti
-MultiMode.o
-MultiMode.ti
+RestrictToSubSpaceOld.o
+RestrictToSubSpaceOld.ti
 PPSum.o
 PPSum.ti
 RadiiMorse.o

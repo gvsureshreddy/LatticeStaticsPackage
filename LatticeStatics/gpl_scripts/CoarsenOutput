@@ -31,7 +31,7 @@ if ($skip <= 0)
 $_ = <DATA>;
 print OUTPUT $_;
 
-while (! m/^Mode:/)
+while (! m/^Restriction:/)
 {
   $_ = <DATA>;
   print OUTPUT $_;

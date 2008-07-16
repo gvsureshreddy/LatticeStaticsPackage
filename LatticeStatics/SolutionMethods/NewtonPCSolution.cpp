@@ -5,7 +5,7 @@
 
 using namespace std;
 
-NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,
+NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,
                                    Vector const& one,int const& CurrentSolution,
                                    UpdateType const& Type,int const& NumSolutions,
                                    double const& MaxDS,double const& CurrentDS,
@@ -15,7 +15,7 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,
                                    int const& Direction,double const& accel_max,
                                    int const& ClosedLoopStart,int const& StopAtCPNum,
                                    int const& Echo)
-   : Mode_(Mode),
+   : Restrict_(Restrict),
      Echo_(Echo),
      CurrentSolution_(CurrentSolution),
      UpdateType_(Type),
@@ -41,7 +41,7 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,
       exit(-22);
    }
    
-   int count = (Mode_->ModeDOF()).Dim();
+   int count = (Restrict_->DOF()).Dim();
    int count_minus_one = count -1;
    //initialize "static" variables
    v_static.Resize(count);
@@ -58,7 +58,7 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,
    Matrix R(count, count_minus_one);
    
    //Performs QR decomposition using A^T = Q*R. Section 4.1 of ISBN 3-540-12760-7
-   QR(Mode->ModeStiffness(),Q,R,1);
+   QR(Restrict->Stiffness(),Q,R,1);
    
    Tangent1_.Resize(count);
    Tangent2_.Resize(count);
@@ -68,9 +68,9 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,
    }
 }
 
-NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Input,
+NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& Input,
                                    Vector const& one,int const& Echo)
-   : Mode_(Mode),
+   : Restrict_(Restrict),
      Echo_(Echo),
      CurrentSolution_(0),
      Omega_(1.0),
@@ -170,11 +170,11 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
    
    FirstSolution_.Resize(one.Dim());
    FirstSolution_ = one;
-   Mode_->SetModeDOF(one);
+   Restrict_->SetDOF(one);
 
    PreviousSolution_.Resize(one.Dim());
    
-   int count = (Mode_->ModeDOF()).Dim();
+   int count = (Restrict_->DOF()).Dim();
    int count_minus_one = count - 1;
    //initialize "static" variables
    v_static.Resize(count);
@@ -191,7 +191,7 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
    Matrix R(count, count_minus_one);
    
    //Performs QR decomposition using A^T = Q*R. Section 4.1 of ISBN 3-540-12760-7
-   QR(Mode->ModeStiffness(),Q,R,1);
+   QR(Restrict->Stiffness(),Q,R,1);
    
    Tangent1_.Resize(count);
    Tangent2_.Resize(count);
@@ -202,9 +202,9 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
    }
 }
 
-NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Input,
+NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& Input,
                                    int const& Echo)
-   : Mode_(Mode),
+   : Restrict_(Restrict),
      Echo_(Echo),
      CurrentSolution_(0),
      Omega_(1.0)
@@ -302,7 +302,7 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
    }
    Input.EndofInputSection();
    
-   int count = (Mode_->ModeDOF()).Dim();
+   int count = (Restrict_->DOF()).Dim();
    int count_minus_one = count - 1;
    //initialize "static" variables
    v_static.Resize(count);
@@ -332,7 +332,7 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
       FirstSolution_.Resize(one.Dim());
       FirstSolution_ = one;
       
-      Mode_->SetModeDOF(one);
+      Restrict_->SetDOF(one);
       
       for(i=0; i<count; i++)
       {
@@ -356,12 +356,12 @@ NewtonPCSolution::NewtonPCSolution(LatticeMode* const Mode,PerlInput const& Inpu
       
       FirstSolution_.Resize(one.Dim());
       FirstSolution_ = one;
-      Mode_->SetModeDOF(one);
+      Restrict_->SetDOF(one);
       
       Matrix Q(count, count);
       Matrix R(count, count_minus_one);
       
-      QR(Mode_->ModeStiffness(),Q,R,1);
+      QR(Restrict_->Stiffness(),Q,R,1);
       for(i=0;i<count;i++)
       {
          Tangent1_[i] = Tangent2_[i] = Direction_ * Q[i][count_minus_one];
@@ -413,7 +413,7 @@ int NewtonPCSolution::FindNextSolution()
    double forcenorm;
    double const eta = 0.1;
    
-   PreviousSolution_ = Mode_->ModeDOF();
+   PreviousSolution_ = Restrict_->DOF();
    
    for(i=0;i<count;i++)
    {
@@ -438,11 +438,11 @@ int NewtonPCSolution::FindNextSolution()
          v_static[i] = PreviousSolution_[i] + CurrentDS_*Omega_*Tangent1_[i];
       }
       cout << "Taking Predictor Step. CurrentDS = " << CurrentDS_;
-      Mode_->SetModeDOF(v_static);
-      Force_static = Mode_->ModeForce();
+      Restrict_->SetDOF(v_static);
+      Force_static = Restrict_->Force();
       forcenorm = Force_static.Norm();
       
-      Stiff_static = Mode_->ModeStiffness();
+      Stiff_static = Restrict_->Stiffness();
       QR(Stiff_static, Q_static, R_static, 1);
       
       for(i=0;i<count;i++)
@@ -495,9 +495,9 @@ int NewtonPCSolution::FindNextSolution()
             difference_static[i] = -Corrector_static[i];
          }
          
-         Mode_->SetModeDOF(w_static);
+         Restrict_->SetDOF(w_static);
          
-         Force_static = Mode_->ModeForce();
+         Force_static = Restrict_->Force();
          forcenorm = Force_static.Norm();
          cout << "\tForceNorm = " << forcenorm;
          
@@ -565,7 +565,7 @@ int NewtonPCSolution::FindNextSolution()
    }
    
    if ((ClosedLoopStart_ >= 0) && (CurrentSolution_ > ClosedLoopStart_) &&
-       ((Mode_->ModeDOF() - FirstSolution_).Norm() < MaxDS_))
+       ((Restrict_->DOF() - FirstSolution_).Norm() < MaxDS_))
    {
       // We are done -- set currentsolution to numsolutions
       cerr << "Closed Loop detected at Solution # " << CurrentSolution_
@@ -590,7 +590,7 @@ int NewtonPCSolution::FindCriticalPoint(Lattice* const Lat,PerlInput const& Inpu
    int TotalNumCPs=0;
    int NumCPs;
    int sz=PreviousSolution_.Dim();
-   Vector tmp_diff(sz),tmp_DOF(Mode_->ModeDOF());
+   Vector tmp_diff(sz),tmp_DOF(Restrict_->DOF());
    double tmp_ds=0.0;
    for (int i=0;i<sz;++i)
    {
@@ -598,11 +598,11 @@ int NewtonPCSolution::FindCriticalPoint(Lattice* const Lat,PerlInput const& Inpu
    }
    tmp_ds = sqrt(tmp_ds);
    
-   //ArcLengthSolution S1(Mode_,Input,PreviousSolution_,Mode_->ModeDOF(),1);
+   //ArcLengthSolution S1(Restrict_,Input,PreviousSolution_,Restrict_->DOF(),1);
    int MaxIter = 50;
-   ArcLengthSolution S1(Mode_,Mode_->ModeDOF(),MaxIter,Converge_,Converge_,tmp_ds,
+   ArcLengthSolution S1(Restrict_,Restrict_->DOF(),MaxIter,Converge_,Converge_,tmp_ds,
                         tmp_ds,tmp_ds,1.0,0.5,1.0,1,0,PreviousSolution_,
-                        Mode_->ModeDOF()-PreviousSolution_,10,Echo_);
+                        Restrict_->DOF()-PreviousSolution_,10,Echo_);
    NumCPs=S1.FindCriticalPoint(Lat,Input,Width,out);
    TotalNumCPs += NumCPs;
    
@@ -650,7 +650,7 @@ void NewtonPCSolution::MoorePenrose(Matrix const& Q,Matrix const& R,Vector const
 
 void NewtonPCSolution::GetQR(Vector const& Force,Vector const& diff,Matrix& Q,Matrix& R) const
 {
-   int count = Mode_->ModeDOF().Dim();
+   int count = Restrict_->DOF().Dim();
    int count_minus_one = count - 1;
    int i,j;
    double temp = 0.0;
@@ -679,7 +679,7 @@ void NewtonPCSolution::GetQR(Vector const& Force,Vector const& diff,Matrix& Q,Ma
          QR(Stiff_static, Q, R, 1);
          break;
       case Exact:
-         QR(Mode_->ModeStiffness(),Q,R,1);
+         QR(Restrict_->Stiffness(),Q,R,1);
          break;
       default:
          cerr << "Unknown Update Type in NewtonPCSolution\n";
