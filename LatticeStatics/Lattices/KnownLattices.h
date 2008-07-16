@@ -1,5 +1,5 @@
-#ifndef __KnownLattices
-#define __KnownLattices
+#ifndef RSE__KnownLattices
+#define RSE__KnownLattices
 
 #include "PerlInput.h"
 #include "MultiLatticeTPP.h"

@@ -1,5 +1,5 @@
-#ifndef __ChainIterator
-#define __ChainIterator
+#ifndef RSE__ChainIterator
+#define RSE__ChainIterator
 
 #include <Matrix.h>
 #include <Vector.h>

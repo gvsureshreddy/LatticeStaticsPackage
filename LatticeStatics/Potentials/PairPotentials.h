@@ -1,5 +1,5 @@
-#ifndef __PairPotentials
-#define __PairPotentials
+#ifndef RSE__PairPotentials
+#define RSE__PairPotentials
 
 #include <iostream>
 #include <iomanip>

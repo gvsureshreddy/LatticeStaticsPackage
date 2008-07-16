@@ -1,5 +1,5 @@
-#ifndef __ChainSum
-#define __ChainSum
+#ifndef RSE__ChainSum
+#define RSE__ChainSum
 
 #include <Matrix.h>
 #include <Vector.h>

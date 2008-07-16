@@ -1,5 +1,5 @@
-#ifndef __MultiChainTTPP
-#define __MultiChainTTPP
+#ifndef RSE__MultiChainTTPP
+#define RSE__MultiChainTTPP
 
 #include "PerlInput.h"
 #include "Lattice.h"

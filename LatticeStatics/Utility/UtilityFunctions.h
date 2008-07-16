@@ -1,5 +1,5 @@
-#ifndef __UtilityFunctions
-#define __UtilityFunctions
+#ifndef RSE__UtilityFunctions
+#define RSE__UtilityFunctions
 
 #include <iostream>
 #include <cstdio>

@@ -1,5 +1,5 @@
-#ifndef __KnownPairPotentials
-#define __KnownPairPotentials
+#ifndef RSE__KnownPairPotentials
+#define RSE__KnownPairPotentials
 
 #include "PerlInput.h"
 #include "LJ.h"

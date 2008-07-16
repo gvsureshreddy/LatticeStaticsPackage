@@ -1,5 +1,5 @@
-#ifndef __CBKinematics
-#define __CBKinematics
+#ifndef RSE__CBKinematics
+#define RSE__CBKinematics
 
 #include <Matrix.h>
 #include <Vector.h>

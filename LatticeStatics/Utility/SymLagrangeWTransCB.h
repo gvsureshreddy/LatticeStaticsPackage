@@ -1,5 +1,5 @@
-#ifndef __SymLagrangeWTransCB
-#define __SymLagrangeWTransCB
+#ifndef RSE__SymLagrangeWTransCB
+#define RSE__SymLagrangeWTransCB
 
 #include <Matrix.h>
 #include <Vector.h>

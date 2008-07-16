@@ -1,5 +1,5 @@
-#ifndef __UnitCellIterator
-#define __UnitCellIterator
+#ifndef RSE__UnitCellIterator
+#define RSE__UnitCellIterator
 
 #include <Matrix.h>
 #include <Vector.h>

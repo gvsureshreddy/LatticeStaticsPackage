@@ -1,5 +1,5 @@
-#ifndef __ScanningSolution
-#define __ScanningSolution
+#ifndef RSE__ScanningSolution
+#define RSE__ScanningSolution
 
 #include "PerlInput.h"
 #include "SolutionMethod.h"

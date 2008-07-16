@@ -1,5 +1,5 @@
-#ifndef __PPSum
-#define __PPSum
+#ifndef RSE__PPSum
+#define RSE__PPSum
 
 #include <Matrix.h>
 #include <Vector.h>

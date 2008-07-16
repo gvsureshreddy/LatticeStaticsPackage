@@ -1,5 +1,5 @@
-#ifndef __MixedCB
-#define __MixedCB
+#ifndef RSE__MixedCB
+#define RSE__MixedCB
 
 #include <Matrix.h>
 #include <Vector.h>

@@ -1,5 +1,5 @@
-#ifndef __LJ
-#define __LJ
+#ifndef RSE__LJ
+#define RSE__LJ
 
 #include "PairPotentials.h"
 

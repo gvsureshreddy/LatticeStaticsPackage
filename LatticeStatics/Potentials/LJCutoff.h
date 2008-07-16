@@ -1,5 +1,5 @@
-#ifndef __LJCutoff
-#define __LJCutoff
+#ifndef RSE__LJCutoff
+#define RSE__LJCutoff
 
 #include "LJ.h"
 

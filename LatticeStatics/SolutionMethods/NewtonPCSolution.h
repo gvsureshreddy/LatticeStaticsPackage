@@ -1,5 +1,5 @@
-#ifndef __NewtonPCSolution
-#define __NewtonPCSolution
+#ifndef RSE__NewtonPCSolution
+#define RSE__NewtonPCSolution
 
 #include "PerlInput.h"
 #include "SolutionMethod.h"

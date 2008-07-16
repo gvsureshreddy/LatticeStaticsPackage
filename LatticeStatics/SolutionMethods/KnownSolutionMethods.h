@@ -1,5 +1,5 @@
-#ifndef __KnownSolutionMethod
-#define __KnownSolutionMethod
+#ifndef RSE__KnownSolutionMethod
+#define RSE__KnownSolutionMethod
 
 #include "PerlInput.h"
 #include "ArcLengthSolution.h"

@@ -1,5 +1,5 @@
-#ifndef __RadiiMorse
-#define __RadiiMorse
+#ifndef RSE__RadiiMorse
+#define RSE__RadiiMorse
 
 #include "PairPotentials.h"
 

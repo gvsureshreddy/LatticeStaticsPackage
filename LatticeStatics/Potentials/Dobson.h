@@ -1,5 +1,5 @@
-#ifndef __Dobson
-#define __Dobson
+#ifndef RSE__Dobson
+#define RSE__Dobson
 
 #include "PairPotentials.h"
 

@@ -1,5 +1,5 @@
-#ifndef __LatticeMode
-#define __LatticeMode
+#ifndef RSE__LatticeMode
+#define RSE__LatticeMode
 
 #include "Lattice.h"
 #define LINELENGTH 600

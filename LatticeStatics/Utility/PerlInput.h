@@ -1,5 +1,5 @@
-#ifndef __PerlInput
-#define __PerlInput
+#ifndef RSE__PerlInput
+#define RSE__PerlInput
 
 #include <string>
 #include <sstream>

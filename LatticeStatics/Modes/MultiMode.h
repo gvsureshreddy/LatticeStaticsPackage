@@ -1,5 +1,5 @@
-#ifndef __MultiMode
-#define __MultiMode
+#ifndef RSE__MultiMode
+#define RSE__MultiMode
 
 #include "PerlInput.h"
 #include "LatticeMode.h"

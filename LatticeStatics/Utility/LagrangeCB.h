@@ -1,5 +1,5 @@
-#ifndef __LagrangeCB
-#define __LagrangeCB
+#ifndef RSE__LagrangeCB
+#define RSE__LagrangeCB
 
 #include <Matrix.h>
 #include <Vector.h>

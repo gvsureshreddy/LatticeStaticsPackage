@@ -1,5 +1,5 @@
-#ifndef __Lattice
-#define __Lattice
+#ifndef RSE__Lattice
+#define RSE__Lattice
 
 #include <Matrix.h>
 #include <Vector.h>

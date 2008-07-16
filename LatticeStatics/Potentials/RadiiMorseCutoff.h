@@ -1,5 +1,5 @@
-#ifndef __RadiiMorseCutoff
-#define __RadiiMorseCutoff
+#ifndef RSE__RadiiMorseCutoff
+#define RSE__RadiiMorseCutoff
 
 #include "RadiiMorse.h"
 

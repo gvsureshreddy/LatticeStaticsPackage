@@ -1,5 +1,5 @@
-#ifndef __SymLagrangeCB
-#define __SymLagrangeCB
+#ifndef RSE__SymLagrangeCB
+#define RSE__SymLagrangeCB
 
 #include <Matrix.h>
 #include <Vector.h>

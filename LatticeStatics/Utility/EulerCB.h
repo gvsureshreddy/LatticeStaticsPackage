@@ -1,5 +1,5 @@
-#ifndef __EulerCB
-#define __EulerCB
+#ifndef RSE__EulerCB
+#define RSE__EulerCB
 
 #include <Matrix.h>
 #include <Vector.h>

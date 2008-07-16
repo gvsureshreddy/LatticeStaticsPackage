@@ -1,5 +1,5 @@
-#ifndef __ArcLengthSolution
-#define __ArcLengthSolution
+#ifndef RSE__ArcLengthSolution
+#define RSE__ArcLengthSolution
 
 #include "PerlInput.h"
 #include "SolutionMethod.h"

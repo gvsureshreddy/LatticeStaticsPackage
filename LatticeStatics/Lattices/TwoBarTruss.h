@@ -1,5 +1,5 @@
-#ifndef __TwoBarTruss
-#define __TwoBarTruss
+#ifndef RSE__TwoBarTruss
+#define RSE__TwoBarTruss
 
 #include "PerlInput.h"
 #include "Lattice.h"

@@ -1,5 +1,5 @@
-#ifndef __SolutionMethod
-#define __SolutionMethod
+#ifndef RSE__SolutionMethod
+#define RSE__SolutionMethod
 
 #include <fstream>
 #include "PerlInput.h"

@@ -1,5 +1,5 @@
-#ifndef __KnownModes
-#define __KnownModes
+#ifndef RSE__KnownModes
+#define RSE__KnownModes
 
 #include "PerlInput.h"
 #include "MultiMode.h"

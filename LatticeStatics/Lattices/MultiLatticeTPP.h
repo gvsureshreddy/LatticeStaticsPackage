@@ -1,5 +1,5 @@
-#ifndef __MultiLatticeTPP
-#define __MultiLatticeTPP
+#ifndef RSE__MultiLatticeTPP
+#define RSE__MultiLatticeTPP
 
 #include "PerlInput.h"
 #include "Lattice.h"

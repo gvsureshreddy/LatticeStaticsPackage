@@ -1,5 +1,5 @@
-#ifndef __TempMorse
-#define __TempMorse
+#ifndef RSE__TempMorse
+#define RSE__TempMorse
 
 #include "PairPotentials.h"
 
