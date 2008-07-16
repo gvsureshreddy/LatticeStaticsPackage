@@ -438,6 +438,7 @@ int NewtonPCSolution::FindNextSolution()
          v_static[i] = PreviousSolution_[i] + CurrentDS_*Omega_*Tangent1_[i];
       }
       cout << "Taking Predictor Step. CurrentDS = " << CurrentDS_;
+
       Restrict_->SetDOF(v_static);
       Force_static = Restrict_->Force();
       forcenorm = Force_static.Norm();
@@ -449,13 +450,13 @@ int NewtonPCSolution::FindNextSolution()
       {
          Tangent2_[i] = Direction_*Q_static[i][count_minus_one];
       }
-
+      
       Dot=0.0;
       for (i=0;i<count;++i)
       {
          Dot += Tangent1_[i]*Tangent2_[i];
       }
-
+      
       cout << " \tDot = " << Dot << " \tOmega = " << Omega_ << " \talpha = "
            << acos(fabs(Dot))*180.0/3.1415926 << "\n";
       if (acos(fabs(Dot)) > alpha_max_)
@@ -467,6 +468,7 @@ int NewtonPCSolution::FindNextSolution()
          ++predictions;
          continue;
       }
+      f = max(f,(acos(fabs(Dot))/alpha_max_)*accel_max_);
 
       MoorePenrose(Q_static,R_static, Force_static, Corrector_static);
       
@@ -474,7 +476,7 @@ int NewtonPCSolution::FindNextSolution()
       Magnitude2 = Magnitude1;
 
       corrections++;
-      cout << " \tForceNorm = " << forcenorm << " \tDeltaNorm = " << Magnitude1 << "\n";
+      cout << " \tForceNorm = " << forcenorm << " \tDeltaNorm = " << Magnitude1;
       if (Magnitude1 > delta_max_)
       {
          f = accel_max_;
@@ -484,6 +486,8 @@ int NewtonPCSolution::FindNextSolution()
          ++predictions;
          continue;
       }
+      f = max(f,sqrt(Magnitude1/delta_max_)*accel_max_);
+      cout << " \tAcceleration = " << 1.0/f << "\n";
       
       //CORRECTOR LOOP STARTS HERE
       Converge_Test = 0;
@@ -520,6 +524,7 @@ int NewtonPCSolution::FindNextSolution()
          {
             f = accel_max_;
             CurrentDS_ /= f;
+            cout << "\n";
             break;
          }
          f = max(f,sqrt(Kappa/cont_rate_max_)*accel_max_);
