@@ -50,7 +50,7 @@ private:
    Vector *AtomPositions_;
    
    double energy(PairPotentials::TDeriv const& dt=PairPotentials::T0) const;
-   Matrix const& stress(PairPotentials::TDeriv const& dt=PairPotentials::T0,LDeriv const& dl=L0)
+   Vector const& stress(PairPotentials::TDeriv const& dt=PairPotentials::T0,LDeriv const& dl=L0)
       const;
    Matrix const& stiffness(PairPotentials::TDeriv const& dt=PairPotentials::T0,
                            LDeriv const& dl=L0) const;
@@ -78,19 +78,19 @@ public:
    // Entropy is NEGATIVE dE/dT
    double Entropy() const {return -energy(PairPotentials::DT);}
    double HeatCapacity() const {return -NTemp_*energy(PairPotentials::D2T);}
-   Matrix const& StressDT() const {return stress(PairPotentials::DT);}
+   Vector const& StressDT() const {return stress(PairPotentials::DT);}
    Matrix const& StiffnessDT() const {return stiffness(PairPotentials::DT);}
    double Temp() const {return NTemp_;}
    void SetTemp(double const& Ntemp) {NTemp_ = Ntemp; ChainSum_.Recalc();}
-   Matrix const& StressDL() const {return stress(PairPotentials::T0,DL);}
+   Vector const& StressDL() const {return stress(PairPotentials::T0,DL);}
    Matrix const& StiffnessDL() const {return stiffness(PairPotentials::T0,DL);}
-   virtual Matrix const& E1DLoad() const
+   virtual Vector const& E1DLoad() const
    {return (LoadParameter_==Temperature)?StressDT():StressDL();}
    double Lambda() const {return Lambda_;}
    void SetLambda(double const& lambda) {Lambda_ = lambda;}
    
    virtual double E0() const {return energy();}
-   virtual Matrix const& E1() const {return stress();}
+   virtual Vector const& E1() const {return stress();}
    virtual Matrix const& E2() const {return stiffness();}
    Matrix const& CondensedModuli() const;
    
@@ -139,7 +139,7 @@ private:
    
    // "static" member variables
    //stress
-   mutable Matrix Phi1_static;
+   mutable Vector Phi1_static;
    // stiffness
    mutable Matrix Phi2_static;
    // CondenssedModuli
@@ -154,7 +154,7 @@ private:
    mutable CMatrix A_static;
    mutable Matrix EigVals_static;
    // Print
-   mutable Matrix str_static;
+   mutable Vector str_static;
    mutable Matrix stiff_static;
    mutable Vector TestFunctVals_static;
 };

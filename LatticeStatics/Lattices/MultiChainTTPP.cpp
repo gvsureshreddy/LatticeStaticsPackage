@@ -374,25 +374,25 @@ double MultiChainTTPP::energy(PairPotentials::TDeriv const& dt) const
    return Phi;
 }
 
-Matrix const& MultiChainTTPP::E1() const
+Vector const& MultiChainTTPP::E1() const
 {
-   Phi1_static.Resize(1,DOFS,0.0);
+   Phi1_static.Resize(DOFS,0.0);
    double T=0.0;
    Phi1_static = stress();
    for (int i=0;i<INTERNAL_ATOMS;++i) T+=DOF_[i+1];
    T=T/INTERNAL_ATOMS;
-   for (int i=1;i<DOFS;++i) Phi1_static[0][i] += T;
+   for (int i=1;i<DOFS;++i) Phi1_static[i] += T;
 
    return Phi1_static;
 }
 
-Matrix const& MultiChainTTPP::stress(PairPotentials::TDeriv const& dt,LDeriv const& dl) const
+Vector const& MultiChainTTPP::stress(PairPotentials::TDeriv const& dt,LDeriv const& dl) const
 {
    double ForceNorm = 0.0;
    double phi,Vr;
    int i;
    
-   stress_static.Resize(1,DOFS,0.0);
+   stress_static.Resize(DOFS,0.0);
    
    Vr = Density_ ? RefLattice_.Det() : 1.0;
    
@@ -428,10 +428,10 @@ Matrix const& MultiChainTTPP::stress(PairPotentials::TDeriv const& dt,LDeriv con
             exit(-1);
          }
          
-         stress_static[0][0] += phi*PI(ChainSum_.pDx(),ChainSum_.pDX());
+         stress_static[0] += phi*PI(ChainSum_.pDx(),ChainSum_.pDX());
          for (i=0;i<INTERNAL_ATOMS;i++)
          {
-            stress_static[0][i+1]
+            stress_static[i+1]
                += phi*OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i);
          }
       }
@@ -448,14 +448,14 @@ Matrix const& MultiChainTTPP::stress(PairPotentials::TDeriv const& dt,LDeriv con
       // Load terms
       if (dt == PairPotentials::T0)
       {
-         stress_static[0][0] -= Lambda_;
+         stress_static[0] -= Lambda_;
       }
       
    }
    else if (dl==DL)
    {
       // dl=DL
-      stress_static[0][0] -= 1.0;
+      stress_static[0] -= 1.0;
    }
    else
    {
@@ -1078,7 +1078,7 @@ void MultiChainTTPP::Print(ostream& out,PrintDetail const& flag)
    int W;
    int NoNegTestFunctions;
    double engy,entropy,heatcapacity;
-   str_static.Resize(1,DOFS);
+   str_static.Resize(DOFS);
    pstiff_static.Resize(DOFS,DOFS);
    Matrix CondEV(1,1);
    Matrix CondModuli(1,1);

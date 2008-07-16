@@ -3,6 +3,7 @@
 
 #include "PerlInput.h"
 #include "RestrictToSubSpaceOld.h"
+#include "NoRestriction.h"
 
 Restriction* const InitializeRestriction(Lattice* const Lat,PerlInput const& Input);
 

@@ -64,7 +64,7 @@ private:
    double ConvexityDX_;
    
    double energy(PairPotentials::TDeriv const& dt=PairPotentials::T0) const;
-   Matrix const& stress(PairPotentials::TDeriv const& dt=PairPotentials::T0,LDeriv const& dl=L0)
+   Vector const& stress(PairPotentials::TDeriv const& dt=PairPotentials::T0,LDeriv const& dl=L0)
       const;
    Matrix const& stiffness(PairPotentials::TDeriv const& dt=PairPotentials::T0,
                     LDeriv const& dl=L0) const;
@@ -93,19 +93,19 @@ public:
    // Entropy is NEGATIVE dE/dT
    double Entropy() const {return -energy(PairPotentials::DT);}
    double HeatCapacity() const {return -(NTemp_)*energy(PairPotentials::D2T);}
-   Matrix const& StressDT() const {return stress(PairPotentials::DT);}
+   Vector const& StressDT() const {return stress(PairPotentials::DT);}
    Matrix const& StiffnessDT() const {return stiffness(PairPotentials::DT);}
    double Temp() const {return NTemp_;}
    void SetTemp(double const& Ntemp) {NTemp_ = Ntemp; LatSum_.Recalc();}
-   Matrix const& StressDL() const {return stress(PairPotentials::T0,DL);}
+   Vector const& StressDL() const {return stress(PairPotentials::T0,DL);}
    Matrix const& StiffnessDL() const {return stiffness(PairPotentials::T0,DL);}
-   virtual Matrix const& E1DLoad() const
+   virtual Vector const& E1DLoad() const
    {return (LoadParameter_==Temperature)?StressDT():StressDL();}
    double Lambda() const {return Lambda_;}
    void SetLambda(double const& lambda) {Lambda_ = lambda;}
    
    virtual double E0() const;
-   virtual Matrix const& E1() const;
+   virtual Vector const& E1() const;
    virtual Matrix const& E2() const;
    virtual Matrix const& E3() const;
    virtual Matrix const& E4() const;
@@ -135,7 +135,7 @@ public:
    double NormModulus() const {return NormModulus_;}
    Matrix const& RefLattice() const {return CBK_->RefLattice();}
    Matrix const& CondensedModuli() const;
-   Matrix const& ThermalExpansion() const;
+   Vector const& ThermalExpansion() const;
    friend ostream& operator<<(ostream& out,MultiLatticeTPP& A);
    
 private:
@@ -150,11 +150,11 @@ private:
    mutable double Tsq_static[3];
    mutable double Rsq_static[3];
    // E1
-   mutable Matrix ME1_static;
+   mutable Vector ME1_static;
    mutable double T_static[3];
    mutable double R_static[3];
    // stress
-   mutable Matrix S_static;
+   mutable Vector S_static;
    // E2
    mutable Matrix ME2_static;
    // stiffness
@@ -162,7 +162,7 @@ private:
    // CondensedModuli
    mutable Matrix CM_static;
    // ThermalExpansion
-   mutable Matrix ThermalExp_static;
+   mutable Vector ThermalExp_static;
    // E3
    mutable Matrix Phi3_static;
    // E4
@@ -175,10 +175,10 @@ private:
    mutable Matrix InverseLat_static;
    mutable Vector Z_static;
    // Print
-   mutable Matrix str_static;
+   mutable Vector str_static;
    mutable Matrix stiff_static;
    mutable Matrix CondEV_static;
-   mutable Matrix TE_static;
+   mutable Vector TE_static;
    mutable Matrix CondModuli_static;
    mutable Vector TestFunctVals_static;
    mutable Vector K_static;

@@ -25,8 +25,8 @@ private:
    int Caching_;
    mutable int Cached_[4];
    mutable double E0CachedValue_;
-   mutable Matrix E1CachedValue_;
-   mutable Matrix E1DLoadCachedValue_;
+   mutable Vector E1CachedValue_;
+   mutable Vector E1DLoadCachedValue_;
    mutable Matrix E2CachedValue_;
    mutable int CallCount_[4];
    
@@ -45,8 +45,8 @@ public:
    {Lambda_ = lambda; if (Caching_) for (int i=0;i<4;++i) Cached_[i]=0;}
    
    virtual double E0() const;
-   virtual Matrix const& E1() const;
-   virtual Matrix const& E1DLoad() const;
+   virtual Vector const& E1() const;
+   virtual Vector const& E1DLoad() const;
    virtual Matrix const& E2() const;
    virtual void Print(ostream& out,PrintDetail const& flag);
 
@@ -57,20 +57,21 @@ public:
                                   double const& Tolerance,int const& Width,ostream& out) {}
    double Entropy() const {return 0.0;}
    double HeatCapacity() const {return 0.0;}
-   Matrix const& StressDT() const {return Empty_;}
-   Matrix const& StiffnessDT() const {return Empty_;}
+   Vector const& StressDT() const {return EmptyV_;}
+   Matrix const& StiffnessDT() const {return EmptyM_;}
    double Temp() const {return 0.0;}
    void SetTemp(double const& Ntemp) {}
-   Matrix const& StressDL() const {return Empty_;}
-   Matrix const& StiffnessDL() const {return Empty_;}
-   virtual Matrix const& E3() const {return Empty_;}
-   virtual Matrix const& E4() const {return Empty_;}
+   Vector const& StressDL() const {return EmptyV_;}
+   Matrix const& StiffnessDL() const {return EmptyM_;}
+   virtual Matrix const& E3() const {return EmptyM_;}
+   virtual Matrix const& E4() const {return EmptyM_;}
    virtual void SetParameters(double const* const Vals,int const& ResetRef = 1) {}
    virtual void SetGridSize(int const& Grid) {}
    
 private:
    // place holder
-   Matrix Empty_;
+   Vector EmptyV_;
+   Matrix EmptyM_;
    
 };
 

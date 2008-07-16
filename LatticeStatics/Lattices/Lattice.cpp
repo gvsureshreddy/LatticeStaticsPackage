@@ -368,9 +368,10 @@ void Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
       D3=E3(),
       D2=E2(),
       D2T(D2.Rows(),D2.Cols()),
-      D1T(1,D2.Cols()),
       EigVec,
       EigVal=SymEigVal(D2,&EigVec);
+   Vector D1T(D2.Cols());
+      
    if (LoadParameter_ == Temperature)
    {
       D1T=StressDT();
@@ -522,7 +523,7 @@ void Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
       double z=0.0;
       for (int j=0;j<dofs;++j)
       {
-         z+= Mode[i][j]*D1T[0][j];
+         z+= Mode[i][j]*D1T[j];
       }
       out << "StressDT*Mode[" << i << "] = " << setw(Width) << z << "\n";
       if (Echo_) cout << "StressDT*Mode[" << i << "] = " << setw(Width) << z << "\n";
@@ -798,14 +799,14 @@ void Lattice::ConsistencyCheck(double const& ConsistencyEpsilon,int const& Width
       PerturbedD3(Dim*Dim,Dim),
       D4(Dim*Dim,Dim*Dim),
       PerturbedD4(Dim*Dim,Dim*Dim),
-      Force(1,Dim),
-      stress1(1,Dim),
-      stress2(1,Dim),
       stiff1(Dim,Dim),
       stiff2(Dim,Dim),
       d31(Dim*Dim,Dim),
       d32(Dim*Dim,Dim);
    Vector
+      Force(Dim),
+      stress1(Dim),
+      stress2(Dim),
       PerturbedForce(Dim),
       OriginalState(Dim),
       pert(Dim,0.0);
@@ -854,7 +855,7 @@ void Lattice::ConsistencyCheck(double const& ConsistencyEpsilon,int const& Width
       if (Do4) d32 = E3();
       for (int j=0;j<Dim;j++)
       {
-         if (Do2) PerturbedStiff[j][i] = stress2[0][j] - stress1[0][j];
+         if (Do2) PerturbedStiff[j][i] = stress2[j] - stress1[j];
          
          if (Do3 || Do4)
          {

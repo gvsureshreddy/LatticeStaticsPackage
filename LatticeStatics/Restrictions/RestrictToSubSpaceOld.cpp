@@ -57,7 +57,7 @@ RestrictToSubSpaceOld::RestrictToSubSpaceOld(Lattice* const M,PerlInput const& I
 
 }
 
-// Functions required by LatticeMode
+// Functions required by Restriction
 Vector const& RestrictToSubSpaceOld::DrDt(Vector const& Diff) const
 {
    ddt_static.Resize(Lattice_->DOF().Dim(),0.0);
@@ -102,7 +102,7 @@ Vector const& RestrictToSubSpaceOld::Force() const
       force_static[i] = 0.0;
       for (int j=0;j<DOFindlen_[i];j++)
       {
-         force_static[i] += DOFMult_[i][j]*stress_static[0][DOFindex_[i][j]];
+         force_static[i] += DOFMult_[i][j]*stress_static[DOFindex_[i][j]];
       }
    }
    
@@ -128,7 +128,7 @@ Matrix const& RestrictToSubSpaceOld::Stiffness() const
             }
          }
          
-         K_static[i][DOFS_] += DOFMult_[i][j]*stressdt_static[0][DOFindex_[i][j]];
+         K_static[i][DOFS_] += DOFMult_[i][j]*stressdt_static[DOFindex_[i][j]];
       }
    }
    

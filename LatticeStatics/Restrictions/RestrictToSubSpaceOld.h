@@ -27,7 +27,7 @@ public:
    
    ~RestrictToSubSpaceOld() {}
    
-   // Functions required by LatticeMode
+   // Functions required by Restriction
    virtual double Energy() const {return Lattice_->E0();}
    virtual Vector const& DrDt(Vector const& Diff) const;
    
@@ -47,13 +47,13 @@ private:
    Vector DOF_static;
    // DrDt
    mutable Vector ddt_static;
-   // ModeForce
+   // Force
    mutable Vector force_static;
-   mutable Matrix stress_static;
-   // ModeStiffness
+   mutable Vector stress_static;
+   // Stiffness
    mutable Matrix K_static;
    mutable Matrix Stiff_static;
-   mutable Matrix stressdt_static;
+   mutable Vector stressdt_static;
 };
 
 #endif

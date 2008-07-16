@@ -180,7 +180,7 @@ $Rtheta1_1_1 = 0.275914376289;
             );
 
 # Restriction Parameters
-%Restriction = (Type        => RestrictToSubSpaceOld,
+%Restriction = (Type        => RestrictToSubSpaceOld, # NoRestriction, RestrictToSubSpace, RestrictToSubSpaceOld
                 RestrictToSubSpaceOld => {DOFS                  => 1,
                                           DOF_0                 => [[0, 4, 8],
                                                                     [1.0, 1.0, 1.0]]#,

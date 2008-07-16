@@ -18,7 +18,7 @@ TwoBarTruss::TwoBarTruss(PerlInput const& Input,int const& Echo,int const& Width
    Lambda_(0.0),
    Echo_(Echo),
    Width_(Width),
-   E1CachedValue_(1,2),
+   E1CachedValue_(2),
    E1DLoadCachedValue_(1,2),
    E2CachedValue_(2,2)
 {
@@ -66,13 +66,13 @@ double TwoBarTruss::E0() const
    return E0CachedValue_;
 }
 
-Matrix const& TwoBarTruss::E1() const
+Vector const& TwoBarTruss::E1() const
 {
    if ((!Caching_) || (!Cached_[1]))
    {
-      E1CachedValue_[0][0] = DOF_[0]*(DOF_[0]*DOF_[0] + DOF_[1]*DOF_[1] - 2.0*SINTheta_*DOF_[1]
+      E1CachedValue_[0] = DOF_[0]*(DOF_[0]*DOF_[0] + DOF_[1]*DOF_[1] - 2.0*SINTheta_*DOF_[1]
                                      + 2.0*COSTheta_*COSTheta_);
-      E1CachedValue_[0][1] = DOF_[1]*DOF_[1]*DOF_[1] + DOF_[0]*DOF_[0]*DOF_[1]
+      E1CachedValue_[1] = DOF_[1]*DOF_[1]*DOF_[1] + DOF_[0]*DOF_[0]*DOF_[1]
          - 3.0*SINTheta_*DOF_[1]*DOF_[1]
          - SINTheta_*DOF_[0]*DOF_[0] + 2.0*SINTheta_*SINTheta_*DOF_[1] - Lambda_;
 
@@ -83,12 +83,12 @@ Matrix const& TwoBarTruss::E1() const
    return E1CachedValue_;
 }
 
-Matrix const& TwoBarTruss::E1DLoad() const
+Vector const& TwoBarTruss::E1DLoad() const
 {
    if ((!Caching_) || (!Cached_[2]))
    {
-      E1DLoadCachedValue_[0][0] = 0.0;
-      E1DLoadCachedValue_[0][1] = -1.0;
+      E1DLoadCachedValue_[0] = 0.0;
+      E1DLoadCachedValue_[1] = -1.0;
 
       Cached_[2] = 1;
       CallCount_[2]++;
@@ -121,8 +121,8 @@ void TwoBarTruss::Print(ostream& out,PrintDetail const& flag)
    int NoNegTestFunctions;
    double engy;
    Matrix
-      str(1,DOFS_),
       stiff(DOFS_,DOFS_);
+   Vector str(DOFS_);
    Vector TestFunctVals(DOFS_);
    
    W=out.width();

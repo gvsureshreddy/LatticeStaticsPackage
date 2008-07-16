@@ -361,13 +361,13 @@ double MultiChainTPP::energy(PairPotentials::TDeriv const& dt) const
    return Phi;
 }
 
-Matrix const& MultiChainTPP::stress(PairPotentials::TDeriv const& dt,LDeriv const& dl) const
+Vector const& MultiChainTPP::stress(PairPotentials::TDeriv const& dt,LDeriv const& dl) const
 {
    double ForceNorm = 0.0;
    double phi,Vr;
    int i;
    
-   Phi1_static.Resize(1,DOFS,0.0);
+   Phi1_static.Resize(DOFS,0.0);
    
    Vr = Density_ ? RefLattice_.Det() : 1.0;
    
@@ -403,10 +403,10 @@ Matrix const& MultiChainTPP::stress(PairPotentials::TDeriv const& dt,LDeriv cons
             exit(-1);
          }
          
-         Phi1_static[0][0] += phi*PI(ChainSum_.pDx(),ChainSum_.pDX());
+         Phi1_static[0] += phi*PI(ChainSum_.pDx(),ChainSum_.pDX());
          for (i=1;i<INTERNAL_ATOMS;i++)
          {
-            Phi1_static[0][i]
+            Phi1_static[i]
                += phi*OMEGA(ChainSum_.pDx(),ChainSum_.Atom(0),ChainSum_.Atom(1),i);
          }
       }
@@ -423,14 +423,14 @@ Matrix const& MultiChainTPP::stress(PairPotentials::TDeriv const& dt,LDeriv cons
       // Load terms
       if (dt == PairPotentials::T0)
       {
-         Phi1_static[0][0] -= Lambda_;
+         Phi1_static[0] -= Lambda_;
       }
       
    }
    else if (dl==DL)
    {
       // dl=DL
-      Phi1_static[0][0] -= 1.0;
+      Phi1_static[0] -= 1.0;
    }
    else
    {
@@ -1037,7 +1037,7 @@ void MultiChainTPP::Print(ostream& out,PrintDetail const& flag)
    int W;
    int NoNegTestFunctions;
    double engy,entropy,heatcapacity;
-   str_static.Resize(1,DOFS);
+   str_static.Resize(DOFS);
    stiff_static.Resize(DOFS,DOFS);
    Matrix CondEV(1,1);
    Matrix CondModuli(1,1);

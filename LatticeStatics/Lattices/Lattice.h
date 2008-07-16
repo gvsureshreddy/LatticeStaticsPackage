@@ -34,19 +34,19 @@ public:
    virtual void SetDOF(Vector const& dof) = 0;
    virtual double Entropy() const = 0;
    virtual double HeatCapacity() const = 0;
-   virtual Matrix const& StressDT() const = 0;
+   virtual Vector const& StressDT() const = 0;
    virtual Matrix const& StiffnessDT() const = 0;
    virtual double Temp() const = 0;
    virtual void SetTemp(double const& temp) = 0;
-   virtual Matrix const& StressDL() const = 0;
+   virtual Vector const& StressDL() const = 0;
    virtual Matrix const& StiffnessDL() const = 0;
    virtual double Lambda() const = 0;
    virtual void SetLambda(double const& lambda) = 0;
    void SetLoadParameter(double const& load);
    
    virtual double E0() const = 0;
-   virtual Matrix const& E1() const = 0;
-   virtual Matrix const& E1DLoad() const = 0;
+   virtual Vector const& E1() const = 0;
+   virtual Vector const& E1DLoad() const = 0;
    virtual Matrix const& E2() const = 0;
    virtual Matrix const& E3() const = 0;
    virtual Matrix const& E4() const = 0;

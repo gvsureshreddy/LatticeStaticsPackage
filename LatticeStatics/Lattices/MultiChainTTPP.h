@@ -50,7 +50,7 @@ private:
    Vector *AtomPositions_;
    
    double energy(PairPotentials::TDeriv const& dt=PairPotentials::T0) const;
-   Matrix const& stress(PairPotentials::TDeriv const& dt=PairPotentials::T0,LDeriv const& dl=L0)
+   Vector const& stress(PairPotentials::TDeriv const& dt=PairPotentials::T0,LDeriv const& dl=L0)
       const;
    Matrix const& stiffness(PairPotentials::TDeriv const& dt=PairPotentials::T0,
                            LDeriv const& dl=L0) const;
@@ -78,19 +78,19 @@ public:
    // Entropy is NEGATIVE dE/dT
    double Entropy() const {return -energy(PairPotentials::DT);}
    double HeatCapacity() const {return -NTemp_*energy(PairPotentials::D2T);}
-   Matrix const& StressDT() const {return stress(PairPotentials::DT);}
+   Vector const& StressDT() const {return stress(PairPotentials::DT);}
    Matrix const& StiffnessDT() const {return stiffness(PairPotentials::DT);}
    double Temp() const {return NTemp_;}
    void SetTemp(double const& Ntemp) {NTemp_ = Ntemp; ChainSum_.Recalc();}
-   Matrix const& StressDL() const {return stress(PairPotentials::T0,DL);}
+   Vector const& StressDL() const {return stress(PairPotentials::T0,DL);}
    Matrix const& StiffnessDL() const {return stiffness(PairPotentials::T0,DL);}
-   virtual Matrix const& E1DLoad() const
+   virtual Vector const& E1DLoad() const
    {return (LoadParameter_==Temperature)?StressDT():StressDL();}
    double Lambda() const {return Lambda_;}
    void SetLambda(double const& lambda) {Lambda_ = lambda;}
    
    virtual double E0() const;
-   virtual Matrix const& E1() const;
+   virtual Vector const& E1() const;
    virtual Matrix const& E2() const;
    Matrix const& CondensedModuli() const;
    
@@ -139,9 +139,9 @@ private:
    
    // "static" member variables
    // E1
-   mutable Matrix Phi1_static;
+   mutable Vector Phi1_static;
    //stress
-   mutable Matrix stress_static;
+   mutable Vector stress_static;
    // E2
    mutable Matrix Phi2_static;
    // stiffness
@@ -158,7 +158,7 @@ private:
    mutable CMatrix A_static;
    mutable Matrix EigVals_static;
    // Print
-   mutable Matrix str_static;
+   mutable Vector str_static;
    mutable Matrix pstiff_static;
    mutable Vector TestFunctVals_static;
 };

@@ -8,6 +8,10 @@ Restriction* const InitializeRestriction(Lattice* const Lat,PerlInput const& Inp
    {
       return new RestrictToSubSpaceOld(Lat,Input);
    }
+   else if (!strcmp("NoRestriction",Restrict))
+   {
+      return new NoRestriction(Lat);
+   }
    else
    {
       cerr << "Unknown Restriction Type" << "\n";

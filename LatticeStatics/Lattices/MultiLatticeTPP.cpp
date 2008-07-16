@@ -237,13 +237,13 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput const& Input,int const& Echo,int cons
    GridSize_ = Input.getPosInt(Hash,"BlochWaveGridSize");
 
    // Initialize various data storage space
-   ME1_static.Resize(1,CBK_->DOFS(),0.0);
+   ME1_static.Resize(CBK_->DOFS(),0.0);
    ME2_static.Resize(CBK_->DOFS(),CBK_->DOFS(),0.0);
    A_static.Resize(InternalAtoms_*DIM3,InternalAtoms_*DIM3);
    EigVals_static.Resize(1,InternalAtoms_*DIM3);
    InverseLat_static.Resize(DIM3,DIM3);
    Z_static.Resize(DIM3);
-   str_static.Resize(1,CBK_->DOFS());
+   str_static.Resize(CBK_->DOFS());
    stiff_static.Resize(CBK_->DOFS(),CBK_->DOFS());
    CondEV_static.Resize(1,CBK_->Fsize());
    TE_static.Resize(1,CBK_->DOFS());
@@ -432,7 +432,7 @@ double MultiLatticeTPP::energy(PairPotentials::TDeriv const& dt) const
    return Phi;
 }
 
-Matrix const& MultiLatticeTPP::E1() const
+Vector const& MultiLatticeTPP::E1() const
 {
    ME1_static = stress();
    
@@ -447,7 +447,7 @@ Matrix const& MultiLatticeTPP::E1() const
       }
       for (int i=0;i<InternalAtoms_;++i)
          for (int j=0;j<DIM3;++j)
-            ME1_static[0][CBK_->INDS(i,j)] += TrEig_[j]*T_static[j];
+            ME1_static[CBK_->INDS(i,j)] += TrEig_[j]*T_static[j];
    }
    
    switch (KillRotations_)
@@ -455,14 +455,14 @@ Matrix const& MultiLatticeTPP::E1() const
       case 2:
          // Kill three rotations
          R_static[0] = (CBK_->DOF()[CBK_->INDF(0,1)] - CBK_->DOF()[CBK_->INDF(1,0)])/2.0;
-         ME1_static[0][CBK_->INDF(0,1)] += RoEig_[0]*R_static[0];
-         ME1_static[0][CBK_->INDF(1,0)] -= RoEig_[0]*R_static[0];
+         ME1_static[CBK_->INDF(0,1)] += RoEig_[0]*R_static[0];
+         ME1_static[CBK_->INDF(1,0)] -= RoEig_[0]*R_static[0];
          R_static[1] = (CBK_->DOF()[CBK_->INDF(1,2)] - CBK_->DOF()[CBK_->INDF(2,1)])/2.0;
-         ME1_static[0][CBK_->INDF(1,2)] += RoEig_[1]*R_static[1];
-         ME1_static[0][CBK_->INDF(2,1)] -= RoEig_[1]*R_static[1];
+         ME1_static[CBK_->INDF(1,2)] += RoEig_[1]*R_static[1];
+         ME1_static[CBK_->INDF(2,1)] -= RoEig_[1]*R_static[1];
          R_static[2] = (CBK_->DOF()[CBK_->INDF(2,0)] - CBK_->DOF()[CBK_->INDF(0,2)])/2.0;
-         ME1_static[0][CBK_->INDF(2,0)] += RoEig_[2]*R_static[2];
-         ME1_static[0][CBK_->INDF(0,2)] -= RoEig_[2]*R_static[2];
+         ME1_static[CBK_->INDF(2,0)] += RoEig_[2]*R_static[2];
+         ME1_static[CBK_->INDF(0,2)] -= RoEig_[2]*R_static[2];
          break;
       case 1:
          // Kill one rotation
@@ -473,21 +473,21 @@ Matrix const& MultiLatticeTPP::E1() const
                R_static[0] += KillOneRotation_[CBK_->INDF(i,j)]*CBK_->DOF()[CBK_->INDF(i,j)];
          }
          
-         for (int i=0;i<ME1_static.Cols();++i)
-            ME1_static[0][i] += RoEig_[0]*R_static[0]*KillOneRotation_[i];
+         for (int i=0;i<ME1_static.Dim();++i)
+            ME1_static[i] += RoEig_[0]*R_static[0]*KillOneRotation_[i];
          break;
    }
    
    return ME1_static;
 }
 
-Matrix const& MultiLatticeTPP::stress(PairPotentials::TDeriv const& dt,LDeriv const& dl) const
+Vector const& MultiLatticeTPP::stress(PairPotentials::TDeriv const& dt,LDeriv const& dl) const
 {
    double ForceNorm = 0.0;
    double phi,Vr;
    int i,j;
    
-   S_static.Resize(1,CBK_->DOFS(),0.0);
+   S_static.Resize(CBK_->DOFS(),0.0);
    
    Vr = Density_ ? CBK_->RefVolume() : 1.0;
    
@@ -532,14 +532,14 @@ Matrix const& MultiLatticeTPP::stress(PairPotentials::TDeriv const& dt,LDeriv co
          {
             for (j=0;j<DIM3;j++)
             {
-               S_static[0][CBK_->INDF(i,j)] += phi*CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),i,j);
+               S_static[CBK_->INDF(i,j)] += phi*CBK_->DyDF(LatSum_.pDx(),LatSum_.pDX(),i,j);
             }
          }
          for (i=CBK_->NoTrans();i<InternalAtoms_;i++)
          {
             for (j=0;j<DIM3;j++)
             {
-               S_static[0][CBK_->INDS(i,j)] += phi*CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
+               S_static[CBK_->INDS(i,j)] += phi*CBK_->DyDS(LatSum_.pDx(),LatSum_.Atom(0),
                                                        LatSum_.Atom(1),i,j);
             }
          }
@@ -563,7 +563,7 @@ Matrix const& MultiLatticeTPP::stress(PairPotentials::TDeriv const& dt,LDeriv co
          for (i=0;i<DIM3;++i)
             for (j=0;j<DIM3;++j)
             {
-               S_static[0][CBK_->INDF(i,j)] -= Lambda_*Loading_[j][i];
+               S_static[CBK_->INDF(i,j)] -= Lambda_*Loading_[j][i];
             }
       }
       
@@ -573,7 +573,7 @@ Matrix const& MultiLatticeTPP::stress(PairPotentials::TDeriv const& dt,LDeriv co
       // dl=DL
       for (i=0;i<DIM3;++i)
          for (j=0;j<DIM3;++j)
-            S_static[0][CBK_->INDF(i,j)] -= Loading_[j][i];
+            S_static[CBK_->INDF(i,j)] -= Loading_[j][i];
    }
    else
    {
@@ -1262,13 +1262,13 @@ Matrix const& MultiLatticeTPP::CondensedModuli() const
    return CM_static;
 }
 
-Matrix const& MultiLatticeTPP::ThermalExpansion() const
+Vector const& MultiLatticeTPP::ThermalExpansion() const
 {
    ThermalExp_static.Resize(1,CBK_->DOFS());
 #ifdef SOLVE_SVD
-   return ThermalExp_static = SolveSVD(E2(),-StressDT().Transpose()).Transpose();
+   return ThermalExp_static = SolveSVD(E2(),-StressDT());
 #else
-   return ThermalExp_static = SolvePLU(E2(),-StressDT().Transpose()).Transpose();
+   return ThermalExp_static = SolvePLU(E2(),-StressDT());
 #endif
 }
 
@@ -1801,7 +1801,7 @@ void MultiLatticeTPP::Print(ostream& out,PrintDetail const& flag)
              << "Lambda (Normalized): " << setw(W) << Lambda_ << "\n"
              << "DOF's :" << "\n" << setw(W) << CBK_->DOF() << "\n"
              << "Potential Value (Normalized):" << setw(W) << engy << "\n"
-             << "Thermal Expansion:" << setw(W) << TE_static
+             << "Thermal Expansion:" << setw(W) << TE_static << "\n"
              << "Entropy:" << setw(W) << entropy << "\n"
              << "HeatCapacity:" << setw(W) << heatcapacity << "\n";
          for (int i=0;i<InternalAtoms_;++i)
@@ -1830,7 +1830,7 @@ void MultiLatticeTPP::Print(ostream& out,PrintDetail const& flag)
                  << "Lambda (Normalized): " << setw(W) << Lambda_ << "\n"
                  << "DOF's :" << "\n" << setw(W) << CBK_->DOF() << "\n"
                  << "Potential Value (Normalized):" << setw(W) << engy << "\n"
-                 << "Thermal Expansion:" << setw(W) << TE_static
+                 << "Thermal Expansion:" << setw(W) << TE_static << "\n"
                  << "Entropy:" << setw(W) << entropy << "\n"
                  << "HeatCapacity:" << setw(W) << heatcapacity << "\n";
             for (int i=0;i<InternalAtoms_;++i)
