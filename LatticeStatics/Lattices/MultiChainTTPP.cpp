@@ -1196,7 +1196,7 @@ void MultiChainTTPP::Print(ostream& out,PrintDetail const& flag)
             out << "BodyForce Value " << i << " (Inf Normalized):"
                 << setw(W) << BodyForce_[i] << "\n";
          }
-         out << "Stress (Normalized):" << setw(W) << str_static << "\n"
+         out << "Stress (Normalized):" << setw(W) << str_static << "\n\n"
              << "Stiffness (Normalized):" << setw(W) << pstiff_static
              << "Eigenvalue Info:"  <<"\n"<< setw(W) << TestFunctVals_static <<"\n"
              << "Bifurcation Info:" << setw(W) << NoNegTestFunctions << "\n"
@@ -1219,7 +1219,7 @@ void MultiChainTTPP::Print(ostream& out,PrintDetail const& flag)
                cout << "BodyForce Value " << i << " (Inf Normalized):"
                     << setw(W) << BodyForce_[i] << "\n";
             }
-            cout << "Stress (Normalized):" << setw(W) << str_static << "\n"
+            cout << "Stress (Normalized):" << setw(W) << str_static << "\n\n"
                  << "Stiffness (Normalized):" << setw(W) << pstiff_static
                  << "Eigenvalue Info (Translations->1.0):"  << "\n"
                  <<setw(W) <<  TestFunctVals_static <<"\n"

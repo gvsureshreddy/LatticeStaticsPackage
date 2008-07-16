@@ -246,7 +246,7 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput const& Input,int const& Echo,int cons
    str_static.Resize(CBK_->DOFS());
    stiff_static.Resize(CBK_->DOFS(),CBK_->DOFS());
    CondEV_static.Resize(1,CBK_->Fsize());
-   TE_static.Resize(1,CBK_->DOFS());
+   TE_static.Resize(CBK_->DOFS());
    CondModuli_static.Resize(CBK_->Fsize(),CBK_->Fsize());
    TestFunctVals_static.Resize(CBK_->DOFS());
    K_static.Resize(DIM3);
@@ -1264,7 +1264,7 @@ Matrix const& MultiLatticeTPP::CondensedModuli() const
 
 Vector const& MultiLatticeTPP::ThermalExpansion() const
 {
-   ThermalExp_static.Resize(1,CBK_->DOFS());
+   ThermalExp_static.Resize(CBK_->DOFS());
 #ifdef SOLVE_SVD
    return ThermalExp_static = SolveSVD(E2(),-StressDT());
 #else
@@ -1711,7 +1711,7 @@ void MultiLatticeTPP::Print(ostream& out,PrintDetail const& flag)
    
    CondEV_static=SymEigVal(CondModuli_static);
    RankOneConvex = FullScanRank1Convex3D(CBK_,CondModuli_static,ConvexityDX_);
-   
+
    K_static.Resize(DIM3,0.0);
    if (RankOneConvex)
    {
@@ -1809,7 +1809,7 @@ void MultiLatticeTPP::Print(ostream& out,PrintDetail const& flag)
             out << "BodyForce Value " << i << " (Inf Normalized):"
                 << setw(W) << BodyForce_[i] << "\n";
          }
-         out << "Stress (Normalized):" << setw(W) << str_static << "\n"
+         out << "Stress (Normalized):" << setw(W) << str_static << "\n\n"
              << "Stiffness (Normalized):" << setw(W) << stiff_static
             //<< "Eigenvalue Info (Rots->1,2,3; Trans->4,5,6):"  << setw(W) << EigenValues
             //<< "Bifurcation Info:" << setw(W) << MinEigVal
@@ -1838,7 +1838,7 @@ void MultiLatticeTPP::Print(ostream& out,PrintDetail const& flag)
                cout << "BodyForce Value " << i << " (Inf Normalized):"
                     << setw(W) << BodyForce_[i] << "\n";
             }
-            cout << "Stress (Normalized):" << setw(W) << str_static << "\n"
+            cout << "Stress (Normalized):" << setw(W) << str_static << "\n\n"
                  << "Stiffness (Normalized):" << setw(W) << stiff_static
                //<< "Eigenvalue Info (Rots->1,2,3; Trans->4,5,6):"  << setw(W) << EigenValues
                //<< "Bifurcation Info:" << setw(W) << MinEigVal

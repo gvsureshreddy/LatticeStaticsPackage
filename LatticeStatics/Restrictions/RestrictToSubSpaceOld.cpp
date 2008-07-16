@@ -50,10 +50,10 @@ RestrictToSubSpaceOld::RestrictToSubSpaceOld(Lattice* const M,PerlInput const& I
    size_static = (Lattice_->DOF()).Dim();
    DOF_static.Resize(size_static);
    force_static.Resize(DOFS_);
-   stress_static.Resize(1,size_static);
+   stress_static.Resize(size_static);
    K_static.Resize(DOFS_,DOFS_+1);
    Stiff_static.Resize(size_static,size_static);
-   stressdt_static.Resize(1,size_static);
+   stressdt_static.Resize(size_static);
 
 }
 
