@@ -1,8 +1,8 @@
-#ifndef __MyComplexDouble
-#define __MyComplexDouble
+#ifndef RSE__MyComplexDouble
+#define RSE__MyComplexDouble
 
-#ifndef __MyMathBuildDate
-#define __MyMathBuildDate
+#ifndef RSE__MyMathBuildDate
+#define RSE__MyMathBuildDate
 char *MyMathBuildDate();
 #endif
 

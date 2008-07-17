@@ -1,8 +1,8 @@
-#ifndef __Math
-#define __Math
+#ifndef RSE__Math
+#define RSE__Math
 
-#ifndef __MyMathBuildDate
-#define __MyMathBuildDate
+#ifndef RSE__MyMathBuildDate
+#define RSE__MyMathBuildDate
 char *MyMathBuildDate();
 #endif
 
