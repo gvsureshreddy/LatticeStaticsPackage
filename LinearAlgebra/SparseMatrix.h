@@ -1,8 +1,8 @@
-#ifndef __SparseMatrix
-#define __SparseMatrix
+#ifndef RSE__SparseMatrix
+#define RSE__SparseMatrix
 
-#ifndef __LinearAlgebraBuildDate
-#define __LinearAlgebraBuildDate
+#ifndef RSE__LinearAlgebraBuildDate
+#define RSE__LinearAlgebraBuildDate
 char *LinearAlgebraBuildDate();
 #endif
 

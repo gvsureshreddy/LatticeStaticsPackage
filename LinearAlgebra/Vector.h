@@ -1,8 +1,8 @@
-#ifndef __Vector
-#define __Vector
+#ifndef RSE__Vector
+#define RSE__Vector
 
-#ifndef __LinearAlgebraBuildDate
-#define __LinearAlgebraBuildDate
+#ifndef RSE__LinearAlgebraBuildDate
+#define RSE__LinearAlgebraBuildDate
 char *LinearAlgebraBuildDate();
 #endif
 

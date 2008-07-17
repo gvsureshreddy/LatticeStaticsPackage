@@ -1,8 +1,8 @@
-#ifndef __Vector3D
-#define __Vector3D
+#ifndef RSE__Vector3D
+#define RSE__Vector3D
 
-#ifndef __LinearAlgebraBuildDate
-#define __LinearAlgebraBuildDate
+#ifndef RSE__LinearAlgebraBuildDate
+#define RSE__LinearAlgebraBuildDate
 char *LinearAlgebraBuildDate();
 #endif
 
