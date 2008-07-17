@@ -9,7 +9,7 @@
 #include <cstdlib>
 
 // Global IDString
-char SparseMatrixID[]="$Id: SparseMatrix.cpp,v 1.7 2008/07/08 04:18:33 elliott Exp $";
+char SparseMatrixID[]="$Id: SparseMatrix.cpp,v 1.8 2008/07/17 02:57:55 elliott Exp $";
 
 SparseMatrix::SparseMatrix(Matrix const& A)
 {
@@ -26,31 +26,31 @@ SparseMatrix::SparseMatrix(Matrix const& A)
    {
       for(j=0;j<Cols_;j++)
       {
-	 if(A[i][j]!=0)
-	 {
-	    ++count;
-	 }
+         if(A[i][j]!=0)
+         {
+            ++count;
+         }
       }
    }
    NoNonZero_ = count;
-	
+   
    Row_id_ = new int[NoNonZero_];
    Column_id_ = new int[NoNonZero_];
    Nonzero_entry_ = new Elm[NoNonZero_];
-
+   
    for(i=0; i<Rows_;i++)
    {
       for(j=0;j<Cols_;j++)
       {
-	 if(A[i][j]!=0)
-	 {
-	    Row_id_[k] = i;
-	    Column_id_[k] = j;
-	    Nonzero_entry_[k] = A[i][j];
-	    k=k+1;
-	 }
+         if(A[i][j]!=0)
+         {
+            Row_id_[k] = i;
+            Column_id_[k] = j;
+            Nonzero_entry_[k] = A[i][j];
+            k=k+1;
+         }
       }
-   } 		
+   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -60,11 +60,11 @@ SparseMatrix::SparseMatrix(SparseMatrix const& A)
    Rows_=A.Rows();
    Cols_=A.Cols();
    NoNonZero_=A.NoNonZero_;
-	
+   
    Row_id_ = new int[NoNonZero_];
    Column_id_ = new int[NoNonZero_];
    Nonzero_entry_ = new Elm[NoNonZero_];
-	
+   
    for(register int i=0; i<NoNonZero_; i++)
    {
       Row_id_[i] = A.Row_id_[i];
@@ -80,15 +80,15 @@ SparseMatrix::SparseMatrix(int const& NoNonZero,int const& Rows,int const& Cols)
    Rows_=Rows;
    Cols_=Cols;
    NoNonZero_= NoNonZero;
-	
+   
    Row_id_ = new int[NoNonZero_];
    Column_id_ = new int[NoNonZero_];
    Nonzero_entry_ = new Elm[NoNonZero_];
-
+   
    for(register int i=0; i<NoNonZero_;i++)
    {
-      Row_id_[i] = i;
-      Column_id_[i] = i;
+      Row_id_[i] = 0;
+      Column_id_[i] = 0;
       Nonzero_entry_[i] = 0;
    }
 }
@@ -98,31 +98,29 @@ SparseMatrix::SparseMatrix(int const& NoNonZero,int const& Rows,int const& Cols)
 SparseMatrix::SparseMatrix(Matrix const& A,int const& NoEntries)
 {
    int i,j,k;
-
+   
    NoNonZero_ = NoEntries;
    Rows_ = A.Rows();
    Cols_ = A.Cols();
    Row_id_ = new int[NoNonZero_];
    Column_id_ = new int[NoNonZero_];
    Nonzero_entry_ = new Elm[NoNonZero_];
-	
+   
    k=0;
    for(i=0; i<Rows_;i++)
    {
       for(j=0;j<Cols_;j++)
       {
-	 if(A[i][j]!=0)
-	 {
-	    Row_id_[k] = i;
-	    Column_id_[k] = j;
-	    Nonzero_entry_[k] = A[i][j];
-	    k=k+1;
-	 }
+         if(A[i][j]!=0)
+         {
+            Row_id_[k] = i;
+            Column_id_[k] = j;
+            Nonzero_entry_[k] = A[i][j];
+            k=k+1;
+         }
       }
-   } 
+   }
 }
-
-////////////////////////////////////////////////////////////////////////////////////////////////
 
 SparseMatrix::~SparseMatrix()
 {
@@ -136,40 +134,77 @@ SparseMatrix::~SparseMatrix()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-Matrix operator+(SparseMatrix const& A,SparseMatrix const& B)
+void Add(Matrix& Y,SparseMatrix const& A,SparseMatrix const& B)
 {
-   if (A.Rows_ != B.Rows_ || A.Cols_ != B.Cols_ ||  A.IsNull() || B.IsNull())
+   if (A.Rows_ != B.Rows_ || A.Cols_ != B.Cols_ ||  A.Rows_ != Y.Rows() || A.Cols_ != Y.Cols()
+       || A.IsNull() || B.IsNull() || Y.IsNull())
    {
-      cerr << "Error in Matrix Operator+() Diff Size Matrices or Null Matrix!!!"
-	   << "\n";
+      cerr << "Error in SparseMatrix Add() Diff Size Matrices or Null Matrix!!!"
+           << "\n";
       exit(-1);
    }
-	
-   Matrix C(A.Rows_, A.Cols_, 0);
-
-   for(register int i=0; i < A.Rows_; i++)
+   
+   Y.Resize(A.Rows_,A.Cols_,0.0); // initialize to zero
+   for (register int l=0 ; l<A.NoNonZero_; l++)
    {
-      for(register int j=0; j<A.Cols_; j++)
+      Y[A.Row_id_[l]][A.Column_id_[l]] += A.Nonzero_entry_[l];
+   }
+   for (register int m=0; m<B.NoNonZero_; m++)
+   {
+      Y[B.Row_id_[m]][B.Column_id_[m]] += B.Nonzero_entry_[m];
+   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Add(Matrix& Y,SparseMatrix const& A,Matrix const& B)
+{
+   if (A.Rows_ != B.Rows() || A.Cols_ != B.Cols() ||  A.Rows_ != Y.Rows() || A.Cols_ != Y.Cols()
+       || A.IsNull() || B.IsNull() || Y.IsNull())
+   {
+      cerr << "Error in SparseMatrix Add() Diff Size Matrices or Null Matrix!!!"
+           << "\n";
+      exit(-1);
+   }
+   
+   Y.Resize(A.Rows_,A.Cols_,0.0); // initialize to zero
+   for (register int l=0 ; l<A.NoNonZero_; l++)
+   {
+      Y[A.Row_id_[l]][A.Column_id_[l]] += A.Nonzero_entry_[l];
+   }
+   for (register int m=0; m<B.Rows(); m++)
+   {
+      for (register int n=0;n<B.Cols();++n)
       {
-	 for (register int l=0 ; l<A.NoNonZero_; l++)
-	 {
-	    if (i == A.Row_id_[l] && j == A.Column_id_[l])
-	    {
-	       C[i][j] = C[i][j]+A.Nonzero_entry_[l];
-	    }
-	 }
-			
-	 for (register int m=0; m<B.NoNonZero_; m++)
-	 {
-	    if (i == B.Row_id_[m] && j == B.Column_id_[m])
-	    {
-	       C[i][j] = C[i][j] +B.Nonzero_entry_[m];
-	    }
-	 }
-			
+         Y[m][n] += B[m][n];
       }
-   }		
-   return C;
+   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Add(Matrix& Y,Matrix const& A,SparseMatrix const& B)
+{
+   if (A.Rows() != B.Rows_ || A.Cols() != B.Cols_ ||  A.Rows() != Y.Rows()
+       || A.Cols() != Y.Cols() || A.IsNull() || B.IsNull() || Y.IsNull())
+   {
+      cerr << "Error in SparseMatrix Add() Diff Size Matrices or Null Matrix!!!"
+           << "\n";
+      exit(-1);
+   }
+   
+   Y.Resize(A.Rows(),A.Cols(),0.0); // initialize to zero
+   for (register int m=0; m<A.Rows(); m++)
+   {
+      for (register int n=0;n<A.Cols();++n)
+      {
+         Y[m][n] += A[m][n];
+      }
+   }
+   for (register int l=0 ; l<B.NoNonZero_; l++)
+   {
+      Y[B.Row_id_[l]][B.Column_id_[l]] += B.Nonzero_entry_[l];
+   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -177,345 +212,272 @@ Matrix operator+(SparseMatrix const& A,SparseMatrix const& B)
 SparseMatrix operator-(SparseMatrix const& A)
 {
    SparseMatrix B(A);
-	
+   
    for(register int i=0;i<A.NoNonZero_;i++)
    {
       B.Nonzero_entry_[i]= -A.Nonzero_entry_[i];
    }
-	
+   
    return B;
-	
+   
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-Matrix operator-(SparseMatrix const& A,SparseMatrix const& B)
+void Subtract(Matrix& Y,SparseMatrix const& A,SparseMatrix const& B)
 {
-   if (A.Rows_ != B.Rows_ || A.Cols_ != B.Cols_ ||  A.IsNull() || B.IsNull())
+   if (A.Rows_ != B.Rows_ || A.Cols_ != B.Cols_ || A.Rows_ != Y.Rows() || A.Cols_ != Y.Cols()
+       || A.IsNull() || B.IsNull() || Y.IsNull())
    {
-      cerr << "Error in Matrix Operator+() Diff Size Matrices or Null Matrix!!!"
-	   << "\n";
+      cerr << "Error in SparseMatrix Subtract() Diff Size Matrices or Null Matrix!!!"
+           << "\n";
       exit(-1);
    }
-	
-   Matrix C(A.Rows_, A.Cols_, 0);
-
-   for(register int i=0; i < A.Rows_; i++)
+   
+   Y.Resize(A.Rows_,A.Cols_,0.0); // initialize to zero
+   for (register int l=0 ; l<A.NoNonZero_; l++)
    {
-      for(register int j=0; j<A.Cols_; j++)
-      {
-	 for (register int l=0 ; l<A.NoNonZero_; l++)
-	 {
-	    if (i == A.Row_id_[l] && j == A.Column_id_[l])
-	    {
-	       C[i][j] = C[i][j]+A.Nonzero_entry_[l];
-	    }
-	 }
-			
-	 for (register int m=0; m<B.NoNonZero_; m++)
-	 {
-	    if (i == B.Row_id_[m] && j == B.Column_id_[m])
-	    {
-	       C[i][j] = C[i][j] -B.Nonzero_entry_[m];
-	    }
-	 }
-			
-      }
-   }		
-   return C;
+      Y[A.Row_id_[l]][A.Column_id_[l]] += A.Nonzero_entry_[l];
+   }
+   for (register int m=0; m<B.NoNonZero_; m++)
+   {
+      Y[B.Row_id_[m]][B.Column_id_[m]] -= B.Nonzero_entry_[m];
+   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-SparseMatrix operator*(double const& A,SparseMatrix const& B)
+void Subtract(Matrix& Y,SparseMatrix const& A,Matrix const& B)
 {
-   SparseMatrix C(B);
-	
+   if (A.Rows_ != B.Rows() || A.Cols_ != B.Cols() || A.Rows_ != Y.Rows() || A.Cols_ != Y.Cols()
+       || A.IsNull() || B.IsNull() || Y.IsNull())
+   {
+      cerr << "Error in SparseMatrix Subtract() Diff Size Matrices or Null Matrix!!!"
+           << "\n";
+      exit(-1);
+   }
+   
+   Y.Resize(A.Rows_,A.Cols_,0.0); // initialize to zero
+   for (register int l=0 ; l<A.NoNonZero_; l++)
+   {
+      Y[A.Row_id_[l]][A.Column_id_[l]] += A.Nonzero_entry_[l];
+   }
+   for (register int m=0; m<B.Rows(); m++)
+   {
+      for (register int n=0;n<B.Cols();++n)
+      {
+         Y[m][n] -= B[m][n];
+      }
+   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Subtract(Matrix& Y,Matrix const& A,SparseMatrix const& B)
+{
+   if (A.Rows() != B.Rows_ || A.Cols() != B.Cols_ || A.Rows() != Y.Rows()
+       || A.Cols() != Y.Cols() || A.IsNull() || B.IsNull() || Y.IsNull())
+   {
+      cerr << "Error in SparseMatrix Subtract() Diff Size Matrices or Null Matrix!!!"
+           << "\n";
+      exit(-1);
+   }
+   
+   Y.Resize(A.Rows(),A.Cols(),0.0); // initialize to zero
+   for (register int m=0; m<A.Rows(); m++)
+   {
+      for (register int n=0;n<A.Cols();++n)
+      {
+         Y[m][n] += A[m][n];
+      }
+   }
+   for (register int l=0 ; l<B.NoNonZero_; l++)
+   {
+      Y[B.Row_id_[l]][B.Column_id_[l]] -= B.Nonzero_entry_[l];
+   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Multiply(SparseMatrix& Y,double const& A,SparseMatrix const& B)
+{
+   if (B.Rows_ != Y.Rows_ || B.Cols_ != Y.Cols_ || B.IsNull() || Y.IsNull())
+   {
+      cerr << "Error in SparseMatrix Multiply() Diff Size Matrices or Null Matrix!!!"
+           << "\n";
+      exit(-1);
+   }
+   
    for(register int i=0;i<B.NoNonZero_;i++)
    {
-      C.Nonzero_entry_[i]= A*B.Nonzero_entry_[i];
+      Y.Nonzero_entry_[i]= A*B.Nonzero_entry_[i];
    }
-	
-   return C;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-SparseMatrix operator*(SparseMatrix const& B,double const& A)
+void Multiply(SparseMatrix& Y,SparseMatrix const& A,double const& B)
 {
-   SparseMatrix C(B);
-	
-   for(register int i=0;i<B.NoNonZero_;i++)
+   if (A.Rows_ != Y.Rows_ || A.Cols_ != Y.Cols_ || A.IsNull() || Y.IsNull())
    {
-      C.Nonzero_entry_[i]= A*B.Nonzero_entry_[i];
-   }
-	
-   return C;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-
-Matrix operator*(SparseMatrix const& A,SparseMatrix const& B)
-{
-   if (A.Cols_!=B.Rows_ || A.IsNull() || B.IsNull())
-   {
-      cerr << "Error In SparseMatrix Operator* : A.Cols!=B.Rows or Null Matrix"
-	   <<"\n";
+      cerr << "Error in SparseMatrix Multiply() Diff Size Matrices or Null Matrix!!!"
+           << "\n";
       exit(-1);
    }
-	
-   double entry;
-	
-	
-   Matrix C(A.Rows_, B.Cols_, 0);
-	
-   for(register int i=0; i< A.Rows_; i++)
+   
+   for(register int i=0;i<A.NoNonZero_;i++)
    {
-      for(register int j=0; j< B.Cols_; j++)
-      {
-	 entry = 0;
-			
-	 for(register int k=0; k<A.NoNonZero_;k++)
-	 {
-	    if(A.Row_id_[k] == i)
-	    {
-	       for(register int l=0; l<B.NoNonZero_; l++)
-	       {
-		  if(B.Column_id_[l] == j)
-		  {
-		     if(B.Row_id_[l] == A.Column_id_[k])
-		     {
-			entry = entry + (A.Nonzero_entry_[k]*B.Nonzero_entry_[l]);
-		     }
-		  }
-	       }
-	    }
-	 }
-			
-	 C[i][j] = entry;
-      }		
+      Y.Nonzero_entry_[i]= B*A.Nonzero_entry_[i];
    }
-	
-   return C;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-Matrix operator*(SparseMatrix const& A,Matrix const& B)
-{	
-   if (A.Cols_!=B.Rows_ || A.IsNull() || B.IsNull())
+void Multiply(Matrix& Y,SparseMatrix const& A,SparseMatrix const& B)
+{
+   if (Y.Rows() != A.Rows_ || Y.Cols() != B.Cols_ || A.Cols_ != B.Rows_ ||
+       A.IsNull() || B.IsNull() || Y.IsNull())
    {
-      cerr << "Error In SparseMatrix Operator* : A.Cols!=B.Rows or Null Matrix"
-	   <<"\n";
+      cerr << "Error in SparseMatrix Multiply() Diff Size Matrices or Null Matrix!!!"
+           << "\n";
       exit(-1);
    }
-	
-   Matrix C(A.Rows(), B.Cols(), 0);
-	
-   double entry;
-	
-   for (register int i=0; i<A.Rows(); i++)
+   
+   Y.Resize(A.Rows_,B.Cols_,0.0); // Initialize to zero
+   for (int i=0;i<A.NoNonZero();++i)
    {
-      for(register int j=0; j<B.Cols(); j++)
+      for (int j=0;j<B.NoNonZero();++j)
       {
-	 entry = 0;
-			
-	 for(register int k=0; k<B.Rows();k++)
-	 {
-	    for(register int l=0; l<A.NoNonZero();l++)
-	    {
-	       if(A.Row_id_[l] == i && A.Column_id_[l] == k)
-	       {
-		  entry= entry +(A.Nonzero_entry_[l] * B[k][j]);
-	       }
-	    }	
-			
-	 }
-			
-	 C[i][j]=entry;
-			
+         if (A.Column_id_[i] == B.Row_id_[j])
+         {
+            Y[A.Row_id_[i]][B.Column_id_[j]] += A.Nonzero_entry_[i]*B.Nonzero_entry_[j];
+         }
       }
    }
-   return C;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-Matrix operator*(Matrix const& A,SparseMatrix const& B)
+void Multiply(Matrix& Y,SparseMatrix const& A,Matrix const& B)
 {
-   if (A.Cols_!=B.Rows_ || A.IsNull() || B.IsNull())
+   if (Y.Rows() != A.Rows_ || Y.Cols() != B.Cols() || A.Cols_!=B.Rows()
+       || A.IsNull() || B.IsNull() || Y.IsNull())
    {
-      cerr << "Error In SparseMatrix Operator* : A.Cols!=B.Rows or Null Matrix"
-	   <<"\n";
-      exit(-1);
-   }
-	
-   Matrix C(A.Rows(), B.Cols(), 0);
-	
-   double entry;
-	
-   for (register int i=0; i<A.Rows(); i++)
-   {
-      for(register int j=0; j<B.Cols(); j++)
-      {
-	 entry = 0;
-			
-	 for(register int k=0; k< A.Cols();k++)
-	 {
-	    for (register int l=0;l<B.NoNonZero();l++)
-	    {
-	       if(B.Column_id_[l] == j & B.Row_id_[l] == k)
-	       {
-		  entry = entry + (A[i][k] * B.Nonzero_entry_[l]);
-	       }
-	    }
-			
-	 }
-	 C[i][j]= entry;
-      }
-   }
-   return C;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-
-Vector operator*(SparseMatrix const& A,Vector const& B)
-{
-	
-   if (A.Cols()!=B.Cols_ || A.IsNull() || B.Cols_==0)
-   {
-      cerr << "Error In Vector Operator* : A.Cols!=B.Cols or Null Matrix or Vector"
-	   <<"\n";
-      exit(-1);
-   }
-	
-	
-   Vector C(A.Rows(),0);
-	
-   double entry;
-	
-   for(register int i=0; i<A.Rows(); i++)
-   {
-      entry = 0;
-		
-      for (register int j=0; j<A.NoNonZero(); j++)
-      {
-	 if(A.Row_id_[j]==i)
-	 {
-	    entry = entry + (A.Nonzero_entry_[j] * B[A.Column_id_[j]]);
-	 }
-      }
-		
-      C[i] = entry;
-   }
-   return C;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-
-Vector3D operator*(SparseMatrix const& A,Vector3D const& B)
-{
-   if (A.Cols() != V3DLEN)
-   {
-      cerr << "Vector3D: error: operator*(matrix,vec): Wrong Size" << "\n";
+      cerr << "Error In SparseMatrix Multiply : Wrong size Matricies or Null Matrix"
+           <<"\n";
       exit(-1);
    }
 
-   Vector3D z(0.0);
-	
-   double entry;
-	
-   for (register int i=0;i<V3DLEN;i++)
+   Y.Resize(A.Rows_,B.Cols(),0.0); // Initialize to zero
+   for (int i=0;i<A.NoNonZero_;++i)
    {
-      entry =0;
-		
-      for(register int j=0; j<V3DLEN; j++)
+      for (int j=0;j<B.Cols();++j)
       {
-	 for(register int k=0; k<A.NoNonZero(); k++)
-	 {
-	    if(A.Row_id_[k] == i && A.Column_id_[k] == j)
-	    {
-	       entry = entry + (A.Nonzero_entry_[k] * B[j]);
-	    }
-	 }
+         Y[A.Row_id_[i]][j] += A.Nonzero_entry_[i]*B[A.Column_id_[i]][j];
       }
-      z[i] = entry;
    }
-
-   return z;
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-Vector3D operator*(Vector3D const& A,SparseMatrix const& B)
+void Multiply(Matrix& Y,Matrix const& A,SparseMatrix const& B)
 {
-   if (B.Rows() != V3DLEN)
+   if (Y.Rows() != A.Rows() || Y.Cols() != B.Cols_ || A.Cols() != B.Rows_
+       || A.IsNull() || B.IsNull() || Y.IsNull())
    {
-      cerr << "Vector3D: error: operator*(matrix,vec): Wrong Size" << "\n";
+      cerr << "Error In SparseMatrix Multiply : Wrong size Matricies or Null Matrix"
+           <<"\n";
       exit(-1);
    }
-	
-   Vector3D z(0);
-	
-   double entry;
-	
-   for (register int i=0; i < V3DLEN ;i++)
+
+   Y.Resize(A.Rows(),B.Cols_,0.0); // Initialize to zero
+   for (int i=0;i<A.Rows();++i)
    {
-      entry = 0;
-		
-      for(register int j=0; j< V3DLEN; j++)
+      for (int j=0;j<B.NoNonZero_;++j)
       {
-	 for(register int k=0; k<B.NoNonZero();k++)
-	 {
-	    if(B.Row_id_[k] == j && B.Column_id_[k] == i)
-	    {
-	       entry = entry + (B.Nonzero_entry_[k] * A[j]);
-	    }
-	 }
+         Y[i][B.Column_id_[j]] += A[i][B.Row_id_[j]]*B.Nonzero_entry_[j];
       }
-      z[i] = entry;
    }
-   return z;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-Vector operator*(Vector const& A,SparseMatrix const& B)
+void Multiply(Vector& Y,SparseMatrix const& A,Vector const& B)
 {
-   if (B.Rows()!=A.Cols_ || B.IsNull() || A.Cols_==0)
+   
+   if (A.Cols_!=B.Dim() || Y.Dim() != A.Rows_ || A.IsNull() || B.Dim()==0 || Y.Dim()==0)
    {
-      cerr << "Error In Vector Operator* : A.Cols!=B.Rows or Null Matrix or Vector"
-	   <<"\n";
+      cerr << "Error In SparesMatrix Multiply : Wrong size or  Null Matrix or Vector"
+           <<"\n";
       exit(-1);
    }
-	
-   Vector C(B.Cols(), 0);
-	
-   double entry;
-	
-   for(register int i=0; i< B.Cols(); i++)
+
+   Y.Resize(A.Rows_,0.0); // Initialize to zero
+   for (int i=0;i<A.NoNonZero_;++i)
    {
-      entry = 0;
-		
-      for(register int j=0; j<A.Cols_ ;j++)
-      {
-	 for(register int k=0; k<B.NoNonZero(); k++)
-	 {
-	    if(B.Column_id_[k]==i && B.Row_id_[k] == j)
-	    {
-	       entry = entry + (A[j]*B.Nonzero_entry_[k]);
-	    }
-	 }
-      }
-      C[i] = entry;
+      Y[A.Row_id_[i]] += A.Nonzero_entry_[i]*B[A.Column_id_[i]];
    }
-
-   return C;
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Multiply(Vector& Y,Vector const& A,SparseMatrix const& B)
+{
+   
+   if (A.Dim() != B.Rows_ || Y.Dim() != B.Cols_ || A.Dim()==0 || B.IsNull() || Y.Dim()==0)
+   {
+      cerr << "Error In SparesMatrix Multiply : Wrong size or  Null Matrix or Vector"
+           <<"\n";
+      exit(-1);
+   }
+
+   Y.Resize(B.Cols_,0.0); // Initialize to zero
+   for (int i=0;i<B.NoNonZero_;++i)
+   {
+      Y[B.Column_id_[i]] += A[B.Row_id_[i]]*B.Nonzero_entry_[i];
+   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Multiply(Vector3D& Y,SparseMatrix const& A,Vector3D const& B)
+{
+   
+   if (A.Cols_!=V3DLEN || A.Rows_ != V3DLEN || A.IsNull())
+   {
+      cerr << "Error In SparesMatrix Multiply : Wrong size or  Null Matrix"
+           <<"\n";
+      exit(-1);
+   }
+
+   Y[0]=Y[1]=Y[2]=0.0; // Initialize to zero
+   for (int i=0;i<A.NoNonZero_;++i)
+   {
+      Y[A.Row_id_[i]] += A.Nonzero_entry_[i]*B[A.Column_id_[i]];
+   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Multiply(Vector3D& Y,Vector3D const& A,SparseMatrix const& B)
+{
+   
+   if (V3DLEN != B.Cols_ || B.Rows_ != V3DLEN || B.IsNull())
+   {
+      cerr << "Error In SparesMatrix Multiply : Wrong size or  Null Matrix"
+           <<"\n";
+      exit(-1);
+   }
+
+   Y[0]=Y[1]=Y[2]=0.0;
+   for (int i=0;i<B.NoNonZero_;++i)
+   {
+      Y[B.Column_id_[i]] += A[B.Row_id_[i]]*B.Nonzero_entry_[i];
+   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
 SparseMatrix& SparseMatrix::operator=(Matrix const& A)
 {
 //This counts the number of nonzero entries
@@ -531,47 +493,48 @@ SparseMatrix& SparseMatrix::operator=(Matrix const& A)
    {
       for(j=0;j<Cols_;j++)
       {
-	 if(A[i][j]!=0)
-	 {
-	    ++count;
-	 }
+         if(A[i][j]!=0)
+         {
+            ++count;
+         }
       }
    }
    NoNonZero_ = count;
-	
+   
    Row_id_ = new int[NoNonZero_];
    Column_id_ = new int[NoNonZero_];
    Nonzero_entry_ = new Elm[NoNonZero_];
-
+   
    for(i=0; i<Rows_;i++)
    {
       for(j=0;j<Cols_;j++)
       {
-	 if(A[i][j]!=0)
-	 {
-	    Row_id_[k] = i;
-	    Column_id_[k] = j;
-	    Nonzero_entry_[k] = A[i][j];
-	    k=k+1;
-	 }
+         if(A[i][j]!=0)
+         {
+            Row_id_[k] = i;
+            Column_id_[k] = j;
+            Nonzero_entry_[k] = A[i][j];
+            k=k+1;
+         }
       }
    }
    return *this;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+
 SparseMatrix SparseMatrix::Transpose() const
 {
    SparseMatrix B(NoNonZero_,Cols_,Rows_);
-	
+   
    for(register int i=0; i<NoNonZero_; i++)
    {
       B.Row_id_[i] = Column_id_[i];
       B.Column_id_[i] = Row_id_[i];
       B.Nonzero_entry_[i]=Nonzero_entry_[i];
    }
-	
-   return B;	
+   
+   return B;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -607,22 +570,22 @@ SparseMatrix& SparseMatrix::SetSparseIdentity(int const& Size)
 Matrix ReverseSparse(SparseMatrix const& A)
 {
    Matrix B(A.Rows(),A.Cols(),0);
-	
+   
    for (register int i=0; i<A.Rows(); i++)
    {
       for(register int j=0; j<A.Cols(); j++)
       {
-	 for(register int k=0; k<A.NoNonZero(); k++)
-	 {
-	    if(A.Row_id_[k] == i && A.Column_id_[k] == j)
-	    {
-	       B[i][j] = A.Nonzero_entry_[k];
-	    }
-	 }
+         for(register int k=0; k<A.NoNonZero(); k++)
+         {
+            if(A.Row_id_[k] == i && A.Column_id_[k] == j)
+            {
+               B[i][j] = A.Nonzero_entry_[k];
+            }
+         }
       }
    }
    return B;
-} 
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -632,17 +595,17 @@ ostream& operator<<(ostream& out,SparseMatrix const& A)
    int NoNonZero = A.NoNonZero();
    
    out << "\n";
-
+   
    for (register int i=0;i<NoNonZero;i++)
    {
-      out << "Row id = " << setw(W) << A.Row_id_[i] 
-	  << "Column id = " << setw(W) << A.Column_id_[i] 
-	  << "Entry = " << setw(W) << A.Nonzero_entry_[i]
-	  << "\n";
+      out << "Row id = " << setw(W) << A.Row_id_[i]
+          << "Column id = " << setw(W) << A.Column_id_[i]
+          << "Entry = " << setw(W) << A.Nonzero_entry_[i]
+          << "\n";
    }
-
+   
    out << "\n";
-
+   
    return out;
 }
 
