@@ -10,12 +10,33 @@ class NoRestriction : public Restriction
 {
 private:
    Lattice *Lattice_;
-   
+
+   void UpdateLatticeDOF()
+   {
+      Vector tmpdof(Lattice_->DOF().Dim());
+      for (int i=0;i<tmpdof.Dim();++i)
+      {
+         tmpdof[i] = dof_static[i];
+      }
+      Lattice_->SetDOF(tmpdof);
+      
+      if (Lattice_->LoadParameter() == Lattice::Temperature)
+         Lattice_->SetTemp(dof_static[tmpdof.Dim()]);
+      else if (Lattice_->LoadParameter() == Lattice::Load)
+         Lattice_->SetLambda(dof_static[tmpdof.Dim()]);
+      else
+      {
+         cerr << "Error, Unknown LoadParameter type! exiting...\n";
+         exit(-15);
+      }
+   }
+
 public:
    NoRestriction(Lattice* const M): Lattice_(M),
+                                    dof_static(Lattice_->DOF().Dim()+1),
                                     ddt_static(Lattice_->DOF().Dim()),
                                     Stiff_static(Lattice_->DOF().Dim(),Lattice_->DOF().Dim()),
-                                    stressdt_static(1,Lattice_->DOF().Dim())
+                                    stressdt_static(Lattice_->DOF().Dim())
    {}
    
    ~NoRestriction() {}
@@ -45,14 +66,15 @@ public:
       }
       return K_static;
    }
-   virtual Vector const& DOF() const {return Lattice_->DOF();}
-   virtual void SetDOF(Vector const& dof) {Lattice_->SetDOF(dof);}
-   virtual void UpdateDOF(Vector const& dr) {Lattice_->SetDOF(Lattice_->DOF()+dr);}
+   virtual Vector const& DOF() const {return dof_static;}
+   virtual void SetDOF(Vector const& dof) {dof_static = dof; UpdateLatticeDOF();}
+   virtual void UpdateDOF(Vector const& dr) {dof_static+=dr; UpdateLatticeDOF();}
    //----------------------------------------------------------------
    virtual char const* const Name() const {return "NoRestriction";}
 
 private:
    // "static" member variables
+   mutable Vector dof_static;
    // DrDt
    mutable Vector ddt_static;
    // Stiffness

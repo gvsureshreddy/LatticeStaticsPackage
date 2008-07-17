@@ -40,7 +40,8 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,
       cerr << "error: NewtonPCSolution::Angle too large!\n";
       exit(-22);
    }
-   
+
+   Restrict_->SetDOF(FirstSolution_);
    int count = (Restrict_->DOF()).Dim();
    int count_minus_one = count -1;
    //initialize "static" variables
@@ -58,7 +59,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,
    Matrix R(count, count_minus_one);
    
    //Performs QR decomposition using A^T = Q*R. Section 4.1 of ISBN 3-540-12760-7
-   QR(Restrict->Stiffness(),Q,R,1);
+   QR(Restrict_->Stiffness(),Q,R,1);
    
    Tangent1_.Resize(count);
    Tangent2_.Resize(count);
@@ -191,7 +192,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
    Matrix R(count, count_minus_one);
    
    //Performs QR decomposition using A^T = Q*R. Section 4.1 of ISBN 3-540-12760-7
-   QR(Restrict->Stiffness(),Q,R,1);
+   QR(Restrict_->Stiffness(),Q,R,1);
    
    Tangent1_.Resize(count);
    Tangent2_.Resize(count);

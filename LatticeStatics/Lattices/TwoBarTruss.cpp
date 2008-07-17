@@ -19,7 +19,7 @@ TwoBarTruss::TwoBarTruss(PerlInput const& Input,int const& Echo,int const& Width
    Echo_(Echo),
    Width_(Width),
    E1CachedValue_(2),
-   E1DLoadCachedValue_(1,2),
+   E1DLoadCachedValue_(2),
    E2CachedValue_(2,2)
 {
    LoadParameter_ = Load;
@@ -153,7 +153,7 @@ void TwoBarTruss::Print(ostream& out,PrintDetail const& flag)
              << "DOF's :" << "\n" << setw(W) << DOF_ << "\n"
              << "Potential Value:" << setw(W) << engy << "\n";
 
-         out << "Stress:" << setw(W) << str
+         out << "Stress:" << setw(W) << str << "\n\n"
              << "Stiffness:" << setw(W) << stiff
              << "Eigenvalue Info:"  << "\n"<< setw(W) << TestFunctVals << "\n"
              << "Bifurcation Info:" << setw(W) << NoNegTestFunctions << "\n";
@@ -164,7 +164,7 @@ void TwoBarTruss::Print(ostream& out,PrintDetail const& flag)
                  << "DOF's :" << "\n" << setw(W) << DOF_ << "\n"
                  << "Potential Value:" << setw(W) << engy << "\n";
 
-            cout << "Stress:" << setw(W) << str
+            cout << "Stress:" << setw(W) << str << "\n\n"
                  << "Stiffness:" << setw(W) << stiff
                  << "Eigenvalue Info:"  << "\n" << setw(W) << TestFunctVals <<"\n"
                  << "Bifurcation Info:" << setw(W) << NoNegTestFunctions << "\n";
