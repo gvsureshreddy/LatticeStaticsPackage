@@ -9,7 +9,7 @@
 #include <cstdlib>
 
 // Global IDString
-char SparseMatrixID[]="$Id: SparseMatrix.cpp,v 1.8 2008/07/17 02:57:55 elliott Exp $";
+char SparseMatrixID[]="$Id: SparseMatrix.cpp,v 1.9 2008/07/17 04:39:32 elliott Exp $";
 
 SparseMatrix::SparseMatrix(Matrix const& A)
 {
@@ -75,7 +75,7 @@ SparseMatrix::SparseMatrix(SparseMatrix const& A)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-SparseMatrix::SparseMatrix(int const& NoNonZero,int const& Rows,int const& Cols)
+SparseMatrix::SparseMatrix(int const& Rows,int const& Cols,int const& NoNonZero)
 {
    Rows_=Rows;
    Cols_=Cols;
@@ -122,6 +122,8 @@ SparseMatrix::SparseMatrix(Matrix const& A,int const& NoEntries)
    }
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////
+
 SparseMatrix::~SparseMatrix()
 {
    if (!IsNull())
@@ -129,6 +131,36 @@ SparseMatrix::~SparseMatrix()
       delete [] Row_id_;
       delete [] Column_id_;
       delete [] Nonzero_entry_;
+   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+void SparseMatrix::Resize(int const& Rows,int const& Cols,int const& NoNonZero)
+{
+   if (Rows_ != Rows || Cols_ != Cols || NoNonZero_ != NoNonZero)
+   {
+      if (!IsNull())
+      {
+         delete [] Row_id_;
+         delete [] Column_id_;
+         delete [] Nonzero_entry_;
+      }
+
+      Rows_=Rows;
+      Cols_=Cols;
+      NoNonZero_= NoNonZero;
+      
+      Row_id_ = new int[NoNonZero_];
+      Column_id_ = new int[NoNonZero_];
+      Nonzero_entry_ = new Elm[NoNonZero_];
+      
+      for(register int i=0; i<NoNonZero_;i++)
+      {
+         Row_id_[i] = 0;
+         Column_id_[i] = 0;
+         Nonzero_entry_[i] = 0;
+      }
    }
 }
 
@@ -525,7 +557,7 @@ SparseMatrix& SparseMatrix::operator=(Matrix const& A)
 
 SparseMatrix SparseMatrix::Transpose() const
 {
-   SparseMatrix B(NoNonZero_,Cols_,Rows_);
+   SparseMatrix B(Cols_,Rows_,NoNonZero_);
    
    for(register int i=0; i<NoNonZero_; i++)
    {

@@ -41,7 +41,7 @@ public:
    SparseMatrix(Matrix const& A);
    SparseMatrix(Matrix const& A,int const& NoEntries);
    SparseMatrix(SparseMatrix const& A);
-   SparseMatrix(int const& NoNonZero,int const& Rows,int const& Cols);
+   SparseMatrix(int const& Rows,int const& Cols,int const& NoNonZero);
 	
    // Deconstructor...
    ~SparseMatrix();
@@ -50,7 +50,11 @@ public:
    int const& Rows() const {return Rows_;}
    int const& Cols() const {return Cols_;}
    int const& NoNonZero() const {return NoNonZero_;}
-   
+
+   // Destructively Resize and Initialize to zero the SparseMatrix
+   // No change if size does not change
+   void Resize(int const& Rows=0,int const& Cols=0,int const& NoNonZero=0);
+
    // Mathematical Operations...
    friend SparseMatrix& operator+(SparseMatrix& A){return A;}
    friend SparseMatrix operator-(SparseMatrix const& A);
@@ -77,10 +81,10 @@ public:
 
    friend void Multiply(SparseMatrix& Y,double const& A,SparseMatrix const& B);
    friend SparseMatrix operator*(double const& A,SparseMatrix const& B)
-   {SparseMatrix Y(B.NoNonZero(),B.Rows(),B.Cols()); Multiply(Y,A,B); return Y;}
+   {SparseMatrix Y(B.Rows(),B.Cols(),B.NoNonZero()); Multiply(Y,A,B); return Y;}
    friend void Multiply(SparseMatrix& Y,SparseMatrix const& A,double const& B);
    friend SparseMatrix operator*(SparseMatrix const& A,double const& B)
-   {SparseMatrix Y(A.NoNonZero(),A.Rows(),A.Cols()); Multiply(Y,A,B); return Y;}
+   {SparseMatrix Y(A.Rows(),A.Cols(),A.NoNonZero()); Multiply(Y,A,B); return Y;}
 
    friend void Multiply(Matrix& Y,SparseMatrix const& A,SparseMatrix const& B);
    friend Matrix operator*(SparseMatrix const& A,SparseMatrix const& B)

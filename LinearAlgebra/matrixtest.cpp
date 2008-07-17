@@ -467,7 +467,7 @@ void sparsematrixtest()
    SparseMatrix I(H);
    SparseMatrix D(C);
    SparseMatrix B(G);
-   SparseMatrix F(10, A.Rows(), A.Cols());
+   SparseMatrix F(A.Rows(), A.Cols(), 10);
    Vector V1(N,1);	
    Vector V2(N+1,1);
    Vector3D Z(1);
