@@ -55,6 +55,9 @@ public:
    // No change if size does not change
    void Resize(int const& Rows=0,int const& Cols=0,int const& NoNonZero=0);
 
+   void GetNonZeroEntry(int const& EntryIndex,int& Row,int& Col,Elm& Entry) const;
+   void SetNonZeroEntry(int const& EntryIndex,int const& Row,int const& Col,Elm const& Entry);
+
    // Mathematical Operations...
    friend SparseMatrix& operator+(SparseMatrix& A){return A;}
    friend SparseMatrix operator-(SparseMatrix const& A);

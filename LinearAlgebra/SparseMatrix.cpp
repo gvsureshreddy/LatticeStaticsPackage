@@ -9,7 +9,7 @@
 #include <cstdlib>
 
 // Global IDString
-char SparseMatrixID[]="$Id: SparseMatrix.cpp,v 1.9 2008/07/17 04:39:32 elliott Exp $";
+char SparseMatrixID[]="$Id: SparseMatrix.cpp,v 1.10 2008/07/18 07:57:43 elliott Exp $";
 
 SparseMatrix::SparseMatrix(Matrix const& A)
 {
@@ -162,6 +162,35 @@ void SparseMatrix::Resize(int const& Rows,int const& Cols,int const& NoNonZero)
          Nonzero_entry_[i] = 0;
       }
    }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+void SparseMatrix::GetNonZeroEntry(int const& EntryIndex,int& Row,int& Col,Elm& Entry) const
+{
+   if (EntryIndex < 0 || EntryIndex >= NoNonZero_)
+   {
+      cerr << "Error in SparseMatrix GetNonZeroEntry(). exiting...\n";
+      exit(-32);
+   }
+   
+   Row=Row_id_[EntryIndex];
+   Col=Column_id_[EntryIndex];
+   Entry=Nonzero_entry_[EntryIndex];
+}
+
+void SparseMatrix::SetNonZeroEntry(int const& EntryIndex,int const& Row,int const& Col,
+                                   Elm const& Entry)
+{
+   if (EntryIndex < 0 || EntryIndex >= NoNonZero_ || Row < 0 || Row >= Rows_ || Col < 0
+       || Col >= Cols_)
+   {
+      cerr << "Error in SparseMatrix SetNonZeroEntry(). exiting...\n";
+      exit(-32);
+   }
+   
+   Row_id_[EntryIndex]=Row;
+   Column_id_[EntryIndex]=Col;
+   Nonzero_entry_[EntryIndex]=Entry;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
