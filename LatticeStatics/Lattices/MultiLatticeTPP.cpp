@@ -1692,7 +1692,7 @@ void MultiLatticeTPP::Print(ostream& out,PrintDetail const& flag)
    double engy,entropy,heatcapacity;
    int RankOneConvex;
    int BlochWaveStable;
-   
+   double mintestfunct;
 
    W=out.width();
    
@@ -1707,6 +1707,13 @@ void MultiLatticeTPP::Print(ostream& out,PrintDetail const& flag)
    stiff_static = stiffness();
 
    NoNegTestFunctions=TestFunctions(TestFunctVals_static,LHS);
+   mintestfunct = TestFunctVals_static[0];
+   for(int i=0;i<TestFunctVals_static.Dim();++i)
+   {
+      if (mintestfunct > TestFunctVals_static[i])
+         mintestfunct = TestFunctVals_static[i];
+   }
+   
    CondModuli_static = CondensedModuli();
    
    CondEV_static=SymEigVal(CondModuli_static);
@@ -1801,7 +1808,7 @@ void MultiLatticeTPP::Print(ostream& out,PrintDetail const& flag)
              << "Lambda (Normalized): " << setw(W) << Lambda_ << "\n"
              << "DOF's :" << "\n" << setw(W) << CBK_->DOF() << "\n"
              << "Potential Value (Normalized):" << setw(W) << engy << "\n"
-             << "Thermal Expansion:" << setw(W) << TE_static << "\n"
+             << "Thermal Expansion:" << "\n" << setw(W) << TE_static << "\n\n"
              << "Entropy:" << setw(W) << entropy << "\n"
              << "HeatCapacity:" << setw(W) << heatcapacity << "\n";
          for (int i=0;i<InternalAtoms_;++i)
@@ -1809,14 +1816,15 @@ void MultiLatticeTPP::Print(ostream& out,PrintDetail const& flag)
             out << "BodyForce Value " << i << " (Inf Normalized):"
                 << setw(W) << BodyForce_[i] << "\n";
          }
-         out << "Stress (Normalized):" << setw(W) << str_static << "\n\n"
+         out << "Stress (Normalized):" << "\n" << setw(W) << str_static << "\n\n"
              << "Stiffness (Normalized):" << setw(W) << stiff_static
             //<< "Eigenvalue Info (Rots->1,2,3; Trans->4,5,6):"  << setw(W) << EigenValues
             //<< "Bifurcation Info:" << setw(W) << MinEigVal
             //<< setw(W) << NoNegEigVal << "\n"
              << "Eigenvalue Info (Rots->1,2,3; Trans->4,5,6):" << "\n"<<setw(W)
              << TestFunctVals_static<< "\n"
-             << "Bifurcation Info:" << setw(W) << NoNegTestFunctions << "\n"
+             << "Bifurcation Info:" << setw(W) << mintestfunct
+             << setw(W) << NoNegTestFunctions << "\n"
              << "Condensed Moduli (Normalized):" << setw(W) << CondModuli_static
              << "CondEV Info:" << setw(W) << CondEV_static
              << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << "\n"
@@ -1830,7 +1838,7 @@ void MultiLatticeTPP::Print(ostream& out,PrintDetail const& flag)
                  << "Lambda (Normalized): " << setw(W) << Lambda_ << "\n"
                  << "DOF's :" << "\n" << setw(W) << CBK_->DOF() << "\n"
                  << "Potential Value (Normalized):" << setw(W) << engy << "\n"
-                 << "Thermal Expansion:" << setw(W) << TE_static << "\n"
+                 << "Thermal Expansion:" << "\n" << setw(W) << TE_static << "\n"
                  << "Entropy:" << setw(W) << entropy << "\n"
                  << "HeatCapacity:" << setw(W) << heatcapacity << "\n";
             for (int i=0;i<InternalAtoms_;++i)
@@ -1838,14 +1846,15 @@ void MultiLatticeTPP::Print(ostream& out,PrintDetail const& flag)
                cout << "BodyForce Value " << i << " (Inf Normalized):"
                     << setw(W) << BodyForce_[i] << "\n";
             }
-            cout << "Stress (Normalized):" << setw(W) << str_static << "\n\n"
+            cout << "Stress (Normalized):" << "\n" << setw(W) << str_static << "\n\n"
                  << "Stiffness (Normalized):" << setw(W) << stiff_static
                //<< "Eigenvalue Info (Rots->1,2,3; Trans->4,5,6):"  << setw(W) << EigenValues
                //<< "Bifurcation Info:" << setw(W) << MinEigVal
                //<< setw(W) << NoNegEigVal << "\n"
                  << "Eigenvalue Info (Rots->1,2,3; Trans->4,5,6):" << "\n"<<setw(W)
                  << TestFunctVals_static << "\n"
-                 << "Bifurcation Info:" << setw(W) << NoNegTestFunctions << "\n"
+                 << "Bifurcation Info:" << setw(W) << mintestfunct
+                 << setw(W) << NoNegTestFunctions << "\n"
                  << "Condensed Moduli (Normalized):" << setw(W) << CondModuli_static
                  << "CondEV Info:" << setw(W) << CondEV_static
                  << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << "\n"

@@ -248,8 +248,10 @@ sub loaddata {
 	    
 	    if (/^Bifurcation/)
 	    {
-		@fields = split;
-		push(@noneg,$fields[2]);
+		@fields = split(/:/,$_);
+                $_=$fields[1];
+                @fields = split;
+		push(@noneg,$fields[1]);
 	    }
 
 	    if (/^Condensed Moduli Rank1Convex/)

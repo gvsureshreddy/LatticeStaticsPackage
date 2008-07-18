@@ -482,7 +482,7 @@ int NewtonPCSolution::FindNextSolution()
       {
          f = accel_max_;
          CurrentDS_ /= f;
-         cout << "Prediction " << predictions << " Corrector Iterations: "
+         cout << "\nPrediction " << predictions << " Corrector Iterations: "
               << corrections << "\n";
          ++predictions;
          continue;

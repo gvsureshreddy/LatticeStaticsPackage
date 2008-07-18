@@ -120,6 +120,7 @@ void TwoBarTruss::Print(ostream& out,PrintDetail const& flag)
    int W;
    int NoNegTestFunctions;
    double engy;
+   double mintestfunct;
    Matrix
       stiff(DOFS_,DOFS_);
    Vector str(DOFS_);
@@ -135,6 +136,12 @@ void TwoBarTruss::Print(ostream& out,PrintDetail const& flag)
    stiff = E2();
    
    NoNegTestFunctions=TestFunctions(TestFunctVals,LHS);
+   mintestfunct = TestFunctVals[0];
+   for (int i=0;i<DOFS_;++i)
+   {
+      if (mintestfunct > TestFunctVals[i])
+         mintestfunct = TestFunctVals[i];
+   }
    
    switch (flag)
    {
@@ -153,10 +160,11 @@ void TwoBarTruss::Print(ostream& out,PrintDetail const& flag)
              << "DOF's :" << "\n" << setw(W) << DOF_ << "\n"
              << "Potential Value:" << setw(W) << engy << "\n";
 
-         out << "Stress:" << setw(W) << str << "\n\n"
+         out << "Stress:" << "\n" << setw(W) << str << "\n\n"
              << "Stiffness:" << setw(W) << stiff
              << "Eigenvalue Info:"  << "\n"<< setw(W) << TestFunctVals << "\n"
-             << "Bifurcation Info:" << setw(W) << NoNegTestFunctions << "\n";
+             << "Bifurcation Info:" << setw(W) << mintestfunct
+             << setw(W) << NoNegTestFunctions << "\n";
          // send to cout also
          if (Echo_)
          {
@@ -164,10 +172,11 @@ void TwoBarTruss::Print(ostream& out,PrintDetail const& flag)
                  << "DOF's :" << "\n" << setw(W) << DOF_ << "\n"
                  << "Potential Value:" << setw(W) << engy << "\n";
 
-            cout << "Stress:" << setw(W) << str << "\n\n"
+            cout << "Stress:" << "\n" << setw(W) << str << "\n\n"
                  << "Stiffness:" << setw(W) << stiff
                  << "Eigenvalue Info:"  << "\n" << setw(W) << TestFunctVals <<"\n"
-                 << "Bifurcation Info:" << setw(W) << NoNegTestFunctions << "\n";
+                 << "Bifurcation Info:" << setw(W) << mintestfunct
+                 << setw(W) << NoNegTestFunctions << "\n";
          }
          break;
    }

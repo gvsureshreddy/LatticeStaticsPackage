@@ -4,9 +4,13 @@ RestrictToSubSpaceOld::RestrictToSubSpaceOld(Lattice* const M,PerlInput const& I
 {
    char tmp[LINELENGTH];
 
+   Lattice_ = (Lattice *) M;
+
    PerlInput::HashStruct Hash = Input.getHash("Restriction","RestrictToSubSpaceOld");
    DOFS_ = Input.getPosInt(Hash,"DOFS");
    DOF_.Resize(DOFS_+1,0.0);
+
+   int LatDOFS = Lattice_->DOF().Dim();
    
    for (int i=0;i<DOFS_;++i)
    {
@@ -17,37 +21,36 @@ RestrictToSubSpaceOld::RestrictToSubSpaceOld(Lattice* const M,PerlInput const& I
       Input.getVector(DOFMult_[i],Hash,tmp,1);
    }
    
-   Lattice_ = (Lattice *) M;
-   
    //Baseline DOF Initialization
-   int temp1 = (Lattice_->DOF()).Dim();
-   int temp2;
-   double temp3;
-   int Baseline_DOFS;
-   if (Input.ParameterOK(Hash,"Baseline_DOFS"))
+   BaselineDOF_.Resize(LatDOFS,0.0);
+
+   char const* UseBaseLineState;
+   if (Input.ParameterOK(Hash,"UseBaseLineState"))
    {
-      Baseline_DOFS = Input.getPosInt(Hash,"Baseline_DOFS");
+      UseBaseLineState = Input.getString(Hash,"UseBaseLineState");
    }
    else
    {
-      Baseline_DOFS = Input.usePosInt(0,Hash,"Baseline_DOFS");
+      UseBaseLineState = Input.useString("No",Hash,"UseBaseLineState");
    }
    
-   BaselineDOF_.Resize(temp1,0.0);
-   
-   for(int i=0; i < Baseline_DOFS ; ++i)
+   if (!strcmp("Yes",UseBaseLineState))
    {
-      sprintf(tmp,"Baseline_DOF_Index_%u",i);
-      temp2 = Input.getPosInt(Hash,tmp);
-      sprintf(tmp,"Baseline_DOF_Value_%u",i);
-      temp3 = Input.getDouble(Hash,tmp);
-      
-      BaselineDOF_[temp2] =  temp3;
+      int sz = Input.getArrayLength(Hash,"BaseLineState",0);
+      int* pos = new int[sz];
+      Input.getPosIntVector(pos,sz,Hash,"BaseLineState",0);
+      Vector Vals(sz);
+      Input.getVector(Vals,Hash,"BaseLineState",1);
+      for (int i=0;i<sz;++i)
+      {
+         BaselineDOF_[pos[i]] = Vals[i];
+      }
+      delete [] pos;
    }
    Input.EndofInputSection();
-   
+
    // intitalize "static" member variables
-   size_static = (Lattice_->DOF()).Dim();
+   size_static = LatDOFS;
    DOF_static.Resize(size_static);
    force_static.Resize(DOFS_);
    stress_static.Resize(size_static);

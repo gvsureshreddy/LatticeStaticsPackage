@@ -1045,6 +1045,7 @@ void MultiChainTPP::Print(ostream& out,PrintDetail const& flag)
    int RankOneConvex;
    Vector K(1);
    int BlochWaveStable;
+   double mintestfunct;
    
    W=out.width();
    
@@ -1058,6 +1059,12 @@ void MultiChainTPP::Print(ostream& out,PrintDetail const& flag)
    stiff_static = stiffness();
    
    NoNegTestFunctions=TestFunctions(TestFunctVals_static,LHS);
+   mintestfunct = TestFunctVals_static[0];
+   for (int i=0;i<TestFunctVals_static.Dim();++i)
+   {
+      if (mintestfunct > TestFunctVals_static[i])
+         mintestfunct = TestFunctVals_static[i];
+   }
    
    CondModuli = CondensedModuli();
    
@@ -1155,10 +1162,11 @@ void MultiChainTPP::Print(ostream& out,PrintDetail const& flag)
             out << "BodyForce Value " << i << " (Inf Normalized):"
                 << setw(W) << BodyForce_[i] << "\n";
          }
-         out << "Stress (Normalized):" << setw(W) << str_static << "\n\n"
+         out << "Stress (Normalized):" << "\n" << setw(W) << str_static << "\n\n"
              << "Stiffness (Normalized):" << setw(W) << stiff_static
              << "Eigenvalue Info:"  << "\n"<<setw(W) << TestFunctVals_static << "\n"
-             << "Bifurcation Info:" << setw(W) << NoNegTestFunctions << "\n"
+             << "Bifurcation Info:" << setw(W) << mintestfunct
+             << setw(W) << NoNegTestFunctions << "\n"
              << "Condensed Moduli (Normalized):" << setw(W) << CondModuli
              << "CondEV Info:" << setw(W) << CondEV
              << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << "\n"
@@ -1178,10 +1186,11 @@ void MultiChainTPP::Print(ostream& out,PrintDetail const& flag)
                cout << "BodyForce Value " << i << " (Inf Normalized):"
                     << setw(W) << BodyForce_[i] << "\n";
             }
-            cout << "Stress (Normalized):" << setw(W) << str_static << "\n\n"
+            cout << "Stress (Normalized):" << "\n" << setw(W) << str_static << "\n\n"
                  << "Stiffness (Normalized):" << setw(W) << stiff_static
                  << "Eigenvalue Info:"  << "\n"<<setw(W) << TestFunctVals_static <<"\n"
-                 << "Bifurcation Info:" << setw(W) << NoNegTestFunctions << "\n"
+                 << "Bifurcation Info:" << setw(W) << mintestfunct
+                 << setw(W) << NoNegTestFunctions << "\n"
                  << "Condensed Moduli (Normalized):" << setw(W) << CondModuli
                  << "CondEV Info:" << setw(W) << CondEV
                  << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << "\n"
