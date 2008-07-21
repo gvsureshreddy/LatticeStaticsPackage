@@ -601,8 +601,9 @@ int ArcLengthSolution::OldFindCriticalPoint(int const& LHN,double const& LHEV,in
    // Call Lattice function to do any Lattice Specific things
    //  abs(RighthandNulity - LefthandNulity) is the number of zero eigenvalues
    //  in a perfect situation. should check to see if this is found to be true.
-   Lat->CriticalPointInfo(Restrict_->DrDt(Difference_),abs(RighthandTestValue-LefthandTestValue),
-                          BisectTolerance_,Width,out);
+   Lat->CriticalPointInfo(Restrict_->DrDt(Difference_),
+                          abs(RighthandTestValue-LefthandTestValue),
+                          BisectTolerance_,Width,Input,out);
    
    if (Echo_) cout << "Success = 1" << "\n";
    out << "Success = 1" << "\n";
@@ -744,7 +745,7 @@ int ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,PerlInput const& Inp
          
          // Call Lattice function to do any Lattice Specific things
          Lat->CriticalPointInfo(Restrict_->DrDt(Difference_),Multiplicity,
-                                10.0*Tolerance_,Width,in_string);
+                                10.0*Tolerance_,Width,Input,in_string);
          
          if (Echo_) cout << "Success = 1" << "\n";
          in_string << "Success = 1" << "\n";
