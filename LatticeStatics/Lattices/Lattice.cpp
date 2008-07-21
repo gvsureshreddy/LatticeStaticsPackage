@@ -520,7 +520,7 @@ void Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
    out << "\n"; if (Echo_) cout << "\n";
    
    // Print out the critical point character test (Limit-load/Bifurcation)
-   int Bif = 0;
+   int Bif = 1;
    for (int i=0;i<count;++i)
    {
       double z=0.0;
@@ -528,7 +528,7 @@ void Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
       {
          z+= Mode[i][j]*D1T[j];
       }
-      if (fabs(z) > Tolerance) Bif = 1;
+      if (fabs(z) > Tolerance) Bif = 0;
       out << "StressDT*Mode[" << i << "] = " << setw(Width) << z << "\n";
       if (Echo_) cout << "StressDT*Mode[" << i << "] = " << setw(Width) << z << "\n";
    }
@@ -782,9 +782,9 @@ void Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
 
    char newname[LINELENGTH];
    if (Bif)
-      sprintf(newname,"BifurcationPoint-%u",CurrentBifPt_);
+      sprintf(newname,"BifurcationPoint-%03u",CurrentBifPt_);
    else
-      sprintf(newname,"TurningPoint-%u",CurrentBifPt_);
+      sprintf(newname,"TurningPoint-%03u",CurrentBifPt_);
    ++CurrentBifPt_;
    ofstream newinput;
    newinput.open(newname);
