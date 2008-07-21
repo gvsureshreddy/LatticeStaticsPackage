@@ -1,8 +1,9 @@
+#include <fstream>
 #include "Lattice.h"
 #include "UtilityFunctions.h"
 
 Lattice::Lattice(PerlInput const& Input):
-   test_flag_static(0)
+   CurrentBifPt_(0),test_flag_static(0)
 {
    if (Input.ParameterOK("Lattice","OrderedTFs"))
    {
@@ -362,7 +363,8 @@ int Lattice::TestFunctions(Vector &TF1,StateType const& State,Vector* const TF2)
 }
 
 void Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
-                                double const& Tolerance,int const& Width,ostream& out)
+                                double const& Tolerance,int const& Width,
+                                PerlInput const& Input,ostream& out)
 {
    Matrix
       D3=E3(),
@@ -518,6 +520,7 @@ void Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
    out << "\n"; if (Echo_) cout << "\n";
    
    // Print out the critical point character test (Limit-load/Bifurcation)
+   int Bif = 0;
    for (int i=0;i<count;++i)
    {
       double z=0.0;
@@ -525,6 +528,7 @@ void Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
       {
          z+= Mode[i][j]*D1T[j];
       }
+      if (fabs(z) > Tolerance) Bif = 1;
       out << "StressDT*Mode[" << i << "] = " << setw(Width) << z << "\n";
       if (Echo_) cout << "StressDT*Mode[" << i << "] = " << setw(Width) << z << "\n";
    }
@@ -775,7 +779,44 @@ void Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
    }
    if (Echo_) cout << "\n";
    out << "\n";
-   
+
+   char newname[LINELENGTH];
+   if (Bif)
+      sprintf(newname,"BifurcationPoint-%u",CurrentBifPt_);
+   else
+      sprintf(newname,"TurningPoint-%u",CurrentBifPt_);
+   ++CurrentBifPt_;
+   ofstream newinput;
+   newinput.open(newname);
+   newinput << setprecision(out.precision()) << scientific;
+   newinput << Input.ReconstructedInput();
+   newinput << "\n\n";
+   newinput << "%Restriction = (Type => RestrictToTranslatedSubSpace,\n";
+   newinput << "                RestrictToTranslatedSubSpace => {DOFS  => ,\n";
+   newinput << "                                                 DOF_0 =>  \n";
+   newinput << "                                                }\n";
+   newinput << "               );\n";
+   newinput << "\n";
+   newinput << "$SolutionMethod{NewtonPCSolution}{CurrentDS} = 1.0e-04;\n\n";
+   newinput << "%StartType = (Type             => Bifurcation,\n";
+   for (int i=0;i<count;++i)
+   {
+      newinput << "              Tangent          => [";
+      for (int j=0;j<dofs;++j)
+      {
+         newinput << Mode[i][j] << ((j<dofs-1) ? ",   " : ",   0.0000],\n");
+      }
+   }
+   newinput << "              BifurcationPoint => [";
+   Vector T=DOF();
+   for (int i=0;i<dofs;++i)
+   {
+      newinput << T[i] << ",   ";
+   }
+   newinput << ((LoadParameter_ == Temperature) ? Temp() : Lambda()) << "]\n";
+   newinput << "             );\n\n";
+
+   newinput.close();
    
    if (dbg_)
    {
