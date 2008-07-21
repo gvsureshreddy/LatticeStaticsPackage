@@ -78,6 +78,7 @@ public:
    Vector& operator+=(Vector const& B) {return *this=*this+B;}
    Vector& operator-=(Vector const& B) {return *this=*this-B;}
    Vector& operator*=(Elm const& B) {return *this=*this*B;}
+   Vector& operator/=(Elm const& B) {return *this=*this/B;}
 
    // Destructively Resize Vector
    // No change if size dosen't change
