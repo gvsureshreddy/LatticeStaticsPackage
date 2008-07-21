@@ -15,6 +15,10 @@ public:
    virtual Vector const& Force() const = 0;
    virtual Matrix const& Stiffness() const = 0;
    virtual Vector const& DOF() const = 0;
+   virtual Vector RestrictDOF(Vector const& dof) = 0;
+   virtual Vector UnRestrictDOF(Vector const& dof) = 0;
+   virtual Vector TransformVector(Vector const& T) = 0;
+   virtual Vector UnTransformVector(Vector const& T) = 0;
    virtual void SetDOF(Vector const& dof) = 0;
    virtual void UpdateDOF(Vector const& dr) = 0;
    

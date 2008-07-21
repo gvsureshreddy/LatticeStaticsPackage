@@ -1,12 +1,13 @@
-#include "RestrictToSubSpaceOld.h"
+#include "RestrictToTranslatedSubSpaceOld.h"
 
-RestrictToSubSpaceOld::RestrictToSubSpaceOld(Lattice* const M,PerlInput const& Input)
+RestrictToTranslatedSubSpaceOld::RestrictToTranslatedSubSpaceOld(Lattice* const M,
+                                                                 PerlInput const& Input)
 {
    char tmp[LINELENGTH];
 
    Lattice_ = (Lattice *) M;
 
-   PerlInput::HashStruct Hash = Input.getHash("Restriction","RestrictToSubSpaceOld");
+   PerlInput::HashStruct Hash = Input.getHash("Restriction","RestrictToTranslatedSubSpaceOld");
    DOFS_ = Input.getPosInt(Hash,"DOFS");
    DOF_.Resize(DOFS_+1,0.0);
 
@@ -21,29 +22,29 @@ RestrictToSubSpaceOld::RestrictToSubSpaceOld(Lattice* const M,PerlInput const& I
       Input.getVector(DOFMult_[i],Hash,tmp,1);
    }
    
-   //Baseline DOF Initialization
-   BaselineDOF_.Resize(LatDOFS,0.0);
+   //ReferenceState DOF Initialization
+   ReferenceState_.Resize(LatDOFS+1,0.0);
 
-   char const* UseBaseLineState;
-   if (Input.ParameterOK(Hash,"UseBaseLineState"))
+   char const* UseReferenceState;
+   if (Input.ParameterOK(Hash,"UseReferenceState"))
    {
-      UseBaseLineState = Input.getString(Hash,"UseBaseLineState");
+      UseReferenceState = Input.getString(Hash,"UseReferenceState");
    }
    else
    {
-      UseBaseLineState = Input.useString("No",Hash,"UseBaseLineState");
+      UseReferenceState = Input.useString("No",Hash,"UseReferenceState");
    }
    
-   if (!strcmp("Yes",UseBaseLineState))
+   if (!strcmp("Yes",UseReferenceState))
    {
-      int sz = Input.getArrayLength(Hash,"BaseLineState",0);
+      int sz = Input.getArrayLength(Hash,"ReferenceState",0);
       int* pos = new int[sz];
-      Input.getPosIntVector(pos,sz,Hash,"BaseLineState",0);
+      Input.getPosIntVector(pos,sz,Hash,"ReferenceState",0);
       Vector Vals(sz);
-      Input.getVector(Vals,Hash,"BaseLineState",1);
+      Input.getVector(Vals,Hash,"ReferenceState",1);
       for (int i=0;i<sz;++i)
       {
-         BaselineDOF_[pos[i]] = Vals[i];
+         ReferenceState_[pos[i]] = Vals[i];
       }
       delete [] pos;
    }
@@ -61,7 +62,7 @@ RestrictToSubSpaceOld::RestrictToSubSpaceOld(Lattice* const M,PerlInput const& I
 }
 
 // Functions required by Restriction
-Vector const& RestrictToSubSpaceOld::DrDt(Vector const& Diff) const
+Vector const& RestrictToTranslatedSubSpaceOld::DrDt(Vector const& Diff) const
 {
    ddt_static.Resize(Lattice_->DOF().Dim(),0.0);
    
@@ -77,11 +78,11 @@ Vector const& RestrictToSubSpaceOld::DrDt(Vector const& Diff) const
 }
 
 //----------------------------------------------------------------
-void RestrictToSubSpaceOld::UpdateLatticeState()
+void RestrictToTranslatedSubSpaceOld::UpdateLatticeState()
 {
    for (int i=0;i<size_static;++i)
    {
-      DOF_static[i] = BaselineDOF_[i];
+      DOF_static[i] = ReferenceState_[i];
    }
    
    for (int i=0;i<DOFS_;++i)
@@ -93,10 +94,10 @@ void RestrictToSubSpaceOld::UpdateLatticeState()
    }
    
    Lattice_->SetDOF(DOF_static);
-   Lattice_->SetLoadParameter(DOF_[DOFS_]);
+   Lattice_->SetLoadParameter(ReferenceState_[size_static]+DOF_[DOFS_]);
 }
 
-Vector const& RestrictToSubSpaceOld::Force() const
+Vector const& RestrictToTranslatedSubSpaceOld::Force() const
 {
    stress_static = Lattice_->E1();
    
@@ -112,7 +113,7 @@ Vector const& RestrictToSubSpaceOld::Force() const
    return force_static;
 }
 
-Matrix const& RestrictToSubSpaceOld::Stiffness() const
+Matrix const& RestrictToTranslatedSubSpaceOld::Stiffness() const
 {
    K_static.Resize(DOFS_,DOFS_+1,0.0);
    Stiff_static = Lattice_->E2();
@@ -138,7 +139,66 @@ Matrix const& RestrictToSubSpaceOld::Stiffness() const
    return K_static;
 }
 
-void RestrictToSubSpaceOld::SetDOF(Vector const& dof)
+Vector RestrictToTranslatedSubSpaceOld::RestrictDOF(Vector const& dof)
+{
+   if (dof.Dim() == DOFS_+1)
+   {
+      return dof;
+   }
+   else
+   {
+      cerr << "Error. " << Name() << " does not know how to RestrictDOF()\n";
+      exit(-22);
+   }
+}
+
+Vector RestrictToTranslatedSubSpaceOld::UnRestrictDOF(Vector const& dof)
+{
+   Vector UnRestricted(size_static+1);
+   for (int i=0;i<size_static+1;++i)
+   {
+      UnRestricted[i] = ReferenceState_[i];
+   }
+   
+   for (int i=0;i<DOFS_;++i)
+   {
+      for (int j=0;j<DOFindlen_[i];++j)
+      {
+         UnRestricted[DOFindex_[i][j]] += DOFMult_[i][j]*dof[i];
+      }
+   }
+
+   return UnRestricted;
+}
+
+Vector RestrictToTranslatedSubSpaceOld::TransformVector(Vector const& T)
+{
+   if (T.Dim() == DOFS_+1)
+   {
+      return T;
+   }
+   else
+   {
+      cerr << "Error. " << Name() << " does not know how to TransformVector()\n";
+      exit(-22);
+   }
+}
+
+Vector RestrictToTranslatedSubSpaceOld::UnTransformVector(Vector const& T)
+{
+   Vector UnTransformed(size_static+1);
+   for (int i=0;i<DOFS_;++i)
+   {
+      for (int j=0;j<DOFindlen_[i];++j)
+      {
+         UnTransformed[DOFindex_[i][j]] += DOFMult_[i][j]*T[i];
+      }
+   }
+
+   return UnTransformed;
+}
+
+void RestrictToTranslatedSubSpaceOld::SetDOF(Vector const& dof)
 {
    for (int i=0;i<=DOFS_;++i)
    {
@@ -148,7 +208,7 @@ void RestrictToSubSpaceOld::SetDOF(Vector const& dof)
    UpdateLatticeState();
 }
 
-void RestrictToSubSpaceOld::UpdateDOF(Vector const& dr)
+void RestrictToTranslatedSubSpaceOld::UpdateDOF(Vector const& dr)
 {
    for (int i=0;i<=DOFS_;++i)
    {

@@ -1,2 +1,3 @@
 RESTRICTIONS = KnownRestrictions.cpp\
-	       RestrictToSubSpaceOld.cpp
+	       RestrictToTranslatedSubSpaceOld.cpp\
+	       RestrictToTranslatedSubSpace.cpp

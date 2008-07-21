@@ -67,6 +67,10 @@ public:
       return K_static;
    }
    virtual Vector const& DOF() const {return dof_static;}
+   virtual Vector RestrictDOF(Vector const& dof) {return dof;}
+   virtual Vector UnRestrictDOF(Vector const& dof) {return dof;}
+   virtual Vector TransformVector(Vector const& T) {return T;}
+   virtual Vector UnTransformVector(Vector const& T) {return T;}
    virtual void SetDOF(Vector const& dof) {dof_static = dof; UpdateLatticeDOF();}
    virtual void UpdateDOF(Vector const& dr) {dof_static+=dr; UpdateLatticeDOF();}
    //----------------------------------------------------------------
