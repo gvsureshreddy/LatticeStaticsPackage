@@ -95,6 +95,10 @@ int main(int argc, char *argv[])
             SolveMe->FindCriticalPoint(Lat,Input,Width,out);
          
          // Send Output
+         if (Echo)
+         {
+            cout << "Restric DOF's:\n" << setw(Width) << Restrict->DOF() << "\n";
+         }
          out << setw(Width) << *Lat << "Success = 1" << "\n";
       }
    }
