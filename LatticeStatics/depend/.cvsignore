@@ -7,7 +7,8 @@ Lattice.d
 LatticeStatics.d
 LJ.d
 MultiLatticeTPP.d
-RestrictToSubSpaceOld.d
+RestrictToTranslatedSubSpaceOld.d
+RestrictToTranslatedSubSpace.d
 PPSum.d
 RadiiMorse.d
 ScanningSolution.d
