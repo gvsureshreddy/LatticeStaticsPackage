@@ -146,65 +146,78 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const
    {
       // Set Difference and Lattice state
       double eps = Input.getDouble("StartType","Epsilon");
-      
-      Difference_.Resize(ArcLenDef().Dim());
-      Input.getVector(Difference_,"StartType","Tangent");
+
+      Difference_.Resize(DOFS_);
+      Vector diff(Input.getArrayLength("StartType","Tangent"));
+      Input.getVector(diff,"StartType","Tangent");
+      Difference_ = Restrict_->TransformVector(diff);
       Difference_ *= eps;
       
-      Vector stat(Difference_.Dim());
+      Vector stat(Input.getArrayLength("StartType","BifurcationPoint"));
       Input.getVector(stat,"StartType","BifurcationPoint");
       // Set Lattice state to the bifurcation point
-      ArcLenSet(stat);
+      ArcLenSet(Restrict_->RestrictDOF(stat));
       
       // Set FirstSolution
-      FirstSolution_.Resize(stat.Dim());
+      FirstSolution_.Resize(DOFS_);
       if (Input.ParameterOK("StartType","ClosedLoopFirstSolution"))
       {
-         Input.getVector(FirstSolution_,"StartType","ClosedLoopFirstSolution");
+         Vector clfs(Input.getArrayLength("StartType","ClosedLoopFirstSolution"));
+         Input.getVector(clfs,"StartType","ClosedLoopFirstSolution");
+         FirstSolution_ = Restrict_->RestrictDOF(clfs);
       }
       else
       {
-         FirstSolution_ = stat;
+         FirstSolution_ = ArcLenDef();
          Input.useVector(FirstSolution_,"StartType","ClosedLoopFirstSolution"); // Default Value
       }
    }
    else if (!strcmp("Continuation",starttype))
    {
       // Get solution1
-      Vector one(ArcLenDef().Dim());
-      Input.getVector(one,"StartType","Solution1");
+      Vector one(DOFS_);
+      Vector onetmp(Input.getArrayLength("StartType","Solution1"));
+      Input.getVector(onetmp,"StartType","Solution1");
+      one = Restrict_->RestrictDOF(onetmp);
 
       // Set Lattice state to Solution2
-      Vector two(one.Dim());
-      Input.getVector(two,"StartType","Solution2");
+      Vector two(DOFS_);
+      Vector twotmp(Input.getArrayLength("StartType","Solution2"));
+      Input.getVector(twotmp,"StartType","Solution2");
+      two = Restrict_->RestrictDOF(twotmp);
       ArcLenSet(two);
       
       // Set Difference_ to   two - one
-      Difference_.Resize(two.Dim());
+      Difference_.Resize(DOFS_);
       Difference_ = two - one;
       
       // Set FirstSolution
-      FirstSolution_.Resize(two.Dim());
+      FirstSolution_.Resize(DOFS_);
       if (Input.ParameterOK("StartType","ClosedLoopFirstSolution"))
       {
-         Input.getVector(FirstSolution_,"StartType","ClosedLoopFirstSolution");
+         Vector clfs(Input.getArrayLength("StartType","ClosedLoopFirstSolution"));
+         Input.getVector(clfs,"StartType","ClosedLoopFirstSolution");
+         FirstSolution_ = Restrict_->RestrictDOF(clfs);
       }
       else
       {
-         FirstSolution_ = one;
-         Input.useVector(FirstSolution_,"StartType","ClosedLoopFirstSolution");
+         FirstSolution_ = ArcLenDef();
+         Input.useVector(FirstSolution_,"StartType","ClosedLoopFirstSolution"); // Default Value
       }
    }
    else if (!strcmp("ConsistenceCheck",starttype))
    {
       double ConsistencyEpsilon;
-      int Width,
-         Dim=ArcLenDef().Dim();
-      Vector Solution1(Dim),
-         Solution2(Dim);
+      int Width;
+      Vector Solution1(DOFS_);
+      Vector Solution2(DOFS_);
 
-      Input.getVector(Solution1,"StartType","Solution1");
-      Input.getVector(Solution2,"StartType","Solution2");
+      Vector onetmp(Input.getArrayLength("StartType","Solution1"));
+      Input.getVector(onetmp,"StartType","Solution1");
+      Solution1 = Restrict_->RestrictDOF(onetmp);
+      Vector twotmp(Input.getArrayLength("StartType","Solution2"));
+      Input.getVector(twotmp,"StartType","Solution2");
+      Solution2 = Restrict_->RestrictDOF(twotmp);
       // Get Epsilon and Width
       ConsistencyEpsilon = Input.getDouble("StartType","ConsistenceEpsilon");
       Width = Input.getPosInt("Main","FieldWidth");

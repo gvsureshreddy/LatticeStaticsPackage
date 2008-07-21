@@ -325,10 +325,14 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
       PreviousSolution_.Resize(count);
       Tangent1_.Resize(count);
       Tangent2_.Resize(count);
-      
-      Input.getVector(Tangent1_,"StartType","Tangent");
+
+      Vector tan1tmp(Input.getArrayLength("StartType","Tangent"));
+      Input.getVector(tan1tmp,"StartType","Tangent");
+      Tangent1_ = Restrict_->TransformVector(tan1tmp);
       Tangent1_ = Tangent1_/Tangent1_.Norm();
-      Input.getVector(one,"StartType","BifurcationPoint");
+      Vector biftmp(Input.getArrayLength("StartType","BifurcationPoint"));
+      Input.getVector(biftmp,"StartType","BifurcationPoint");
+      one = Restrict_->RestrictDOF(biftmp);
       
       FirstSolution_.Resize(one.Dim());
       FirstSolution_ = one;
@@ -352,8 +356,10 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
       PreviousSolution_.Resize(count);
       Tangent1_.Resize(count);
       Tangent2_.Resize(count);
-      
-      Input.getVector(one,"StartType","Solution1");
+
+      Vector onetmp(Input.getArrayLength("StartType","Solution1"));
+      Input.getVector(onetmp,"StartType","Solution1");
+      one = Restrict_->RestrictDOF(onetmp);
       
       FirstSolution_.Resize(one.Dim());
       FirstSolution_ = one;
