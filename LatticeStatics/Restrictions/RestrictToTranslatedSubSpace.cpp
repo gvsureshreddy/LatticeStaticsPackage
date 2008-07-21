@@ -84,7 +84,6 @@ RestrictToTranslatedSubSpace::RestrictToTranslatedSubSpace(Lattice* const M,Perl
    force_static.Resize(DOFS_);
    stress_static.Resize(size_static);
    K_static.Resize(DOFS_,DOFS_+1);
-   K_tmp_static.Resize(DOFS_,size_static+1);
    E2_tmp_static.Resize(size_static,size_static+1);
    Stiff_static.Resize(size_static,size_static);
    stressdt_static.Resize(size_static);
@@ -142,8 +141,8 @@ Matrix const& RestrictToTranslatedSubSpace::Stiffness() const
       }
       E2_tmp_static[i][size_static] = stressdt_static[i];
    }
-   Multiply(K_tmp_static,ForceProject_,E2_tmp_static);
-   Multiply(K_static,K_tmp_static,DOFProject_);
+
+   Multiply(K_static,ForceProject_,E2_tmp_static,DOFProject_);
    
    return K_static;
 }

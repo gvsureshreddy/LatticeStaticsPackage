@@ -58,7 +58,6 @@ private:
    mutable Vector stress_static;
    // Stiffness
    mutable Matrix K_static;
-   mutable Matrix K_tmp_static;
    mutable Matrix E2_tmp_static;
    mutable Matrix Stiff_static;
    mutable Vector stressdt_static;
