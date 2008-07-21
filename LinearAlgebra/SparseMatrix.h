@@ -37,7 +37,7 @@ public:
    // Postcondition. Matrix of size RowsXCols
    //   allocated and each element set to Initial Value
    // Defaults: Rows=0,Cols=0,Initial Value= (Uninitialized)
-   SparseMatrix() {NoNonZero_ = 0;}
+   SparseMatrix() :NoNonZero_(0),Rows_(0),Cols_(0),Row_id_(0),Column_id_(0),Nonzero_entry_(0) {}
    SparseMatrix(Matrix const& A);
    SparseMatrix(Matrix const& A,int const& NoEntries);
    SparseMatrix(SparseMatrix const& A);
@@ -92,6 +92,8 @@ public:
    friend void Multiply(Matrix& Y,SparseMatrix const& A,SparseMatrix const& B);
    friend Matrix operator*(SparseMatrix const& A,SparseMatrix const& B)
    {Matrix Y(A.Rows(),B.Cols()); Multiply(Y,A,B); return Y;}
+
+   friend void Multiply(Matrix& Y,SparseMatrix const& A,Matrix const& B,SparseMatrix const& C);
 
    friend void Multiply(Matrix& Y,SparseMatrix const& A,Matrix const& B);
    friend Matrix operator*(SparseMatrix const& A,Matrix const& B)

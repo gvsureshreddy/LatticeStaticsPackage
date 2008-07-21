@@ -9,7 +9,7 @@
 #include <cstdlib>
 
 // Global IDString
-char SparseMatrixID[]="$Id: SparseMatrix.cpp,v 1.10 2008/07/18 07:57:43 elliott Exp $";
+char SparseMatrixID[]="$Id: SparseMatrix.cpp,v 1.11 2008/07/21 03:35:20 elliott Exp $";
 
 SparseMatrix::SparseMatrix(Matrix const& A)
 {
@@ -155,7 +155,7 @@ void SparseMatrix::Resize(int const& Rows,int const& Cols,int const& NoNonZero)
       Column_id_ = new int[NoNonZero_];
       Nonzero_entry_ = new Elm[NoNonZero_];
       
-      for(register int i=0; i<NoNonZero_;i++)
+      for(register int i=0;i<NoNonZero_;++i)
       {
          Row_id_[i] = 0;
          Column_id_[i] = 0;
@@ -165,6 +165,7 @@ void SparseMatrix::Resize(int const& Rows,int const& Cols,int const& NoNonZero)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+
 void SparseMatrix::GetNonZeroEntry(int const& EntryIndex,int& Row,int& Col,Elm& Entry) const
 {
    if (EntryIndex < 0 || EntryIndex >= NoNonZero_)
@@ -177,6 +178,8 @@ void SparseMatrix::GetNonZeroEntry(int const& EntryIndex,int& Row,int& Col,Elm& 
    Col=Column_id_[EntryIndex];
    Entry=Nonzero_entry_[EntryIndex];
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////
 
 void SparseMatrix::SetNonZeroEntry(int const& EntryIndex,int const& Row,int const& Col,
                                    Elm const& Entry)
@@ -413,6 +416,29 @@ void Multiply(Matrix& Y,SparseMatrix const& A,SparseMatrix const& B)
          {
             Y[A.Row_id_[i]][B.Column_id_[j]] += A.Nonzero_entry_[i]*B.Nonzero_entry_[j];
          }
+      }
+   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Multiply(Matrix& Y,SparseMatrix const& A,Matrix const& B,SparseMatrix const& C)
+{
+   if (Y.Rows() != A.Rows_ || Y.Cols() != C.Cols_ || A.Cols_!=B.Rows() || B.Cols() != C.Rows_
+       || A.IsNull() || B.IsNull() || C.IsNull() || Y.IsNull())
+   {
+      cerr << "Error In SparseMatrix Multiply : Wrong size Matricies or Null Matrix"
+           <<"\n";
+      exit(-1);
+   }
+
+   Y.Resize(A.Rows_,C.Cols_,0.0); // Initialize to zero
+   for (int i=0;i<A.NoNonZero_;++i)
+   {
+      for (int j=0;j<C.NoNonZero_;++j)
+      {
+         Y[A.Row_id_[i]][C.Column_id_[j]]
+            += A.Nonzero_entry_[i]*B[A.Column_id_[i]][C.Row_id_[j]]*C.Nonzero_entry_[j];
       }
    }
 }
