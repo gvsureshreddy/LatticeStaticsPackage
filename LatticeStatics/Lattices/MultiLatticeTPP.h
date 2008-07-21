@@ -118,6 +118,7 @@ public:
                                      char const* const prefix,ostream& out) const;
    virtual void SetParameters(double const* const Vals,int const& ResetRef = 1);
    virtual void SetGridSize(int const& Grid) {GridSize_=Grid; UCIter_(GridSize_);}
+   void RefineEqbm(double const& Tol,int const& MaxItr,ostream* const out);
    virtual void NeighborDistances(int const& cutoff,ostream& out) const;
    virtual void DebugMode();
    virtual void Print(ostream& out,PrintDetail const& flag);
@@ -140,7 +141,6 @@ public:
    
 private:
    int FindLatticeSpacing(int const& iter);
-   void RefineEqbm(double const& Tol,int const& MaxItr,ostream* const out);
 
    // member variables used to avoid repeated memory allocation/deallocation
    // and thus, improve performance.
