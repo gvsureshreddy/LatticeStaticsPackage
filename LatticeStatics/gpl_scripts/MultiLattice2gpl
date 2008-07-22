@@ -11,7 +11,7 @@ if (scalar(@ARGV) < 3)
 }
 
 $DOFSize = $ARGV[0];
-$StateSize = $DOFSize + 8;
+$StateSize = $DOFSize + 9;
 $StrSPEC = "%14s";
 $FSPEC = "%14.6f";
 
@@ -102,7 +102,7 @@ close(GNUPLOT);
 # $_[3] -- reference to output file
 #
 sub loaddata {
-    my(@fields,@temp,@bifpt,@stress,@DOF,
+    my(@fields,@temp,@bifpt,@stress,@conjtostress,@DOF,
        @potential,@entropy,@heatcapacity,@noneg,@blochwave,
        $stableflag,$stable_nodata,$unstable_nodata,$bifflag,$bifpoints,$turnpoints,
        $reconstturnpts,$gridsize,$loadparam,$loadgrad,$oldloadgrad,$recalc,$BWrecalc,
@@ -144,11 +144,18 @@ sub loaddata {
 	$_ = <DATA>;
 	while (! m/^Restriction:/)
 	{
-	  if (/^Input File: *LoadingParameter/)
+	  if (/^Input File:.*LoadingParameter/)
 	  {
-	    @fields=split(/=>/,$_);
+            if (/=>/)
+            {
+              @fields=split(/=>/,$_);
+            }
+            else
+            {
+              @fields=split(/=/,$_);
+            }
 	    $fields[1] =~ s/\s+//g;
-            $fields[1] =~ s/,.*//g;
+            $fields[1] =~ s/[,;].*//g;
 	    if ($fields[1] eq "Temperature")
 	    {
 	      $loadparam=1;
@@ -159,10 +166,17 @@ sub loaddata {
 	    }
 	  }
 
-	  if (/^Input File: *BlochWaveGridSize/)
+	  if (/^Input File:.*BlochWaveGridSize/)
 	  {
-	    @fields=split(/=>/,$_);
-            $fields[1] =~ s/,.*//g;
+            if (/=>/)
+            {
+              @fields=split(/=>/,$_);
+            }
+            else
+            {
+              @fields=split(/=/,$_);
+            }
+            $fields[1] =~ s/[,;].*//g;
 	    $gridsize = $fields[1];
 	  }
 	    $_ = <DATA>;
@@ -204,6 +218,12 @@ sub loaddata {
 		@fields=split(/:/,$_);
 		push(@stress,$fields[1]);
 	    }
+
+            if ( /^ConjugateToLambda/)
+            {
+              @fields=split(/:/,$_);
+              push(@conjtostress,$fields[1]);
+            }
 
 	    if ( /^DOF/)
 	    {
@@ -308,8 +328,8 @@ sub loaddata {
 
     $bifheader .= sprintf "# Index $_[2]\n";
     $bifheader .= sprintf "# $_[0]/$_[1] --- Bifurcation Points\n";
-    $bifheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
-    "# Temperature","Stress","Potential","Entropy","HeatCapacity";
+    $bifheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
+    "# Temperature","Stress","ConjToStress","Potential","Entropy","HeatCapacity";
     for (my $i=0;$i<$DOFSize;$i+=1)
     {
 	$bifheader .= sprintf $StrSPEC,"DOF $i";
@@ -319,8 +339,8 @@ sub loaddata {
 
     $turnheader .= sprintf "# Index " . ($_[2]+1) . "\n";
     $turnheader .= sprintf "# $_[0]/$_[1] --- Turning Points\n";
-    $turnheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
-    "# Temperature","Stress","Potential","Entropy","HeatCapacity";
+    $turnheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
+    "# Temperature","Stress","ConjToStress","Potential","Entropy","HeatCapacity";
     for (my $i=0;$i<$DOFSize;$i+=1)
     {
 	$turnheader .= sprintf $StrSPEC,"DOF $i";
@@ -330,8 +350,8 @@ sub loaddata {
 
     $reconstturnheader .= sprintf "# Index " . ($_[2]+2) . "\n";
     $reconstturnheader .= sprintf "# $_[0]/$_[1] --- Reconstructive Turning Points\n";
-    $reconstturnheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
-    "# Temperature","Stress","Potential","Entropy","HeatCapacity";
+    $reconstturnheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
+    "# Temperature","Stress","ConjToStress","Potential","Entropy","HeatCapacity";
     for (my $i=0;$i<$DOFSize;$i+=1)
     {
 	$reconstturnheader .= sprintf $StrSPEC,"DOF $i";
@@ -341,8 +361,8 @@ sub loaddata {
     
     $stableheader .= sprintf "# Index " . ($_[2]+3) . "\n";
     $stableheader .= sprintf "# $_[0]/$_[1] --- Stable\n";
-    $stableheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
-    "# Temperature","Stress","Potential","Entropy","HeatCapacity";
+    $stableheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
+    "# Temperature","Stress","ConjToStress","Potential","Entropy","HeatCapacity";
     for (my $i=0;$i<$DOFSize;$i+=1)
     {
 	$stableheader .= sprintf $StrSPEC,"DOF $i";
@@ -352,8 +372,8 @@ sub loaddata {
 
     $unstableheader .= sprintf "# Index " . ($_[2]+4) . "\n";
     $unstableheader .= sprintf "# $_[0]/$_[1] --- Unstable\n";
-    $unstableheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
-    "# Temperature","Stress","Potential","Entropy","HeatCapacity";
+    $unstableheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
+    "# Temperature","Stress","ConjToStress","Potential","Entropy","HeatCapacity";
     for (my $i=0;$i<$DOFSize;$i+=1)
     {
 	$unstableheader .= sprintf $StrSPEC,"DOF $i";
@@ -420,8 +440,8 @@ sub loaddata {
 	if ($loadgrad == $oldloadgrad)
 	{
 	  $bifpoints += 1;
-	  $biftmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
-	  $temp[0],$stress[0],$potential[0],$entropy[0],$heatcapacity[0];
+	  $biftmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
+	  $temp[0],$stress[0],$conjtostress[0],$potential[0],$entropy[0],$heatcapacity[0];
 	  for (my $i=0;$i<$DOFSize;$i+=1)
 	  {
 	    $biftmp .= sprintf $FSPEC,$DOF[0][$i];
@@ -432,8 +452,8 @@ sub loaddata {
 	else
 	{
 	  $turnpoints += 1;
-	  $turntmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
-	  $temp[0],$stress[0],$potential[0],$entropy[0],$heatcapacity[0];
+	  $turntmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
+	  $temp[0],$stress[0],$conjtostress[0],$potential[0],$entropy[0],$heatcapacity[0];
 	  for (my $i=0;$i<$DOFSize;$i+=1)
 	  {
 	    $turntmp .= sprintf $FSPEC,$DOF[0][$i];
@@ -447,8 +467,8 @@ sub loaddata {
 	if ($loadgrad != $oldloadgrad)
 	{
 	  $reconstturnpts += 1;
-	  $reconstturntmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
-	  $temp[0],$stress[0],$potential[0],$entropy[0],$heatcapacity[0];
+	  $reconstturntmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
+	  $temp[0],$stress[0],$conjtostress[0],$potential[0],$entropy[0],$heatcapacity[0];
 	  for (my $i=0;$i<$DOFSize;$i+=1)
 	  {
 	    $reconstturntmp .= sprintf $FSPEC,$DOF[0][$i];
@@ -482,8 +502,8 @@ sub loaddata {
 	    $firststable=0;
 	  }
 	  $nostable +=1;
-	  $stabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
-	  $temp[0],$stress[0],$potential[0],$entropy[0],$heatcapacity[0];
+	  $stabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
+	  $temp[0],$stress[0],$conjtostress[0],$potential[0],$entropy[0],$heatcapacity[0];
 	  for (my $i=0;$i<$DOFSize;$i+=1)
 	  {
 	    $stabletmp .= sprintf $FSPEC,$DOF[0][$i];
@@ -510,8 +530,8 @@ sub loaddata {
 	    $firstunstable=0;
 	  }
 	  $nounstable += 1;
-	  $unstabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
-	  $temp[0],$stress[0],$potential[0],$entropy[0],$heatcapacity[0];
+	  $unstabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
+	  $temp[0],$stress[0],$conjtostress[0],$potential[0],$entropy[0],$heatcapacity[0];
 	  for (my $i=0;$i<$DOFSize;$i+=1)
 	  {
 	    $unstabletmp .= sprintf $FSPEC,$DOF[0][$i];
@@ -527,8 +547,9 @@ sub loaddata {
 	$stable_nodata = 0;
 	$firststable = 0;
 	$nostable += 1;
-	$stabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
-	shift(@temp),shift(@stress),shift(@potential),shift(@entropy),shift(@heatcapacity);
+	$stabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
+	shift(@temp),shift(@stress),shift(@conjtostress),shift(@potential),shift(@entropy),
+        shift(@heatcapacity);
 	for (my $i=0;$i<$DOFSize;$i+=1)
 	{
 	  $stabletmp .= sprintf $FSPEC,$DOF[0][$i];
@@ -542,8 +563,9 @@ sub loaddata {
 	$unstable_nodata = 0;
 	$firstunstable = 0;
 	$nounstable += 1;
-	$unstabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
-	shift(@temp),shift(@stress),shift(@potential),shift(@entropy),shift(@heatcapacity);
+	$unstabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
+	shift(@temp),shift(@stress),shift(@conjtostress),shift(@potential),shift(@entropy),
+        shift(@heatcapacity);
 	for (my $i=0;$i<$DOFSize;$i+=1)
 	{
 	  $unstabletmp .= sprintf $FSPEC,$DOF[0][$i];

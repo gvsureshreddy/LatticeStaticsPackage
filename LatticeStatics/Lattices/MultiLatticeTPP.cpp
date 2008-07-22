@@ -432,6 +432,21 @@ double MultiLatticeTPP::energy(PairPotentials::TDeriv const& dt) const
    return Phi;
 }
 
+double MultiLatticeTPP::ConjugateToLambda() const
+{
+   double conj = 0.0;
+   
+   for (int i=0;i<DIM3;++i)
+   {
+      for (int j=0;j<DIM3;++j)
+      {
+         conj += Loading_[i][j]*((CBK_->DOF())[CBK_->INDF(j,i)] - Del(j,i));
+      }
+   }
+
+   return conj;
+}
+
 Vector const& MultiLatticeTPP::E1() const
 {
    ME1_static = stress();
@@ -1693,6 +1708,7 @@ void MultiLatticeTPP::Print(ostream& out,PrintDetail const& flag)
    int RankOneConvex;
    int BlochWaveStable;
    double mintestfunct;
+   double conj;
 
    W=out.width();
    
@@ -1700,6 +1716,7 @@ void MultiLatticeTPP::Print(ostream& out,PrintDetail const& flag)
    if (Echo_) cout.width(0);
    
    engy = energy();
+   conj = ConjugateToLambda();
    TE_static = ThermalExpansion();
    entropy = Entropy();
    heatcapacity = HeatCapacity();
@@ -1806,6 +1823,7 @@ void MultiLatticeTPP::Print(ostream& out,PrintDetail const& flag)
       case PrintShort:
          out << "Temperature (Ref Normalized): " << setw(W) << NTemp_ << "\n"
              << "Lambda (Normalized): " << setw(W) << Lambda_ << "\n"
+             << "ConjugateToLambda: " << setw(W) << conj << "\n"
              << "DOF's :" << "\n" << setw(W) << CBK_->DOF() << "\n"
              << "Potential Value (Normalized):" << setw(W) << engy << "\n"
              << "Thermal Expansion:" << "\n" << setw(W) << TE_static << "\n\n"
@@ -1836,6 +1854,7 @@ void MultiLatticeTPP::Print(ostream& out,PrintDetail const& flag)
          {
             cout << "Temperature (Ref Normalized): " << setw(W) << NTemp_ << "\n"
                  << "Lambda (Normalized): " << setw(W) << Lambda_ << "\n"
+                 << "ConjugateToLambda: " << setw(W) << conj << "\n"
                  << "DOF's :" << "\n" << setw(W) << CBK_->DOF() << "\n"
                  << "Potential Value (Normalized):" << setw(W) << engy << "\n"
                  << "Thermal Expansion:" << "\n" << setw(W) << TE_static << "\n"
@@ -1902,6 +1921,7 @@ void MultiLatticeTPP::DebugMode()
       "GridSize_",
       "Potential_",
       "ConvexityDX_",
+      "ConjugateToLambda",
       "stress",
       "stiffness",
       "CondensedModuli",
@@ -1941,7 +1961,7 @@ void MultiLatticeTPP::DebugMode()
       "TranslationProjection3D",
       "SetParameters"
    };
-   int NOcommands=52;
+   int NOcommands=53;
    
    char response[LINELENGTH];
    char prompt[] = "Debug > ";
@@ -2007,6 +2027,8 @@ void MultiLatticeTPP::DebugMode()
       }
       else if (!strcmp(response,Commands[indx++]))
          cout << "ConvexityDX_= " << ConvexityDX_ << "\n";
+      else if (!strcmp(response,Commands[indx++]))
+         cout << "ConjugateToLambda = " << setw(W) << ConjugateToLambda();
       else if (!strcmp(response,Commands[indx++]))
          cout << "stress= " << setw(W) << stress();
       else if (!strcmp(response,Commands[indx++]))

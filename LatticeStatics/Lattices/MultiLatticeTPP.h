@@ -102,6 +102,7 @@ public:
    virtual Vector const& E1DLoad() const
    {return (LoadParameter_==Temperature)?StressDT():StressDL();}
    double Lambda() const {return Lambda_;}
+   double ConjugateToLambda() const;
    void SetLambda(double const& lambda) {Lambda_ = lambda;}
    
    virtual double E0() const;
