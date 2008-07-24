@@ -180,14 +180,14 @@ $Rtheta1_1_1 = 0.275914376289;
             );
 
 # Restriction Parameters
-%Restriction = (Type                  => RestrictToTranslatedSubSpaceOld, # NoRestriction, RestrictToTranslatedSubSpace, RestrictToTranslatedSubSpaceOld
-                RestrictToSubSpaceOld => {DOFS                  => 1,
-                                          DOF_0                 => [[0, 4, 8],
-                                                                    [1.0, 1.0, 1.0]]#,
-                                          #UseReferenceState    => No, # Default value = No, Yes
-                                          #ReferenceState       => [[0, 4, 8],
-                                          #                         [1.0, 1.0, 1.0]] # Can Include Loading Parameter as last element
-                                        }
+%Restriction = (Type                  => RestrictToTranslatedSubSpace, # NoRestriction, RestrictToTranslatedSubSpace, RestrictToTranslatedSubSpaceOld
+                RestrictToSubSpace => {DOFS                  => 1,
+                                       DOF_0                 => [[0, 4, 8],
+                                                                 [1.0, 1.0, 1.0]]#,
+                                       #UseReferenceState    => No, # Default value = No, Yes
+                                       #ReferenceState       => [[0, 4, 8],
+                                       #                         [1.0, 1.0, 1.0]] # Can Include Loading Parameter as last element
+                                     }
                 );
 
 

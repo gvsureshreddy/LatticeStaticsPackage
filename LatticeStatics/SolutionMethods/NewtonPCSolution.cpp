@@ -106,7 +106,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
    }
    else
    {
-      // default to QR
+      Input.useString("QRUpdate",Hash,"UpdateType"); // Default Value
       UpdateType_ = QRUpdate;
    }
    NumSolutions_ = Input.getPosInt(Hash,"NumSolutions");
@@ -239,7 +239,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
    }
    else
    {
-      // default to QR
+      Input.useString("QRUpdate",Hash,"UpdateType"); // Default Value
       UpdateType_ = QRUpdate;
    }
    
