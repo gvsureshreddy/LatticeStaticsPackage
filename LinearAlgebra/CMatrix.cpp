@@ -4,7 +4,7 @@
 #include <cmath>
 
 // Global IDString
-char CMatrixID[]="$Id: CMatrix.cpp,v 1.17 2008/07/08 04:18:33 elliott Exp $";
+char CMatrixID[]="$Id: CMatrix.cpp,v 1.18 2008/07/24 15:08:10 elliott Exp $";
 
 // Private Methods...
 
@@ -53,6 +53,26 @@ CMatrix CMatrix::Minor(int const& i,int const& j) const
 
 int CMatrix::MathematicaPrintFlag = 0;
 
+CMatrix::CMatrix(int const& Rows,int const& Cols):
+   Rows_(Rows), Cols_(Cols)
+{
+   if (IsNull())
+   {
+      Elements_=0;
+   }
+   else
+   {
+      Elements_=new CMatrix::Elm*[Rows_];
+      Elements_[0]=new CMatrix::Elm[Rows_*Cols_];
+
+      for (register int i=1;i<Rows_;i++)
+      {
+	 Elements_[i]=Elements_[i-1]+Cols_;
+      }
+   }
+   return;
+}
+
 CMatrix::CMatrix(int const& Rows,int const& Cols,CMatrix::Elm const& InitVal):
    Rows_(Rows), Cols_(Cols)
 {
@@ -69,14 +89,11 @@ CMatrix::CMatrix(int const& Rows,int const& Cols,CMatrix::Elm const& InitVal):
       {
 	 Elements_[i]=Elements_[i-1]+Cols_;
       }
-
-      if (InitVal!=SENTINAL)
+      
+      for (register int i=0;i<Rows_;i++)
       {
-	 for (register int i=0;i<Rows_;i++)
-	 {
-	    for (register int j=0;j<Cols_;j++)
-	       Elements_[i][j]=InitVal;
-	 }
+         for (register int j=0;j<Cols_;j++)
+            Elements_[i][j]=InitVal;
       }
    }
    return;
@@ -391,6 +408,38 @@ CMatrix CMatrix::Inverse() const
    return C;
 }
 
+void CMatrix::Resize(int const& Rows,int const& Cols)
+{
+   if (Rows!=Rows_ || Cols!=Cols_)
+   {
+      if (Elements_!=0)
+      {
+	 delete [] Elements_[0];
+	 delete [] Elements_;
+      }
+
+      Rows_=Rows;
+      Cols_=Cols;
+   
+      if (IsNull())
+      {
+	 Elements_=0;
+      }
+      else
+      {
+	 Elements_=new CMatrix::Elm*[Rows_];
+	 Elements_[0]=new CMatrix::Elm[Rows_*Cols_];
+
+	 for (register int i=1;i<Rows_;i++)
+	 {
+	    Elements_[i]=Elements_[i-1]+Cols_;
+	 }
+      }
+   }
+
+   return;
+}
+
 void CMatrix::Resize(int const& Rows,int const& Cols,CMatrix::Elm const& InitVal)
 {
    if (Rows!=Rows_ || Cols!=Cols_)
@@ -420,18 +469,16 @@ void CMatrix::Resize(int const& Rows,int const& Cols,CMatrix::Elm const& InitVal
       }
    }
 
-   if (InitVal != SENTINAL)
-      for (register int i=0;i<Rows_;i++)
+   for (register int i=0;i<Rows_;i++)
+   {
+      for (register int j=0;j<Cols_;j++)
       {
-	 for (register int j=0;j<Cols_;j++)
-	 {
-	    Elements_[i][j]=InitVal;
-	 }
+         Elements_[i][j]=InitVal;
       }
+   }
 
    return;
 }
-
 
 // Recursivly calculate determinent
 CMatrix::Elm CMatrix::Det() const

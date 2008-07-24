@@ -11,9 +11,6 @@ char *LinearAlgebraBuildDate();
 
 using namespace std;
 
-// Sentinal Value to allow conditional initialization of data
-#define SENTINAL -9999999.8888888887777788
-
 class Vector;
 class Matrix;
 
@@ -33,7 +30,8 @@ public:
    // Postcond. CVector of size 1xCols allocated and
    // each element set to Inital Value (or not set at all)
    // Devaults: Cols-0,Initial Value= (un initialized)
-   CVector(int const& Cols=0,Elm const& InitVal=SENTINAL);
+   CVector(int const& Cols=0);
+   CVector(int const& Cols,Elm const& InitVal);
    CVector(CVector const& A);
    CVector(CMatrix const& A);
    CVector(Vector const& A);
@@ -77,7 +75,8 @@ public:
 
    // Destructively Resize CVector
    // No change if size dosen't change
-   void Resize(int const& Cols=0,Elm const& InitVal=SENTINAL);
+   void Resize(int const& Cols=0);
+   void Resize(int const& Cols,Elm const& InitVal);
 
    // Operations & Etc...
    int const& Dim() const {return Cols_;}

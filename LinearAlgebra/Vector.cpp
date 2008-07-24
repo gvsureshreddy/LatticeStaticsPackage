@@ -5,11 +5,27 @@
 #include <cmath>
 
 // Global IDString
-char VectorID[]="$Id: Vector.cpp,v 1.16 2008/07/08 04:18:33 elliott Exp $";
+char VectorID[]="$Id: Vector.cpp,v 1.17 2008/07/24 15:08:10 elliott Exp $";
 
 // Private Functions...
 
 // Public Functions...
+
+Vector::Vector(int const& Cols)
+{
+   Cols_=Cols;
+
+   if (Cols_==0)
+   {
+      Elements_=0;
+   }
+   else
+   {
+      Elements_=new Vector::Elm[Cols_];
+   }
+
+   return;
+}
 
 Vector::Vector(int const& Cols,Vector::Elm const& InitVal)
 {
@@ -23,11 +39,8 @@ Vector::Vector(int const& Cols,Vector::Elm const& InitVal)
    {
       Elements_=new Vector::Elm[Cols_];
 
-      if (InitVal!=SENTINAL)
-      {
-	 for (register int j=0;j<Cols_;j++)
-	    Elements_[j]=InitVal;
-      }
+      for (register int j=0;j<Cols_;j++)
+         Elements_[j]=InitVal;
    }
 
    return;
@@ -340,7 +353,7 @@ Vector& Vector::operator=(Vector const& B)
    return *this;
 }
 
-void Vector::Resize(int const& Cols,Matrix::Elm const& InitVal)
+void Vector::Resize(int const& Cols)
 {
    if (Cols!=Cols_)
    {
@@ -358,12 +371,30 @@ void Vector::Resize(int const& Cols,Matrix::Elm const& InitVal)
       }
    }
 
-   if (InitVal!=SENTINAL)
+   return;
+}
+
+void Vector::Resize(int const& Cols,Matrix::Elm const& InitVal)
+{
+   if (Cols!=Cols_)
    {
-      for (register int j=0;j<Cols_;j++)
+      delete [] Elements_;
+
+      Cols_=Cols;
+      
+      if (Cols_==0)
       {
-	 Elements_[j]=InitVal;
+	 Elements_=0;
       }
+      else
+      {
+	 Elements_=new Vector::Elm[Cols_];
+      }
+   }
+   
+   for (register int j=0;j<Cols_;j++)
+   {
+      Elements_[j]=InitVal;
    }
 
    return;

@@ -11,9 +11,6 @@ char *LinearAlgebraBuildDate();
 
 using namespace std;
 
-// Sentinal Value to allow conditional initialization of data
-#define SENTINAL -9999999.8888888887777788
-
 class SparseMatrix;
 
 class Vector
@@ -32,7 +29,8 @@ public:
    // Postcond. Vector of size 1xCols allocated and
    // each element set to Inital Value (or not set at all)
    // Devaults: Cols-0,Initial Value= (un initialized)
-   Vector(int const& Cols=0,Elm const& InitVal=SENTINAL);
+   Vector(int const& Cols=0);
+   Vector(int const& Cols,Elm const& InitVal);
    Vector(Vector const& A);
    Vector(Vector3D const& A);
    Vector(Matrix const& A);
@@ -82,7 +80,8 @@ public:
 
    // Destructively Resize Vector
    // No change if size dosen't change
-   void Resize(int const& Cols=0,Elm const& InitVal=SENTINAL);
+   void Resize(int const& Cols=0);
+   void Resize(int const& Cols,Elm const& InitVal);
 
    // Operations & Etc...
    int const& Dim() const {return Cols_;}

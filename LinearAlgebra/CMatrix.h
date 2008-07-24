@@ -13,9 +13,6 @@ char *LinearAlgebraBuildDate();
 
 using namespace std;
 
-// Sentinal to allow for no initialization of data
-#define SENTINAL -9999999.8888888887777788
-
 class Vector;
 class Vector3D;
 
@@ -44,7 +41,8 @@ public:
    //   allocated and each element set to Initial Value
    // Defaults: Rows=0,Cols=0,Initial Value= (Uninitialized)
 
-   CMatrix(int const& Rows=0,int const& Cols=0,Elm const& InitVal=SENTINAL);
+   CMatrix(int const& Rows=0,int const& Cols=0);
+   CMatrix(int const& Rows,int const& Cols,Elm const& InitVal);
    CMatrix(CMatrix const& A);
    CMatrix(Matrix const& A);
 
@@ -104,7 +102,8 @@ public:
 
    // Destructively Resize CMatrix
    // No change if size does not change
-   void Resize(int const& Rows=0,int const& Cols=0,Elm const& InitVal=SENTINAL);
+   void Resize(int const& Rows=0,int const& Cols=0);
+   void Resize(int const& Rows,int const& Cols,Elm const& InitVal);
    
    // Operations & Etc...
 

@@ -7,11 +7,27 @@
 #include "Matrix.h"
 
 // Global IDString
-char CVectorID[]="$Id: CVector.cpp,v 1.8 2008/07/08 04:18:33 elliott Exp $";
+char CVectorID[]="$Id: CVector.cpp,v 1.9 2008/07/24 15:08:10 elliott Exp $";
 
 // Private Functions...
 
 // Public Functions...
+
+CVector::CVector(int const& Cols)
+{
+   Cols_=Cols;
+
+   if (Cols_==0)
+   {
+      Elements_=0;
+   }
+   else
+   {
+      Elements_=new CVector::Elm[Cols_];
+   }
+
+   return;
+}
 
 CVector::CVector(int const& Cols,CVector::Elm const& InitVal)
 {
@@ -25,11 +41,8 @@ CVector::CVector(int const& Cols,CVector::Elm const& InitVal)
    {
       Elements_=new CVector::Elm[Cols_];
 
-      if (InitVal!=SENTINAL)
-      {
-	 for (register int j=0;j<Cols_;j++)
-	    Elements_[j]=InitVal;
-      }
+      for (register int j=0;j<Cols_;j++)
+         Elements_[j]=InitVal;
    }
 
    return;
@@ -365,6 +378,27 @@ CVector& CVector::operator=(CVector const& B)
    return *this;
 }
 
+void CVector::Resize(int const& Cols)
+{
+   if (Cols!=Cols_)
+   {
+      delete [] Elements_;
+
+      Cols_=Cols;
+      
+      if (Cols_==0)
+      {
+	 Elements_=0;
+      }
+      else
+      {
+	 Elements_=new CVector::Elm[Cols_];
+      }
+   }
+
+   return;
+}
+
 void CVector::Resize(int const& Cols,CVector::Elm const& InitVal)
 {
    if (Cols!=Cols_)
@@ -382,12 +416,9 @@ void CVector::Resize(int const& Cols,CVector::Elm const& InitVal)
 	 Elements_=new CVector::Elm[Cols_];
       }
 
-      if (InitVal!=SENTINAL)
+      for (register int j=0;j<Cols_;j++)
       {
-	 for (register int j=0;j<Cols_;j++)
-	 {
-	    Elements_[j]=InitVal;
-	 }
+         Elements_[j]=InitVal;
       }
    }
 

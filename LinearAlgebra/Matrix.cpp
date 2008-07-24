@@ -6,7 +6,7 @@
 #include <cstdlib>
 
 // Global IDString
-char MatrixID[]="$Id: Matrix.cpp,v 1.23 2008/07/08 04:18:33 elliott Exp $";
+char MatrixID[]="$Id: Matrix.cpp,v 1.24 2008/07/24 15:08:10 elliott Exp $";
 
 // Private Methods...
 
@@ -72,6 +72,28 @@ Matrix Matrix::Minor(int const& i,int const& j) const
 
 int Matrix::MathematicaPrintFlag = 0;
 
+Matrix::Matrix(int const& Rows,int const& Cols)
+{
+   Rows_=Rows;
+   Cols_=Cols;
+
+   if (IsNull())
+   {
+      Elements_=0;
+   }
+   else
+   {
+      Elements_=new Matrix::Elm*[Rows_];
+      Elements_[0]=new Matrix::Elm[Rows_*Cols_];
+
+      for (register int i=1;i<Rows_;i++)
+      {
+	 Elements_[i]=Elements_[i-1]+Cols_;
+      }
+   }
+   return;
+}
+
 Matrix::Matrix(int const& Rows,int const& Cols,Matrix::Elm const& InitVal)
 {
    Rows_=Rows;
@@ -91,13 +113,10 @@ Matrix::Matrix(int const& Rows,int const& Cols,Matrix::Elm const& InitVal)
 	 Elements_[i]=Elements_[i-1]+Cols_;
       }
 
-      if (InitVal!=SENTINAL)
+      for (register int i=0;i<Rows_;i++)
       {
-	 for (register int i=0;i<Rows_;i++)
-	 {
-	    for (register int j=0;j<Cols_;j++)
-	       Elements_[i][j]=InitVal;
-	 }
+         for (register int j=0;j<Cols_;j++)
+            Elements_[i][j]=InitVal;
       }
    }
    return;
@@ -378,6 +397,38 @@ Matrix Matrix::Inverse() const
    return C;
 }
 
+void Matrix::Resize(int const& Rows,int const& Cols)
+{
+   if (Rows!=Rows_ || Cols!=Cols_)
+   {
+      if (Elements_!=0)
+      {
+	 delete [] Elements_[0];
+	 delete [] Elements_;
+      }
+
+      Rows_=Rows;
+      Cols_=Cols;
+   
+      if (IsNull())
+      {
+	 Elements_=0;
+      }
+      else
+      {
+	 Elements_=new Matrix::Elm*[Rows_];
+	 Elements_[0]=new Matrix::Elm[Rows_*Cols_];
+
+	 for (register int i=1;i<Rows_;i++)
+	 {
+	    Elements_[i]=Elements_[i-1]+Cols_;
+	 }
+      }
+   }
+
+   return;
+}
+
 void Matrix::Resize(int const& Rows,int const& Cols,Matrix::Elm const& InitVal)
 {
    if (Rows!=Rows_ || Cols!=Cols_)
@@ -407,20 +458,16 @@ void Matrix::Resize(int const& Rows,int const& Cols,Matrix::Elm const& InitVal)
       }
    }
    
-   if (InitVal!=SENTINAL)
+   for (register int i=0;i<Rows_;i++)
    {
-      for (register int i=0;i<Rows_;i++)
+      for (register int j=0;j<Cols_;j++)
       {
-	 for (register int j=0;j<Cols_;j++)
-	 {
-	    Elements_[i][j]=InitVal;
-	 }
+         Elements_[i][j]=InitVal;
       }
    }
 
    return;
 }
-
 
 // Recursivly calculate determinent
 Matrix::Elm Matrix::Det() const

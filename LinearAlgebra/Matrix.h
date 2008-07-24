@@ -11,9 +11,6 @@ char *LinearAlgebraBuildDate();
 
 using namespace std;
 
-// Sentinal to allow for no initialization of data
-#define SENTINAL -9999999.8888888887777788
-
 // Maximum condition number for double precision
 // above this a matrix is very ill-conditioned
 //
@@ -51,7 +48,8 @@ public:
    //   allocated and each element set to Initial Value
    // Defaults: Rows=0,Cols=0,Initial Value= (Uninitialized)
 
-   Matrix(int const& Rows=0,int const& Cols=0,Elm const& InitVal=SENTINAL);
+   Matrix(int const& Rows=0,int const& Cols=0);
+   Matrix(int const& Rows,int const& Cols,Elm const& InitVal);
    Matrix(Matrix const& A);
 
    // Deconstructor...
@@ -110,7 +108,8 @@ public:
 
    // Destructively Resize Matrix
    // No change if size does not change
-   void Resize(int const& Rows=0,int const& Cols=0,Elm const& InitVal=SENTINAL);
+   void Resize(int const& Rows=0,int const& Cols=0);
+   void Resize(int const& Rows,int const& Cols,Elm const& InitVal);
    
    // Operations & Etc...
 
