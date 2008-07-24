@@ -596,11 +596,9 @@ int NewtonPCSolution::FindNextSolution()
    return good;
 }
 
-int NewtonPCSolution::FindCriticalPoint(Lattice* const Lat,PerlInput const& Input,
-                                        int const& Width,fstream& out)
+void NewtonPCSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPs,
+                                         PerlInput const& Input,int const& Width,fstream& out)
 {
-   int TotalNumCPs=0;
-   int NumCPs;
    int sz=PreviousSolution_.Dim();
    Vector tmp_diff(sz),tmp_DOF(Restrict_->DOF());
    double tmp_ds=0.0;
@@ -614,15 +612,12 @@ int NewtonPCSolution::FindCriticalPoint(Lattice* const Lat,PerlInput const& Inpu
    int MaxIter = 50;
    ArcLengthSolution S1(Restrict_,Restrict_->DOF(),MaxIter,Converge_,Converge_,tmp_ds,
                         tmp_ds,tmp_ds,1.0,0.5,1.0,1,0,PreviousSolution_,
-                        Restrict_->DOF()-PreviousSolution_,10,Echo_);
-   NumCPs=S1.FindCriticalPoint(Lat,Input,Width,out);
-   TotalNumCPs += NumCPs;
-   
+                        Restrict_->DOF()-PreviousSolution_,10,-1,Echo_);
+   S1.FindCriticalPoint(Lat,TotalNumCPs,Input,Width,out);
+      
    // Check to see if we should stop
    if ((StopAtCPNum_ > -1) && (TotalNumCPs >= StopAtCPNum_))
       CurrentSolution_ = NumSolutions_;
-   
-   return NumCPs;
 }
 
 void NewtonPCSolution::MoorePenrose(Matrix const& Q,Matrix const& R,Vector const& Force,

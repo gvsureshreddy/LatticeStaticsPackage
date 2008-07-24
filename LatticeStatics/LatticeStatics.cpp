@@ -6,8 +6,8 @@
 #include "ArcLengthSolution.h"
 
 #include "UtilityFunctions.h"
-#define LINELENGTH 600
 
+#include <string>
 #include <fstream>
 
 char *builddate();
@@ -78,6 +78,7 @@ int main(int argc, char *argv[])
    SolveMe = InitializeSolution(Restrict,Input,Lat,out,Width,Echo);
 
    int success = 1;
+   int TotalNumCPs = 0;
    int TestValue=-1,
       OldTestValue=TestValue;
    Vector EigenValues(Lat->DOF().Dim());
@@ -92,7 +93,7 @@ int main(int argc, char *argv[])
          OldTestValue = TestValue;
          TestValue = Lat->TestFunctions(EigenValues);
          if ((OldTestValue != TestValue) && (BisectCP == Yes) && (OldTestValue != -1))
-            SolveMe->FindCriticalPoint(Lat,Input,Width,out);
+            SolveMe->FindCriticalPoint(Lat,TotalNumCPs,Input,Width,out);
          
          // Send Output
          if (Echo)
@@ -113,7 +114,7 @@ int main(int argc, char *argv[])
 
 void GetMainSettings(int& Width,int& Precision,YN& BisectCP,int& Echo,PerlInput const& Input)
 {
-   char bisect[LINELENGTH];
+   string bisect;
 
    Width = Input.getInt("Main","FieldWidth");
    Precision = Input.getInt("Main","Precision");
@@ -143,7 +144,7 @@ void InitializeOutputFile(fstream& out,char const* const outfile,char const* con
                           int const& Echo)
 {
    fstream input,start;
-   char dataline[LINELENGTH];
+   string dataline;
    
    input.open(datafile,ios::in);
    if (input.fail())
@@ -162,7 +163,7 @@ void InitializeOutputFile(fstream& out,char const* const outfile,char const* con
    
    while (!input.eof())
    {
-      input.getline(dataline,LINELENGTH-1);
+      getline(input,dataline);
       out << "Input File:" << dataline << "\n";
    }
    
@@ -180,7 +181,7 @@ void InitializeOutputFile(fstream& out,char const* const outfile,char const* con
       
       while (!start.eof())
       {
-         start.getline(dataline,LINELENGTH-1);
+         getline(start,dataline);
          out << "Start File:" << dataline << "\n";
       }
       

@@ -33,7 +33,6 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,Vector const& d
      ClosedLoopStart_(ClosedLoopStart),
      FirstSolution_(FirstSolution),
      StopAtCPNum_(StopAtCPNum),
-     TotalNumCPs_(0),
      Difference_(Difference),
      force_static(DOFS_),
      mdfc_static(DOFS_-1),
@@ -48,7 +47,6 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const
    : Echo_(Echo),
      Restrict_(Restrict),
      CurrentSolution_(0),
-     TotalNumCPs_(0),
      Difference_(two-one)
 {
    DOFS_=Restrict_->DOF().Dim();
@@ -100,8 +98,7 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const
                                      int const Echo)
    :  Echo_(Echo),
       Restrict_(Restrict),
-      CurrentSolution_(0),
-      TotalNumCPs_(0)
+      CurrentSolution_(0)
 {
    DOFS_=Restrict_->DOF().Dim();
    // initialize "static" memver variables
@@ -521,10 +518,10 @@ void ArcLengthSolution::ArcLengthNewton(int& good)
    }
 }
 
-int ArcLengthSolution::OldFindCriticalPoint(int const& LHN,double const& LHEV,int const& RHN,
-                                            double const& RHEV,Lattice* const Lat,
-                                            PerlInput const& Input,int const& Width,
-                                            fstream& out)
+void ArcLengthSolution::OldFindCriticalPoint(int const& LHN,double const& LHEV,int const& RHN,
+                                             double const& RHEV,Lattice* const Lat,
+                                             int& TotalNumCPs,PerlInput const& Input,
+                                             int const& Width,fstream& out)
 {
    Vector OriginalDiff=Difference_;
    double OriginalDS = CurrentDS_;
@@ -603,7 +600,7 @@ int ArcLengthSolution::OldFindCriticalPoint(int const& LHN,double const& LHEV,in
    //  in a perfect situation. should check to see if this is found to be true.
    Lat->CriticalPointInfo(Restrict_->DrDt(Difference_),
                           abs(RighthandTestValue-LefthandTestValue),
-                          BisectTolerance_,Width,Input,out);
+                          BisectTolerance_,Width,Input,out,cout);
    
    if (Echo_) cout << "Success = 1" << "\n";
    out << "Success = 1" << "\n";
@@ -614,15 +611,13 @@ int ArcLengthSolution::OldFindCriticalPoint(int const& LHN,double const& LHEV,in
    Difference_ = OriginalDiff;
 
    // Check to see if we should stop
-   TotalNumCPs_ += 1;
-   if ((StopAtCPNum_ > -1) && (TotalNumCPs_ >= StopAtCPNum_))
+   TotalNumCPs += 1;
+   if ((StopAtCPNum_ > -1) && (TotalNumCPs >= StopAtCPNum_))
       CurrentSolution_ = NumSolutions_;
-   
-   return 1;
 }
 
-int ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,PerlInput const& Input,
-                                         int const& Width,fstream& out)
+void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPs,
+                                          PerlInput const& Input,int const& Width,fstream& out)
 {
    Vector OriginalDiff=Difference_;
    double OriginalDS = CurrentDS_;
@@ -639,6 +634,7 @@ int ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,PerlInput const& Inp
    int CP;
    int spot;
    ostringstream in_string;
+   ostringstream in_newinput_string;
 
    // Setup in_string ios
    in_string << setiosflags(ios::fixed) << setprecision(out.precision());
@@ -665,12 +661,13 @@ int ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,PerlInput const& Inp
    cout << "TF_LHS_static = " << setw(Width) << TF_LHS_static<< "\n";
    cout << "TF_RHS_static = " << setw(Width) << TF_RHS_static << "\n";
    
-   int *Index;
+   int* Index;
    Index = new int[TestValueDiff];
    Vector DSTrack(TestValueDiff);
-   string *out_string;
-   out_string = new string[TestValueDiff];
-   
+   string* out_string = new string[TestValueDiff];
+   string* out_newinput_string = new string[TestValueDiff];
+   int* Bif = new int[TestValueDiff];
+
    temp = 0;
    for (int i = 0; i< size; i++)
    {
@@ -719,9 +716,10 @@ int ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,PerlInput const& Inp
          {
             DSTrack[spot] = DSTrack[spot-1];
             out_string[spot] = out_string[spot - 1];
+            out_newinput_string[spot] = out_newinput_string[spot - 1];
+            Bif[spot] = Bif[spot - 1];
             spot = spot - 1;
-         }
-         
+         }         
          
          // Output Critical Point
          for (int i=0;i<70;i++)
@@ -742,29 +740,55 @@ int ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,PerlInput const& Inp
          }
          if (Echo_) cout << "\n";
          in_string << "\n";
-         
+         cout << "1"<<endl;
          // Call Lattice function to do any Lattice Specific things
-         Lat->CriticalPointInfo(Restrict_->DrDt(Difference_),Multiplicity,
-                                10.0*Tolerance_,Width,Input,in_string);
-         
+         Bif[spot]=Lat->CriticalPointInfo(Restrict_->DrDt(Difference_),Multiplicity,
+                                          10.0*Tolerance_,Width,Input,in_string,
+                                          in_newinput_string);
+         cout << "2" << endl;
          if (Echo_) cout << "Success = 1" << "\n";
          in_string << "Success = 1" << "\n";
          
          DSTrack[spot] = CurrentDS_;
          out_string[spot] = in_string.str();
+         out_newinput_string[spot] = in_newinput_string.str();
          num = num + 1;
          in_string.str("");
+         in_newinput_string.str("");
       }//END OF IF STATEMENT
    }
    
    ////PRINT OUT CP DATA
+   fstream cpfile;
+   
    for (int i = 0; i < num; i++)
    {
-      out <<out_string[i];
+      out << out_string[i];
+      if (Bif[i])
+      {
+         in_string.str("");
+         in_string << Input.LastInputFileName() << ".bifurcate."
+                   << setw(3) << setfill('0') << TotalNumCPs;
+         cpfile.open(in_string.str().c_str(),ios::out);
+         cpfile << out_newinput_string[i];
+         cpfile.close();
+      }
+      else
+      {
+         in_string.str("");
+         in_string << Input.LastInputFileName() << ".turnpoint."
+                   << setw(3) << setfill('0') << TotalNumCPs;
+         cpfile.open(in_string.str().c_str(),ios::out);
+         cpfile << out_newinput_string[i];
+         cpfile.close();
+      }
+         ++TotalNumCPs;
    }
    
    delete [] Index;
    delete [] out_string;   //deletes memory allocated to out_string
+   delete [] out_newinput_string;
+   delete [] Bif;
    
    // Reset Lattice and ArcLengthSolution
    ArcLenUpdate(OriginalDiff-Difference_);
@@ -772,11 +796,8 @@ int ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,PerlInput const& Inp
    Difference_ = OriginalDiff;
 
    // Check to see if we should stop
-   TotalNumCPs_ += TestValueDiff;
-   if ((StopAtCPNum_ > -1) && (TotalNumCPs_ >= StopAtCPNum_))
+   if ((StopAtCPNum_ > -1) && (TotalNumCPs >= StopAtCPNum_))
       CurrentSolution_ = NumSolutions_;
-   
-   return TestValueDiff;
 }
 
 void ArcLengthSolution::ZBrent(Lattice* const Lat,int const& track,Vector const& OriginalDiff,

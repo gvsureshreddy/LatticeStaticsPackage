@@ -10,8 +10,6 @@
 #include "TempMorse.h"
 #include "Dobson.h"
 
-#define LINELENGTH 600
-
 PairPotentials* InitializePairPotential(PerlInput::HashStruct const& ParentHash,
                                         PerlInput const& Input,int const& i,int const& j);
 PairPotentials* InitializePairPotential(char const* const HashName,PerlInput const& Input,

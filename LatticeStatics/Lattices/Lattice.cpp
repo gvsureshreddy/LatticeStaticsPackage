@@ -362,9 +362,9 @@ int Lattice::TestFunctions(Vector &TF1,StateType const& State,Vector* const TF2)
    return retval;
 }
 
-void Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
-                                double const& Tolerance,int const& Width,
-                                PerlInput const& Input,ostream& out)
+int Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
+                               double const& Tolerance,int const& Width,
+                               PerlInput const& Input,ostream& out,ostream& newinput)
 {
    Matrix
       D3=E3(),
@@ -410,7 +410,7 @@ void Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
          Ind[count++]=i;
       }
    }
-   
+
    // Check for incorrect number of modes
    if (count != NumZeroEigenVals)
    {
@@ -441,7 +441,7 @@ void Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
          }
          count++;
       }
-      
+
       out << "NOTE: Incorrect number of zero eigenvalues found. "
           << "Modes with smallest abs. value used." << "\n";
       if (Echo_)
@@ -450,7 +450,7 @@ void Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
               << "Modes with smallest abs. value used." << "\n";
       }
    }
-   
+
    for (int i=0;i<count;++i)
       out << "Mode[" << i << "] DOF: " << Ind[i] << ",  ";
    out << "\n";
@@ -466,9 +466,9 @@ void Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
       cerr << "Error: BIFMAX < " << count << " in Lattice.h" << "\n";
       exit(-6);
    }
-   
+
    Mode.Resize(count,dofs);
-   
+   cout << "A" << endl;   
    for (int i=0;i<count;i++)
    {
       for (int j=0;j<dofs;j++)
@@ -476,7 +476,7 @@ void Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
          Mode[i][j] = EigVec[j][Ind[i]];
       }
    }
-   
+   cout << "B" << endl;
    // Print out the Eigenvectors
    out << "EigenVectors" << "\n" << setw(Width) << EigVec;
    if (Echo_) cout << "EigenVectors" << "\n" << setw(Width) << EigVec;
@@ -494,7 +494,7 @@ void Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
                      Eijk[i][j][k] += D3[a*dofs + b][c]*Mode[i][a]*Mode[j][b]*Mode[k][c];
                   }
          }
-   
+   cout << "C" << endl;
    //EijT
    for (int i=0;i<count;i++)
       for (int j=0;j<count;j++)
@@ -510,7 +510,7 @@ void Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
                EijT[i][j] += D2T[a][b]*Mode[i][a]*Mode[j][b];
             }
       }
-   
+   cout << "D" << endl;
    // Print out results
    for (int i=0;i<70;i++)
    {
@@ -613,7 +613,6 @@ void Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
    out << "\n";
    if (Echo_) cout << "\n";
    // ----------------------------
-   
    
    if (ThirdOrder_)
    {
@@ -780,43 +779,46 @@ void Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
    if (Echo_) cout << "\n";
    out << "\n";
 
-   char newname[LINELENGTH];
-   if (Bif)
-      sprintf(newname,"BifurcationPoint-%03u",CurrentBifPt_);
-   else
-      sprintf(newname,"TurningPoint-%03u",CurrentBifPt_);
-   ++CurrentBifPt_;
-   ofstream newinput;
-   newinput.open(newname);
+   // output a new input file to help restart at this critical point
    newinput << setprecision(out.precision()) << scientific;
-   newinput << Input.ReconstructedInput();
-   newinput << "\n\n";
-   newinput << "%Restriction = (Type => RestrictToTranslatedSubSpace,\n";
-   newinput << "                RestrictToTranslatedSubSpace => {DOFS  => ,\n";
-   newinput << "                                                 DOF_0 =>  \n";
-   newinput << "                                                }\n";
-   newinput << "               );\n";
-   newinput << "\n";
-   newinput << "$SolutionMethod{NewtonPCSolution}{CurrentDS} = 1.0e-04;\n\n";
-   newinput << "%StartType = (Type             => Bifurcation,\n";
-   for (int i=0;i<count;++i)
-   {
-      newinput << "              Tangent          => [";
-      for (int j=0;j<dofs;++j)
-      {
-         newinput << Mode[i][j] << ((j<dofs-1) ? ",   " : ",   0.0000],\n");
-      }
-   }
-   newinput << "              BifurcationPoint => [";
-   Vector T=DOF();
+   Vector T(dofs+1);
+   Vector M(dofs+1);
+   Vector dof=DOF();
    for (int i=0;i<dofs;++i)
    {
-      newinput << T[i] << ",   ";
+      T[i] = dof[i];
    }
-   newinput << ((LoadParameter_ == Temperature) ? Temp() : Lambda()) << "]\n";
-   newinput << "             );\n\n";
-
-   newinput.close();
+   T[dofs] = ((LoadParameter_ == Temperature) ? Temp() : Lambda());
+   if (Bif)
+   {
+      newinput << Input.ReconstructedInput();
+      newinput << "\n\n";
+      Input.writeString(newinput,"Bifurcation","StartType","Type");
+      for (int i=0;i<count;++i)
+      {
+         for (int j=0;j<dofs;++j)
+         {
+            M[j] = Mode[i][j];
+         }
+         M[dofs] = 0.0;
+         Input.writeVector(newinput,M,"StartType","Tangent");
+      }
+      Input.writeVector(newinput,T,"StartType","BifurcationPoint");
+   }
+   else
+   {
+      Input.writeString(newinput,"Continuation","StartType","Type");
+      for (int i=0;i<count;++i) // be safe, cover a miss-identified bifurcation point
+      {
+         for (int j=0;j<dofs;++j)
+         {
+            M[j] = Mode[i][j];
+         }
+         M[dofs] = 0.0;
+         Input.writeVector(newinput,M,"StartType","Tangent");
+      }
+      Input.writeVector(newinput,T,"StartType","Solution1");
+   }
    
    if (dbg_)
    {
@@ -826,7 +828,8 @@ void Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
          DebugMode();
       }
    }
-   return;
+   
+   return Bif;
 }
 
 void Lattice::ConsistencyCheck(double const& ConsistencyEpsilon,int const& Width,ostream& out)

@@ -33,16 +33,15 @@ private:
    int ClosedLoopStart_;
    Vector FirstSolution_;
    int StopAtCPNum_;
-   int TotalNumCPs_;
    
    Vector Difference_;
    
    void ArcLengthNewton(int& good);
    void ConsistencyCheck(Vector const& Solution1,Vector const& Solution2,
                          double const& ConsistencyEpsilon,int const& Width,fstream& out);
-   virtual int OldFindCriticalPoint(int const& LHN,double const& LHEV,int const& RHN,
-                                    double const& RHEV,Lattice* const Lat,
-                                    PerlInput const& Input,int const& Width,fstream& out);
+   virtual void OldFindCriticalPoint(int const& LHN,double const& LHEV,int const& RHN,
+                                     double const& RHEV,Lattice* const Lat,int& TotalNumCPs,
+                                     PerlInput const& Input,int const& Width,fstream& out);
    void ZBrent(Lattice* const Lat,int const& track,Vector const& OriginalDiff,
                double const& OriginalDS,double& fa,double& fb,Vector& CurrentTF);
    
@@ -60,8 +59,8 @@ public:
                      double const& AngleCutoff,double const& AngleIncrease,
                      double const& Aspect,int const& NumSolutions,int const& CurrentSolution,
                      Vector const& FirstSolution,Vector const& Difference,
-                     int const& ClosedLoopStart=CLOSEDDEFAULT,int const& StopAtCPNum=-1,
-                     int const& Echo=1);
+                     int const& ClosedLoopStart,int const& StopAtCPNum,
+                     int const& Echo);
    ArcLengthSolution(Restriction* const Restrict,PerlInput const& Input,
                      Vector const& one,Vector const& two,int const& Echo=1);
    ArcLengthSolution(Restriction* const Restrict,PerlInput const& Input,int const Echo=1);
@@ -70,8 +69,8 @@ public:
    // Functions required by SolutionMethod
    virtual int AllSolutionsFound() const;
    virtual int FindNextSolution();
-   virtual int FindCriticalPoint(Lattice* const Lat,PerlInput const& Input,int const& Width,
-                                 fstream& out);
+   virtual void FindCriticalPoint(Lattice* const Lat,int& TotalNumCPs,PerlInput const& Input,
+                                  int const& Width,fstream& out);
 
 private:
    // "static" member variables

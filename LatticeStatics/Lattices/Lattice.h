@@ -10,7 +10,6 @@
 
 using namespace std;
 
-#define LINELENGTH 600
 #define DOFMAX 256
 #define BIFMAX 25
 
@@ -61,9 +60,9 @@ public:
    virtual void SetParameters(double const* const Vals,int const& ResetRef = 1) = 0;
    virtual void SetGridSize(int const& Grid) = 0;
    virtual void NeighborDistances(int const& cutoff,ostream& out) const {};
-   virtual void CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
-                                  double const& Tolerance,int const& Width,
-                                  PerlInput const& Input,ostream& out);
+   virtual int CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
+                                 double const& Tolerance,int const& Width,
+                                 PerlInput const& Input,ostream& out,ostream& newinput);
    void ConsistencyCheck(double const& ConsistencyEpsilon,int const& Width,ostream& out);
    virtual void DebugMode() {};
    

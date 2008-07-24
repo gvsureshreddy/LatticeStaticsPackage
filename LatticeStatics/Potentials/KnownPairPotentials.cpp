@@ -1,4 +1,5 @@
 #include "KnownPairPotentials.h"
+#include <sstream>
 
 PairPotentials* InitializePairPotential(char const* const HashName,PerlInput const& Input,
                                         int const& i,int const& j)
@@ -9,13 +10,14 @@ PairPotentials* InitializePairPotential(char const* const HashName,PerlInput con
 PairPotentials* InitializePairPotential(PerlInput::HashStruct const& ParentHash,
                                         PerlInput const& Input,int const& i,int const& j)
 {
-   char tmp[LINELENGTH];
+   stringstream tmp;
    double Eps0,Eps1,Sigma0,Sigma1,rcut;
    double Tref,A0,AT,B0,BT,Alpha,Rref1,Rref2,Tmelt;
    double Rtheta1,Rtheta1Pow,Rtheta2,Rtheta2Pow,Cutoff;
-   
-   sprintf(tmp,"PotentialType_%u_%u",i,j);
-   PerlInput::HashStruct Hash = Input.getHash(ParentHash,tmp);
+
+   tmp.str("");
+   tmp << "PotentialType_" << i << "_" << j;
+   PerlInput::HashStruct Hash = Input.getHash(ParentHash,tmp.str().c_str());
 
    char const* const pptype = Input.getString(Hash,"Type");
    if (!strcmp("LJ",pptype))
@@ -124,13 +126,14 @@ void UpdatePairPotential(char const* const HashName,PerlInput const& Input,int c
 void UpdatePairPotential(PerlInput::HashStruct const& ParentHash,PerlInput const& Input,
                          int const& i,int const& j,PairPotentials* const Potential)
 {
-   char tmp[LINELENGTH];
+   stringstream tmp;
    double Eps0,Eps1,Sigma0,Sigma1,rcut;
    double Tref,A0,AT,B0,BT,Alpha,Rref1,Rref2,Tmelt;
    double Rtheta1,Rtheta2,Cutoff;
 
-   sprintf(tmp,"PotentialType_%u_%u",i,j);
-   PerlInput::HashStruct Hash = Input.getHash(ParentHash,tmp);
+   tmp.str("");
+   tmp << "PotentialType_" << i << "_" << j;
+   PerlInput::HashStruct Hash = Input.getHash(ParentHash,tmp.str().c_str());
    if (!strcmp(Potential->Type(),"LJ"))
    {
       LJ *LJp;

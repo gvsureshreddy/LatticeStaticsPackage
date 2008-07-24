@@ -2,6 +2,9 @@
 #include "PerlInput.h"
 #include <fstream>
 
+// should probably do something more clever than this for using pipes, but later...
+#define LINELENGTH 2048
+
 char *builddate();
 
 using namespace std;

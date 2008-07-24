@@ -11,11 +11,10 @@
 
 using namespace std;
 
-#define HASH_NAME_LEN 256
-
 class PerlInput
 {
 private:
+   string LastInputFileName_;
    mutable ostringstream ReconstructedInput_;
 
    void Initialize();
@@ -24,8 +23,8 @@ public:
    
    struct HashStruct
    {
-      HV *Ptr;
-      char Name[HASH_NAME_LEN];
+      HV* Ptr;
+      string Name;
    };
    
    PerlInput() {Initialize();}
@@ -34,6 +33,8 @@ public:
    
    void Readfile(char const* const datafile);
    void Readfile(char const* const datafile,char const* const prefix);
+   char const* const LastInputFileName() const {return LastInputFileName_.c_str();}
+   void EvaluateString(char const* const expression);
    void ClearHash(char const* const hashname);
 
    string ReconstructedInput() const {return ReconstructedInput_.str();}
@@ -78,7 +79,17 @@ public:
                     int const& a=-1,int const& b=-1,int const& c=-1,int const& d=-1,
                     int const& e=-1) const
    {return useDouble(DefaultValue,useHash(HashName),ParamName,a,b,c,d,e);}
-   
+
+   void writeDouble(ostream& out,double const& Value,
+                    HashStruct const& Hash,char const* const ParamName,
+                    int const& a=-1,int const& b=-1,int const& c=-1,int const& d=-1,
+                    int const& e=-1) const;
+   void writeDouble(ostream& out,double const& Value,
+                    char const* const HashName,char const* const ParamName,
+                    int const& a=-1,int const& b=-1,int const& c=-1,int const& d=-1,
+                    int const& e=-1) const
+   {writeDouble(out,Value,useHash(HashName),ParamName,a,b,c,d,e);}
+
    int getInt(HashStruct const& Hash,char const* const ParamName,
               int const& a=-1,int const&  b=-1,int const& c=-1,int const& d=-1,
               int const& e=-1) const;
@@ -96,6 +107,16 @@ public:
               int const& a=-1,int const& b=-1,int const& c=-1,int const& d=-1,int const& e=-1)
       const
    {return useInt(DefaultValue,useHash(HashName),ParamName,a,b,c,d,e);}
+
+   void writeInt(ostream& out,int const& Value,
+                 HashStruct const& Hash,char const* const ParamName,
+                 int const& a=-1,int const&  b=-1,int const& c=-1,int const& d=-1,
+                 int const& e=-1) const;
+   void writeInt(ostream& out,int const& Value,
+                 char const* const HashName,char const* const ParamName,
+                 int const& a=-1,int const& b=-1,int const& c=-1,int const& d=-1,
+                 int const& e=-1) const
+   {writeInt(out,Value,useHash(HashName),ParamName,a,b,c,d,e);}
 
    int getPosInt(HashStruct const& Hash,char const* const ParamName,
                  int const& a=-1,int const& b=-1,int const& c=-1,int const& d=-1,
@@ -115,6 +136,16 @@ public:
                  int const& e=-1) const
    {return usePosInt(DefaultValue,useHash(HashName),ParamName,a,b,c,d,e);}
 
+   void writePosInt(ostream& out,int const& Value,
+                    HashStruct const& Hash,char const* const ParamName,
+                    int const& a=-1,int const& b=-1,int const& c=-1,int const& d=-1,
+                    int const& e=-1) const;
+   void writePosInt(ostream& out,int const& Value,
+                    char const* const HashName,char const* const ParamName,
+                    int const& a=-1,int const& b=-1,int const& c=-1,int const& d=-1,
+                    int const& e=-1) const
+   {writePosInt(out,Value,useHash(HashName),ParamName,a,b,c,d,e);}
+
    char const* const getString(HashStruct const& Hash,char const* const ParamName,
                                int const& a=-1,int const& b=-1,int const& c=-1,int const& d=-1,
                                int const& e=-1) const;
@@ -133,6 +164,16 @@ public:
                                int const& e=-1) const
    {return useString(DefaultValue,useHash(HashName),ParamName,a,b,c,d,e);}
 
+   void writeString(ostream& out,char const* const Value,
+                    HashStruct const& Hash,char const* const ParamName,
+                    int const& a=-1,int const& b=-1,int const& c=-1,int const& d=-1,
+                    int const& e=-1) const;
+   void writeString(ostream& out,char const* const Value,
+                    char const* const HashName,char const* const ParamName,
+                    int const& a=-1,int const& b=-1,int const& c=-1,int const& d=-1,
+                    int const& e=-1) const
+   {writeString(out,Value,useHash(HashName),ParamName,a,b,c,d,e);}
+
    void getVector(Vector& Vect,HashStruct const& Hash,char const* const ParamName,
                   int const& a=-1,int const& b=-1,int const& c=-1,int const& d=-1) const;
    void getVector(Vector& Vect,char const* const HashName,char const* const ParamName,
@@ -146,6 +187,14 @@ public:
                   int const& d=-1) const
    {useVector(DefaultVect,useHash(HashName),ParamName,a,b,c,d);}
 
+   void writeVector(ostream& out,Vector const& Vect,HashStruct const& Hash,
+                    char const* const ParamName,int const& a=-1,int const& b=-1,int const& c=-1,
+                    int const& d=-1) const;
+   void writeVector(ostream& out,Vector const& Vect,char const* const HashName,
+                    char const* const ParamName,int const& a=-1,int const& b=-1,int const& c=-1,
+                    int const& d=-1) const
+   {writeVector(out,Vect,useHash(HashName),ParamName,a,b,c,d);}
+
    void getMatrix(Matrix& Mtrx,HashStruct const& Hash,char const* const ParamName,
                   int const& a=-1,int const& b=-1,int const& c=-1) const;
    void getMatrix(Matrix& Mtrx,char const* const HashName,char const* const ParamName,
@@ -158,7 +207,15 @@ public:
                   char const* const ParamName,int const& a=-1,int const& b=-1,int const& c=-1)
       const
    {useMatrix(DefaultMtrx,useHash(HashName),ParamName,a,b,c);}
-   
+
+   void writeMatrix(ostream& out,Matrix const& Mtrx,HashStruct const& Hash,
+                    char const* const ParamName,int const& a=-1,int const& b=-1,int const& c=-1)
+      const;
+   void writeMatrix(ostream& out,Matrix const& Mtrx,char const* const HashName,
+                    char const* const ParamName,int const& a=-1,int const& b=-1,int const& c=-1)
+      const
+   {writeMatrix(out,Mtrx,useHash(HashName),ParamName,a,b,c);}
+
    void getIntVector(int* const IntArry,int const& len,HashStruct const& Hash,
                      char const* const ParamName,int const& a=-1,int const& b=-1,
                      int const& c=-1,int const& d=-1) const;
@@ -174,6 +231,14 @@ public:
                      char const* const ParamName,int const& a=-1,int const& b=-1,
                      int const& c=-1,int const& d=-1) const
    {useIntVector(DefaultIntArry,len,useHash(HashName),ParamName,a,b,c,d);}
+
+   void writeIntVector(ostream& out,int const* const IntArry,int const& len,
+                       HashStruct const& Hash,char const* const ParamName,int const& a=-1,
+                       int const& b=-1,int const& c=-1,int const& d=-1) const;
+   void writeIntVector(ostream& out,int const* const IntArry,int const& len,
+                       char const* const HashName,char const* const ParamName,int const& a=-1,
+                       int const& b=-1,int const& c=-1,int const& d=-1) const
+   {writeIntVector(out,IntArry,len,useHash(HashName),ParamName,a,b,c,d);}
 
    void getPosIntVector(int* const PosIntArry,int const& len,HashStruct const& Hash,
                         char const* const ParamName,int const& a=-1,int const& b=-1,
@@ -191,6 +256,15 @@ public:
                         int const& b=-1,int const& c=-1,int const& d=-1) const
    {usePosIntVector(DefaultPosIntArry,len,useHash(HashName),ParamName,a,b,c,d);}
 
+   void writePosIntVector(ostream& out,int const* const PosIntArry,int const& len,
+                          HashStruct const& Hash,char const* const ParamName,
+                          int const& a=-1,int const& b=-1,int const& c=-1,int const& d=-1)
+      const;
+   void writePosIntVector(ostream& out,int const* const PosIntArry,int const& len,
+                          char const* const HashName,char const* const ParamName,
+                          int const& a=-1,int const& b=-1,int const& c=-1,int const& d=-1) const
+   {writePosIntVector(out,PosIntArry,len,useHash(HashName),ParamName,a,b,c,d);}
+
    void getIntMatrix(int* const IntMtrx,int const& rows,int const& cols,HashStruct const& Hash,
                      char const* const ParamName,int const& a=-1,int const& b=-1,
                      int const& c=-1) const;
@@ -207,6 +281,14 @@ public:
                      int const& a=-1,int const& b=-1,int const& c=-1) const
    {useIntMatrix(DefaultIntMtrx,rows,cols,useHash(HashName),ParamName,a,b,c);}
 
+   void writeIntMatrix(ostream& out,int const* const IntMtrx,int const& rows,int const& cols,
+                       HashStruct const& Hash,char const* const ParamName,int const& a=-1,
+                       int const& b=-1,int const& c=-1) const;
+   void writeIntMatrix(ostream& out,int const* const IntMtrx,int const& rows,int const& cols,
+                       char const* const HashName,char const* const ParamName,
+                       int const& a=-1,int const& b=-1,int const& c=-1) const
+   {writeIntMatrix(out,IntMtrx,rows,cols,useHash(HashName),ParamName,a,b,c);}
+
    void getPosIntMatrix(int* const PosIntMtrx,int const& rows,int const& cols,
                         HashStruct const& Hash,char const* const ParamName,
                         int const& a=-1,int const& b=-1,int const& c=-1) const;
@@ -222,6 +304,15 @@ public:
                         char const* const HashName,char const* const ParamName,
                         int const& a=-1,int const& b=-1,int const& c=-1) const
    {usePosIntMatrix(DefaultPosIntMtrx,rows,cols,useHash(HashName),ParamName,a,b,c);}
+
+   void writePosIntMatrix(ostream& out,int const* const PosIntMtrx,int const& rows,
+                          int const& cols,HashStruct const& Hash,char const* const ParamName,
+                          int const& a=-1,int const& b=-1,int const& c=-1) const;
+   void writePosIntMatrix(ostream& out,int const* const PosIntMtrx,int const& rows,
+                          int const& cols,char const* const HashName,
+                          char const* const ParamName,int const& a=-1,int const& b=-1,
+                          int const& c=-1) const
+   {writePosIntMatrix(out,PosIntMtrx,rows,cols,useHash(HashName),ParamName,a,b,c);}
 };
 
 #endif

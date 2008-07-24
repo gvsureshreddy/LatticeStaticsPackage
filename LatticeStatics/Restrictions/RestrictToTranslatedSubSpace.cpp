@@ -1,4 +1,5 @@
 #include "RestrictToTranslatedSubSpace.h"
+#include <sstream>
 
 RestrictToTranslatedSubSpace::RestrictToTranslatedSubSpace(Lattice* const M,PerlInput const& Input):
    ForceProjectionMatrix_(),
@@ -6,7 +7,7 @@ RestrictToTranslatedSubSpace::RestrictToTranslatedSubSpace(Lattice* const M,Perl
    ForceProject_(ForceProjectionMatrix_),
    DOFProject_(DOFProjectionMatrix_)
 {
-   char tmp[LINELENGTH];
+   stringstream tmp;
 
    Lattice_ = (Lattice *) M;
 
@@ -22,13 +23,14 @@ RestrictToTranslatedSubSpace::RestrictToTranslatedSubSpace(Lattice* const M,Perl
 
    for (int i=0;i<DOFS_;++i)
    {
-      sprintf(tmp,"DOF_%u",i);
-      len = Input.getArrayLength(Hash,tmp,0);
+      tmp.str("");
+      tmp << "DOF_" << i;
+      len = Input.getArrayLength(Hash,tmp.str().c_str(),0);
       nononzero += len;
       Positions[i] = new int[len];
-      Input.getIntVector(Positions[i],len,Hash,tmp,0);
+      Input.getIntVector(Positions[i],len,Hash,tmp.str().c_str(),0);
       Values[i].Resize(len);
-      Input.getVector(Values[i],Hash,tmp,1);
+      Input.getVector(Values[i],Hash,tmp.str().c_str(),1);
       Values[i] /= Values[i].Norm(); // normalize the rows
    }
    ForceProjectionMatrix_.Resize(DOFS_,LatDOFS,nononzero);

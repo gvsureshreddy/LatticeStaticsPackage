@@ -8,7 +8,8 @@ TwoBarTruss::~TwoBarTruss()
         << "\tE0 calls - " << CallCount_[0] << "\n"
         << "\tE1 calls - " << CallCount_[1] << "\n"
         << "\tE1DLoad calls - " << CallCount_[2] << "\n"
-        << "\tE2 calls - " << CallCount_[3] << "\n";
+        << "\tE2 calls - " << CallCount_[3] << "\n"
+        << "\tE3 calls - " << CallCount_[4] << "\n";
 }
 
 TwoBarTruss::TwoBarTruss(PerlInput const& Input,int const& Echo,int const& Width):
@@ -20,10 +21,13 @@ TwoBarTruss::TwoBarTruss(PerlInput const& Input,int const& Echo,int const& Width
    Width_(Width),
    E1CachedValue_(2),
    E1DLoadCachedValue_(2),
-   E2CachedValue_(2,2)
+   E2CachedValue_(2,2),
+   E3CachedValue_(4,2),
+   EmptyV_(2,0.0),
+   EmptyM_(2,2,0.0)
 {
    LoadParameter_ = Load;
-   for (int i=0;i<4;++i)
+   for (int i=0;i<cachesize;++i)
    {
       Cached_[i] = 0;
       CallCount_[i] = 0;
@@ -113,6 +117,26 @@ Matrix const& TwoBarTruss::E2() const
    }
    
    return E2CachedValue_;
+}
+
+Matrix const& TwoBarTruss::E3() const
+{
+   if ((!Caching_) || (!Cached_[4]))
+   {
+      E3CachedValue_[0][0] = 6.0*DOF_[0];
+      E3CachedValue_[0][1] = 2.0*DOF_[1] - 2.0*SINTheta_;
+      E3CachedValue_[1][0] = E3CachedValue_[0][1];
+      E3CachedValue_[1][1] = 2.0*DOF_[0];
+      E3CachedValue_[2][0] = E3CachedValue_[0][1];
+      E3CachedValue_[2][1] = E3CachedValue_[1][1];
+      E3CachedValue_[3][0] = E3CachedValue_[1][1];
+      E3CachedValue_[3][1] = 6.0*DOF_[1] - 6.0*SINTheta_;
+
+      Cached_[4] = 1;
+      CallCount_[4]++;
+   }
+
+   return E3CachedValue_;
 }
 
 void TwoBarTruss::Print(ostream& out,PrintDetail const& flag)

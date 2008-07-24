@@ -1,6 +1,7 @@
 #include "MultiChainTTPP.h"
 #include "UtilityFunctions.h"
 #include <cmath>
+#include <sstream>
 
 using namespace std;
 
@@ -28,7 +29,7 @@ MultiChainTTPP::MultiChainTTPP(PerlInput const& Input,int const& Echo,int const&
    Echo_ = Echo;
    dbg_ = Debug;
    // Get Lattice definition
-   char tmp[LINELENGTH];
+   stringstream tmp;
 
    PerlInput::HashStruct Hash = Input.getHash("Lattice","MultiChainTTPP");
    INTERNAL_ATOMS = Input.getPosInt(Hash,"InternalAtoms");
@@ -51,8 +52,9 @@ MultiChainTTPP::MultiChainTTPP(PerlInput const& Input,int const& Echo,int const&
    for (int i=0;i<INTERNAL_ATOMS;++i)
    {
       AtomPositions_[i].Resize(DIM1);
-      sprintf(tmp,"AtomPosition_%u",i);
-      AtomPositions_[i][0] = Input.getDouble(Hash,tmp);
+      tmp.str("");
+      tmp << "AtomPosition_" << i;
+      AtomPositions_[i][0] = Input.getDouble(Hash,tmp.str().c_str());
    }
    
    // Setup Bodyforce_
@@ -97,8 +99,9 @@ MultiChainTTPP::MultiChainTTPP(PerlInput const& Input,int const& Echo,int const&
          SpeciesPotential_[i][j] = SpeciesPotential_[j][i]
             = InitializePairPotential(Hash,Input,i,j);
       }
-      sprintf(tmp,"AtomicMass_%u",i);
-      SpeciesMass_[i] = Input.getDouble(Hash,tmp);
+      tmp.str("");
+      tmp << "AtomicMass_" << i;
+      SpeciesMass_[i] = Input.getDouble(Hash,tmp.str().c_str());
    }
    
    for (int i=0;i<INTERNAL_ATOMS;++i)
@@ -1312,42 +1315,40 @@ void MultiChainTTPP::DebugMode()
    };
    int NOcommands=43;
    
-   char response[LINELENGTH];
+   string response;
    char prompt[] = "Debug > ";
    int W=cout.width();
    
    cout << setw(0) << prompt;
    
-   cin.getline(response,LINELENGTH);
+   getline(cin,response);
    
    int indx;
-   while (strcasecmp(response,"q") &&
-          strcasecmp(response,"quit") &&
-          strcasecmp(response,"exit"))
+   while (response !="q" && response !="quit" && response !="exit")
    {
       indx=0;
-      if (!strcmp(response,Commands[indx++]))
+      if (response == Commands[indx++])
          cout << "INTERNAL_ATOMS = " << INTERNAL_ATOMS << "\n";
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "DOFS = " << DOFS << "\n";
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "InfluenceDist_ = " << InfluenceDist_ << "\n";
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "NTemp_ = " << NTemp_ << "\n";
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          for (int i=0;i<DOFS;++i)
             cout << "DOF_[" << i << "] = " << DOF_[i] << "\n";
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "RefLattice_= " << setw(W) << RefLattice_;
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "Density_= " << Density_ << "\n";
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "NormModulus_= " << NormModulus_ << "\n";
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "Lambda_= " << Lambda_ << "\n";
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          for (int i=0;i<INTERNAL_ATOMS;++i)
          {
@@ -1355,7 +1356,7 @@ void MultiChainTTPP::DebugMode()
                  << BodyForce_[i] << "\n";
          }
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          for (int i=0;i<INTERNAL_ATOMS;++i)
          {
@@ -1363,9 +1364,9 @@ void MultiChainTTPP::DebugMode()
                  << AtomicMass_[i] << "\n";
          }
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "GridSize_= " << GridSize_ << "\n";
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          for (int i=0;i<INTERNAL_ATOMS;++i)
             for (int j=i;j<INTERNAL_ATOMS;++j)
@@ -1374,17 +1375,17 @@ void MultiChainTTPP::DebugMode()
                     << setw(W) << Potential_[i][j] << "\n";
             }
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "stress= " << setw(W) << stress();
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "stiffness= " << setw(W) << stiffness();
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "CondensedModuli= " << setw(W) << CondensedModuli();
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          Vector K(6,0.0);
          int NoPTS;
-         char prefix[LINELENGTH];
+         string prefix;
          int oldEcho_=Echo_;
          cout << "\tK > ";
          cin >> K;
@@ -1397,15 +1398,15 @@ void MultiChainTTPP::DebugMode()
          cin.sync(); // clear input
          Echo_=0;
          cout << "ReferenceDispersionCurves= ";
-         ReferenceDispersionCurves(K,NoPTS,prefix,cout);
+         ReferenceDispersionCurves(K,NoPTS,prefix.c_str(),cout);
          Echo_=oldEcho_;
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          Vector K(1,0.0);
          cout << "ReferenceBlochWave= " << ReferenceBlochWave(K) << "\t" << K << "\n";
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          cout << "\tK > ";
          Vector K(1,0.0);
@@ -1414,7 +1415,7 @@ void MultiChainTTPP::DebugMode()
          cout << "ReferenceDynamicalStiffness= "
               << setw(W) << ReferenceDynamicalStiffness(K) << "\n";
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          Vector DOF(DOFS,0.0);
          cout << "\tDOF > ";
@@ -1422,11 +1423,11 @@ void MultiChainTTPP::DebugMode()
          cin.sync(); // clear input
          SetDOF(DOF);
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "StressDT= " << setw(W) << StressDT();
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "StiffnessDT= " << setw(W) << StiffnessDT();
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          double Temp;
          cout << "\tTemp > ";
@@ -1434,7 +1435,7 @@ void MultiChainTTPP::DebugMode()
          cin.sync(); // clear input
          SetTemp(Temp);
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          double dist;
          cout << "\tInfluenceDist > ";
@@ -1442,19 +1443,19 @@ void MultiChainTTPP::DebugMode()
          cin.sync(); // clear input
          SetInfluenceDist(dist);
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "energy= " << energy() << "\n";
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "E0= " << setw(W) << E0();
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "E1= " << setw(W) << E1();
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "E2= " << setw(W) << E2();
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "E3= " << setw(W) << E3();
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "E4= " << setw(W) << E4();
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          int GridSize;
          cout << "\tGridSize > ";
@@ -1462,7 +1463,7 @@ void MultiChainTTPP::DebugMode()
          cin.sync(); // clear input
          SetGridSize(GridSize);
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          int oldEcho_=Echo_;
          int cutoff;
@@ -1473,14 +1474,14 @@ void MultiChainTTPP::DebugMode()
          NeighborDistances(cutoff,cout);
          Echo_=oldEcho_;
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          int oldEcho_=Echo_;
          Echo_=0;
          cout << setw(W) << *this;
          Echo_=oldEcho_;
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          int oldEcho_=Echo_;
          Echo_=0;
@@ -1488,7 +1489,7 @@ void MultiChainTTPP::DebugMode()
          Print(cout,PrintLong);
          Echo_=oldEcho_;
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          double lambda;
          cout << "\tLambda > ";
@@ -1496,15 +1497,15 @@ void MultiChainTTPP::DebugMode()
          cin.sync(); // clear input
          SetLambda(lambda);
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          cout << "StressDL= " << setw(W) << StressDL();
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          cout << "StiffnessDL= " << setw(W) << StiffnessDL();
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          int iter;
          cout << "\titer > ";
@@ -1512,7 +1513,7 @@ void MultiChainTTPP::DebugMode()
          cin.sync(); // clear input
          FindLatticeSpacing(iter);
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          int width;
          int oldEcho=Echo_;
@@ -1525,11 +1526,11 @@ void MultiChainTTPP::DebugMode()
          ConsistencyCheck(epsilon,width,cout);
          Echo_=oldEcho;
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          cout << "dbg_ = " << dbg_ << "\n";
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          double Tol;
          int MaxItr;
@@ -1539,11 +1540,11 @@ void MultiChainTTPP::DebugMode()
          cin >> MaxItr;
          RefineEqbm(Tol,MaxItr,&cout);
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          cout << "Entropy = " << setw(W) << Entropy() << "\n";
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          int no = SpeciesPotential_[0][0]->GetNoParameters();
          double *vals;
@@ -1554,8 +1555,7 @@ void MultiChainTTPP::DebugMode()
             cin >> vals[i];
          SetParameters(vals);
       }
-      else if (!strcmp(response,"?") ||
-               !strcasecmp(response,"help"))
+      else if (response == "?" || response == "help")
       {
          cout << setiosflags(ios::left);
          for (int i=0;i<NOcommands/2 + NOcommands%2;++i)
@@ -1577,8 +1577,7 @@ void MultiChainTTPP::DebugMode()
          }
          cout << resetiosflags(ios::left) << "\n";
       }
-      else if (!strcmp(response,"\n") ||
-               !strcmp(response,""))
+      else if (response == "\n" || response == "")
       {
       }
       else
@@ -1587,7 +1586,7 @@ void MultiChainTTPP::DebugMode()
       }
       
       cout << "\n" << prompt;
-      cin.getline(response,LINELENGTH);
+      getline(cin,response);
    }
 }
 

@@ -1,9 +1,10 @@
 #include "RestrictToTranslatedSubSpaceOld.h"
+#include <sstream>
 
 RestrictToTranslatedSubSpaceOld::RestrictToTranslatedSubSpaceOld(Lattice* const M,
                                                                  PerlInput const& Input)
 {
-   char tmp[LINELENGTH];
+   stringstream tmp;
 
    Lattice_ = (Lattice *) M;
 
@@ -15,11 +16,12 @@ RestrictToTranslatedSubSpaceOld::RestrictToTranslatedSubSpaceOld(Lattice* const 
    
    for (int i=0;i<DOFS_;++i)
    {
-      sprintf(tmp,"DOF_%u",i);
-      DOFindlen_[i] = Input.getArrayLength(Hash,tmp,0);
-      Input.getIntVector(DOFindex_[i],DOFindlen_[i],Hash,tmp,0);
+      tmp.str("");
+      tmp << "DOF_" << i;
+      DOFindlen_[i] = Input.getArrayLength(Hash,tmp.str().c_str(),0);
+      Input.getIntVector(DOFindex_[i],DOFindlen_[i],Hash,tmp.str().c_str(),0);
       DOFMult_[i].Resize(DOFindlen_[i]);
-      Input.getVector(DOFMult_[i],Hash,tmp,1);
+      Input.getVector(DOFMult_[i],Hash,tmp.str().c_str(),1);
    }
    
    //ReferenceState DOF Initialization

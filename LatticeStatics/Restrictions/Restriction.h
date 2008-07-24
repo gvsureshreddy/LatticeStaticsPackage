@@ -2,7 +2,6 @@
 #define RSE__Restriction
 
 #include "Lattice.h"
-#define LINELENGTH 600
 
 class Restriction
 {

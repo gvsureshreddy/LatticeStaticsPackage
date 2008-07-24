@@ -3,12 +3,12 @@
 #include <iomanip>
 #include "PerlInput.h"
 
-static PerlInterpreter *my_perl = 0;
+static PerlInterpreter* my_perl = 0;
 
 void PerlInput::Initialize()
 {
    ReconstructedInput_ << scientific << setprecision(14);
-   char *args[] = {"perl","-W","-e","0"};
+   char* args[] = {"perl","-W","-e","0"};
    if (my_perl != 0)
    {
       cerr << "PerlInput Error: Can only have one instance of PerlInput!\n";
@@ -19,25 +19,37 @@ void PerlInput::Initialize()
    my_perl = perl_alloc();
    perl_construct(my_perl);
    PL_exit_flags|=PERL_EXIT_DESTRUCT_END;
-   perl_parse(my_perl,0,4,args, (char **)0);
+   perl_parse(my_perl,0,4,args, (char**)0);
    perl_run(my_perl);
 }
 
 void PerlInput::ClearHash(char const* const hashname)
 {
    char tmp[256];
-   SV *retval;
+   SV* retval;
 
    sprintf(tmp,"undef %%%s;",hashname);
    retval = eval_pv(tmp,TRUE);
    // retval is always "undefined"
 }
 
+void PerlInput::EvaluateString(char const* const expression)
+{
+   SV* retval;
+   retval = eval_pv(expression,TRUE);
+   if (!SvOK(retval))
+   {
+      cerr << "Perl Error in EvaluateString(), exiting...\n";
+      exit(-5);
+   }
+}
+
 void PerlInput::Readfile(char const* const datafile)
 {
    char tmp[256];
-   SV *retval;
-   
+   SV* retval;
+
+   LastInputFileName_ = datafile;
    sprintf(tmp,"do '%s';",datafile);
    retval = eval_pv(tmp,TRUE);
    if (!SvOK(retval))
@@ -55,8 +67,10 @@ void PerlInput::Readfile(char const* const datafile,char const* const prefix)
       "$___dmy = $___dmy . $_;}}; close(___INPUT);";
    char temp[512];
    sprintf(temp,templt,datafile,prefix,prefix);
+
+   LastInputFileName_ = datafile;
    
-   SV *retval;
+   SV* retval;
    retval = eval_pv(temp,TRUE);
    if (!SvOK(retval))
    {
@@ -98,8 +112,8 @@ PerlInput::HashStruct PerlInput::getHash(char const* const HashName) const
       cerr << "Error: Perl hash variable: " << HashName << " does not exist.\n";
       exit(Errno);
    }
-   
-   strcpy(Hash.Name,HashName);
+
+   Hash.Name = HashName;
    return Hash;
 }
 
@@ -107,7 +121,7 @@ PerlInput::HashStruct PerlInput::useHash(char const* const HashName) const
 {
    HashStruct Hash;
    Hash.Ptr = 0;
-   strcpy(Hash.Name,HashName);
+   Hash.Name = HashName;
 
    return Hash;
 }
@@ -121,7 +135,7 @@ SV* const getScalar(PerlInput::HashStruct const& Hash,char const* const ParamNam
 {
    int Errno = -5;
    
-   SV **ParamValPtr = hv_fetch(Hash.Ptr,ParamName,strlen(ParamName),FALSE);
+   SV** ParamValPtr = hv_fetch(Hash.Ptr,ParamName,strlen(ParamName),FALSE);
    if (ParamValPtr == 0)
    {
       cerr << "Error: Perl hash variable: " << Hash.Name
@@ -129,7 +143,7 @@ SV* const getScalar(PerlInput::HashStruct const& Hash,char const* const ParamNam
       exit(Errno);
    }
    
-   SV *ParamVal = *ParamValPtr;
+   SV* ParamVal = *ParamValPtr;
    if (a <= -1)
    {
       return ParamVal;
@@ -142,8 +156,8 @@ SV* const getScalar(PerlInput::HashStruct const& Hash,char const* const ParamNam
            << "{" << ParamName << "} does not contain a perl reference (to an array).\n";
       exit(Errno);
    }
-   AV *ArrayLevel0 = (AV*) SvRV(ParamVal);
-   SV **ScalarLevel1Ptr = av_fetch(ArrayLevel0,a,FALSE);
+   AV* ArrayLevel0 = (AV*) SvRV(ParamVal);
+   SV** ScalarLevel1Ptr = av_fetch(ArrayLevel0,a,FALSE);
    if (ScalarLevel1Ptr == 0)
    {
       cerr << "Error: Perl hash variable: " << Hash.Name
@@ -151,7 +165,7 @@ SV* const getScalar(PerlInput::HashStruct const& Hash,char const* const ParamNam
       exit(Errno);
    }
    
-   SV *ScalarLevel1 = *ScalarLevel1Ptr;
+   SV* ScalarLevel1 = *ScalarLevel1Ptr;
    if (b <= -1)
    {
       return ScalarLevel1;
@@ -166,8 +180,8 @@ SV* const getScalar(PerlInput::HashStruct const& Hash,char const* const ParamNam
       exit(Errno);
    }
    
-   AV *ArrayLevel1 = (AV*) SvRV(ScalarLevel1);
-   SV **ScalarLevel2Ptr = av_fetch(ArrayLevel1,b,FALSE);
+   AV* ArrayLevel1 = (AV*) SvRV(ScalarLevel1);
+   SV** ScalarLevel2Ptr = av_fetch(ArrayLevel1,b,FALSE);
    if (ScalarLevel2Ptr == 0)
    {
       cerr << "Error: Perl hash variable: " << Hash.Name
@@ -176,7 +190,7 @@ SV* const getScalar(PerlInput::HashStruct const& Hash,char const* const ParamNam
       exit(Errno);
    }
    
-   SV *ScalarLevel2 = *ScalarLevel2Ptr;
+   SV* ScalarLevel2 = *ScalarLevel2Ptr;
    if (c <= -1)
    {
       return ScalarLevel2;
@@ -193,8 +207,8 @@ SV* const getScalar(PerlInput::HashStruct const& Hash,char const* const ParamNam
       exit(Errno);
    }
    cout << "1 at level 2\n";
-   AV *ArrayLevel2 = (AV*) SvRV(ScalarLevel2);
-   SV **ScalarLevel3Ptr = av_fetch(ArrayLevel2,c,FALSE);
+   AV* ArrayLevel2 = (AV*) SvRV(ScalarLevel2);
+   SV** ScalarLevel3Ptr = av_fetch(ArrayLevel2,c,FALSE);
    cout << "2 at level 2\n";
    if (ScalarLevel3Ptr == 0)
    {
@@ -204,7 +218,7 @@ SV* const getScalar(PerlInput::HashStruct const& Hash,char const* const ParamNam
       exit(Errno);
    }
    
-   SV *ScalarLevel3 = *ScalarLevel3Ptr;
+   SV* ScalarLevel3 = *ScalarLevel3Ptr;
    if (d <= -1)
    {
       return ScalarLevel3;
@@ -220,8 +234,8 @@ SV* const getScalar(PerlInput::HashStruct const& Hash,char const* const ParamNam
       exit(Errno);
    }
    
-   AV *ArrayLevel3 = (AV*) SvRV(ScalarLevel3);
-   SV **ScalarLevel4Ptr = av_fetch(ArrayLevel3,d,FALSE);
+   AV* ArrayLevel3 = (AV*) SvRV(ScalarLevel3);
+   SV** ScalarLevel4Ptr = av_fetch(ArrayLevel3,d,FALSE);
    if (ScalarLevel4Ptr == 0)
    {
       cerr << "Error: Perl hash variable: " << Hash.Name
@@ -231,7 +245,7 @@ SV* const getScalar(PerlInput::HashStruct const& Hash,char const* const ParamNam
       exit(Errno);
    }
    
-   SV *ScalarLevel4 = *ScalarLevel4Ptr;
+   SV* ScalarLevel4 = *ScalarLevel4Ptr;
    if (e <= -1)
    {
       return ScalarLevel4;
@@ -247,8 +261,8 @@ SV* const getScalar(PerlInput::HashStruct const& Hash,char const* const ParamNam
       exit(Errno);
    }
    
-   AV *ArrayLevel4 = (AV*) SvRV(ScalarLevel4);
-   SV **ScalarLevel5Ptr = av_fetch(ArrayLevel4,e,FALSE);
+   AV* ArrayLevel4 = (AV*) SvRV(ScalarLevel4);
+   SV** ScalarLevel5Ptr = av_fetch(ArrayLevel4,e,FALSE);
    if (ScalarLevel5Ptr == 0)
    {
       cerr << "Error: Perl hash variable: " << Hash.Name
@@ -258,7 +272,7 @@ SV* const getScalar(PerlInput::HashStruct const& Hash,char const* const ParamNam
       exit(Errno);
    }
    
-   SV *ScalarLevel5 = *ScalarLevel5Ptr;
+   SV* ScalarLevel5 = *ScalarLevel5Ptr;
    if (!SvNOK(ScalarLevel5))
    {
       cerr << "Error: Perl hash variable: " << Hash.Name
@@ -280,7 +294,7 @@ PerlInput::HashStruct PerlInput::getHash(HashStruct const& Hash,char const* cons
    int Errno = -6;
    HashStruct NewHash;
    
-   SV *ParamVal = getScalar(Hash,ParamName,a,b,c,d,e);
+   SV* ParamVal = getScalar(Hash,ParamName,a,b,c,d,e);
    
    if ((SvTYPE(ParamVal) != SVt_RV) || (SvTYPE(SvRV(ParamVal)) != SVt_PVHV))
    {
@@ -296,18 +310,48 @@ PerlInput::HashStruct PerlInput::getHash(HashStruct const& Hash,char const* cons
    }
    
    NewHash.Ptr = (HV*) SvRV(ParamVal);
+   stringstream tmp;
    if (e > -1)
-      sprintf(NewHash.Name,"%s{%s}[%u][%u][%u][%u][%u]",Hash.Name,ParamName,a,b,c,d,e);
+   {
+      tmp.str("");
+      tmp << Hash.Name << "{" << ParamName << "}["
+          << a << "][" << b << "][" << c << "][" << d << "][" << e << "]";
+      NewHash.Name = tmp.str();
+   }
    else if (d > -1)
-      sprintf(NewHash.Name,"%s{%s}[%u][%u][%u][%u]",Hash.Name,ParamName,a,b,c,d);
+   {
+      tmp.str("");
+      tmp << Hash.Name << "{" << ParamName << "}["
+          << a << "][" << b << "][" << c << "][" << d << "]";
+      NewHash.Name = tmp.str();
+   }
    else if (c > -1)
-      sprintf(NewHash.Name,"%s{%s}[%u][%u][%u]",Hash.Name,ParamName,a,b,c);
+   {
+      tmp.str("");
+      tmp << Hash.Name << "{" << ParamName << "}["
+          << a << "][" << b << "][" << c << "]";
+      NewHash.Name = tmp.str();
+   }
    else if (b > -1)
-      sprintf(NewHash.Name,"%s{%s}[%u][%u]",Hash.Name,ParamName,a,b);
+   {
+      tmp.str("");
+      tmp << Hash.Name << "{" << ParamName << "}["
+          << a << "][" << b << "]";
+      NewHash.Name = tmp.str();
+   }
    else if (a > -1)
-      sprintf(NewHash.Name,"%s{%s}[%u]",Hash.Name,ParamName,a);
+   {
+      tmp.str("");
+      tmp << Hash.Name << "{" << ParamName << "}["
+          << a << "]";
+      NewHash.Name = tmp.str();
+   }
    else
-      sprintf(NewHash.Name,"%s{%s}",Hash.Name,ParamName);
+   {
+      tmp.str("");
+      tmp << Hash.Name << "{" << ParamName << "}";
+      NewHash.Name = tmp.str();
+   }
    return NewHash;
 }
 
@@ -315,7 +359,7 @@ int PerlInput::HashOK(char const* const HashName) const
 {
    int exists = 1;
    
-   HV *HashPtr = get_hv(HashName,FALSE);
+   HV* HashPtr = get_hv(HashName,FALSE);
    if (HashPtr == 0)
    {
       exists = 0;
@@ -328,7 +372,7 @@ int PerlInput::ParameterOK(HashStruct const& Hash,char const* const ParamName) c
 {
    int exists = 1;
    
-   SV **ParamValPtr = hv_fetch(Hash.Ptr,ParamName,strlen(ParamName),FALSE);
+   SV** ParamValPtr = hv_fetch(Hash.Ptr,ParamName,strlen(ParamName),FALSE);
    if (ParamValPtr == 0)
    {
       exists = 0;
@@ -340,7 +384,7 @@ int PerlInput::ParameterOK(HashStruct const& Hash,char const* const ParamName) c
 int PerlInput::getArrayLength(HashStruct const& Hash,char const* const ParamName,
                               int const& a,int const& b,int const& c,int const& d) const
 {
-   SV *ParamVal = getScalar(Hash,ParamName,a,b,c,d);
+   SV* ParamVal = getScalar(Hash,ParamName,a,b,c,d);
    int Errno=-4;
    if ((SvTYPE(ParamVal) != SVt_RV) || (SvTYPE(SvRV(ParamVal)) != SVt_PVAV))
    {
@@ -362,7 +406,7 @@ double PerlInput::getDouble(HashStruct const& Hash,char const* const ParamName,
                             int const& a,int const& b,int const& c,int const& d,int const& e)
    const
 {
-   SV *ParamVal = getScalar(Hash,ParamName,a,b,c,d,e);
+   SV* ParamVal = getScalar(Hash,ParamName,a,b,c,d,e);
    int Errno=-5;
    if (!SvNOK(ParamVal))
    {
@@ -404,10 +448,23 @@ double PerlInput::useDouble(double const& DefaultValue,
    return DefaultValue;
 }
 
+void PerlInput::writeDouble(ostream& out,double const& Value,
+                            HashStruct const& Hash,char const* const ParamName,int const& a,
+                            int const& b,int const& c,int const& d,int const& e) const
+{
+   out << "$" << Hash.Name << "{" << ParamName << "}";
+   if (a > -1) out << "[" << a << "]";
+   if (b > -1) out << "[" << b << "]";
+   if (c > -1) out << "[" << c << "]";
+   if (d > -1) out << "[" << d << "]";
+   if (e > -1) out << "[" << e << "]";
+   out << " = " << Value << ";\n";
+}
+
 int PerlInput::getInt(HashStruct const& Hash,char const* const ParamName,
                       int const& a,int const& b,int const& c,int const& d,int const& e) const
 {
-   SV *ParamVal = getScalar(Hash,ParamName,a,b,c,d,e);
+   SV* ParamVal = getScalar(Hash,ParamName,a,b,c,d,e);
    int Errno=-5;
    if (!SvIOK(ParamVal))
    {
@@ -449,11 +506,24 @@ int PerlInput::useInt(int const& DefaultValue,
    return DefaultValue;
 }
 
+void PerlInput::writeInt(ostream& out,int const& Value,
+                         HashStruct const& Hash,char const* const ParamName,int const& a,
+                         int const& b,int const& c,int const& d,int const& e) const
+{
+   out << "$" << Hash.Name << "{" << ParamName << "}";
+   if (a > -1) out << "[" << a << "]";
+   if (b > -1) out << "[" << b << "]";
+   if (c > -1) out << "[" << c << "]";
+   if (d > -1) out << "[" << d << "]";
+   if (e > -1) out << "[" << e << "]";
+   out << " = " << Value << ";\n";
+}
+
 int PerlInput::getPosInt(HashStruct const& Hash,char const* const ParamName,
                          int const& a,int const& b,int const& c,int const& d,int const& e)
    const
 {
-   SV *ParamVal = getScalar(Hash,ParamName,a,b,c,d,e);
+   SV* ParamVal = getScalar(Hash,ParamName,a,b,c,d,e);
    int Errno=-5;
    if (!SvIOK(ParamVal))
    {
@@ -522,11 +592,37 @@ int PerlInput::usePosInt(int const& DefaultValue,HashStruct const& Hash,
    return DefaultValue;
 }
 
+void PerlInput::writePosInt(ostream& out,int const& Value,HashStruct const& Hash,
+                         char const* const ParamName,int const& a,int const& b,int const& c,
+                         int const& d,int const& e) const
+{
+   if (Value < 0)
+   {
+      cerr << "Error: writePosInt variable: " << Hash.Name
+           << "{" << ParamName << "}";
+      if (a > -1) cerr << "[" << a << "]";
+      if (b > -1) cerr << "[" << b << "]";
+      if (c > -1) cerr << "[" << c << "]";
+      if (d > -1) cerr << "[" << d << "]";
+      if (e > -1) cerr << "[" << e << "]";
+      cerr << " is negative!\n";
+      exit(34);
+   }
+   
+   out << "$" << Hash.Name << "{" << ParamName << "}";
+   if (a > -1) out << "[" << a << "]";
+   if (b > -1) out << "[" << b << "]";
+   if (c > -1) out << "[" << c << "]";
+   if (d > -1) out << "[" << d << "]";
+   if (e > -1) out << "[" << e << "]";
+   out << " = " << Value << ";\n";
+}
+
 char const* const PerlInput::getString(HashStruct const& Hash,char const* const ParamName,
                                        int const& a,int const& b,int const& c,int const& d,
                                        int const& e) const
 {
-   SV *ParamVal = getScalar(Hash,ParamName,a,b,c,d,e);
+   SV* ParamVal = getScalar(Hash,ParamName,a,b,c,d,e);
    int Errno=-5;
    if (!SvPOK(ParamVal))
    {
@@ -563,13 +659,26 @@ char const* const PerlInput::useString(char const* const DefaultValue,HashStruct
    return DefaultValue;
 }
 
+void PerlInput::writeString(ostream& out,char const* const Value,HashStruct const& Hash,
+                            char const* const ParamName,int const& a,int const& b,
+                            int const& c,int const& d,int const& e) const
+{
+   out << "$" << Hash.Name << "{" << ParamName << "}";
+   if (a > -1) out << "[" << a << "]";
+   if (b > -1) out << "[" << b << "]";
+   if (c > -1) out << "[" << c << "]";
+   if (d > -1) out << "[" << d << "]";
+   if (e > -1) out << "[" << e << "]";
+   out << " = " << Value << ";\n";
+}
+
 void PerlInput::getVector(Vector& Vctr,HashStruct const& Hash,char const* const ParamName,
                           int const& a,int const& b,int const& c,int const& d) const
 {
    int Errno = -5;
    int len = Vctr.Dim();
    
-   SV *ParamVal = getScalar(Hash,ParamName,a,b,c,d);
+   SV* ParamVal = getScalar(Hash,ParamName,a,b,c,d);
    
    if ((SvTYPE(ParamVal) != SVt_RV) || (SvTYPE(SvRV(ParamVal)) != SVt_PVAV))
    {
@@ -583,7 +692,7 @@ void PerlInput::getVector(Vector& Vctr,HashStruct const& Hash,char const* const 
       exit(Errno);
    }
    
-   AV *ArrayPtr = (AV*) SvRV(ParamVal);
+   AV* ArrayPtr = (AV*) SvRV(ParamVal);
    
    if ((av_len(ArrayPtr)+1) != len)
    {
@@ -597,7 +706,7 @@ void PerlInput::getVector(Vector& Vctr,HashStruct const& Hash,char const* const 
       exit(Errno);
    }
    
-   SV **ParamValPtr;
+   SV** ParamValPtr;
    ReconstructedInput_ << "$" << Hash.Name << "{" << ParamName << "}";
    if (a > -1) ReconstructedInput_ << "[" << a << "]";
    if (b > -1) ReconstructedInput_ << "[" << b << "]";
@@ -645,7 +754,22 @@ void PerlInput::useVector(Vector const& DefaultVect,HashStruct const& Hash,
                        << "];                # Default Value\n";
 }
 
-
+void PerlInput::writeVector(ostream& out,Vector const& Vect,HashStruct const& Hash,
+                            char const* const ParamName,int const& a,int const& b,int const& c,
+                            int const& d) const
+{
+   out << "$" << Hash.Name << "{" << ParamName << "}";
+   if (a > -1) out << "[" << a << "]";
+   if (b > -1) out << "[" << b << "]";
+   if (c > -1) out << "[" << c << "]";
+   if (d > -1) out << "[" << d << "]";
+   out << " = [";
+   for (int i=0;i<Vect.Dim()-1;++i)
+   {
+      out << Vect[i] << ", ";
+   }
+   out << Vect[Vect.Dim()-1] << "];\n";
+}
 
 void PerlInput::getMatrix(Matrix& Mtrx,HashStruct const& Hash,char const* const ParamName,
                           int const& a,int const& b,int const& c) const
@@ -654,7 +778,7 @@ void PerlInput::getMatrix(Matrix& Mtrx,HashStruct const& Hash,char const* const 
    int rows=Mtrx.Rows(),cols=Mtrx.Cols();
    int spaces=0;
    
-   SV *ParamVal = getScalar(Hash,ParamName,a,b,c);
+   SV* ParamVal = getScalar(Hash,ParamName,a,b,c);
    
    if ((SvTYPE(ParamVal) != SVt_RV) || (SvTYPE(SvRV(ParamVal)) != SVt_PVAV))
    {
@@ -668,7 +792,7 @@ void PerlInput::getMatrix(Matrix& Mtrx,HashStruct const& Hash,char const* const 
    }
    
    
-   AV *ArrayPtr = (AV*) SvRV(ParamVal);
+   AV* ArrayPtr = (AV*) SvRV(ParamVal);
    
    if ((av_len(ArrayPtr)+1) != rows)
    {
@@ -681,11 +805,11 @@ void PerlInput::getMatrix(Matrix& Mtrx,HashStruct const& Hash,char const* const 
       exit(Errno);
    }
    
-   SV **RowValPtr, **ParamValPtr;
-   SV *RowVal;
-   AV *Row;
+   SV** RowValPtr, **ParamValPtr;
+   SV* RowVal;
+   AV* Row;
    ReconstructedInput_ << "$" << Hash.Name << "{" << ParamName << "}";
-   spaces += 3+strlen(Hash.Name)+strlen(ParamName);
+   spaces += 3+Hash.Name.length()+strlen(ParamName);
    if (a > -1) {ReconstructedInput_ << "[" << a << "]"; spaces += 3;}
    if (b > -1) {ReconstructedInput_ << "[" << b << "]"; spaces += 3;}
    if (c > -1) {ReconstructedInput_ << "[" << c << "]"; spaces += 3;}
@@ -758,7 +882,7 @@ void PerlInput::useMatrix(Matrix const& DefaultMtrx,HashStruct const& Hash,
 {
    int spaces = 0;
    ReconstructedInput_ << "$" << Hash.Name << "{" << ParamName << "}";
-   spaces += 3+strlen(Hash.Name)+strlen(ParamName);
+   spaces += 3+Hash.Name.length()+strlen(ParamName);
    if (a > -1) {ReconstructedInput_ << "[" << a << "]"; spaces += 3;}
    if (b > -1) {ReconstructedInput_ << "[" << b << "]"; spaces += 3;}
    if (c > -1) {ReconstructedInput_ << "[" << c << "]"; spaces += 3;}
@@ -792,12 +916,51 @@ void PerlInput::useMatrix(Matrix const& DefaultMtrx,HashStruct const& Hash,
    }
 }
 
+void PerlInput::writeMatrix(ostream& out,Matrix const& Mtrx,HashStruct const& Hash,
+                            char const* const ParamName,int const& a,int const& b,int const& c)
+   const
+{
+   int spaces = 0;
+   out << "$" << Hash.Name << "{" << ParamName << "}";
+   spaces += 3+Hash.Name.length()+strlen(ParamName);
+   if (a > -1) {out << "[" << a << "]"; spaces += 3;}
+   if (b > -1) {out << "[" << b << "]"; spaces += 3;}
+   if (c > -1) {out << "[" << c << "]"; spaces += 3;}
+   out << " = [["; spaces += 4;
+   for (int i=0;i<Mtrx.Rows();++i)
+   {
+      for (int j=0;j<Mtrx.Cols()-1;++j)
+      {
+         out << Mtrx[i][j] << ", ";
+      }
+      out << Mtrx[i][Mtrx.Cols()-1] << "]";
+      if (Mtrx.Rows()-1 == i)
+      {
+         out << "];";
+      }
+      else
+      {
+         out << ",";
+      }
+      if (Mtrx.Rows()-1 > i)
+      {
+         out << "\n";
+         for (int z=0;z<spaces;++z) out << " ";
+         out << "[";
+      }
+      else
+      {
+         out << "\n";
+      }
+   }
+}
+
 void PerlInput::getIntVector(int* const IntArry,int const& len,HashStruct const& Hash,
                              char const* const ParamName,int const& a,int const& b,
                              int const& c,int const& d) const
 {
    int Errno = -5;
-   SV *ParamVal = getScalar(Hash,ParamName,a,b,c,d);
+   SV* ParamVal = getScalar(Hash,ParamName,a,b,c,d);
    
    if ((SvTYPE(ParamVal) != SVt_RV) || (SvTYPE(SvRV(ParamVal)) != SVt_PVAV))
    {
@@ -811,7 +974,7 @@ void PerlInput::getIntVector(int* const IntArry,int const& len,HashStruct const&
       exit(Errno);
    }
    
-   AV *ArrayPtr = (AV*) SvRV(ParamVal);
+   AV* ArrayPtr = (AV*) SvRV(ParamVal);
    
    if ((av_len(ArrayPtr)+1) != len)
    {
@@ -825,7 +988,7 @@ void PerlInput::getIntVector(int* const IntArry,int const& len,HashStruct const&
       exit(Errno);
    }
    
-   SV **ParamValPtr;
+   SV** ParamValPtr;
    ReconstructedInput_ << "$" << Hash.Name << "{" << ParamName << "}";
    if (a > -1) ReconstructedInput_ << "[" << a << "]";
    if (b > -1) ReconstructedInput_ << "[" << b << "]";
@@ -873,12 +1036,29 @@ void PerlInput::useIntVector(int const* const DefaultIntArry,int const& len,
                        << "];                # Default Value\n";
 }
 
+void PerlInput::writeIntVector(ostream& out,int const* const IntArry,int const& len,
+                               HashStruct const& Hash,char const* const ParamName,int const& a,
+                               int const& b,int const& c,int const& d) const
+{
+   out << "$" << Hash.Name << "{" << ParamName << "}";
+   if (a > -1) out << "[" << a << "]";
+   if (b > -1) out << "[" << b << "]";
+   if (c > -1) out << "[" << c << "]";
+   if (d > -1) out << "[" << d << "]";
+   out << " = [";
+   for (int i=0;i<len-1;++i)
+   {
+      out << IntArry[i] << ", ";
+   }
+   out << IntArry[len-1] << "];\n";
+}
+
 void PerlInput::getPosIntVector(int* const PosIntArry,int const& len,HashStruct const& Hash,
                                 char const* const ParamName,int const& a,int const& b,
                                 int const& c,int const& d) const
 {
    int Errno = -5;
-   SV *ParamVal = getScalar(Hash,ParamName,a,b,c,d);
+   SV* ParamVal = getScalar(Hash,ParamName,a,b,c,d);
    
    if ((SvTYPE(ParamVal) != SVt_RV) || (SvTYPE(SvRV(ParamVal)) != SVt_PVAV))
    {
@@ -892,7 +1072,7 @@ void PerlInput::getPosIntVector(int* const PosIntArry,int const& len,HashStruct 
       exit(Errno);
    }
    
-   AV *ArrayPtr = (AV*) SvRV(ParamVal);
+   AV* ArrayPtr = (AV*) SvRV(ParamVal);
    
    if ((av_len(ArrayPtr)+1) != len)
    {
@@ -906,7 +1086,7 @@ void PerlInput::getPosIntVector(int* const PosIntArry,int const& len,HashStruct 
       exit(Errno);
    }
    
-   SV **ParamValPtr;
+   SV** ParamValPtr;
    ReconstructedInput_ << "$" << Hash.Name << "{" << ParamName << "}";
    if (a > -1) ReconstructedInput_ << "[" << a << "]";
    if (b > -1) ReconstructedInput_ << "[" << b << "]";
@@ -991,13 +1171,55 @@ void PerlInput::usePosIntVector(int const* const DefaultPosIntArry,int const& le
                        << "];                # Default Value\n";
 }
 
+void PerlInput::writePosIntVector(ostream& out,int const* const PosIntArry,
+                                  int const& len,HashStruct const& Hash,
+                                  char const* const ParamName,int const& a,int const& b,
+                                  int const& c,int const& d) const
+{
+   out << "$" << Hash.Name << "{" << ParamName << "}";
+   if (a > -1) out << "[" << a << "]";
+   if (b > -1) out << "[" << b << "]";
+   if (c > -1) out << "[" << c << "]";
+   if (d > -1) out << "[" << d << "]";
+   out << " = [";
+   for (int i=0;i<len-1;++i)
+   {
+      if (PosIntArry[i] < 0)
+      {
+         cerr << "Error: writePosIntVector() variable: " << Hash.Name
+              << "{" << ParamName << "}";
+         if (a > -1) cerr << "[" << a << "]";
+         if (b > -1) cerr << "[" << b << "]";
+         if (c > -1) cerr << "[" << c << "]";
+         if (d > -1) cerr << "[" << d << "]";
+         cerr << "[" << i << "]";
+         cerr << " is negative!\n";
+         exit(34);
+      }
+      out << PosIntArry[i] << ", ";
+   }
+   if (PosIntArry[len-1] < 0)
+   {
+      cerr << "Error: writePosIntVector variable: " << Hash.Name
+           << "{" << ParamName << "}";
+      if (a > -1) cerr << "[" << a << "]";
+      if (b > -1) cerr << "[" << b << "]";
+      if (c > -1) cerr << "[" << c << "]";
+      if (d > -1) cerr << "[" << d << "]";
+      cerr << "[" << len-1 << "]";
+      cerr << " is negative!\n";
+      exit(34);
+   }
+   out << PosIntArry[len-1] << "];\n";
+}
+
 void PerlInput::getIntMatrix(int* const IntMtrx,int const& rows,int const& cols,
                              HashStruct const &Hash,char const* const ParamName,int const& a,
                              int const& b,int const& c) const
 {
    int Errno = -5;
    int spaces = 0;
-   SV *ParamVal = getScalar(Hash,ParamName,a,b,c);
+   SV* ParamVal = getScalar(Hash,ParamName,a,b,c);
    
    if ((SvTYPE(ParamVal) != SVt_RV) || (SvTYPE(SvRV(ParamVal)) != SVt_PVAV))
    {
@@ -1011,7 +1233,7 @@ void PerlInput::getIntMatrix(int* const IntMtrx,int const& rows,int const& cols,
    }
    
    
-   AV *ArrayPtr = (AV*) SvRV(ParamVal);
+   AV* ArrayPtr = (AV*) SvRV(ParamVal);
    
    if ((av_len(ArrayPtr)+1) != rows)
    {
@@ -1024,11 +1246,11 @@ void PerlInput::getIntMatrix(int* const IntMtrx,int const& rows,int const& cols,
       exit(Errno);
    }
    
-   SV **RowValPtr, **ParamValPtr;
-   SV *RowVal;
-   AV *Row;
+   SV** RowValPtr, **ParamValPtr;
+   SV* RowVal;
+   AV* Row;
    ReconstructedInput_ << "$" << Hash.Name << "{" << ParamName << "}";
-   spaces += 3+strlen(Hash.Name)+strlen(ParamName);
+   spaces += 3+Hash.Name.length()+strlen(ParamName);
    if (a > -1) {ReconstructedInput_ << "[" << a << "]"; spaces += 3;}
    if (b > -1) {ReconstructedInput_ << "[" << b << "]"; spaces += 3;}
    if (c > -1) {ReconstructedInput_ << "[" << c << "]"; spaces += 3;}
@@ -1102,7 +1324,7 @@ void PerlInput::useIntMatrix(int const* const DefaultIntMtrx,int const& rows,int
 {
    int spaces = 0;
    ReconstructedInput_ << "$" << Hash.Name << "{" << ParamName << "}";
-   spaces += 3+strlen(Hash.Name)+strlen(ParamName);
+   spaces += 3+Hash.Name.length()+strlen(ParamName);
    if (a > -1) {ReconstructedInput_ << "[" << a << "]"; spaces += 3;}
    if (b > -1) {ReconstructedInput_ << "[" << b << "]"; spaces += 3;}
    if (c > -1) {ReconstructedInput_ << "[" << c << "]"; spaces += 3;}
@@ -1136,13 +1358,53 @@ void PerlInput::useIntMatrix(int const* const DefaultIntMtrx,int const& rows,int
    }
 }
 
+void PerlInput::writeIntMatrix(ostream& out,int const* const IntMtrx,int const& rows,
+                               int const& cols,HashStruct const& Hash,
+                               char const* const ParamName,int const& a,int const& b,
+                               int const& c) const
+{
+   int spaces = 0;
+   out << "$" << Hash.Name << "{" << ParamName << "}";
+   spaces += 3+Hash.Name.length()+strlen(ParamName);
+   if (a > -1) {out << "[" << a << "]"; spaces += 3;}
+   if (b > -1) {out << "[" << b << "]"; spaces += 3;}
+   if (c > -1) {out << "[" << c << "]"; spaces += 3;}
+   out << " = [["; spaces += 4;
+   for (int i=0;i<rows;++i)
+   {
+      for (int j=0;j<cols-1;++j)
+      {
+         out << IntMtrx[i*cols + j] << ", ";
+      }
+      out << IntMtrx[i*cols + cols-1] << "]";
+      if (rows-1 == i)
+      {
+         out << "];";
+      }
+      else
+      {
+         out << ",";
+      }
+      if (rows-1 > i)
+      {
+         out << "\n";
+         for (int z=0;z<spaces;++z) out << " ";
+         out << "[";
+      }
+      else
+      {
+         out << "\n";
+      }
+   }
+}
+
 void PerlInput::getPosIntMatrix(int* const PosIntMtrx,int const& rows,int const& cols,
                                 HashStruct const& Hash,char const* const ParamName,
                                 int const& a,int const& b,int const& c) const
 {
    int Errno = -5;
    int spaces = 0;
-   SV *ParamVal = getScalar(Hash,ParamName,a,b,c);
+   SV* ParamVal = getScalar(Hash,ParamName,a,b,c);
    
    if ((SvTYPE(ParamVal) != SVt_RV) || (SvTYPE(SvRV(ParamVal)) != SVt_PVAV))
    {
@@ -1156,7 +1418,7 @@ void PerlInput::getPosIntMatrix(int* const PosIntMtrx,int const& rows,int const&
    }
    
    
-   AV *ArrayPtr = (AV*) SvRV(ParamVal);
+   AV* ArrayPtr = (AV*) SvRV(ParamVal);
    
    if ((av_len(ArrayPtr)+1) != rows)
    {
@@ -1169,11 +1431,11 @@ void PerlInput::getPosIntMatrix(int* const PosIntMtrx,int const& rows,int const&
       exit(Errno);
    }
    
-   SV **RowValPtr, **ParamValPtr;
-   SV *RowVal;
-   AV *Row;
+   SV** RowValPtr, **ParamValPtr;
+   SV* RowVal;
+   AV* Row;
    ReconstructedInput_ << "$" << Hash.Name << "{" << ParamName << "}";
-   spaces += 3+strlen(Hash.Name)+strlen(ParamName);
+   spaces += 3+Hash.Name.length()+strlen(ParamName);
    if (a > -1) {ReconstructedInput_ << "[" << a << "]"; spaces += 3;}
    if (b > -1) {ReconstructedInput_ << "[" << b << "]"; spaces += 3;}
    if (c > -1) {ReconstructedInput_ << "[" << c << "]"; spaces += 3;}
@@ -1260,7 +1522,7 @@ void PerlInput::usePosIntMatrix(int const* const DefaultPosIntMtrx,int const& ro
 {
    int spaces = 0;
    ReconstructedInput_ << "$" << Hash.Name << "{" << ParamName << "}";
-   spaces += 3+strlen(Hash.Name)+strlen(ParamName);
+   spaces += 3+Hash.Name.length()+strlen(ParamName);
    if (a > -1) {ReconstructedInput_ << "[" << a << "]"; spaces += 3;}
    if (b > -1) {ReconstructedInput_ << "[" << b << "]"; spaces += 3;}
    if (c > -1) {ReconstructedInput_ << "[" << c << "]"; spaces += 3;}
@@ -1312,6 +1574,68 @@ void PerlInput::usePosIntMatrix(int const* const DefaultPosIntMtrx,int const& ro
       else
       {
          ReconstructedInput_ << "\n";
+      }
+   }
+}
+
+void PerlInput::writePosIntMatrix(ostream& out,int const* const PosIntMtrx,int const& rows,
+                                  int const& cols,HashStruct const& Hash,
+                                  char const* const ParamName,int const& a,int const& b,
+                                  int const& c) const
+{
+   int spaces = 0;
+   out << "$" << Hash.Name << "{" << ParamName << "}";
+   spaces += 3+Hash.Name.length()+strlen(ParamName);
+   if (a > -1) {out << "[" << a << "]"; spaces += 3;}
+   if (b > -1) {out << "[" << b << "]"; spaces += 3;}
+   if (c > -1) {out << "[" << c << "]"; spaces += 3;}
+   out << " = [["; spaces += 4;
+   for (int i=0;i<rows;++i)
+   {
+      for (int j=0;j<cols-1;++j)
+      {
+         if (PosIntMtrx[i*cols + j] < 0)
+         {
+            cerr << "Error: writePosIntMatrix() variable: " << Hash.Name
+                 << "{" << ParamName << "}";
+            if (a > -1) cerr << "[" << a << "]";
+            if (b > -1) cerr << "[" << b << "]";
+            if (c > -1) cerr << "[" << c << "]";
+            cerr << "[" << i << "][" << j << "]";
+            cerr << " is negative!\n";
+            exit(34);
+         }
+         out << PosIntMtrx[i*cols + j] << ", ";
+      }
+      if (PosIntMtrx[i*cols + cols-1] < 0)
+      {
+         cerr << "Error: writePosIntMatrix() variable: " << Hash.Name
+              << "{" << ParamName << "}";
+         if (a > -1) cerr << "[" << a << "]";
+         if (b > -1) cerr << "[" << b << "]";
+         if (c > -1) cerr << "[" << c << "]";
+         cerr << "[" << i << "][" << cols-1 << "]";
+         cerr << " is negative!\n";
+         exit(34);
+      }
+      out << PosIntMtrx[i*cols + cols-1] << "]";
+      if (rows-1 == i)
+      {
+         out << "];";
+      }
+      else
+      {
+         out << ",";
+      }
+      if (rows-1 > i)
+      {
+         out << "\n";
+         for (int z=0;z<spaces;++z) out << " ";
+         out << "[";
+      }
+      else
+      {
+         out << "\n";
       }
    }
 }

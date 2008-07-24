@@ -1963,42 +1963,40 @@ void MultiLatticeTPP::DebugMode()
    };
    int NOcommands=53;
    
-   char response[LINELENGTH];
+   string response;
    char prompt[] = "Debug > ";
    int W=cout.width();
    
    cout << setw(0) << prompt;
    
-   cin.getline(response,LINELENGTH);
+   getline(cin,response);
    
    int indx;
-   while (strcasecmp(response,"q") &&
-          strcasecmp(response,"quit") &&
-          strcasecmp(response,"exit"))
+   while (response == "q" && response == "quit" && response =="exit")
    {
       indx=0;
-      if (!strcmp(response,Commands[indx++]))
+      if (response == Commands[indx++])
          cout << "InternalAtoms_ = " << InternalAtoms_ << "\n";
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "CBK_->DOFS() = " << CBK_->DOFS() << "\n";
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "InfluenceDist_ = " << InfluenceDist_ << "\n";
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "NTemp_ = " << NTemp_ << "\n";
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          for (int i=0;i<CBK_->DOFS();++i)
             cout << "DOF_[" << i << "] = " << (CBK_->DOF())[i] << "\n";
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "RefLattice_= " << setw(W) << CBK_->RefLattice();
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "Density_= " << Density_ << "\n";
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "NormModulus_= " << NormModulus_ << "\n";
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "Lambda_= " << Lambda_ << "\n";
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          for (int i=0;i<InternalAtoms_;++i)
          {
@@ -2006,7 +2004,7 @@ void MultiLatticeTPP::DebugMode()
                  << BodyForce_[i] << "\n";
          }
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          for (int i=0;i<InternalAtoms_;++i)
          {
@@ -2014,9 +2012,9 @@ void MultiLatticeTPP::DebugMode()
                  << AtomicMass_[i] << "\n";
          }
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "GridSize_= " << GridSize_ << "\n";
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          for (int i=0;i<InternalAtoms_;++i)
             for (int j=i;j<InternalAtoms_;++j)
@@ -2025,21 +2023,21 @@ void MultiLatticeTPP::DebugMode()
                     << setw(W) << Potential_[i][j] << "\n";
             }
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "ConvexityDX_= " << ConvexityDX_ << "\n";
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "ConjugateToLambda = " << setw(W) << ConjugateToLambda();
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "stress= " << setw(W) << stress();
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "stiffness= " << setw(W) << stiffness();
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "CondensedModuli= " << setw(W) << CondensedModuli();
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          Vector K(DIM3,0.0);
          int NoPTS;
-         char prefix[LINELENGTH];
+         string prefix;
          int oldEcho_=Echo_;
          cout << "\tK > ";
          cin >> K;
@@ -2052,15 +2050,15 @@ void MultiLatticeTPP::DebugMode()
          cin.sync(); // clear input
          Echo_=0;
          cout << "ReferenceDispersionCurves= ";
-         ReferenceDispersionCurves(K,NoPTS,prefix,cout);
+         ReferenceDispersionCurves(K,NoPTS,prefix.c_str(),cout);
          Echo_=oldEcho_;
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          Vector K(DIM3,0.0);
          cout << "ReferenceBlochWave= " << ReferenceBlochWave(K) << "\t" << K << "\n";
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          cout << "\tK > ";
          Vector K(DIM3,0.0);
@@ -2069,7 +2067,7 @@ void MultiLatticeTPP::DebugMode()
          cout << "ReferenceDynamicalStiffness= "
               << setw(W) << ReferenceDynamicalStiffness(K) << "\n";
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          Vector DOF(CBK_->DOFS(),0.0);
          cout << "\tDOF > ";
@@ -2077,11 +2075,11 @@ void MultiLatticeTPP::DebugMode()
          cin.sync(); // clear input
          SetDOF(DOF);
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "StressDT= " << setw(W) << StressDT();
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "StiffnessDT= " << setw(W) << StiffnessDT();
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          double Temp;
          cout << "\tTemp > ";
@@ -2089,7 +2087,7 @@ void MultiLatticeTPP::DebugMode()
          cin.sync(); // clear input
          SetTemp(Temp);
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          double dist;
          cout << "\tInfluenceDist > ";
@@ -2097,19 +2095,19 @@ void MultiLatticeTPP::DebugMode()
          cin.sync(); // clear input
          SetInfluenceDist(dist);
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "energy= " << energy() << "\n";
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "E0= " << E0() << "\n";
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "E1= " << setw(W) << E1() << "\n";
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "E2= " << setw(W) << E2() << "\n";
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "E3= " << setw(W) << E3();
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
          cout << "E4= " << setw(W) << E4();
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          int GridSize;
          cout << "\tGridSize > ";
@@ -2117,7 +2115,7 @@ void MultiLatticeTPP::DebugMode()
          cin.sync(); // clear input
          SetGridSize(GridSize);
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          int oldEcho_=Echo_;
          int cutoff;
@@ -2129,14 +2127,14 @@ void MultiLatticeTPP::DebugMode()
          NeighborDistances(cutoff,cout);
          Echo_=oldEcho_;
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          int oldEcho_=Echo_;
          Echo_=0;
          cout << setw(W) << *this;
          Echo_=oldEcho_;
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          int oldEcho_=Echo_;
          Echo_=0;
@@ -2144,7 +2142,7 @@ void MultiLatticeTPP::DebugMode()
          Print(cout,PrintLong);
          Echo_=oldEcho_;
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          double lambda;
          cout << "\tLambda > ";
@@ -2152,15 +2150,15 @@ void MultiLatticeTPP::DebugMode()
          cin.sync(); // clear input
          SetLambda(lambda);
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          cout << "StressDL= " << setw(W) << StressDL();
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          cout << "StiffnessDL= " << setw(W) << StiffnessDL();
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          int iter;
          cout << "\titer > ";
@@ -2168,7 +2166,7 @@ void MultiLatticeTPP::DebugMode()
          cin.sync(); // clear input
          FindLatticeSpacing(iter);
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          int width;
          int oldEcho=Echo_;
@@ -2181,11 +2179,11 @@ void MultiLatticeTPP::DebugMode()
          ConsistencyCheck(epsilon,width,cout);
          Echo_=oldEcho;
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          cout << "dbg_ = " << dbg_ << "\n";
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          double Tol;
          int MaxItr;
@@ -2195,41 +2193,41 @@ void MultiLatticeTPP::DebugMode()
          cin >> MaxItr;
          RefineEqbm(Tol,MaxItr,&cout);
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          cout << "EulerAng_ = "
               << setw(W) << EulerAng_[0]
               << setw(W) << EulerAng_[1]
               << setw(W) << EulerAng_[2] << "\n";
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          cout << "Rotation_ = "
               << setw(W) << Rotation_ << "\n";
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          cout << "Loading_ = "
               << setw(W) << Loading_ << "\n";
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          cout << setw(W);
          PrintCurrentCrystalParamaters(cout);
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          cout << "ThermalExpansion = " << setw(W) << ThermalExpansion() << "\n";
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          cout << "Entropy = " << setw(W) << Entropy() << "\n";
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          cout << "HeatCapacity = " << setw(W) << HeatCapacity() << "\n";
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          int n;
          cout << "\tNoAtoms > ";
@@ -2237,7 +2235,7 @@ void MultiLatticeTPP::DebugMode()
          cout << "P.Transpose()\n"
               << setw(20) << TranslationProjection1D(n).Transpose() << "\n";
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          int n,f;
          cout << "\tFsize > ";
@@ -2247,7 +2245,7 @@ void MultiLatticeTPP::DebugMode()
          cout << "P.Transpose()\n"
               << setw(20) << TranslationProjection3D(f,n).Transpose() << "\n";
       }
-      else if (!strcmp(response,Commands[indx++]))
+      else if (response == Commands[indx++])
       {
          int no = SpeciesPotential_[0][0]->GetNoParameters();
          double *vals;
@@ -2258,8 +2256,7 @@ void MultiLatticeTPP::DebugMode()
             cin >> vals[i];
          SetParameters(vals);
       }
-      else if (!strcmp(response,"?") ||
-               !strcasecmp(response,"help"))
+      else if (response == "?" || response == "help")
       {
          cout << setiosflags(ios::left);
          for (int i=0;i<NOcommands/2 + NOcommands%2;++i)
@@ -2281,8 +2278,7 @@ void MultiLatticeTPP::DebugMode()
          }
          cout << resetiosflags(ios::left) << "\n";
       }
-      else if (!strcmp(response,"\n") ||
-               !strcmp(response,""))
+      else if (response == "\n" || response == "")
       {
       }
       else
@@ -2291,7 +2287,7 @@ void MultiLatticeTPP::DebugMode()
       }
       
       cout << "\n" << prompt;
-      cin.getline(response,LINELENGTH);
+      getline(cin,response);
    }
 }
 
