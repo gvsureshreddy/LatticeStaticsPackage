@@ -468,7 +468,7 @@ int Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
    }
 
    Mode.Resize(count,dofs);
-   cout << "A" << endl;   
+
    for (int i=0;i<count;i++)
    {
       for (int j=0;j<dofs;j++)
@@ -476,7 +476,7 @@ int Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
          Mode[i][j] = EigVec[j][Ind[i]];
       }
    }
-   cout << "B" << endl;
+
    // Print out the Eigenvectors
    out << "EigenVectors" << "\n" << setw(Width) << EigVec;
    if (Echo_) cout << "EigenVectors" << "\n" << setw(Width) << EigVec;
@@ -494,7 +494,7 @@ int Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
                      Eijk[i][j][k] += D3[a*dofs + b][c]*Mode[i][a]*Mode[j][b]*Mode[k][c];
                   }
          }
-   cout << "C" << endl;
+
    //EijT
    for (int i=0;i<count;i++)
       for (int j=0;j<count;j++)
@@ -510,7 +510,7 @@ int Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
                EijT[i][j] += D2T[a][b]*Mode[i][a]*Mode[j][b];
             }
       }
-   cout << "D" << endl;
+
    // Print out results
    for (int i=0;i<70;i++)
    {
