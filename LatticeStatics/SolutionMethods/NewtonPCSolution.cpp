@@ -577,7 +577,7 @@ int NewtonPCSolution::FindNextSolution()
    }
    
    if ((ClosedLoopStart_ >= 0) && (CurrentSolution_ > ClosedLoopStart_) &&
-       ((Restrict_->DOF() - FirstSolution_).Norm() < MaxDS_))
+       ((Restrict_->DOF() - FirstSolution_).Norm() < CurrentDS_))
    {
       // We are done -- set currentsolution to numsolutions
       cerr << "Closed Loop detected at Solution # " << CurrentSolution_
