@@ -740,7 +740,7 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPs,
          }
          if (Echo_) cout << "\n";
          in_string << "\n";
-         cout << "1"<<endl;
+
          // Call Lattice function to do any Lattice Specific things
          Bif[spot]=Lat->CriticalPointInfo(Restrict_->DrDt(Difference_),Multiplicity,
                                           10.0*Tolerance_,Width,Input,in_string,
@@ -810,7 +810,7 @@ void ArcLengthSolution::ZBrent(Lattice* const Lat,int const& track,Vector const&
    int loops = 0;
    double factor = 0.0;
    int oldprecision = cout.precision();
-   
+         
    b=OriginalDS;
    c=b;
    a=0.0;
@@ -821,7 +821,7 @@ void ArcLengthSolution::ZBrent(Lattice* const Lat,int const& track,Vector const&
    //<<  "b = " << b << "\n" << "fb = " << fb << "\n"
    //<< "c = " << c << "\n" << "fc = " << fc << "\n";
    
-   while (((fabs(fb) > BisectTolerance_) )&& (loops < MaxIter_))
+   while (((fabs(fb) > BisectTolerance_)) && (loops < MaxIter_))
    {
       if (Echo_)
       {
