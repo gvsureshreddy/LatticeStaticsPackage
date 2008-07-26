@@ -477,103 +477,235 @@ sub loaddata {
 	  $noneg[0],$Convex[0],$blochwave[0];
 	}
       }
-      shift(@bifpt);
-      
+
       if ($stableflag != $NxtStableflag)
       {
 	# Add blank line in corresponding file to seperate segments
 	# and connecting line of data
-	if ($NxtStableflag == 0)
-	{
-	  if (!$firststable)
-	  {
-	    $stable .= sprintf "# name: Index_" . ($_[2]+3) . "_$substable\n";
-	    $stable .= sprintf "# type: matrix\n";
-	    $stable .= sprintf "# rows: $nostable\n";
-	    $stable .= sprintf "# columns: %i\n",$StateSize;
-	    $stable .= $stabletmp;
-	    $stable .= sprintf "\n";
-	    $substable += 1;
-	    $stabletmp = "";
-	    $nostable = 0;
-	  }
-	  else
-	  {
-	    $firststable=0;
-	  }
-	  $nostable +=1;
-	  $stabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
-	  $temp[0],$stress[0],$conjtostress[0],$potential[0],$entropy[0],$heatcapacity[0];
-	  for (my $i=0;$i<$DOFSize;$i+=1)
-	  {
-	    $stabletmp .= sprintf $FSPEC,$DOF[0][$i];
-	  }
-	  $stabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . "\n",
-	  $noneg[0],$Convex[0],$blochwave[0];
-	}
-	elsif ($stableflag == 0)
-	{
-	  if (!$firstunstable)
-	  {
-	    $unstable .= sprintf "# name: Index_" . ($_[2]+4). "_$subunstable\n";
-	    $unstable .= sprintf "# type: matrix\n";
-	    $unstable .= sprintf "# rows: $nounstable\n";
-	    $unstable .= sprintf "# columns: %i\n",$StateSize;
-	    $unstable .= $unstabletmp;
-	    $unstable .= sprintf "\n";
-	    $subunstable += 1;
-	    $unstabletmp = "";
-	    $nounstable = 0;
-	  }
-	  else
-	  {
-	    $firstunstable=0;
-	  }
-	  $nounstable += 1;
+        if ($bifpt[0] == 1)
+        {
+          if ($NxtStableflag == 0)
+          {
+            if (!$firststable)
+            {
+              $stable .= sprintf "# name: Index_" . ($_[2]+3) . "_$substable\n";
+              $stable .= sprintf "# type: matrix\n";
+              $stable .= sprintf "# rows: $nostable\n";
+              $stable .= sprintf "# columns: %i\n",$StateSize;
+              $stable .= $stabletmp;
+              $stable .= sprintf "\n";
+              $substable += 1;
+              $stabletmp = "";
+              $nostable = 0;
+            }
+            else
+            {
+              $firststable=0;
+            }
+            $nostable +=1;
+            $stabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
+            $temp[0],$stress[0],$conjtostress[0],$potential[0],$entropy[0],$heatcapacity[0];
+            for (my $i=0;$i<$DOFSize;$i+=1)
+            {
+              $stabletmp .= sprintf $FSPEC,$DOF[0][$i];
+            }
+            $stabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . "\n",
+            $noneg[0],$Convex[0],$blochwave[0];
+          }
+          elsif ($stableflag == 0)
+          {
+            if (!$firstunstable)
+            {
+              $unstable .= sprintf "# name: Index_" . ($_[2]+4). "_$subunstable\n";
+              $unstable .= sprintf "# type: matrix\n";
+              $unstable .= sprintf "# rows: $nounstable\n";
+              $unstable .= sprintf "# columns: %i\n",$StateSize;
+              $unstable .= $unstabletmp;
+              $unstable .= sprintf "\n";
+              $subunstable += 1;
+              $unstabletmp = "";
+              $nounstable = 0;
+            }
+            else
+            {
+              $firstunstable=0;
+            }
+            $nounstable += 1;
+            $unstabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
+            $temp[0],$stress[0],$conjtostress[0],$potential[0],$entropy[0],$heatcapacity[0];
+            for (my $i=0;$i<$DOFSize;$i+=1)
+            {
+              $unstabletmp .= sprintf $FSPEC,$DOF[0][$i];
+            }
+            $unstabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . "\n",
+            $noneg[0],$Convex[0],$blochwave[0];
+          }
+        }
+        elsif ($stableflag == 0)
+        {
+          if (!$firstunstable)
+          {
+            $unstable .= sprintf "# name: Index_" . ($_[2]+4). "_$subunstable\n";
+            $unstable .= sprintf "# type: matrix\n";
+            $unstable .= sprintf "# rows: $nounstable\n";
+            $unstable .= sprintf "# columns: %i\n",$StateSize;
+            $unstable .= $unstabletmp;
+            $unstable .= sprintf "\n";
+            $subunstable += 1;
+            $unstabletmp = "";
+            $nounstable = 0;
+          }
+          else
+          {
+            $firstunstable=0;
+          }
+          $nounstable += 1;
 	  $unstabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
 	  $temp[0],$stress[0],$conjtostress[0],$potential[0],$entropy[0],$heatcapacity[0];
 	  for (my $i=0;$i<$DOFSize;$i+=1)
 	  {
 	    $unstabletmp .= sprintf $FSPEC,$DOF[0][$i];
 	  }
-	  $unstabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . "\n",
-	  $noneg[0],$Convex[0],$blochwave[0];
-	}
+        }
       }
-      
+
       # Print data line into correct file and continue
       if ($stableflag == 0)
       {
 	$stable_nodata = 0;
 	$firststable = 0;
 	$nostable += 1;
-	$stabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
-	shift(@temp),shift(@stress),shift(@conjtostress),shift(@potential),shift(@entropy),
-        shift(@heatcapacity);
-	for (my $i=0;$i<$DOFSize;$i+=1)
-	{
-	  $stabletmp .= sprintf $FSPEC,$DOF[0][$i];
-	}
-	shift(@DOF);
-	$stabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . "\n",
-	shift(@noneg),shift(@Convex),shift(@blochwave);
+        $stabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
+        $temp[0],$stress[0],$conjtostress[0],$potential[0],$entropy[0],$heatcapacity[0];
+        for (my $i=0;$i<$DOFSize;$i+=1)
+        {
+          $stabletmp .= sprintf $FSPEC,$DOF[0][$i];
+        }
+        $stabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . "\n",
+        $noneg[0],$Convex[0],$blochwave[0];
       }
       else
       {
 	$unstable_nodata = 0;
 	$firstunstable = 0;
 	$nounstable += 1;
-	$unstabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
-	shift(@temp),shift(@stress),shift(@conjtostress),shift(@potential),shift(@entropy),
-        shift(@heatcapacity);
-	for (my $i=0;$i<$DOFSize;$i+=1)
-	{
-	  $unstabletmp .= sprintf $FSPEC,$DOF[0][$i];
-	}
-	shift(@DOF);
-	$unstabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . "\n",
-	shift(@noneg),shift(@Convex),shift(@blochwave);
+        $unstabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
+        $temp[0],$stress[0],$conjtostress[0],$potential[0],$entropy[0],$heatcapacity[0];
+        for (my $i=0;$i<$DOFSize;$i+=1)
+        {
+          $unstabletmp .= sprintf $FSPEC,$DOF[0][$i];
+        }
+        $unstabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . "\n",
+        $noneg[0],$Convex[0],$blochwave[0];
       }
+      
+      if ($stableflag != $NxtStableflag)
+      {
+        # Add blank line in corresponding file to seperate segments
+	# and connecting line of data
+        if ($bifpt[1] == 1)
+        {
+          if ($NxtStableflag == 0)
+          {
+            $nounstable += 1;
+            $unstabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
+            $temp[1],$stress[1],$conjtostress[1],$potential[1],$entropy[1],$heatcapacity[1];
+            for (my $i=0;$i<$DOFSize;$i+=1)
+            {
+              $unstabletmp .= sprintf $FSPEC,$DOF[1][$i];
+            }
+            $unstabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . "\n",
+            $noneg[1],$Convex[1],$blochwave[1];
+
+            if (!$firststable)
+            {
+              $stable .= sprintf "# name: Index_" . ($_[2]+3) . "_$substable\n";
+              $stable .= sprintf "# type: matrix\n";
+              $stable .= sprintf "# rows: $nostable\n";
+              $stable .= sprintf "# columns: %i\n",$StateSize;
+              $stable .= $stabletmp;
+              $stable .= sprintf "\n";
+              $substable += 1;
+              $stabletmp = "";
+              $nostable = 0;
+            }
+            else
+            {
+              $firststable=0;
+            }
+          }
+          elsif ($stableflag == 0)
+          {
+            $nostable +=1;
+            $stabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
+            $temp[1],$stress[1],$conjtostress[1],$potential[1],$entropy[1],$heatcapacity[1];
+            for (my $i=0;$i<$DOFSize;$i+=1)
+            {
+              $stabletmp .= sprintf $FSPEC,$DOF[1][$i];
+            }
+            $stabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . "\n",
+            $noneg[1],$Convex[1],$blochwave[1];
+
+            if (!$firstunstable)
+            {
+              $unstable .= sprintf "# name: Index_" . ($_[2]+4). "_$subunstable\n";
+              $unstable .= sprintf "# type: matrix\n";
+              $unstable .= sprintf "# rows: $nounstable\n";
+              $unstable .= sprintf "# columns: %i\n",$StateSize;
+              $unstable .= $unstabletmp;
+              $unstable .= sprintf "\n";
+              $subunstable += 1;
+              $unstabletmp = "";
+              $nounstable = 0;
+            }
+            else
+            {
+              $firstunstable=0;
+            }
+          }
+        }
+        elsif ($NxtStableflag == 0)
+        {
+          $nounstable += 1;
+	  $unstabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
+	  $temp[1],$stress[1],$conjtostress[1],$potential[1],$entropy[1],$heatcapacity[1];
+	  for (my $i=0;$i<$DOFSize;$i+=1)
+	  {
+	    $unstabletmp .= sprintf $FSPEC,$DOF[1][$i];
+	  }
+	  $unstabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . "\n",
+	  $noneg[1],$Convex[1],$blochwave[1];
+          
+          if (!$firststable)
+          {
+            $stable .= sprintf "# name: Index_" . ($_[2]+3) . "_$substable\n";
+            $stable .= sprintf "# type: matrix\n";
+            $stable .= sprintf "# rows: $nostable\n";
+            $stable .= sprintf "# columns: %i\n",$StateSize;
+            $stable .= $stabletmp;
+            $stable .= sprintf "\n";
+            $substable += 1;
+            $stabletmp = "";
+            $nostable = 0;
+          }
+          else
+          {
+            $firststable=0;
+          }
+        }
+      }
+
+      shift(@bifpt);
+      shift(@temp);
+      shift(@stress);
+      shift(@conjtostress);
+      shift(@potential);
+      shift(@entropy);
+      shift(@heatcapacity);
+      shift(@DOF);
+      shift(@noneg);
+      shift(@Convex);
+      shift(@blochwave);
     }
     
     # Make sure there is at least one data point in each index
