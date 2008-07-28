@@ -55,6 +55,9 @@ public:
    {return getHash(getHash(HashName),ParamName,a,b,c,d,e);}
 
    HashStruct useHash(char const* const HashName) const;
+   HashStruct useHash(HashStruct const& Hash,char const* const ParamName) const;
+   HashStruct useHash(char const* const HashName,char const* const ParamName) const
+   {return useHash(useHash(HashName),ParamName);}
    
    int getArrayLength(HashStruct const& Hash,char const* const ParamName,
                       int const& a=-1,int const& b=-1,int const& c=-1,int const& d=-1) const;

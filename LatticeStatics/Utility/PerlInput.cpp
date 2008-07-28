@@ -126,6 +126,20 @@ PerlInput::HashStruct PerlInput::useHash(char const* const HashName) const
    return Hash;
 }
 
+PerlInput::HashStruct PerlInput::useHash(HashStruct const& Hash,char const* const ParamName)
+   const
+{
+   HashStruct NewHash;
+   
+   NewHash.Ptr = 0;
+   stringstream tmp;
+   tmp.str("");
+   tmp << Hash.Name << "{" << ParamName << "}";
+   NewHash.Name = tmp.str();
+
+   return NewHash;
+}
+
 SV* const getScalar(PerlInput::HashStruct const& Hash,char const* const ParamName,
                     int const& a=-1,int const& b=-1,int const& c=-1,int const& d=-1,
                     int const& e=-1);
