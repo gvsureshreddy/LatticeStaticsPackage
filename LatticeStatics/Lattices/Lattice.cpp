@@ -780,6 +780,12 @@ int Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
    out << "\n";
 
    // output a new input file to help restart at this critical point
+   int colms[DOFMAX][DOFMAX];
+   int colmssgn[DOFMAX][DOFMAX];
+   int colmscnt[DOFMAX];
+   int cnt=0;
+   int foundflg;
+   
    newinput << setprecision(out.precision()) << scientific;
    Vector T(dofs+1);
    Vector M(dofs+1);
@@ -793,6 +799,57 @@ int Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
    {
       newinput << Input.ReconstructedInput();
       newinput << "\n\n";
+
+      for (int i=0;i<count;++i)
+      {
+         // make a guess at the new Restriction DOFS
+         for (int j=0;j<DOFMAX;++j)
+         {
+            colmscnt[j] = 0;
+            for (int k=0;k<DOFMAX;++k)
+               colms[k][j] = colmssgn[k][j] = 0;
+         }
+         for (int j=0;j<dofs;++j)
+         {
+            if ((Mode[i][j] > 20*Tolerance) || (Mode[i][j] < -20*Tolerance)) // M[j] != 0.0
+            {
+               foundflg = 0;
+               for (int k=0;k<cnt;++k)
+               {
+                  if ((fabs(Mode[i][j]) > fabs(Mode[i][colms[k][0]]) - 20*Tolerance) &&
+                      (fabs(Mode[i][j]) < fabs(Mode[i][colms[k][0]]) + 20*Tolerance))
+                  {
+                     colms[k][colmscnt[k]] = j;
+                     colmssgn[k][colmscnt[k]] = int(round(Mode[i][j]/Mode[i][colms[k][0]]));
+                     ++colmscnt[k];
+                     foundflg = 1;
+                  }
+               }
+
+               if (!foundflg)
+               {
+                  colms[cnt][0] = j;
+                  colmssgn[cnt][0] = 1;
+                  ++colmscnt[cnt];
+                  ++cnt;
+               }
+            }
+         }
+         for (int j=0;j<cnt;++j)
+         {
+            cout << "colmscnt[j] = " << colmscnt[j] << endl;
+            Input.writePosIntVector(newinput,&(colms[j][0]),colmscnt[j],
+                                    Input.useHash("Restriction","RestrictToTranslatedSubSpace"),
+                                    "DOF_?",0);
+            Vector z(colmscnt[j]);
+            for (int k=0;k<colmscnt[j];++k) z[k] = colmssgn[j][k];
+            Input.writeVector(newinput,z,
+                              Input.useHash("Restriction","RestrictToTranslatedSubSpace"),
+                              "DOF_?",1);
+         }
+      }
+      newinput << "\n";
+      
       Input.writeString(newinput,"Bifurcation","StartType","Type");
       for (int i=0;i<count;++i)
       {
