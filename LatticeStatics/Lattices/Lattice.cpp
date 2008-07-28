@@ -820,7 +820,7 @@ int Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
                       (fabs(Mode[i][j]) < fabs(Mode[i][colms[k][0]]) + 20*Tolerance))
                   {
                      colms[k][colmscnt[k]] = j;
-                     colmssgn[k][colmscnt[k]] = int(round(Mode[i][j]/Mode[i][colms[k][0]]));
+                     colmssgn[k][colmscnt[k]] = int(round(Mode[i][j]/fabs(Mode[i][colms[k][0]])));
                      ++colmscnt[k];
                      foundflg = 1;
                   }
@@ -829,7 +829,7 @@ int Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
                if (!foundflg)
                {
                   colms[cnt][0] = j;
-                  colmssgn[cnt][0] = 1;
+                  colmssgn[cnt][0] = int(round(Mode[i][j]/fabs(Mode[i][j])));
                   ++colmscnt[cnt];
                   ++cnt;
                }

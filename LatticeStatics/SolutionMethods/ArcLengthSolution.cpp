@@ -766,7 +766,7 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPs,
       if (Bif[i])
       {
          in_string.str("");
-         in_string << Input.LastInputFileName() << ".bifurcate."
+         in_string << Input.LastInputFileName() << ".B."
                    << setw(3) << setfill('0') << TotalNumCPs;
          cpfile.open(in_string.str().c_str(),ios::out);
          cpfile << out_newinput_string[i];
@@ -775,8 +775,8 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPs,
       else
       {
          in_string.str("");
-         in_string << Input.LastInputFileName() << ".turnpoint."
-                   << setw(3) << setfill('0') << TotalNumCPs;
+         in_string << Input.LastInputFileName() << ".T."
+                   << setw(2) << setfill('0') << TotalNumCPs;
          cpfile.open(in_string.str().c_str(),ios::out);
          cpfile << out_newinput_string[i];
          cpfile.close();
