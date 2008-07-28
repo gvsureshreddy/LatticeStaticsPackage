@@ -745,7 +745,6 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPs,
          Bif[spot]=Lat->CriticalPointInfo(Restrict_->DrDt(Difference_),Multiplicity,
                                           10.0*Tolerance_,Width,Input,in_string,
                                           in_newinput_string);
-         cout << "2" << endl;
          if (Echo_) cout << "Success = 1" << "\n";
          in_string << "Success = 1" << "\n";
          
