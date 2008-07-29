@@ -1966,13 +1966,13 @@ void MultiLatticeTPP::DebugMode()
    string response;
    char prompt[] = "Debug > ";
    int W=cout.width();
-   
+
    cout << setw(0) << prompt;
    
    getline(cin,response);
    
    int indx;
-   while (response == "q" && response == "quit" && response =="exit")
+   while (response != "q" && response != "quit" && response !="exit")
    {
       indx=0;
       if (response == Commands[indx++])

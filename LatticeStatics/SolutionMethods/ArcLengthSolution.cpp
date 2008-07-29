@@ -767,7 +767,7 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPs,
       {
          in_string.str("");
          in_string << Input.LastInputFileName() << ".B."
-                   << setw(3) << setfill('0') << TotalNumCPs;
+                   << setw(2) << setfill('0') << TotalNumCPs;
          cpfile.open(in_string.str().c_str(),ios::out);
          cpfile << out_newinput_string[i];
          cpfile.close();

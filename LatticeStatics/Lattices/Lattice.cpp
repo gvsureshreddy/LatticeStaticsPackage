@@ -837,7 +837,6 @@ int Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
          }
          for (int j=0;j<cnt;++j)
          {
-            cout << "colmscnt[j] = " << colmscnt[j] << endl;
             Input.writePosIntVector(newinput,&(colms[j][0]),colmscnt[j],
                                     Input.useHash("Restriction","RestrictToTranslatedSubSpace"),
                                     "DOF_?",0);
