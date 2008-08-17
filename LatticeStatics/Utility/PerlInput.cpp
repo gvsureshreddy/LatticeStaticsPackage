@@ -652,8 +652,13 @@ char const* const PerlInput::getString(HashStruct const& Hash,char const* const 
    }
    else
    {
-      ReconstructedInput_ << "$" << Hash.Name << "{" << ParamName
-                          << "} = " << SvPV_nolen(ParamVal) << ";\n";
+      ReconstructedInput_ << "$" << Hash.Name << "{" << ParamName << "}";
+      if (a > -1) ReconstructedInput_ << "[" << a << "]";
+      if (b > -1) ReconstructedInput_ << "[" << b << "]";
+      if (c > -1) ReconstructedInput_ << "[" << c << "]";
+      if (d > -1) ReconstructedInput_ << "[" << d << "]";
+      if (e > -1) ReconstructedInput_ << "[" << e << "]";
+      ReconstructedInput_ << " = " << SvPV_nolen(ParamVal) << ";\n";
       return SvPV_nolen(ParamVal);
    }
 }
