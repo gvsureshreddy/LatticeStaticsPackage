@@ -24,7 +24,7 @@ public:
    LoadType LoadParameter_;
    LoadType const& LoadParameter() const {return LoadParameter_;}
    int OrderedTFs_;
-   int ThirdOrder_;
+   int LSKAnalysis_;
    int CurrentBifPt_;
    
    Lattice(PerlInput const& Input);

@@ -33,3 +33,4 @@ RadiiMorseCutoff.d
 RadiiMorseCutoff2.d
 NewtonPCSolution.d
 TwoBarTruss.d
+TwoBarTrussExternal.d

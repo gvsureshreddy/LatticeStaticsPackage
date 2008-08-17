@@ -27,28 +27,32 @@ Lattice::Lattice(PerlInput const& Input):
       OrderedTFs_ = 0;
       Input.useString("No","Lattice","OrderedTFs"); // Default Value
    }
-
-   if (Input.ParameterOK("Lattice","ThirdOrder"))
+   
+   if (Input.ParameterOK("Lattice","LSKAnalysis"))
    {
-      char const* const thirdorder = Input.getString("Lattice","ThirdOrder");
-      if (!strcmp("Yes",thirdorder))
+      char const* const lsk = Input.getString("Lattice","LSKAnalysis");
+      if (!strcmp("ThirdOrder",lsk))
       {
-         ThirdOrder_ = 1;
+         LSKAnalysis_ = 2;
       }
-      else if (!strcmp("No",thirdorder))
+      else if (!strcmp("SecondOrder",lsk))
       {
-         ThirdOrder_ = 0;
+         LSKAnalysis_ = 1;
+      }
+      else if (!strcmp("None",lsk))
+      {
+         LSKAnalysis_ = 0;
       }
       else
       {
-         cerr << "Error: Unknown value for Lattice{ThirdOrder}.\n";
+         cerr << "Error: Unknown value for Lattice{LSKAnalysis}.\n";
          exit(-1);
       }
    }
    else
    {
-      ThirdOrder_ = 0;
-      Input.useString("No","Lattice","ThirdOrder"); // Default Value
+      LSKAnalysis_ = 1;
+      Input.useString("SecondOrder","Lattice","LSKAnalysis"); // Default Value
    }
    
    Input.EndofInputSection();
@@ -358,7 +362,7 @@ int Lattice::TestFunctions(Vector &TF1,StateType const& State,Vector* const TF2)
          retval = NoNegEigVal;
       }
    }
-
+   
    return retval;
 }
 
@@ -367,13 +371,13 @@ int Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
                                PerlInput const& Input,ostream& out,ostream& newinput)
 {
    Matrix
-      D3=E3(),
       D2=E2(),
       D2T(D2.Rows(),D2.Cols()),
       EigVec,
       EigVal=SymEigVal(D2,&EigVec);
    Vector D1T(D2.Cols());
-      
+   int Bif = 2;
+   
    if (LoadParameter_ == Temperature)
    {
       D1T=StressDT();
@@ -394,9 +398,6 @@ int Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
    }
    
    Matrix Mode;
-   double
-      Eijk[BIFMAX][BIFMAX][BIFMAX],
-      EijT[BIFMAX][BIFMAX];
    
    // Find the modes
    int count = 0,
@@ -410,7 +411,7 @@ int Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
          Ind[count++]=i;
       }
    }
-
+   
    // Check for incorrect number of modes
    if (count != NumZeroEigenVals)
    {
@@ -441,7 +442,7 @@ int Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
          }
          count++;
       }
-
+      
       out << "NOTE: Incorrect number of zero eigenvalues found. "
           << "Modes with smallest abs. value used." << "\n";
       if (Echo_)
@@ -450,7 +451,7 @@ int Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
               << "Modes with smallest abs. value used." << "\n";
       }
    }
-
+   
    for (int i=0;i<count;++i)
       out << "Mode[" << i << "] DOF: " << Ind[i] << ",  ";
    out << "\n";
@@ -466,9 +467,9 @@ int Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
       cerr << "Error: BIFMAX < " << count << " in Lattice.h" << "\n";
       exit(-6);
    }
-
+   
    Mode.Resize(count,dofs);
-
+   
    for (int i=0;i<count;i++)
    {
       for (int j=0;j<dofs;j++)
@@ -476,258 +477,97 @@ int Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
          Mode[i][j] = EigVec[j][Ind[i]];
       }
    }
-
+   
    // Print out the Eigenvectors
    out << "EigenVectors" << "\n" << setw(Width) << EigVec;
    if (Echo_) cout << "EigenVectors" << "\n" << setw(Width) << EigVec;
    
-   // Eijk
-   for (int i=0;i<count;i++)
-      for (int j=0;j<count;j++)
-         for (int k=0;k<count;k++)
-         {
-            Eijk[i][j][k] = 0.0;
-            for (int a=0;a<dofs;a++)
-               for (int b=0;b<dofs;b++)
-                  for (int c=0;c<dofs;c++)
-                  {
-                     Eijk[i][j][k] += D3[a*dofs + b][c]*Mode[i][a]*Mode[j][b]*Mode[k][c];
-                  }
-         }
-
-   //EijT
-   for (int i=0;i<count;i++)
-      for (int j=0;j<count;j++)
-      {
-         EijT[i][j] = 0.0;
-         for (int a=0;a<dofs;a++)
-            for (int b=0;b<dofs;b++)
-            {
-               for (int c=0;c<dofs;c++)
-               {
-                  EijT[i][j] += D3[a*dofs + b][c]*DrDt[c]*Mode[i][a]*Mode[j][b];
-               }
-               EijT[i][j] += D2T[a][b]*Mode[i][a]*Mode[j][b];
-            }
-      }
-
-   // Print out results
-   for (int i=0;i<70;i++)
+   if (LSKAnalysis_ > 0)
    {
-      out << "-";
-      if (Echo_) cout << "-";
-   }
-   out << "\n"; if (Echo_) cout << "\n";
-   
-   // Print out the critical point character test (Limit-load/Bifurcation)
-   int Bif = 1;
-   for (int i=0;i<count;++i)
-   {
-      double z=0.0;
-      for (int j=0;j<dofs;++j)
-      {
-         z+= Mode[i][j]*D1T[j];
-      }
-      if (fabs(z) > Tolerance) Bif = 0;
-      out << "StressDT*Mode[" << i << "] = " << setw(Width) << z << "\n";
-      if (Echo_) cout << "StressDT*Mode[" << i << "] = " << setw(Width) << z << "\n";
-   }
-   
-   
-   out << "\n" << "\n" << "2nd Order Bifurcation Equations:" << "\n";
-   if (Echo_) cout << "\n" << "\n" << "2nd Order Bifurcation Equations:" << "\n";
-   
-   int prec = out.precision();
-   
-   out.flags(ios::scientific); out << setprecision(prec/2);
-   if (Echo_) cout.flags(ios::scientific); cout << setprecision(prec/2);
-   
-   for (int i=0;i<count;i++)
-   {
-      for (int j=0;j<count;j++)
-         for (int k=j;k<count;k++)
-         {
-            if (Echo_) cout << "(" << setw(Width)
-                            << Eijk[i][j][k] + ( (j==k)?0.0:Eijk[i][k][j] )
-                            << ")a_" << j
-                            << "a_"  << k
-                            << " + ";
-            out << "(" << setw(Width)
-                << Eijk[i][j][k] + ( (j==k)?0.0:Eijk[i][k][j] )
-                << ")a_" << j
-                << "a_"  << k
-                << " + ";
-         }
+      Matrix D3=E3();
+      double
+         Eijk[BIFMAX][BIFMAX][BIFMAX],
+         EijT[BIFMAX][BIFMAX];
       
-      out << "2T_1( ";
-      if (Echo_) cout << "2T_1( ";
-      
-      for (int j=0;j<count-1;j++)
-      {
-         if (Echo_) cout << "(" << setw(Width)
-                         << EijT[i][j]
-                         << ")a_" << j
-                         << " + ";
-         out << "(" << setw(Width)
-             << EijT[i][j]
-             << ")a_" << j
-             << " + ";
-      }
-      if (Echo_) cout << "(" << setw(Width) << EijT[i][count-1] << ")a_" << count-1
-                      << " ) = 0" << "\n";
-      out << "(" << setw(Width) << EijT[i][count-1] << ")a_" << count-1
-          << " ) = 0" << "\n";
-   }
-   
-   //------- output coefficients ----------
-   out << "\n" << "DrDt = " << setw(Width) << DrDt << "\n";
-   if (Echo_) cout << "\n" << "DrDt = " << setw(Width) << DrDt << "\n";
-   out << "Eijk = " << "\n";
-   if (Echo_) cout << "Eijk = " << "\n";
-   for (int i=0;i<count;++i)
-      for (int j=0;j<count;++j)
-      {
-         for (int k=0;k<count;++k)
-         {
-            out << setw(Width) << Eijk[i][j][k];
-            if (Echo_) cout << setw(Width) << Eijk[i][j][k];
-         }
-         out << "\n";
-         if (Echo_) cout << "\n";
-      }
-   out << "\n";
-   if (Echo_) cout << "\n";
-   
-   out << "EijT = " << "\n";
-   if (Echo_) cout << "EijT = " << "\n";
-   for (int i=0;i<count;++i)
-   {
-      for (int j=0;j<count;++j)
-      {
-         out << setw(Width) << EijT[i][j];
-         if (Echo_) cout << setw(Width) << EijT[i][j];
-      }
-      out << "\n";
-      if (Echo_) cout << "\n";
-   }
-   out << "\n";
-   if (Echo_) cout << "\n";
-   // ----------------------------
-   
-   if (ThirdOrder_)
-   {
-      double Eijkl[BIFMAX][BIFMAX][BIFMAX][BIFMAX],
-         Vij[BIFMAX][BIFMAX][DOFMAX];
-      Matrix D4=E4(),
-         S(dofs-count,dofs);
-      
-      // Create projection operator
-      for (int t=0,j=0,i=0;i<dofs;i++)
-      {
-         if (Ind[t] == i)
-         {
-            t++;
-            continue;
-         }
-         else
-         {
-            for (int k=0;k<dofs;k++)
-            {
-               S[j][k] = EigVec[k][i];
-            }
-            j++;
-         }
-      }
-      
-      Matrix Ainv=(S*D2*S.Transpose()).Inverse();
-      Matrix b(dofs-count,1);
-      
-      for (int i=0;i<count;i++)
-         for (int j=0;j<count;j++)
-         {
-            for (int n=0;n<dofs-count;n++)
-            {
-               b[n][0] = 0.0;
-               for (int k=0;k<dofs;k++)
-                  for (int l=0;l<dofs;l++)
-                     for (int m=0;m<dofs;m++)
-                     {
-                        b[n][0] += -S[n][k]*D3[k*dofs + l][m]*Mode[i][l]*Mode[j][m];
-                     }
-            }
-            
-            if (Echo_) cout << "\n" << "V[" << i << "][" << j << "]=";
-            out << "\n" << "V[" << i << "][" << j << "]=";
-            
-            for (int k=0;k<dofs;k++)
-            {
-               Vij[i][j][k] = 0.0;
-               for (int l=0;l<dofs-count;l++)
-                  for (int m=0;m<dofs-count;m++)
-                  {
-                     Vij[i][j][k] += S[l][k]*Ainv[l][m]*b[m][0];
-                  }
-               if (Echo_) cout << setw(Width) << Vij[i][j][k];
-               out << setw(Width) << Vij[i][j][k];
-            }
-         }
-      if (Echo_) cout << "\n";
-      out << "\n";
-      
-      // Eijkl
+      // Eijk
       for (int i=0;i<count;i++)
          for (int j=0;j<count;j++)
             for (int k=0;k<count;k++)
-               for (int l=0;l<count;l++)
+            {
+               Eijk[i][j][k] = 0.0;
+               for (int a=0;a<dofs;a++)
+                  for (int b=0;b<dofs;b++)
+                     for (int c=0;c<dofs;c++)
+                     {
+                        Eijk[i][j][k] += D3[a*dofs + b][c]*Mode[i][a]*Mode[j][b]*Mode[k][c];
+                     }
+            }
+      
+      //EijT
+      for (int i=0;i<count;i++)
+         for (int j=0;j<count;j++)
+         {
+            EijT[i][j] = 0.0;
+            for (int a=0;a<dofs;a++)
+               for (int b=0;b<dofs;b++)
                {
-                  Eijkl[i][j][k][l] = 0.0;
-                  for (int m=0;m<dofs;m++)
-                     for (int n=0;n<dofs;n++)
-                        for (int p=0;p<dofs;p++)
-                           for (int q=0;q<dofs;q++)
-                           {
-                              Eijkl[i][j][k][l] += D4[m*dofs + n][p*dofs + q]
-                                 *Mode[i][m]*Mode[j][n]*Mode[k][p]*Mode[l][q];
-                           }
-                  for (int m=0;m<dofs;m++)
-                     for (int n=0;n<dofs;n++)
-                        for (int p=0;p<dofs;p++)
-                        {
-                           Eijkl[i][j][k][l] += D3[m*dofs + n][p]
-                              *Mode[i][m]*(Mode[j][n]*Vij[k][l][p]
-                                           + Mode[k][n]*Vij[j][l][p]
-                                           + Mode[l][n]*Vij[j][k][p]);
-                        }
+                  for (int c=0;c<dofs;c++)
+                  {
+                     EijT[i][j] += D3[a*dofs + b][c]*DrDt[c]*Mode[i][a]*Mode[j][b];
+                  }
+                  EijT[i][j] += D2T[a][b]*Mode[i][a]*Mode[j][b];
                }
+         }
       
       // Print out results
-      if (Echo_) cout << "\n" << "3rd Order Bifurcation Equations:" << "\n";
-      out <<  "\n" << "3rd Order Bifurcation Equations:" << "\n";
+      for (int i=0;i<70;i++)
+      {
+         out << "-";
+         if (Echo_) cout << "-";
+      }
+      out << "\n"; if (Echo_) cout << "\n";
+      
+      // Print out the critical point character test (Limit-load/Bifurcation)
+      Bif = 1;
+      for (int i=0;i<count;++i)
+      {
+         double z=0.0;
+         for (int j=0;j<dofs;++j)
+         {
+            z+= Mode[i][j]*D1T[j];
+         }
+         if (fabs(z) > Tolerance) Bif = 0;
+         out << "StressDT*Mode[" << i << "] = " << setw(Width) << z << "\n";
+         if (Echo_) cout << "StressDT*Mode[" << i << "] = " << setw(Width) << z << "\n";
+      }
+      
+      out << "\n" << "\n" << "2nd Order Bifurcation Equations:" << "\n";
+      if (Echo_) cout << "\n" << "\n" << "2nd Order Bifurcation Equations:" << "\n";
+      
+      int prec = out.precision();
+      
+      out.flags(ios::scientific); out << setprecision(prec/2);
+      if (Echo_) cout.flags(ios::scientific); cout << setprecision(prec/2);
       
       for (int i=0;i<count;i++)
       {
          for (int j=0;j<count;j++)
             for (int k=j;k<count;k++)
-               for (int l=k;l<count;l++)
-               {
-                  if (Echo_) cout << "(" << setw(Width)
-                                  << Eijkl[i][j][k][l] + ( (j==k)?0.0:Eijkl[i][k][j][l] )
-                                + ( (j==l)?0.0:Eijkl[i][l][k][j] ) + ( (k==l)?0.0:Eijkl[i][j][l][k] )
-                                  << ")a_" << j
-                                  << "a_"  << k
-                                  << "a_"  << l
-                                  << " + ";
-                  out << "(" << setw(Width)
-                      << Eijkl[i][j][k][l] + ( (j==k)?0.0:Eijkl[i][k][j][l] )
-                     + ( (j==l)?0.0:Eijkl[i][l][k][j] ) + ( (k==l)?0.0:Eijkl[i][j][l][k] )
-                      << ")a_" << j
-                      << "a_"  << k
-                      << "a_"  << l
-                      << " + ";
-               }
+            {
+               if (Echo_) cout << "(" << setw(Width)
+                               << Eijk[i][j][k] + ( (j==k)?0.0:Eijk[i][k][j] )
+                               << ")a_" << j
+                               << "a_"  << k
+                               << " + ";
+               out << "(" << setw(Width)
+                   << Eijk[i][j][k] + ( (j==k)?0.0:Eijk[i][k][j] )
+                   << ")a_" << j
+                   << "a_"  << k
+                   << " + ";
+            }
          
-         if (Echo_) cout << "3T_2( ";
-         out << "3T_2( ";
+         out << "2T_1( ";
+         if (Echo_) cout << "2T_1( ";
          
          for (int j=0;j<count-1;j++)
          {
@@ -746,28 +586,196 @@ int Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
              << " ) = 0" << "\n";
       }
       
-      //-------- output coefficients -----------
-      out << "\n" << "Eijkl = " << "\n";
-      if (Echo_) cout << "\n" << "Eijkl = " << "\n";
+      //------- output coefficients ----------
+      out << "\n" << "DrDt = " << setw(Width) << DrDt << "\n";
+      if (Echo_) cout << "\n" << "DrDt = " << setw(Width) << DrDt << "\n";
+      out << "Eijk = " << "\n";
+      if (Echo_) cout << "Eijk = " << "\n";
       for (int i=0;i<count;++i)
          for (int j=0;j<count;++j)
          {
             for (int k=0;k<count;++k)
-               for (int l=0;l<count;++l)
-               {
-                  out << setw(Width) << Eijkl[i][j][k][l];
-                  if (Echo_) cout << setw(Width) << Eijkl[i][j][k][l];
-               }
+            {
+               out << setw(Width) << Eijk[i][j][k];
+               if (Echo_) cout << setw(Width) << Eijk[i][j][k];
+            }
             out << "\n";
             if (Echo_) cout << "\n";
          }
       out << "\n";
       if (Echo_) cout << "\n";
+      
+      out << "EijT = " << "\n";
+      if (Echo_) cout << "EijT = " << "\n";
+      for (int i=0;i<count;++i)
+      {
+         for (int j=0;j<count;++j)
+         {
+            out << setw(Width) << EijT[i][j];
+            if (Echo_) cout << setw(Width) << EijT[i][j];
+         }
+         out << "\n";
+         if (Echo_) cout << "\n";
+      }
+      out << "\n";
+      if (Echo_) cout << "\n";
       // ----------------------------
+      
+      if (LSKAnalysis_ > 1)
+      {
+         double Eijkl[BIFMAX][BIFMAX][BIFMAX][BIFMAX],
+            Vij[BIFMAX][BIFMAX][DOFMAX];
+         Matrix D4=E4(),
+            S(dofs-count,dofs);
+         
+         // Create projection operator
+         for (int t=0,j=0,i=0;i<dofs;i++)
+         {
+            if (Ind[t] == i)
+            {
+               t++;
+               continue;
+            }
+            else
+            {
+               for (int k=0;k<dofs;k++)
+               {
+                  S[j][k] = EigVec[k][i];
+               }
+               j++;
+            }
+         }
+         
+         Matrix Ainv=(S*D2*S.Transpose()).Inverse();
+         Matrix b(dofs-count,1);
+         
+         for (int i=0;i<count;i++)
+            for (int j=0;j<count;j++)
+            {
+               for (int n=0;n<dofs-count;n++)
+               {
+                  b[n][0] = 0.0;
+                  for (int k=0;k<dofs;k++)
+                     for (int l=0;l<dofs;l++)
+                        for (int m=0;m<dofs;m++)
+                        {
+                           b[n][0] += -S[n][k]*D3[k*dofs + l][m]*Mode[i][l]*Mode[j][m];
+                        }
+               }
+               
+               if (Echo_) cout << "\n" << "V[" << i << "][" << j << "]=";
+               out << "\n" << "V[" << i << "][" << j << "]=";
+               
+               for (int k=0;k<dofs;k++)
+               {
+                  Vij[i][j][k] = 0.0;
+                  for (int l=0;l<dofs-count;l++)
+                     for (int m=0;m<dofs-count;m++)
+                     {
+                        Vij[i][j][k] += S[l][k]*Ainv[l][m]*b[m][0];
+                     }
+                  if (Echo_) cout << setw(Width) << Vij[i][j][k];
+                  out << setw(Width) << Vij[i][j][k];
+               }
+            }
+         if (Echo_) cout << "\n";
+         out << "\n";
+         
+         // Eijkl
+         for (int i=0;i<count;i++)
+            for (int j=0;j<count;j++)
+               for (int k=0;k<count;k++)
+                  for (int l=0;l<count;l++)
+                  {
+                     Eijkl[i][j][k][l] = 0.0;
+                     for (int m=0;m<dofs;m++)
+                        for (int n=0;n<dofs;n++)
+                           for (int p=0;p<dofs;p++)
+                              for (int q=0;q<dofs;q++)
+                              {
+                                 Eijkl[i][j][k][l] += D4[m*dofs + n][p*dofs + q]
+                                    *Mode[i][m]*Mode[j][n]*Mode[k][p]*Mode[l][q];
+                              }
+                     for (int m=0;m<dofs;m++)
+                        for (int n=0;n<dofs;n++)
+                           for (int p=0;p<dofs;p++)
+                           {
+                              Eijkl[i][j][k][l] += D3[m*dofs + n][p]
+                                 *Mode[i][m]*(Mode[j][n]*Vij[k][l][p]
+                                              + Mode[k][n]*Vij[j][l][p]
+                                              + Mode[l][n]*Vij[j][k][p]);
+                           }
+                  }
+         
+         // Print out results
+         if (Echo_) cout << "\n" << "3rd Order Bifurcation Equations:" << "\n";
+         out <<  "\n" << "3rd Order Bifurcation Equations:" << "\n";
+         
+         for (int i=0;i<count;i++)
+         {
+            for (int j=0;j<count;j++)
+               for (int k=j;k<count;k++)
+                  for (int l=k;l<count;l++)
+                  {
+                     if (Echo_) cout << "(" << setw(Width)
+                                     << Eijkl[i][j][k][l] + ( (j==k)?0.0:Eijkl[i][k][j][l] )
+                                   + ( (j==l)?0.0:Eijkl[i][l][k][j] ) + ( (k==l)?0.0:Eijkl[i][j][l][k] )
+                                     << ")a_" << j
+                                     << "a_"  << k
+                                     << "a_"  << l
+                                     << " + ";
+                     out << "(" << setw(Width)
+                         << Eijkl[i][j][k][l] + ( (j==k)?0.0:Eijkl[i][k][j][l] )
+                        + ( (j==l)?0.0:Eijkl[i][l][k][j] ) + ( (k==l)?0.0:Eijkl[i][j][l][k] )
+                         << ")a_" << j
+                         << "a_"  << k
+                         << "a_"  << l
+                         << " + ";
+                  }
+            
+            if (Echo_) cout << "3T_2( ";
+            out << "3T_2( ";
+            
+            for (int j=0;j<count-1;j++)
+            {
+               if (Echo_) cout << "(" << setw(Width)
+                               << EijT[i][j]
+                               << ")a_" << j
+                               << " + ";
+               out << "(" << setw(Width)
+                   << EijT[i][j]
+                   << ")a_" << j
+                   << " + ";
+            }
+            if (Echo_) cout << "(" << setw(Width) << EijT[i][count-1] << ")a_" << count-1
+                            << " ) = 0" << "\n";
+            out << "(" << setw(Width) << EijT[i][count-1] << ")a_" << count-1
+                << " ) = 0" << "\n";
+         }
+         
+         //-------- output coefficients -----------
+         out << "\n" << "Eijkl = " << "\n";
+         if (Echo_) cout << "\n" << "Eijkl = " << "\n";
+         for (int i=0;i<count;++i)
+            for (int j=0;j<count;++j)
+            {
+               for (int k=0;k<count;++k)
+                  for (int l=0;l<count;++l)
+                  {
+                     out << setw(Width) << Eijkl[i][j][k][l];
+                     if (Echo_) cout << setw(Width) << Eijkl[i][j][k][l];
+                  }
+               out << "\n";
+               if (Echo_) cout << "\n";
+            }
+         out << "\n";
+         if (Echo_) cout << "\n";
+         // ----------------------------
+      }
+
+      out.flags(ios::fixed); out << setprecision(prec);
+      if (Echo_) cout.flags(ios::fixed); cout << setprecision(prec);
    }
-   
-   out.flags(ios::fixed); out << setprecision(prec);
-   if (Echo_) cout.flags(ios::fixed); cout << setprecision(prec);
    
    if (Echo_) cout << "\n";
    out << "\n";
@@ -778,7 +786,7 @@ int Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
    }
    if (Echo_) cout << "\n";
    out << "\n";
-
+   
    // output a new input file to help restart at this critical point
    int colms[DOFMAX][DOFMAX];
    int colmssgn[DOFMAX][DOFMAX];
@@ -795,11 +803,11 @@ int Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
       T[i] = dof[i];
    }
    T[dofs] = ((LoadParameter_ == Temperature) ? Temp() : Lambda());
-   if (Bif)
+   if (Bif > 0)
    {
       newinput << Input.ReconstructedInput();
       newinput << "\n\n";
-
+      
       for (int i=0;i<count;++i)
       {
          // make a guess at the new Restriction DOFS
@@ -825,7 +833,7 @@ int Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
                      foundflg = 1;
                   }
                }
-
+               
                if (!foundflg)
                {
                   colms[cnt][0] = j;

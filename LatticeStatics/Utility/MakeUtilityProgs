@@ -67,10 +67,11 @@ BLOCHWAVESOURCES = ./BlochWave.cpp
 NEIGHBORSSOURCES = ./NeighborDistances.cpp
 PRINTPOTENTIALS = ./PrintPotentials.cpp
 ENERGYLANDSCAPE = ./EnergyLandscape.cpp
+TWOBARTRUSS = ./TwoBarTrussModel.cpp
 #
 ALLSOURCES  = $(BSCSOURCES) $(RK1SOURCES) $(DISPERSIONSOURCES) \
 	      $(BLOCHWAVESOURCES) $(NEIGHBORSSOURCES) $(LONGWAVELENGTH) $(PRINTPOTENTIALS) \
-	      $(ENERGYLANDSCAPE)
+	      $(ENERGYLANDSCAPE) $(TWOBARTRUSS)
 
 
 # Defines the object files to be created using the SYSTEM name ############
@@ -83,13 +84,14 @@ BLOCHWAVEOBJECTS = $(BLOCHWAVESOURCES:$(SRC_EXT)=$(OBJ_EXT))
 NEIGHBORSOBJECTS = $(NEIGHBORSSOURCES:$(SRC_EXT)=$(OBJ_EXT))
 PRINTPOTSOBJECTS = $(PRINTPOTENTIALS:$(SRC_EXT)=$(OBJ_EXT))
 ENERGYLANDOBJECTS = $(ENERGYLANDSCAPE:$(SRC_EXT)=$(OBJ_EXT))
+TWOBARTRUSSOBJECTS = $(TWOBARTRUSS:$(SRC_EXT)=$(OBJ_EXT))
 #
 ALLOBJECTS = $(BSCOBJECTS) $(RK1OBJECTS) $(DISPERSIONOBJECTS) \
 	     $(BLOCHWAVEOBJECTS) $(NEIGHBORSOBJECTS) $(WAVELENGTHOBJECTS) $(PRINTPOTSOBJECTS) \
-	     $(ENERGYLANDOBJECTS)
+	     $(ENERGYLANDOBJECTS) $(TWOBARTRUSSOBJECTS)
 
 ALLPROGRAMS = Rank1Convex DispersionCurves BlochWave NeighborDistances\
-              LongWavelengthModuli PrintPotentials EnergyLandscape
+              LongWavelengthModuli PrintPotentials EnergyLandscape TwoBarTrussModel
 
 all: $(ALLPROGRAMS)
 
@@ -184,6 +186,18 @@ EnergyLandscape:      $(ENERGYLANDOBJECTS) $(BSCOBJECTS) \
 		      $(LIBS) ./lib/builddate.o
 		      /bin/rm -f ./lib/builddate.o
 
+# Defines the Program Target (linking command) ############################
+TwoBarTrussModel:     $(TWOBARTRUSSOBJECTS) $(BSCOBJECTS) \
+		      ../lib/TwoBarTruss$(OBJ_EXT)
+		      $(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/builddate.o -c builddate.cpp
+		      $(PURE) $(CC) $(LFLAGS) \
+		      -L$(LIB_LOC) -o ./bin/TwoBarTrussModel \
+		      $(addprefix lib/,$(TWOBARTRUSSOBJECTS)) \
+		      ../lib/Lattice$(OBJ_EXT) ../lib/TwoBarTruss$(OBJ_EXT) \
+		      ./lib/PerlInput$(OBJ_EXT) ./lib/UtilityFunctions$(OBJ_EXT)\
+		      $(LIBS) ./lib/builddate.o
+		      /bin/rm -f ./lib/builddate.o
+
 # include the dependicies
 include $(addprefix depend/,$(BSCOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 include $(addprefix depend/,$(RK1OBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
@@ -193,6 +207,7 @@ include $(addprefix depend/,$(BLOCHWAVEOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 include $(addprefix depend/,$(NEIGHBORSOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 include $(addprefix depend/,$(PRINTPOTSOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 include $(addprefix depend/,$(ENERGYLANDOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
+include $(addprefix depend/,$(TWOBARTRUSSOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 
 # Define object file dependicies and make rule
 ./lib/PerlInput.o: Makefile
@@ -224,6 +239,7 @@ uninstall:
 	/bin/rm -f $(BIN_LOC)/NeighborDistances
 	/bin/rm -f $(BIN_LOC)/PrintPotentials
 	/bin/rm -f $(BIN_LOC)/EnergyLandscape
+	/bin/rm -f $(BIN_LOC)/TwoBarTrussModel
 
 # Removes the current systems set of object files and executable file
 .PHONY: clean
@@ -244,6 +260,7 @@ clean:
 		  bin/NeighborDistances \
 		  bin/PrintPotentials \
 		  bin/EnergyLandscape \
+		  bin/TwoBarTrussModel \
 		  core *~ \
 		  depend/*.d
 

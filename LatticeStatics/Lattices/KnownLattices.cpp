@@ -22,6 +22,10 @@ Lattice* const InitializeLattice(PerlInput& Input,int const&  Echo,int const& Wi
    {
       return new TwoBarTruss(Input,Echo,Width);
    }
+   else if (!strcmp("TwoBarTrussExternal",Lat))
+   {
+      return new TwoBarTrussExternal(Input,Echo,Width);
+   }
    else
    {
       cerr << "Unknown Lattice Type " << "\n";

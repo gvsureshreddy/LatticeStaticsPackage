@@ -3,4 +3,5 @@ LATTICES = KnownLattices.cpp\
 	   MultiLatticeTPP.cpp\
 	   MultiChainTPP.cpp\
 	   MultiChainTTPP.cpp\
-	   TwoBarTruss.cpp
+	   TwoBarTruss.cpp\
+	   TwoBarTrussExternal.cpp

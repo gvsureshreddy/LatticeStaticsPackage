@@ -22,9 +22,9 @@ $Rtheta2_0_0 = -0.137957188144 - 0.0082;
 $B0_1_1  = 7.0;
 $Rtheta1_1_1 = 0.275914376289;
 
-%Lattice = (Type            => MultiLatticeTPP, # MultiLatticeTPP, MultiChainTPP, MultiChainTTPP, TwoBarTruss
-            #OrderedTFs     => No, # Default value = No, Yes
-            #ThirdOrder     => No, # Default value = No, Yes
+%Lattice = (Type            => MultiLatticeTPP, # MultiLatticeTPP, MultiChainTPP, MultiChainTTPP, TwoBarTruss, TwoBarTrussExternal
+            #OrderedTFs      => No, # Default value = No, Yes
+            #LSKAnalysis     => SecondOrder, # Default value = SecondOrder, ThirdOrder, None
             MultiLatticeTPP => 
             {CBKinematics        => {Type => LagrangeCB, # SymLagrangeCB, SymLagrangeWTransCB, LagrangeCB, MixedCB, EulerCB
                                      InternalAtoms => 4,
@@ -176,7 +176,7 @@ $Rtheta1_1_1 = 0.275914376289;
                                  },
             TwoBarTruss => {Caching => Yes, # Yes, No
                             Theta   => 65*$DEG2RAD
-                              }
+                              },
             );
 
 # Restriction Parameters
