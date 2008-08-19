@@ -102,6 +102,7 @@ $(BIN_LOC)/$(EXE):	$(EXE)
 	/bin/cp bin/$(EXE) $(BIN_LOC)
 	/bin/cp gpl_scripts/AddRank1Convex $(BIN_LOC)
 	/bin/cp gpl_scripts/MultiLattice2gpl $(BIN_LOC)
+	/bin/cp gpl_scripts/MultiChain2gpl $(BIN_LOC)
 	/bin/cp gpl_scripts/TwoBarTruss2gpl $(BIN_LOC)
 	/bin/cp gpl_scripts/BlochWaveRecalc $(BIN_LOC)
 	/bin/cp gpl_scripts/CoarsenOutput $(BIN_LOC)
@@ -112,6 +113,7 @@ uninstall:
 	/bin/rm -f $(BIN_LOC)/$(EXE)
 	/bin/rm -f $(BIN_LOC)/AddRank1Convex
 	/bin/rm -f $(BIN_LOC)/MultiLattice2gpl
+	/bin/rm -f $(BIN_LOC)/MultiChain2gpl
 	/bin/rm -f $(BIN_LOC)/TwoBarTruss2gpl
 	/bin/rm -f $(BIN_LOC)/BlochWaveRecalc
 	/bin/rm -f $(BIN_LOC)/CoarsenOutput
