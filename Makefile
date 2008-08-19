@@ -33,6 +33,11 @@ install:
 	$(MAKE) -e -C LinearAlgebra install
 	$(MAKE) -e -C LatticeStatics install
 
+uninstall: 
+	$(MAKE) -e -C MyMath uninstall
+	$(MAKE) -e -C LinearAlgebra uninstall
+	$(MAKE) -e -C LatticeStatics uninstall
+
 clean: 
 	$(MAKE) -e -C MyMath clean
 	$(MAKE) -e -C LinearAlgebra clean
