@@ -1215,7 +1215,7 @@ void MultiChainTTPP::Print(ostream& out,PrintDetail const& flag)
              << "CondEV Info:" << setw(W) << CondEV
              << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << "\n"
              << "BlochWave Stability:" << setw(W) << BlochWaveStable << ", "
-             << setw(W) << K << "\n";
+             << setw(W) << K << endl;
          // send to cout also
          if (Echo_)
          {
@@ -1241,7 +1241,7 @@ void MultiChainTTPP::Print(ostream& out,PrintDetail const& flag)
                  << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << "\n"
                  << "BlochWave Stability (GridSize=" << GridSize_ << "):"
                  << setw(W) << BlochWaveStable << ", "
-                 << setw(W) << K << "\n";
+                 << setw(W) << K << endl;
          }
          break;
    }

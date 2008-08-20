@@ -1848,7 +1848,7 @@ void MultiLatticeTPP::Print(ostream& out,PrintDetail const& flag)
              << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << "\n"
              << "BlochWave Stability (GridSize=" << GridSize_ << "):"
              << setw(W) << BlochWaveStable << ", "
-             << setw(W) << K_static << "\n";
+             << setw(W) << K_static << endl;
          // send to cout also
          if (Echo_)
          {
@@ -1879,7 +1879,7 @@ void MultiLatticeTPP::Print(ostream& out,PrintDetail const& flag)
                  << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << "\n"
                  << "BlochWave Stability (GridSize=" << GridSize_ << "):"
                  << setw(W) << BlochWaveStable << ", "
-                 << setw(W) << K_static << "\n";
+                 << setw(W) << K_static << endl;
          }
          break;
    }

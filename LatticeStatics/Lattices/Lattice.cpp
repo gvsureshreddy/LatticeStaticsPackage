@@ -478,7 +478,9 @@ int Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
       }
    }
    
-   // Print out the Eigenvectors
+   // Print out the Eigenvalues and Eigenvectors
+   out << "EigenValues" << "\n" << setw(Width) << EigVal;
+   if (Echo_) cout << "EigenValues" << "\n" << setw(Width) << EigVal;
    out << "EigenVectors" << "\n" << setw(Width) << EigVec;
    if (Echo_) cout << "EigenVectors" << "\n" << setw(Width) << EigVec;
    
@@ -784,8 +786,8 @@ int Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
       if (Echo_) cout << "-";
       out << "-";
    }
-   if (Echo_) cout << "\n";
-   out << "\n";
+   if (Echo_) cout << endl;
+   out << endl;
    
    // output a new input file to help restart at this critical point
    int colms[DOFMAX][DOFMAX];
@@ -810,6 +812,8 @@ int Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
       
       for (int i=0;i<count;++i)
       {
+         // initialize cnt
+         cnt = 0;
          // make a guess at the new Restriction DOFS
          for (int j=0;j<DOFMAX;++j)
          {
@@ -843,6 +847,7 @@ int Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
                }
             }
          }
+         
          for (int j=0;j<cnt;++j)
          {
             Input.writePosIntVector(newinput,&(colms[j][0]),colmscnt[j],
@@ -1066,7 +1071,7 @@ void Lattice::ConsistencyCheck(double const& ConsistencyEpsilon,int const& Width
    
    if (Echo_)
    {
-      for (int i=0;i<70;i++) cout << "="; cout << "\n";
+      for (int i=0;i<70;i++) cout << "="; cout << endl;
    }
-   for (int i=0;i<70;i++) out << "="; out << "\n";
+   for (int i=0;i<70;i++) out << "="; out << endl;
 }
