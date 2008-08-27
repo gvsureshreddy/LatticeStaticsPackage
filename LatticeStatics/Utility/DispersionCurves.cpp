@@ -117,8 +117,8 @@ int main(int argc,char *argv[])
                            << "#" << setw(Width) << DOF << "\n";;
             
             Lat->DispersionCurves(Line[i],NoPTS,"",out);
-            out << "\n" << "\n";
-            if (Echo) cout << "\n" << "\n";
+            out  << "\n";
+            if (Echo) cout << "\n";
             
             fscanf(pipe,"%s",tmp);
          }
