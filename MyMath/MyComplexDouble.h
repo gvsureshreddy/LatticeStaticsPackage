@@ -58,6 +58,8 @@ public:
    friend MyComplexDouble operator/(MyComplexDouble const& A,
                                     MyComplexDouble const& B);
    friend MyComplexDouble operator/(MyComplexDouble const& A,double const& B);
+   friend MyComplexDouble operator/(double const& A,MyComplexDouble const& B)
+   {return MyComplexDouble(A)/B;}
    friend double abs(MyComplexDouble const& A) {return A.mod();}
    friend MyComplexDouble sqrt(MyComplexDouble const& A);
 
