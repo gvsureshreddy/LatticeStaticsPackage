@@ -100,7 +100,7 @@ int main()
       e[i] = double(rand()%10);
       f[i] = double(rand()%10);
    }
-
+   CMatrix CG = CD;
 
    cout << setiosflags(ios::fixed) << setprecision(12);
 //   cout << setiosflags(ios::scientific) << setprecision(12);
@@ -224,6 +224,22 @@ int main()
    cout << "V" << "\n" << setw(20) << D << "\n";
 
    cout << "SVD" << "\n" << setw(20) << B*C*D.Transpose() << "\n";
+
+   // check complex QR
+   CMatrix CQ,CR;
+   QR(CG,CQ,CR);
+
+   cout << "Test complex QR" << "\n";
+   cout << "CG" << "\n" << setw(20) << CG << "\n";
+   cout << "CQ" << "\n" << setw(20) << CQ  << "\n";
+   cout << "CR" << "\n" << setw(20) << CR << "\n";
+   CMatrix CZ = CQ*CR;
+   cout << "A=Q*R" << "\n" << setw(20) << CZ << "\n";
+   CMatrix CI = CQ*CQ.ConjTrans();
+   cout << "CI=Q*Q^*" << "\n" << setw(20) << CI << "\n";
+
+   cout << "CA" << "\n" << setw(20) << CA << "\n";
+   cout << "RightEigVals(CA)" << "\n" << setw(20) << RightEigVals(CA) << "\n";
 
    // check cholesky
    Matrix DD,UU;
@@ -396,6 +412,7 @@ int main()
    cout << "Test QR" << "\n";
 
    cout << "A" << "\n" << setw(20) << AA << "\n";
+
 
    cout << "Q" << "\n" << setw(20) << Q  << "\n";
 

@@ -4,7 +4,7 @@
 #include <cmath>
 
 // Global IDString
-char CMatrixID[]="$Id: CMatrix.cpp,v 1.18 2008/07/24 15:08:10 elliott Exp $";
+char CMatrixID[]="$Id: CMatrix.cpp,v 1.19 2008/09/11 15:44:55 elliott Exp $";
 
 // Private Methods...
 
@@ -727,6 +727,130 @@ Matrix HermiteEigVal(CMatrix A,CMatrix* const B,int const& MaxItr,double const& 
    }
    
    return EigVals;
+}
+
+void QR(CMatrix const& A,CMatrix& Q,CMatrix& R,int const& CalcTranspose)
+{
+   int i,j,k,m,n;
+   CMatrix::Elm c,s,r,A1,A2,tau;
+
+   if (CalcTranspose)
+   {
+      m=A.Cols_;
+      n=A.Rows_;
+   }
+   else
+   {
+      m=A.Rows_;
+      n=A.Cols_;
+   }
+
+   //initialize R and Q
+   R.Resize(m,n);
+   for (i=0;i<m;++i)
+   {
+      for (j=0;j<n;++j)
+      {
+	 if (CalcTranspose)
+	    R[i][j] = A[j][i];
+	 else
+	    R[i][j] = A[i][j];
+      }
+   }
+   Q.SetIdentity(m);
+
+   // Perform Givens rotations G
+   for (j=0;j<m;++j)
+   {
+      for (i=m-1;i>j;--i)
+      {
+         // calculate G such that G^T*R sets R[i][j] = 0
+         if (abs(R[i][j]) == 0.0)
+         {
+            c=1.0; s=0.0;
+         }
+         else if (abs(R[i-1][j]) == 0.0)
+         {
+            c=0.0; s=1.0;
+         }
+         else
+         {
+            if (abs(R[i][j]) > abs(R[i-1][j]))
+            {
+               tau = -R[i-1][j]/R[i][j];
+               c = sqrt(tau*tau.conj()/(1.0+tau*tau.conj()));
+               s = c/tau;
+            }
+            else
+            {
+               tau = -R[i][j]/R[i-1][j];
+               c = 1.0/sqrt(1.0+tau*tau.conj());
+               s = tau*c;
+            }
+         }
+
+         for (k=j;k<n;++k)
+         {
+            // perform G^T* R
+            A1 = R[i-1][k];
+            A2 = R[i][k];
+            R[i-1][k] = A1*c - A2*s.conj();
+            R[i][k] = A1*s + A2*c;
+         }
+
+         for (k=0;k<m;++k)
+         {
+            // perform Q*G
+            A1 = Q[k][i-1];
+            A2 = Q[k][i];
+            Q[k][i-1] = A1*c - A2*s;
+            Q[k][i] = A1*s.conj() + A2*c;
+         }
+      }
+   }
+}
+
+CMatrix RightEigVals(CMatrix const& A,int const& MaxItr,double const& Tol)
+{
+   if (!A.IsSquare())
+   {
+      cerr << "Error: RightEigVals --- A is not square." << "\n";
+      exit(-51);
+   }
+   
+   CMatrix T(A);
+   CMatrix Q,R;
+   int n=A.Rows();
+   int converged=0;
+   int iterations = 0;
+
+   while ((!converged) && (iterations < MaxItr))
+   {
+      iterations++;
+      QR(T,Q,R);
+      T = R*Q;
+      converged = 1;
+      for (int i=n-1;i>0;--i)
+      {
+         for (int j=0;j<i;++j)
+         {
+            if (abs(T[i][j]) > Tol)
+            {
+               converged = 0;
+            }
+         }
+      }
+   }
+
+   CMatrix REVs(1,n);
+   for (int i=0;i<n;++i)
+      REVs[0][i] = T[i][i];
+
+   if (iterations >= MaxItr)
+   {
+      cerr << "Error: RightEigVals did not converge!" << "\n";
+   }
+   return REVs;
 }
 
 void Cholesky(CMatrix const& A,CMatrix& U,CMatrix& D)

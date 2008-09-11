@@ -165,11 +165,11 @@ public:
    //
    // Assumes Symmetric Matrix (thus uses only Upper Diagonal part of A
    // Note: will fail if A has EigenValue of 0.0
-   friend void QR(Matrix const& A,Matrix& Q,Matrix& R,int const& CalcTranspose=0);
-   // QR decomposition of A
-
    friend void Cholesky(Matrix const& A,Matrix& U,Matrix& D);
 
+   // QR decomposition of A
+   friend void QR(Matrix const& A,Matrix& Q,Matrix& R,int const& CalcTranspose=0);
+   
    // Return solution x of the linear system A*x=B
    // Uses PLU decomposition and Forward and Backwards substitution
    friend Matrix SolvePLU(Matrix const& A,Matrix const& B);

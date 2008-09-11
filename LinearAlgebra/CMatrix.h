@@ -128,6 +128,18 @@ public:
    friend Matrix HermiteEigVal(CMatrix A,CMatrix* const B=0,int const& MaxItr=100,
 			       double const& Tol=1.0e-13);
 
+   // QR decomposition
+   //
+   // A   = Q*R  -- CalcTranspose = 0
+   // A^T = Q*R  -- CalcTranspose = 1
+   friend void QR(CMatrix const& A,CMatrix& Q,CMatrix& R,int const& CalcTranspose=0);
+
+   // Right Eigenvalues
+   //
+   // Find the right eigenvalues of a complex matrix using the QR algorithm
+   friend CMatrix RightEigVals(CMatrix const& A,int const& MaxItr=5000,
+                               double const& Tol=1.0e-13);
+
    // Cholesky Decomposition of CMatrix
    // A=U.ConjTrans()*D*U
    //
