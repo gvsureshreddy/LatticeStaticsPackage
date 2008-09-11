@@ -123,10 +123,12 @@ int FullScanRank1Convex3D(CBKinematics const* const CBK,Matrix const& K,double c
                for (int k=0;k<3;k++)
                   for (int l=0;l<3;l++)
                   {
-                     A[i][j] += K[CBK->INDF(k,i)][CBK->INDF(j,l)] * n[k] * n[l];
+                     // only the symmetric part is important
+                     A[i][j] += 0.5*(K[CBK->INDF(k,i)][CBK->INDF(j,l)]
+                                     + K[CBK->INDF(k,j)][CBK->INDF(i,l)]) * n[k] * n[l];
                   }
             }
-         
+
          Eigvals = SymEigVal(A);
          for(int i=0;i<3;i++)
             if (Eigvals[0][i] <= 0.0) return 0;
@@ -158,7 +160,9 @@ int FullScanRank1Convex2D(Matrix const& K,double const& dx)
             for (int k=0;k<2;k++)
                for (int l=0;l<2;l++)
                {
-                  A[i][j] += K[IND2D(k,i)][IND2D(j,l)] * n[k] * n[l];
+                  // only the symmetric part is importatin
+                  A[i][j] += 0.5*(K[IND2D(k,i)][IND2D(j,l)]
+                                  + K[IND2D(k,j)][IND2D(i,l)]) * n[k] * n[l];
                }
          }
       

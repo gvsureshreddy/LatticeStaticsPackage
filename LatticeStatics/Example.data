@@ -39,8 +39,8 @@ $Rtheta1_1_1 = 0.275914376289;
              RotationConstraint  => [FullRotationConstraint],
              #RotationConstraint  => [NoRotationConstraint],
              #RotationConstraint  => [OneRotationConstraint,
-             #                        [1.0, 1.0, 0.0],
-             #                        [-1.0, 1.0, 0.0]],
+             #                        [1.0,-1.0, 0.0],
+             #                        [0.0, 0.0, 1.0]],
              Tref                => 300.0,
              AtomSpecies         => [0, 1, 0, 1],
              # Ni-Ni

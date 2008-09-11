@@ -499,7 +499,7 @@ sub loaddata {
             $noneg[0],$Convex[0],$blochwave[0];
           }
         }
-        elsif ($stableflag == 0)
+        elsif (($stableflag == 0) && ($bifpt[1] != 1))
         {
           if (!$firstunstable)
           {
@@ -592,7 +592,7 @@ sub loaddata {
               $firststable=0;
             }
           }
-          elsif ($stableflag == 0)
+          elsif (($stableflag == 0) && ($bifpt[0] != 1))
           {
             $nostable +=1;
             $stabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . $FSPEC . $FSPEC,
