@@ -62,7 +62,7 @@ void PerlInput::Readfile(char const* const datafile)
 void PerlInput::Readfile(char const* const datafile,char const* const prefix)
 {
    char templt[]
-      = "$___dmy = \"\"; open(___INPUT,%s) or die \"can't open file for input from perl.\";"
+      = "$___dmy = \"\"; open(___INPUT,\"%s\") or die \"can't open file for input from perl.\";"
       "while(<___INPUT>){ if ( /^%s/ ) {$_ =~ s/^%s//;"
       "$___dmy = $___dmy . $_;}}; close(___INPUT);";
    char temp[512];
