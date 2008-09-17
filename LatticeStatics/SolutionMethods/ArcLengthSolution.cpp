@@ -465,9 +465,10 @@ void ArcLengthSolution::ArcLengthNewton(int& good)
    // Iterate until convergence
 
    itr++;
+   // get stiffness first for efficiency
+   stif=ArcLenStiffness(Difference_,Aspect_);
    RHS = -ArcLenForce(CurrentDS_,Difference_,Aspect_);
    ForceNorm = RHS.Norm();
-   stif=ArcLenStiffness(Difference_,Aspect_);
 #ifdef SOLVE_SVD
    Dx = SolveSVD(
       stif,
@@ -486,9 +487,10 @@ void ArcLengthSolution::ArcLengthNewton(int& good)
 
       ArcLenUpdate(Dx);
       Difference_ += Dx;
+      // get stiffness first for efficiency
+      stif=ArcLenStiffness(Difference_,Aspect_);
       RHS = -ArcLenForce(CurrentDS_,Difference_,Aspect_);
       ForceNorm = RHS.Norm();
-      stif=ArcLenStiffness(Difference_,Aspect_);
 #ifdef SOLVE_SVD
       Dx = SolveSVD(
          stif,

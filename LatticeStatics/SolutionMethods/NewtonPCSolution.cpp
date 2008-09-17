@@ -447,10 +447,10 @@ int NewtonPCSolution::FindNextSolution()
       cout << "Taking Predictor Step. CurrentDS = " << CurrentDS_;
 
       Restrict_->SetDOF(v_static);
+      // get stiffness first for efficiency
+      Stiff_static = Restrict_->Stiffness();
       Force_static = Restrict_->Force();
       forcenorm = Force_static.Norm();
-      
-      Stiff_static = Restrict_->Stiffness();
       QR(Stiff_static, Q_static, R_static, 1);
       
       for(i=0;i<count;i++)

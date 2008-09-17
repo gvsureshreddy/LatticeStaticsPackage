@@ -449,12 +449,13 @@ void ScanningSolution::ScanningNewton(int& good)
       ScanningDefParamUpdate(-LineStep_);
    }
 
+   Matrix Stiff=ScanningStiffness();
 #ifdef SOLVE_SVD
-   dx = SolveSVD(ScanningStiffness(),
+   dx = SolveSVD(Stiff,
                  RHS,
                  MAXCONDITION,Echo_);
 #else
-   dx = SolvePLU(ScanningStiffness(),RHS);
+   dx = SolvePLU(Stiff,RHS);
 #endif
 
    ScanningUpdate(dx);
@@ -473,18 +474,21 @@ void ScanningSolution::ScanningNewton(int& good)
    while ((dx.Norm() > NewtonTolerance_) && (itr < MaxIter_))
    {
       itr++;
+
+      //get stiffness first for efficiency
+      Stiff=ScanningStiffness();
+      RHS=-ScanningForce();
+
+      if (Echo_) cout << "ScanningNewton(dx) = " << setw(20) << dx
+                      << ", RHS = " << setw(20) << RHS << "\n";
       
 #ifdef SOLVE_SVD
-      dx=SolveSVD(ScanningStiffness(),
-                  -ScanningForce(),
-                  MAXCONDITION,Echo_);
+      dx=SolveSVD(Stiff,RHS,MAXCONDITION,Echo_);
 #else
-      dx=SolvePLU(ScanningStiffness(),-ScanningForce());
+      dx=SolvePLU(Stiff,RHS);
 #endif
       
       ScanningUpdate(dx);
-      if (Echo_) cout << "ScanningNewton(dx) = " << setw(20) << dx
-                      << ", RHS = " << setw(20) << ScanningForce() << "\n";
    }
    
    if (itr >= MaxIter_)
