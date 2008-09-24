@@ -2,7 +2,7 @@
 
 using namespace std;
 
-extern "C" void get_qc_(int* mode,int& nfree,double* u,double& t,double& E,double* Eu,
+extern "C" void get_qc_(int& mode,int& nfree,double* u,double& t,double& E,double* Eu,
                         double* Euu,double* Eut);
 
 QC::~QC()
@@ -27,8 +27,8 @@ QC::QC(PerlInput const& Input,int const& Echo,int const& Width):
    E1CachedValue_.Resize(DOFS_);
    E1DLoadCachedValue_.Resize(DOFS_);
    E2CachedValue_.Resize(DOFS_,DOFS_);
-   EmptyV_.Resize(2,0.0);
-   EmptyM_.Resize(2,2,0.0);
+   EmptyV_.Resize(DOFS_,0.0);
+   EmptyM_.Resize(DOFS_,DOFS_,0.0);
 
    LoadParameter_ = Load;
    for (int i=0;i<cachesize;++i)
@@ -42,13 +42,15 @@ void QC::UpdateValues(UpdateFlag flag) const
 {
    if (NoStiffness==flag)
    {
-      get_qc_(0,DOFS_,&(DOF_[0]),Lambda_,E0CachedValue_,&(E1CachedValue_[0]),0,0);
+      int mode=0;
+      get_qc_(mode,DOFS_,&(DOF_[0]),Lambda_,E0CachedValue_,&(E1CachedValue_[0]),0,0);
       Cached_[0]=1;
       Cached_[1]=1;
    }
    else if (NeedStiffness==flag)
    {
-      get_qc_(1,DOFS_,&(DOF_[0]),Lambda_,E0CachedValue_,&(E1CachedValue_[0]),
+      int mode=1;
+      get_qc_(mode,DOFS_,&(DOF_[0]),Lambda_,E0CachedValue_,&(E1CachedValue_[0]),
               &(E2CachedValue_[0][0]),&(E1DLoadCachedValue_[0]));
       Cached_[0]=1;
       Cached_[1]=1;
