@@ -26,6 +26,14 @@ Lattice* const InitializeLattice(PerlInput& Input,int const&  Echo,int const& Wi
    {
       return new TwoBarTrussExternal(Input,Echo,Width);
    }
+   else if (!strcmp("DFTExternal",Lat))
+   {
+      return new DFTExternal(Input,Echo,Width);
+   }
+   else if (!strcmp("QC",Lat))
+   {
+      return new QC(Input,Echo,Width);
+   }
    else
    {
       cerr << "Unknown Lattice Type " << "\n";

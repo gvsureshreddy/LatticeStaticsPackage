@@ -22,7 +22,7 @@ $Rtheta2_0_0 = -0.137957188144 - 0.0082;
 $B0_1_1  = 7.0;
 $Rtheta1_1_1 = 0.275914376289;
 
-%Lattice = (Type            => MultiLatticeTPP, # MultiLatticeTPP, MultiChainTPP, MultiChainTTPP, TwoBarTruss, TwoBarTrussExternal
+%Lattice = (Type            => MultiLatticeTPP, # MultiLatticeTPP, MultiChainTPP, MultiChainTTPP, TwoBarTruss, TwoBarTrussExternal, DFTExternal
             #OrderedTFs      => No, # Default value = No, Yes
             #LSKAnalysis     => SecondOrder, # Default value = SecondOrder, ThirdOrder, None
             MultiLatticeTPP => 
@@ -177,6 +177,8 @@ $Rtheta1_1_1 = 0.275914376289;
             TwoBarTruss => {Caching => Yes, # Yes, No
                             Theta   => 65*$DEG2RAD
                               },
+            DFTExternal => {DOFS => 9
+                              }
             );
 
 # Restriction Parameters

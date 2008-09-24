@@ -6,6 +6,7 @@ VPATH = bin lib depend Lattices Restrictions SolutionMethods Potentials Utility
 UNAME      = $(shell uname)
 
 EXE        = LatticeStatics
+LIBRARY    = libBFBSymPac.a
 SRC_EXT    = .cpp
 OBJ_EXT    = .o
 DEP_EXT    = .d
@@ -51,7 +52,7 @@ LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(DATE_DEF) $(LIBS_PERL)
 BIN_LOC    = ${HOME}/bin
 INCL_LOC   = ${HOME}/include
 LIB_LOC    = ${HOME}/lib
-SUBDIRS    = Lattices Restrictions SolutionMethods Potentials Utility
+SUBDIRS    = Lattices Restrictions SolutionMethods Potentials Utility gpl_scripts
 
 # Defines the source files needed #########################################
 include $(addsuffix /Makefile, $(SUBDIRS))
@@ -95,29 +96,28 @@ KnownPotentials.o: Makefile
 
 .PHONY: install uninstall
 # Define install
-install: $(BIN_LOC)/$(EXE) Utilities
+install: $(BIN_LOC)/$(EXE) $(addprefix $(BIN_LOC)/,$(GPLSCRIPTS)) $(LIB_LOC)/$(LIBRARY) Utilities
 	$(MAKE) -e -C ./Utility -f MakeUtilityProgs install
+
+$(LIB_LOC)/$(LIBRARY): $(OBJECTS) Utility/BFBSymPacCInterface.cpp
+	$(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/builddate.o -c Utility/builddate.cpp
+	$(CC) $(CCFLAGS) -I. $(addprefix -I ,$(SUBDIRS)) -I $(INCL_LOC)/  -o ./lib/BFBSymPacCInterface.o -c Utility/BFBSymPacCInterface.cpp
+	ar -r $(LIB_LOC)/$(LIBRARY) $(addprefix ./lib/,$(filter-out QC-stub.o,$(OBJECTS))) ./lib/builddate.o ./lib/BFBSymPacCInterface.o
+	/bin/rm -f ./lib/builddate.o
+	/bin/rm -f ./lib/BFBSymPacCInterface.o
+	ranlib $(LIB_LOC)/$(LIBRARY)
 
 $(BIN_LOC)/$(EXE):	$(EXE)
 	/bin/cp bin/$(EXE) $(BIN_LOC)
-	/bin/cp gpl_scripts/AddRank1Convex $(BIN_LOC)
-	/bin/cp gpl_scripts/MultiLattice2gpl $(BIN_LOC)
-	/bin/cp gpl_scripts/MultiChain2gpl $(BIN_LOC)
-	/bin/cp gpl_scripts/TwoBarTruss2gpl $(BIN_LOC)
-	/bin/cp gpl_scripts/BlochWaveRecalc $(BIN_LOC)
-	/bin/cp gpl_scripts/CoarsenOutput $(BIN_LOC)
-	/bin/cp gpl_scripts/CoarsenGPL $(BIN_LOC)
+
+$(addprefix $(BIN_LOC)/,$(GPLSCRIPTS)):	$(BIN_LOC)/%: gpl_scripts/%
+	/bin/cp gpl_scripts/$(@F) $(BIN_LOC)
 
 # Define uninstall
 uninstall:
 	/bin/rm -f $(BIN_LOC)/$(EXE)
-	/bin/rm -f $(BIN_LOC)/AddRank1Convex
-	/bin/rm -f $(BIN_LOC)/MultiLattice2gpl
-	/bin/rm -f $(BIN_LOC)/MultiChain2gpl
-	/bin/rm -f $(BIN_LOC)/TwoBarTruss2gpl
-	/bin/rm -f $(BIN_LOC)/BlochWaveRecalc
-	/bin/rm -f $(BIN_LOC)/CoarsenOutput
-	/bin/rm -f $(BIN_LOC)/CoarsenGPL
+	/bin/rm -f $(LIB_LOC)/$(LIBRARY)
+	/bin/rm -f $(addprefix $(BIN_LOC)/,$(GPLSCRIPTS))
 	$(MAKE) -e -C ./Utility -f MakeUtilityProgs uninstall
 
 

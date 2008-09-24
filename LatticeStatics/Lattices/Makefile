@@ -4,4 +4,7 @@ LATTICES = KnownLattices.cpp\
 	   MultiChainTPP.cpp\
 	   MultiChainTTPP.cpp\
 	   TwoBarTruss.cpp\
-	   TwoBarTrussExternal.cpp
+	   TwoBarTrussExternal.cpp\
+	   DFTExternal.cpp\
+	   QC.cpp\
+	   QC-stub.cpp
