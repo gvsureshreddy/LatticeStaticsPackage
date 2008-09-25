@@ -284,7 +284,8 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
    
    if (flag==NeedStiffness)
    {
-      in >> E2CachedValue_;
+      Matrix CSym(6,6);
+      in >> CSym;
       Matrix C(9,9);
       for (int i=0;i<3;++i)
          for (int j=0;j<3;++j)
@@ -293,11 +294,11 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
                {
                   int a = ((i==j)? i : (6-(i+j)));
                   int b = ((k==l)? k : (6-(k+l)));
-                  C[3*i+j][3*k+l] = E2CachedValue_[a][b];
+                  C[3*i+j][3*k+l] = CSym[a][b];
                }
       Matrix HInv = H.Inverse();
       C = HInv*C*(HInv.Transpose());
-      E2CachedValue_.Resize(6,6,0.0);
+      Matrix L(6,6,0.0);
       for (int i=0;i<3;++i)
          for (int j=0;j<3;++j)
             for (int k=0;k<3;++k)
@@ -305,8 +306,44 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
                {
                   int a = ((i==j)? i : (6-(i+j)));
                   int b = ((k==l)? k : (6-(k+l)));
-                  E2CachedValue_[a][b] += C[3*i+j][3*k+l];
+                  L[a][b] += UDet*C[3*i+j][3*k+l];
                }
+      for (int i=0;i<6;++i)
+         for (int j=0;j<6;++j)
+         {
+            E2CachedValue_[i][j] = L[i][j];
+         }
+      Matrix D(DOFS_-6,6);
+      in >> D;
+      Matrix DTmp(DOFS_-6,9);
+      for (int i=0;i<DOFS_-6;++i)
+         for (int j=0;j<3;++j)
+            for (int k=0;k<3;++k)
+            {
+               int a = ((j==k)? j : (6-(j+k)));
+               DTmp[i][3*j+k] = D[i][a];
+            }
+      DTmp = UDet*DTmp*(HInv.Transpose());
+      Matrix DFinal(DOFS_-6,6,0.0);
+      for (int i=0;i<DOFS_-6;++i)
+         for (int j=0;j<3;++j)
+            for (int k=0;k<3;++k)
+            {
+               int a = ((j==k)? j : (6-(j+k)));
+               DFinal[i][a] += DTmp[i][3*j+k];
+            }
+      for (int i=6;i<DOFS_;++i)
+         for (int j=0;j<6;++j)
+         {
+            E2CachedValue_[i][j] = E2CachedValue_[j][i] = DFinal[i][j];
+         }
+      Matrix P(DOFS_-6,DOFS_-6);
+      in >> P;
+      for (int i=6;i<DOFS_;++i)
+         for (int j=6;j<DOFS_;++j)
+         {
+            E2CachedValue_[i][j] = UDet*P[i-6][j-6];
+         }
 
       E2CachedValue_ += PressureStiffness;
       Cached_[3] = 1;
