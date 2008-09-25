@@ -13,6 +13,10 @@ const double DFTExternal::Alt[3][3][3] = {{{0.0, 0.0, 0.0},
                                            {-1.0, 0.0, 0.0},
                                            {0.0, 0.0, 0.0}}};
 
+const double DFTExternal::Del[3][3] = {{1.0, 0.0, 0.0},
+                                       {0.0, 1.0, 0.0},
+                                       {0.0, 0.0, 1.0}};
+
 DFTExternal::~DFTExternal()
 {
    cout << "DFTExternal Function Calls:\n"
@@ -85,14 +89,22 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
    cerr << "DFTExternal system() call returned with id: " << retid << endl;
 
    // calculate pressure terms.
+   Matrix B(3,3);
+   B[0][0] = DOF_[0];
+   B[1][1] = DOF_[1];
+   B[2][2] = DOF_[2];
+   B[1][2]=B[2][1] = DOF_[3];
+   B[2][0]=B[0][2] = DOF_[4];
+   B[0][1]=B[1][0] = DOF_[5];
    Matrix U(3,3);
-   U[0][0] = 1.0+DOF_[0];
+   U[0][0] = 1.0 +DOF_[0];
    U[1][1] = 1.0+DOF_[1];
    U[2][2] = 1.0+DOF_[2];
    U[1][2]=U[2][1] = DOF_[3];
    U[2][0]=U[0][2] = DOF_[4];
    U[0][1]=U[1][0] = DOF_[5];
-   double PressureEnergy = Lambda_*U.Det();
+   double UDet = U.Det();
+   double PressureEnergy = Lambda_*UDet;
    Matrix PressureTerm = PressureEnergy*U.Inverse();
    Vector PressureStress(DOFS_,0.0);
    PressureStress[0] = PressureTerm[0][0];
@@ -229,17 +241,43 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
       exit(-2);
    }
 
-   in >> E0CachedValue_;
+   in >> E0CachedValue_;   
    E0CachedValue_ += PressureEnergy;
    Cached_[0] = 1;
 
-   for (int i=0;i<6;++i)
-   {
-      in >> E1CachedValue_[i];
-   }
+   Matrix H(9,9);
+   for (int k=0;k<3;++k)
+      for (int l=0;l<3;++l)
+         for (int i=0;i<3;++i)
+            for (int j=0;j<3;++j)
+            {
+               H[3*i+j][3*k+l] = 0.25*(B[j][l]*Del[k][i] + B[i][l]*Del[k][j] +
+                                       B[j][k]*Del[l][i] + B[i][k]*Del[l][j]);
+            }
+   // get stresses
+   Vector tmp(6);
+   in >> tmp;
+   Vector Tmp(9);
+   for (int i=0;i<3;++i)
+      for (int j=0;j<3;++j)
+      {
+         int a = ((i==j)? i : (6-i+j));
+         Tmp[3*i+j] = tmp[a];
+      }
+   Tmp = SolvePLU(H,Tmp);
+   // initialize
+   E1CachedValue_.Resize(DOFS_,0.0);
+   for (int i=0;i<3;++i)
+      for (int j=0;j<3;++j)
+      {
+         int a = ((i==j)? i : (6-i+j));
+         E1CachedValue_[a] += 2.0*UDet*Tmp[3*i+j];
+      }
+   // get forces
    for (int i=6;i<DOFS_;++i)
    {
       in >> E1CachedValue_[i];
+      E1CachedValue_[i] *= UDet;
    }
    E1CachedValue_ += PressureStress;
    Cached_[1] = 1;
@@ -247,6 +285,29 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
    if (flag==NeedStiffness)
    {
       in >> E2CachedValue_;
+      Matrix C(9,9);
+      for (int i=0;i<3;++i)
+         for (int j=0;j<3;++j)
+            for (int k=0;k<3;++k)
+               for (int l=0;l<3;++l)
+               {
+                  int a = ((i==j)? i : (6-(i+j)));
+                  int b = ((k==l)? k : (6-(k+l)));
+                  C[3*i+j][3*k+l] = E2CachedValue_[a][b];
+               }
+      Matrix HInv = H.Inverse();
+      C = HInv*C*(HInv.Transpose());
+      E2CachedValue_.Resize(6,6,0.0);
+      for (int i=0;i<3;++i)
+         for (int j=0;j<3;++j)
+            for (int k=0;k<3;++k)
+               for (int l=0;l<3;++l)
+               {
+                  int a = ((i==j)? i : (6-(i+j)));
+                  int b = ((k==l)? k : (6-(k+l)));
+                  E2CachedValue_[a][b] += C[3*i+j][3*k+l];
+               }
+
       E2CachedValue_ += PressureStiffness;
       Cached_[3] = 1;
    }
@@ -288,7 +349,8 @@ Vector const& DFTExternal::E1DLoad() const
       U[1][2]=U[2][1] = DOF_[3];
       U[2][0]=U[0][2] = DOF_[4];
       U[0][1]=U[1][0] = DOF_[5];
-      Matrix PressureTerm = U.Det()*U.Inverse();
+      double UDet = U.Det();
+      Matrix PressureTerm = UDet*U.Inverse();
       E1DLoadCachedValue_.Resize(DOFS_,0.0);
       E1DLoadCachedValue_[0] = PressureTerm[0][0];
       E1DLoadCachedValue_[1] = PressureTerm[1][1];

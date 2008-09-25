@@ -77,6 +77,7 @@ private:
    Matrix EmptyM_;
 
    static const double Alt[3][3][3];
+   static const double Del[3][3];
 };
 
 #endif
