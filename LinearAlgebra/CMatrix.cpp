@@ -4,7 +4,7 @@
 #include <cmath>
 
 // Global IDString
-char CMatrixID[]="$Id: CMatrix.cpp,v 1.19 2008/09/11 15:44:55 elliott Exp $";
+char CMatrixID[]="$Id: CMatrix.cpp,v 1.20 2008/09/26 01:41:25 elliott Exp $";
 
 // Private Methods...
 
@@ -729,6 +729,7 @@ Matrix HermiteEigVal(CMatrix A,CMatrix* const B,int const& MaxItr,double const& 
    return EigVals;
 }
 
+// find QR factorization of A or A.Transpose()
 void QR(CMatrix const& A,CMatrix& Q,CMatrix& R,int const& CalcTranspose)
 {
    int i,j,k,m,n;
@@ -791,7 +792,7 @@ void QR(CMatrix const& A,CMatrix& Q,CMatrix& R,int const& CalcTranspose)
 
          for (k=j;k<n;++k)
          {
-            // perform G^T* R
+            // perform G^T*R
             A1 = R[i-1][k];
             A2 = R[i][k];
             R[i-1][k] = A1*c - A2*s.conj();
