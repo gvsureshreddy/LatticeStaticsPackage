@@ -63,29 +63,30 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
       exit(-1);
    }
    out << setiosflags(ios::scientific) << setprecision(20);
-   if (flag==NeedStiffness)
-   {
-      out << 1 << "\n";
-   }
-   else
-   {
-      out << 0 << "\n";
-   }
    for (int i=0;i<6;++i)
    {
       out << setw(30) << DOF_[i];
    }
    out << "\n";
+   int q=0;
    for (int i=6;i<DOFS_;++i)
    {
+      q = (q+1)%4;
       out << setw(30) << DOF_[i];
+      if (q==3) out << "\n";
    }
-   out << "\n";
 
    out.close();
 
    // update with correct command.
-   retid=system("DFTModel DFTModelInput DFTModelOutput >& /dev/null");
+   if (NoStiffness)
+   {
+      retid=system("./script_main 1 >& /dev/null");
+   }
+   else
+   {
+      retid=system("./script_main 2 >& /dev/null");
+   }
    cerr << "DFTExternal system() call returned with id: " << retid << endl;
 
    // calculate pressure terms.
@@ -234,7 +235,7 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
       }
    }
    
-   in.open("DFTModelOutput",ios::in);
+   in.open("in.latpak",ios::in);
    if (in.fail())
    {
       cerr << "Error: Unable to open file : " << "DFTModelOutput " << "for read" << "\n";
