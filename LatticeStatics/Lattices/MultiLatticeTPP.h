@@ -113,7 +113,7 @@ public:
    virtual void DispersionCurves(Vector const& K,int const& NoPTS,char const* const prefix,
                                  ostream& out) const
    {ReferenceDispersionCurves(K,NoPTS,prefix,out);}
-   virtual int BlochWave(Vector& K)
+   virtual int BlochWave(Vector& K) const
    {return ReferenceBlochWave(K);}
    virtual void LongWavelengthModuli(double const& dk,int const& gridsize,
                                      char const* const prefix,ostream& out) const;
