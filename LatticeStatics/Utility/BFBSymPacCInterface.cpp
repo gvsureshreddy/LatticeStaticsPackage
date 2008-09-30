@@ -59,9 +59,7 @@ extern "C" void bfb_init_wrapper_(int& nfree,double* ufree_init,double& t,char* 
      Input.EvaluateString(tmp.str().c_str());
      GetMainSettings(Width,Precision,BisectCP,Echo,Input);
      
-     fstream out;
      InitializeOutputFile(out,outfile.str().c_str(),bfbfile,0,Precision,Width,Echo);
-     out.flush();
 
      Lat = InitializeLattice(Input,Echo,Width,0);
      Lat->SetDOF(utmp);
@@ -97,14 +95,11 @@ extern "C" void bfb_wrapper_(int& bfbreturncode)
      OldTestValue = TestValue;
      TestValue = Lat->TestFunctions(EigenValues);
      if ((OldTestValue != TestValue) && (BisectCP == Yes) && (OldTestValue != -1))
-       //SolveMe->FindCriticalPoint(Lat,TotalNumCPs,Input,Width,out);
-     
+     {
+        SolveMe->FindCriticalPoint(Lat,TotalNumCPs,Input,Width,out);
+     }
      // Send Output
-     if (Echo)
-       {
-	 cout << "Restric DOF's:\n" << setw(Width) << Restrict->DOF() << "\n";
-       }
-     cout << setw(Width) << *Lat << "Success = 1" << "\n";
+     out << setw(Width) << *Lat << "Success = 1" << "\n";
    }
    
    if (SolveMe->AllSolutionsFound())
