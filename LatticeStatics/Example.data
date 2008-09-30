@@ -256,9 +256,8 @@ $ArcLenDSMax = 0.01;
               );
 
 #%StartType = (Type  => ConsistencyCheck,
-#              Solution1 => [1.000000000000, 1.000000000000],
-#              Solution2 => [1.000033386242, 1.010000000000],
-#              ConsistencyEpsilon => 1e-8
+#              Solution => [1.000000000000, 1.000000000000],
+#              Epsilon => 1e-8
 #              );
               
 # NewtonPCSolution StartTypes: Bifurcation, Continuation, ConsistencyCheck
@@ -268,9 +267,10 @@ $ArcLenDSMax = 0.01;
 #              );
 
 #%StartType = (Type      => Continuation,
-#              Solution1 => [1.000000000000, 1.000000000000],
+#              Solution => [1.000000000000, 1.000000000000],
 #              );
 
-#%StartType = (Type  => ConsistencyCheck#,
-#              # not programmed at present
+#%StartType = (Type  => ConsistencyCheck,
+#              Solution => [1.000000000000, 1.000000000000],
+#              Epsilon => 1e-8
 #              );

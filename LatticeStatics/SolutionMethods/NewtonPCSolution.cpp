@@ -357,8 +357,8 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
       Tangent1_.Resize(count);
       Tangent2_.Resize(count);
 
-      Vector onetmp(Input.getArrayLength("StartType","Solution1"));
-      Input.getVector(onetmp,"StartType","Solution1");
+      Vector onetmp(Input.getArrayLength("StartType","Solution"));
+      Input.getVector(onetmp,"StartType","Solution");
       one = Restrict_->RestrictDOF(onetmp);
       
       FirstSolution_.Resize(one.Dim());
@@ -374,11 +374,25 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
          Tangent1_[i] = Tangent2_[i] = Direction_ * Q[i][count_minus_one];
       }
    }
-   else if (!strcmp("ConsistenceCheck",starttype))
+   else if (!strcmp("ConsistencyCheck",starttype))
    {
-      // ConsistencyCheck
-      
-      // do nothing for now
+      double ConsistencyEpsilon;
+      int Width;
+      Vector Solution(count);
+
+      Vector onetmp(Input.getArrayLength("StartType","Solution"));
+      Input.getVector(onetmp,"StartType","Solution");
+      Solution = Restrict_->RestrictDOF(onetmp);
+      // Get Epsilon and Width
+      ConsistencyEpsilon = Input.getDouble("StartType","Epsilon");
+      Width = Input.getPosInt("Main","FieldWidth");
+
+      fstream::fmtflags oldflags=cout.flags();
+      cout << scientific;
+      Restrict_->ConsistencyCheck(Solution,ConsistencyEpsilon,Width,cout);
+      cout.flags(oldflags);
+      // We're done
+      CurrentSolution_ = NumSolutions_;
    }
    else
    {

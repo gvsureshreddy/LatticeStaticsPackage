@@ -37,8 +37,6 @@ private:
    Vector Difference_;
    
    void ArcLengthNewton(int& good);
-   void ConsistencyCheck(Vector const& Solution1,Vector const& Solution2,
-                         double const& ConsistencyEpsilon,int const& Width,fstream& out);
    virtual void OldFindCriticalPoint(int const& LHN,double const& LHEV,int const& RHN,
                                      double const& RHEV,Lattice* const Lat,int& TotalNumCPs,
                                      PerlInput const& Input,int const& Width,fstream& out);

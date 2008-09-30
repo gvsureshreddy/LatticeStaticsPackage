@@ -20,6 +20,9 @@ public:
    virtual Vector UnTransformVector(Vector const& T) = 0;
    virtual void SetDOF(Vector const& dof) = 0;
    virtual void UpdateDOF(Vector const& dr) = 0;
+
+   void ConsistencyCheck(Vector const& dof,double const& ConsistencyEpsilon,int const& Width,
+                         ostream& out);
    
    virtual char const* const Name() const = 0;
    friend ostream& operator<<(ostream& out,Restriction const& R)
