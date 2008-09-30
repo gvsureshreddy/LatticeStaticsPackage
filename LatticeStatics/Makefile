@@ -41,9 +41,9 @@ endif
 TERMINAL   = -DUNIX_TERMINAL
 DATE_DEF   = -DBUILD_DATE="$(BUILD_DATE)"
 SOLVE      = -DSOLVE_SVD
-CC_PERL     = `perl -MExtUtils::Embed -e ccopts`
+CC_PERL     = `perl -MExtUtils::Embed -e ccopts | sed -e 's/-arch[^-]*//g'`
 CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS) $(SOLVE) $(TERMINAL) $(CC_PERL)
-LIBS_PERL   = `perl -MExtUtils::Embed -e ldopts`
+LIBS_PERL   = `perl -MExtUtils::Embed -e ldopts | sed -e 's/-arch[^-]*//g'`
 LIBS       = -lLinearAlgebra -lMyMath -lm
 LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(DATE_DEF) $(LIBS_PERL)
 
