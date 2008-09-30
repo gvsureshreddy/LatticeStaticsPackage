@@ -81,11 +81,11 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
    // update with correct command.
    if (NoStiffness)
    {
-      retid=system("./script_main 1 >& /dev/null");
+      //   retid=system("./script_main 1 >& /dev/null");
    }
    else
    {
-      retid=system("./script_main 2 >& /dev/null");
+      //   retid=system("./script_main 2 >& /dev/null");
    }
    cerr << "DFTExternal system() call returned with id: " << retid << endl;
 
@@ -252,18 +252,16 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
          for (int i=0;i<3;++i)
             for (int j=0;j<3;++j)
             {
-               H[3*i+j][3*k+l] = 0.25*(B[j][l]*Del[k][i] + B[i][l]*Del[k][j] +
-                                       B[j][k]*Del[l][i] + B[i][k]*Del[l][j]);
+               H[3*i+j][3*k+l] = Del[k][i]*Del[l][j] + Del[k][i]*B[j][l];
             }
    // get stresses
-   Vector tmp(6);
+   Matrix tmp(3,3);
    in >> tmp;
    Vector Tmp(9);
    for (int i=0;i<3;++i)
       for (int j=0;j<3;++j)
       {
-         int a = ((i==j)? i : (6-i+j));
-         Tmp[3*i+j] = tmp[a];
+         Tmp[3*i+j] = tmp[i][j];
       }
    Tmp = SolvePLU(H,Tmp);
    // initialize
@@ -272,13 +270,12 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
       for (int j=0;j<3;++j)
       {
          int a = ((i==j)? i : (6-i+j));
-         E1CachedValue_[a] += 2.0*UDet*Tmp[3*i+j];
+         E1CachedValue_[a] += UDet*Tmp[3*i+j];
       }
    // get forces
    for (int i=6;i<DOFS_;++i)
    {
       in >> E1CachedValue_[i];
-      E1CachedValue_[i] *= UDet;
    }
    E1CachedValue_ += PressureStress;
    Cached_[1] = 1;
@@ -336,20 +333,19 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
       for (int i=6;i<DOFS_;++i)
          for (int j=0;j<6;++j)
          {
-            E2CachedValue_[i][j] = E2CachedValue_[j][i] = DFinal[i][j];
+            E2CachedValue_[i][j] = E2CachedValue_[j][i] = DFinal[i-6][j];
          }
       Matrix P(DOFS_-6,DOFS_-6);
       in >> P;
       for (int i=6;i<DOFS_;++i)
          for (int j=6;j<DOFS_;++j)
          {
-            E2CachedValue_[i][j] = UDet*P[i-6][j-6];
+            E2CachedValue_[i][j] = P[i-6][j-6];
          }
 
       E2CachedValue_ += PressureStiffness;
       Cached_[3] = 1;
    }
-
    in.close();
 }
 
