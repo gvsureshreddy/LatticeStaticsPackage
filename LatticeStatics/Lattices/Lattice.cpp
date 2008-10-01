@@ -893,7 +893,7 @@ int Lattice::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
          M[dofs] = 0.0;
          Input.writeVector(newinput,M,"StartType","Tangent");
       }
-      Input.writeVector(newinput,T,"StartType","Solution1");
+      Input.writeVector(newinput,T,"StartType","Solution");
    }
    
    if (dbg_)
