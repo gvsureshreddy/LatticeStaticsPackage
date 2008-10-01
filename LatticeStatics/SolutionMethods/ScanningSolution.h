@@ -69,8 +69,8 @@ public:
    // Functions required by SolutionMethod
    virtual int AllSolutionsFound() const;
    virtual int FindNextSolution();
-   virtual void FindCriticalPoint(Lattice* const Lat,int& TotalNumCPs,PerlInput const& Input,
-                                  int const& Width,fstream& out) {}
+   virtual void FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCrossings,
+                                  PerlInput const& Input,int const& Width,fstream& out) {}
 
 private:
    // "static" member variables

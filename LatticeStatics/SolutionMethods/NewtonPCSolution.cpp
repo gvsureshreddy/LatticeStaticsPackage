@@ -13,7 +13,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,
                                    double const& delta_max,double const& alpha_max,
                                    double const& Converge,Vector const& FirstSolution,
                                    int const& Direction,double const& accel_max,
-                                   int const& ClosedLoopStart,int const& StopAtCPNum,
+                                   int const& ClosedLoopStart,int const& StopAtCPCrossingNum,
                                    int const& Echo)
    : Restrict_(Restrict),
      Echo_(Echo),
@@ -28,7 +28,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,
      alpha_max_(alpha_max),
      Converge_(Converge),
      ClosedLoopStart_(ClosedLoopStart),
-     StopAtCPNum_(StopAtCPNum),
+     StopAtCPCrossingNum_(StopAtCPCrossingNum),
      Direction_(Direction),
      Omega_(1.0),
      accel_max_(accel_max),
@@ -131,13 +131,13 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
       ClosedLoopStart_ = Input.useInt(CLOSEDDEFAULT,Hash,"ClosedLoopStart"); // Default Value
    }
    
-   if (Input.ParameterOK(Hash,"StopAtCPNum"))
+   if (Input.ParameterOK(Hash,"StopAtCPCrossingNum"))
    {
-      StopAtCPNum_ = Input.getInt(Hash,"StopAtCPNum");
+      StopAtCPCrossingNum_ = Input.getInt(Hash,"StopAtCPCrossingNum");
    }
    else
    {
-      StopAtCPNum_ = Input.useInt(-1,Hash,"StopAtCPNum"); // Default Value
+      StopAtCPCrossingNum_ = Input.useInt(-1,Hash,"StopAtCPCrossingNum"); // Default Value
    }
    
    if (Input.ParameterOK(Hash,"Direction"))
@@ -265,13 +265,13 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
       ClosedLoopStart_ = Input.useInt(CLOSEDDEFAULT,Hash,"ClosedLoopStart"); // Default Value
    }
    
-   if (Input.ParameterOK(Hash,"StopAtCPNum"))
+   if (Input.ParameterOK(Hash,"StopAtCPCrossingNum"))
    {
-      StopAtCPNum_ = Input.getInt(Hash,"StopAtCPNum");
+      StopAtCPCrossingNum_ = Input.getInt(Hash,"StopAtCPCrossingNum");
    }
    else
    {
-      StopAtCPNum_ = Input.useInt(-1,Hash,"StopAtCPNum"); // Default Value
+      StopAtCPCrossingNum_ = Input.useInt(-1,Hash,"StopAtCPCrossingNum"); // Default Value
    }
    
    if (Input.ParameterOK(Hash,"Direction"))
@@ -610,7 +610,7 @@ int NewtonPCSolution::FindNextSolution()
    return good;
 }
 
-void NewtonPCSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPs,
+void NewtonPCSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCrossings,
                                          PerlInput const& Input,int const& Width,fstream& out)
 {
    int sz=PreviousSolution_.Dim();
@@ -627,10 +627,10 @@ void NewtonPCSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPs,
    ArcLengthSolution S1(Restrict_,Restrict_->DOF(),MaxIter,Converge_,Converge_,tmp_ds,
                         tmp_ds,tmp_ds,1.0,0.5,1.0,1,0,PreviousSolution_,
                         Restrict_->DOF()-PreviousSolution_,10,-1,Echo_);
-   S1.FindCriticalPoint(Lat,TotalNumCPs,Input,Width,out);
+   S1.FindCriticalPoint(Lat,TotalNumCPCrossings,Input,Width,out);
       
    // Check to see if we should stop
-   if ((StopAtCPNum_ > -1) && (TotalNumCPs >= StopAtCPNum_))
+   if ((StopAtCPCrossingNum_ > -1) && (TotalNumCPCrossings >= StopAtCPCrossingNum_))
       CurrentSolution_ = NumSolutions_;
 }
 

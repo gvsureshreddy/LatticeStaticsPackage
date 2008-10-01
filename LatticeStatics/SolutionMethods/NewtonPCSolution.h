@@ -31,7 +31,7 @@ private:
    double alpha_max_;           //Max angle to curve (must be less than pi/2)
    double Converge_;            //Convergence criteria
    int ClosedLoopStart_;        //Closed loop test variable
-   int StopAtCPNum_;            //Stop at critical point test flag
+   int StopAtCPCrossingNum_;    //Stop at critical point crossing test flag
    int Direction_;              //Direction of tangent
    double Omega_;               //Multiplier to help traverse bifurcation points
    double accel_max_;           //Max acceleration rate
@@ -54,7 +54,7 @@ public:
                     double const& cont_rate_max,double const& delta_max,double const& alpha_max,
                     double const& Converge,Vector const& FirstSolution,int const& Direction=1,
                     double const& accel_max=2.0,int const& ClosedLoopStart=CLOSEDDEFAULT,
-                    int const& StopAtCPNum=-1,int const& Echo=1);
+                    int const& StopAtCPCrossingNum=-1,int const& Echo=1);
    NewtonPCSolution(Restriction* const Restrict,PerlInput const& Input,Vector const& one,
                     int const& Echo=1);
    NewtonPCSolution(Restriction* const Restrict,PerlInput const& Input,int const& Echo);
@@ -63,8 +63,8 @@ public:
    // Functions required by SolutionMethod
    virtual int AllSolutionsFound() const;
    virtual int FindNextSolution();
-   virtual void FindCriticalPoint(Lattice* const Lat,int& TotalNumCPs,PerlInput const& Input,
-                                  int const& Width,fstream& out);
+   virtual void FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCrossings,
+                                  PerlInput const& Input,int const& Width,fstream& out);
    
 private:
    // "static" member variables

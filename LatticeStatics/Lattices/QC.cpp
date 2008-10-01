@@ -114,9 +114,6 @@ void QC::Print(ostream& out,PrintDetail const& flag)
    int NoNegTestFunctions;
    double engy;
    double mintestfunct;
-   Matrix
-      stiff(DOFS_,DOFS_);
-   Vector str(DOFS_);
    Vector TestFunctVals(DOFS_);
    
    W=out.width();
@@ -124,8 +121,6 @@ void QC::Print(ostream& out,PrintDetail const& flag)
    out.width(0);
    if (Echo_) cout.width(0);
    
-   stiff = E2();
-   str = E1();
    engy = E0();
    
    NoNegTestFunctions=TestFunctions(TestFunctVals,LHS);
@@ -147,26 +142,18 @@ void QC::Print(ostream& out,PrintDetail const& flag)
          }
          // passthrough to short
       case PrintShort:
-         out << "Lambda: " << setw(W) << Lambda_ << "\n"
-             << "DOF's :" << "\n" << setw(W) << DOF_ << "\n"
+         out << "Lambda (t): " << setw(W) << Lambda_ << "\n"
              << "Potential Value:" << setw(W) << engy << "\n";
 
-         out << "Stress:" << "\n" << setw(W) << str << "\n\n"
-             << "Stiffness:" << setw(W) << stiff
-             << "Eigenvalue Info:"  << "\n"<< setw(W) << TestFunctVals << "\n"
-             << "Bifurcation Info:" << setw(W) << mintestfunct
+         out << "Bifurcation Info:" << setw(W) << mintestfunct
              << setw(W) << NoNegTestFunctions << "\n";
          // send to cout also
          if (Echo_)
          {
-            cout << "Lambda: " << setw(W) << Lambda_ << "\n"
-                 << "DOF's :" << "\n" << setw(W) << DOF_ << "\n"
+            cout << "Lambda (t): " << setw(W) << Lambda_ << "\n"
                  << "Potential Value:" << setw(W) << engy << "\n";
 
-            cout << "Stress:" << "\n" << setw(W) << str << "\n\n"
-                 << "Stiffness:" << setw(W) << stiff
-                 << "Eigenvalue Info:"  << "\n" << setw(W) << TestFunctVals <<"\n"
-                 << "Bifurcation Info:" << setw(W) << mintestfunct
+            cout << "Bifurcation Info:" << setw(W) << mintestfunct
                  << setw(W) << NoNegTestFunctions << "\n";
          }
          break;

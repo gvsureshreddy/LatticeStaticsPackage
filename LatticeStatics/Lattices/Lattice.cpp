@@ -366,7 +366,8 @@ int Lattice::TestFunctions(Vector &TF1,StateType const& State,Vector* const TF2)
    return retval;
 }
 
-int Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
+int Lattice::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
+                               Vector const& DrDt,int const& NumZeroEigenVals,
                                double const& Tolerance,int const& Width,
                                PerlInput const& Input,ostream& out,ostream& newinput)
 {
@@ -398,6 +399,12 @@ int Lattice::CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
    }
    
    Matrix Mode;
+
+   out << "Critical Point Crossing Number: " << CPCrossingNum << CPSubNum << "\n";
+   if (Echo_)
+   {
+      cout << "Critical Point Crossing Number: " << CPCrossingNum << CPSubNum << "\n";
+   }
    
    // Find the modes
    int count = 0,

@@ -60,7 +60,8 @@ public:
    virtual void SetParameters(double const* const Vals,int const& ResetRef = 1) = 0;
    virtual void SetGridSize(int const& Grid) = 0;
    virtual void NeighborDistances(int const& cutoff,ostream& out) const {};
-   virtual int CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
+   virtual int CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
+                                 Vector const& DrDt,int const& NumZeroEigenVals,
                                  double const& Tolerance,int const& Width,
                                  PerlInput const& Input,ostream& out,ostream& newinput);
    void ConsistencyCheck(double const& ConsistencyEpsilon,int const& Width,ostream& out);
