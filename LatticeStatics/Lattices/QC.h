@@ -50,10 +50,11 @@ public:
 
    friend ostream& operator<<(ostream& out,QC& A);
    
+   virtual int CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
+                                 Vector const& DrDt,int const& NumZeroEigenVals,
+                                 double const& Tolerance,int const& Width,
+                                 PerlInput const& Input,ostream& out,ostream& newinput);
    // ignore these
-   virtual void CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
-                                  Vector const& DrDt,int const& NumZeroEigenVals,
-                                  double const& Tolerance,int const& Width,ostream& out) {}
    double Entropy() const {return 0.0;}
    double HeatCapacity() const {return 0.0;}
    Vector const& StressDT() const {return EmptyV_;}
