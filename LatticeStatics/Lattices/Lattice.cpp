@@ -369,7 +369,7 @@ int Lattice::TestFunctions(Vector &TF1,StateType const& State,Vector* const TF2)
 int Lattice::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
                                Vector const& DrDt,int const& NumZeroEigenVals,
                                double const& Tolerance,int const& Width,
-                               PerlInput const& Input,ostream& out,ostream& newinput)
+                               PerlInput const& Input,ostream& out)
 {
    Matrix
       D2=E2(),
@@ -802,8 +802,20 @@ int Lattice::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
    int colmscnt[DOFMAX];
    int cnt=0;
    int foundflg;
-   
-   newinput << setprecision(out.precision()) << scientific;
+
+   ostringstream cpfilename;
+   fstream cpfile;
+   cpfilename << Input.LastInputFileName();
+   if (2 == Bif)
+      cpfilename << ".CP.";
+   else if (1 == Bif)
+      cpfilename << ".BP.";
+   else
+      cpfilename << ".TP.";
+   cpfilename << setw(2) << setfill('0') << CPCrossingNum << CPSubNum;
+   cpfile.open(cpfilename.str().c_str(),ios::out);
+
+   cpfile << setprecision(out.precision()) << scientific;
    Vector T(dofs+1);
    Vector M(dofs+1);
    Vector dof=DOF();
@@ -814,8 +826,8 @@ int Lattice::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
    T[dofs] = ((LoadParameter_ == Temperature) ? Temp() : Lambda());
    if (Bif > 0)
    {
-      newinput << Input.ReconstructedInput();
-      newinput << "\n\n";
+      cpfile << Input.ReconstructedInput();
+      cpfile << "\n\n";
       
       for (int i=0;i<count;++i)
       {
@@ -857,19 +869,19 @@ int Lattice::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
          
          for (int j=0;j<cnt;++j)
          {
-            Input.writePosIntVector(newinput,&(colms[j][0]),colmscnt[j],
+            Input.writePosIntVector(cpfile,&(colms[j][0]),colmscnt[j],
                                     Input.useHash("Restriction","RestrictToTranslatedSubSpace"),
                                     "DOF_?",0);
             Vector z(colmscnt[j]);
             for (int k=0;k<colmscnt[j];++k) z[k] = colmssgn[j][k];
-            Input.writeVector(newinput,z,
+            Input.writeVector(cpfile,z,
                               Input.useHash("Restriction","RestrictToTranslatedSubSpace"),
                               "DOF_?",1);
          }
       }
-      newinput << "\n";
+      cpfile << "\n";
       
-      Input.writeString(newinput,"Bifurcation","StartType","Type");
+      Input.writeString(cpfile,"Bifurcation","StartType","Type");
       for (int i=0;i<count;++i)
       {
          for (int j=0;j<dofs;++j)
@@ -877,13 +889,13 @@ int Lattice::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
             M[j] = Mode[i][j];
          }
          M[dofs] = 0.0;
-         Input.writeVector(newinput,M,"StartType","Tangent");
+         Input.writeVector(cpfile,M,"StartType","Tangent");
       }
-      Input.writeVector(newinput,T,"StartType","BifurcationPoint");
+      Input.writeVector(cpfile,T,"StartType","BifurcationPoint");
    }
    else
    {
-      Input.writeString(newinput,"Continuation","StartType","Type");
+      Input.writeString(cpfile,"Continuation","StartType","Type");
       for (int i=0;i<count;++i) // be safe, cover a miss-identified bifurcation point
       {
          for (int j=0;j<dofs;++j)
@@ -891,10 +903,12 @@ int Lattice::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
             M[j] = Mode[i][j];
          }
          M[dofs] = 0.0;
-         Input.writeVector(newinput,M,"StartType","Tangent");
+         Input.writeVector(cpfile,M,"StartType","Tangent");
       }
-      Input.writeVector(newinput,T,"StartType","Solution");
+      Input.writeVector(cpfile,T,"StartType","Solution");
    }
+
+   cpfile.close();
    
    if (dbg_)
    {

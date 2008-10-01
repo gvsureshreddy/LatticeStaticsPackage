@@ -442,11 +442,8 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
    int CP;
    int spot;
    ostringstream in_string;
-   ostringstream in_newinput_string;
    int Bif;
    char CPSubNum = 'a';
-   fstream cpfile;
-   ostringstream cpfilename;
 
    // Setup in_string ios
    in_string << setiosflags(ios::fixed) << setprecision(out.precision());
@@ -551,32 +548,17 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
          // Call Lattice function to do any Lattice Specific things
          Bif=Lat->CriticalPointInfo(TotalNumCPCrossings,CPSubNum,
                                     Restrict_->DrDt(Difference_),Multiplicity,
-                                    10.0*Tolerance_,Width,Input,in_string,
-                                    in_newinput_string);
+                                    10.0*Tolerance_,Width,Input,in_string);
 
          if (Echo_) cout << "Success = 1" << "\n";
          in_string << "Success = 1" << "\n";
 
-         cpfilename.str("");
-         cpfilename << Input.LastInputFileName();
-         if (2 == Bif)
-            cpfilename << ".CP.";
-         else if (1 == Bif)
-            cpfilename << ".BP.";
-         else
-            cpfilename << ".TP.";
-         cpfilename << setw(2) << setfill('0') << TotalNumCPCrossings << CPSubNum;
-         cpfile.open(cpfilename.str().c_str(),ios::out);
-         cpfile << in_newinput_string.str();
-         cpfile.close();
-         
          DSTrack[spot] = CurrentDS_;
          out_string[spot] = in_string.str();
          Order[spot] = CPSubNum;
          num = num + 1;
          ++CPSubNum;
          in_string.str("");
-         in_newinput_string.str("");
       }//END OF IF STATEMENT
    }
    

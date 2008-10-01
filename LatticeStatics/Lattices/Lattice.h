@@ -63,7 +63,7 @@ public:
    virtual int CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
                                  Vector const& DrDt,int const& NumZeroEigenVals,
                                  double const& Tolerance,int const& Width,
-                                 PerlInput const& Input,ostream& out,ostream& newinput);
+                                 PerlInput const& Input,ostream& out);
    void ConsistencyCheck(double const& ConsistencyEpsilon,int const& Width,ostream& out);
    virtual void DebugMode() {};
    

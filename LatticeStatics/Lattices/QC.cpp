@@ -1,3 +1,6 @@
+#include <fstream>
+#include <string>
+#include <sstream>
 #include "QC.h"
 
 using namespace std;
@@ -112,7 +115,7 @@ Matrix const& QC::E2() const
 int QC::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
                           Vector const& DrDt,int const& NumZeroEigenVals,
                           double const& Tolerance,int const& Width,
-                          PerlInput const& Input,ostream& out,ostream& newinput)
+                          PerlInput const& Input,ostream& out)
 {
    Matrix
       D2=E2(),
@@ -243,7 +246,22 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
    qcbfb_restart_(fortranstring);
 
    // output a new input file to help restart at this critical point
-   newinput << setprecision(out.precision()) << scientific;
+   cpfilename.str("");
+   fstream cpfile;
+   char tmp[2048];
+   strcpy(tmp,Input.LastInputFileName());
+   tmp[strlen(tmp)-3] = 0;
+   cpfilename << tmp;
+   if (2 == Bif)
+      cpfilename << ".CP.";
+   else if (1 == Bif)
+      cpfilename << ".BP.";
+   else
+      cpfilename << ".TP.";
+   cpfilename << setw(2) << setfill('0') << CPCrossingNum << CPSubNum << ".bfb";
+   cpfile.open(cpfilename.str().c_str(),ios::out);
+
+   cpfile << setprecision(out.precision()) << scientific;
    Vector T(dofs+1);
    Vector M(dofs+1);
    Vector dof=DOF();
@@ -253,10 +271,10 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
    }
    T[dofs] = ((LoadParameter_ == Temperature) ? Temp() : Lambda());
 
-   newinput << Input.ReconstructedInput();
-   newinput << "\n\n";
+   cpfile << Input.ReconstructedInput();
+   cpfile << "\n\n";
    
-   Input.writeString(newinput,"Bifurcation","StartType","Type");
+   Input.writeString(cpfile,"Bifurcation","StartType","Type");
    for (int i=0;i<count;++i)
    {
       for (int j=0;j<dofs;++j)
@@ -264,9 +282,10 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
          M[j] = Mode[i][j];
       }
       M[dofs] = 0.0;
-      Input.writeVector(newinput,M,"StartType","Tangent");
+      Input.writeVector(cpfile,M,"StartType","Tangent");
    }
-   Input.writeVector(newinput,T,"StartType","BifurcationPoint");
+   Input.writeVector(cpfile,T,"StartType","BifurcationPoint");
+   cpfile.close();
    
    return Bif;
 }
