@@ -73,9 +73,10 @@ extern "C" void bfb_init_wrapper_(int& nfree,double* ufree_init,double& t,char* 
      
      tmp.str("");
      tmp << scientific << setprecision(Precision);
-     tmp << "$StartType{Solution1} = [";
-     for (int i=0;i<sol.Dim();++i)
-       tmp << setw(Width) << sol[i] << ",";
+     tmp << "$StartType{Solution} = [";
+     tmp << setw(Width) << sol[0];
+     for (int i=1;i<sol.Dim();++i)
+        tmp << "," << setw(Width) << sol[i];
      tmp << "];";
      Input.EvaluateString(tmp.str().c_str());
 
@@ -89,19 +90,21 @@ extern "C" void bfb_wrapper_(int& bfbreturncode)
    success=SolveMe->FindNextSolution();
    // always returns 1
    
-   if (success)
+   // Check for Critical Point Crossing
+   OldTestValue = TestValue;
+   TestValue = Lat->TestFunctions(EigenValues);
+   if ((OldTestValue != TestValue) && (BisectCP == Yes) && (OldTestValue != -1))
    {
-     // Check for Critical Point Crossing
-     OldTestValue = TestValue;
-     TestValue = Lat->TestFunctions(EigenValues);
-     if ((OldTestValue != TestValue) && (BisectCP == Yes) && (OldTestValue != -1))
-     {
-        SolveMe->FindCriticalPoint(Lat,TotalNumCPs,Input,Width,out);
-     }
-     // Send Output
-     out << setw(Width) << *Lat << "Success = 1" << "\n";
+      bfbreturncode = 2;
+      SolveMe->FindCriticalPoint(Lat,TotalNumCPs,Input,Width,out);
    }
-   
+   else
+   {
+      bfbreturncode = 0;
+   }
+   // Send Output
+   out << setw(Width) << *Lat << "Success = 1" << "\n";
+
    if (SolveMe->AllSolutionsFound())
    {
      out.close();
@@ -110,10 +113,6 @@ extern "C" void bfb_wrapper_(int& bfbreturncode)
      delete Lat;
 
      bfbreturncode=1;
-   }
-   else
-   {
-     bfbreturncode=0;
    }
 }
 
