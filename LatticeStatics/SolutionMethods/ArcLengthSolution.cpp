@@ -488,10 +488,11 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
    cout << "TestValueDiff = "<< TestValueDiff << "\n";
    for (int i = 0; i < TestValueDiff; i++)
    {
-      cout << "Index[" << i << "] = " << Index[i]
-           << ",   TF_LHS[" << Index[i] << "] = " << setw(Width) << TF_LHS_static[Index[i]]
-           << ",   TF_RHS[" << Index[i] << "] = " << setw(Width) << TF_RHS_static[Index[i]]
-           << "\n";
+      cout << "Index[" << setw(2) << i << "] = " << setw(6) << Index[i]
+           << ",   TF_LHS[" << setw(6) << Index[i] << "] = "
+           << setw(Width) << TF_LHS_static[Index[i]]
+           << ",   TF_RHS[" << setw(6) << Index[i] << "] = "
+           << setw(Width) << TF_RHS_static[Index[i]] << "\n";
    }
    
    num = 0;
