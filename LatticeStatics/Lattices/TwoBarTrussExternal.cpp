@@ -17,7 +17,6 @@ TwoBarTrussExternal::TwoBarTrussExternal(PerlInput const& Input,int const& Echo,
    DOFS_(2),
    DOF_(DOFS_,0.0),
    Lambda_(0.0),
-   Echo_(Echo),
    Width_(Width),
    E1CachedValue_(2),
    E1DLoadCachedValue_(2),
@@ -25,6 +24,7 @@ TwoBarTrussExternal::TwoBarTrussExternal(PerlInput const& Input,int const& Echo,
    EmptyV_(2,0.0),
    EmptyM_(2,2,0.0)
 {
+   Echo_ = Echo;
    LoadParameter_ = Load;
    for (int i=0;i<cachesize;++i)
    {

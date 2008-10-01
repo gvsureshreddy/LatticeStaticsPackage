@@ -19,7 +19,6 @@ private:
    double COSTheta_;
    double SINTheta_;
 
-   int Echo_;
    int Width_;
 
    int Caching_;
@@ -55,7 +54,8 @@ public:
    friend ostream& operator<<(ostream& out,TwoBarTruss& A);
    
    // ignore these
-   virtual void CriticalPointInfo(Vector const& DrDt,int const& NumZeroEigenVals,
+   virtual void CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
+                                  Vector const& DrDt,int const& NumZeroEigenVals,
                                   double const& Tolerance,int const& Width,ostream& out) {}
    double Entropy() const {return 0.0;}
    double HeatCapacity() const {return 0.0;}
