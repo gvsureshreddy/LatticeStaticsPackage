@@ -1,4 +1,5 @@
 #include <math.h>
+#include <fstream>
 #include <sstream>
 #include <string>
 #include "ArcLengthSolution.h"
@@ -215,7 +216,7 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const
       ConsistencyEpsilon = Input.getDouble("StartType","Epsilon");
       Width = Input.getPosInt("Main","FieldWidth");
 
-      fstream::fmtflags oldflags=cout.flags();
+      ostream::fmtflags oldflags=cout.flags();
       cout << scientific;
       Restrict_->ConsistencyCheck(Solution,ConsistencyEpsilon,Width,cout);
       cout.flags(oldflags);
@@ -424,7 +425,7 @@ void ArcLengthSolution::ArcLengthNewton(int& good)
 }
 
 void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCrossings,
-                                          PerlInput const& Input,int const& Width,fstream& out)
+                                          PerlInput const& Input,int const& Width,ostream& out)
 {
    Vector OriginalDiff=Difference_;
    double OriginalDS = CurrentDS_;

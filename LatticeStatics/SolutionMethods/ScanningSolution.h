@@ -70,7 +70,7 @@ public:
    virtual int AllSolutionsFound() const;
    virtual int FindNextSolution();
    virtual void FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCrossings,
-                                  PerlInput const& Input,int const& Width,fstream& out) {}
+                                  PerlInput const& Input,int const& Width,ostream& out) {}
 
 private:
    // "static" member variables

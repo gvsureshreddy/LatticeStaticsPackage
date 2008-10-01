@@ -7,7 +7,7 @@
 #include "NewtonPCSolution.h"
 
 SolutionMethod* InitializeSolution(Restriction* const Restrict,PerlInput const& Input,
-                                   Lattice* const Lat,fstream& out,int const& Width,
+                                   Lattice* const Lat,ostream& out,int const& Width,
                                    int const& Echo);
 
 #endif

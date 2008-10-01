@@ -2,8 +2,9 @@
 
 using namespace std;
 
-extern "C" void get_qc_(int& mode,int& nfree,double* u,double& t,double& E,double* Eu,
-                        double* Euu,double* Eut);
+extern "C" void qcbfb_energy_(int& mode,int& nfree,double* u,double& t,double& E,double* Eu,
+                             double* Euu,double* Eut);
+extern "C" void qcbfb_restart_(char* filename);
 
 QC::~QC()
 {
@@ -43,15 +44,15 @@ void QC::UpdateValues(UpdateFlag flag) const
    if (NoStiffness==flag)
    {
       int mode=0;
-      get_qc_(mode,DOFS_,&(DOF_[0]),Lambda_,E0CachedValue_,&(E1CachedValue_[0]),0,0);
+      qcbfb_energy_(mode,DOFS_,&(DOF_[0]),Lambda_,E0CachedValue_,&(E1CachedValue_[0]),0,0);
       Cached_[0]=1;
       Cached_[1]=1;
    }
    else if (NeedStiffness==flag)
    {
       int mode=1;
-      get_qc_(mode,DOFS_,&(DOF_[0]),Lambda_,E0CachedValue_,&(E1CachedValue_[0]),
-              &(E2CachedValue_[0][0]),&(E1DLoadCachedValue_[0]));
+      qcbfb_energy_(mode,DOFS_,&(DOF_[0]),Lambda_,E0CachedValue_,&(E1CachedValue_[0]),
+                   &(E2CachedValue_[0][0]),&(E1DLoadCachedValue_[0]));
       Cached_[0]=1;
       Cached_[1]=1;
       Cached_[2]=1;
@@ -115,14 +116,12 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
 {
    Matrix
       D2=E2(),
-      D2T(D2.Rows(),D2.Cols()),
       EigVec,
       EigVal=SymEigVal(D2,&EigVec);
    Vector D1T(D2.Cols());
    int Bif = 2;
    
    D1T=StressDL();
-   D2T=StiffnessDL();
    
    int dofs=D2.Rows();
    
@@ -140,13 +139,12 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
    
    for (int i=0;i<dofs;i++)
    {
-      Ind[i] = 0;
       if (fabs(EigVal[0][i]) < Tolerance)
       {
          Ind[count++]=i;
       }
    }
-   
+
    // Check for incorrect number of modes
    if (count != NumZeroEigenVals)
    {
@@ -215,11 +213,11 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
    
    // Print out the critical Eigenvalues
    out << "EigenValues: ";
-   if (Echo_) cout << "EigenValues" << "\n" << setw(Width) << EigVal;
+   if (Echo_) cout << "EigenValues: ";
    for (int i=0;i<count;++i)
    {
-      out << setw(Width) << EigVal[Ind[i]];
-      if (Echo_) cout << setw(Width) << EigVal[Ind[i]];
+      out << setw(Width) << EigVal[0][Ind[i]];
+      if (Echo_) cout << setw(Width) << EigVal[0][Ind[i]];
    }
    
    if (Echo_) cout << "\n";
@@ -232,6 +230,18 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
    if (Echo_) cout << endl;
    out << endl;
    
+   // output a QC restart file
+   ostringstream cpfilename;   
+   cpfilename << Input.LastInputFileName() << ".CP." << setw(2) << setfill('0')
+	      << CPCrossingNum << CPSubNum << ".res";
+   char fortranstring[80];
+   strcpy(fortranstring,cpfilename.str().c_str());
+   for (int i=strlen(fortranstring);i<80;++i)
+   {
+      fortranstring[i] = ' ';
+   }
+   qcbfb_restart_(fortranstring);
+
    // output a new input file to help restart at this critical point
    newinput << setprecision(out.precision()) << scientific;
    Vector T(dofs+1);

@@ -1,4 +1,5 @@
 #include <cmath>
+#include <fstream>
 #include "NewtonPCSolution.h"
 #include "Matrix.h"
 #include "ArcLengthSolution.h"
@@ -611,7 +612,7 @@ int NewtonPCSolution::FindNextSolution()
 }
 
 void NewtonPCSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCrossings,
-                                         PerlInput const& Input,int const& Width,fstream& out)
+                                         PerlInput const& Input,int const& Width,ostream& out)
 {
    int sz=PreviousSolution_.Dim();
    Vector tmp_diff(sz),tmp_DOF(Restrict_->DOF());
