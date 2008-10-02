@@ -566,6 +566,8 @@ sub loaddata {
         {
           $unstabletmp .= sprintf $FSPEC,$DOF[0][$i];
         }
+        $unstabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . "\n",
+        $noneg[0],$Convex[0],$blochwave[0];
       }
     }
     
