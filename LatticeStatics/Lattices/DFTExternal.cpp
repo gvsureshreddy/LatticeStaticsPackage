@@ -238,7 +238,7 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
    in.open("in.latpak",ios::in);
    if (in.fail())
    {
-      cerr << "Error: Unable to open file : " << "DFTModelOutput " << "for read" << "\n";
+      cerr << "Error: Unable to open file : " << "in.latpak " << "for read" << "\n";
       exit(-2);
    }
 
