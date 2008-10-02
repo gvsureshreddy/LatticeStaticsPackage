@@ -250,7 +250,7 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
    fstream cpfile;
    char tmp[2048];
    strcpy(tmp,Input.LastInputFileName());
-   tmp[strlen(tmp)-3] = 0;
+   tmp[strlen(tmp)-4] = 0;
    cpfilename << tmp;
    if (2 == Bif)
       cpfilename << ".CP.";

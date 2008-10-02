@@ -4,4 +4,5 @@ GPLSCRIPTS = AddRank1Convex\
 	     CoarsenOutput\
 	     MultiChain2gpl\
 	     MultiLattice2gpl\
-	     TwoBarTruss2gpl
+	     TwoBarTruss2gpl\
+	     QC2gpl

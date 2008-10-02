@@ -99,10 +99,10 @@ KnownPotentials.o: Makefile
 install: $(BIN_LOC)/$(EXE) $(addprefix $(BIN_LOC)/,$(GPLSCRIPTS)) $(LIB_LOC)/$(LIBRARY) Utilities
 	$(MAKE) -e -C ./Utility -f MakeUtilityProgs install
 
-$(LIB_LOC)/$(LIBRARY): $(OBJECTS) Utility/BFBSymPacCInterface.cpp
+$(LIB_LOC)/$(LIBRARY): $(filter-out LatticeStatics.o,$(OBJECTS)) Utility/BFBSymPacCInterface.cpp
 	$(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/builddate.o -c Utility/builddate.cpp
 	$(CC) $(CCFLAGS) -I. $(addprefix -I ,$(SUBDIRS)) -I $(INCL_LOC)/  -o ./lib/BFBSymPacCInterface.o -c Utility/BFBSymPacCInterface.cpp
-	ar -r $(LIB_LOC)/$(LIBRARY) $(addprefix ./lib/,$(filter-out QC-stub.o,$(OBJECTS))) ./lib/builddate.o ./lib/BFBSymPacCInterface.o
+	ar -r $(LIB_LOC)/$(LIBRARY) $(addprefix ./lib/,$(filter-out QC-stub.o LatticeStatics.o,$(OBJECTS))) ./lib/builddate.o ./lib/BFBSymPacCInterface.o
 	/bin/rm -f ./lib/builddate.o
 	/bin/rm -f ./lib/BFBSymPacCInterface.o
 	ranlib $(LIB_LOC)/$(LIBRARY)
