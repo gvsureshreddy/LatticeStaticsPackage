@@ -50,7 +50,7 @@ close(GNUPLOT);
 sub loaddata {
     my(@fields,@bifpt,@stress,@DOF,
        @potential,@noneg,
-       $stableflag,$stable_nodata,$unstable_nodata,$bifflag,$bifpoints,$turnpoints,
+       $stableflag,$stable_nodata,$unstable_nodata,$bifpoints,$turnpoints,
        $reconstturnpts,$loadgrad,$oldloadgrad,$recalc,
        $outputfl);
     $outputfl = $_[3];
@@ -94,23 +94,20 @@ sub loaddata {
 	{
 	    if ( /^===========/)
 	    {
-	      if ( $#bifpt < 0 || $bifflag==0 )
-	      {
-		push(@bifpt,1);
-		$bifflag=1;
-	      }
-	      else
-	      {
-		$bifflag=0;
-	      }
-
 	      $_=<DATA>;
 	      if ( /^Lambda/)
 	      {
 		@fields=split(/:/,$_);
 		push(@stress,$fields[1]);
+
+		push(@bifpt,1);
 	      }
+
 	      $_=<DATA>;
+	      if (!defined($_))
+	      {
+		last;
+	      }
 	    }
 
 	    if ( /^Lambda/)
