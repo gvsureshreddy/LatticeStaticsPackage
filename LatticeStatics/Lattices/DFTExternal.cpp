@@ -81,11 +81,11 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
    // update with correct command.
    if (NoStiffness)
    {
-      //   retid=system("./script_main 1 >& /dev/null");
+      retid=system("./script_main 1 >& /dev/null");
    }
    else
    {
-      //   retid=system("./script_main 2 >& /dev/null");
+      retid=system("./script_main 2 >& /dev/null");
    }
    cerr << "DFTExternal system() call returned with id: " << retid << endl;
 
@@ -242,8 +242,21 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
       exit(-2);
    }
 
-   in >> E0CachedValue_;   
-   E0CachedValue_ += PressureEnergy;
+   in >> E0CachedValue_;
+   // add phantom energy for translations
+   double TrEig[3] = {1.0, 2.0, 3.0};
+   Vector Tsq(3);
+   int InternalAtoms = (DOFS_-6)/3;
+   for (int j=0;j<3;++j)
+   {
+      Tsq[j]=0.0;
+      for (int i=0;i<InternalAtoms;++i)
+      {
+         Tsq[j]+=DOF_[6+3*i+j];
+      }
+      Tsq[j] = (Tsq[j]*Tsq[j])/InternalAtoms;
+   }
+   E0CachedValue_ += PressureEnergy + 0.5*(TrEig[0]*Tsq[0] + TrEig[1]*Tsq[1] + TrEig[2]*Tsq[2]);
    Cached_[0] = 1;
 
    Matrix H(9,9);
@@ -277,7 +290,24 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
    {
       in >> E1CachedValue_[i];
    }
-   E1CachedValue_ += PressureStress;
+   // Phantom energy terms for the gradient.
+   Vector T(3);
+   Vector ME1(DOFS_,0.0);
+   for (int j=0;j<3;++j)
+   {
+      T[j]=0.0;
+      for (int i=0;i<InternalAtoms;++i)
+         T[j]+=DOF_[6+3*i+j];
+      T[j]/=InternalAtoms;
+   }
+   for (int i=0;i<InternalAtoms;++i)
+   {
+      for (int j=0;j<3;++j)
+      {
+         ME1[6+3*i+j] += TrEig[j]*T[j];
+      }
+   }
+   E1CachedValue_ += PressureStress + ME1;
    Cached_[1] = 1;
    
    if (flag==NeedStiffness)
@@ -343,7 +373,16 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
             E2CachedValue_[i][j] = P[i-6][j-6];
          }
 
-      E2CachedValue_ += PressureStiffness;
+      // Phantom Energy terms
+      Matrix ME2(DOFS_,DOFS_,0.0);
+      for (int i=0;i<InternalAtoms;++i)
+         for (int j=0;j<3;++j)
+            for (int k=0;k<InternalAtoms;++k)
+            {
+               ME2[6+3*i+j][6+3*k+j] += TrEig[j]/InternalAtoms;
+            }
+
+      E2CachedValue_ += PressureStiffness + ME2;
       Cached_[3] = 1;
    }
    in.close();
