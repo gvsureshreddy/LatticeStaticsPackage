@@ -256,7 +256,7 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
       }
       Tsq[j] = (Tsq[j]*Tsq[j])/InternalAtoms;
    }
-   E0CachedValue_ += PressureEnergy + 0.5*(TrEig[0]*Tsq[0] + TrEig[1]*Tsq[1] + TrEig[2]*Tsq[2]);
+   E0CachedValue_ += -PressureEnergy + 0.5*(TrEig[0]*Tsq[0] + TrEig[1]*Tsq[1] + TrEig[2]*Tsq[2]);
    Cached_[0] = 1;
 
    Matrix H(9,9);
@@ -307,7 +307,7 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
          ME1[6+3*i+j] += TrEig[j]*T[j];
       }
    }
-   E1CachedValue_ += PressureStress + ME1;
+   E1CachedValue_ += -PressureStress + ME1;
    Cached_[1] = 1;
    
    if (flag==NeedStiffness)
@@ -382,7 +382,7 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
                ME2[6+3*i+j][6+3*k+j] += TrEig[j]/InternalAtoms;
             }
 
-      E2CachedValue_ += PressureStiffness + ME2;
+      E2CachedValue_ += -PressureStiffness + ME2;
       Cached_[3] = 1;
    }
    in.close();
