@@ -98,7 +98,7 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
    B[2][0]=B[0][2] = DOF_[4];
    B[0][1]=B[1][0] = DOF_[5];
    Matrix U(3,3);
-   U[0][0] = 1.0 +DOF_[0];
+   U[0][0] = 1.0+DOF_[0];
    U[1][1] = 1.0+DOF_[1];
    U[2][2] = 1.0+DOF_[2];
    U[1][2]=U[2][1] = DOF_[3];
@@ -425,12 +425,12 @@ Vector const& DFTExternal::E1DLoad() const
       double UDet = U.Det();
       Matrix PressureTerm = UDet*U.Inverse();
       E1DLoadCachedValue_.Resize(DOFS_,0.0);
-      E1DLoadCachedValue_[0] = PressureTerm[0][0];
-      E1DLoadCachedValue_[1] = PressureTerm[1][1];
-      E1DLoadCachedValue_[2] = PressureTerm[2][2];
-      E1DLoadCachedValue_[3] = PressureTerm[1][2]+PressureTerm[2][1];
-      E1DLoadCachedValue_[4] = PressureTerm[2][0]+PressureTerm[0][2];
-      E1DLoadCachedValue_[5] = PressureTerm[0][1]+PressureTerm[1][0];
+      E1DLoadCachedValue_[0] = -PressureTerm[0][0];
+      E1DLoadCachedValue_[1] = -PressureTerm[1][1];
+      E1DLoadCachedValue_[2] = -PressureTerm[2][2];
+      E1DLoadCachedValue_[3] = -(PressureTerm[1][2]+PressureTerm[2][1]);
+      E1DLoadCachedValue_[4] = -(PressureTerm[2][0]+PressureTerm[0][2]);
+      E1DLoadCachedValue_[5] = -(PressureTerm[0][1]+PressureTerm[1][0]);
       
       Cached_[2] = 1;
       CallCount_[2]++;
