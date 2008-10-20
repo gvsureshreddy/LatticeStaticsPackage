@@ -20,6 +20,17 @@ void InitializeOutputFile(fstream& out,char const* const outfile,char const* con
                           char const* const startfile,int const& Precision,int const& Width,
                           int const& Echo);
 
+// define as global to allow outatexit to flush
+fstream out;
+void outatexit(void)
+{
+   out.flush();
+   cout.flush();
+   cerr.flush();
+   cout << "outatexit called" << endl;
+}
+
+
 int main(int argc, char *argv[])
 {
    // Check commandline arguments
@@ -63,9 +74,11 @@ int main(int argc, char *argv[])
    YN BisectCP;
 
    GetMainSettings(Width,Precision,BisectCP,Echo,Input);
-   
-   fstream out;
+
+   // out declared at global level
    InitializeOutputFile(out,outputfile,datafile,startfile,Precision,Width,Echo);
+   // flush buffers when exit() is called
+   atexit(outatexit);
    
    Lat = InitializeLattice(Input,Echo,Width,Debug);
    Lat->Print(out,Lattice::PrintLong);
