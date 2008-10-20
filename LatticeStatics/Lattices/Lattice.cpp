@@ -382,12 +382,10 @@ int Lattice::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
    if (LoadParameter_ == Temperature)
    {
       D1T=StressDT();
-      D2T=StiffnessDT();
    }
    else if (LoadParameter_ == Load)
    {
       D1T=StressDL();
-      D2T=StiffnessDL();
    }
    
    int dofs;
@@ -494,6 +492,16 @@ int Lattice::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
    if (LSKAnalysis_ > 0)
    {
       Matrix D3=E3();
+      Matrix D2T(D2.Rows(),D2.Cols());
+      if (LoadParameter_ == Temperature)
+      {
+         D2T=StiffnessDT();
+      }
+      else if (LoadParameter_ == Load)
+      {
+         D2T=StiffnessDL();
+      }
+   
       double
          Eijk[BIFMAX][BIFMAX][BIFMAX],
          EijT[BIFMAX][BIFMAX];
