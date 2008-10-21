@@ -3,6 +3,7 @@
 
 #include "PerlInput.h"
 #include "Lattice.h"
+#include <fstream>
 
 using namespace std;
 
@@ -76,6 +77,7 @@ private:
 
    static const double Alt[3][3][3];
    static const double Del[3][3];
+   static fstream dbug;
 };
 
 #endif

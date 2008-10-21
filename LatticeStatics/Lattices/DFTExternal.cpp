@@ -1,7 +1,8 @@
 #include "DFTExternal.h"
-#include <fstream>
 
 using namespace std;
+
+fstream DFTExternal::dbug;
 
 const double DFTExternal::Alt[3][3][3] = {{{0.0, 0.0, 0.0},
                                            {0.0, 0.0, 1.0},
@@ -24,6 +25,7 @@ DFTExternal::~DFTExternal()
         << "\tE1 calls - " << CallCount_[1] << "\n"
         << "\tE1DLoad calls - " << CallCount_[2] << "\n"
         << "\tE2 calls - " << CallCount_[3] << "\n";
+   dbug.close();
 }
 
 DFTExternal::DFTExternal(PerlInput const& Input,int const& Echo,int const& Width):
@@ -32,6 +34,10 @@ DFTExternal::DFTExternal(PerlInput const& Input,int const& Echo,int const& Width
    Echo_(Echo),
    Width_(Width)
 {
+   dbug.open("DFTExternal-dof-force.data", ios::out);
+   dbug << fixed << setprecision(15);
+
+   
    PerlInput::HashStruct Hash = Input.getHash("Lattice");
    Hash = Input.getHash(Hash,"DFTExternal");
    DOFS_ = Input.getPosInt(Hash,"DOFS");
@@ -386,6 +392,10 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
       Cached_[3] = 1;
    }
    in.close();
+
+   //output force/dof data
+   dbug << setw(Width_) << DOF_ << setw(Width_) << Lambda_ << endl;
+   dbug << setw(Width_) << E1CachedValue_ << endl;
 }
 
 double DFTExternal::E0() const
