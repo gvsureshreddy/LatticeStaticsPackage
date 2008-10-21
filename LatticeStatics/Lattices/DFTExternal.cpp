@@ -523,6 +523,9 @@ void DFTExternal::Print(ostream& out,PrintDetail const& flag)
          }
          break;
    }
+
+   // insert blank line in dbug file to identify each record
+   dbug << endl;
 }
 
 ostream& operator<<(ostream& out,DFTExternal& A)
