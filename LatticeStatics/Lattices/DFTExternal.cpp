@@ -87,7 +87,7 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
    // update with correct command.
    if (NoStiffness)
    {
-      retid=system("./script_main 1 >& /dev/null");
+      retid=system("./script_main 0 >& /dev/null");
    }
    else
    {
@@ -394,7 +394,7 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
    in.close();
 
    //output force/dof data
-   dbug << setw(Width_) << DOF_ << setw(Width_) << Lambda_ << endl;
+   dbug << setw(Width_) << DOF_ << setw(Width_) << Lambda_  << setw(Width_) << NoStiffness << endl;
    dbug << setw(Width_) << E1CachedValue_ << endl;
 }
 
