@@ -2041,13 +2041,10 @@ void MultiLatticeTPP::DebugMode()
          int oldEcho_=Echo_;
          cout << "\tK > ";
          cin >> K;
-         cin.sync(); // clear input
          cout << "\tNoPTS > ";
          cin >> NoPTS;
-         cin.sync(); // clear input
          cout << "\tprefix > ";
          cin >> prefix;
-         cin.sync(); // clear input
          Echo_=0;
          cout << "ReferenceDispersionCurves= ";
          ReferenceDispersionCurves(K,NoPTS,prefix.c_str(),cout);
@@ -2063,7 +2060,6 @@ void MultiLatticeTPP::DebugMode()
          cout << "\tK > ";
          Vector K(DIM3,0.0);
          cin >> K;
-         cin.sync(); // clear input
          cout << "ReferenceDynamicalStiffness= "
               << setw(W) << ReferenceDynamicalStiffness(K) << "\n";
       }
@@ -2072,7 +2068,6 @@ void MultiLatticeTPP::DebugMode()
          Vector DOF(CBK_->DOFS(),0.0);
          cout << "\tDOF > ";
          cin >> DOF;
-         cin.sync(); // clear input
          SetDOF(DOF);
       }
       else if (response == Commands[indx++])
@@ -2084,7 +2079,6 @@ void MultiLatticeTPP::DebugMode()
          double Temp;
          cout << "\tTemp > ";
          cin >> Temp;
-         cin.sync(); // clear input
          SetTemp(Temp);
       }
       else if (response == Commands[indx++])
@@ -2092,7 +2086,6 @@ void MultiLatticeTPP::DebugMode()
          double dist;
          cout << "\tInfluenceDist > ";
          cin >> dist;
-         cin.sync(); // clear input
          SetInfluenceDist(dist);
       }
       else if (response == Commands[indx++])
@@ -2112,7 +2105,6 @@ void MultiLatticeTPP::DebugMode()
          int GridSize;
          cout << "\tGridSize > ";
          cin >> GridSize;
-         cin.sync(); // clear input
          SetGridSize(GridSize);
       }
       else if (response == Commands[indx++])
@@ -2121,7 +2113,6 @@ void MultiLatticeTPP::DebugMode()
          int cutoff;
          cout << "\tcutoff > ";
          cin >> cutoff;
-         cin.sync(); // clear input
          Echo_ = 0;
          cout << setw(W);
          NeighborDistances(cutoff,cout);
@@ -2147,7 +2138,6 @@ void MultiLatticeTPP::DebugMode()
          double lambda;
          cout << "\tLambda > ";
          cin >> lambda;
-         cin.sync(); // clear input
          SetLambda(lambda);
       }
       else if (response == Commands[indx++])
@@ -2163,7 +2153,6 @@ void MultiLatticeTPP::DebugMode()
          int iter;
          cout << "\titer > ";
          cin >> iter;
-         cin.sync(); // clear input
          FindLatticeSpacing(iter);
       }
       else if (response == Commands[indx++])
@@ -2271,7 +2260,6 @@ void MultiLatticeTPP::DebugMode()
             {
                cout << "more...." << "\n";
                char ans;
-               cin.sync(); // clear input
                ans=kbhitWait();
                if (ans=='q') break;
             }
@@ -2370,5 +2358,10 @@ void MultiLatticeTPP::PrintCurrentCrystalParamaters(ostream& out) const
    out << "\n"
        << "Temperature : " << setw(W) << NTemp_ << "\n"
        << "Lambda : " << setw(W) << Lambda_ << "\n"
-       << "DOFs : " << setw(W) << CBK_->DOF() << "\n";
+       << "DOFs : " << setw(W) << CBK_->DOF() << "\n"
+       << "Lattice Vectors : " << "\n"
+       << setw(W) << CurrentLattice[0] << "\n"
+       << setw(W) << CurrentLattice[1] << "\n"
+       << setw(W) << CurrentLattice[2] << "\n";
+   
 }
