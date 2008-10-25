@@ -85,7 +85,7 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
    out.close();
 
    // update with correct command.
-   if (NoStiffness)
+   if (flag == NoStiffness)
    {
       retid=system("./script_main 0 >& /dev/null");
    }
