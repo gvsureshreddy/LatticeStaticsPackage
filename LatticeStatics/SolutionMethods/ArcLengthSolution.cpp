@@ -15,7 +15,8 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,Vector const& d
                                      double const& AngleCutoff,double const& AngleIncrease,
                                      double const& Aspect,int const& NumSolutions,
                                      int const& CurrentSolution,Vector const& FirstSolution,
-                                     Vector const& Difference,int const& ClosedLoopStart,
+                                     Vector const& Difference,int const& BifStartFlag,
+                                     Vector const& BifTangent,int const& ClosedLoopStart,
                                      int const& StopAtCPCrossingNum,int const& Echo)
    : Echo_(Echo),
      Restrict_(Restrict),
@@ -31,6 +32,8 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,Vector const& d
      Aspect_(Aspect),
      NumSolutions_(NumSolutions_),
      CurrentSolution_(CurrentSolution),
+     BifStartFlag_(BifStartFlag),
+     BifTangent_(BifTangent),
      ClosedLoopStart_(ClosedLoopStart),
      FirstSolution_(FirstSolution),
      StopAtCPCrossingNum_(StopAtCPCrossingNum),
@@ -48,6 +51,8 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const
    : Echo_(Echo),
      Restrict_(Restrict),
      CurrentSolution_(0),
+     BifStartFlag_(0),
+     BifTangent_(),
      Difference_(two-one)
 {
    DOFS_=Restrict_->DOF().Dim();
@@ -99,7 +104,9 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const
                                      int const Echo)
    :  Echo_(Echo),
       Restrict_(Restrict),
-      CurrentSolution_(0)
+      CurrentSolution_(0),
+      BifStartFlag_(0),
+      BifTangent_()
 {
    DOFS_=Restrict_->DOF().Dim();
    // initialize "static" memver variables
@@ -142,6 +149,10 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const
 
    if (!strcmp("Bifurcation",starttype))
    {
+      //Bifurcation
+      BifStartFlag_ = 1;
+      BifTangent_.Resize(DOFS_);
+      
       // Set Difference and Lattice state
       double eps = Input.getDouble("StartType","Epsilon");
 
@@ -150,6 +161,9 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const
       Input.getVector(diff,"StartType","Tangent");
       Difference_ = Restrict_->TransformVector(diff);
       Difference_ *= eps;
+      // set BifTangent_ for projection output
+      BifTangent_ = Difference_/Difference_.Norm();
+      BifTangent_[DOFS_-1] = 0.0;
       
       Vector stat(Input.getArrayLength("StartType","BifurcationPoint"));
       Input.getVector(stat,"StartType","BifurcationPoint");
@@ -420,6 +434,14 @@ void ArcLengthSolution::ArcLengthNewton(int& good)
    else
    {
       if (Echo_) cout << "Prediction 1 Corrector Iterations: " << itr << "\n";
+      cout << "Converged with ForceNorm = " << RHS.Norm()
+           << ",     CorrectorNorm = " << Dx.Norm();
+      if (BifStartFlag_)
+      {
+         cout << ",     and CurrentSolution*BifTangent = " << Restrict_->DOF()*BifTangent_;
+      }
+      cout << "\n";
+      
       good = 1;
    }
 }

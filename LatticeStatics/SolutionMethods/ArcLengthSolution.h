@@ -30,6 +30,8 @@ private:
    
    int NumSolutions_;
    int CurrentSolution_;
+   int BifStartFlag_;
+   Vector BifTangent_;
    int ClosedLoopStart_;
    Vector FirstSolution_;
    int StopAtCPCrossingNum_;
@@ -54,6 +56,7 @@ public:
                      double const& AngleCutoff,double const& AngleIncrease,
                      double const& Aspect,int const& NumSolutions,int const& CurrentSolution,
                      Vector const& FirstSolution,Vector const& Difference,
+                     int const& BifStartFlag_,Vector const& BifTangent,
                      int const& ClosedLoopStart,int const& StopAtCPCrossingNum,
                      int const& Echo);
    ArcLengthSolution(Restriction* const Restrict,PerlInput const& Input,

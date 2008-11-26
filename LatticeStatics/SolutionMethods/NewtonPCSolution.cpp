@@ -644,7 +644,7 @@ void NewtonPCSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCross
    int MaxIter = 50;
    ArcLengthSolution S1(Restrict_,Restrict_->DOF(),MaxIter,Converge_,Converge_,tmp_ds,
                         tmp_ds,tmp_ds,1.0,0.5,1.0,1,0,PreviousSolution_,
-                        Restrict_->DOF()-PreviousSolution_,10,-1,Echo_);
+                        Restrict_->DOF()-PreviousSolution_,0,Vector(),10,-1,Echo_);
    S1.FindCriticalPoint(Lat,TotalNumCPCrossings,Input,Width,out);
       
    // Check to see if we should stop
