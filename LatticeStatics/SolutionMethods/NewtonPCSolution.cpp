@@ -14,6 +14,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,
                                    double const& delta_max,double const& alpha_max,
                                    double const& Converge,Vector const& FirstSolution,
                                    int const& Direction,double const& accel_max,
+                                   int const& BifStartFlag,Vector const& BifTangent,
                                    int const& ClosedLoopStart,int const& StopAtCPCrossingNum,
                                    int const& Echo)
    : Restrict_(Restrict),
@@ -28,6 +29,8 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,
      delta_max_(delta_max),
      alpha_max_(alpha_max),
      Converge_(Converge),
+     BifStartFlag_(BifStartFlag),
+     BifTangent_(BifTangent),
      ClosedLoopStart_(ClosedLoopStart),
      StopAtCPCrossingNum_(StopAtCPCrossingNum),
      Direction_(Direction),
@@ -75,6 +78,8 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
    : Restrict_(Restrict),
      Echo_(Echo),
      CurrentSolution_(0),
+     BifStartFlag_(0),
+     BifTangent_(),
      Omega_(1.0),
      PreviousSolution_(0)
 {
@@ -209,6 +214,8 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
    : Restrict_(Restrict),
      Echo_(Echo),
      CurrentSolution_(0),
+     BifStartFlag_(0),
+     BifTangent_(),
      Omega_(1.0)
 {
    // get needed parameters
@@ -320,6 +327,8 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
    if (!strcmp("Bifurcation",starttype))
    {
       // Bifurcation
+      BifStartFlag_ = 1;
+      BifTangent_.Resize(count);
       // Get solution1
       int i;
       Vector one(count);
@@ -331,6 +340,9 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
       Input.getVector(tan1tmp,"StartType","Tangent");
       Tangent1_ = Restrict_->TransformVector(tan1tmp);
       Tangent1_ = Tangent1_/Tangent1_.Norm();
+      // set up projection vector BifTangent_
+      BifTangent_ = Tangent1_;
+      BifTangent_[count-1] = 0.0;
       Vector biftmp(Input.getArrayLength("StartType","BifurcationPoint"));
       Input.getVector(biftmp,"StartType","BifurcationPoint");
       one = Restrict_->RestrictDOF(biftmp);
@@ -584,7 +596,12 @@ int NewtonPCSolution::FindNextSolution()
    while (f >= accel_max_);
    
    cout << "Converged with ForceNorm = " << forcenorm
-        << " and CorrectorNorm = " << Magnitude2 << "\n";
+        << ",     CorrectorNorm = " << Magnitude2;
+   if (BifStartFlag_)
+   {
+      cout << ",     and CurrentSolution*BifTangent = " << Restrict_->DOF()*BifTangent_;
+   }
+   cout << "\n";
 
    if (Dot <= 0.0)
    {
