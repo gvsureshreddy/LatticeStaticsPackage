@@ -235,7 +235,10 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
    
    // output a QC restart file
    ostringstream cpfilename;   
-   cpfilename << Input.LastInputFileName() << ".CP." << setw(2) << setfill('0')
+   char tmp[2048];
+   strcpy(tmp,Input.LastInputFileName());
+   tmp[strlen(tmp)-4] = 0;
+   cpfilename << tmp << ".CP." << setw(2) << setfill('0')
 	      << CPCrossingNum << CPSubNum << ".res";
    char fortranstring[80];
    strcpy(fortranstring,cpfilename.str().c_str());
@@ -248,9 +251,6 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
    // output a new input file to help restart at this critical point
    cpfilename.str("");
    fstream cpfile;
-   char tmp[2048];
-   strcpy(tmp,Input.LastInputFileName());
-   tmp[strlen(tmp)-4] = 0;
    cpfilename << tmp;
    if (2 == Bif)
       cpfilename << ".CP.";
