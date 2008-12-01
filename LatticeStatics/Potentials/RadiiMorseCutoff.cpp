@@ -2,10 +2,9 @@
 
 RadiiMorseCutoff::RadiiMorseCutoff(double const& A0,double const& AT,double const& B0,
                                    double const& BT,double const& Rref1,double const& Rtheta1,
-                                   double const& Rtheta1Pow,double const& Rref2,
-                                   double const& Rtheta2,double const& Rtheta2Pow,
+                                   double const& Rref2,double const& Rtheta2,
                                    double const& Cutoff):
-   RadiiMorse(A0,AT,B0,BT,Rref1,Rtheta1,Rtheta1Pow,Rref2,Rtheta2,Rtheta2Pow),Cutoff_(Cutoff)
+   RadiiMorse(A0,AT,B0,BT,Rref1,Rtheta1,Rref2,Rtheta2),Cutoff_(Cutoff)
 {
 }
 
@@ -75,10 +74,8 @@ void RadiiMorseCutoff::Print(ostream& out) const
        << "; BT=" << setw(W) << BT_
        << "; Rref1=" << setw(W) << Rref1_
        << "; Rtheta1=" << setw(W) << Rtheta1_
-       << "; Rtheta1Pow=" << setw(W) << Rtheta1Pow_
        << "; Rref2=" << setw(W) << Rref2_
        << "; Rtheta2=" << setw(W) << Rtheta2_
-       << "; Rtheta2Pow=" << setw(W) << Rtheta2Pow_
        << "; Cutoff=" << setw(W) << Cutoff_;
 }
 

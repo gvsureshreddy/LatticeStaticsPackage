@@ -1,10 +1,10 @@
 #include "RadiiMorse.h"
 
 RadiiMorse::RadiiMorse(double const& A0,double const& AT,double const& B0,double const& BT,
-                       double const& Rref1,double const& Rtheta1,double const& Rtheta1Pow,
-                       double const& Rref2,double const& Rtheta2,double const& Rtheta2Pow):
-   A0_(A0),AT_(AT),B0_(B0),BT_(BT),Rref1_(Rref1),Rtheta1_(Rtheta1),Rtheta1Pow_(Rtheta1Pow),
-   Rref2_(Rref2),Rtheta2_(Rtheta2),Rtheta2Pow_(Rtheta2Pow)
+                       double const& Rref1,double const& Rtheta1,double const& Rref2,
+                       double const& Rtheta2):
+   A0_(A0),AT_(AT),B0_(B0),BT_(BT),Rref1_(Rref1),Rtheta1_(Rtheta1),Rref2_(Rref2),
+   Rtheta2_(Rtheta2)
 {
 }
 
@@ -16,10 +16,8 @@ void RadiiMorse::SetParameters(double const* const Vals)
    SetBT(Vals[3]);
    SetRref1(Vals[4]);
    SetRtheta1(Vals[5]);
-   SetRtheta1Pow(Vals[6]);
-   SetRref2(Vals[7]);
-   SetRtheta2(Vals[8]);
-   SetRtheta2Pow(Vals[9]);
+   SetRref2(Vals[6]);
+   SetRtheta2(Vals[7]);
 }
 
 double RadiiMorse::A(double const& NTemp,TDeriv const& dt) const
@@ -74,24 +72,15 @@ double RadiiMorse::Rhat(double const& NTemp,TDeriv const& dt) const
    switch (dt)
    {
       case T0:
-         rhat = (Rref1_ + Rtheta1_*(pow(NTemp,Rtheta1Pow_) - 1.0))
-            *(Rref2_ + Rtheta2_*(pow(NTemp,Rtheta1Pow_) - 1.0));
+         rhat = (Rref1_ + Rtheta1_*(NTemp - 1.0))
+            *(Rref2_ + Rtheta2_*(NTemp - 1.0));
          break;
       case DT:
-         rhat = Rtheta1_*(Rtheta1Pow_*pow(NTemp,Rtheta1Pow_-1.0))
-            *(Rref2_ + Rtheta2_*(pow(NTemp,Rtheta2Pow_) - 1.0))
-            + (Rref1_ + Rtheta1_*(pow(NTemp,Rtheta1Pow_) - 1.0))
-            *(Rtheta2_*(Rtheta2Pow_*pow(NTemp,Rtheta1Pow_-1.0)));
+         rhat = Rtheta1_*(Rref2_ + Rtheta2_*(NTemp - 1.0))
+            + (Rref1_ + Rtheta1_*(NTemp - 1.0))*Rtheta2_;
          break;
       case D2T:
-         rhat = Rtheta1_*(Rtheta1Pow_*(Rtheta1Pow_-1.0)*pow(NTemp,Rtheta1Pow_-2.0))
-            *(Rref2_ + Rtheta2_*(pow(NTemp,Rtheta2Pow_) - 1.0))
-            + Rtheta1_*(Rtheta1Pow_*pow(NTemp,Rtheta1Pow_-1.0))
-            *(Rtheta2_*(Rtheta2Pow_*pow(NTemp,Rtheta2Pow_-1.0)))
-            + (Rtheta1_*(Rtheta1Pow_*pow(NTemp,Rtheta1Pow_-1.0)))
-            *(Rtheta2_*(Rtheta2Pow_*pow(NTemp,Rtheta1Pow_-1.0)))
-            + (Rref1_ + Rtheta1_*(pow(NTemp,Rtheta1Pow_) - 1.0))
-            *(Rtheta2_*(Rtheta2Pow_*(Rtheta2Pow_-1.0)*pow(NTemp,Rtheta1Pow_-2.0)));
+         rhat = 2.0*Rtheta1_*Rtheta2_;
          break;
       default:
          cerr << "Error in RadiiMorse::Rhat" << "\n";
@@ -469,10 +458,8 @@ void RadiiMorse::Print(ostream& out) const
        << "; BT=" << setw(W) << BT_
        << "; Rref1=" << setw(W) << Rref1_
        << "; Rtheta1=" << setw(W) << Rtheta1_
-       << "; Rtheta1Pow=" << setw(W) << Rtheta1Pow_
        << "; Rref2=" << setw(W) << Rref2_
-       << "; Rtheta2=" << setw(W) << Rtheta2_
-       << "; Rtheta2Pow=" << setw(W) << Rtheta2Pow_;
+       << "; Rtheta2=" << setw(W) << Rtheta2_;
 }
 
 ostream& operator<<(ostream& out,RadiiMorse const& A)

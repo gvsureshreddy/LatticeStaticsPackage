@@ -5,6 +5,7 @@ POTENTIALS = KnownPairPotentials.cpp\
 	     RadiiMorseCutoff.cpp\
 	     RadiiMorseCutoff2.cpp\
 	     TempMorse.cpp\
+	     GVMorse.cpp\
 	     Dobson.cpp
 
 PTNLS := $(filter-out KnownPairPotentials.h, $(patsubst Potentials/%,%,$(wildcard Potentials/*.h)))

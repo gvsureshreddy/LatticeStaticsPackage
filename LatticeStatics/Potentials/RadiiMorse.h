@@ -25,22 +25,20 @@ protected:
       BT_,
       Rref1_,
       Rtheta1_,
-      Rtheta1Pow_,
       Rref2_,
-      Rtheta2_,
-      Rtheta2Pow_;
+      Rtheta2_;
    
 public:
    
    RadiiMorse() {};
    RadiiMorse(double const& A0,double const& AT,double const& B0,double const& BT,
-              double const& Rref1,double const& Rtheta1,double const& Rtheta1Pow,
-              double const& Rref2,double const& Rtheta2,double const& Rtheta2Pow);
+              double const& Rref1,double const& Rtheta1,double const& Rref2,
+              double const& Rtheta2);
    ~RadiiMorse() {};
    friend ostream& operator<<(ostream& out,RadiiMorse const& A);
    double PairPotential(double const& NTemp,double const& r2,YDeriv const& dy=Y0,
                         TDeriv const& dt=T0) const;
-   virtual int GetNoParameters() const {return 10;}
+   virtual int GetNoParameters() const {return 8;}
    virtual void SetParameters(double const* const Vals);
    virtual void Print(ostream& out) const;
    virtual char const* const Type() const {return "RadiiMorse";}
@@ -51,10 +49,8 @@ public:
    double const& BT() const {return BT_;}
    double const& Rref1() const {return Rref1_;}
    double const& Rtheta1() const {return Rtheta1_;}
-   double const& Rtheta1Pow() const {return Rtheta1Pow_;}
    double const& Rref2() const {return Rref2_;}
    double const& Rtheta2() const {return Rtheta2_;}
-   double const& Rtheta2Pow() const {return Rtheta2Pow_;}
    
    void SetA0(double const& A0) {A0_=A0;}
    void SetAT(double const& AT) {AT_=AT;}
@@ -62,20 +58,18 @@ public:
    void SetBT(double const& BT) {BT_=BT;}
    void SetRref1(double const& Rref1) {Rref1_=Rref1;}
    void SetRtheta1(double const& Rtheta1) {Rtheta1_=Rtheta1;}
-   void SetRtheta1Pow(double const& Rtheta1Pow) {Rtheta1Pow_=Rtheta1Pow;}
    void SetRref2(double const& Rref2) {Rref2_=Rref2;}
    void SetRtheta2(double const& Rtheta2) {Rtheta2_=Rtheta2;}
-   void SetRtheta2Pow(double const& Rtheta2Pow) {Rtheta2Pow_=Rtheta2Pow;}
 private:
-   double A(double const& NTemp,TDeriv const& dt=T0) const;
+   virtual double A(double const& NTemp,TDeriv const& dt=T0) const;
    inline double a(double const& NTemp,TDeriv const& dt=T0) const
    {return (Achk_[dt])? Aval_[dt] : Aval_[dt]=A(NTemp,dt);}
    
-   double Beta(double const& NTemp,TDeriv const& dt=T0) const;
+   virtual double Beta(double const& NTemp,TDeriv const& dt=T0) const;
    inline double b(double const& NTemp,TDeriv const& dt=T0) const
    {return (Bchk_[dt])? Bval_[dt] : Bval_[dt]=Beta(NTemp,dt);}
    
-   double Rhat(double const& NTemp,TDeriv const& dt=T0) const;
+   virtual double Rhat(double const& NTemp,TDeriv const& dt=T0) const;
    inline double rhat(double const& NTemp,TDeriv const& dt=T0) const
    {return (Rchk_[dt])? Rval_[dt] : Rval_[dt]=Rhat(NTemp,dt);}
    

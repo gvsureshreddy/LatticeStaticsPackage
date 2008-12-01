@@ -7,6 +7,7 @@
 #include "RadiiMorse.h"
 #include "RadiiMorseCutoff.h"
 #include "RadiiMorseCutoff2.h"
+#include "GVMorse.h"
 #include "TempMorse.h"
 #include "Dobson.h"
 
