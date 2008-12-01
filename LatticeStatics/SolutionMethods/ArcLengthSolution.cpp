@@ -183,6 +183,8 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const
          FirstSolution_ = ArcLenDef();
          Input.useVector(FirstSolution_,"StartType","ClosedLoopFirstSolution"); // Default Value
       }
+
+      cout << "Projection on BifTangent of BifurcationPoint = " << stat*BifTangent_ << "\n";
    }
    else if (!strcmp("Continuation",starttype))
    {
@@ -434,13 +436,19 @@ void ArcLengthSolution::ArcLengthNewton(int& good)
    else
    {
       if (Echo_) cout << "Prediction 1 Corrector Iterations: " << itr << "\n";
-      cout << "Converged with ForceNorm = " << RHS.Norm()
-           << ",     CorrectorNorm = " << Dx.Norm();
+
       if (BifStartFlag_)
       {
-         cout << ",     and CurrentSolution*BifTangent = " << Restrict_->DOF()*BifTangent_;
+         Dx = Difference_;
+         Dx[Dim] = 0.0;
+         Dx /= Dx.Norm();
+         cout << "Projection on BifTangent = " << Restrict_->DOF()*BifTangent_
+              << ",     Angle (deg.) with BifTangent = "
+              << acos(Dx*BifTangent_)*(57.2957795130823) << "\n";
       }
-      cout << "\n";
+
+      cout << "Converged with ForceNorm = " << RHS.Norm()
+           << ",     CorrectorNorm = " << Dx.Norm() << "\n";
       
       good = 1;
    }

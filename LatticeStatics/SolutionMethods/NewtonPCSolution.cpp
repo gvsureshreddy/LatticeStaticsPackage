@@ -349,6 +349,9 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
       
       FirstSolution_.Resize(one.Dim());
       FirstSolution_ = one;
+
+      cout << "Projection on BifTangent of BifurcationPoint = " << FirstSolution_*BifTangent_
+           << "\n";
       
       Restrict_->SetDOF(one);
       
@@ -595,19 +598,24 @@ int NewtonPCSolution::FindNextSolution()
    }
    while (f >= accel_max_);
    
-   cout << "Converged with ForceNorm = " << forcenorm
-        << ",     CorrectorNorm = " << Magnitude2;
-   if (BifStartFlag_)
-   {
-      cout << ",     and CurrentSolution*BifTangent = " << Restrict_->DOF()*BifTangent_;
-   }
-   cout << "\n";
-
    if (Dot <= 0.0)
    {
       Omega_ = -Omega_;
    }
    
+   if (BifStartFlag_)
+   {
+      v_static = Omega_*Tangent2_;
+      v_static[count] = 0.0;
+      v_static /= v_static.Norm();
+      cout << "Projection on BifTangent = " << Restrict_->DOF()*BifTangent_
+           << ",     Angle (deg.) with BifTangent = "
+           << acos(v_static*BifTangent_)*(57.2957795130823) << "\n";
+   }
+
+   cout << "Converged with ForceNorm = " << forcenorm
+        << ",     CorrectorNorm = " << Magnitude2 << "\n";
+
    if ((ClosedLoopStart_ >= 0) && (CurrentSolution_ > ClosedLoopStart_) &&
        ((Restrict_->DOF() - FirstSolution_).Norm() < CurrentDS_))
    {
