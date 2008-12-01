@@ -1775,6 +1775,7 @@ void MultiLatticeTPP::Print(ostream& out,PrintDetail const& flag)
             for (int j=i;j<NumberofSpecies_;j++)
             {
                out << "[" << i << "][" << j << "] -- "
+                   << (*SpeciesPotential_[i][j]).Type() << " -- "
                    << setw(W) << *SpeciesPotential_[i][j] << "\n";
             }
          }
@@ -1811,6 +1812,7 @@ void MultiLatticeTPP::Print(ostream& out,PrintDetail const& flag)
                for (int j=i;j<NumberofSpecies_;j++)
                {
                   cout << "[" << i << "][" << j << "] -- "
+                       << (*SpeciesPotential_[i][j]).Type() << " -- "
                        << setw(W) << *SpeciesPotential_[i][j] << "\n";
                }
             }
