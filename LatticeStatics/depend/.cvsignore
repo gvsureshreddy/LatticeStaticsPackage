@@ -12,6 +12,7 @@ RestrictToTranslatedSubSpaceOld.d
 RestrictToTranslatedSubSpace.d
 PPSum.d
 RadiiMorse.d
+GVMorse.d
 ScanningSolution.d
 TempMorse.d
 UnitCellIterator.d
@@ -22,6 +23,7 @@ ChainIterator.d
 ChainSum.d
 MultiChainTPP.d
 MultiChainTTPP.d
+PseudoHarmonicMultiChainTTPP.d
 LagrangeCB.d
 MixedCB.d
 EulerCB.d
