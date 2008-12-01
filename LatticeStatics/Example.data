@@ -22,7 +22,7 @@ $Rtheta2_0_0 = -0.137957188144 - 0.0082;
 $B0_1_1  = 7.0;
 $Rtheta1_1_1 = 0.275914376289;
 
-%Lattice = (Type            => MultiLatticeTPP, # MultiLatticeTPP, MultiChainTPP, MultiChainTTPP, TwoBarTruss, TwoBarTrussExternal, DFTExternal
+%Lattice = (Type            => MultiLatticeTPP, # MultiLatticeTPP, MultiChainTPP, MultiChainTTPP, PseudoHarmonicMultiChainTTPP, TwoBarTruss, TwoBarTrussExternal, DFTExternal
             #OrderedTFs      => No, # Default value = No, Yes
             #LSKAnalysis     => SecondOrder, # Default value = SecondOrder, ThirdOrder, None
             MultiLatticeTPP => 
@@ -133,7 +133,7 @@ $Rtheta1_1_1 = 0.275914376289;
                                CBKinematics      => LagrangeCB, # Default value = LagrangeCB; MixedCB
                                NTemp             => 1.0,
                                Lambda            => 0.0
-                                 },              
+                              },              
             MultiChainTTPP => {InternalAtoms     => 4,
                                LatticeBasis      => 1.00,
                                AtomPosition_0    => 0.00,
@@ -173,13 +173,53 @@ $Rtheta1_1_1 = 0.275914376289;
                                CBKinematics      => LagrangeCB, # Default value = LagrangeCB; MixedCB
                                NTemp             => 1.0,
                                Lambda            => 0.0
-                                 },
+                              },
+            PseudoHarmonicMultiChainTTPP => {InternalAtoms     => 4,
+                                             LatticeBasis      => 1.00,
+                                             AtomPosition_0    => 0.00,
+                                             AtomPosition_1    => 0.25,
+                                             AtomPosition_2    => 0.50,
+                                             AtomPosition_3    => 0.75,
+                                             Tref              => 300.0,
+                                             AtomSpecies       => [0, 1, 0, 1],
+                                             PotentialType_0_0 => {Type    => LJCutoff,
+                                                                   Cutoff  => 2.0,
+                                                                   Eps0    => 1.0,
+                                                                   Eps1    => 0.0,
+                                                                   Sigma0  => 1.0,
+                                                                   Sigma1  => 0.0},
+                                             # Ni-Ti
+                                             PotentialType_0_1 => {Type    => LJCutoff,
+                                                                   Cutoff  => 2.0,
+                                                                   Eps0    => 0.1,
+                                                                   Eps1    => 0.0,
+                                                                   Sigma0  => 0.475,
+                                                                   Sigma1  => 0.0},
+                                             # Ti-Ti
+                                             PotentialType_1_1 => {Type    => LJCutoff,
+                                                                   Cutoff  => 2.0,
+                                                                   Eps0    => 1.0,
+                                                                   Eps1    => 0.0,
+                                                                   Sigma0  => 0.85,
+                                                                   Sigma1  => 0.0},
+                                             AtomicMass_0      => 1.0,
+                                             AtomicMass_1      => 1.1,
+                                             InfluenceDist     => 7.0,
+                                             Density           => 1, # Default value = 1; 0
+                                             NormModulus       => 1.0,
+                                             LoadingParameter  => Load, # Temperature, Load
+                                             MaxIterations     => 50,
+                                             BlochWaveGridSize => 5,
+                                             CBKinematics      => LagrangeCB, # Default value = LagrangeCB; MixedCB
+                                             NTemp             => 1.0,
+                                             Lambda            => 0.0
+                                            },
             TwoBarTruss => {Caching => Yes, # Yes, No
                             Theta   => 65*$DEG2RAD
-                              },
+                           },
             DFTExternal => {DOFS => 9
-                              }
-            );
+                           }
+           );
 
 # Restriction Parameters
 %Restriction = (Type                  => RestrictToTranslatedSubSpace, # NoRestriction, RestrictToTranslatedSubSpace, RestrictToTranslatedSubSpaceOld
@@ -189,7 +229,7 @@ $Rtheta1_1_1 = 0.275914376289;
                                                  #UseReferenceState    => No, # Default value = No, Yes
                                                  #ReferenceState       => [[0, 4, 8],
                                                  #                         [1.0, 1.0, 1.0]] # Can Include Loading Parameter as last element
-                                               }
+                                                }
                 );
 
 
@@ -211,7 +251,7 @@ $ArcLenDSMax = 0.01;
                                          #StopAtCPCrossingNum => -1, # Default value = -1
                                          #Direction           => 1, # Default value = 1
                                          #Acceleration        => 2.0 # Default value = 2.0
-                                       },
+                                        },
                    ArcLengthSolution => {MaxIterations       => 50,
                                          Tolerance           => 1.0e-13,
                                          DSMax               => $ArcLenDSMax,
@@ -223,7 +263,7 @@ $ArcLenDSMax = 0.01;
                                          NumSolutions        => 1000#,
                                          #ClosedLoopStart     => 30#, # Default value = 30
                                          #StopAtCPCrossingNum => -1, # Default value = -1
-                                       },
+                                        },
                    ScanningSolution  => {MaxIterations      => 50,
                                          Tolerance          => 1.0e-13,
                                          NewtonTolerance    => 1.0e-13,
@@ -237,40 +277,40 @@ $ArcLenDSMax = 0.01;
                                          LineStart          => 0.94,
                                          LineEnd            => 1.10,
                                          LineStep           => 0.05
-                                           }
-                   );
+                                        }
+                  );
 
 # Start/Restart Parameters (can be put into start file OR input file)
 
 # NewtonPCSolution StartTypes: Bifurcation, Continuation, ConsistencyCheck
-%StartType = (Type      => Continuation,
+%StartType = (Type     => Continuation,
               Solution => [1.000000000000, 1.000000000000],
-              );
+             );
 
 #%StartType = (Type             => Bifurcation,
 #              Tangent          => [1.0000000000,  0.0000000000],
 #              BifurcationPoint => [1.0000000000,  1.0000000000],
-#              );
+#             );
 
-#%StartType = (Type  => ConsistencyCheck,
+#%StartType = (Type     => ConsistencyCheck,
 #              Solution => [1.000000000000, 1.000000000000],
-#              Epsilon => 1e-8
-#              );
+#              Epsilon  => 1e-8
+#             );
 
 # ArcLength Solution StartTypes: Bifurcation, Continuation, ConsistencyCheck
 #%StartType = (Type      => Continuation,
 #              Solution1 => [1.000000000000, 1.000000000000],
 #              Solution2 => [1.000033386242, 1.010000000000]#,
 #              #ClosedLoopFirstSolution => [0.990000000000, 0.980000000000] # Default value = Solution1
-#              );
+#             );
 
 #%StartType = (Type             => Bifurcation,
 #              Epsilon          => 1e-5,
 #              Tangent          => [1.0000000000,  0.0000000000],
 #              BifurcationPoint => [1.0000000000,  1.0000000000]
-#              );
+#             );
 
-#%StartType = (Type  => ConsistencyCheck,
+#%StartType = (Type     => ConsistencyCheck,
 #              Solution => [1.000000000000, 1.000000000000],
-#              Epsilon => 1e-8
-#              );
+#              Epsilon  => 1e-8
+#             );
