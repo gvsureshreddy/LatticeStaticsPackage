@@ -18,6 +18,10 @@ Lattice* const InitializeLattice(PerlInput& Input,int const&  Echo,int const& Wi
    {
       return new MultiChainTTPP(Input,Echo,Width,Debug);
    }
+   else if (!strcmp("PseudoHarmonicMultiChainTTPP",Lat))
+   {
+      return new PseudoHarmonicMultiChainTTPP(Input,Echo,Width,Debug);
+   }
    else if (!strcmp("TwoBarTruss",Lat))
    {
       return new TwoBarTruss(Input,Echo,Width);

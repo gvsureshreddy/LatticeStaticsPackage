@@ -5,6 +5,7 @@
 #include "MultiLatticeTPP.h"
 #include "MultiChainTPP.h"
 #include "MultiChainTTPP.h"
+#include "PseudoHarmonicMultiChainTTPP.h"
 #include "TwoBarTruss.h"
 #include "TwoBarTrussExternal.h"
 #include "DFTExternal.h"

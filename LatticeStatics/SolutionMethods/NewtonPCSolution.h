@@ -20,7 +20,7 @@ private:
    
    int Echo_;
    int CurrentSolution_;
-   UpdateType UpdateType_;             // 0-QR update (default), 1-Stiffness update, 2-none
+   UpdateType UpdateType_;      // 0-QR update (default), 1-Stiffness update, 2-none
    int NumSolutions_;
    
    double MaxDS_;
