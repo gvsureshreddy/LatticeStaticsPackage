@@ -440,7 +440,7 @@ void ArcLengthSolution::ArcLengthNewton(int& good)
       if (BifStartFlag_)
       {
          Dx = Difference_;
-         Dx[Dim] = 0.0;
+         Dx[Dim-1] = 0.0;
          Dx /= Dx.Norm();
          cout << "Projection on BifTangent = " << Restrict_->DOF()*BifTangent_
               << ",     Angle (deg.) with BifTangent = "

@@ -606,7 +606,7 @@ int NewtonPCSolution::FindNextSolution()
    if (BifStartFlag_)
    {
       v_static = Omega_*Tangent2_;
-      v_static[count] = 0.0;
+      v_static[count-1] = 0.0;
       v_static /= v_static.Norm();
       cout << "Projection on BifTangent = " << Restrict_->DOF()*BifTangent_
            << ",     Angle (deg.) with BifTangent = "
