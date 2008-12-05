@@ -261,7 +261,7 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
    char tmp[2048];
    strcpy(tmp,Input.LastInputFileName());
    tmp[strlen(tmp)-4] = 0;
-   qcfilename << tmp << cpfilename << setw(2) << setfill('0')
+   qcfilename << tmp << cpfilename.str() << setw(2) << setfill('0')
 	      << CPCrossingNum << CPSubNum << ".res";
    char fortranstring[80];
    strcpy(fortranstring,qcfilename.str().c_str());
@@ -273,7 +273,7 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
 
    // output a new input file to help restart at this critical point
    ostringstream bfbfilename;
-   bfbfilename << tmp << cpfilename;
+   bfbfilename << tmp << cpfilename.str();
    bfbfilename << setw(2) << setfill('0') << CPCrossingNum << CPSubNum << ".bfb";
    fstream cpfile;
    cpfile.open(bfbfilename.str().c_str(),ios::out);
