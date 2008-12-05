@@ -222,6 +222,20 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
       out << setw(Width) << EigVal[0][Ind[i]];
       if (Echo_) cout << setw(Width) << EigVal[0][Ind[i]];
    }
+
+   // Print out the critical point character test (Limit-load/Bifurcation)
+   Bif = 1;
+   for (int i=0;i<count;++i)
+   {
+      double z=0.0;
+      for (int j=0;j<dofs;++j)
+      {
+         z+= Mode[i][j]*D1T[j];
+      }
+      if (fabs(z) > Tolerance) Bif = 0;
+      out << "StressDT*Mode[" << i << "] = " << setw(Width) << z << "\n";
+      if (Echo_) cout << "StressDT*Mode[" << i << "] = " << setw(Width) << z << "\n";
+   }
    
    if (Echo_) cout << "\n";
    out << "\n";
