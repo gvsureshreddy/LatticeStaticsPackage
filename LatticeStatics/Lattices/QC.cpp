@@ -222,6 +222,8 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
       out << setw(Width) << EigVal[0][Ind[i]];
       if (Echo_) cout << setw(Width) << EigVal[0][Ind[i]];
    }
+   if (Echo_) cout << "\n";
+   out << "\n";
 
    // Print out the critical point character test (Limit-load/Bifurcation)
    Bif = 1;
@@ -237,8 +239,6 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
       if (Echo_) cout << "StressDT*Mode[" << i << "] = " << setw(Width) << z << "\n";
    }
    
-   if (Echo_) cout << "\n";
-   out << "\n";
    for (int i=0;i<70;i++)
    {
       if (Echo_) cout << "-";
