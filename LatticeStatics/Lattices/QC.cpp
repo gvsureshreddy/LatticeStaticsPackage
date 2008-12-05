@@ -246,16 +246,25 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
    }
    if (Echo_) cout << endl;
    out << endl;
-   
-   // output a QC restart file
+
+   // identify critical point type file label
    ostringstream cpfilename;   
+   if (2 == Bif)
+      cpfilename << ".CP.";
+   else if (1 == Bif)
+      cpfilename << ".BP.";
+   else
+      cpfilename << ".TP.";
+
+   // output a QC restart file
+   ostringstream qcfilename;
    char tmp[2048];
    strcpy(tmp,Input.LastInputFileName());
    tmp[strlen(tmp)-4] = 0;
-   cpfilename << tmp << ".CP." << setw(2) << setfill('0')
+   qcfilename << tmp << cpfilename << setw(2) << setfill('0')
 	      << CPCrossingNum << CPSubNum << ".res";
    char fortranstring[80];
-   strcpy(fortranstring,cpfilename.str().c_str());
+   strcpy(fortranstring,qcfilename.str().c_str());
    for (int i=strlen(fortranstring);i<80;++i)
    {
       fortranstring[i] = ' ';
@@ -263,17 +272,11 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
    qcbfb_restart_(fortranstring);
 
    // output a new input file to help restart at this critical point
-   cpfilename.str("");
+   ostringstream bfbfilename;
+   bfbfilename << tmp << cpfilename;
+   bfbfilename << setw(2) << setfill('0') << CPCrossingNum << CPSubNum << ".bfb";
    fstream cpfile;
-   cpfilename << tmp;
-   if (2 == Bif)
-      cpfilename << ".CP.";
-   else if (1 == Bif)
-      cpfilename << ".BP.";
-   else
-      cpfilename << ".TP.";
-   cpfilename << setw(2) << setfill('0') << CPCrossingNum << CPSubNum << ".bfb";
-   cpfile.open(cpfilename.str().c_str(),ios::out);
+   cpfile.open(bfbfilename.str().c_str(),ios::out);
 
    cpfile << setprecision(out.precision()) << scientific;
    Vector T(dofs+1);
