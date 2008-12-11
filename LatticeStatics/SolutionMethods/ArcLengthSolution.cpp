@@ -324,8 +324,7 @@ int ArcLengthSolution::FindNextSolution()
       
       AngleTest = ArcLenAngle(OldDiff,Difference_,Aspect_);
       
-      if (Echo_)
-         cout << "AngleTest = " << AngleTest << "  Cutoff = " << AngleCutoff_ << "\n";
+      cout << "AngleTest = " << AngleTest << "  Cutoff = " << AngleCutoff_ << "\n";
    }
    while (((AngleTest >= AngleFactor*AngleCutoff_) || !good)
           && (CurrentDS_ >= DSMin_)
@@ -379,7 +378,7 @@ void ArcLengthSolution::ArcLengthNewton(int& good)
    Matrix stif(Dim,Dim);
    
    // Predictor step
-   if (Echo_) cout << "Taking Predictor Step. CurrentDS = " << CurrentDS_ << "\n";
+   cout << "Taking Predictor Step. CurrentDS = " << CurrentDS_ << "\n";
    ArcLenUpdate(Difference_);
    
    // Iterate until convergence
@@ -399,7 +398,7 @@ void ArcLengthSolution::ArcLengthNewton(int& good)
    Magnitude1 = Dx.Norm();
    Magnitude2 = Magnitude1;
 
-   if (Echo_) cout << "\tForceNorm = " << ForceNorm << " \tDeltaNorm = " << Magnitude2 << "\n";
+   cout << "\tForceNorm = " << ForceNorm << " \tDeltaNorm = " << Magnitude2 << "\n";
 
    do
    {
@@ -422,9 +421,9 @@ void ArcLengthSolution::ArcLengthNewton(int& good)
       Kappa = Magnitude2/(Magnitude1+Tolerance_*eta);
       Magnitude1 = Magnitude2;
       
-      if (Echo_) cout << "\tForceNorm = " << ForceNorm
-                      << " \tDeltaNorm = " << Magnitude2
-                      << " \tContraction = " << Kappa << "\n";
+      cout << "\tForceNorm = " << ForceNorm
+           << " \tDeltaNorm = " << Magnitude2
+           << " \tContraction = " << Kappa << "\n";
    }
    while ((itr < MaxIter_) && ((RHS.Norm() > Tolerance_) || (Dx.Norm() > Tolerance_)));
    
@@ -435,7 +434,7 @@ void ArcLengthSolution::ArcLengthNewton(int& good)
    }
    else
    {
-      if (Echo_) cout << "Prediction 1 Corrector Iterations: " << itr << "\n";
+      cout << "Prediction 1 Corrector Iterations: " << itr << "\n";
 
       if (BifStartFlag_)
       {
@@ -666,11 +665,9 @@ void ArcLengthSolution::ZBrent(Lattice* const Lat,int const& track,Vector const&
    
    while (((fabs(fb) > BisectTolerance_)) && (loops < MaxIter_))
    {
-      if (Echo_)
-      {
-         cout << setprecision(30) << "CurrentMinTF = " << fb << "\n";
-         cout << "CurrentDS_ = " << CurrentDS_ << setprecision(oldprecision) << "\n";
-      }
+      cout << setprecision(30) << "CurrentMinTF = " << fb << "\n";
+      cout << "CurrentDS_ = " << CurrentDS_ << setprecision(oldprecision) << "\n";
+
       ArcLenUpdate(-Difference_);
       
       if ((fb > 0.0 && fc > 0.0) || (fb < 0.0 && fc < 0.0))
@@ -702,11 +699,9 @@ void ArcLengthSolution::ZBrent(Lattice* const Lat,int const& track,Vector const&
          ArcLenUpdate(Difference_);
          Lat->TestFunctions(CurrentTF,Lattice::CRITPT);
          fb=CurrentTF[track];
-         if(Echo_)
-         {
-            cout <<setprecision(30)<<"CurrentMinTF = " << fb << "\n";
-            cout << "CurrentDS_ = " << CurrentDS_ <<setprecision(oldprecision)<< "\n";
-         }
+
+         cout <<setprecision(30)<<"CurrentMinTF = " << fb << "\n";
+         cout << "CurrentDS_ = " << CurrentDS_ <<setprecision(oldprecision)<< "\n";
          break;
       }
       
