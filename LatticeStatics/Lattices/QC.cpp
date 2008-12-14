@@ -138,7 +138,7 @@ Matrix const& QC::E3() const
    {
       pert.Resize(DOFS_,0.0);
       pert[i] = Tolerance_;
-      DOF_ = OrigDOF + pert; for (int i=0;i<cachesize;++i) Cached_[i]=0;
+      DOF_ = OrigDOF + pert; for (int r=0;r<cachesize;++r) Cached_[r]=0;
       {
          Matrix const& stiff = E2();
          for (int j=0;j<DOFS_;++j)
@@ -149,7 +149,7 @@ Matrix const& QC::E3() const
             }
          }
       }
-      DOF_ = OrigDOF - pert; for (int i=0;i<cachesize;++i) Cached_[i]=0;
+      DOF_ = OrigDOF - pert; for (int r=0;r<cachesize;++r) Cached_[r]=0;
       {
          Matrix const& stiff = E2();
          for (int j=0;j<DOFS_;++j)
@@ -169,7 +169,7 @@ Matrix const& QC::E3() const
       }
    }
 
-   DOF_ = OrigDOF; for (int i=0;i<cachesize;++i) Cached_[i]=0;
+   DOF_ = OrigDOF; for (int r=0;r<cachesize;++r) Cached_[r]=0;
 
    return E3_static;
 }
