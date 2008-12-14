@@ -545,7 +545,6 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
             {
                if ((RR[i][i] >= fb-Tolerance_) && (RR[i][i] <= fb+Tolerance_)) flag = 1;
             }
-            cout << "flag set to " << flag << endl;
             if (flag)
                FindSimpleBif(Lat,OriginalDiff,OriginalDS,fa,fb,CurrentTF_static);
             else
@@ -910,6 +909,16 @@ void ArcLengthSolution::FindSimpleBif(Lattice* const Lat,Vector const& OriginalD
             }
          }
       }
+      Matrix const& stiffdl = (Lat->LoadParameter() == Lattice::Load) ?
+         Lat->StiffnessDL() : Lat->StiffnessDT() ;
+      for (int i=0;i<N;++i)
+      {
+         J[N][i] = J[i][N] = 0.0;
+         for (int j=0;j<N;++j)
+         {
+            J[i][N] = J[N][i] += stiffdl[i][j]*w[N+1+j];
+         }
+      }
       // Df terms
       for (int i=0;i<N+1;++i)
       {
@@ -942,13 +951,11 @@ void ArcLengthSolution::FindSimpleBif(Lattice* const Lat,Vector const& OriginalD
       Q.SetIdentity(2*N+2);
       R.SetIdentity(2*N+2);
       QR(J,Q,R);
-      cout << setw(20) << J;
       
       int loops = 0;
       do
       {
          SolveQR(Q,R,dw,h);
-         cout << "dw=" << setw(20) << dw << endl;
          w -= dw;
          // update dofs
          for (int i=0;i<N+1;++i)
