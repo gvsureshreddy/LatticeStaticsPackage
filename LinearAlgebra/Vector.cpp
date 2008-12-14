@@ -5,7 +5,7 @@
 #include <cmath>
 
 // Global IDString
-char VectorID[]="$Id: Vector.cpp,v 1.17 2008/07/24 15:08:10 elliott Exp $";
+char VectorID[]="$Id: Vector.cpp,v 1.18 2008/12/14 21:29:02 elliott Exp $";
 
 // Private Functions...
 
@@ -405,6 +405,21 @@ Matrix::Elm Vector::Norm() const
    return sqrt(*this*(*this));
 }
 
+void SolveQR(Matrix const& Q,Matrix const& R,Vector& x,Vector const& B)
+{
+   Matrix C(B.Cols_,1);
+   for (register int i=0;i<B.Cols_;++i)
+   {
+      C[i][0] = B[i];
+   }
+   Matrix X(x.Cols_,1);
+   SolveQR(Q,R,X,C);
+   for (register int i=0;i<x.Cols_;++i)
+   {
+      x[i] = X[i][0];
+   }
+}
+
 Vector SolvePLU(Matrix const& A,Vector const& B)
 {
    Matrix C(B.Cols_,1);
@@ -428,6 +443,22 @@ Vector SolveSVD(Matrix const& A,Vector const& B,Vector::Elm const& MaxCond,
    }
 
       return SolveSVD(A,C,MaxCond,PrintFlag);
+}
+
+void BroydenQRUpdate(Matrix& Q,Matrix& R,Vector const& y,Vector const& x)
+{
+   Matrix Y(y.Cols_,1);
+   Matrix X(x.Cols_,1);
+   for (int i=0;i<y.Cols_;++i)
+   {
+      Y[i][0] = y[i];
+   }
+   for (int i=0;i<x.Cols_;++i)
+   {
+      X[i][0] = x[i];
+   }
+
+   BroydenQRUpdate(Q,R,Y,X);
 }
 
 ostream& operator<<(ostream& out,Vector const& A)

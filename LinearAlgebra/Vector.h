@@ -90,11 +90,20 @@ public:
 
    // Operations & Etc...
 
+   // Solves Ax=B with pseudoinverse of A
+   // using A=Q*R if A.Rows()==A.Cols()
+   // using A^{+} = (A^{T}*A)^{-1}*A^{T}, with A=Q*R if A.Rows() > A.Cols()
+   // using A^{+} = A^{T}*(A*A^{T})^{-1}, with A^{T}=Q*R if A.Rows() < A.Cols()
+   friend void SolveQR(Matrix const& Q,Matrix const& R,Vector& x,Vector const& B);
    // Uses PLU decomposition with Forward and Backwards substitution
    friend Vector SolvePLU(Matrix const& A,Vector const& B);
    // Uses SVD decomposition.
    friend Vector SolveSVD(Matrix const& A,Vector const& B,Elm const& MaxCond=MAXCONDITION,
                           int const& PrintFlag=0);
+
+   // Perform Broyden update on QR factorization of A
+   // it is expected that x.Norm() == 0
+   friend void BroydenQRUpdate(Matrix& Q,Matrix& R,Vector const& y,Vector const& x);
 
    // Output/Input Function
    friend ostream& operator<<(ostream& out,Vector const& A);

@@ -176,6 +176,70 @@ int main()
 
    cout << "CA*CA^-1" << setw(20) << CA*CA.Inverse() << "\n";
 
+   // test SolveQR for C*X=B with C size(3,6)
+   {
+      Matrix Q(3,3),R(3,6),X(6,1),B(3,1);
+      for (int i=0;i<3;++i) B[i][0]=b[i];
+      cout << "b=" << setw(20) << b << "\n";
+      QR(C,Q,R);
+      SolveQR(Q,R,X,B);
+      cout << "X=C^{+}*b" << setw(20) << X.Transpose() << "\n";
+      cout << "b = C*X" << setw(20) << (C*X).Transpose() << "\n";
+   }
+
+   // test SolveQR for C.Transpose()*X=B with C.Transpose() size(6,3)
+   {
+      Matrix Q(3,3),R(3,6),X(3,1),f(6,1);
+      for (int i=0;i<6;++i) f[i][0]=c[i];
+      cout << "c=" << setw(20) << c << "\n";
+      QR(C.Transpose(),Q,R,1);
+      SolveQR(Q,R,X,f);
+      cout << "X=C.Transpose()^{+}*c" << setw(20) << X.Transpose() << "\n";
+      cout << "C.Transpose()*X not= in general to c"
+           << setw(20) << ((C.Transpose())*X).Transpose() << "\n";
+   }
+
+   // test BroydenQRUpdate()
+   {
+      Matrix A(3,6);
+      Matrix y(3,1);
+      Matrix x(6,1);
+      double sum = 0.0;
+      for (int i=0;i<3;++i)
+      {
+         y[i][0] = double(rand()%10);
+         for (int j=0;j<6;++j)
+         {
+            if (i == 0)
+            {
+               x[j][0] = double(rand()%10);
+               sum += x[j][0]*x[j][0];
+            }
+            A[i][j] = double(rand()%10);
+         }
+      }
+      x /= sqrt(sum);
+
+      Matrix Q(3,3);
+      Matrix R(3,6);
+      QR(A,Q,R);
+      cout << "Testing BroydenQRUpdate\n"
+           << "A=" << setw(20) << A
+           << "y=" << setw(20) << y.Transpose()
+           << "x=" << setw(20) << x.Transpose()
+           << "Q=" << setw(20) << Q
+           << "R=" << setw(20) << R
+           << "Anew=" << setw(20) << A + (y - A*x)*x.Transpose();
+      BroydenQRUpdate(Q,R,y,x);
+
+      cout << "Updated\n"
+           << "Q=" << setw(20) << Q
+           << "R=" << setw(20) << R;
+
+      cout << "QR = " << setw(20) << Q*R;
+
+   }
+   
    PLU(A,B,C,D);
    PLU(CA,CB,CC,CD);
 
@@ -203,8 +267,14 @@ int main()
 
    cout << "c" << "\n" << setw(20) << c << "\n";
 
-   cout << "x=E^-1*c" << setw(20) << SolvePLU(E,c) << "\n";
+   cout << "x=E^-1*c\n" << setw(20) << SolvePLU(E,c) << "\n";
+   Matrix QQQ(6,6),RRR(6,6),XXX(6,1),CCC(6,1);
+   for (int i=0;i<6;++i) CCC[i][0]=c[i];
+   QR(E,QQQ,RRR);
+   SolveQR(QQQ,RRR,XXX,CCC);
+   cout << "x=R^-1*Q^T*c" << setw(20) << XXX.Transpose() << "\n";
    cout << "E*x" << setw(20) << E*SolvePLU(E,c) << "\n";
+
 
    cout << "CE" << "\n" << setw(20) << CE << "\n";
 
@@ -439,7 +509,7 @@ int main()
    Z.Resize(4,3);
    Z = Q*R;
 
-   cout << "A=Q*R" << "\n" << setw(20) << Z << "\n";
+   cout << "A^T=Q*R" << "\n" << setw(20) << Z << "\n";
 
    I.Resize(4,4);
    I=Q*Q.Transpose();

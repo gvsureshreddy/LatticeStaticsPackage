@@ -6,7 +6,7 @@
 #include <cstdlib>
 
 // Global IDString
-char MatrixID[]="$Id: Matrix.cpp,v 1.25 2008/09/26 01:41:25 elliott Exp $";
+char MatrixID[]="$Id: Matrix.cpp,v 1.26 2008/12/14 21:29:01 elliott Exp $";
 
 // Private Methods...
 
@@ -603,6 +603,9 @@ void PLU(Matrix const& A,Matrix& P,Matrix& L,Matrix& U)
 }
 
 // find QR factorization of A or A.Transpose()
+//
+// A   = Q*R  -- CalcTranspose = 0
+// A^T = Q*R  -- CalcTranspose = 1
 void QR(Matrix const& A,Matrix& Q,Matrix& R,int const& CalcTranspose)
 {
    int i,j,k,m,n;
@@ -683,6 +686,278 @@ void QR(Matrix const& A,Matrix& Q,Matrix& R,int const& CalcTranspose)
       }
    }
    return;
+}
+
+// Return the solution x for the linear system A*x = B
+// using A=Q*R if A.Rows()==A.Cols()
+// using A^{+} = (A^{T}*A)^{-1}*A^{T}, with A=Q*R if A.Rows() > A.Cols()
+// using A^{+} = A^{T}*(A*A^{T})^{-1}, with A^{T}=Q*R if A.Rows() < A.Cols()
+void SolveQR(Matrix const& Q,Matrix const& R,Matrix& x,Matrix const& B)
+{
+   if (Q.Cols() != R.Rows())
+   {
+      cerr << "Error in SolveQR(): incorrect Q and R matrix sizes.\n";
+      exit(-1);
+   }
+
+   // x = A^{-1}*B
+   if ((x.Rows() == B.Rows()) && (Q.Rows() == B.Rows()) &&
+       (Q.Cols() == R.Rows()) && (R.Cols() == B.Rows()))
+   {
+      // A = Q*R
+      //
+      // R*x = Q^{T}*B
+
+      // calculate y = Q^{T}*B
+      Matrix y(B.Rows(),1,0.0);
+      for (int i=0;i<y.Rows();++i)
+      {
+         for (int j=0;j<Q.Rows();++j)
+         {
+            y[i][0] += Q[j][i]*B[j][0];
+         }
+      }
+
+      // solve R*x = y
+      // note: no need to initialize x
+      double sum;
+      for (int i=R.Rows()-1;i>=0;--i)
+      {
+         sum = 0.0;
+         for (int j=R.Cols()-1;j>i;--j)
+         {
+            sum += R[i][j]*x[j][0];
+         }
+         x[i][0] = (y[i][0] - sum)/R[i][i];
+      }
+   }
+   // x = A^{+}*B
+   else if ((x.Rows() == R.Cols()) && (B.Rows() == Q.Cols()))
+   {
+      // A = Q*R
+      //
+      // A^{+} = (A^{T}*A)^{-1}*A^{T}
+      // using QR gives (A^{T}*A) = (R^{T}*R)
+      // so (R^{T}*R)*x = A^{T}*B
+
+      // calculate z = A^{T}*B = R^{T}*Q^{T}*B
+      Matrix y(Q.Cols(),1,0.0);
+      for (int i=0;i<y.Rows();++i)
+      {
+         for (int j=0;j<Q.Rows();++j)
+         {
+            y[i][0] += Q[j][i]*B[j][0];
+         }
+      }
+      Matrix z(R.Cols(),1,0.0);
+      for (int i=0;i<z.Rows();++i)
+      {
+         for (int j=0;j<R.Rows();++j)
+         {
+            z[i][0] += R[j][i]*y[j][0];
+         }
+      }
+      
+      //solve (R^{T}*R)*x = z
+      //
+      // solve R^{T}*y = z
+      // note: no need to initialize y
+      double sum;
+      for (int i=0;i<y.Rows();++i)
+      {
+         sum = 0.0;
+         for (int j=0;j<i;++j)
+         {
+            sum += R[j][i]*y[j][0];
+         }
+         y[i][0] = (z[i][0] - sum)/R[i][i];
+      }
+
+      // solve R*x = y
+      // note: no need to initialize x
+      for (int i=R.Rows()-1;i>=0;--i)
+      {
+         sum = 0.0;
+         for (int j=i+1;j<R.Cols();++j)
+         {
+            sum += R[i][j]*x[j][0];
+         }
+         x[i][0] = (y[i][0] - sum)/R[i][i];
+      }
+   }
+   else if ((x.Rows() == Q.Rows()) && (B.Rows() == R.Cols()))
+   {
+      // A^{T} = Q*R
+      //
+      // A^{+} = A^{T}*(A*A^{T})^{-1}
+      // using QR gives (A*A^{T}) = (R^{T}*R)
+      // x = A^{+}*B = A^{T}*(R^{T}*R)^{-1}*B
+
+      // slove (R^{T}*R)*y = B
+      //
+      // solve R^{T}*z = B
+      // note: no need to initialize z
+      Matrix z(R.Rows(),1);
+      double sum;
+      for (int i=0;i<R.Rows();++i)
+      {
+         sum = 0.0;
+         for (int j=0;j<i;++j)
+         {
+            sum += R[j][i]*z[j][0];
+         }
+         z[i][0] = (B[i][0] - sum)/R[i][i];
+      }
+      // solve R*y = z
+      // note: no need to initialize y
+      Matrix y(R.Cols(),1);
+      for (int i=R.Rows()-1;i>=0;--i)
+      {
+         sum = 0.0;
+         for (int j=i+1;j<R.Cols();++j)
+         {
+            sum += R[i][j]*y[j][0];
+         }
+         y[i][0] = (z[i][0] - sum)/R[i][i];
+      }
+
+      // calculate x = A^{T}*y = Q*R*y
+      //
+      // calculate z = R*y
+      z.Resize(R.Rows(),1,0.0); // initialize x
+      for (int i=0;i<z.Rows();++i)
+      {
+         for (int j=0;j<R.Cols();++j)
+         {
+            z[i][0] += R[i][j]*y[j][0];
+         }
+      }
+      // calculate x = Q*z
+      x.Resize(Q.Rows(),1,0.0); // initialize z
+      for (int i=0;i<x.Rows();++i)
+      {
+         for (int j=0;j<Q.Cols();++j)
+         {
+            x[i][0] += Q[i][j]*z[j][0];
+         }
+      }
+   }
+   else
+   {
+      cerr << "Error in SolveQR(): x and B not compatible with size of A.\n";
+      exit(-1);
+   }
+}
+
+// Perform Broyden's update on QR factorization of a matrix (secant eq: Ax = y)
+// it is expected that norm(x) == 1.0
+// Anew = A + (y-Ax)x^T
+void BroydenQRUpdate(Matrix& Q,Matrix& R,Matrix const& y,Matrix const& x)
+{
+   // A = Q*R so Q^{T}*A = R
+   //
+   // then Q^{T}*Anew = R + (Q^{T}*y - R*x)*x^{T}
+   if ((y.Rows() != Q.Rows()) || (R.Cols() != x.Rows()))
+   {
+      cerr << "Error in BroydenQRUpdate(): y or x not compatible with A\n";
+      exit(-1);
+   }
+   if (Q.Cols() != R.Rows())
+   {
+      cerr << "Error in BroydenQRUpdate(): Q and R sizes not compatible\n";
+   }
+
+   // following alg 16.3.3 of Allgower and Georg (except A=Q*R not A=Q^T*R)
+   Matrix u(Q.Cols(),1,0.0);
+   for (int i=0;i<u.Rows();++i)
+   {
+      for (int j=0;j<Q.Rows();++j)
+      {
+         u[i][0] += Q[j][i]*y[j][0];
+      }
+      for (int j=0;j<R.Cols();++j)
+      {
+         u[i][0] -= R[i][j]*x[j][0];
+      }
+   }
+
+   // Perform Givens rotations so as to render u[i] == 0 for i>0
+   double r,c,s;
+   double A1,A2;
+   for (int i=u.Rows()-2;i>=0;--i)
+   {
+      c = u[i][0];
+      s = u[i+1][0];
+      if (s != 0.0)
+      {
+         r = sqrt(c*c+s*s);
+         c = c/r;
+         s = s/r;
+
+         // Rotate R
+         for (int j=0;j<R.Cols();++j)
+         {
+            A1 = c*R[i][j] + s*R[i+1][j];
+            A2 = -s*R[i][j] + c*R[i+1][j];
+            R[i][j] = A1;
+            R[i+1][j] = A2;
+         }
+         // Rotate Q
+         for (int j=0;j<Q.Rows();++j)
+         {
+            A1 = c*Q[j][i] + s*Q[j][i+1];
+            A2 = -s*Q[j][i] + c*Q[j][i+1];
+            Q[j][i] = A1;
+            Q[j][i+1] = A2;
+         }
+         // Rotate u
+         A1 = c*u[i][0] + s*u[i+1][0];
+         A2 = -s*u[i][0] + c*u[i+1][0];
+         u[i][0] = A1;
+         u[i+1][0] = A2;
+      }
+   }
+
+   // Now we have Hessenberg form
+   //
+   // Next perform update with u[i] and x
+   // then do Givens rotations to bring into uppertriangular form.
+
+   // do the update
+   for (int i=0;i<R.Cols();++i)
+   {
+      R[0][i] += u[0][0]*x[i][0];
+   }
+
+   // Perform Givens rotations to fixup R
+   for (int i=0;i<R.Rows()-1;++i)
+   {
+      c = R[i][i];
+      s = R[i+1][i];
+      if (s != 0.0)
+      {
+         r = sqrt(c*c+s*s);
+         c = c/r;
+         s = s/r;
+
+         // rotate R
+         for (int j=0;j<R.Cols();++j)
+         {
+            A1 = c*R[i][j] + s*R[i+1][j];
+            A2 = -s*R[i][j] + c*R[i+1][j];
+            R[i][j] = A1;
+            R[i+1][j] = A2;
+         }
+         // Rotate Q
+         for (int j=0;j<Q.Rows();++j)
+         {
+            A1 = c*Q[j][i] + s*Q[j][i+1];
+            A2 = -s*Q[j][i] + c*Q[j][i+1];
+            Q[j][i] = A1;
+            Q[j][i+1] = A2;
+         }
+      }
+   }
 }
 
 // Singular Value Decomposition of A -- Algorithm from Numerical Recipies

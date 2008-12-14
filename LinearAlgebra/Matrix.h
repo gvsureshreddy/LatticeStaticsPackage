@@ -97,6 +97,7 @@ public:
    Matrix& operator-=(Matrix const& B) {return *this=*this-B;}
    Matrix& operator*=(Matrix const& B) {return *this=*this*B;}
    Matrix& operator*=(Elm const& B)    {return *this=*this*B;}
+   Matrix& operator/=(Elm const& B)    {return *this=*this/B;}
 
    // Misc. Matrix Operatons
    
@@ -168,7 +169,20 @@ public:
    friend void Cholesky(Matrix const& A,Matrix& U,Matrix& D);
 
    // QR decomposition of A
+   //
+   // A   = Q*R  -- CalcTranspose = 0
+   // A^T = Q*R  -- CalcTranspose = 1
    friend void QR(Matrix const& A,Matrix& Q,Matrix& R,int const& CalcTranspose=0);
+
+   // Return the solution x for the linear system A*x = B
+   // using A=Q*R if A.Rows()==A.Cols()
+   // using A^{+} = (A^{T}*A)^{-1}*A^{T}, with A=Q*R if A.Rows() > A.Cols()
+   // using A^{+} = A^{T}*(A*A^{T})^{-1}, with A^{T}=Q*R if A.Rows() < A.Cols()
+   friend void SolveQR(Matrix const& Q,Matrix const& R,Matrix& x,Matrix const& B);
+
+   // Perform Broyden's update on QR factorization of a matrix (Ax = y -> A = A + (y-Ax)x^T)
+   // it is expected that norm(x) == 1.0
+   friend void BroydenQRUpdate(Matrix& Q,Matrix& R,Matrix const& y,Matrix const& x);
    
    // Return solution x of the linear system A*x=B
    // Uses PLU decomposition and Forward and Backwards substitution
