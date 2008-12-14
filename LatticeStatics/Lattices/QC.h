@@ -16,6 +16,7 @@ private:
 
    int Echo_;
    int Width_;
+   double Tolerance_;
 
    enum UpdateFlag {NoStiffness=0,NeedStiffness=1};
    void UpdateValues(UpdateFlag flag) const;
@@ -45,7 +46,10 @@ public:
    virtual double E0() const;
    virtual Vector const& E1() const;
    virtual Vector const& E1DLoad() const;
+   virtual Vector const& StressDL() const {return E1DLoad();}
    virtual Matrix const& E2() const;
+   virtual Matrix const& StiffnessDL() const;
+   virtual Matrix const& E3() const;
    virtual void Print(ostream& out,PrintDetail const& flag);
 
    friend ostream& operator<<(ostream& out,QC& A);
@@ -61,17 +65,15 @@ public:
    Matrix const& StiffnessDT() const {return EmptyM_;}
    double Temp() const {return 0.0;}
    void SetTemp(double const& Ntemp) {}
-   Vector const& StressDL() const {return E1DLoad();}
-   Matrix const& StiffnessDL() const
-   {cerr << "QC::StiffnessDL() Not Programmed\n"; return EmptyM_;}
-   virtual Matrix const& E3() const
-   {cerr << "QC::E3() Not Programmed\n"; exit(-1); return EmptyM_;}
    virtual Matrix const& E4() const
    {cerr << "QC::E4() Not Programmed\n"; exit(-1); return EmptyM_;}
    virtual void SetParameters(double const* const Vals,int const& ResetRef = 1) {}
    virtual void SetGridSize(int const& Grid) {}
    
 private:
+   // statice for StiffnessDL and E3
+   mutable Matrix stiffdl_static;
+   mutable Matrix E3_static;
    // place holder
    Vector EmptyV_;
    Matrix EmptyM_;

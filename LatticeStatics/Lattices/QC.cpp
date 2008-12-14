@@ -27,10 +27,13 @@ QC::QC(PerlInput const& Input,int const& Echo,int const& Width):
    PerlInput::HashStruct Hash = Input.getHash("Lattice");
    Hash = Input.getHash(Hash,"QC");
    DOFS_ = Input.getPosInt(Hash,"DOFS");
+   Tolerance_ = Input.getDouble(Hash,"Tolerance");
    DOF_.Resize(DOFS_,0.0);
    E1CachedValue_.Resize(DOFS_);
    E1DLoadCachedValue_.Resize(DOFS_);
    E2CachedValue_.Resize(DOFS_,DOFS_);
+   stiffdl_static.Resize(DOFS_,DOFS_);
+   E3_static.Resize(DOFS_*DOFS_,DOFS_);
    EmptyV_.Resize(DOFS_,0.0);
    EmptyM_.Resize(DOFS_,DOFS_,0.0);
 
@@ -110,6 +113,65 @@ Matrix const& QC::E2() const
    }
    
    return E2CachedValue_;
+}
+
+Matrix const& QC::StiffnessDL() const
+{
+   double load = Lambda_;
+
+   Lambda_ = load+10.0*Tolerance_; for (int i=0;i<cachesize;++i) Cached_[i]=0;
+   stiffdl_static = E2();
+   Lambda_ = load-10.0*Tolerance_; for (int i=0;i<cachesize;++i) Cached_[i]=0;
+   stiffdl_static -= E2();
+   stiffdl_static /= 2.0;
+
+   Lambda_ = load; for (int i=0;i<cachesize;++i) Cached_[i]=0;
+   return stiffdl_static;
+}
+
+Matrix const& QC::E3() const
+{
+   Vector OrigDOF = DOF();
+   Vector pert;
+
+   for (int i=0;i<DOFS_;++i)
+   {
+      pert.Resize(DOFS_,0.0);
+      pert[i] = Tolerance_;
+      DOF_ = OrigDOF + pert; for (int i=0;i<cachesize;++i) Cached_[i]=0;
+      {
+         Matrix const& stiff = E2();
+         for (int j=0;j<DOFS_;++j)
+         {
+            for (int k=0;k<DOFS_;++k)
+            {
+               E3_static[DOFS_*j+k][i] = stiff[j][k];
+            }
+         }
+      }
+      DOF_ = OrigDOF - pert; for (int i=0;i<cachesize;++i) Cached_[i]=0;
+      {
+         Matrix const& stiff = E2();
+         for (int j=0;j<DOFS_;++j)
+         {
+            for (int k=0;k<DOFS_;++k)
+            {
+               E3_static[DOFS_*j+k][i] -= stiff[j][k];
+            }
+         }
+      }
+      for (int j=0;j<DOFS_;++j)
+      {
+         for (int k=0;k<DOFS_;++k)
+         {
+            E3_static[DOFS_*j+k][i] /= 2.0;
+         }
+      }
+   }
+
+   DOF_ = OrigDOF; for (int i=0;i<cachesize;++i) Cached_[i]=0;
+
+   return E3_static;
 }
 
 int QC::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
