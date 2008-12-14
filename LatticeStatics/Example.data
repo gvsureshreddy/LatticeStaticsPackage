@@ -260,7 +260,8 @@ $ArcLenDSMax = 0.01;
                                          AngleCutoff         => 25*$DEG2RAD,
                                          AngleIncrease       => 10*$DEG2RAD,
                                          Aspect              => 1.0,
-                                         NumSolutions        => 1000#,
+                                         NumSolutions        => 1000,
+                                         CPMethod            => 1#, # 1-ZBrent, 0-FindSimpleCP
                                          #ClosedLoopStart     => 30#, # Default value = 30
                                          #StopAtCPCrossingNum => -1, # Default value = -1
                                         },

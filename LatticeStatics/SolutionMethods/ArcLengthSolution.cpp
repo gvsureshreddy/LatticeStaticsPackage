@@ -10,11 +10,11 @@ using namespace std;
 
 ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,Vector const& dofs,
                                      int const& MaxIter,double const& Tolerance,
-                                     double const& BisectTolerance,double const& DSMax,
-                                     double const& DSMin,double const& CurrentDS,
-                                     double const& AngleCutoff,double const& AngleIncrease,
-                                     double const& Aspect,int const& NumSolutions,
-                                     int const& CurrentSolution,Vector const& FirstSolution,
+                                     double const& DSMax,double const& DSMin,
+                                     double const& CurrentDS,double const& AngleCutoff,
+                                     double const& AngleIncrease,double const& Aspect,
+                                     int const& NumSolutions,int const& CurrentSolution,
+                                     int const& CPMethodFlag,Vector const& FirstSolution,
                                      Vector const& Difference,int const& BifStartFlag,
                                      Vector const& BifTangent,int const& ClosedLoopStart,
                                      int const& StopAtCPCrossingNum,int const& Echo)
@@ -23,7 +23,6 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,Vector const& d
      DOFS_(Restrict_->DOF().Dim()),
      MaxIter_(MaxIter),
      Tolerance_(Tolerance),
-     BisectTolerance_(BisectTolerance),
      DSMax_(DSMax),
      DSMin_(DSMin),
      CurrentDS_(CurrentDS),
@@ -32,6 +31,7 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,Vector const& d
      Aspect_(Aspect),
      NumSolutions_(NumSolutions_),
      CurrentSolution_(CurrentSolution),
+     CPMethodFlag_(CPMethodFlag),
      BifStartFlag_(BifStartFlag),
      BifTangent_(BifTangent),
      ClosedLoopStart_(ClosedLoopStart),
@@ -73,6 +73,7 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const
    AngleIncrease_ = Input.getDouble(Hash,"AngleIncrease");
    Aspect_ = Input.getDouble(Hash,"Aspect");
    NumSolutions_ = Input.getPosInt(Hash,"NumSolutions");
+   CPMethodFlag_ = Input.getPosInt(Hash,"CPMethod");
    if (Input.ParameterOK(Hash,"ClosedLoopStart"))
    {
       ClosedLoopStart_ = Input.getInt(Hash,"ClosedLoopStart");
@@ -90,8 +91,6 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const
       StopAtCPCrossingNum_ = Input.useInt(-1,Hash,"StopAtCPCrossingNum"); // Default Value
    }
    Input.EndofInputSection();
-   
-   BisectTolerance_ = Tolerance_;
    
    FirstSolution_.Resize(one.Dim());
    FirstSolution_ = one;
@@ -125,6 +124,7 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const
    AngleIncrease_ = Input.getDouble(Hash,"AngleIncrease");
    Aspect_ = Input.getDouble(Hash,"Aspect");
    NumSolutions_ = Input.getPosInt(Hash,"NumSolutions");
+   CPMethodFlag_ = Input.getPosInt(Hash,"CPMethod");
    if (Input.ParameterOK(Hash,"ClosedLoopStart"))
    {
       ClosedLoopStart_ = Input.getInt(Hash,"ClosedLoopStart");
@@ -142,8 +142,6 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const
       StopAtCPCrossingNum_ = Input.useInt(-1,Hash,"StopAtCPCrossingNum"); // Default Value
    }
    Input.EndofInputSection();
-   
-   BisectTolerance_ = Tolerance_;
    
    const char *starttype = Input.getString("StartType","Type");
 
@@ -531,12 +529,45 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
       
       if(track>=0) //START OF IF STATEMENT
       {
-         ZBrent(Lat,track,OriginalDiff,OriginalDS,fa,fb,CurrentTF_static);
+         if (CPMethodFlag_)
+         {
+            ZBrent(Lat,track,OriginalDiff,OriginalDS,fa,fb,CurrentTF_static);
+         }
+         else
+         {
+            // check for turning point.  If bif pt use FindSimpleBif else use ZBrent
+            int N = Restrict_->DOF().Dim() - 1;
+            Matrix const& stiff = Restrict_->Stiffness();
+            Matrix QQ(N+1,N+1),RR(N+1,N);
+            QR(stiff,QQ,RR,1);
+            int flag=0;
+            for (int i=0;i<N;++i)
+            {
+               if ((RR[i][i] >= fb-Tolerance_) && (RR[i][i] <= fb+Tolerance_)) flag = 1;
+            }
+            cout << "flag set to " << flag << endl;
+            if (flag)
+               FindSimpleBif(Lat,OriginalDiff,OriginalDS,fa,fb,CurrentTF_static);
+            else
+               ZBrent(Lat,track,OriginalDiff,OriginalDS,fa,fb,CurrentTF_static);
+         }
+         if (fabs(CurrentTF_static[track]) > Tolerance_)
+         {
+            if (CPMethodFlag_)
+            {
+               cout << "Warning: ZBrent did not converge to desired tolerance.\n";
+            }
+            else
+            {
+               cout << "Warning: FindSimpleCP either found a differenct CP or did not converge.\n";
+            }
+         }
+         
          Multiplicity = 1;
          for(int i=CP+1;i<TestValueDiff;i++)
          {
             temp = Index[i];
-            if(fabs(CurrentTF_static[temp]) <= BisectTolerance_)
+            if(fabs(CurrentTF_static[temp]) <= Tolerance_)
             {
                Index[i] = -1;
                Multiplicity++;
@@ -663,7 +694,7 @@ void ArcLengthSolution::ZBrent(Lattice* const Lat,int const& track,Vector const&
    //<<  "b = " << b << "\n" << "fb = " << fb << "\n"
    //<< "c = " << c << "\n" << "fc = " << fc << "\n";
    
-   while (((fabs(fb) > BisectTolerance_)) && (loops < MaxIter_))
+   while (((fabs(fb) > Tolerance_)) && (loops < MaxIter_))
    {
       cout << setprecision(30) << "CurrentMinTF = " << fb << "\n";
       cout << "CurrentDS_ = " << CurrentDS_ << setprecision(oldprecision) << "\n";
@@ -688,7 +719,7 @@ void ArcLengthSolution::ZBrent(Lattice* const Lat,int const& track,Vector const&
          fc=fa;
       }
       
-      tol1 = 2.0*ARCLENEPS*fabs(b) + 0.5*BisectTolerance_;
+      tol1 = 2.0*ARCLENEPS*fabs(b) + 0.5*Tolerance_;
       xm = 0.5 * (c-b);
       
       if(fabs(xm) <= tol1 || fb == 0.0)
@@ -771,4 +802,232 @@ void ArcLengthSolution::ZBrent(Lattice* const Lat,int const& track,Vector const&
       //cout << "CurrentTF = " << "\n" << setw(Width) << CurrentTF << "\n" << "\n";
       //cout << "CurrentTF[track] = " << "\n" << CurrentTF[track]<< "\n"<< "\n";
    }
+}
+
+void ArcLengthSolution::FindSimpleBif(Lattice* const Lat,Vector const& OriginalDiff,
+                                      double const& OriginalDS,double& fa, double& fb,
+                                      Vector& CurrentTF)
+{
+   //Only works with NoRestriction
+   if (strcmp(Restrict_->Name(),"NoRestriction"))
+   {
+      cerr << "Error: FindSimpleCP only works with NoRestriction object.\n";
+      exit(-1);
+   }
+
+   // set back to LHS of bif pt.
+   ArcLenUpdate(-Difference_);
+   // store DOFs for LHS
+   Vector LHSDef = ArcLenDef();
+
+   int N = Restrict_->DOF().Dim() - 1;
+   Vector currentdef(N+1);
+   // set up augmented equation vector
+   Vector h(2*N+2);
+   Vector oldh(2*N+2);
+   Vector w(2*N+2);
+   Vector dw(2*N+2);
+
+   // create storage for force and stiffness and eigenvectors and values
+   Vector force(N);
+   Matrix eigvecs(N,N);
+   Matrix eigvals(1,N);
+
+   // set to initial guess for bif point
+   Vector initialguess = (-fa*OriginalDS/(fb-fa))*OriginalDiff;
+   eigvals=SymEigVal(Lat->E2(),&eigvecs);
+   int minindex = 0;
+   double minval = fabs(eigvals[0][0]);
+   for (int i=1;i<N;++i)
+   {
+      if (fabs(eigvals[0][i]) < minval)
+      {
+         minindex = i;
+         minval = fabs(eigvals[0][i]);
+      }
+   }
+
+   // fill w = (x,z,alpha)
+   for (int i=0;i<N+1;++i)
+   {
+      // x
+      w[i] = LHSDef[i] + initialguess[i];
+   }
+   for (int i=0;i<N;++i)
+   {
+      // z
+      w[N+1+i] = eigvecs[i][minindex];
+   }
+   // alpha
+   w[2*N+1] = 0.0;
+
+   // update dofs
+   for (int i=0;i<N+1;++i)
+   {
+      currentdef[i]=w[i];
+   }
+   ArcLenSet(currentdef);
+
+   
+   // update h
+   SetH(h,w);
+   // set oldh
+   oldh = h;
+
+   cout << "w=" << setw(20) << w << ",  h=" << setw(20) << h << endl;
+
+   // check for turning point   
+   Matrix const& stiff = Restrict_->Stiffness();
+   Matrix QQ(N+1,N+1),RR(N+1,N);
+   QR(stiff,QQ,RR,1);
+   int flag=0;
+   for (int i=0;i<N;++i)
+   {
+      if (fa > fb)
+      {
+         if ((RR[i][i] < fa) && (RR[i][i] > fb)) flag = 1;
+      }
+      else
+      {
+         if ((RR[i][i] > fa) && (RR[i][i] < fb)) flag = 1;
+      }
+   }
+   if (flag) // bif pt
+   {
+      // start Newton loops.
+      // setup initial guess for jacobian
+      Matrix J(2*N+2,2*N+2,0.0);
+      // identity as guess for D2f^T*z
+      Matrix const& e3 = Lat->E3();
+      for (int i=0;i<N;++i)
+      {
+         for (int j=0;j<N;++j)
+         {
+            J[i][j] = 0.0;
+            for (int k=0;k<N;++k)
+            {
+               J[i][j] += e3[N*i+j][k]*w[N+1+k];
+            }
+         }
+      }
+      // Df terms
+      for (int i=0;i<N+1;++i)
+      {
+         for (int j=0;j<N;++j)
+         {
+            J[N+1+j][i] = stiff[j][i];
+            J[i][N+1+j] = stiff[j][i];
+         }
+      }
+      // zero terms
+      for (int i=0;i<N+1;++i)
+      {
+         J[i][2*N+1] = 0.0;
+         J[2*N+1][i] = 0.0;
+      }
+      J[2*N+1][2*N+1] = 0.0;
+      //center -alpha*identity terms
+      for (int i=N+1;i<2*N+1;++i)
+      {
+         J[i][i] = -w[2*N+1];
+      }
+      // z terms
+      for (int i=0;i<N;++i)
+      {
+         J[N+1+i][2*N+1] = -w[N+1+i];
+         J[2*N+1][N+1+i] = w[N+1+i]/2.0;
+      }
+      
+      Matrix Q,R;
+      Q.SetIdentity(2*N+2);
+      R.SetIdentity(2*N+2);
+      QR(J,Q,R);
+      cout << setw(20) << J;
+      
+      int loops = 0;
+      do
+      {
+         SolveQR(Q,R,dw,h);
+         cout << "dw=" << setw(20) << dw << endl;
+         w -= dw;
+         // update dofs
+         for (int i=0;i<N+1;++i)
+         {
+            currentdef[i]=w[i];
+         }
+         ArcLenSet(currentdef);
+         
+         // calculate h
+         SetH(h,w);
+         // done calculating h
+         cout << "w=" << setw(20) << w << ",  h=" << setw(20) << h << endl;
+         
+         // Update Q and R
+         BroydenQRUpdate(Q,R,(h-oldh)/dw.Norm(),-dw/dw.Norm());
+         
+         // update oldh
+         oldh = h;
+         ++loops;
+      }
+      while ((h.Norm() > Tolerance_) && (loops < MaxIter_));
+      
+      if (loops >= MaxIter_)
+      {
+         cout << "Error: FindSimpleBif() did not converge\n";
+      }
+   }
+   else
+   {
+      cout << "Warning: FindSimpleCP identified a turningpoint CP\n"
+           << "         and has not accurately polished the point.\n";
+   }
+
+   // set Difference_ and CurrentDS_ appropriately;
+   Difference_ = currentdef - LHSDef;
+   CurrentDS_ = 0.0;
+   for (int i=0;i<N;++i)
+   {
+      CurrentDS_ += Difference_[i]*Difference_[i];
+   }
+   CurrentDS_ += Difference_[N]*Difference_[N]/(Aspect_*Aspect_);
+
+   // Find current testfunctions
+   Lat->TestFunctions(CurrentTF,Lattice::CRITPT);
+}
+
+void ArcLengthSolution::SetH(Vector& h,Vector const& w)
+{
+   // h(x,z,alpha) = (Df(x)^T*z,f(x)-alpha*z,(z*z - 1)/2)
+   // size           (N+1,      N,            1) = 2N+2
+   // w = (x,z,alpha)
+   //size (N+1,N,1) = 2N+2
+
+   Matrix const& stiff = Restrict_->Stiffness();
+   int N=stiff.Rows();
+
+   // update Df(x)^T*z
+   for (int i=0;i<N+1;++i)
+   {
+      h[i] = 0.0;
+      for (int j=0;j<N;++j)
+      {
+         h[i] += stiff[j][i]*w[N+1+j];
+      }
+   }
+
+   // update f(x)-alpha*z
+   Vector const& stress = Restrict_->Force();
+   for (int i=0;i<N;++i)
+   {
+      h[N+1+i] = stress[i] - w[2*N+1]*w[N+1+i];
+   }
+
+   // update (z*z - 1)/2
+   h[2*N+1] = 0.0;
+   for (int i=0;i<N;++i)
+   {
+      h[2*N+1] += w[N+1+i]*w[N+1+i];
+   }
+   h[2*N+1] -= 1.0;
+   h[2*N+1] /= 2.0;
 }

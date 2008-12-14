@@ -12,11 +12,11 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,
                                    double const& MaxDS,double const& CurrentDS,
                                    double const& MinDS,double const& cont_rate_max,
                                    double const& delta_max,double const& alpha_max,
-                                   double const& Converge,Vector const& FirstSolution,
-                                   int const& Direction,double const& accel_max,
-                                   int const& BifStartFlag,Vector const& BifTangent,
-                                   int const& ClosedLoopStart,int const& StopAtCPCrossingNum,
-                                   int const& Echo)
+                                   double const& Converge,int const& CPMethodFlag,
+                                   Vector const& FirstSolution,int const& Direction,
+                                   double const& accel_max,int const& BifStartFlag,
+                                   Vector const& BifTangent,int const& ClosedLoopStart,
+                                   int const& StopAtCPCrossingNum,int const& Echo)
    : Restrict_(Restrict),
      Echo_(Echo),
      CurrentSolution_(CurrentSolution),
@@ -29,6 +29,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,
      delta_max_(delta_max),
      alpha_max_(alpha_max),
      Converge_(Converge),
+     CPMethodFlag_(CPMethodFlag),
      BifStartFlag_(BifStartFlag),
      BifTangent_(BifTangent),
      ClosedLoopStart_(ClosedLoopStart),
@@ -128,6 +129,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
       exit(-22);
    }
    Converge_ = Input.getDouble(Hash,"ConvergeCriteria");
+   CPMethodFlag_ = Input.getPosInt(Hash,"CPMethod");
    if (Input.ParameterOK(Hash,"ClosedLoopStart"))
    {
       ClosedLoopStart_ = Input.getInt(Hash,"ClosedLoopStart");
@@ -264,6 +266,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
       exit(-22);
    }   
    Converge_ = Input.getDouble(Hash,"ConvergeCriteria");
+   CPMethodFlag_ = Input.getPosInt(Hash,"CPMethod");
    if (Input.ParameterOK(Hash,"ClosedLoopStart"))
    {
       ClosedLoopStart_ = Input.getInt(Hash,"ClosedLoopStart");
@@ -650,8 +653,8 @@ void NewtonPCSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCross
    
    //ArcLengthSolution S1(Restrict_,Input,PreviousSolution_,Restrict_->DOF(),1);
    int MaxIter = 50;
-   ArcLengthSolution S1(Restrict_,Restrict_->DOF(),MaxIter,Converge_,Converge_,tmp_ds,
-                        tmp_ds,tmp_ds,1.0,0.5,1.0,1,0,PreviousSolution_,
+   ArcLengthSolution S1(Restrict_,Restrict_->DOF(),MaxIter,Converge_,tmp_ds,tmp_ds,
+                        tmp_ds,1.0,0.5,1.0,1,0,CPMethodFlag_,PreviousSolution_,
                         Restrict_->DOF()-PreviousSolution_,0,Vector(),10,-1,Echo_);
    S1.FindCriticalPoint(Lat,TotalNumCPCrossings,Input,Width,out);
       
@@ -719,13 +722,15 @@ void NewtonPCSolution::GetQR(Vector const& Force,Vector const& diff,Matrix& Q,Ma
          {
             for (j=0; j< count; j++)
             {
+               // special form of Broyden update; simplified for Newton case
                Stiff_static[i][j] = Stiff_static[i][j] + (1/temp)*(Force[i] * diff[j]);
             }
          }
          
-         QR(Stiff_static, Q, R, 1);
+         QR(Stiff_static, Q, R, 1);  // Stiff_static^T = Q*R
          break;
       case Exact:
+         // Stiffness^T = Q*R
          QR(Restrict_->Stiffness(),Q,R,1);
          break;
       default:
@@ -735,6 +740,7 @@ void NewtonPCSolution::GetQR(Vector const& Force,Vector const& diff,Matrix& Q,Ma
    }
 }
 
+// Remember A^T = Q*R
 void NewtonPCSolution::UpdateQR(Vector const& Force,Vector const& difference,Matrix& QBar,
                                 Matrix& RBar) const
 {
@@ -775,6 +781,7 @@ void NewtonPCSolution::UpdateQR(Vector const& Force,Vector const& difference,Mat
    }
    
    //Algorithm 16.3.3 in Intro To Numerical Continuation Methods-- Algower, Georg
+   // modified appropratiely for A^T = Q*R
    for (int i = count-1;i>=0;i--)
    {
       //Calculate Rotation Cosine and Sine

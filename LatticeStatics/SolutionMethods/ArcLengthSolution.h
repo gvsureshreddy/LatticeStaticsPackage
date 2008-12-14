@@ -19,7 +19,6 @@ private:
    int DOFS_;
    int MaxIter_;
    double Tolerance_;
-   double BisectTolerance_;
    
    double DSMax_;
    double DSMin_;
@@ -30,6 +29,7 @@ private:
    
    int NumSolutions_;
    int CurrentSolution_;
+   int CPMethodFlag_;
    int BifStartFlag_;
    Vector BifTangent_;
    int ClosedLoopStart_;
@@ -41,6 +41,9 @@ private:
    void ArcLengthNewton(int& good);
    void ZBrent(Lattice* const Lat,int const& track,Vector const& OriginalDiff,
                double const& OriginalDS,double& fa,double& fb,Vector& CurrentTF);
+   void FindSimpleBif(Lattice* const Lat,Vector const& OriginalDiff,double const& OriginalDS,
+                      double& fa,double& fb,Vector& CurrentTF);
+   void SetH(Vector& h,Vector const& w);
    
    Vector const& ArcLenForce(double const& DS,Vector const& Diff,double const& Aspect) const;
    Vector ArcLenDef() const {return Restrict_->DOF();}
@@ -51,14 +54,13 @@ private:
    
 public:
    ArcLengthSolution(Restriction* const Restrict,Vector const& dofs,
-                     int const& MaxIter,double const& Tolerance,double const& BisectTolerance,
-                     double const& DSMax,double const& DSMin,double const& CurrentDS,
-                     double const& AngleCutoff,double const& AngleIncrease,
-                     double const& Aspect,int const& NumSolutions,int const& CurrentSolution,
+                     int const& MaxIter,double const& Tolerance,double const& DSMax,
+                     double const& DSMin,double const& CurrentDS,double const& AngleCutoff,
+                     double const& AngleIncrease,double const& Aspect,int const& NumSolutions,
+                     int const& CurrentSolution,int const& CPMethodFlag,
                      Vector const& FirstSolution,Vector const& Difference,
-                     int const& BifStartFlag_,Vector const& BifTangent,
-                     int const& ClosedLoopStart,int const& StopAtCPCrossingNum,
-                     int const& Echo);
+                     int const& BifStartFlag,Vector const& BifTangent,
+                     int const& ClosedLoopStart,int const& StopAtCPCrossingNum,int const& Echo);
    ArcLengthSolution(Restriction* const Restrict,PerlInput const& Input,
                      Vector const& one,Vector const& two,int const& Echo=1);
    ArcLengthSolution(Restriction* const Restrict,PerlInput const& Input,int const Echo=1);
