@@ -123,7 +123,7 @@ Matrix const& QC::StiffnessDL() const
    stiffdl_static = E2();
    Lambda_ = load-10.0*Tolerance_; for (int i=0;i<cachesize;++i) Cached_[i]=0;
    stiffdl_static -= E2();
-   stiffdl_static /= 2.0;
+   stiffdl_static /= 2.0*Tolerance_;
 
    Lambda_ = load; for (int i=0;i<cachesize;++i) Cached_[i]=0;
    return stiffdl_static;
@@ -164,7 +164,7 @@ Matrix const& QC::E3() const
       {
          for (int k=0;k<DOFS_;++k)
          {
-            E3_static[DOFS_*j+k][i] /= 2.0;
+            E3_static[DOFS_*j+k][i] /= 2.0*Tolerance_;
          }
       }
    }
