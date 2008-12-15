@@ -61,7 +61,7 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const
    mdfc_static.Resize(DOFS_-1);
    K_static.Resize(DOFS_,DOFS_);
    RestrictK_static.Resize(DOFS_-1,DOFS_);
-
+   
    
    PerlInput::HashStruct Hash = Input.getHash("SolutionMethod","ArcLengthSolution");
    MaxIter_ = Input.getPosInt(Hash,"MaxIterations");
@@ -113,7 +113,7 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const
    mdfc_static.Resize(DOFS_-1);
    K_static.Resize(DOFS_,DOFS_);
    RestrictK_static.Resize(DOFS_-1,DOFS_);
-
+   
    PerlInput::HashStruct Hash = Input.getHash("SolutionMethod","ArcLengthSolution");
    MaxIter_ = Input.getPosInt(Hash,"MaxIterations");
    Tolerance_ = Input.getDouble(Hash,"Tolerance");
@@ -144,7 +144,7 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const
    Input.EndofInputSection();
    
    const char *starttype = Input.getString("StartType","Type");
-
+   
    if (!strcmp("Bifurcation",starttype))
    {
       //Bifurcation
@@ -153,7 +153,7 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const
       
       // Set Difference and Lattice state
       double eps = Input.getDouble("StartType","Epsilon");
-
+      
       Difference_.Resize(DOFS_);
       Vector diff(Input.getArrayLength("StartType","Tangent"));
       Input.getVector(diff,"StartType","Tangent");
@@ -181,7 +181,7 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const
          FirstSolution_ = ArcLenDef();
          Input.useVector(FirstSolution_,"StartType","ClosedLoopFirstSolution"); // Default Value
       }
-
+      
       cout << "Projection on BifTangent of BifurcationPoint = " << stat*BifTangent_ << "\n";
    }
    else if (!strcmp("Continuation",starttype))
@@ -191,7 +191,7 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const
       Vector onetmp(Input.getArrayLength("StartType","Solution1"));
       Input.getVector(onetmp,"StartType","Solution1");
       one = Restrict_->RestrictDOF(onetmp);
-
+      
       // Set Lattice state to Solution2
       Vector two(DOFS_);
       Vector twotmp(Input.getArrayLength("StartType","Solution2"));
@@ -222,14 +222,14 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const
       double ConsistencyEpsilon;
       int Width;
       Vector Solution(DOFS_);
-
+      
       Vector onetmp(Input.getArrayLength("StartType","Solution"));
       Input.getVector(onetmp,"StartType","Solution");
       Solution = Restrict_->RestrictDOF(onetmp);
       // Get Epsilon and Width
       ConsistencyEpsilon = Input.getDouble("StartType","Epsilon");
       Width = Input.getPosInt("Main","FieldWidth");
-
+      
       ostream::fmtflags oldflags=cout.flags();
       cout << scientific;
       Restrict_->ConsistencyCheck(Solution,ConsistencyEpsilon,Width,cout);
@@ -284,14 +284,14 @@ double ArcLengthSolution::ArcLenAngle(Vector const& Old,Vector const& New,double
    double angle = 0.0;
    double NewNorm = 0.0;
    double OldNorm = 0.0;
-
+   
    for (int i=0;i<DOFS_-1;++i)
    {
       angle += Old[i]*New[i];
       NewNorm += New[i]*New[i];
       OldNorm += Old[i]*Old[i];
    }
-
+   
    angle += Old[DOFS_-1]*New[DOFS_-1]/(Aspect*Aspect);
    NewNorm += New[DOFS_-1]*New[DOFS_-1]/(Aspect*Aspect);
    OldNorm += Old[DOFS_-1]*Old[DOFS_-1]/(Aspect*Aspect);
@@ -380,7 +380,7 @@ void ArcLengthSolution::ArcLengthNewton(int& good)
    ArcLenUpdate(Difference_);
    
    // Iterate until convergence
-
+   
    itr++;
    // get stiffness first for efficiency
    stif=ArcLenStiffness(Difference_,Aspect_);
@@ -395,13 +395,13 @@ void ArcLengthSolution::ArcLengthNewton(int& good)
 #endif
    Magnitude1 = Dx.Norm();
    Magnitude2 = Magnitude1;
-
+   
    cout << "\tForceNorm = " << ForceNorm << " \tDeltaNorm = " << Magnitude2 << "\n";
-
+   
    do
    {
       itr++;
-
+      
       ArcLenUpdate(Dx);
       Difference_ += Dx;
       // get stiffness first for efficiency
@@ -433,7 +433,7 @@ void ArcLengthSolution::ArcLengthNewton(int& good)
    else
    {
       cout << "Prediction 1 Corrector Iterations: " << itr << "\n";
-
+      
       if (BifStartFlag_)
       {
          Dx = Difference_;
@@ -443,7 +443,7 @@ void ArcLengthSolution::ArcLengthNewton(int& good)
               << ",     Angle (deg.) with BifTangent = "
               << acos(Dx*BifTangent_)*(57.2957795130823) << "\n";
       }
-
+      
       cout << "Converged with ForceNorm = " << RHS.Norm()
            << ",     CorrectorNorm = " << Dx.Norm() << "\n";
       
@@ -471,7 +471,7 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
    ostringstream in_string;
    int Bif;
    char CPSubNum = 'a';
-
+   
    // Setup in_string ios
    in_string << setiosflags(ios::fixed) << setprecision(out.precision());
    
@@ -499,7 +499,7 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
    Vector DSTrack(TestValueDiff);
    string* out_string = new string[TestValueDiff];
    char* Order = new char[TestValueDiff];
-
+   
    temp = 0;
    for (int i = 0; i< size; i++)
    {
@@ -529,39 +529,78 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
       
       if(track>=0) //START OF IF STATEMENT
       {
-         if (CPMethodFlag_)
+         // check for bif pt
+         int N = Restrict_->DOF().Dim() - 1;
+         int sgn1 = 1;
+         int sgn2 = 1;
+         Matrix const& stiff = Restrict_->Stiffness();
+         Matrix QQ(N+1,N+1),RR(N+1,N);
+         QR(stiff,QQ,RR,1);
+         for (int i=0;i<N;++i)
          {
-            ZBrent(Lat,track,OriginalDiff,OriginalDS,fa,fb,CurrentTF_static);
+            sgn1 *= int(RR[i][i]/fabs(RR[i][i]));
          }
-         else
+         ArcLenUpdate(-Difference_);
+         Matrix const& stiff2 = Restrict_->Stiffness();
+         QR(stiff2,QQ,RR,1);
+         for (int i=0;i<N;++i)
          {
-            // check for turning point.  If bif pt use FindSimpleBif else use ZBrent
-            int N = Restrict_->DOF().Dim() - 1;
-            int sgn1 = 1;
-            int sgn2 = 1;
-            Matrix const& stiff = Restrict_->Stiffness();
-            Matrix QQ(N+1,N+1),RR(N+1,N);
-            QR(stiff,QQ,RR,1);
-            for (int i=0;i<N;++i)
-            {
-               sgn1 *= int(RR[i][i]/fabs(RR[i][i]));
-            }
-            ArcLenUpdate(-Difference_);
-            Matrix const& stiff2 = Restrict_->Stiffness();
-            QR(stiff2,QQ,RR,1);
-            for (int i=0;i<N;++i)
-            {
-               sgn2 *= int(RR[i][i]/fabs(RR[i][i]));
-            }
-            ArcLenUpdate(Difference_);
-            if (sgn2 == -sgn1)
-               FindSimpleBif(Lat,OriginalDiff,OriginalDS,fa,fb,CurrentTF_static);
-            else
-               ZBrent(Lat,track,OriginalDiff,OriginalDS,fa,fb,CurrentTF_static);
+            sgn2 *= int(RR[i][i]/fabs(RR[i][i]));
          }
+         ArcLenUpdate(Difference_);
+         // done determining if we have bif pt (sgn1 = -sgn2)
+         
+         ZBrent(Lat,track,OriginalDiff,OriginalDS,fa,fb,CurrentTF_static);
+         if ((!CPMethodFlag_) && (sgn2 == -sgn1))
+         {
+            PolishSimpleBif(Lat,CurrentTF_static);
+         }
+         
+         //if (CPMethodFlag_)
+         //{
+         //   ZBrent(Lat,track,OriginalDiff,OriginalDS,fa,fb,CurrentTF_static);
+         //}
+         //else
+         //{
+         //   // check for turning point.  If bif pt use FindSimpleBif else use ZBrent
+         //   int N = Restrict_->DOF().Dim() - 1;
+         //   int sgn1 = 1;
+         //   int sgn2 = 1;
+         //   Matrix const& stiff = Restrict_->Stiffness();
+         //   Matrix QQ(N+1,N+1),RR(N+1,N);
+         //   QR(stiff,QQ,RR,1);
+         //   for (int i=0;i<N;++i)
+         //   {
+         //      sgn1 *= int(RR[i][i]/fabs(RR[i][i]));
+         //   }
+         //   ArcLenUpdate(-Difference_);
+         //   Matrix const& stiff2 = Restrict_->Stiffness();
+         //   QR(stiff2,QQ,RR,1);
+         //   for (int i=0;i<N;++i)
+         //   {
+         //      sgn2 *= int(RR[i][i]/fabs(RR[i][i]));
+         //   }
+         //   ArcLenUpdate(Difference_);
+         //   if (sgn2 == -sgn1)
+         //      FindSimpleBif(Lat,OriginalDiff,OriginalDS,fa,fb,CurrentTF_static);
+         //   else
+         //      ZBrent(Lat,track,OriginalDiff,OriginalDS,fa,fb,CurrentTF_static);
+         //}
+         //if (fabs(CurrentTF_static[track]) > Tolerance_)
+         //{
+         //   if (CPMethodFlag_)
+         //   {
+         //      cout << "Warning: ZBrent did not converge to desired tolerance.\n";
+         //   }
+         //   else
+         //   {
+         //      cout << "Warning: FindSimpleCP either found a differenct CP or did not converge.\n";
+         //   }
+         //}
+
          if (fabs(CurrentTF_static[track]) > Tolerance_)
          {
-            if (CPMethodFlag_)
+            if ((CPMethodFlag_) || (sgn1 == sgn2))
             {
                cout << "Warning: ZBrent did not converge to desired tolerance.\n";
             }
@@ -591,7 +630,7 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
             out_string[spot] = out_string[spot - 1];
             Order[spot] = Order[spot - 1];
             spot = spot - 1;
-         }         
+         }
          
          // Output Critical Point
          for (int i=0;i<70;i++)
@@ -617,10 +656,10 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
          Bif=Lat->CriticalPointInfo(TotalNumCPCrossings,CPSubNum,
                                     Restrict_->DrDt(Difference_),Multiplicity,
                                     10.0*Tolerance_,Width,Input,in_string);
-
+         
          if (Echo_) cout << "Success = 1" << "\n";
          in_string << "Success = 1" << "\n";
-
+         
          DSTrack[spot] = CurrentDS_;
          out_string[spot] = in_string.str();
          Order[spot] = CPSubNum;
@@ -675,7 +714,7 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
    ArcLenUpdate(OriginalDiff-Difference_);
    CurrentDS_ = OriginalDS;
    Difference_ = OriginalDiff;
-
+   
    // Check to see if we should stop
    if ((StopAtCPCrossingNum_ > -1) && (TotalNumCPCrossings >= StopAtCPCrossingNum_))
       CurrentSolution_ = NumSolutions_;
@@ -691,7 +730,7 @@ void ArcLengthSolution::ZBrent(Lattice* const Lat,int const& track,Vector const&
    int loops = 0;
    double factor = 0.0;
    int oldprecision = cout.precision();
-         
+   
    b=OriginalDS;
    c=b;
    a=0.0;
@@ -706,7 +745,7 @@ void ArcLengthSolution::ZBrent(Lattice* const Lat,int const& track,Vector const&
    {
       cout << setprecision(30) << "CurrentMinTF = " << fb << "\n";
       cout << "CurrentDS_ = " << CurrentDS_ << setprecision(oldprecision) << "\n";
-
+      
       ArcLenUpdate(-Difference_);
       
       if ((fb > 0.0 && fc > 0.0) || (fb < 0.0 && fc < 0.0))
@@ -738,7 +777,7 @@ void ArcLengthSolution::ZBrent(Lattice* const Lat,int const& track,Vector const&
          ArcLenUpdate(Difference_);
          Lat->TestFunctions(CurrentTF,Lattice::CRITPT);
          fb=CurrentTF[track];
-
+         
          cout <<setprecision(30)<<"CurrentMinTF = " << fb << "\n";
          cout << "CurrentDS_ = " << CurrentDS_ <<setprecision(oldprecision)<< "\n";
          break;
@@ -822,7 +861,7 @@ void ArcLengthSolution::FindSimpleBif(Lattice* const Lat,Vector const& OriginalD
       cerr << "Error: FindSimpleCP only works with NoRestriction object.\n";
       exit(-1);
    }
-
+   
    // check for turning point
    int N = Restrict_->DOF().Dim() - 1;
    int sgn1 = 1;
@@ -844,24 +883,24 @@ void ArcLengthSolution::FindSimpleBif(Lattice* const Lat,Vector const& OriginalD
    // set back to RHS of bif pt.
    ArcLenUpdate(Difference_);
    // done determining CP type
-
+   
    // set back to LHS of bif pt.
    ArcLenUpdate(-Difference_);
    // store DOFs for LHS
    Vector LHSDef = ArcLenDef();
-
+   
    Vector currentdef(N+1);
    // set up augmented equation vector
    Vector h(2*N+2);
    Vector oldh(2*N+2);
    Vector w(2*N+2);
    Vector dw(2*N+2);
-
+   
    // create storage for force and stiffness and eigenvectors and values
    Vector force(N);
    Matrix eigvecs(N,N);
    Matrix eigvals(1,N);
-
+   
    // set to initial guess for bif point
    Vector initialguess = (-fa*OriginalDS/(fb-fa))*OriginalDiff;
    eigvals=SymEigVal(Lat->E2(),&eigvecs);
@@ -875,7 +914,7 @@ void ArcLengthSolution::FindSimpleBif(Lattice* const Lat,Vector const& OriginalD
          minval = fabs(eigvals[0][i]);
       }
    }
-
+   
    // fill w = (x,z,alpha)
    for (int i=0;i<N+1;++i)
    {
@@ -889,22 +928,22 @@ void ArcLengthSolution::FindSimpleBif(Lattice* const Lat,Vector const& OriginalD
    }
    // alpha
    w[2*N+1] = 0.0;
-
+   
    // update dofs
    for (int i=0;i<N+1;++i)
    {
       currentdef[i]=w[i];
    }
    ArcLenSet(currentdef);
-
+   
    
    // update h
    SetH(h,w);
    // set oldh
    oldh = h;
-
-   cout << "h.Norm()=" << setw(20) << h.Norm() << endl;
-
+   
+   cout << "h.Norm()=" << setw(20) << h.Norm() << "\n";
+   
    // Only perform calculation if CP is a bif pt
    if (sgn1 == -sgn2) // bif pt
    {
@@ -982,7 +1021,8 @@ void ArcLengthSolution::FindSimpleBif(Lattice* const Lat,Vector const& OriginalD
          // calculate h
          SetH(h,w);
          // done calculating h
-         cout << "dw.Norm()=" << setw(20) << dw.Norm() << ",  h.Norm()=" << setw(20) << h.Norm() << endl;
+         cout << "dw.Norm()=" << setw(20) << dw.Norm()
+              << ",  h.Norm()=" << setw(20) << h.Norm() << "\n";
          
          // Update Q and R
          BroydenQRUpdate(Q,R,(h-oldh)/dw.Norm(),-dw/dw.Norm());
@@ -1003,7 +1043,7 @@ void ArcLengthSolution::FindSimpleBif(Lattice* const Lat,Vector const& OriginalD
       cout << "Warning: FindSimpleCP identified a turningpoint CP\n"
            << "         and has not accurately polished the point.\n";
    }
-
+   
    // set Difference_ and CurrentDS_ appropriately;
    Difference_ = currentdef - LHSDef;
    CurrentDS_ = 0.0;
@@ -1012,10 +1052,175 @@ void ArcLengthSolution::FindSimpleBif(Lattice* const Lat,Vector const& OriginalD
       CurrentDS_ += Difference_[i]*Difference_[i];
    }
    CurrentDS_ += Difference_[N]*Difference_[N]/(Aspect_*Aspect_);
-
+   
    // Find current testfunctions
    Lat->TestFunctions(CurrentTF,Lattice::CRITPT);
 }
+
+void ArcLengthSolution::PolishSimpleBif(Lattice* const Lat,Vector& CurrentTF)
+{
+   //Only works with NoRestriction
+   if (strcmp(Restrict_->Name(),"NoRestriction"))
+   {
+      cerr << "Error: FindSimpleCP only works with NoRestriction object.\n";
+      exit(-1);
+   }
+   
+   // store DOFs
+   Vector Def = ArcLenDef();
+
+   int N = Restrict_->DOF().Dim() - 1;
+   Vector currentdef(N+1);
+   // set up augmented equation vector
+   Vector h(2*N+2);
+   Vector oldh(2*N+2);
+   Vector w(2*N+2);
+   Vector dw(2*N+2);
+   
+   // create storage for force and stiffness and eigenvectors and values
+   Vector force(N);
+   Matrix eigvecs(N,N);
+   Matrix eigvals(1,N);
+   
+   eigvals=SymEigVal(Lat->E2(),&eigvecs);
+   int minindex = 0;
+   double minval = fabs(eigvals[0][0]);
+   for (int i=1;i<N;++i)
+   {
+      if (fabs(eigvals[0][i]) < minval)
+      {
+         minindex = i;
+         minval = fabs(eigvals[0][i]);
+      }
+   }
+   
+   // fill w = (x,z,alpha)
+   for (int i=0;i<N+1;++i)
+   {
+      // x
+      w[i] = Def[i];
+   }
+   for (int i=0;i<N;++i)
+   {
+      // z
+      w[N+1+i] = eigvecs[i][minindex];
+   }
+   // alpha
+   w[2*N+1] = 0.0;
+   
+   
+   // update h
+   SetH(h,w);
+   // set oldh
+   oldh = h;
+   
+   cout << "h.Norm()=" << setw(20) << h.Norm() << "\n";
+   
+   // start Newton loops.
+   // setup initial guess for jacobian
+   Matrix J(2*N+2,2*N+2,0.0);
+   // identity as guess for D2f^T*z
+   Matrix const& e3 = Lat->E3();
+   for (int i=0;i<N;++i)
+   {
+      for (int j=0;j<N;++j)
+      {
+         J[i][j] = 0.0;
+         for (int k=0;k<N;++k)
+         {
+            J[i][j] += e3[N*i+j][k]*w[N+1+k];
+         }
+      }
+   }
+   Matrix const& stiffdl = (Lat->LoadParameter() == Lattice::Load) ?
+      Lat->StiffnessDL() : Lat->StiffnessDT() ;
+   for (int i=0;i<N;++i)
+   {
+      J[N][i] = J[i][N] = 0.0;
+      for (int j=0;j<N;++j)
+      {
+         J[i][N] = J[N][i] += stiffdl[i][j]*w[N+1+j];
+      }
+   }
+   // Df terms
+   Matrix const& stiff = Restrict_->Stiffness();
+   for (int i=0;i<N+1;++i)
+   {
+      for (int j=0;j<N;++j)
+      {
+         J[N+1+j][i] = stiff[j][i];
+         J[i][N+1+j] = stiff[j][i];
+      }
+   }
+   // zero terms
+   for (int i=0;i<N+1;++i)
+   {
+      J[i][2*N+1] = 0.0;
+      J[2*N+1][i] = 0.0;
+   }
+   J[2*N+1][2*N+1] = 0.0;
+   //center -alpha*identity terms
+   for (int i=N+1;i<2*N+1;++i)
+   {
+      J[i][i] = -w[2*N+1];
+   }
+   // z terms
+   for (int i=0;i<N;++i)
+   {
+      J[N+1+i][2*N+1] = -w[N+1+i];
+      J[2*N+1][N+1+i] = w[N+1+i]/2.0;
+   }
+   
+   Matrix Q,R;
+   Q.SetIdentity(2*N+2);
+   R.SetIdentity(2*N+2);
+   QR(J,Q,R);
+   
+   int loops = 0;
+   do
+   {
+      SolveQR(Q,R,dw,h);
+      w -= dw;
+      // update dofs
+      for (int i=0;i<N+1;++i)
+      {
+         currentdef[i]=w[i];
+      }
+      ArcLenSet(currentdef);
+      
+      // calculate h
+      SetH(h,w);
+      // done calculating h
+      cout << "dw.Norm()=" << setw(20) << dw.Norm()
+           << ",  h.Norm()=" << setw(20) << h.Norm() << "\n";
+      
+      // Update Q and R
+      BroydenQRUpdate(Q,R,(h-oldh)/dw.Norm(),-dw/dw.Norm());
+      
+      // update oldh
+      oldh = h;
+      ++loops;
+   }
+   while ((h.Norm() > Tolerance_) && (loops < MaxIter_));
+   
+   if (loops >= MaxIter_)
+   {
+      cout << "Error: FindSimpleBif() did not converge\n";
+   }
+   
+   // set Difference_ and CurrentDS_ appropriately;
+   Difference_ = currentdef - Def;
+   CurrentDS_ = 0.0;
+   for (int i=0;i<N;++i)
+   {
+      CurrentDS_ += Difference_[i]*Difference_[i];
+   }
+   CurrentDS_ += Difference_[N]*Difference_[N]/(Aspect_*Aspect_);
+   
+   // Find current testfunctions
+   Lat->TestFunctions(CurrentTF,Lattice::CRITPT);
+}
+
 
 void ArcLengthSolution::SetH(Vector& h,Vector const& w)
 {
@@ -1023,10 +1228,10 @@ void ArcLengthSolution::SetH(Vector& h,Vector const& w)
    // size           (N+1,      N,            1) = 2N+2
    // w = (x,z,alpha)
    //size (N+1,N,1) = 2N+2
-
+   
    Matrix const& stiff = Restrict_->Stiffness();
    int N=stiff.Rows();
-
+   
    // update Df(x)^T*z
    for (int i=0;i<N+1;++i)
    {
@@ -1036,14 +1241,14 @@ void ArcLengthSolution::SetH(Vector& h,Vector const& w)
          h[i] += stiff[j][i]*w[N+1+j];
       }
    }
-
+   
    // update f(x)-alpha*z
    Vector const& stress = Restrict_->Force();
    for (int i=0;i<N;++i)
    {
       h[N+1+i] = stress[i] - w[2*N+1]*w[N+1+i];
    }
-
+   
    // update (z*z - 1)/2
    h[2*N+1] = 0.0;
    for (int i=0;i<N;++i)

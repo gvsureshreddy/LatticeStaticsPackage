@@ -43,6 +43,7 @@ private:
                double const& OriginalDS,double& fa,double& fb,Vector& CurrentTF);
    void FindSimpleBif(Lattice* const Lat,Vector const& OriginalDiff,double const& OriginalDS,
                       double& fa,double& fb,Vector& CurrentTF);
+   void PolishSimpleBif(Lattice* const Lat,Vector& CurrentTF);
    void SetH(Vector& h,Vector const& w);
    
    Vector const& ArcLenForce(double const& DS,Vector const& Diff,double const& Aspect) const;
