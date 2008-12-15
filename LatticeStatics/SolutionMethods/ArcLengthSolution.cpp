@@ -537,15 +537,24 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
          {
             // check for turning point.  If bif pt use FindSimpleBif else use ZBrent
             int N = Restrict_->DOF().Dim() - 1;
+            int sgn1 = 1;
+            int sgn2 = 1;
             Matrix const& stiff = Restrict_->Stiffness();
             Matrix QQ(N+1,N+1),RR(N+1,N);
             QR(stiff,QQ,RR,1);
-            int flag=0;
             for (int i=0;i<N;++i)
             {
-               if ((RR[i][i] >= fb-Tolerance_) && (RR[i][i] <= fb+Tolerance_)) flag = 1;
+               sgn1 *= int(RR[i][i]/fabs(RR[i][i]));
             }
-            if (flag)
+            ArcLenUpdate(-Difference_);
+            Matrix const& stiff2 = Restrict_->Stiffness();
+            QR(stiff2,QQ,RR,1);
+            for (int i=0;i<N;++i)
+            {
+               sgn2 *= int(RR[i][i]/fabs(RR[i][i]));
+            }
+            ArcLenUpdate(Difference_);
+            if (sgn2 == -sgn1)
                FindSimpleBif(Lat,OriginalDiff,OriginalDS,fa,fb,CurrentTF_static);
             else
                ZBrent(Lat,track,OriginalDiff,OriginalDS,fa,fb,CurrentTF_static);
@@ -814,12 +823,33 @@ void ArcLengthSolution::FindSimpleBif(Lattice* const Lat,Vector const& OriginalD
       exit(-1);
    }
 
+   // check for turning point
+   int N = Restrict_->DOF().Dim() - 1;
+   int sgn1 = 1;
+   int sgn2 = 1;
+   Matrix const& stiff = Restrict_->Stiffness();
+   Matrix QQ(N+1,N+1),RR(N+1,N);
+   QR(stiff,QQ,RR,1);
+   for (int i=0;i<N;++i)
+   {
+      sgn1 *= int(RR[i][i]/fabs(RR[i][i]));
+   }
+   ArcLenUpdate(-Difference_);
+   Matrix const& stiff2 = Restrict_->Stiffness();
+   QR(stiff2,QQ,RR,1);
+   for (int i=0;i<N;++i)
+   {
+      sgn2 *= int(RR[i][i]/fabs(RR[i][i]));
+   }
+   // set back to RHS of bif pt.
+   ArcLenUpdate(Difference_);
+   // done determining CP type
+
    // set back to LHS of bif pt.
    ArcLenUpdate(-Difference_);
    // store DOFs for LHS
    Vector LHSDef = ArcLenDef();
 
-   int N = Restrict_->DOF().Dim() - 1;
    Vector currentdef(N+1);
    // set up augmented equation vector
    Vector h(2*N+2);
@@ -873,25 +903,10 @@ void ArcLengthSolution::FindSimpleBif(Lattice* const Lat,Vector const& OriginalD
    // set oldh
    oldh = h;
 
-   cout << "w=" << setw(20) << w << ",  h=" << setw(20) << h << endl;
+   cout << "h.Norm()=" << setw(20) << h.Norm() << endl;
 
-   // check for turning point   
-   Matrix const& stiff = Restrict_->Stiffness();
-   Matrix QQ(N+1,N+1),RR(N+1,N);
-   QR(stiff,QQ,RR,1);
-   int flag=0;
-   for (int i=0;i<N;++i)
-   {
-      if (fa > fb)
-      {
-         if ((RR[i][i] < fa) && (RR[i][i] > fb)) flag = 1;
-      }
-      else
-      {
-         if ((RR[i][i] > fa) && (RR[i][i] < fb)) flag = 1;
-      }
-   }
-   if (flag) // bif pt
+   // Only perform calculation if CP is a bif pt
+   if (sgn1 == -sgn2) // bif pt
    {
       // start Newton loops.
       // setup initial guess for jacobian
@@ -967,7 +982,7 @@ void ArcLengthSolution::FindSimpleBif(Lattice* const Lat,Vector const& OriginalD
          // calculate h
          SetH(h,w);
          // done calculating h
-         cout << "w=" << setw(20) << w << ",  h=" << setw(20) << h << endl;
+         cout << "dw.Norm()=" << setw(20) << dw.Norm() << ",  h.Norm()=" << setw(20) << h.Norm() << endl;
          
          // Update Q and R
          BroydenQRUpdate(Q,R,(h-oldh)/dw.Norm(),-dw/dw.Norm());
