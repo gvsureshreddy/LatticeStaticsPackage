@@ -530,29 +530,39 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
       if(track>=0) //START OF IF STATEMENT
       {
          // check for bif pt
-         int N = Restrict_->DOF().Dim() - 1;
          int sgn1 = 1;
          int sgn2 = 1;
-         Matrix const& stiff = Restrict_->Stiffness();
-         Matrix QQ(N+1,N+1),RR(N+1,N);
-         QR(stiff,QQ,RR,1);
-         for (int i=0;i<N;++i)
+         if (!CPMethodFlag_)
          {
-            sgn1 *= int(RR[i][i]/fabs(RR[i][i]));
+            int N = Restrict_->DOF().Dim() - 1;
+            Matrix const& stiff = Restrict_->Stiffness();
+            Matrix QQ(N+1,N+1),RR(N+1,N);
+            QR(stiff,QQ,RR,1);
+            for (int i=0;i<N;++i)
+            {
+               sgn1 *= int(RR[i][i]/fabs(RR[i][i]));
+            }
+            ArcLenUpdate(-Difference_);
+            Matrix const& stiff2 = Restrict_->Stiffness();
+            QR(stiff2,QQ,RR,1);
+            for (int i=0;i<N;++i)
+            {
+               sgn2 *= int(RR[i][i]/fabs(RR[i][i]));
+            }
+            ArcLenUpdate(Difference_);
          }
-         ArcLenUpdate(-Difference_);
-         Matrix const& stiff2 = Restrict_->Stiffness();
-         QR(stiff2,QQ,RR,1);
-         for (int i=0;i<N;++i)
-         {
-            sgn2 *= int(RR[i][i]/fabs(RR[i][i]));
-         }
-         ArcLenUpdate(Difference_);
          // done determining if we have bif pt (sgn1 = -sgn2)
-         
-         ZBrent(Lat,track,OriginalDiff,OriginalDS,fa,fb,CurrentTF_static);
-         if ((!CPMethodFlag_) && (sgn2 == -sgn1))
+
+         if ((CPMethodFlag_) || (sgn2 == sgn1))
          {
+            ZBrent(Lat,track,OriginalDiff,OriginalDS,fa,fb,CurrentTF_static);
+         }
+         else
+         {
+            double OrigTol = Tolerance_;
+            Tolerance_ = sqrt(Tolerance_);
+            ZBrent(Lat,track,OriginalDiff,OriginalDS,fa,fb,CurrentTF_static);
+            Tolerance_ = OrigTol;
             PolishSimpleBif(Lat,CurrentTF_static);
          }
          
