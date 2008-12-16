@@ -912,7 +912,7 @@ void ArcLengthSolution::FindSimpleBif(Lattice* const Lat,Vector const& OriginalD
    Matrix eigvals(1,N);
    
    // set to initial guess for bif point
-   Vector initialguess = (-fa*OriginalDS/(fb-fa))*OriginalDiff;
+   Vector initialguess = (-fa/(fb-fa))*OriginalDiff;
    eigvals=SymEigVal(Lat->E2(),&eigvecs);
    int minindex = 0;
    double minval = fabs(eigvals[0][0]);
