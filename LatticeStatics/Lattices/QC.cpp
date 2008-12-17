@@ -322,11 +322,11 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
    else // information conflicts. use CPorBif
    {
       out << "NOTE: Conflict between critical point identification methods.\n"
-          << "using characterization provided to CriticalPointInfo()." << "\n";
+          << "      Using characterization provided to CriticalPointInfo()." << "\n";
       if (Echo_)
       {
          cout << "NOTE: Conflict between critical point identification methods.\n"
-              << "using characterization provided to CriticalPointInfo()." << "\n";
+              << "      Using characterization provided to CriticalPointInfo()." << "\n";
       }
       if (1 == CPorBif)
          cpfilename << ".BP.";

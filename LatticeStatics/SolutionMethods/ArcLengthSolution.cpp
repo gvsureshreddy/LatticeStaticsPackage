@@ -532,7 +532,8 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
       if(track>=0) //START OF IF STATEMENT
       {
          ZBrent(Lat,track,OriginalDiff,OriginalDS,fa,fb,CurrentTF_static);
-         if ((ArcLenDef()[DOFS_-1] > LHSLambda) && (ArcLenDef()[DOFS_-1] < RHSLambda))
+         if (((ArcLenDef()[DOFS_-1] >= LHSLambda) && (ArcLenDef()[DOFS_-1] <= RHSLambda))
+             || ((ArcLenDef()[DOFS_-1] <= LHSLambda) && (ArcLenDef()[DOFS_-1] >= RHSLambda)))
          {
             CPorBif = 1; // bif point
          }
@@ -794,7 +795,12 @@ int ArcLengthSolution::ZBrent(Lattice* const Lat,int const& track,Vector const& 
       //cout << "CurrentTF = " << "\n" << setw(Width) << CurrentTF << "\n" << "\n";
       //cout << "CurrentTF[track] = " << "\n" << CurrentTF[track]<< "\n"<< "\n";
    }
-
+   
+   if (loops >= MaxIter_)
+   {
+      cout << "Error: ZBrent reached Maximum number of iterations before it converged and exited." << "\n";
+   }
+   
    return retcode;
 }
 
