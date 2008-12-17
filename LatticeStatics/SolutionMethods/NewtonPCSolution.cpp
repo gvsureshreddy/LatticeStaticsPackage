@@ -12,24 +12,24 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,
                                    double const& MaxDS,double const& CurrentDS,
                                    double const& MinDS,double const& cont_rate_max,
                                    double const& delta_max,double const& alpha_max,
-                                   double const& Converge,int const& CPMethodFlag,
-                                   Vector const& FirstSolution,int const& Direction,
-                                   double const& accel_max,int const& BifStartFlag,
-                                   Vector const& BifTangent,int const& ClosedLoopStart,
-                                   int const& StopAtCPCrossingNum,int const& Echo)
+                                   double const& Converge,Vector const& FirstSolution,
+                                   int const& Direction,double const& accel_max,
+                                   int const& BifStartFlag,Vector const& BifTangent,
+                                   int const& ClosedLoopStart,int const& StopAtCPCrossingNum,
+                                   int const& Echo)
    : Restrict_(Restrict),
      Echo_(Echo),
      CurrentSolution_(CurrentSolution),
      UpdateType_(Type),
      NumSolutions_(NumSolutions),
      MaxDS_(MaxDS),
+     PreviousDS_(CurrentDS),
      CurrentDS_(CurrentDS),
      MinDS_(MinDS),
      cont_rate_max_(cont_rate_max),
      delta_max_(delta_max),
      alpha_max_(alpha_max),
      Converge_(Converge),
-     CPMethodFlag_(CPMethodFlag),
      BifStartFlag_(BifStartFlag),
      BifTangent_(BifTangent),
      ClosedLoopStart_(ClosedLoopStart),
@@ -45,7 +45,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,
       cerr << "error: NewtonPCSolution::Angle too large!\n";
       exit(-22);
    }
-
+   
    Restrict_->SetDOF(FirstSolution_);
    int count = (Restrict_->DOF()).Dim();
    int count_minus_one = count -1;
@@ -119,6 +119,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
    NumSolutions_ = Input.getPosInt(Hash,"NumSolutions");
    MaxDS_ = Input.getDouble(Hash,"MaxDS");
    CurrentDS_ = Input.getDouble(Hash,"CurrentDS");
+   PreviousDS_ = CurrentDS_;
    MinDS_ = Input.getDouble(Hash,"MinDS");
    cont_rate_max_ = Input.getDouble(Hash,"Contraction");
    delta_max_ = Input.getDouble(Hash,"Distance");
@@ -129,7 +130,6 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
       exit(-22);
    }
    Converge_ = Input.getDouble(Hash,"ConvergeCriteria");
-   CPMethodFlag_ = Input.getPosInt(Hash,"CPMethod");
    if (Input.ParameterOK(Hash,"ClosedLoopStart"))
    {
       ClosedLoopStart_ = Input.getInt(Hash,"ClosedLoopStart");
@@ -161,7 +161,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
    {
       Direction_ = Input.useInt(1,Hash,"Direction");
    }
-
+   
    if (Input.ParameterOK(Hash,"Acceleration"))
    {
       accel_max_ = Input.getDouble(Hash,"Acceleration");
@@ -180,7 +180,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
    FirstSolution_.Resize(one.Dim());
    FirstSolution_ = one;
    Restrict_->SetDOF(one);
-
+   
    PreviousSolution_.Resize(one.Dim());
    
    int count = (Restrict_->DOF()).Dim();
@@ -256,6 +256,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
    NumSolutions_ = Input.getPosInt(Hash,"NumSolutions");
    MaxDS_ = Input.getDouble(Hash,"MaxDS");
    CurrentDS_ = Input.getDouble(Hash,"CurrentDS");
+   PreviousDS_ = CurrentDS_;
    MinDS_ = Input.getDouble(Hash,"MinDS");
    cont_rate_max_ = Input.getDouble(Hash,"Contraction");
    delta_max_ = Input.getDouble(Hash,"Distance");
@@ -264,9 +265,8 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
    {
       cerr << "error: NewtonPCSolution::Angle too large!\n";
       exit(-22);
-   }   
+   }
    Converge_ = Input.getDouble(Hash,"ConvergeCriteria");
-   CPMethodFlag_ = Input.getPosInt(Hash,"CPMethod");
    if (Input.ParameterOK(Hash,"ClosedLoopStart"))
    {
       ClosedLoopStart_ = Input.getInt(Hash,"ClosedLoopStart");
@@ -298,7 +298,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
    {
       Direction_ = Input.useInt(1,Hash,"Direction"); // Default Value
    }
-
+   
    if (Input.ParameterOK(Hash,"Acceleration"))
    {
       accel_max_ = Input.getDouble(Hash,"Acceleration");
@@ -338,7 +338,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
       PreviousSolution_.Resize(count);
       Tangent1_.Resize(count);
       Tangent2_.Resize(count);
-
+      
       Vector tan1tmp(Input.getArrayLength("StartType","Tangent"));
       Input.getVector(tan1tmp,"StartType","Tangent");
       Tangent1_ = Restrict_->TransformVector(tan1tmp);
@@ -352,7 +352,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
       
       FirstSolution_.Resize(one.Dim());
       FirstSolution_ = one;
-
+      
       cout << "Projection on BifTangent of BifurcationPoint = " << FirstSolution_*BifTangent_
            << "\n";
       
@@ -375,7 +375,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
       PreviousSolution_.Resize(count);
       Tangent1_.Resize(count);
       Tangent2_.Resize(count);
-
+      
       Vector onetmp(Input.getArrayLength("StartType","Solution"));
       Input.getVector(onetmp,"StartType","Solution");
       one = Restrict_->RestrictDOF(onetmp);
@@ -398,14 +398,14 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
       double ConsistencyEpsilon;
       int Width;
       Vector Solution(count);
-
+      
       Vector onetmp(Input.getArrayLength("StartType","Solution"));
       Input.getVector(onetmp,"StartType","Solution");
       Solution = Restrict_->RestrictDOF(onetmp);
       // Get Epsilon and Width
       ConsistencyEpsilon = Input.getDouble("StartType","Epsilon");
       Width = Input.getPosInt("Main","FieldWidth");
-
+      
       fstream::fmtflags oldflags=cout.flags();
       cout << scientific;
       Restrict_->ConsistencyCheck(Solution,ConsistencyEpsilon,Width,cout);
@@ -464,12 +464,12 @@ int NewtonPCSolution::FindNextSolution()
    {
       corrections = 0;
       
-      if(CurrentDS_ < MinDS_)
+      if (CurrentDS_ < MinDS_)
       {
          cout << "Minimum StepSize (MinDS) violated. Exit Solver.\n";
          exit(-53);
       }
-
+      
       // setup acceleration factor to as small as possible
       f = 1.0/accel_max_;
       
@@ -478,7 +478,7 @@ int NewtonPCSolution::FindNextSolution()
          v_static[i] = PreviousSolution_[i] + CurrentDS_*Omega_*Tangent1_[i];
       }
       cout << "Taking Predictor Step. CurrentDS = " << CurrentDS_;
-
+      
       Restrict_->SetDOF(v_static);
       // get stiffness first for efficiency
       Stiff_static = Restrict_->Stiffness();
@@ -509,12 +509,12 @@ int NewtonPCSolution::FindNextSolution()
          continue;
       }
       f = max(f,(acos(fabs(Dot))/alpha_max_)*accel_max_);
-
+      
       MoorePenrose(Q_static,R_static, Force_static, Corrector_static);
       
       Magnitude1 = Corrector_static.Norm();
       Magnitude2 = Magnitude1;
-
+      
       corrections++;
       cout << " \tForceNorm = " << forcenorm << " \tDeltaNorm = " << Magnitude1;
       if (Magnitude1 > delta_max_)
@@ -546,7 +546,7 @@ int NewtonPCSolution::FindNextSolution()
          cout << "\tForceNorm = " << forcenorm;
          
          MoorePenrose(Q_static,R_static, Force_static,Corrector_static);
-
+         
          Magnitude2 = Corrector_static.Norm();
          cout << " \tDeltaNorm = " << Magnitude2;
          if (Magnitude2 > delta_max_)
@@ -557,7 +557,7 @@ int NewtonPCSolution::FindNextSolution()
             break;
          }
          f = max(f,sqrt(Magnitude2/delta_max_)*accel_max_);
-
+         
          Kappa = Magnitude2/(Magnitude1+Converge_*eta);
          cout << " \tContraction = " << Kappa;
          if (Kappa > cont_rate_max_)
@@ -581,6 +581,10 @@ int NewtonPCSolution::FindNextSolution()
          {
             Converge_Test = 1;
             
+            // keep track of DS used to find the current point
+            PreviousDS_ = CurrentDS_;
+            
+            // adaptively change DS for next point
             CurrentDS_ = CurrentDS_/f;
             if(CurrentDS_ > MaxDS_)
             {
@@ -615,10 +619,10 @@ int NewtonPCSolution::FindNextSolution()
            << ",     Angle (deg.) with BifTangent = "
            << acos(v_static*BifTangent_)*(57.2957795130823) << "\n";
    }
-
+   
    cout << "Converged with ForceNorm = " << forcenorm
         << ",     CorrectorNorm = " << Magnitude2 << "\n";
-
+   
    if ((ClosedLoopStart_ >= 0) && (CurrentSolution_ > ClosedLoopStart_) &&
        ((Restrict_->DOF() - FirstSolution_).Norm() < CurrentDS_))
    {
@@ -635,7 +639,7 @@ int NewtonPCSolution::FindNextSolution()
    
    // always have current solution point printed
    good = 1;
-
+   
    return good;
 }
 
@@ -652,12 +656,12 @@ void NewtonPCSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCross
    tmp_ds = sqrt(tmp_ds);
    
    //ArcLengthSolution S1(Restrict_,Input,PreviousSolution_,Restrict_->DOF(),1);
-   int MaxIter = 50;
+   int MaxIter = 20;
    ArcLengthSolution S1(Restrict_,Restrict_->DOF(),MaxIter,Converge_,tmp_ds,tmp_ds,
-                        tmp_ds,1.0,0.5,1.0,1,0,CPMethodFlag_,PreviousSolution_,
+                        tmp_ds,1.0,0.5,1.0,1,0,PreviousSolution_,
                         Restrict_->DOF()-PreviousSolution_,0,Vector(),10,-1,Echo_);
    S1.FindCriticalPoint(Lat,TotalNumCPCrossings,Input,Width,out);
-      
+   
    // Check to see if we should stop
    if ((StopAtCPCrossingNum_ > -1) && (TotalNumCPCrossings >= StopAtCPCrossingNum_))
       CurrentSolution_ = NumSolutions_;
@@ -704,7 +708,7 @@ void NewtonPCSolution::GetQR(Vector const& Force,Vector const& diff,Matrix& Q,Ma
    int count_minus_one = count - 1;
    int i,j;
    double temp = 0.0;
-
+   
    switch (UpdateType_)
    {
       case NoUpdate:

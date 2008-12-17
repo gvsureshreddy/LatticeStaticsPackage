@@ -24,13 +24,13 @@ private:
    int NumSolutions_;
    
    double MaxDS_;
-   double CurrentDS_;           //Initial Steplength h > 0
+   double PreviousDS_;          //Steplength used to find last solution
+   double CurrentDS_;           //Steplength that will be used to find next solution, h > 0
    double MinDS_;               //Minimum Stepsize
    double cont_rate_max_;       //Max contraction rate
    double delta_max_;           //Max distance to (from predicted to corrected point) curve
    double alpha_max_;           //Max angle to curve (must be less than pi/2)
    double Converge_;            //Convergence criteria
-   int CPMethodFlag_;           // 1-ZBrent, 0-FindSimpleCP
    int BifStartFlag_;           //Flag to keep track of start type (1-bif,0-other)
    Vector BifTangent_;          //Start Tangent vector to be used to print out projection
    int ClosedLoopStart_;        //Closed loop test variable
@@ -55,8 +55,8 @@ public:
                     int const& CurrentSolution,UpdateType const& Type,int const& NumSolutions,
                     double const& MaxDS,double const& CurrentDS,double const& MinDS,
                     double const& cont_rate_max,double const& delta_max,double const& alpha_max,
-                    double const& Converge,int const& CPMethodFlag,Vector const& FirstSolution,
-                    int const& Direction=1,double const& accel_max=2.0,int const& BifStartFlag=0,
+                    double const& Converge,Vector const& FirstSolution,int const& Direction=1,
+                    double const& accel_max=2.0,int const& BifStartFlag=0,
                     Vector const& BifTangent=Vector(),int const& ClosedLoopStart=CLOSEDDEFAULT,
                     int const& StopAtCPCrossingNum=-1,int const& Echo=1);
    NewtonPCSolution(Restriction* const Restrict,PerlInput const& Input,Vector const& one,
