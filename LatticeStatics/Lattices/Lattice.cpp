@@ -367,9 +367,9 @@ int Lattice::TestFunctions(Vector &TF1,StateType const& State,Vector* const TF2)
 }
 
 int Lattice::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
-                               Vector const& DrDt,int const& NumZeroEigenVals,
-                               double const& Tolerance,int const& Width,
-                               PerlInput const& Input,ostream& out)
+                               Vector const& DrDt,int const& CPorBif,
+                               int const& NumZeroEigenVals,double const& Tolerance,
+                               int const& Width,PerlInput const& Input,ostream& out)
 {
    Matrix
       D2=E2(),
@@ -377,7 +377,9 @@ int Lattice::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
       EigVec,
       EigVal=SymEigVal(D2,&EigVec);
    Vector D1T(D2.Cols());
-   int Bif = 2;
+
+   // default to the passed in information
+   int Bif = CPorBif;
    
    if (LoadParameter_ == Temperature)
    {
@@ -814,12 +816,27 @@ int Lattice::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
    ostringstream cpfilename;
    fstream cpfile;
    cpfilename << Input.LastInputFileName();
-   if (2 == Bif)
-      cpfilename << ".CP.";
-   else if (1 == Bif)
-      cpfilename << ".BP.";
-   else
-      cpfilename << ".TP.";
+   if (Bif == CPorBif) // information agrees
+   {
+      if (1 == Bif)
+         cpfilename << ".BP.";
+      else
+         cpfilename << ".TP.";
+   }
+   else // information conflict. use CPorBif
+   {
+      out << "NOTE: Conflict between critical point identification methods.\n"
+          << "using characterization provided to CriticalPointInfo()." << "\n";
+      if (Echo_)
+      {
+         cout << "NOTE: Conflict between critical point identification methods.\n"
+              << "using characterization provided to CriticalPointInfo()." << "\n";
+      }
+      if (1 == CPorBif)
+         cpfilename << ".BP.";
+      else
+         cpfilename << ".TP.";
+   }
    cpfilename << setw(2) << setfill('0') << CPCrossingNum << CPSubNum;
    cpfile.open(cpfilename.str().c_str(),ios::out);
 

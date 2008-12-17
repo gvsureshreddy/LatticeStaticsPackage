@@ -61,9 +61,9 @@ public:
    virtual void SetGridSize(int const& Grid) = 0;
    virtual void NeighborDistances(int const& cutoff,ostream& out) const {};
    virtual int CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
-                                 Vector const& DrDt,int const& NumZeroEigenVals,
-                                 double const& Tolerance,int const& Width,
-                                 PerlInput const& Input,ostream& out);
+                                 Vector const& DrDt,int const& CPorBif,
+                                 int const& NumZeroEigenVals,double const& Tolerance,
+                                 int const& Width,PerlInput const& Input,ostream& out);
    void ConsistencyCheck(double const& ConsistencyEpsilon,int const& Width,ostream& out);
    virtual void DebugMode() {};
    

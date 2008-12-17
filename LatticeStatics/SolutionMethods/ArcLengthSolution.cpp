@@ -433,12 +433,12 @@ void ArcLengthSolution::ArcLengthNewton(int& good)
 
       if (BifStartFlag_)
       {
-         Dx = Difference_;
-         Dx[Dim-1] = 0.0;
-         Dx /= Dx.Norm();
+         Vector diff = Difference_;
+         diff[Dim-1] = 0.0;
+         diff /= Dx.Norm();
          cout << "Projection on BifTangent = " << Restrict_->DOF()*BifTangent_
               << ",     Angle (deg.) with BifTangent = "
-              << acos(Dx*BifTangent_)*(57.2957795130823) << "\n";
+              << acos(diff*BifTangent_)*(57.2957795130823) << "\n";
       }
 
       cout << "Converged with ForceNorm = " << RHS.Norm()
@@ -460,17 +460,22 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
    TF_RHS_static.Resize(size);
    CurrentTF_static.Resize(size);
    double fa,fb;
+   double LHSLambda,RHSLambda;
    int Multiplicity;
    int track;
    int num;
    int CP;
    int spot;
    ostringstream in_string;
+   int CPorBif;
    int Bif;
    char CPSubNum = 'a';
 
    // Setup in_string ios
    in_string << setiosflags(ios::fixed) << setprecision(out.precision());
+   
+   RHSLambda = ArcLenDef()[DOFS_-1];
+   LHSLambda = RHSLambda - Difference_[DOFS_-1];
    
    TestValueDiff = Lat->TestFunctions(TF_LHS_static, Lattice::RHS, &TF_RHS_static);
    if (TestValueDiff < 0)
@@ -527,6 +532,15 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
       if(track>=0) //START OF IF STATEMENT
       {
          ZBrent(Lat,track,OriginalDiff,OriginalDS,fa,fb,CurrentTF_static);
+         if ((ArcLenDef()[DOFS_-1] > LHSLambda) && (ArcLenDef()[DOFS_-1] < RHSLambda))
+         {
+            CPorBif = 1; // bif point
+         }
+         else
+         {
+            CPorBif = 0; // turning point
+         }
+         
          Multiplicity = 1;
          for(int i=CP+1;i<TestValueDiff;i++)
          {
@@ -541,7 +555,7 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
          
          // sort the critical points
          spot=num;
-         while((spot!=0)&&(DSTrack[spot-1] > CurrentDS_) )
+         while((spot!=0) && (DSTrack[spot-1] > CurrentDS_))
          {
             DSTrack[spot] = DSTrack[spot-1];
             out_string[spot] = out_string[spot - 1];
@@ -571,7 +585,7 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
          
          // Call Lattice function to do any Lattice Specific things
          Bif=Lat->CriticalPointInfo(TotalNumCPCrossings,CPSubNum,
-                                    Restrict_->DrDt(Difference_),Multiplicity,
+                                    Restrict_->DrDt(Difference_),CPorBif,Multiplicity,
                                     10.0*Tolerance_,Width,Input,in_string);
 
          if (Echo_) cout << "Success = 1" << "\n";
@@ -637,13 +651,14 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
       CurrentSolution_ = NumSolutions_;
 }
 
-void ArcLengthSolution::ZBrent(Lattice* const Lat,int const& track,Vector const& OriginalDiff,
-                               double const& OriginalDS,double& fa,double& fb,Vector& CurrentTF)
+int ArcLengthSolution::ZBrent(Lattice* const Lat,int const& track,Vector const& OriginalDiff,
+                              double const& OriginalDS,double& fa,double& fb,Vector& CurrentTF)
 {
+   int retcode = 1;
    Vector LastDiff(Difference_.Dim(),0.0);
    double LastDS=CurrentDS_;
    double a,b,c,d,e,xm,p,fc, tol1,s,q,r,min1,min2;
-   int dummy = 1;
+   int good = 1;
    int loops = 0;
    double factor = 0.0;
    int oldprecision = cout.precision();
@@ -693,10 +708,10 @@ void ArcLengthSolution::ZBrent(Lattice* const Lat,int const& track,Vector const&
          Difference_ = LastDiff;
          ArcLenUpdate(Difference_);
          Lat->TestFunctions(CurrentTF,Lattice::CRITPT);
-         fb=CurrentTF[track];
+         fb = CurrentTF[track];
 
-         cout <<setprecision(30)<<"CurrentMinTF = " << fb << "\n";
-         cout << "CurrentDS_ = " << CurrentDS_ <<setprecision(oldprecision)<< "\n";
+         cout << setprecision(30) << "CurrentMinTF = " << fb << "\n";
+         cout << "CurrentDS_ = " << CurrentDS_ << setprecision(oldprecision) << "\n";
          break;
       }
       
@@ -757,7 +772,20 @@ void ArcLengthSolution::ZBrent(Lattice* const Lat,int const& track,Vector const&
       CurrentDS_ = b;
       factor = OriginalDS/b;
       Difference_ = OriginalDiff/factor;
-      ArcLengthNewton(dummy);
+      ArcLengthNewton(good);
+      if (!good)
+      {
+         // set back to best solution
+         cout << "ZBrent stopped due to ArcLengthNewton() convergence failure! " << "\n";
+         CurrentDS_ = LastDS;
+         Difference_ = LastDiff;
+         ArcLenUpdate(Difference_);
+         fb = CurrentTF[track];
+         cout << setprecision(30) <<"CurrentMinTF = " << fb << "\n";
+         cout << "CurrentDS_ = " << CurrentDS_ << setprecision(oldprecision) << "\n";
+         retcode = 0;
+         break;
+      }
       Lat->TestFunctions(CurrentTF,Lattice::CRITPT);
       
       fb=CurrentTF[track];
@@ -766,6 +794,8 @@ void ArcLengthSolution::ZBrent(Lattice* const Lat,int const& track,Vector const&
       //cout << "CurrentTF = " << "\n" << setw(Width) << CurrentTF << "\n" << "\n";
       //cout << "CurrentTF[track] = " << "\n" << CurrentTF[track]<< "\n"<< "\n";
    }
+
+   return retcode;
 }
 
 //

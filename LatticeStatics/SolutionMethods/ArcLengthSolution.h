@@ -38,8 +38,8 @@ private:
    Vector Difference_;
    
    void ArcLengthNewton(int& good);
-   void ZBrent(Lattice* const Lat,int const& track,Vector const& OriginalDiff,
-               double const& OriginalDS,double& fa,double& fb,Vector& CurrentTF);
+   int ZBrent(Lattice* const Lat,int const& track,Vector const& OriginalDiff,
+              double const& OriginalDS,double& fa,double& fb,Vector& CurrentTF);
    
    Vector const& ArcLenForce(double const& DS,Vector const& Diff,double const& Aspect) const;
    Vector ArcLenDef() const {return Restrict_->DOF();}
