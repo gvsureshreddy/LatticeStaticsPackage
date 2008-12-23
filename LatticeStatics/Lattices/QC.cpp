@@ -27,7 +27,14 @@ QC::QC(PerlInput const& Input,int const& Echo,int const& Width):
    PerlInput::HashStruct Hash = Input.getHash("Lattice");
    Hash = Input.getHash(Hash,"QC");
    DOFS_ = Input.getPosInt(Hash,"DOFS");
-   Tolerance_ = Input.getDouble(Hash,"Tolerance");
+   if (Input.ParameterOK(Hash,"Tolerance"))
+   {
+      Tolerance_ = Input.getDouble(Hash,"Tolerance");
+   }
+   else
+   {
+      Tolerance_ = Input.useDouble(1.0e-6,Hash,"Tolerance");  // Default Value
+   }
    DOF_.Resize(DOFS_,0.0);
    E1CachedValue_.Resize(DOFS_);
    E1DLoadCachedValue_.Resize(DOFS_);
