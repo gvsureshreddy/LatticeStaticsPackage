@@ -342,7 +342,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
       Vector tan1tmp(Input.getArrayLength("StartType","Tangent"));
       Input.getVector(tan1tmp,"StartType","Tangent");
       Tangent1_ = Restrict_->TransformVector(tan1tmp);
-      Tangent1_ = Tangent1_/Tangent1_.Norm();
+      Tangent1_ = Tangent1_/(double(Direction_)*Tangent1_.Norm());
       // set up projection vector BifTangent_
       BifTangent_ = Tangent1_;
       BifTangent_[count-1] = 0.0;
@@ -360,7 +360,6 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
       
       for(i=0; i<count; i++)
       {
-         Tangent1_[i] = Tangent1_[i];
          Tangent2_[i] = Tangent1_[i];
       }
    }
