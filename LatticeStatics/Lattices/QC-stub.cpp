@@ -14,3 +14,15 @@ extern "C" void qcbfb_restart_(char* filename)
    cerr << "Error QC object is not designed for stand-alone use.\n";
    exit(-1);
 }
+
+extern "C" void qcbfb_output_(int& nfree,double* u,double& prop,int& nint,int* intdata,int& ndouble,double* doubledata)
+{
+   cerr << "Error QC object is not designed for stand-alone use.\n";
+   exit(-1);
+}
+
+extern "C" void qcbfb_scan_(int& nfree,double* u,double& prop,double& dprop,double* tangent,double& alphamin,double& alphamax,int& steps)
+{
+   cerr << "erro not standalone\n";
+   exit(-1);
+}

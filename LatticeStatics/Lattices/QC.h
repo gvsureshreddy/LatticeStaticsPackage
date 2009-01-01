@@ -54,8 +54,7 @@ public:
 
    friend ostream& operator<<(ostream& out,QC& A);
    
-   virtual int CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
-                                 Vector const& DrDt,int const& CPorBif,
+   virtual int CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int const& CPorBif,
                                  int const& NumZeroEigenVals,double const& Tolerance,
                                  int const& Width,PerlInput const& Input,ostream& out);
    // ignore these

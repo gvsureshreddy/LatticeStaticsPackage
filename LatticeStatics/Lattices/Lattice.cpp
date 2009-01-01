@@ -366,8 +366,7 @@ int Lattice::TestFunctions(Vector &TF1,StateType const& State,Vector* const TF2)
    return retval;
 }
 
-int Lattice::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
-                               Vector const& DrDt,int const& CPorBif,
+int Lattice::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int const& CPorBif,
                                int const& NumZeroEigenVals,double const& Tolerance,
                                int const& Width,PerlInput const& Input,ostream& out)
 {
@@ -400,10 +399,10 @@ int Lattice::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
    
    Matrix Mode;
 
-   out << "Critical Point Crossing Number: " << CPCrossingNum << CPSubNum << "\n";
+   out << "Critical Point Crossing Number: " << CPCrossingNum << "\n";
    if (Echo_)
    {
-      cout << "Critical Point Crossing Number: " << CPCrossingNum << CPSubNum << "\n";
+      cout << "Critical Point Crossing Number: " << CPCrossingNum << "\n";
    }
    
    // Find the modes
@@ -837,7 +836,7 @@ int Lattice::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
       else
          cpfilename << ".TP.";
    }
-   cpfilename << setw(2) << setfill('0') << CPCrossingNum << CPSubNum;
+   cpfilename << setw(2) << setfill('0') << CPCrossingNum;
    cpfile.open(cpfilename.str().c_str(),ios::out);
 
    cpfile << setprecision(out.precision()) << scientific;

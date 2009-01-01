@@ -62,7 +62,6 @@ extern "C" void bfb_init_wrapper_(int& nfree,double* ufree_init,double& t,char* 
      Lat = InitializeLattice(Input,Echo,Width,0);
      Lat->SetDOF(utmp);
      Lat->SetLambda(t);
-     //Lat->Print(out,Lattice::PrintLong);
      
      Restrict = InitializeRestriction(Lat,Input);
      
@@ -79,6 +78,8 @@ extern "C" void bfb_init_wrapper_(int& nfree,double* ufree_init,double& t,char* 
 
      SolveMe = InitializeSolution(Restrict,Input,Lat,cout,Width,Echo);
      EigenValues.Resize(Lat->DOF().Dim());
+
+     Lat->Print(cout,Lattice::PrintLong);
 }
 
 // bfbreturncode: 0-regular point, 1-terminate, 2-critical point

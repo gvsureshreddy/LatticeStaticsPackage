@@ -8,6 +8,7 @@ using namespace std;
 extern "C" void qcbfb_energy_(int& mode,int& nfree,double* u,double& t,double& E,double* Eu,
                              double* Euu,double* Eut);
 extern "C" void qcbfb_restart_(char* filename);
+extern "C" void qcbfb_output_(int& nfree,double* u,double& prop,int& nint,int* intdata,int& ndouble,double* doubledata);
 
 QC::~QC()
 {
@@ -181,8 +182,7 @@ Matrix const& QC::E3() const
    return E3_static;
 }
 
-int QC::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
-                          Vector const& DrDt,int const& CPorBif,
+int QC::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int const& CPorBif,
                           int const& NumZeroEigenVals,double const& Tolerance,
                           int const& Width,PerlInput const& Input,ostream& out)
 {
@@ -201,10 +201,10 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
    
    Matrix Mode;
 
-   out << "Critical Point Crossing Number: " << CPCrossingNum << CPSubNum << "\n";
+   out << "Critical Point Crossing Number: " << CPCrossingNum << "\n";
    if (Echo_)
    {
-      cout << "Critical Point Crossing Number: " << CPCrossingNum << CPSubNum << "\n";
+      cout << "Critical Point Crossing Number: " << CPCrossingNum << "\n";
    }
    
    // Find the modes
@@ -347,7 +347,7 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
    strcpy(tmp,Input.LastInputFileName());
    tmp[strlen(tmp)-4] = 0;
    qcfilename << tmp << cpfilename.str() << setw(2) << setfill('0')
-	      << CPCrossingNum << CPSubNum << ".res";
+	      << CPCrossingNum << ".res";
    char fortranstring[80];
    strcpy(fortranstring,qcfilename.str().c_str());
    for (int i=strlen(fortranstring);i<80;++i)
@@ -359,7 +359,7 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,char const& CPSubNum,
    // output a new input file to help restart at this critical point
    ostringstream bfbfilename;
    bfbfilename << tmp << cpfilename.str();
-   bfbfilename << setw(2) << setfill('0') << CPCrossingNum << CPSubNum << ".bfb";
+   bfbfilename << setw(2) << setfill('0') << CPCrossingNum << ".bfb";
    fstream cpfile;
    cpfile.open(bfbfilename.str().c_str(),ios::out);
 
@@ -398,6 +398,7 @@ void QC::Print(ostream& out,PrintDetail const& flag)
    int W;
    int NoNegTestFunctions;
    double engy;
+   double E1norm;
    double mintestfunct;
    Vector TestFunctVals(DOFS_);
    
@@ -407,6 +408,7 @@ void QC::Print(ostream& out,PrintDetail const& flag)
    if (Echo_) cout.width(0);
    
    engy = E0();
+   E1norm = E1().Norm();
    
    NoNegTestFunctions=TestFunctions(TestFunctVals,LHS);
    mintestfunct = TestFunctVals[0];
@@ -428,7 +430,8 @@ void QC::Print(ostream& out,PrintDetail const& flag)
          // passthrough to short
       case PrintShort:
          out << "Lambda (t): " << setw(W) << Lambda_ << "\n"
-             << "Potential Value:" << setw(W) << engy << "\n";
+             << "Potential Value:" << setw(W) << engy << "\n"
+             << "Force Norm:" << setw(W) << E1norm << "\n";
 
          out << "Bifurcation Info:" << setw(W) << mintestfunct
              << setw(W) << NoNegTestFunctions << "\n";
@@ -436,11 +439,16 @@ void QC::Print(ostream& out,PrintDetail const& flag)
          if (Echo_)
          {
             cout << "Lambda (t): " << setw(W) << Lambda_ << "\n"
-                 << "Potential Value:" << setw(W) << engy << "\n";
+                 << "Potential Value:" << setw(W) << engy << "\n"
+                 << "Force Norm:" << setw(W) << E1norm << "\n";
 
             cout << "Bifurcation Info:" << setw(W) << mintestfunct
                  << setw(W) << NoNegTestFunctions << "\n";
          }
+         int nint = 1;
+         int ndouble = 1;
+         double dummy = 0.0;
+         qcbfb_output_(DOFS_,&(DOF_[0]),Lambda_,nint,&NoNegTestFunctions,ndouble,&dummy);
          break;
    }
 }

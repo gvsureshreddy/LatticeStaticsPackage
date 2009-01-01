@@ -8,6 +8,8 @@ using namespace std;
 
 #define ARCLENEPS 1.0e-15
 
+extern "C" void qcbfb_output_(int& nfree,double* u,double& prop,int& nint,int* intdata,int& ndouble,double* doubledata);
+
 ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,Vector const& dofs,
                                      int const& MaxIter,double const& Tolerance,
                                      double const& DSMax,double const& DSMin,
@@ -466,14 +468,9 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
    int num;
    int CP;
    int spot;
-   ostringstream in_string;
    int CPorBif;
    int Bif;
-   char CPSubNum = 'a';
 
-   // Setup in_string ios
-   in_string << setiosflags(ios::fixed) << setprecision(out.precision());
-   
    RHSLambda = ArcLenDef()[DOFS_-1];
    LHSLambda = RHSLambda - Difference_[DOFS_-1];
    
@@ -499,8 +496,11 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
    int* Index;
    Index = new int[TestValueDiff];
    Vector DSTrack(TestValueDiff);
-   string* out_string = new string[TestValueDiff];
-   char* Order = new char[TestValueDiff];
+   Vector* CPDOFs;
+   double* CPLambdas;
+   CPDOFs = new Vector[TestValueDiff];
+   for (int i=0;i<TestValueDiff;++i) CPDOFs[i].Resize(size);
+   CPLambdas = new double[TestValueDiff];
 
    temp = 0;
    for (int i = 0; i< size; i++)
@@ -559,88 +559,73 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
          while((spot!=0) && (DSTrack[spot-1] > CurrentDS_))
          {
             DSTrack[spot] = DSTrack[spot-1];
-            out_string[spot] = out_string[spot - 1];
-            Order[spot] = Order[spot - 1];
+            CPDOFs[spot] = CPDOFs[spot - 1];
+            CPLambdas[spot] = CPLambdas[spot - 1];
             spot = spot - 1;
-         }         
-         
-         // Output Critical Point
-         for (int i=0;i<70;i++)
-         {
-            if (Echo_) cout << "=";
-            in_string << "=";
          }
-         if (Echo_) cout << "\n";
-         in_string << "\n";
-         
-         // Lattice takes care of echo
-         in_string << setw(Width) << *Lat;
-         
-         for (int i=0;i<70;i++)
-         {
-            if (Echo_) cout << "=";
-            in_string << "=";
-         }
-         if (Echo_) cout << "\n";
-         in_string << "\n";
-         
-         // Call Lattice function to do any Lattice Specific things
-         Bif=Lat->CriticalPointInfo(TotalNumCPCrossings,CPSubNum,
-                                    Restrict_->DrDt(Difference_),CPorBif,Multiplicity,
-                                    10.0*Tolerance_,Width,Input,in_string);
-
-         if (Echo_) cout << "Success = 1" << "\n";
-         in_string << "Success = 1" << "\n";
-
          DSTrack[spot] = CurrentDS_;
-         out_string[spot] = in_string.str();
-         Order[spot] = CPSubNum;
+         CPDOFs[spot] = Lat->DOF();
+         CPLambdas[num] = ( (Lat->LoadParameter() == Lattice::Load)
+                           ? Lat->Lambda() : Lat->Temp() );
+
          num = num + 1;
-         ++CPSubNum;
-         in_string.str("");
       }//END OF IF STATEMENT
    }
    
    ////PRINT OUT CP DATA
-   for (int i=0;i<70;i++)
-   {
-      out << "-";
-      if (Echo_) cout << "-";
-   }
-   out << "\n";
-   if (Echo_) cout << "\n";
-   // output cp order
-   out << "Critical Point Crossing Number: " << TotalNumCPCrossings << "\n"
-       << "Ordering is :  ";
-   if (Echo_)
-   {
-      cout << "Critical Point Crossing Number: " << TotalNumCPCrossings << "\n"
-           << "Ordering is :  ";
-   }
-   out << Order[0];
-   if (Echo_) cout << Order[0];
-   for (int i = 1; i < num; i++)
-   {
-      out << ",  " << Order[i];
-      if (Echo_) cout << ",  " << Order[i];
-   }
-   out << "\n";
-   if (Echo_) cout << "\n";
-   for (int i=0;i<70;i++)
-   {
-      if (Echo_) cout << "-";
-   }
-   if (Echo_) cout << "\n";
-   // send out cp info.
+   int nfree = Lat->DOF().Dim();
+   int nint = 1;
+   int cpflg = -1;
+   int ndouble = 1;
+   double dummy = 0.0;
    for (int i = 0; i < num; i++)
    {
-      out << out_string[i];
+      // reset to appropriate cp.
+      Lat->SetDOF(CPDOFs[i]);
+      if (Lat->LoadParameter() == Lattice::Load)
+         Lat->SetLambda(CPLambdas[i]);
+      else
+         Lat->SetTemp(CPLambdas[i]);
+      
+      // Output Critical Point
+      for (int j=0;j<70;j++)
+      {
+         if (Echo_) cout << "=";
+         out << "=";
+      }
+      if (Echo_) cout << "\n";
+      out << "\n";
+      
+      // Lattice takes care of echo
+      out << setw(Width) << *Lat;
+      
+      for (int j=0;j<70;j++)
+      {
+         if (Echo_) cout << "=";
+         out << "=";
+      }
+      if (Echo_) cout << "\n";
+      out << "\n";
+      
+      // Call Lattice function to do any Lattice Specific things
+      Bif=Lat->CriticalPointInfo(TotalNumCPCrossings,Restrict_->DrDt(Difference_),
+                                 CPorBif,Multiplicity,10.0*Tolerance_,Width,Input,out);
+      
+      if (Echo_) cout << "Success = 1" << "\n";
+      out << "Success = 1" << "\n";
+
+      // Do QC stuff
+      if (!strcmp("QC",Input.getString("Lattice","Type")))
+      { 
+         qcbfb_output_(nfree,&(CPDOFs[i][0]),CPLambdas[i],nint,&(cpflg),ndouble,&dummy);
+      }
+      
+      ++TotalNumCPCrossings;
    }
-   ++TotalNumCPCrossings;
    
    delete [] Index;
-   delete [] out_string;   //deletes memory allocated to out_string
-   delete [] Order;
+   delete [] CPDOFs;
+   delete [] CPLambdas;
    
    // Reset Lattice and ArcLengthSolution
    ArcLenUpdate(OriginalDiff-Difference_);
