@@ -430,19 +430,21 @@ void QC::Print(ostream& out,PrintDetail const& flag)
          // passthrough to short
       case PrintShort:
          out << "Lambda (t): " << setw(W) << Lambda_ << "\n"
-             << "Potential Value:" << setw(W) << engy << "\n"
-             << "Force Norm:" << setw(W) << E1norm << "\n";
+             << "DOF Norm: " << setw(W) << DOF_.Norm() << "\n"
+             << "Potential Value: " << setw(W) << engy << "\n"
+             << "Force Norm: " << setw(W) << E1norm << "\n";
 
-         out << "Bifurcation Info:" << setw(W) << mintestfunct
+         out << "Bifurcation Info: " << setw(W) << mintestfunct
              << setw(W) << NoNegTestFunctions << "\n";
          // send to cout also
          if (Echo_)
          {
             cout << "Lambda (t): " << setw(W) << Lambda_ << "\n"
-                 << "Potential Value:" << setw(W) << engy << "\n"
-                 << "Force Norm:" << setw(W) << E1norm << "\n";
+                 << "DOF Norm: " << setw(W) << DOF_.Norm() << "\n"
+                 << "Potential Value: " << setw(W) << engy << "\n"
+                 << "Force Norm: " << setw(W) << E1norm << "\n";
 
-            cout << "Bifurcation Info:" << setw(W) << mintestfunct
+            cout << "Bifurcation Info: " << setw(W) << mintestfunct
                  << setw(W) << NoNegTestFunctions << "\n";
          }
          int nint = 1;
