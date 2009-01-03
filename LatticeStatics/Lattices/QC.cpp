@@ -38,9 +38,10 @@ QC::QC(PerlInput const& Input,int const& Echo,int const& Width):
    char tmp[2048];
    strcpy(tmp,Input.LastInputFileName());
    int len = strlen(tmp);
-   tmp[len-4] = 'i';
-   tmp[len-3] = 'n';
-   tmp[len-2] = 0;
+   tmp[len-3] = 'i';
+   tmp[len-2] = 'n';
+   tmp[len-1] = 0;
+
    fstream infile(tmp,ios::in);
    infile.getline(tmp,2048);
    while (strcmp("macros",tmp))
@@ -409,15 +410,17 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int const&
    if (1 == CPorBif)
    {
       fstream infile;
+      strcpy(tmp,bfbfilename.str().c_str());
       int len = strlen(tmp);
-      tmp[len] = 'i';
-      tmp[len+1] = 'n';
-      tmp[len+2] = 0;
-      infile.open(tmp,ios::in);
-      infile << "% Input file for: " << bfbfilename.str().c_str() << "\n";
+      tmp[len] = '.';
+      tmp[len+1] = 'i';
+      tmp[len+2] = 'n';
+      tmp[len+3] = 0;
+      infile.open(tmp,ios::out);
+      infile << "% Input file for: " << bfbfilename.str() << "\n";
       infile << InFileHeader_.str();
       infile << "macros\n";
-      infile << "restart,read," << bfbfilename.str().c_str() << "\n";
+      infile << "restart,read," << bfbfilename.str() << "\n";
       infile << "status\n";
       infile << "tole,,1.0d-6\n";
       infile << "proportional,,2,,-1000.,-1000.,1000.,1000.\n\n";
@@ -425,7 +428,7 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int const&
       infile << "form\n";
       infile << "report\n\n";
       infile << "% Start bfb solution\n";
-      infile << "bfb,rest," << bfbfilename.str().c_str() << "\n\n";
+      infile << "bfb,rest," << bfbfilename.str() << "\n\n";
       infile << "loop,,100\n";
       infile << "   bfb\n";
       infile << "   conv,bfb\n";
