@@ -460,7 +460,8 @@ Matrix const& DFTExternal::E2() const
    return E2CachedValue_;
 }
 
-void DFTExternal::Print(ostream& out,PrintDetail const& flag)
+void DFTExternal::Print(ostream& out,PrintDetail const& flag,
+                        PrintPathSolutionType const& SolType)
 {
    int W;
    int NoNegTestFunctions;

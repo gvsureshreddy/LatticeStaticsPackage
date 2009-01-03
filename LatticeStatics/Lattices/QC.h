@@ -56,7 +56,8 @@ public:
    virtual Matrix const& StiffnessDL() const;
    virtual Matrix const& E3() const;
    virtual char const* const Type() const {return "QC";}
-   virtual void Print(ostream& out,PrintDetail const& flag);
+   virtual void Print(ostream& out,PrintDetail const& flag,
+                      PrintPathSolutionType const& SolType = RegularPt);
    
    friend ostream& operator<<(ostream& out,QC& A);
    

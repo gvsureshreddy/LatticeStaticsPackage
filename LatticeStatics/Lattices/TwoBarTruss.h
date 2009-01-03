@@ -50,7 +50,8 @@ public:
    virtual Vector const& E1DLoad() const;
    virtual Matrix const& E2() const;
    virtual char const* const Type() const {return "TwoBarTruss";}
-   virtual void Print(ostream& out,PrintDetail const& flag);
+   virtual void Print(ostream& out,PrintDetail const& flag,
+                      PrintPathSolutionType const& SolType = RegularPt);
 
    friend ostream& operator<<(ostream& out,TwoBarTruss& A);
    

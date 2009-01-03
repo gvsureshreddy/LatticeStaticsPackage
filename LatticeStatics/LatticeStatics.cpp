@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
    atexit(outatexit);
    
    Lat = InitializeLattice(Input,Echo,Width,Debug);
-   Lat->Print(out,Lattice::PrintLong);
+   Lat->Print(out,Lattice::PrintLong,Lattice::NotSolutionPt);
    
    Restrict = InitializeRestriction(Lat,Input);
 

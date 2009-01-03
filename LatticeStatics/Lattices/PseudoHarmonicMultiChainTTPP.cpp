@@ -1086,7 +1086,8 @@ void PseudoHarmonicMultiChainTTPP::NeighborDistances(int const& cutoff,ostream& 
    out << "\n";
 }
 
-void PseudoHarmonicMultiChainTTPP::Print(ostream& out,PrintDetail const& flag)
+void PseudoHarmonicMultiChainTTPP::Print(ostream& out,PrintDetail const& flag,
+                                         PrintPathSolutionType const& SolType)
 {
    int W;
    int NoNegTestFunctions;

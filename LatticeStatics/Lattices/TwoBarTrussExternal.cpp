@@ -121,7 +121,8 @@ Matrix const& TwoBarTrussExternal::E2() const
    return E2CachedValue_;
 }
 
-void TwoBarTrussExternal::Print(ostream& out,PrintDetail const& flag)
+void TwoBarTrussExternal::Print(ostream& out,PrintDetail const& flag,
+                                PrintPathSolutionType const& SolType)
 {
    int W;
    int NoNegTestFunctions;

@@ -107,7 +107,8 @@ public:
    virtual void NeighborDistances(int const& cutoff,ostream& out) const;
    virtual char const* const Type() const {return "MultiChainTTPP";}
    virtual void DebugMode();
-   virtual void Print(ostream& out,PrintDetail const& flag);
+   virtual void Print(ostream& out,PrintDetail const& flag,
+                      PrintPathSolutionType const& SolType = RegularPt);
    
    // Functions provided by MultiChainTTPP
    MultiChainTTPP(PerlInput const& Input,int const& Echo=1,int const& Width=20,

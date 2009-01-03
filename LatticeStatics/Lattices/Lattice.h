@@ -68,7 +68,9 @@ public:
 
    virtual char const* const Type() const = 0;
    enum PrintDetail {PrintLong,PrintShort};
-   virtual void Print(ostream& out,PrintDetail const& flag) = 0;
+   enum PrintPathSolutionType {NotSolutionPt,RegularPt,TurningPt,BifurcationPt};
+   virtual void Print(ostream& out,PrintDetail const& flag,
+                      PrintPathSolutionType const& SolType = RegularPt) = 0;
    friend ostream& operator<<(ostream& out,Lattice& L)
    {L.Print(out,PrintShort); return out;}
 

@@ -139,7 +139,8 @@ Matrix const& TwoBarTruss::E3() const
    return E3CachedValue_;
 }
 
-void TwoBarTruss::Print(ostream& out,PrintDetail const& flag)
+void TwoBarTruss::Print(ostream& out,PrintDetail const& flag,
+                        PrintPathSolutionType const& SolType)
 {
    int W;
    int NoNegTestFunctions;

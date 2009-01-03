@@ -123,7 +123,8 @@ public:
    virtual void NeighborDistances(int const& cutoff,ostream& out) const;
    virtual char const* const Type() const {return "MultiLatticeTPP";}
    virtual void DebugMode();
-   virtual void Print(ostream& out,PrintDetail const& flag);
+   virtual void Print(ostream& out,PrintDetail const& flag,
+                      PrintPathSolutionType const& SolType = RegularPt);
    
    void PrintCurrentCrystalParamaters(ostream& out) const;
    

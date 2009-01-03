@@ -1076,7 +1076,8 @@ void MultiChainTTPP::NeighborDistances(int const& cutoff,ostream& out) const
    out << "\n";
 }
 
-void MultiChainTTPP::Print(ostream& out,PrintDetail const& flag)
+void MultiChainTTPP::Print(ostream& out,PrintDetail const& flag,
+                           PrintPathSolutionType const& SolType)
 {
    int W;
    int NoNegTestFunctions;

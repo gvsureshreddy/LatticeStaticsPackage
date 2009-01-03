@@ -445,7 +445,8 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int const&
 }
 
 
-void QC::Print(ostream& out,PrintDetail const& flag)
+void QC::Print(ostream& out,PrintDetail const& flag,
+               PrintPathSolutionType const& SolType)
 {
    int W;
    int NoNegTestFunctions;
@@ -506,7 +507,22 @@ void QC::Print(ostream& out,PrintDetail const& flag)
          int nint = 1;
          int ndouble = 1;
          double dummy = 0.0;
-         qcbfb_output_(DOFS_,&(DOF_[0]),Lambda_,nint,&NoNegTestFunctions,ndouble,&dummy);
+         int tpflag = -1;
+         int bifflag = -2;
+         switch (SolType)
+         {
+            case NotSolutionPt:
+               break;
+            case RegularPt:
+               qcbfb_output_(DOFS_,&(DOF_[0]),Lambda_,nint,&NoNegTestFunctions,ndouble,&dummy);
+               break;
+            case TurningPt:
+               qcbfb_output_(DOFS_,&(DOF_[0]),Lambda_,nint,&tpflag,ndouble,&dummy);
+               break;
+            case BifurcationPt:
+               qcbfb_output_(DOFS_,&(DOF_[0]),Lambda_,nint,&bifflag,ndouble,&dummy);
+               break;
+         }
          break;
    }
 }

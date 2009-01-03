@@ -1700,7 +1700,8 @@ void MultiLatticeTPP::NeighborDistances(int const& cutoff,ostream& out) const
    out << "\n";
 }
 
-void MultiLatticeTPP::Print(ostream& out,PrintDetail const& flag)
+void MultiLatticeTPP::Print(ostream& out,PrintDetail const& flag,
+                            PrintPathSolutionType const& SolType)
 {
    int W;
    int NoNegTestFunctions;
