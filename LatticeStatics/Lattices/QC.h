@@ -1,6 +1,8 @@
 #ifndef RSE__QC
 #define RSE__QC
 
+#include <string>
+#include <sstream>
 #include "PerlInput.h"
 #include "Lattice.h"
 
@@ -13,14 +15,16 @@ private:
    
    mutable Vector DOF_;
    mutable double Lambda_;
-
+   
    int Echo_;
    int Width_;
    double Tolerance_;
-
+   
+   ostringstream InFileHeader_;
+   
    enum UpdateFlag {NoStiffness=0,NeedStiffness=1};
    void UpdateValues(UpdateFlag flag) const;
-
+   
    static const int cachesize = 4;
    mutable int Cached_[cachesize];
    mutable double E0CachedValue_;
@@ -38,7 +42,7 @@ public:
    Vector const& DOF() const {return DOF_;}
    void SetDOF(Vector const& dof)
    {DOF_ = dof; for (int i=0;i<cachesize;++i) Cached_[i]=0;}
-
+   
    double Lambda() const {return Lambda_;}
    void SetLambda(double const& lambda)
    {Lambda_ = lambda; for (int i=0;i<cachesize;++i) Cached_[i]=0;}
@@ -51,7 +55,7 @@ public:
    virtual Matrix const& StiffnessDL() const;
    virtual Matrix const& E3() const;
    virtual void Print(ostream& out,PrintDetail const& flag);
-
+   
    friend ostream& operator<<(ostream& out,QC& A);
    
    virtual int CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int const& CPorBif,

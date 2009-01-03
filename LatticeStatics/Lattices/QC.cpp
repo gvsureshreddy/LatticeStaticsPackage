@@ -1,6 +1,4 @@
 #include <fstream>
-#include <string>
-#include <sstream>
 #include "QC.h"
 
 using namespace std;
@@ -36,6 +34,21 @@ QC::QC(PerlInput const& Input,int const& Echo,int const& Width):
    {
       Tolerance_ = Input.useDouble(1.0e-6,Hash,"Tolerance");  // Default Value
    }
+   // get input file header
+   char tmp[2048];
+   strcpy(tmp,Input.LastInputFileName());
+   int len = strlen(tmp);
+   tmp[len-4] = 'i';
+   tmp[len-3] = 'n';
+   tmp[len-2] = 0;
+   fstream infile(tmp,ios::in);
+   infile.getline(tmp,2048);
+   while (strcmp("macros",tmp))
+   {
+      InFileHeader_ << tmp << "\n";
+   }
+   infile.close();
+   
    DOF_.Resize(DOFS_,0.0);
    E1CachedValue_.Resize(DOFS_);
    E1DLoadCachedValue_.Resize(DOFS_);
@@ -359,9 +372,11 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int const&
    // output a new input file to help restart at this critical point
    ostringstream bfbfilename;
    bfbfilename << tmp << cpfilename.str();
-   bfbfilename << setw(2) << setfill('0') << CPCrossingNum << ".bfb";
+   bfbfilename << setw(2) << setfill('0') << CPCrossingNum;
+   ostringstream bfbfilewithext;
+   bfbfilewithext << bfbfilename.str() << ".bfb";
    fstream cpfile;
-   cpfile.open(bfbfilename.str().c_str(),ios::out);
+   cpfile.open(bfbfilewithext.str().c_str(),ios::out);
 
    cpfile << setprecision(out.precision()) << scientific;
    Vector T(dofs+1);
@@ -389,6 +404,33 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int const&
    Input.writeVector(cpfile,T,"StartType","BifurcationPoint");
    cpfile.close();
    
+   // output a qc input file
+   fstream infile;
+   int len = strlen(tmp);
+   tmp[len] = 'i';
+   tmp[len+1] = 'n';
+   tmp[len+2] = 0;
+   infile.open(tmp,ios::in);
+   infile << InFileHeader_.str();
+   infile << "macros\n";
+   infile << "restart,read," << bfbfilename.str().c_str() << "\n";
+   infile << "status\n";
+   infile << "tole,,1.0d-6\n";
+   infile << "proportional,,2,,-1000.,-1000.,1000.,1000.\n\n";
+   infile << "% generate output for initial configuration\n";
+   infile << "form\n";
+   infile << "report\n\n";
+   infile << "% Start bfb solution\n";
+   infile << "bfb,rest," << bfbfilename.str().c_str() << "\n\n";
+   infile << "loop,,100\n";
+   infile << "   bfb\n";
+   infile << "   conv,bfb\n";
+   infile << "next\n\n";
+   infile << "% End bfb solution (release memory)\n";
+   infile << "bfb,term\n\n";
+   infile << "end\n";
+   infile << "stop\n";
+
    return Bif;
 }
 
