@@ -46,6 +46,7 @@ QC::QC(PerlInput const& Input,int const& Echo,int const& Width):
    while (strcmp("macros",tmp))
    {
       InFileHeader_ << tmp << "\n";
+      infile.getline(tmp,2048);
    }
    infile.close();
    
@@ -404,32 +405,37 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int const&
    Input.writeVector(cpfile,T,"StartType","BifurcationPoint");
    cpfile.close();
    
-   // output a qc input file
-   fstream infile;
-   int len = strlen(tmp);
-   tmp[len] = 'i';
-   tmp[len+1] = 'n';
-   tmp[len+2] = 0;
-   infile.open(tmp,ios::in);
-   infile << InFileHeader_.str();
-   infile << "macros\n";
-   infile << "restart,read," << bfbfilename.str().c_str() << "\n";
-   infile << "status\n";
-   infile << "tole,,1.0d-6\n";
-   infile << "proportional,,2,,-1000.,-1000.,1000.,1000.\n\n";
-   infile << "% generate output for initial configuration\n";
-   infile << "form\n";
-   infile << "report\n\n";
-   infile << "% Start bfb solution\n";
-   infile << "bfb,rest," << bfbfilename.str().c_str() << "\n\n";
-   infile << "loop,,100\n";
-   infile << "   bfb\n";
-   infile << "   conv,bfb\n";
-   infile << "next\n\n";
-   infile << "% End bfb solution (release memory)\n";
-   infile << "bfb,term\n\n";
-   infile << "end\n";
-   infile << "stop\n";
+   // output a qc input file (if bif pt)
+   if (1 == CPorBif)
+   {
+      fstream infile;
+      int len = strlen(tmp);
+      tmp[len] = 'i';
+      tmp[len+1] = 'n';
+      tmp[len+2] = 0;
+      infile.open(tmp,ios::in);
+      infile << "% Input file for: " << bfbfilename.str().c_str() << "\n";
+      infile << InFileHeader_.str();
+      infile << "macros\n";
+      infile << "restart,read," << bfbfilename.str().c_str() << "\n";
+      infile << "status\n";
+      infile << "tole,,1.0d-6\n";
+      infile << "proportional,,2,,-1000.,-1000.,1000.,1000.\n\n";
+      infile << "% generate output for initial configuration\n";
+      infile << "form\n";
+      infile << "report\n\n";
+      infile << "% Start bfb solution\n";
+      infile << "bfb,rest," << bfbfilename.str().c_str() << "\n\n";
+      infile << "loop,,100\n";
+      infile << "   bfb\n";
+      infile << "   conv,bfb\n";
+      infile << "next\n\n";
+      infile << "% End bfb solution (release memory)\n";
+      infile << "bfb,term\n\n";
+      infile << "end\n";
+      infile << "stop\n";
+      infile.close();
+   }
 
    return Bif;
 }
