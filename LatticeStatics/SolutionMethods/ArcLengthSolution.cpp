@@ -579,11 +579,6 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
    }
    
    ////PRINT OUT CP DATA
-   int nfree = Lat->DOF().Dim();
-   int nint = 1;
-   int cpflg = -1;
-   int ndouble = 1;
-   double dummy = 0.0;
    for (int i = 0; i < num; i++)
    {
       // reset to appropriate cp.
