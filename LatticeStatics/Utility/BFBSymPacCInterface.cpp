@@ -19,7 +19,7 @@ using namespace std;
 enum YN {No,Yes};
 void GetMainSettings(int& Width,int& Precision,YN& BisectCP,int& Echo,PerlInput const& Input);
 void InitializeOutputFile(char const* const datafile,char const* const startfile,
-		          int const& Precision,int const& Width,int const& Echo);
+                          int const& Precision,int const& Width,int const& Echo);
 
 PerlInput Input;
 Lattice *Lat;
@@ -35,51 +35,50 @@ YN BisectCP;
 
 extern "C" void bfb_init_wrapper_(int& nfree,double* ufree_init,double& t,char* bfbfile)
 {
-  Vector utmp(nfree);
-  Vector sol(nfree+1);
-  for (int i=0;i<nfree;++i)
-  {
-    utmp[i] = ufree_init[i];
-    sol[i] = ufree_init[i];
-  }
-  sol[nfree] = t;
-
-
-     Input.Readfile(bfbfile);
-     ostringstream tmp;
-     tmp << "$Main{Echo} = 0;";
-     Input.EvaluateString(tmp.str().c_str());
-     tmp.str("");
-     tmp << "$Lattice{QC}{DOFS} = " << nfree << ";";
-     Input.EvaluateString(tmp.str().c_str());
-     tmp.str("");
-     tmp << "$Lattice{NewtonPCSolution}{NumSolutions} = 100000;";
-     Input.EvaluateString(tmp.str().c_str());
-     GetMainSettings(Width,Precision,BisectCP,Echo,Input);
-     
-     InitializeOutputFile(bfbfile,0,Precision,Width,Echo);
-
-     Lat = InitializeLattice(Input,Echo,Width,0);
-     Lat->SetDOF(utmp);
-     Lat->SetLambda(t);
-     
-     Restrict = InitializeRestriction(Lat,Input);
-     
-     cout << "Restriction: " << Restrict->Name() << "\n";
-     
-     tmp.str("");
-     tmp << scientific << setprecision(Precision);
-     tmp << "$StartType{Solution} = [";
-     tmp << setw(Width) << sol[0];
-     for (int i=1;i<sol.Dim();++i)
-        tmp << "," << setw(Width) << sol[i];
-     tmp << "];";
-     Input.EvaluateString(tmp.str().c_str());
-
-     SolveMe = InitializeSolution(Restrict,Input,Lat,cout,Width,Echo);
-     EigenValues.Resize(Lat->DOF().Dim());
-
-     Lat->Print(cout,Lattice::PrintLong);
+   Vector utmp(nfree);
+   Vector sol(nfree+1);
+   for (int i=0;i<nfree;++i)
+   {
+      utmp[i] = ufree_init[i];
+      sol[i] = ufree_init[i];
+   }
+   sol[nfree] = t;
+   
+   Input.Readfile(bfbfile);
+   ostringstream tmp;
+   tmp << "$Main{Echo} = 0;";
+   Input.EvaluateString(tmp.str().c_str());
+   tmp.str("");
+   tmp << "$Lattice{QC}{DOFS} = " << nfree << ";";
+   Input.EvaluateString(tmp.str().c_str());
+   tmp.str("");
+   tmp << "$Lattice{NewtonPCSolution}{NumSolutions} = 100000;";
+   Input.EvaluateString(tmp.str().c_str());
+   GetMainSettings(Width,Precision,BisectCP,Echo,Input);
+   
+   InitializeOutputFile(bfbfile,0,Precision,Width,Echo);
+   
+   Lat = InitializeLattice(Input,Echo,Width,0);
+   Lat->SetDOF(utmp);
+   Lat->SetLambda(t);
+   
+   Restrict = InitializeRestriction(Lat,Input);
+   
+   cout << "Restriction: " << Restrict->Name() << "\n";
+   
+   tmp.str("");
+   tmp << scientific << setprecision(Precision);
+   tmp << "$StartType{Solution} = [";
+   tmp << setw(Width) << sol[0];
+   for (int i=1;i<sol.Dim();++i)
+      tmp << "," << setw(Width) << sol[i];
+   tmp << "];";
+   Input.EvaluateString(tmp.str().c_str());
+   
+   SolveMe = InitializeSolution(Restrict,Input,Lat,cout,Width,Echo);
+   EigenValues.Resize(Lat->DOF().Dim());
+   
+   Lat->Print(cout,Lattice::PrintLong);
 }
 
 // bfbreturncode: 0-regular point, 1-terminate, 2-critical point
@@ -99,7 +98,7 @@ extern "C" void bfb_wrapper_(int& bfbstable,int& bfbreturncode)
    {
       bfbstable = 1;
    }
-
+   
    if ((OldTestValue != TestValue) && (BisectCP == Yes) && (OldTestValue != -1))
    {
       bfbreturncode = 2;
@@ -111,10 +110,10 @@ extern "C" void bfb_wrapper_(int& bfbstable,int& bfbreturncode)
    }
    // Send Output
    cout << setw(Width) << *Lat << "Success = 1" << "\n";
-
+   
    if (SolveMe->AllSolutionsFound())
    {
-     bfbreturncode=1;
+      bfbreturncode=1;
    }
 }
 
@@ -128,7 +127,7 @@ extern "C" void bfb_term_wrapper_()
 void GetMainSettings(int& Width,int& Precision,YN& BisectCP,int& Echo,PerlInput const& Input)
 {
    string bisect;
-
+   
    Width = Input.getInt("Main","FieldWidth");
    Precision = Input.getInt("Main","Precision");
    if (Input.ParameterOK("Main","Echo"))
@@ -153,7 +152,7 @@ void GetMainSettings(int& Width,int& Precision,YN& BisectCP,int& Echo,PerlInput 
 }
 
 void InitializeOutputFile(char const* const datafile,char const* const startfile,
-		          int const& Precision,int const& Width,int const& Echo)
+                          int const& Precision,int const& Width,int const& Echo)
 {
    fstream input,start;
    string dataline;
@@ -177,7 +176,7 @@ void InitializeOutputFile(char const* const datafile,char const* const startfile
    cout  << setiosflags(ios::fixed) << setprecision(Precision);
    
    cout << "Built on:               " << builddate() << "\n"
-       << "LinearAlgebra Build on: " << LinearAlgebraBuildDate() << "\n"
-       << "MyMath Built on:        " << MyMathBuildDate() << "\n"
-       << setw(Width);
+        << "LinearAlgebra Build on: " << LinearAlgebraBuildDate() << "\n"
+        << "MyMath Built on:        " << MyMathBuildDate() << "\n"
+        << setw(Width);
 }
