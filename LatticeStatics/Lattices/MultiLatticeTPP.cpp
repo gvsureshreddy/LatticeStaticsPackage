@@ -1361,7 +1361,7 @@ CMatrix const& MultiLatticeTPP::ReferenceDynamicalStiffness(Vector const& K) con
                Dk_static[DIM3*LatSum_.Atom(0)+i][DIM3*LatSum_.Atom(1)+j] +=
                   (-2.0*Del(i,j)*LatSum_.phi1()
                    -4.0*LatSum_.Dx(i)*LatSum_.Dx(j)*LatSum_.phi2())
-                  *exp(A*
+                  *exp(-A*
                        (K[0]*LatSum_.DX(0) + K[1]*LatSum_.DX(1) + K[2]*LatSum_.DX(2)));
                
                // y==y' components (i.e., Phi(0,y,y) term)
@@ -1378,7 +1378,7 @@ CMatrix const& MultiLatticeTPP::ReferenceDynamicalStiffness(Vector const& K) con
                Dk_static[DIM3*LatSum_.Atom(0)+i][DIM3*LatSum_.Atom(1)+j] +=
                   (-2.0*Del(i,j)*LatSum_.phi1()
                    -4.0*LatSum_.Dx(i)*LatSum_.Dx(j)*LatSum_.phi2())
-                  *(exp(A*
+                  *(exp(-A*
                         (K[0]*LatSum_.DX(0) + K[1]*LatSum_.DX(1)
                          + K[2]*LatSum_.DX(2)))
                     - 1.0);

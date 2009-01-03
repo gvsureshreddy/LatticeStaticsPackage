@@ -892,7 +892,7 @@ CMatrix const& MultiChainTPP::ReferenceDynamicalStiffness(Vector const& K) const
          Dk_static[ChainSum_.Atom(0)][ChainSum_.Atom(1)] +=
             (-2.0*ChainSum_.phi1()
              -4.0*ChainSum_.Dx(0)*ChainSum_.Dx(0)*ChainSum_.phi2())
-            *exp(A*K[0]*ChainSum_.DX(0));
+            *exp(-A*K[0]*ChainSum_.DX(0));
          
          // y==y' components (i.e., Phi(0,y,y) term)
          Dk_static[ChainSum_.Atom(0)][ChainSum_.Atom(0)] +=
@@ -903,7 +903,7 @@ CMatrix const& MultiChainTPP::ReferenceDynamicalStiffness(Vector const& K) const
          Dk_static[ChainSum_.Atom(0)][ChainSum_.Atom(1)] +=
             (-2.0*ChainSum_.phi1()
              -4.0*ChainSum_.Dx(0)*ChainSum_.Dx(0)*ChainSum_.phi2())
-            *(exp(A*K[0]*ChainSum_.DX(0)) - 1.0);
+            *(exp(-A*K[0]*ChainSum_.DX(0)) - 1.0);
       }
    }
    // Normalize through the Mass Matrix
