@@ -453,6 +453,7 @@ void ArcLengthSolution::ArcLengthNewton(int& good)
 void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCrossings,
                                           PerlInput const& Input,int const& Width,ostream& out)
 {
+   Vector OriginalDOF=ArcLenDef();
    Vector OriginalDiff=Difference_;
    double OriginalDS = CurrentDS_;
    int TestValueDiff;
@@ -628,7 +629,7 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
    delete [] CPLambdas;
    
    // Reset Lattice and ArcLengthSolution
-   ArcLenUpdate(OriginalDiff-Difference_);
+   ArcLenSet(OriginalDOF);
    CurrentDS_ = OriginalDS;
    Difference_ = OriginalDiff;
 
