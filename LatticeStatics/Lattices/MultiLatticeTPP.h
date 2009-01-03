@@ -121,6 +121,7 @@ public:
    virtual void SetGridSize(int const& Grid) {GridSize_=Grid; UCIter_(GridSize_);}
    void RefineEqbm(double const& Tol,int const& MaxItr,ostream* const out);
    virtual void NeighborDistances(int const& cutoff,ostream& out) const;
+   virtual char const* const Type() const {return "MultiLatticeTPP";}
    virtual void DebugMode();
    virtual void Print(ostream& out,PrintDetail const& flag);
    

@@ -49,6 +49,7 @@ public:
    virtual Vector const& E1() const;
    virtual Vector const& E1DLoad() const;
    virtual Matrix const& E2() const;
+   virtual char const* const Type() const {return "TwoBarTrussExternal";}
    virtual void Print(ostream& out,PrintDetail const& flag);
 
    friend ostream& operator<<(ostream& out,TwoBarTrussExternal& A);

@@ -105,6 +105,7 @@ public:
    virtual void SetParameters(double const* const Vals,int const& ResetRef = 1);
    virtual void SetGridSize(int const& Grid) {GridSize_=Grid; ChainIter_(GridSize_);}
    virtual void NeighborDistances(int const& cutoff,ostream& out) const;
+   virtual char const* const Type() const {return "MultiChainTTPP";}
    virtual void DebugMode();
    virtual void Print(ostream& out,PrintDetail const& flag);
    

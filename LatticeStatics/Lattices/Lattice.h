@@ -65,7 +65,8 @@ public:
                                  int const& Width,PerlInput const& Input,ostream& out);
    void ConsistencyCheck(double const& ConsistencyEpsilon,int const& Width,ostream& out);
    virtual void DebugMode() {};
-   
+
+   virtual char const* const Type() const = 0;
    enum PrintDetail {PrintLong,PrintShort};
    virtual void Print(ostream& out,PrintDetail const& flag) = 0;
    friend ostream& operator<<(ostream& out,Lattice& L)

@@ -371,7 +371,7 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int const&
    }
    qcbfb_restart_(fortranstring);
 
-   // output a new input file to help restart at this critical point
+   // output a new bfb input file to help restart at this critical point
    ostringstream bfbfilename;
    bfbfilename << tmp << cpfilename.str();
    bfbfilename << setw(2) << setfill('0') << CPCrossingNum;

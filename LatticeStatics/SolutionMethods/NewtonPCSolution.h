@@ -69,6 +69,7 @@ public:
    virtual int FindNextSolution();
    virtual void FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCrossings,
                                   PerlInput const& Input,int const& Width,ostream& out);
+   virtual char const* const Type() const {return "NewtonPCSolution";}
    
 private:
    // "static" member variables

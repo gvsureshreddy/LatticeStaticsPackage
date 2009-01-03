@@ -622,7 +622,7 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
       out << "Success = 1" << "\n";
 
       // Do QC stuff
-      if (!strcmp("QC",Input.getString("Lattice","Type")))
+      if (!strcmp("QC",Lat->Type()))
       { 
          qcbfb_output_(nfree,&(CPDOFs[i][0]),CPLambdas[i],nint,&(cpflg),ndouble,&dummy);
       }
