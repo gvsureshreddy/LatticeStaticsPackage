@@ -68,9 +68,14 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,
    
    Tangent1_.Resize(count);
    Tangent2_.Resize(count);
-   for(int i=0;i<count;i++)
+   double tansign = 1.0;
+   for (int i=0;i<count_minus_one;++i)
    {
-      Tangent1_[i] = Tangent2_[i] = Direction_ * Q[i][count_minus_one];
+      tansign *= R[i][i]/fabs(R[i][i]);
+   }
+   for (int i=0;i<count;i++)
+   {
+      Tangent1_[i] = Tangent2_[i] = Direction_ * tansign * Q[i][count_minus_one];
    }
 }
 
@@ -204,10 +209,14 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
    
    Tangent1_.Resize(count);
    Tangent2_.Resize(count);
-   
+   double tansign = 1.0;
+   for (int i=0;i<count_minus_one;++i)
+   {
+      tansign *= R[i][i]/fabs(R[i][i]);
+   }   
    for(int i=0;i< count;i++)
    {
-      Tangent1_[i] = Tangent2_[i] = Direction_ * Q[i][count_minus_one];
+      Tangent1_[i] = Tangent2_[i] = Direction_ * tansign * Q[i][count_minus_one];
    }
 }
 
@@ -387,9 +396,14 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
       Matrix R(count, count_minus_one);
       
       QR(Restrict_->Stiffness(),Q,R,1);
+      double tansign = 1.0;
+      for (i=0;i<count_minus_one;++i)
+      {
+         tansign *= R[i][i]/fabs(R[i][i]);
+      }
       for(i=0;i<count;i++)
       {
-         Tangent1_[i] = Tangent2_[i] = Direction_ * Q[i][count_minus_one];
+         Tangent1_[i] = Tangent2_[i] = Direction_ * tansign * Q[i][count_minus_one];
       }
    }
    else if (!strcmp("ConsistencyCheck",starttype))
@@ -485,9 +499,14 @@ int NewtonPCSolution::FindNextSolution()
       forcenorm = Force_static.Norm();
       QR(Stiff_static, Q_static, R_static, 1);
       
+      double tansign = 1.0;
+      for (i=0;i<count_minus_one;++i)
+      {
+         tansign *= R_static[i][i]/fabs(R_static[i][i]);
+      }
       for(i=0;i<count;i++)
       {
-         Tangent2_[i] = Direction_*Q_static[i][count_minus_one];
+         Tangent2_[i] = Direction_*tansign*Q_static[i][count_minus_one];
       }
       
       Dot=0.0;
