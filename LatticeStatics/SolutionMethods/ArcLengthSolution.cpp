@@ -598,7 +598,11 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
       out << "\n";
       
       // Lattice takes care of echo
-      out << setw(Width) << *Lat;
+      out << setw(Width);
+      if (0 == CPorBifs[i])
+         Lat->Print(out,Lattice::PrintShort,Lattice::TurningPt);
+      else
+         Lat->Print(out,Lattice::PrintShort,Lattice::BifurcationPt);
       
       for (int j=0;j<70;j++)
       {
