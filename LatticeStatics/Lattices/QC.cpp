@@ -21,7 +21,8 @@ QC::QC(PerlInput const& Input,int const& Echo,int const& Width):
    Lattice(Input),
    Lambda_(0.0),
    Echo_(Echo),
-   Width_(Width)
+   Width_(Width),
+   SolutionNumber_(0)
 {
    PerlInput::HashStruct Hash = Input.getHash("Lattice");
    Hash = Input.getHash(Hash,"QC");
@@ -480,7 +481,8 @@ void QC::Print(ostream& out,PrintDetail const& flag)
          }
          // passthrough to short
       case PrintShort:
-         out << "Lambda (t): " << setw(W) << Lambda_ << "\n"
+         out << "QC SolutionNumber = " << SolutionNumber_ << "\n"
+             << "Lambda (t): " << setw(W) << Lambda_ << "\n"
              << "DOF Norm: " << setw(W) << DOF_.Norm() << "\n"
              << "Potential Value: " << setw(W) << engy << "\n"
              << "Force Norm: " << setw(W) << E1norm << "\n";
@@ -490,7 +492,8 @@ void QC::Print(ostream& out,PrintDetail const& flag)
          // send to cout also
          if (Echo_)
          {
-            cout << "Lambda (t): " << setw(W) << Lambda_ << "\n"
+            cout << "QC SolutionNumber = " << SolutionNumber_ << "\n"
+                 << "Lambda (t): " << setw(W) << Lambda_ << "\n"
                  << "DOF Norm: " << setw(W) << DOF_.Norm() << "\n"
                  << "Potential Value: " << setw(W) << engy << "\n"
                  << "Force Norm: " << setw(W) << E1norm << "\n";
@@ -498,6 +501,8 @@ void QC::Print(ostream& out,PrintDetail const& flag)
             cout << "Bifurcation Info: " << setw(W) << mintestfunct
                  << setw(W) << NoNegTestFunctions << "\n";
          }
+         ++SolutionNumber_;
+         
          int nint = 1;
          int ndouble = 1;
          double dummy = 0.0;

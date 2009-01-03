@@ -19,7 +19,8 @@ private:
    int Echo_;
    int Width_;
    double Tolerance_;
-   
+
+   int SolutionNumber_;
    ostringstream InFileHeader_;
    
    enum UpdateFlag {NoStiffness=0,NeedStiffness=1};
