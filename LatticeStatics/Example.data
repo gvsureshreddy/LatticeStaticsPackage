@@ -25,6 +25,8 @@ $Rtheta1_1_1 = 0.275914376289;
 %Lattice = (Type            => MultiLatticeTPP, # MultiLatticeTPP, MultiChainTPP, MultiChainTTPP, PseudoHarmonicMultiChainTTPP, TwoBarTruss, TwoBarTrussExternal, DFTExternal, QC
             #OrderedTFs      => No, # Default value = No, Yes
             #LSKAnalysis     => SecondOrder, # Default value = SecondOrder, ThirdOrder, None
+            #FullPrint       => Yes, # Default value = Yes, No
+            #GuessModes      => No, # Default value = No, Yes
             MultiLatticeTPP => 
             {CBKinematics        => {Type => LagrangeCB, # SymLagrangeCB, SymLagrangeWTransCB, LagrangeCB, MixedCB, EulerCB
                                      InternalAtoms => 4,

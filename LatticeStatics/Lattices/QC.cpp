@@ -202,160 +202,17 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int const&
                           int const& NumZeroEigenVals,double const& Tolerance,
                           int const& Width,PerlInput const& Input,ostream& out)
 {
-   Matrix
-      D2=E2(),
-      EigVec,
-      EigVal=SymEigVal(D2,&EigVec);
-   Vector D1T(D2.Cols());
+   int Bif;
 
-   // default to the passed in information
-   int Bif = CPorBif;
+   // do standard CPInfo stuff and output bfb restart file
+   Bif = Lattice::CriticalPointInfo(CPCrossingNum,DrDt,CPorBif,NumZeroEigenVals,
+                                    Tolerance,Width,Input,out);
    
-   D1T=StressDL();
-   
-   int dofs=D2.Rows();
-   
-   Matrix Mode;
-
-   out << "Critical Point Crossing Number: " << CPCrossingNum << "\n";
-   if (Echo_)
-   {
-      cout << "Critical Point Crossing Number: " << CPCrossingNum << "\n";
-   }
-   
-   // Find the modes
-   int count = 0,
-      Ind[DOFMAX];
-   
-   for (int i=0;i<dofs;i++)
-   {
-      if (fabs(EigVal[0][i]) < Tolerance)
-      {
-         Ind[count++]=i;
-      }
-   }
-
-   // Check for incorrect number of modes
-   if (count != NumZeroEigenVals)
-   {
-      int skp;
-      for (int j=count;j<NumZeroEigenVals;++j)
-      {
-         Ind[count] = 0;
-         int a=0;
-         while ((Ind[count] == Ind[a]) && (a < j))
-         {
-            (Ind[count])++;
-            a++;
-         }
-         
-         for (int i=1;i<dofs;++i)
-         {
-            skp=0;
-            for (int k=0;k<count;++k)
-            {
-               if (Ind[k] == i) skp=1;
-            }
-            
-            if (!skp)
-            {
-               if (fabs(EigVal[0][i]) < fabs(EigVal[0][Ind[count]]))
-                  Ind[count] = i;
-            }
-         }
-         count++;
-      }
-      
-      out << "NOTE: Incorrect number of zero eigenvalues found. "
-          << "Modes with smallest abs. value used." << "\n";
-      if (Echo_)
-      {
-         cout << "NOTE: Incorrect number of zero eigenvalues found. "
-              << "Modes with smallest abs. value used." << "\n";
-      }
-   }
-   
-   for (int i=0;i<count;++i)
-      out << "Mode[" << i << "] DOF: " << Ind[i] << ",  ";
-   out << "\n";
-   if (Echo_)
-   {
-      for (int i=0;i<count;++i)
-         cout << "Mode[" << i << "] DOF: " << Ind[i] << ",  ";
-      cout << "\n";
-   }
-   
-   if (BIFMAX < count)
-   {
-      cerr << "Error: BIFMAX < " << count << " in Lattice.h" << "\n";
-      exit(-6);
-   }
-   
-   Mode.Resize(count,dofs);
-   
-   for (int i=0;i<count;i++)
-   {
-      for (int j=0;j<dofs;j++)
-      {
-         Mode[i][j] = EigVec[j][Ind[i]];
-      }
-   }
-   
-   // Print out the critical Eigenvalues
-   out << "EigenValues: ";
-   if (Echo_) cout << "EigenValues: ";
-   for (int i=0;i<count;++i)
-   {
-      out << setw(Width) << EigVal[0][Ind[i]];
-      if (Echo_) cout << setw(Width) << EigVal[0][Ind[i]];
-   }
-   if (Echo_) cout << "\n";
-   out << "\n";
-
-   // Print out the critical point character test (Limit-load/Bifurcation)
-   Bif = 1;
-   for (int i=0;i<count;++i)
-   {
-      double z=0.0;
-      for (int j=0;j<dofs;++j)
-      {
-         z+= Mode[i][j]*D1T[j];
-      }
-      if (fabs(z) > Tolerance) Bif = 0;
-      out << "StressDT*Mode[" << i << "] = " << setw(Width) << z << "\n";
-      if (Echo_) cout << "StressDT*Mode[" << i << "] = " << setw(Width) << z << "\n";
-   }
-   
-   for (int i=0;i<70;i++)
-   {
-      if (Echo_) cout << "-";
-      out << "-";
-   }
-   if (Echo_) cout << endl;
-   out << endl;
-
    ostringstream cpfilename;
-   if (Bif == CPorBif) // information agrees
-   {
-      if (1 == Bif)
-         cpfilename << ".BP.";
-      else
-         cpfilename << ".TP.";
-   }
-   else // information conflicts. use CPorBif
-   {
-      out << "NOTE: Conflict between critical point identification methods.\n"
-          << "      Using characterization provided to CriticalPointInfo()." << "\n";
-      if (Echo_)
-      {
-         cout << "NOTE: Conflict between critical point identification methods.\n"
-              << "      Using characterization provided to CriticalPointInfo()." << "\n";
-      }
-      if (1 == CPorBif)
-         cpfilename << ".BP.";
-      else
-         cpfilename << ".TP.";
-   }
+   if (1 == Bif)
+      cpfilename << ".BP.";
+   else
+      cpfilename << ".TP.";
 
    // output a QC restart file
    ostringstream qcfilename;
@@ -372,43 +229,10 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int const&
    }
    qcbfb_restart_(fortranstring);
 
-   // output a new bfb input file to help restart at this critical point
+   // output a qc input file (if bif pt)
    ostringstream bfbfilename;
    bfbfilename << tmp << cpfilename.str();
-   bfbfilename << setw(2) << setfill('0') << CPCrossingNum;
-   ostringstream bfbfilewithext;
-   bfbfilewithext << bfbfilename.str() << ".bfb";
-   fstream cpfile;
-   cpfile.open(bfbfilewithext.str().c_str(),ios::out);
-
-   cpfile << setprecision(out.precision()) << scientific;
-   Vector T(dofs+1);
-   Vector M(dofs+1);
-   Vector dof=DOF();
-   for (int i=0;i<dofs;++i)
-   {
-      T[i] = dof[i];
-   }
-   T[dofs] = ((LoadParameter_ == Temperature) ? Temp() : Lambda());
-
-   cpfile << Input.ReconstructedInput();
-   cpfile << "\n\n";
-   
-   Input.writeString(cpfile,"Bifurcation","StartType","Type");
-   for (int i=0;i<count;++i)
-   {
-      for (int j=0;j<dofs;++j)
-      {
-         M[j] = Mode[i][j];
-      }
-      M[dofs] = 0.0;
-      Input.writeVector(cpfile,M,"StartType","Tangent");
-   }
-   Input.writeVector(cpfile,T,"StartType","BifurcationPoint");
-   cpfile.close();
-   
-   // output a qc input file (if bif pt)
-   if (1 == CPorBif)
+   if (1 == Bif)
    {
       fstream infile;
       strcpy(tmp,bfbfilename.str().c_str());

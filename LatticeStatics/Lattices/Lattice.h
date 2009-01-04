@@ -10,9 +10,6 @@
 
 using namespace std;
 
-#define DOFMAX 256
-#define BIFMAX 25
-
 class Lattice
 {
 public:
@@ -23,9 +20,10 @@ public:
    enum StateType {LHS,RHS,CRITPT};
    LoadType LoadParameter_;
    LoadType const& LoadParameter() const {return LoadParameter_;}
-   int OrderedTFs_;
-   int LSKAnalysis_;
-   int CurrentBifPt_;
+   int OrderedTFs_;  // ensure TFs are in consistent order
+   int LSKAnalysis_; // None,SecondOrder,ThridOrder - do LSK to appropriate order
+   int FullPrint_;   // 1 Print out full vectors and matricies, 0 don't
+   int GuessModes_;  // guess new RestrictToTranslatedSubSpace mode dofs
    
    Lattice(PerlInput const& Input);
    virtual ~Lattice() {}

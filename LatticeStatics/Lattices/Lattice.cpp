@@ -3,7 +3,7 @@
 #include "UtilityFunctions.h"
 
 Lattice::Lattice(PerlInput const& Input):
-   CurrentBifPt_(0),test_flag_static(0)
+   test_flag_static(0)
 {
    if (Input.ParameterOK("Lattice","OrderedTFs"))
    {
@@ -53,6 +53,52 @@ Lattice::Lattice(PerlInput const& Input):
    {
       LSKAnalysis_ = 1;
       Input.useString("SecondOrder","Lattice","LSKAnalysis"); // Default Value
+   }
+
+   if (Input.ParameterOK("Lattice","FullPrint"))
+   {
+      char const* const fullprint = Input.getString("Lattice","FullPrint");
+      if (!strcmp("Yes",fullprint))
+      {
+         FullPrint_ = 1;
+      }
+      else if (!strcmp("No",fullprint))
+      {
+         FullPrint_ = 0;
+      }
+      else
+      {
+         cerr << "Error: Unknown value for Lattice{FullPrint}.\n";
+         exit(-1);
+      }
+   }
+   else
+   {
+      FullPrint_ = 1;
+      Input.useString("Yes","Lattice","FullPrint"); // Default Value
+   }
+
+   if (Input.ParameterOK("Lattice","GuessModes"))
+   {
+      char const* const guessmodes = Input.getString("Lattice","GuessModes");
+      if (!strcmp("Yes",guessmodes))
+      {
+         GuessModes_ = 1;
+      }
+      else if (!strcmp("No",guessmodes))
+      {
+         GuessModes_ = 0;
+      }
+      else
+      {
+         cerr << "Error: Unknown value for Lattice{GuessModes}.\n";
+         exit(-1);
+      }
+   }
+   else
+   {
+      GuessModes_ = 0;
+      Input.useString("No","Lattice","GuessModes"); // Default Value
    }
    
    Input.EndofInputSection();
@@ -372,7 +418,6 @@ int Lattice::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int c
 {
    Matrix
       D2=E2(),
-      D2T(D2.Rows(),D2.Cols()),
       EigVec,
       EigVal=SymEigVal(D2,&EigVec);
    Vector D1T(D2.Cols());
@@ -389,16 +434,8 @@ int Lattice::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int c
       D1T=StressDL();
    }
    
-   int dofs;
+   int dofs = D2.Rows();
    
-   if (DOFMAX < (dofs=D2.Rows()))
-   {
-      cerr << "Error: DOFMAX < " << dofs << " in Lattice.h" << "\n";
-      exit(-5);
-   }
-   
-   Matrix Mode;
-
    out << "Critical Point Crossing Number: " << CPCrossingNum << "\n";
    if (Echo_)
    {
@@ -406,8 +443,8 @@ int Lattice::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int c
    }
    
    // Find the modes
-   int count = 0,
-      Ind[DOFMAX];
+   int count = 0;
+   int* Ind = new int[dofs];
    
    for (int i=0;i<dofs;i++)
    {
@@ -467,14 +504,8 @@ int Lattice::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int c
          cout << "Mode[" << i << "] DOF: " << Ind[i] << ",  ";
       cout << "\n";
    }
-   
-   if (BIFMAX < count)
-   {
-      cerr << "Error: BIFMAX < " << count << " in Lattice.h" << "\n";
-      exit(-6);
-   }
-   
-   Mode.Resize(count,dofs);
+
+   Matrix Mode(count,dofs);
    
    for (int i=0;i<count;i++)
    {
@@ -485,10 +516,58 @@ int Lattice::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int c
    }
    
    // Print out the Eigenvalues and Eigenvectors
-   out << "EigenValues" << "\n" << setw(Width) << EigVal;
-   if (Echo_) cout << "EigenValues" << "\n" << setw(Width) << EigVal;
-   out << "EigenVectors" << "\n" << setw(Width) << EigVec;
-   if (Echo_) cout << "EigenVectors" << "\n" << setw(Width) << EigVec;
+   if (FullPrint_)
+   {
+      out << "EigenValues" << "\n" << setw(Width) << EigVal;
+      if (Echo_) cout << "EigenValues" << "\n" << setw(Width) << EigVal;
+      out << "EigenVectors" << "\n" << setw(Width) << EigVec;
+      if (Echo_) cout << "EigenVectors" << "\n" << setw(Width) << EigVec;
+   }
+   else
+   {
+      out << "EigenValues: ";
+      if (Echo_) cout << "EigenValues: ";
+      for (int i=0;i<count;++i)
+      {
+         out << setw(Width) << EigVal[0][Ind[i]];
+         if (Echo_) cout << setw(Width) << EigVal[0][Ind[i]];
+      }
+      out << "\n";
+      if (Echo_) cout << "\n";
+   }
+
+   // Print out results
+   for (int i=0;i<70;i++)
+   {
+      out << "-";
+      if (Echo_) cout << "-";
+   }
+   out << "\n"; if (Echo_) cout << "\n";
+   
+   // Print out the critical point character test (Limit-load/Bifurcation)
+   Bif = 1;
+   for (int i=0;i<count;++i)
+   {
+      double z=0.0;
+      for (int j=0;j<dofs;++j)
+      {
+         z+= Mode[i][j]*D1T[j];
+      }
+      if (fabs(z) > Tolerance) Bif = 0;
+      out << "StressDT*Mode[" << i << "] = " << setw(Width) << z << "\n";
+      if (Echo_) cout << "StressDT*Mode[" << i << "] = " << setw(Width) << z << "\n";
+   }
+   if (Bif != CPorBif) // information conflicts. use CPorBif
+   {
+      out << "NOTE: Conflict between critical point identification methods.\n"
+          << "      Using characterization provided to CriticalPointInfo()." << "\n";
+      if (Echo_)
+      {
+         cout << "NOTE: Conflict between critical point identification methods.\n"
+              << "      Using characterization provided to CriticalPointInfo()." << "\n";
+      }
+      Bif = CPorBif;
+   }
    
    if (LSKAnalysis_ > 0)
    {
@@ -503,9 +582,9 @@ int Lattice::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int c
          D2T=StiffnessDL();
       }
    
-      double
-         Eijk[BIFMAX][BIFMAX][BIFMAX],
-         EijT[BIFMAX][BIFMAX];
+      Matrix* Eijk = new Matrix[count];
+      for (int i=0;i<count;++i) Eijk[i].Resize(count,count);
+      Matrix EijT(count,count);
       
       // Eijk
       for (int i=0;i<count;i++)
@@ -538,27 +617,6 @@ int Lattice::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int c
          }
       
       // Print out results
-      for (int i=0;i<70;i++)
-      {
-         out << "-";
-         if (Echo_) cout << "-";
-      }
-      out << "\n"; if (Echo_) cout << "\n";
-      
-      // Print out the critical point character test (Limit-load/Bifurcation)
-      Bif = 1;
-      for (int i=0;i<count;++i)
-      {
-         double z=0.0;
-         for (int j=0;j<dofs;++j)
-         {
-            z+= Mode[i][j]*D1T[j];
-         }
-         if (fabs(z) > Tolerance) Bif = 0;
-         out << "StressDT*Mode[" << i << "] = " << setw(Width) << z << "\n";
-         if (Echo_) cout << "StressDT*Mode[" << i << "] = " << setw(Width) << z << "\n";
-      }
-      
       out << "\n" << "\n" << "2nd Order Bifurcation Equations:" << "\n";
       if (Echo_) cout << "\n" << "\n" << "2nd Order Bifurcation Equations:" << "\n";
       
@@ -605,44 +663,59 @@ int Lattice::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int c
       }
       
       //------- output coefficients ----------
-      out << "\n" << "DrDt = " << setw(Width) << DrDt << "\n";
-      if (Echo_) cout << "\n" << "DrDt = " << setw(Width) << DrDt << "\n";
-      out << "Eijk = " << "\n";
-      if (Echo_) cout << "Eijk = " << "\n";
-      for (int i=0;i<count;++i)
-         for (int j=0;j<count;++j)
-         {
-            for (int k=0;k<count;++k)
+      if (FullPrint_)
+      {
+         out << "\n" << "DrDt = " << setw(Width) << DrDt << "\n";
+         if (Echo_) cout << "\n" << "DrDt = " << setw(Width) << DrDt << "\n";
+         out << "Eijk = " << "\n";
+         if (Echo_) cout << "Eijk = " << "\n";
+         for (int i=0;i<count;++i)
+            for (int j=0;j<count;++j)
             {
-               out << setw(Width) << Eijk[i][j][k];
-               if (Echo_) cout << setw(Width) << Eijk[i][j][k];
+               for (int k=0;k<count;++k)
+               {
+                  out << setw(Width) << Eijk[i][j][k];
+                  if (Echo_) cout << setw(Width) << Eijk[i][j][k];
+               }
+               out << "\n";
+               if (Echo_) cout << "\n";
+            }
+         out << "\n";
+         if (Echo_) cout << "\n";
+         
+         out << "EijT = " << "\n";
+         if (Echo_) cout << "EijT = " << "\n";
+         for (int i=0;i<count;++i)
+         {
+            for (int j=0;j<count;++j)
+            {
+               out << setw(Width) << EijT[i][j];
+               if (Echo_) cout << setw(Width) << EijT[i][j];
             }
             out << "\n";
             if (Echo_) cout << "\n";
          }
-      out << "\n";
-      if (Echo_) cout << "\n";
-      
-      out << "EijT = " << "\n";
-      if (Echo_) cout << "EijT = " << "\n";
-      for (int i=0;i<count;++i)
-      {
-         for (int j=0;j<count;++j)
-         {
-            out << setw(Width) << EijT[i][j];
-            if (Echo_) cout << setw(Width) << EijT[i][j];
-         }
          out << "\n";
          if (Echo_) cout << "\n";
       }
-      out << "\n";
-      if (Echo_) cout << "\n";
       // ----------------------------
       
       if (LSKAnalysis_ > 1)
       {
-         double Eijkl[BIFMAX][BIFMAX][BIFMAX][BIFMAX],
-            Vij[BIFMAX][BIFMAX][DOFMAX];
+         Matrix** Eijkl = new Matrix*[count];
+         Eijkl[0] = new Matrix[count*count];
+         for (int i=1;i<count;++i)
+         {
+            Eijkl[i] = Eijkl[i-1] + count;
+         }
+         for (int i=0;i<count;++i)
+            for (int j=0;j<count;++j)
+            {
+               Eijkl[i][j].Resize(count,count);
+            }
+         Matrix* Vij;
+         Vij = new Matrix[count];
+         for (int i=0;i<count;++i) Vij[i].Resize(count,dofs);
          Matrix D4=E4(),
             S(dofs-count,dofs);
          
@@ -680,9 +753,12 @@ int Lattice::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int c
                            b[n][0] += -S[n][k]*D3[k*dofs + l][m]*Mode[i][l]*Mode[j][m];
                         }
                }
-               
-               if (Echo_) cout << "\n" << "V[" << i << "][" << j << "]=";
-               out << "\n" << "V[" << i << "][" << j << "]=";
+
+               if (FullPrint_)
+               {
+                  if (Echo_) cout << "\n" << "V[" << i << "][" << j << "]=";
+                  out << "\n" << "V[" << i << "][" << j << "]=";
+               }
                
                for (int k=0;k<dofs;k++)
                {
@@ -692,12 +768,18 @@ int Lattice::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int c
                      {
                         Vij[i][j][k] += S[l][k]*Ainv[l][m]*b[m][0];
                      }
-                  if (Echo_) cout << setw(Width) << Vij[i][j][k];
-                  out << setw(Width) << Vij[i][j][k];
+                  if (FullPrint_)
+                  {
+                     if (Echo_) cout << setw(Width) << Vij[i][j][k];
+                     out << setw(Width) << Vij[i][j][k];
+                  }
                }
             }
-         if (Echo_) cout << "\n";
-         out << "\n";
+         if (FullPrint_)
+         {
+            if (Echo_) cout << "\n";
+            out << "\n";
+         }
          
          // Eijkl
          for (int i=0;i<count;i++)
@@ -772,31 +854,43 @@ int Lattice::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int c
          }
          
          //-------- output coefficients -----------
-         out << "\n" << "Eijkl = " << "\n";
-         if (Echo_) cout << "\n" << "Eijkl = " << "\n";
-         for (int i=0;i<count;++i)
-            for (int j=0;j<count;++j)
-            {
-               for (int k=0;k<count;++k)
-                  for (int l=0;l<count;++l)
-                  {
-                     out << setw(Width) << Eijkl[i][j][k][l];
-                     if (Echo_) cout << setw(Width) << Eijkl[i][j][k][l];
-                  }
-               out << "\n";
-               if (Echo_) cout << "\n";
-            }
-         out << "\n";
-         if (Echo_) cout << "\n";
+         if (FullPrint_)
+         {
+            out << "\n" << "Eijkl = " << "\n";
+            if (Echo_) cout << "\n" << "Eijkl = " << "\n";
+            for (int i=0;i<count;++i)
+               for (int j=0;j<count;++j)
+               {
+                  for (int k=0;k<count;++k)
+                     for (int l=0;l<count;++l)
+                     {
+                        out << setw(Width) << Eijkl[i][j][k][l];
+                        if (Echo_) cout << setw(Width) << Eijkl[i][j][k][l];
+                     }
+                  out << "\n";
+                  if (Echo_) cout << "\n";
+               }
+            out << "\n";
+            if (Echo_) cout << "\n";
+         }
          // ----------------------------
+         
+         // release memory
+         delete [] Eijkl[0];
+         delete [] Eijkl;
+         delete [] Vij;
       }
+
+      // release memory
+      delete [] Eijk;
 
       out.flags(ios::fixed); out << setprecision(prec);
       if (Echo_) cout.flags(ios::fixed); cout << setprecision(prec);
    }
+
+   // release memory
+   delete [] Ind;
    
-   if (Echo_) cout << "\n";
-   out << "\n";
    for (int i=0;i<70;i++)
    {
       if (Echo_) cout << "-";
@@ -804,38 +898,16 @@ int Lattice::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int c
    }
    if (Echo_) cout << endl;
    out << endl;
-   
-   // output a new input file to help restart at this critical point
-   int colms[DOFMAX][DOFMAX];
-   int colmssgn[DOFMAX][DOFMAX];
-   int colmscnt[DOFMAX];
-   int cnt=0;
-   int foundflg;
 
+   // output a new input file to help restart at this critical point
    ostringstream cpfilename;
    fstream cpfile;
    cpfilename << Input.LastInputFileName();
-   if (Bif == CPorBif) // information agrees
-   {
-      if (1 == Bif)
-         cpfilename << ".BP.";
-      else
-         cpfilename << ".TP.";
-   }
-   else // information conflict. use CPorBif
-   {
-      out << "NOTE: Conflict between critical point identification methods.\n"
-          << "      Using characterization provided to CriticalPointInfo()." << "\n";
-      if (Echo_)
-      {
-         cout << "NOTE: Conflict between critical point identification methods.\n"
-              << "      Using characterization provided to CriticalPointInfo()." << "\n";
-      }
-      if (1 == CPorBif)
-         cpfilename << ".BP.";
-      else
-         cpfilename << ".TP.";
-   }
+   if (1 == Bif)
+      cpfilename << ".BP.";
+   else
+      cpfilename << ".TP.";
+
    cpfilename << setw(2) << setfill('0') << CPCrossingNum;
    cpfile.open(cpfilename.str().c_str(),ios::out);
 
@@ -852,58 +924,79 @@ int Lattice::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int c
    {
       cpfile << Input.ReconstructedInput();
       cpfile << "\n\n";
-      
-      for (int i=0;i<count;++i)
+
+      if (GuessModes_)
       {
-         // initialize cnt
-         cnt = 0;
-         // make a guess at the new Restriction DOFS
-         for (int j=0;j<DOFMAX;++j)
+         int** colms;
+         colms = new int*[dofs];
+         colms[0] = new int[dofs*dofs];
+         for (int i=1;i<dofs;++i) colms[i] = colms[i-1] + dofs;
+         int** colmssgn;
+         colmssgn = new int*[dofs];
+         colmssgn[0] = new int[dofs*dofs];
+         for (int i=1;i<dofs;++i) colmssgn[i] = colmssgn[i-1] + dofs;
+         int* colmscnt = new int[dofs];
+         
+         for (int i=0;i<count;++i)
          {
-            colmscnt[j] = 0;
-            for (int k=0;k<DOFMAX;++k)
-               colms[k][j] = colmssgn[k][j] = 0;
-         }
-         for (int j=0;j<dofs;++j)
-         {
-            if ((Mode[i][j] > 20*Tolerance) || (Mode[i][j] < -20*Tolerance)) // M[j] != 0.0
+            int cnt=0;
+            int foundflg;
+            // make a guess at the new Restriction DOFS
+            for (int j=0;j<dofs;++j)
             {
-               foundflg = 0;
-               for (int k=0;k<cnt;++k)
+               colmscnt[j] = 0;
+               for (int k=0;k<dofs;++k)
+                  colms[k][j] = colmssgn[k][j] = 0;
+            }
+            for (int j=0;j<dofs;++j)
+            {
+               if ((Mode[i][j] > 20*Tolerance) || (Mode[i][j] < -20*Tolerance)) // M[j] != 0.0
                {
-                  if ((fabs(Mode[i][j]) > fabs(Mode[i][colms[k][0]]) - 20*Tolerance) &&
-                      (fabs(Mode[i][j]) < fabs(Mode[i][colms[k][0]]) + 20*Tolerance))
+                  foundflg = 0;
+                  for (int k=0;k<cnt;++k)
                   {
-                     colms[k][colmscnt[k]] = j;
-                     colmssgn[k][colmscnt[k]] = int(round(Mode[i][j]/fabs(Mode[i][colms[k][0]])));
-                     ++colmscnt[k];
-                     foundflg = 1;
+                     if ((fabs(Mode[i][j]) > fabs(Mode[i][colms[k][0]]) - 20*Tolerance) &&
+                         (fabs(Mode[i][j]) < fabs(Mode[i][colms[k][0]]) + 20*Tolerance))
+                     {
+                        colms[k][colmscnt[k]] = j;
+                        colmssgn[k][colmscnt[k]]
+                           = int(round(Mode[i][j]/fabs(Mode[i][colms[k][0]])));
+                        ++colmscnt[k];
+                        foundflg = 1;
+                     }
+                  }
+                  
+                  if (!foundflg)
+                  {
+                     colms[cnt][0] = j;
+                     colmssgn[cnt][0] = int(round(Mode[i][j]/fabs(Mode[i][j])));
+                     ++colmscnt[cnt];
+                     ++cnt;
                   }
                }
-               
-               if (!foundflg)
-               {
-                  colms[cnt][0] = j;
-                  colmssgn[cnt][0] = int(round(Mode[i][j]/fabs(Mode[i][j])));
-                  ++colmscnt[cnt];
-                  ++cnt;
-               }
+            }
+            
+            for (int j=0;j<cnt;++j)
+            {
+               Input.writePosIntVector(cpfile,&(colms[j][0]),colmscnt[j],
+                                       Input.useHash("Restriction",
+                                                     "RestrictToTranslatedSubSpace"),
+                                       "DOF_?",0);
+               Vector z(colmscnt[j]);
+               for (int k=0;k<colmscnt[j];++k) z[k] = colmssgn[j][k];
+               Input.writeVector(cpfile,z,
+                                 Input.useHash("Restriction","RestrictToTranslatedSubSpace"),
+                                 "DOF_?",1);
             }
          }
-         
-         for (int j=0;j<cnt;++j)
-         {
-            Input.writePosIntVector(cpfile,&(colms[j][0]),colmscnt[j],
-                                    Input.useHash("Restriction","RestrictToTranslatedSubSpace"),
-                                    "DOF_?",0);
-            Vector z(colmscnt[j]);
-            for (int k=0;k<colmscnt[j];++k) z[k] = colmssgn[j][k];
-            Input.writeVector(cpfile,z,
-                              Input.useHash("Restriction","RestrictToTranslatedSubSpace"),
-                              "DOF_?",1);
-         }
+         cpfile << "\n";
+
+         delete [] colms[0];
+         delete [] colms;
+         delete [] colmssgn[0];
+         delete [] colmssgn;
+         delete [] colmscnt;
       }
-      cpfile << "\n";
       
       Input.writeString(cpfile,"Bifurcation","StartType","Type");
       for (int i=0;i<count;++i)
