@@ -34,11 +34,6 @@ MultiChainTTPP::MultiChainTTPP(PerlInput const& Input,int const& Echo,int const&
    PerlInput::HashStruct Hash = Input.getHash("Lattice","MultiChainTTPP");
    INTERNAL_ATOMS = Input.getPosInt(Hash,"InternalAtoms");
    DOFS = 1+INTERNAL_ATOMS;
-   if (DOFMAX < DOFS)
-   {
-      cerr << "Error (MultiChainTTPP()): DOFMAX < " << DOFS << " in Lattice.h" << "\n";
-      exit(-5);
-   }
    
    // Set RefLattice_
    RefLattice_.Resize(DIM1,DIM1);

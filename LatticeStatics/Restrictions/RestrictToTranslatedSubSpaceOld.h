@@ -6,6 +6,7 @@
 #include "Lattice.h"
 
 #include <cmath>
+#define DOFMAX 256
 
 using namespace std;
 

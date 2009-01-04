@@ -35,12 +35,6 @@ PseudoHarmonicMultiChainTTPP::PseudoHarmonicMultiChainTTPP(PerlInput const& Inpu
    PerlInput::HashStruct Hash = Input.getHash("Lattice","PseudoHarmonicMultiChainTTPP");
    INTERNAL_ATOMS = Input.getPosInt(Hash,"InternalAtoms");
    DOFS = 1+INTERNAL_ATOMS;
-   if (DOFMAX < DOFS)
-   {
-      cerr << "Error (PseudoHarmonicMultiChainTTPP()): DOFMAX < " << DOFS << " in Lattice.h"
-           << "\n";
-      exit(-5);
-   }
    
    // Set RefLattice_
    RefLattice_.Resize(DIM1,DIM1);

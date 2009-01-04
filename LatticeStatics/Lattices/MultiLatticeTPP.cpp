@@ -108,12 +108,6 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput const& Input,int const& Echo,int cons
       }
    }
    
-   if (DOFMAX < CBK_->DOFS())
-   {
-      cerr << "Error (MultiLatticeTPP()): DOFMAX < " << CBK_->DOFS() << " in Lattice.h" << "\n";
-      exit(-5);
-   }
-   
    // Setup Bodyforce_
    BodyForce_ = new Vector[InternalAtoms_];
    for (int i=0;i<InternalAtoms_;++i)
