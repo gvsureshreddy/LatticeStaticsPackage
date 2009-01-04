@@ -13,7 +13,7 @@ TwoBarTrussExternal::~TwoBarTrussExternal()
 }
 
 TwoBarTrussExternal::TwoBarTrussExternal(PerlInput const& Input,int const& Echo,int const& Width):
-   Lattice(Input),
+   Lattice(Input,Echo),
    DOFS_(2),
    DOF_(DOFS_,0.0),
    Lambda_(0.0),
@@ -24,7 +24,6 @@ TwoBarTrussExternal::TwoBarTrussExternal(PerlInput const& Input,int const& Echo,
    EmptyV_(2,0.0),
    EmptyM_(2,2,0.0)
 {
-   Echo_ = Echo;
    LoadParameter_ = Load;
    for (int i=0;i<cachesize;++i)
    {

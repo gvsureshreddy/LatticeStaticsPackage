@@ -27,9 +27,8 @@ MultiLatticeTPP::~MultiLatticeTPP()
 
 MultiLatticeTPP::MultiLatticeTPP(PerlInput const& Input,int const& Echo,int const& Width,
                                  int const& Debug)
-   : Lattice(Input)
+   : Lattice(Input,Echo)
 {
-   Echo_ = Echo;
    dbg_ = Debug;
    // Get Lattice definition
    PerlInput::HashStruct Hash = Input.getHash("Lattice","MultiLatticeTPP");

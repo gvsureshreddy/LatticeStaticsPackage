@@ -17,7 +17,6 @@ private:
    enum LDeriv {L0,DL};
    double Lambda_;
 
-   int Echo_;
    int Width_;
 
    enum UpdateFlag {NoStiffness,NeedStiffness};

@@ -25,7 +25,7 @@ public:
    int FullPrint_;   // 1 Print out full vectors and matricies, 0 don't
    int GuessModes_;  // guess new RestrictToTranslatedSubSpace mode dofs
    
-   Lattice(PerlInput const& Input);
+   Lattice(PerlInput const& Input,int const& Echo);
    virtual ~Lattice() {}
    
    virtual Vector const& DOF() const = 0;

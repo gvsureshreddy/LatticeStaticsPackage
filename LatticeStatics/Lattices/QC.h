@@ -16,7 +16,6 @@ private:
    mutable Vector DOF_;
    mutable double Lambda_;
    
-   int Echo_;
    int Width_;
    double Tolerance_;
 

@@ -2,7 +2,8 @@
 #include "Lattice.h"
 #include "UtilityFunctions.h"
 
-Lattice::Lattice(PerlInput const& Input):
+Lattice::Lattice(PerlInput const& Input,int const& Echo):
+   Echo_(Echo),
    test_flag_static(0)
 {
    if (Input.ParameterOK("Lattice","OrderedTFs"))

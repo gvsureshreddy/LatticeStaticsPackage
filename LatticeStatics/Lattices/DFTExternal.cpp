@@ -29,9 +29,8 @@ DFTExternal::~DFTExternal()
 }
 
 DFTExternal::DFTExternal(PerlInput const& Input,int const& Echo,int const& Width):
-   Lattice(Input),
+   Lattice(Input,Echo),
    Lambda_(0.0),
-   Echo_(Echo),
    Width_(Width)
 {
    dbug.open("DFTExternal-dof-force.data", ios::out);

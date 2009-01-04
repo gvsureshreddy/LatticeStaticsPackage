@@ -18,9 +18,8 @@ QC::~QC()
 }
 
 QC::QC(PerlInput const& Input,int const& Echo,int const& Width):
-   Lattice(Input),
+   Lattice(Input,Echo),
    Lambda_(0.0),
-   Echo_(Echo),
    Width_(Width),
    SolutionNumber_(0)
 {
@@ -231,7 +230,7 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int const&
 
    // output a qc input file (if bif pt)
    ostringstream bfbfilename;
-   bfbfilename << tmp << cpfilename.str();
+   bfbfilename << tmp << cpfilename.str() << setw(2) << setfill('0') << CPCrossingNum;
    if (1 == Bif)
    {
       fstream infile;

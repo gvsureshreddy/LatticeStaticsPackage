@@ -24,9 +24,8 @@ MultiChainTTPP::~MultiChainTTPP()
 
 MultiChainTTPP::MultiChainTTPP(PerlInput const& Input,int const& Echo,int const& Width,
                                int const& Debug)
-   : Lattice(Input)
+   : Lattice(Input,Echo)
 {
-   Echo_ = Echo;
    dbg_ = Debug;
    // Get Lattice definition
    stringstream tmp;
