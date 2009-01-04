@@ -24,6 +24,7 @@ public:
    int LSKAnalysis_; // None,SecondOrder,ThridOrder - do LSK to appropriate order
    int FullPrint_;   // 1 Print out full vectors and matricies, 0 don't
    int GuessModes_;  // guess new RestrictToTranslatedSubSpace mode dofs
+   string UseExtension_;  // define an extension to use for input files
    
    Lattice(PerlInput const& Input,int const& Echo);
    virtual ~Lattice() {}

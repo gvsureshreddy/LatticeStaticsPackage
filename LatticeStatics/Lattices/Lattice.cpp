@@ -101,6 +101,16 @@ Lattice::Lattice(PerlInput const& Input,int const& Echo):
       GuessModes_ = 0;
       Input.useString("No","Lattice","GuessModes"); // Default Value
    }
+
+   if (Input.ParameterOK("Lattice","UseExtension"))
+   {
+      UseExtension_ = Input.getString("Lattice","UseExtension");
+      UseExtension_ = "." + UseExtension_;
+   }
+   else
+   {
+      UseExtension_ = "";
+   }
    
    Input.EndofInputSection();
 }
@@ -904,12 +914,23 @@ int Lattice::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int c
    ostringstream cpfilename;
    fstream cpfile;
    cpfilename << Input.LastInputFileName();
+   if ("" != UseExtension_)
+   {
+      unsigned pos = (cpfilename.str().rfind(UseExtension_,cpfilename.str().length()-1));
+      if (string::npos != pos)
+      {
+         string a = cpfilename.str().substr(0,pos);
+         cpfilename.str("");
+         cpfilename << a;
+      }
+   }
    if (1 == Bif)
       cpfilename << ".BP.";
    else
       cpfilename << ".TP.";
 
-   cpfilename << setw(2) << setfill('0') << CPCrossingNum;
+   cpfilename << setw(2) << setfill('0') << CPCrossingNum << UseExtension_;
+   cerr << "new file =" << cpfilename.str() << "=\n";
    cpfile.open(cpfilename.str().c_str(),ios::out);
 
    cpfile << setprecision(out.precision()) << scientific;
