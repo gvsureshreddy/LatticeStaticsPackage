@@ -92,7 +92,7 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
    {
       retid=system("./script_main 2 >& /dev/null");
    }
-   cerr << "DFTExternal system() call returned with id: " << retid << endl;
+   cerr << "DFTExternal system() call returned with id: " << flag << endl;
 
    // calculate pressure terms.
    Matrix B(3,3);
@@ -396,7 +396,7 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
    in.close();
 
    //output force/dof data
-   dbug << setw(Width_) << DOF_ << setw(Width_) << Lambda_  << setw(Width_) << NoStiffness << endl;
+   dbug << setw(Width_) << DOF_ << setw(Width_) << Lambda_  << setw(Width_) << flag << endl;
    dbug << setw(Width_) << E1CachedValue_ << endl;
 }
 
