@@ -22,8 +22,9 @@ private:
    enum UpdateFlag {NoStiffness,NeedStiffness};
    void UpdateValues(UpdateFlag flag) const;
 
-   static const int cachesize = 4;
+   static const int cachesize = 5;
    mutable int Cached_[cachesize];
+   mutable double DFTEnergyCachedValue_;
    mutable double E0CachedValue_;
    mutable Vector E1CachedValue_;
    mutable Vector E1DLoadCachedValue_;

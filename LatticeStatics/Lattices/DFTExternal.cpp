@@ -21,10 +21,10 @@ const double DFTExternal::Del[3][3] = {{1.0, 0.0, 0.0},
 DFTExternal::~DFTExternal()
 {
    cout << "DFTExternal Function Calls:\n"
-        << "\tE0 calls - " << CallCount_[0] << "\n"
-        << "\tE1 calls - " << CallCount_[1] << "\n"
-        << "\tE1DLoad calls - " << CallCount_[2] << "\n"
-        << "\tE2 calls - " << CallCount_[3] << "\n";
+        << "\tE0 calls - " << CallCount_[1] << "\n"
+        << "\tE1 calls - " << CallCount_[2] << "\n"
+        << "\tE1DLoad calls - " << CallCount_[3] << "\n"
+        << "\tE2 calls - " << CallCount_[4] << "\n";
    dbug.close();
 }
 
@@ -247,7 +247,10 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
       exit(-2);
    }
 
-   in >> E0CachedValue_;
+   in >> DFTEnergyCachedValue_;
+   
+   E0CachedValue_ = DFTEnergyCachedValue_;
+   Cached_[0] = 1;
    // add phantom energy for translations
    double TrEig[3] = {1.0, 2.0, 3.0};
    Vector Tsq(3);
@@ -262,7 +265,7 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
       Tsq[j] = (Tsq[j]*Tsq[j])/InternalAtoms;
    }
    E0CachedValue_ += -PressureEnergy + 0.5*(TrEig[0]*Tsq[0] + TrEig[1]*Tsq[1] + TrEig[2]*Tsq[2]);
-   Cached_[0] = 1;
+   Cached_[1] = 1;
 
    Matrix H(9,9);
    for (int k=0;k<3;++k)
@@ -313,7 +316,7 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
       }
    }
    E1CachedValue_ += -PressureStress + ME1;
-   Cached_[1] = 1;
+   Cached_[2] = 1;
    
    if (flag==NeedStiffness)
    {
@@ -388,7 +391,7 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
             }
 
       E2CachedValue_ += -PressureStiffness + ME2;
-      Cached_[3] = 1;
+      Cached_[4] = 1;
    }
    in.close();
 
@@ -399,10 +402,10 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
 
 double DFTExternal::E0() const
 {
-   if (!Cached_[0])
+   if (!Cached_[1])
    {
       UpdateValues(NoStiffness);
-      CallCount_[0]++;
+      CallCount_[1]++;
    }
    
    return E0CachedValue_;
@@ -410,10 +413,10 @@ double DFTExternal::E0() const
 
 Vector const& DFTExternal::E1() const
 {
-   if (!Cached_[1])
+   if (!Cached_[2])
    {
       UpdateValues(NoStiffness);
-      CallCount_[1]++;
+      CallCount_[2]++;
    }
 
    return E1CachedValue_;
@@ -421,7 +424,7 @@ Vector const& DFTExternal::E1() const
 
 Vector const& DFTExternal::E1DLoad() const
 {
-   if (!Cached_[2])
+   if (!Cached_[3])
    {
       // calculate pressure terms.
       Matrix U(3,3);
@@ -441,8 +444,8 @@ Vector const& DFTExternal::E1DLoad() const
       E1DLoadCachedValue_[4] = -(PressureTerm[2][0]+PressureTerm[0][2]);
       E1DLoadCachedValue_[5] = -(PressureTerm[0][1]+PressureTerm[1][0]);
       
-      Cached_[2] = 1;
-      CallCount_[2]++;
+      Cached_[3] = 1;
+      CallCount_[3]++;
    }
    
    return E1DLoadCachedValue_;
@@ -450,10 +453,10 @@ Vector const& DFTExternal::E1DLoad() const
 
 Matrix const& DFTExternal::E2() const
 {
-   if (!Cached_[3])
+   if (!Cached_[4])
    {
       UpdateValues(NeedStiffness);
-      CallCount_[3]++;
+      CallCount_[4]++;
    }
    
    return E2CachedValue_;
@@ -501,6 +504,7 @@ void DFTExternal::Print(ostream& out,PrintDetail const& flag,
       case PrintShort:
          out << "Lambda: " << setw(W) << Lambda_ << "\n"
              << "DOF's :" << "\n" << setw(W) << DOF_ << "\n"
+             << "DFT Energy Value:" << setw(W) << DFTEnergyCachedValue_ << "\n"
              << "Potential Value:" << setw(W) << engy << "\n";
 
          out << "Stress:" << "\n" << setw(W) << str << "\n\n"
@@ -513,6 +517,7 @@ void DFTExternal::Print(ostream& out,PrintDetail const& flag,
          {
             cout << "Lambda: " << setw(W) << Lambda_ << "\n"
                  << "DOF's :" << "\n" << setw(W) << DOF_ << "\n"
+                 << "DFT Energy Value:" << setw(W) << DFTEnergyCachedValue_ << "\n"
                  << "Potential Value:" << setw(W) << engy << "\n";
 
             cout << "Stress:" << "\n" << setw(W) << str << "\n\n"
