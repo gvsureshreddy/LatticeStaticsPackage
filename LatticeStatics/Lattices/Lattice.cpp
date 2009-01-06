@@ -1033,6 +1033,9 @@ int Lattice::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int c
    }
    else
    {
+      cpfile << Input.ReconstructedInput();
+      cpfile << "\n\n";
+      
       Input.writeString(cpfile,"Continuation","StartType","Type");
       for (int i=0;i<count;++i) // be safe, cover a miss-identified bifurcation point
       {
