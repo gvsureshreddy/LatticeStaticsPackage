@@ -257,7 +257,8 @@ $ArcLenDSMax = 0.01;
                                          #ClosedLoopStart     => 30, # Default value = 30
                                          #StopAtCPCrossingNum => -1, # Default value = -1
                                          #Direction           => 1, # Default value = 1
-                                         #Acceleration        => 2.0 # Default value = 2.0
+                                         #Acceleration        => 2.0, # Default value = 2.0
+                                         #StopAtMinDS         => Yes # Default value = Yes, No
                                         },
                    ArcLengthSolution => {MaxIterations       => 50,
                                          Tolerance           => 1.0e-13,
