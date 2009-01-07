@@ -38,7 +38,6 @@ private:
    int Direction_;              //Direction of tangent
    double Omega_;               //Multiplier to help traverse bifurcation points
    double accel_max_;           //Max acceleration rate
-   int StopAtMinDS_;            //Stop when CurrentDS_ <= MinDS__
    
    Vector FirstSolution_;       //Initial point on curve
    Vector PreviousSolution_;    //Previous point on curve
@@ -57,10 +56,9 @@ public:
                     double const& MaxDS,double const& CurrentDS,double const& MinDS,
                     double const& cont_rate_max,double const& delta_max,double const& alpha_max,
                     double const& Converge,Vector const& FirstSolution,int const& Direction=1,
-                    double const& accel_max=2.0,int const& StopAtMinDS=0,
-                    int const& BifStartFlag=0,Vector const& BifTangent=Vector(),
-                    int const& ClosedLoopStart=CLOSEDDEFAULT,int const& StopAtCPCrossingNum=-1,
-                    int const& Echo=1);
+                    double const& accel_max=2.0,int const& BifStartFlag=0,
+                    Vector const& BifTangent=Vector(),int const& ClosedLoopStart=CLOSEDDEFAULT,
+                    int const& StopAtCPCrossingNum=-1,int const& Echo=1);
    NewtonPCSolution(Restriction* const Restrict,PerlInput const& Input,Vector const& one,
                     int const& Echo=1);
    NewtonPCSolution(Restriction* const Restrict,PerlInput const& Input,int const& Echo);

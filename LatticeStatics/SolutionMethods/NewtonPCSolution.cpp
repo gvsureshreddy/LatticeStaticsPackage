@@ -14,9 +14,9 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,
                                    double const& delta_max,double const& alpha_max,
                                    double const& Converge,Vector const& FirstSolution,
                                    int const& Direction,double const& accel_max,
-                                   int const& StopAtMinDS,int const& BifStartFlag,
-                                   Vector const& BifTangent,int const& ClosedLoopStart,
-                                   int const& StopAtCPCrossingNum,int const& Echo)
+                                   int const& BifStartFlag,Vector const& BifTangent,
+                                   int const& ClosedLoopStart,int const& StopAtCPCrossingNum,
+                                   int const& Echo)
    : Restrict_(Restrict),
      Echo_(Echo),
      CurrentSolution_(CurrentSolution),
@@ -29,7 +29,6 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,
      cont_rate_max_(cont_rate_max),
      delta_max_(delta_max),
      alpha_max_(alpha_max),
-     StopAtMinDS_(StopAtMinDS),
      Converge_(Converge),
      BifStartFlag_(BifStartFlag),
      BifTangent_(BifTangent),
@@ -181,29 +180,6 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
    {
       accel_max_ = Input.useDouble(2.0,Hash,"Acceleration"); // Default Value
    }
-
-   if (Input.ParameterOK(Hash,"StopAtMinDS"))
-   {
-      char const* const stopatmin=Input.getString(Hash,"StopAtMinDS");
-      if (!strcmp("Yes",stopatmin))
-      {
-         StopAtMinDS_ = 1;
-      }
-      else if (!strcmp("No",stopatmin))
-      {
-         StopAtMinDS_ = 0;
-      }
-      else
-      {
-         cerr << "Unknown StopAtMinDS: " << stopatmin << "\nExiting!\n";
-         exit(-20);
-      }
-   }
-   else
-   {
-      StopAtMinDS_ = 1;
-      Input.useString("Yes",Hash,"StopAtMinDS"); // Default Value
-   }
    Input.EndofInputSection();
    
    FirstSolution_.Resize(one.Dim());
@@ -344,29 +320,6 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
    else
    {
       accel_max_ = Input.useDouble(2.0,Hash,"Acceleration"); // Default Value
-   }
-
-   if (Input.ParameterOK(Hash,"StopAtMinDS"))
-   {
-      char const* const stopatmin=Input.getString(Hash,"StopAtMinDS");
-      if (!strcmp("Yes",stopatmin))
-      {
-         StopAtMinDS_ = 1;
-      }
-      else if (!strcmp("No",stopatmin))
-      {
-         StopAtMinDS_ = 0;
-      }
-      else
-      {
-         cerr << "Unknown StopAtMinDS: " << stopatmin << "\nExiting!\n";
-         exit(-20);
-      }
-   }
-   else
-   {
-      StopAtMinDS_ = 1;
-      Input.useString("Yes",Hash,"StopAtMinDS"); // Default Value
    }
    Input.EndofInputSection();
    
@@ -526,15 +479,8 @@ int NewtonPCSolution::FindNextSolution()
       
       if (CurrentDS_ < MinDS_)
       {
-         if (StopAtMinDS_)
-         {
-            cout << "Minimum StepSize (MinDS) violated. Exit Solver.\n";
-            exit(-53);
-         }
-         else
-         {
-            CurrentDS_ = MinDS_;
-         }
+         cout << "Minimum StepSize (MinDS) violated. Exit Solver.\n";
+         exit(-53);
       }
       
       // setup acceleration factor to as small as possible
