@@ -77,7 +77,8 @@ extern "C" void bfb_init_wrapper_(int& nfree,double* ufree_init,double& t,char* 
    
    SolveMe = InitializeSolution(Restrict,Input,Lat,cout,Width,Echo);
    EigenValues.Resize(Lat->DOF().Dim());
-   
+
+   cout << setw(Width);
    Lat->Print(cout,Lattice::PrintLong);
 }
 
