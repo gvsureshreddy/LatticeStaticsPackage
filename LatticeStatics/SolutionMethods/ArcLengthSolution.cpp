@@ -344,7 +344,7 @@ int ArcLengthSolution::FindNextSolution()
        ((ArcLenDef() - FirstSolution_).Norm() < CurrentDS_))
    {
       // We are done -- set currentsolution to numsolutions
-      cerr << "Closed Loop detected at Solution # " << CurrentSolution_
+      cout << "NOTE: Closed Loop detected at Solution # " << CurrentSolution_
            << " --- Terminating!" << "\n";
       
       CurrentSolution_ = NumSolutions_;
