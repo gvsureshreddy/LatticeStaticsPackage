@@ -15,6 +15,7 @@ class NewtonPCSolution : public SolutionMethod
 {
 public:
    enum UpdateType {NoUpdate,QRUpdate,StiffnessUpdate,Exact};
+   enum ConvergeType {Both,Force,Displacement};
 private:
    Restriction *Restrict_;
    
@@ -31,6 +32,7 @@ private:
    double delta_max_;           //Max distance to (from predicted to corrected point) curve
    double alpha_max_;           //Max angle to curve (must be less than pi/2)
    double Converge_;            //Convergence criteria
+   ConvergeType ConvergeType_;  //Quantities to check for convergence
    int BifStartFlag_;           //Flag to keep track of start type (1-bif,0-other)
    Vector BifTangent_;          //Start Tangent vector to be used to print out projection
    int ClosedLoopStart_;        //Closed loop test variable
@@ -55,8 +57,8 @@ public:
                     int const& CurrentSolution,UpdateType const& Type,int const& NumSolutions,
                     double const& MaxDS,double const& CurrentDS,double const& MinDS,
                     double const& cont_rate_max,double const& delta_max,double const& alpha_max,
-                    double const& Converge,Vector const& FirstSolution,int const& Direction=1,
-                    double const& accel_max=2.0,int const& BifStartFlag=0,
+                    double const& Converge,ConvergeType CnvrgTyp,Vector const& FirstSolution,
+                    int const& Direction=1,double const& accel_max=2.0,int const& BifStartFlag=0,
                     Vector const& BifTangent=Vector(),int const& ClosedLoopStart=CLOSEDDEFAULT,
                     int const& StopAtCPCrossingNum=-1,int const& Echo=1);
    NewtonPCSolution(Restriction* const Restrict,PerlInput const& Input,Vector const& one,

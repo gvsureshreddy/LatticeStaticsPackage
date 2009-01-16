@@ -254,6 +254,7 @@ $ArcLenDSMax = 0.01;
                                          Distance            => 0.01,
                                          Angle               => 60*$DEG2RAD,
                                          ConvergeCriteria    => 1e-13#,
+                                         #ConvergeType        => Both, # Default value = Both, Force, Displacement
                                          #ClosedLoopStart     => 30, # Default value = 30
                                          #StopAtCPCrossingNum => -1, # Default value = -1
                                          #Direction           => 1, # Default value = 1

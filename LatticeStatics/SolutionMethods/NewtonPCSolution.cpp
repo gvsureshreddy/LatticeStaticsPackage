@@ -12,11 +12,11 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,
                                    double const& MaxDS,double const& CurrentDS,
                                    double const& MinDS,double const& cont_rate_max,
                                    double const& delta_max,double const& alpha_max,
-                                   double const& Converge,Vector const& FirstSolution,
-                                   int const& Direction,double const& accel_max,
-                                   int const& BifStartFlag,Vector const& BifTangent,
-                                   int const& ClosedLoopStart,int const& StopAtCPCrossingNum,
-                                   int const& Echo)
+                                   double const& Converge,ConvergeType CnvrgTyp,
+                                   Vector const& FirstSolution,int const& Direction,
+                                   double const& accel_max,int const& BifStartFlag,
+                                   Vector const& BifTangent,int const& ClosedLoopStart,
+                                   int const& StopAtCPCrossingNum,int const& Echo)
    : Restrict_(Restrict),
      Echo_(Echo),
      CurrentSolution_(CurrentSolution),
@@ -30,6 +30,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,
      delta_max_(delta_max),
      alpha_max_(alpha_max),
      Converge_(Converge),
+     ConvergeType_(CnvrgTyp),
      BifStartFlag_(BifStartFlag),
      BifTangent_(BifTangent),
      ClosedLoopStart_(ClosedLoopStart),
@@ -135,6 +136,32 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
       exit(-22);
    }
    Converge_ = Input.getDouble(Hash,"ConvergeCriteria");
+   if (Input.ParameterOK(Hash,"ConvergeType"))
+   {
+      char const* const cnvrgtyp=Input.getString(Hash,"ConvergeType");
+      if (!strcmp("Both",cnvrgtyp))
+      {
+         ConvergeType_ = Both;
+      }
+      else if (!strcmp("Force",cnvrgtyp))
+      {
+         ConvergeType_ = Force;
+      }
+      else if (!strcmp("Displacement",cnvrgtyp))
+      {
+         ConvergeType_ = Displacement;
+      }
+      else
+      {
+         cerr << "Unknown ConvergeType: " << cnvrgtyp << "\nExiting!\n";
+         exit(-22);
+      }
+   }
+   else
+   {
+      Input.useString("Both",Hash,"ConvergeType");  // Default Value
+      ConvergeType_ = Both;
+   }
    if (Input.ParameterOK(Hash,"ClosedLoopStart"))
    {
       ClosedLoopStart_ = Input.getInt(Hash,"ClosedLoopStart");
@@ -276,6 +303,32 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
       exit(-22);
    }
    Converge_ = Input.getDouble(Hash,"ConvergeCriteria");
+   if (Input.ParameterOK(Hash,"ConvergeType"))
+   {
+      char const* const cnvrgtyp=Input.getString(Hash,"ConvergeType");
+      if (!strcmp("Both",cnvrgtyp))
+      {
+         ConvergeType_ = Both;
+      }
+      else if (!strcmp("Force",cnvrgtyp))
+      {
+         ConvergeType_ = Force;
+      }
+      else if (!strcmp("Displacement",cnvrgtyp))
+      {
+         ConvergeType_ = Displacement;
+      }
+      else
+      {
+         cerr << "Unknown ConvergeType: " << cnvrgtyp << "\nExiting!\n";
+         exit(-22);
+      }
+   }
+   else
+   {
+      Input.useString("Both",Hash,"ConvergeType");  // Default Value
+      ConvergeType_ = Both;
+   }
    if (Input.ParameterOK(Hash,"ClosedLoopStart"))
    {
       ClosedLoopStart_ = Input.getInt(Hash,"ClosedLoopStart");
@@ -594,11 +647,30 @@ int NewtonPCSolution::FindNextSolution()
          {
             v_static[i] = w_static[i];
          }
-         
-         if ((forcenorm <= Converge_) && (Magnitude2 <= Converge_))
+
+         switch (ConvergeType_)
          {
-            Converge_Test = 1;
-            
+            case Both:
+               if ((forcenorm <= Converge_) && (Magnitude2 <= Converge_))
+               {
+                  Converge_Test = 1;
+               }
+               break;
+            case Force:
+               if (forcenorm <= Converge_)
+               {
+                  Converge_Test = 1;
+               }
+               break;
+            case Displacement:
+               if (Magnitude2 <= Converge_)
+               {
+                  Converge_Test = 1;
+               }
+               break;
+         }
+         if (Converge_Test == 1)
+         {
             // keep track of DS used to find the current point
             PreviousDS_ = CurrentDS_;
             
