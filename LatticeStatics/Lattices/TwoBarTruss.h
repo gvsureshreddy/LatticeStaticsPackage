@@ -14,7 +14,8 @@ private:
    // DOF[i] = [u v]
    Vector DOF_;
    enum LDeriv {L0,DL};
-   double Lambda_;
+   double Lambda_;  // applied load
+   double Gamma_;   // imperfection in modulus
    double Theta_;
    double COSTheta_;
    double SINTheta_;
@@ -22,13 +23,14 @@ private:
    int Width_;
 
    int Caching_;
-   static const int cachesize = 5;
+   static const int cachesize = 6;
    mutable int Cached_[cachesize];
    mutable double E0CachedValue_;
    mutable Vector E1CachedValue_;
    mutable Vector E1DLoadCachedValue_;
    mutable Matrix E2CachedValue_;
    mutable Matrix E3CachedValue_;
+   mutable Matrix E4CachedValue_;
    mutable int CallCount_[cachesize];
    
 public:
@@ -65,16 +67,27 @@ public:
    Vector const& StressDL() const {return E1DLoad();}
    Matrix const& StiffnessDL() const {return EmptyM_;}
    virtual Matrix const& E3() const;
-   virtual Matrix const& E4() const
-   {cerr << "TwoBarTruss::E4() Not Programmed\n"; exit(-1); return EmptyM_;}
+   virtual Matrix const& E4() const;
    virtual void SetParameters(double const* const Vals,int const& ResetRef = 1) {}
    virtual void SetGridSize(int const& Grid) {}
    
 private:
+   // temp storage space
+   mutable double eps1_;
+   mutable double eps2_;
+   mutable double eps1u_;
+   mutable double eps2u_;
+   mutable double eps1v_;
+   mutable double eps2v_;
+   mutable double eps1uu_;
+   mutable double eps1vv_;
+   mutable double eps1uv_;
+   mutable double eps2uu_;
+   mutable double eps2vv_;
+   mutable double eps2uv_;
    // place holder
    Vector EmptyV_;
    Matrix EmptyM_;
-   
 };
 
 #endif
