@@ -76,9 +76,9 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
    int q=0;
    for (int i=6;i<DOFS_;++i)
    {
-      q = (q+1)%4;
       out << setw(30) << DOF_[i];
-      if (q==3) out << "\n";
+      q = (q+1)%3;
+      if (q==0) out << "\n";
    }
 
    out.close();
