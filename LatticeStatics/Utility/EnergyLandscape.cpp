@@ -84,8 +84,7 @@ int main(int argc,char *argv[])
       //cout << setw(Width) << state << "\n";
       Restrict->SetDOF(state);
       
-      for (i=0;i<NoDims;++i) out << setw(Width) << counter[i];
-      out << setw(Width) << Restrict->Energy() << "\n";
+      out << setw(Width) << state << setw(Width) << Restrict->Energy() << "\n";
       
       ++(counter[0]);
       i=0;
