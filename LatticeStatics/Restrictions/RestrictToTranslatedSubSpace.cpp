@@ -12,48 +12,92 @@ RestrictToTranslatedSubSpace::RestrictToTranslatedSubSpace(Lattice* const M,Perl
    Lattice_ = (Lattice *) M;
 
    PerlInput::HashStruct Hash = Input.getHash("Restriction","RestrictToTranslatedSubSpace");
-   DOFS_ = Input.getPosInt(Hash,"DOFS");
-   DOF_.Resize(DOFS_+1,0.0);
 
    int LatDOFS=Lattice_->DOF().Dim();
-   Vector* const Values = new Vector[DOFS_];
-   int** const Positions = new int*[DOFS_];
-   int len;
-   int nononzero=0;
-
-   for (int i=0;i<DOFS_;++i)
+   if (Input.ParameterOK(Hash,"ProjectionMatrix"))
    {
-      tmp.str("");
-      tmp << "DOF_" << i;
-      len = Input.getArrayLength(Hash,tmp.str().c_str(),0);
-      nononzero += len;
-      Positions[i] = new int[len];
-      Input.getIntVector(Positions[i],len,Hash,tmp.str().c_str(),0);
-      Values[i].Resize(len);
-      Input.getVector(Values[i],Hash,tmp.str().c_str(),1);
-      Values[i] /= Values[i].Norm(); // normalize the rows
-   }
-   ForceProjectionMatrix_.Resize(DOFS_,LatDOFS,nononzero);
-   DOFProjectionMatrix_.Resize(LatDOFS+1,DOFS_+1,nononzero+1);
+      DOFS_ = Input.getArrayLength(Hash,"ProjectionMatrix");
+      DOF_.Resize(DOFS_+1,0.0);
 
-   int count=0;
-   for (int i=0;i<DOFS_;++i)
-   {
-      for (int j=0;j<Values[i].Dim();++j)
+      if (Input.getArrayLength(Hash,"ProjectionMatrix",0) != LatDOFS)
       {
-         ForceProjectionMatrix_.SetNonZeroEntry(count,i,Positions[i][j],Values[i][j]);
-         DOFProjectionMatrix_.SetNonZeroEntry(count,Positions[i][j],i,Values[i][j]);
-         ++count;
+         cerr << "Error. " << Name() << " Incorrect number of columns in ProjectionMatrix\n";
+         exit(-37);
       }
-      delete [] Positions[i];
-   }
-   delete [] Positions;
-   delete [] Values;
-   DOFProjectionMatrix_.SetNonZeroEntry(nononzero,LatDOFS,DOFS_,1.0);
+      
+      Matrix PM(DOFS_,LatDOFS);
+      Input.getMatrix(PM,Hash,"ProjectionMatrix");
+      int nononzero = 0;
+      for (int i=0;i<DOFS_;++i)
+      {
+         for (int j=0;j<LatDOFS;++j)
+         {
+            if (PM[i][j] != 0.0) ++nononzero;
+         }
+      }
 
+      ForceProjectionMatrix_.Resize(DOFS_,LatDOFS,nononzero);
+      DOFProjectionMatrix_.Resize(LatDOFS+1,DOFS_+1,nononzero+1);
+      
+      int count=0;
+      for (int i=0;i<DOFS_;++i)
+      {
+         for (int j=0;j<LatDOFS;++j)
+         {
+            if (PM[i][j] != 0.0)
+            {
+               ForceProjectionMatrix_.SetNonZeroEntry(count,i,j,PM[i][j]);
+               DOFProjectionMatrix_.SetNonZeroEntry(count,j,i,PM[i][j]);
+               ++count;
+            }
+         }
+      }
+      DOFProjectionMatrix_.SetNonZeroEntry(nononzero,LatDOFS,DOFS_,1.0);
+   }
+   else
+   {
+      DOFS_ = Input.getPosInt(Hash,"DOFS");
+      DOF_.Resize(DOFS_+1,0.0);
+      
+      Vector* const Values = new Vector[DOFS_];
+      int** const Positions = new int*[DOFS_];
+      int len;
+      int nononzero=0;
+      
+      for (int i=0;i<DOFS_;++i)
+      {
+         tmp.str("");
+         tmp << "DOF_" << i;
+         len = Input.getArrayLength(Hash,tmp.str().c_str(),0);
+         nononzero += len;
+         Positions[i] = new int[len];
+         Input.getIntVector(Positions[i],len,Hash,tmp.str().c_str(),0);
+         Values[i].Resize(len);
+         Input.getVector(Values[i],Hash,tmp.str().c_str(),1);
+         Values[i] /= Values[i].Norm(); // normalize the rows
+      }
+      ForceProjectionMatrix_.Resize(DOFS_,LatDOFS,nononzero);
+      DOFProjectionMatrix_.Resize(LatDOFS+1,DOFS_+1,nononzero+1);
+      
+      int count=0;
+      for (int i=0;i<DOFS_;++i)
+      {
+         for (int j=0;j<Values[i].Dim();++j)
+         {
+            ForceProjectionMatrix_.SetNonZeroEntry(count,i,Positions[i][j],Values[i][j]);
+            DOFProjectionMatrix_.SetNonZeroEntry(count,Positions[i][j],i,Values[i][j]);
+            ++count;
+         }
+         delete [] Positions[i];
+      }
+      delete [] Positions;
+      delete [] Values;
+      DOFProjectionMatrix_.SetNonZeroEntry(nononzero,LatDOFS,DOFS_,1.0);
+   }
+   
    //ReferenceState DOF Initialization
    ReferenceState_.Resize(LatDOFS+1,0.0);
-
+   
    char const* UseReferenceState;
    if (Input.ParameterOK(Hash,"UseReferenceState"))
    {
