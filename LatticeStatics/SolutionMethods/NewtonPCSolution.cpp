@@ -615,7 +615,8 @@ int NewtonPCSolution::FindNextSolution()
          Force_static = Restrict_->Force();
          forcenorm = Force_static.Norm();
          cout << "\tForceNorm = " << forcenorm;
-         
+
+         GetQR(Force_static,difference_static,Q_static,R_static);
          MoorePenrose(Q_static,R_static, Force_static,Corrector_static);
          
          Magnitude2 = Corrector_static.Norm();
@@ -680,11 +681,6 @@ int NewtonPCSolution::FindNextSolution()
             {
                CurrentDS_ = MaxDS_;
             }
-         }
-         else
-         {
-            GetQR(Force_static,difference_static,Q_static,R_static);
-            MoorePenrose(Q_static,R_static, Force_static,Corrector_static);
          }
          
          ++corrections;
