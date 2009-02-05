@@ -21,7 +21,7 @@ int main(int argc,char *argv[])
    if (argc < 3)
    {
       cerr << "Usage: " << argv[0]
-           << " ParamFile OutputFile" << "\n";
+           << " ParamFile OutputFile [PringGridOnly]" << "\n";
       cerr << "Built on:               " << builddate() << "\n"
            << "LinearAlgebra Built on: " << LinearAlgebraBuildDate() << "\n"
            << "MyMath Built on:        " << MyMathBuildDate() << "\n";
@@ -83,8 +83,11 @@ int main(int argc,char *argv[])
       for (i=0;i<NoDims;++i) state += counter[i]*Directions[i];
       //cout << setw(Width) << state << "\n";
       Restrict->SetDOF(state);
-      
-      out << setw(Width) << state << setw(Width) << Restrict->Energy() << "\n";
+
+      if (argc >= 4)
+         out << setw(Width) << state << setw(Width) << 0.0 << "\n";
+      else
+         out << setw(Width) << state << setw(Width) << Restrict->Energy() << "\n";
       
       ++(counter[0]);
       i=0;
