@@ -9,7 +9,7 @@
 #include <cstdlib>
 
 // Global IDString
-char SparseMatrixID[]="$Id: SparseMatrix.cpp,v 1.12 2009/01/31 14:56:30 elliott Exp $";
+char SparseMatrixID[]="$Id: SparseMatrix.cpp,v 1.13 2009/02/06 00:24:18 elliott Exp $";
 
 SparseMatrix::SparseMatrix(Matrix const& A)
 {
@@ -692,9 +692,9 @@ ostream& operator<<(ostream& out,SparseMatrix const& A)
    
    for (register int i=0;i<NoNonZero;i++)
    {
-      out << "Row id = " << setw(W) << A.Row_id_[i]
-          << "Column id = " << setw(W) << A.Column_id_[i]
-          << "Entry = " << setw(W) << A.Nonzero_entry_[i]
+      out << "Row id = " << setw(W/2) << A.Row_id_[i]
+          << "  Column id = " << setw(W/2) << A.Column_id_[i]
+          << "  Entry = " << setw(W) << A.Nonzero_entry_[i]
           << "\n";
    }
    
