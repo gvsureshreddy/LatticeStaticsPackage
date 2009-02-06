@@ -32,7 +32,7 @@ RestrictToTranslatedSubSpace::RestrictToTranslatedSubSpace(Lattice* const M,Perl
       {
          for (int j=0;j<LatDOFS;++j)
          {
-            if (PM[i][j] != 0.0) ++nononzero;
+            if (fabs(PM[i][j]) > 1.0e-15) ++nononzero;
          }
       }
 
@@ -44,7 +44,7 @@ RestrictToTranslatedSubSpace::RestrictToTranslatedSubSpace(Lattice* const M,Perl
       {
          for (int j=0;j<LatDOFS;++j)
          {
-            if (PM[i][j] != 0.0)
+            if (fabs(PM[i][j]) > 1.0e-15)
             {
                ForceProjectionMatrix_.SetNonZeroEntry(count,i,j,PM[i][j]);
                DOFProjectionMatrix_.SetNonZeroEntry(count,j,i,PM[i][j]);
