@@ -12,6 +12,8 @@ char *LinearAlgebraBuildDate();
 #include "Vector.h"
 #include "Matrix.h"
 
+#define SPARSETOL 1.0e-15
+
 using namespace std;
 
 class SparseMatrix
@@ -38,8 +40,8 @@ public:
    //   allocated and each element set to Initial Value
    // Defaults: Rows=0,Cols=0,Initial Value= (Uninitialized)
    SparseMatrix() :NoNonZero_(0),Rows_(0),Cols_(0),Row_id_(0),Column_id_(0),Nonzero_entry_(0) {}
-   SparseMatrix(Matrix const& A);
-   SparseMatrix(Matrix const& A,int const& NoEntries);
+   SparseMatrix(Matrix const& A,double const& tol=SPARSETOL);
+   SparseMatrix(Matrix const& A,int const& NoEntries,double const& tol=SPARSETOL);
    SparseMatrix(SparseMatrix const& A);
    SparseMatrix(int const& Rows,int const& Cols,int const& NoNonZero);
 	
@@ -118,6 +120,7 @@ public:
 	
 
    //Assignment Operators
+   // careful: uses SPARSETOL
    SparseMatrix& operator=(Matrix const& A);
 
    //Miscellaneous Matrix operations

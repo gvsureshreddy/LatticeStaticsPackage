@@ -9,9 +9,9 @@
 #include <cstdlib>
 
 // Global IDString
-char SparseMatrixID[]="$Id: SparseMatrix.cpp,v 1.13 2009/02/06 00:24:18 elliott Exp $";
+char SparseMatrixID[]="$Id: SparseMatrix.cpp,v 1.14 2009/02/06 14:41:07 elliott Exp $";
 
-SparseMatrix::SparseMatrix(Matrix const& A)
+SparseMatrix::SparseMatrix(Matrix const& A,double const& tol)
 {
    //This counts the number of nonzero entries
    
@@ -26,7 +26,7 @@ SparseMatrix::SparseMatrix(Matrix const& A)
    {
       for(j=0;j<Cols_;j++)
       {
-         if(A[i][j]!=0)
+         if(fabs(A[i][j]) < tol)
          {
             ++count;
          }
@@ -42,7 +42,7 @@ SparseMatrix::SparseMatrix(Matrix const& A)
    {
       for(j=0;j<Cols_;j++)
       {
-         if(A[i][j]!=0)
+         if(fabs(A[i][j]) < tol)
          {
             Row_id_[k] = i;
             Column_id_[k] = j;
@@ -95,7 +95,7 @@ SparseMatrix::SparseMatrix(int const& Rows,int const& Cols,int const& NoNonZero)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-SparseMatrix::SparseMatrix(Matrix const& A,int const& NoEntries)
+SparseMatrix::SparseMatrix(Matrix const& A,int const& NoEntries,double const& tol)
 {
    int i,j,k;
    
@@ -111,7 +111,7 @@ SparseMatrix::SparseMatrix(Matrix const& A,int const& NoEntries)
    {
       for(j=0;j<Cols_;j++)
       {
-         if(A[i][j]!=0)
+         if(fabs(A[i][j]) < tol)
          {
             Row_id_[k] = i;
             Column_id_[k] = j;
@@ -587,7 +587,7 @@ SparseMatrix& SparseMatrix::operator=(Matrix const& A)
    {
       for(j=0;j<Cols_;j++)
       {
-         if(A[i][j]!=0)
+         if(fabs(A[i][j]) < SPARSETOL)
          {
             ++count;
          }
@@ -603,7 +603,7 @@ SparseMatrix& SparseMatrix::operator=(Matrix const& A)
    {
       for(j=0;j<Cols_;j++)
       {
-         if(A[i][j]!=0)
+         if(fabs(A[i][j]) < SPARSETOL)
          {
             Row_id_[k] = i;
             Column_id_[k] = j;
@@ -692,9 +692,9 @@ ostream& operator<<(ostream& out,SparseMatrix const& A)
    
    for (register int i=0;i<NoNonZero;i++)
    {
-      out << "Row id = " << setw(W/2) << A.Row_id_[i]
-          << "  Column id = " << setw(W/2) << A.Column_id_[i]
-          << "  Entry = " << setw(W) << A.Nonzero_entry_[i]
+      out << "Row id = " << setw(W) << A.Row_id_[i]
+          << "Column id = " << setw(W) << A.Column_id_[i]
+          << "Entry = " << setw(W) << A.Nonzero_entry_[i]
           << "\n";
    }
    
