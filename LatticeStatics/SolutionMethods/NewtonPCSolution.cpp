@@ -891,16 +891,15 @@ void NewtonPCSolution::UpdateQR(Vector const& Force,Vector const& difference,Mat
             A2 = C * RBar[i+1][k] - S * RBar[i][k];
             RBar[i][k] = A1;
             RBar[i+1][k] = A2;
-            A1 = C * QBar[i][k] + S * QBar[i+1][k];
-            A2 = C * QBar[i+1][k] - S * QBar[i][k];
-            QBar[i][k] = A1;
-            QBar[i+1][k] = A2;
-            
+            A1 = C * QBar[k][i] + S * QBar[k][i+1];
+            A2 = C * QBar[k][i+1] - S * QBar[k][i];
+            QBar[k][i] = A1;
+            QBar[k][i+1] = A2;
          }
-         A1 = C * QBar[i][count] + S * QBar[i+1][count];
-         A2 = C * QBar[i+1][count] - S * QBar[i][count];
-         QBar[i][count] = A1;
-         QBar[i+1][count] = A2;
+         A1 = C * QBar[count][i] + S * QBar[count][i+1];
+         A2 = C * QBar[count][i+1] - S * QBar[count][i];
+         QBar[count][i] = A1;
+         QBar[count][i+1] = A2;
          
          //Givens Rotation on u
          A1 = C * u_static[i] + S * u_static[i+1];
@@ -933,15 +932,15 @@ void NewtonPCSolution::UpdateQR(Vector const& Force,Vector const& difference,Mat
             A2 = C * RBar[i+1][k] - S * RBar[i][k];
             RBar[i][k] = A1;
             RBar[i+1][k] = A2;
-            A1 = C * QBar[i][k] + S * QBar[i+1][k];
-            A2 = C * QBar[i+1][k] - S * QBar[i][k];
-            QBar[i][k] = A1;
-            QBar[i+1][k] = A2;
+            A1 = C * QBar[k][i] + S * QBar[k][i+1];
+            A2 = C * QBar[k][i+1] - S * QBar[k][i];
+            QBar[k][i] = A1;
+            QBar[k][i+1] = A2;
          }
-         A1 = C * QBar[i][count] + S * QBar[i+1][count];
-         A2 = C * QBar[i+1][count] - S * QBar[i][count];
-         QBar[i][count] = A1;
-         QBar[i+1][count] = A2;
+         A1 = C * QBar[count][i] + S * QBar[count][i+1];
+         A2 = C * QBar[count][i+1] - S * QBar[count][i];
+         QBar[count][i] = A1;
+         QBar[count][i+1] = A2;
       }
    }
 }
