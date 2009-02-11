@@ -9,7 +9,7 @@
 #include <cstdlib>
 
 // Global IDString
-char SparseMatrixID[]="$Id: SparseMatrix.cpp,v 1.14 2009/02/06 14:41:07 elliott Exp $";
+char SparseMatrixID[]="$Id: SparseMatrix.cpp,v 1.15 2009/02/11 02:26:24 elliott Exp $";
 
 SparseMatrix::SparseMatrix(Matrix const& A,double const& tol)
 {
@@ -26,7 +26,7 @@ SparseMatrix::SparseMatrix(Matrix const& A,double const& tol)
    {
       for(j=0;j<Cols_;j++)
       {
-         if(fabs(A[i][j]) < tol)
+         if(fabs(A[i][j]) > tol)
          {
             ++count;
          }
@@ -42,7 +42,7 @@ SparseMatrix::SparseMatrix(Matrix const& A,double const& tol)
    {
       for(j=0;j<Cols_;j++)
       {
-         if(fabs(A[i][j]) < tol)
+         if(fabs(A[i][j]) > tol)
          {
             Row_id_[k] = i;
             Column_id_[k] = j;
@@ -111,7 +111,7 @@ SparseMatrix::SparseMatrix(Matrix const& A,int const& NoEntries,double const& to
    {
       for(j=0;j<Cols_;j++)
       {
-         if(fabs(A[i][j]) < tol)
+         if(fabs(A[i][j]) > tol)
          {
             Row_id_[k] = i;
             Column_id_[k] = j;

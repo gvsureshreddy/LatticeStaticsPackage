@@ -39,7 +39,7 @@ public:
    // Postcondition. Matrix of size RowsXCols
    //   allocated and each element set to Initial Value
    // Defaults: Rows=0,Cols=0,Initial Value= (Uninitialized)
-   SparseMatrix() :NoNonZero_(0),Rows_(0),Cols_(0),Row_id_(0),Column_id_(0),Nonzero_entry_(0) {}
+   SparseMatrix() :NoNonZero_(-1),Rows_(0),Cols_(0),Row_id_(0),Column_id_(0),Nonzero_entry_(0) {}
    SparseMatrix(Matrix const& A,double const& tol=SPARSETOL);
    SparseMatrix(Matrix const& A,int const& NoEntries,double const& tol=SPARSETOL);
    SparseMatrix(SparseMatrix const& A);
@@ -128,7 +128,7 @@ public:
    SparseMatrix& SetSparseIdentity(int const& Size);
    friend Matrix ReverseSparse(SparseMatrix const& A);
 	
-   int IsNull() const {return NoNonZero_==0;}
+   int IsNull() const {return NoNonZero_==-1;}
 
    friend ostream& operator<<(ostream& out,SparseMatrix const& A);
 
