@@ -11,6 +11,8 @@ extern "C" void qcbfb_output_(int& nfree,double* u,double& prop,int& nint,int* i
 QC::~QC()
 {
    cout << "QC Function Calls:\n"
+        << "\tEvaluation - w/o stiffness - " << EvaluationCount_[0] << "\n"
+        << "\tEvaluation - w   stiffness - " << EvaluationCount_[1] << "\n"
         << "\tE0 calls - " << CallCount_[0] << "\n"
         << "\tE1 calls - " << CallCount_[1] << "\n"
         << "\tE1DLoad calls - " << CallCount_[2] << "\n"
@@ -66,6 +68,8 @@ QC::QC(PerlInput const& Input,int const& Echo,int const& Width):
       Cached_[i] = 0;
       CallCount_[i] = 0;
    }
+   EvaluationCount_[0] = 0;
+   EvaluationCount_[1] = 0;
 }
 
 void QC::UpdateValues(UpdateFlag flag) const
@@ -76,6 +80,7 @@ void QC::UpdateValues(UpdateFlag flag) const
       qcbfb_energy_(mode,DOFS_,&(DOF_[0]),Lambda_,E0CachedValue_,&(E1CachedValue_[0]),0,0);
       Cached_[0]=1;
       Cached_[1]=1;
+      EvaluationCount_[0]++;
    }
    else if (NeedStiffness==flag)
    {
@@ -86,6 +91,7 @@ void QC::UpdateValues(UpdateFlag flag) const
       Cached_[1]=1;
       Cached_[2]=1;
       Cached_[3]=1;
+      EvaluationCount_[1]++;
    }
    else
    {
@@ -99,8 +105,8 @@ double QC::E0() const
    if (!Cached_[0])
    {
       UpdateValues(NoStiffness);
-      CallCount_[0]++;
    }
+   CallCount_[0]++;
    
    return E0CachedValue_;
 }
@@ -110,8 +116,8 @@ Vector const& QC::E1() const
    if (!Cached_[1])
    {
       UpdateValues(NoStiffness);
-      CallCount_[1]++;
    }
+   CallCount_[1]++;
 
    return E1CachedValue_;
 }
@@ -121,8 +127,8 @@ Vector const& QC::E1DLoad() const
    if (!Cached_[2])
    {
       UpdateValues(NeedStiffness);
-      CallCount_[2]++;
    }
+   CallCount_[2]++;
    
    return E1DLoadCachedValue_;
 }
@@ -132,8 +138,8 @@ Matrix const& QC::E2() const
    if (!Cached_[3])
    {
       UpdateValues(NeedStiffness);
-      CallCount_[3]++;
    }
+   CallCount_[3]++;
    
    return E2CachedValue_;
 }

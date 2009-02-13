@@ -31,6 +31,7 @@ private:
    mutable Vector E1CachedValue_;
    mutable Vector E1DLoadCachedValue_;
    mutable Matrix E2CachedValue_;
+   mutable int EvaluationCount_[2];
    mutable int CallCount_[cachesize];
    
 public:
