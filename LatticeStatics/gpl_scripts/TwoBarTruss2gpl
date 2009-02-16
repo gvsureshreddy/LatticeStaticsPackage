@@ -83,7 +83,6 @@ sub loaddata {
     {
 	open(DATA,"zcat -f $_[1]|") || die "No file, $_[1], $!";
 
-	$bifflag=0;
 	$_ = <DATA>;
 	while (! m/^Restriction:/)
 	{
@@ -148,7 +147,7 @@ sub loaddata {
 
     $bifheader .= sprintf "# Index $_[2]\n";
     $bifheader .= sprintf "# $_[1] --- Bifurcation Points\n";
-    $bifheader .= sprintf $StrSPEC . $StrSPEC, "Stress","Potential";
+    $bifheader .= sprintf "#" . $StrSPEC . $StrSPEC, "Stress","Potential";
     for (my $i=0;$i<$DOFSize;$i+=1)
     {
 	$bifheader .= sprintf $StrSPEC,"DOF $i";
@@ -157,7 +156,7 @@ sub loaddata {
 
     $turnheader .= sprintf "# Index " . ($_[2]+1) . "\n";
     $turnheader .= sprintf "# $_[1] --- Turning Points\n";
-    $turnheader .= sprintf $StrSPEC . $StrSPEC,"Stress","Potential";
+    $turnheader .= sprintf "#" . $StrSPEC . $StrSPEC,"Stress","Potential";
     for (my $i=0;$i<$DOFSize;$i+=1)
     {
 	$turnheader .= sprintf $StrSPEC,"DOF $i";
@@ -166,7 +165,7 @@ sub loaddata {
 
     $reconstturnheader .= sprintf "# Index " . ($_[2]+2) . "\n";
     $reconstturnheader .= sprintf "# $_[1] --- Reconstructive Turning Points\n";
-    $reconstturnheader .= sprintf $StrSPEC . $StrSPEC,"Stress","Potential";
+    $reconstturnheader .= sprintf "#" . $StrSPEC . $StrSPEC,"Stress","Potential";
     for (my $i=0;$i<$DOFSize;$i+=1)
     {
 	$reconstturnheader .= sprintf $StrSPEC,"DOF $i";
@@ -175,7 +174,7 @@ sub loaddata {
     
     $stableheader .= sprintf "# Index " . ($_[2]+3) . "\n";
     $stableheader .= sprintf "# $_[1] --- Stable\n";
-    $stableheader .= sprintf $StrSPEC . $StrSPEC,"Stress","Potential";
+    $stableheader .= sprintf "#" . $StrSPEC . $StrSPEC,"Stress","Potential";
     for (my $i=0;$i<$DOFSize;$i+=1)
     {
 	$stableheader .= sprintf $StrSPEC,"DOF $i";
@@ -184,7 +183,7 @@ sub loaddata {
 
     $unstableheader .= sprintf "# Index " . ($_[2]+4) . "\n";
     $unstableheader .= sprintf "# $_[1] --- Unstable\n";
-    $unstableheader .= sprintf $StrSPEC . $StrSPEC,"Stress","Potential";
+    $unstableheader .= sprintf "#" . $StrSPEC . $StrSPEC,"Stress","Potential";
     for (my $i=0;$i<$DOFSize;$i+=1)
     {
 	$unstableheader .= sprintf $StrSPEC,"DOF $i";
