@@ -35,8 +35,8 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,Vector const& d
                                      int const& NumSolutions,int const& CurrentSolution,
                                      Vector const& FirstSolution,Vector const& Difference,
                                      int const& BifStartFlag,Vector const& BifTangent,
-                                     int const& ClosedLoopStart,int const& StopAtCPCrossingNum,
-                                     int const& Echo)
+                                     int const& ClosedLoopStart,int const& ClosedLoopUseAsFirst,
+                                     int const& StopAtCPCrossingNum,int const& Echo)
    : Echo_(Echo),
      Restrict_(Restrict),
      DOFS_(Restrict_->DOF().Dim()),
@@ -53,6 +53,7 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,Vector const& d
      BifStartFlag_(BifStartFlag),
      BifTangent_(BifTangent),
      ClosedLoopStart_(ClosedLoopStart),
+     ClosedLoopUseAsFirst_(ClosedLoopUseAsFirst),
      FirstSolution_(FirstSolution),
      StopAtCPCrossingNum_(StopAtCPCrossingNum),
      Difference_(Difference),
@@ -110,11 +111,37 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const
    {
       StopAtCPCrossingNum_ = Input.useInt(-1,Hash,"StopAtCPCrossingNum"); // Default Value
    }
-   Input.EndofInputSection();
+
    
    FirstSolution_.Resize(one.Dim());
    FirstSolution_ = one;
-   
+   if (Input.ParameterOK("StartType","ClosedLoopFirstSolution"))
+   {
+      Vector clfs(Input.getArrayLength("StartType","ClosedLoopFirstSolution"));
+      Input.getVector(clfs,"StartType","ClosedLoopFirstSolution");
+      FirstSolution_ = Restrict_->RestrictDOF(clfs);
+   }
+   else
+   {
+      if (Input.ParameterOK("StartType","ClosedLoopUseAsFirst"))
+      {
+         ClosedLoopUseAsFirst_ = Input.getPosInt("StartType","ClosedLoopUseAsFirst");
+         if (ClosedLoopUseAsFirst_ >= ClosedLoopStart_)
+         {
+            cerr << "Error: ArcLengthSolution -- ClosedLoopUseAsFirst must be < ClosedLoopStart."
+                 << endl;
+            exit(-33);
+         }
+      }
+      else
+      {
+         // Default Value
+         ClosedLoopUseAsFirst_ = Input.usePosInt(0,"StartType","ClosedLoopUseAsFirst");
+         FirstSolution_ = ArcLenDef();
+      }
+   }
+   Input.EndofInputSection();
+
    // Set Lattice to solution "two"
    ArcLenSet(two);
 }
@@ -199,8 +226,22 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const
       }
       else
       {
-         FirstSolution_ = ArcLenDef();
-         Input.useVector(FirstSolution_,"StartType","ClosedLoopFirstSolution"); // Default Value
+         if (Input.ParameterOK("StartType","ClosedLoopUseAsFirst"))
+         {
+            ClosedLoopUseAsFirst_ = Input.getPosInt("StartType","ClosedLoopUseAsFirst");
+            if (ClosedLoopUseAsFirst_ >= ClosedLoopStart_)
+            {
+               cerr << "Error: ArcLengthSolution -- ClosedLoopUseAsFirst must be < ClosedLoopStart."
+                    << endl;
+               exit(-33);
+            }
+         }
+         else
+         {
+            // Default Value
+            ClosedLoopUseAsFirst_ = Input.useInt(0,"StartType","ClosedLoopUseAsFirst");
+            FirstSolution_ = ArcLenDef();
+         }
       }
 
       cout << "Projection on BifTangent of BifurcationPoint = " << stat*BifTangent_ << "\n";
@@ -234,8 +275,22 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const
       }
       else
       {
-         FirstSolution_ = ArcLenDef();
-         Input.useVector(FirstSolution_,"StartType","ClosedLoopFirstSolution"); // Default Value
+         if (Input.ParameterOK("StartType","ClosedLoopUseAsFirst"))
+         {
+            ClosedLoopUseAsFirst_ = Input.getPosInt("StartType","ClosedLoopUseAsFirst");
+            if (ClosedLoopUseAsFirst_ >= ClosedLoopStart_)
+            {
+               cerr << "Error: ArcLengthSolution -- ClosedLoopUseAsFirst must be < ClosedLoopStart."
+                    << endl;
+               exit(-33);
+            }
+         }
+         else
+         {
+            // Default Value
+            ClosedLoopUseAsFirst_ = Input.useInt(0,"StartType","ClosedLoopUseAsFirst");
+            FirstSolution_ = ArcLenDef();
+         }
       }
    }
    else if (!strcmp("ConsistencyCheck",starttype))
@@ -384,6 +439,11 @@ int ArcLengthSolution::FindNextSolution()
    else
    {
       CurrentSolution_++;
+   }
+   if (CurrentSolution_ == ClosedLoopUseAsFirst_)
+   {
+      // set First Solution for use with Closed Loop check.
+      FirstSolution_ = ArcLenDef();
    }
    
    // Always have the current "solution" state printed as a solution point

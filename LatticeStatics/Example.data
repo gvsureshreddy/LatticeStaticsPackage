@@ -297,6 +297,14 @@ $ArcLenDSMax = 0.01;
 # NewtonPCSolution StartTypes: Bifurcation, Continuation, ConsistencyCheck
 %StartType = (Type     => Continuation,
               Solution => [1.000000000000, 1.000000000000],
+              #ClosedLoopUseAsFirst    => 0,  # Default value = 0 
+              #ClosedLoopFirstSolution => [0.990000000000, 0.980000000000]
+              # The ClosedLoop parameters can be used with Continuation and Bifurcation start types
+              # If ClosedLoopFirstSolution is present it overrides ClosedLoopUseAsFirst
+              # If only ClosedLoopUseAsFirst is present then its value determines the
+              # solution number that will be used to identify a closed loop
+              # a value of 0 (the default) uses the specified starting point,
+              # that is, the "Solution" above or the "BifurcationPoint" as below
              );
 
 #%StartType = (Type             => Bifurcation,
@@ -313,7 +321,12 @@ $ArcLenDSMax = 0.01;
 #%StartType = (Type      => Continuation,
 #              Solution1 => [1.000000000000, 1.000000000000],
 #              Solution2 => [1.000033386242, 1.010000000000]#,
-#              #ClosedLoopFirstSolution => [0.990000000000, 0.980000000000] # Default value = Solution1
+              # The ClosedLoop parameters can be used with Continuation and Bifurcation start types
+              # If ClosedLoopFirstSolution is present it overrides ClosedLoopUseAsFirst
+              # If only ClosedLoopUseAsFirst is present then its value determines the
+              # solution number that will be used to identify a closed loop
+              # a value of 0 (the default) uses the specified starting point,
+              # that is, the "Solution" above or the "BifurcationPoint" as below
 #             );
 
 #%StartType = (Type             => Bifurcation,

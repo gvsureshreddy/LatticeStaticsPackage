@@ -36,6 +36,7 @@ private:
    int BifStartFlag_;           //Flag to keep track of start type (1-bif,0-other)
    Vector BifTangent_;          //Start Tangent vector to be used to print out projection
    int ClosedLoopStart_;        //Closed loop test variable
+   int ClosedLoopUseAsFirst_;   //Closed loop solution number to use as first point
    int StopAtCPCrossingNum_;    //Stop at critical point crossing test flag
    int Direction_;              //Direction of tangent
    double Omega_;               //Multiplier to help traverse bifurcation points
@@ -60,7 +61,8 @@ public:
                     double const& Converge,ConvergeType CnvrgTyp,Vector const& FirstSolution,
                     int const& Direction=1,double const& accel_max=2.0,int const& BifStartFlag=0,
                     Vector const& BifTangent=Vector(),int const& ClosedLoopStart=CLOSEDDEFAULT,
-                    int const& StopAtCPCrossingNum=-1,int const& Echo=1);
+                    int const& ClosedLoopUseAsFirst=0,int const& StopAtCPCrossingNum=-1,
+                    int const& Echo=1);
    NewtonPCSolution(Restriction* const Restrict,PerlInput const& Input,Vector const& one,
                     int const& Echo=1);
    NewtonPCSolution(Restriction* const Restrict,PerlInput const& Input,int const& Echo);

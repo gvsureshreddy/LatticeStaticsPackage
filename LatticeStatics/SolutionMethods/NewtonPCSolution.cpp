@@ -28,6 +28,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,
                                    Vector const& FirstSolution,int const& Direction,
                                    double const& accel_max,int const& BifStartFlag,
                                    Vector const& BifTangent,int const& ClosedLoopStart,
+                                   int const& ClosedLoopUseAsFirst,
                                    int const& StopAtCPCrossingNum,int const& Echo)
    : Restrict_(Restrict),
      Echo_(Echo),
@@ -46,6 +47,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,
      BifStartFlag_(BifStartFlag),
      BifTangent_(BifTangent),
      ClosedLoopStart_(ClosedLoopStart),
+     ClosedLoopUseAsFirst_(ClosedLoopUseAsFirst),
      StopAtCPCrossingNum_(StopAtCPCrossingNum),
      Direction_(Direction),
      Omega_(1.0),
@@ -222,10 +224,35 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
    {
       accel_max_ = Input.useDouble(2.0,Hash,"Acceleration"); // Default Value
    }
-   Input.EndofInputSection();
    
    FirstSolution_.Resize(one.Dim());
-   FirstSolution_ = one;
+   if (Input.ParameterOK("StartType","ClosedLoopFirstSolution"))
+   {
+      Vector clfs(Input.getArrayLength("StartType","ClosedLoopFirstSolution"));
+      Input.getVector(clfs,"StartType","ClosedLoopFirstSolution");
+      FirstSolution_ = Restrict_->RestrictDOF(clfs);
+   }
+   else
+   {
+      if (Input.ParameterOK("StartType","ClosedLoopUseAsFirst"))
+      {
+         ClosedLoopUseAsFirst_ = Input.getPosInt("StartType","ClosedLoopUseAsFirst");
+         if (ClosedLoopUseAsFirst_ >= ClosedLoopStart_)
+         {
+            cerr << "Error: NewtonPCSolution -- ClosedLoopUseAsFirst must be < ClosedLoopStart."
+                 << endl;
+            exit(-33);
+         }
+      }
+      else
+      {
+         // Default Value
+         ClosedLoopUseAsFirst_ = Input.useInt(0,"StartType","ClosedLoopUseAsFirst");
+         FirstSolution_ = one;
+      }
+   }
+   Input.EndofInputSection();
+
    Restrict_->SetDOF(one);
    
    PreviousSolution_.Resize(one.Dim());
@@ -430,7 +457,31 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
       one = Restrict_->RestrictDOF(biftmp);
       
       FirstSolution_.Resize(one.Dim());
-      FirstSolution_ = one;
+      if (Input.ParameterOK("StartType","ClosedLoopFirstSolution"))
+      {
+         Vector clfs(Input.getArrayLength("StartType","ClosedLoopFirstSolution"));
+         Input.getVector(clfs,"StartType","ClosedLoopFirstSolution");
+         FirstSolution_ = Restrict_->RestrictDOF(clfs);
+      }
+      else
+      {
+         if (Input.ParameterOK("StartType","ClosedLoopUseAsFirst"))
+         {
+            ClosedLoopUseAsFirst_ = Input.getPosInt("StartType","ClosedLoopUseAsFirst");
+            if (ClosedLoopUseAsFirst_ >= ClosedLoopStart_)
+            {
+               cerr << "Error: NewtonPCSolution -- ClosedLoopUseAsFirst must be < ClosedLoopStart."
+                    << endl;
+               exit(-33);
+            }
+         }
+         else
+         {
+            // Default Value
+            ClosedLoopUseAsFirst_ = Input.useInt(0,"StartType","ClosedLoopUseAsFirst");
+            FirstSolution_ = one;
+         }
+      }
       
       cout << "Projection on BifTangent of BifurcationPoint = " << FirstSolution_*BifTangent_
            << "\n";
@@ -459,7 +510,32 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
       one = Restrict_->RestrictDOF(onetmp);
       
       FirstSolution_.Resize(one.Dim());
-      FirstSolution_ = one;
+      if (Input.ParameterOK("StartType","ClosedLoopFirstSolution"))
+      {
+         Vector clfs(Input.getArrayLength("StartType","ClosedLoopFirstSolution"));
+         Input.getVector(clfs,"StartType","ClosedLoopFirstSolution");
+         FirstSolution_ = Restrict_->RestrictDOF(clfs);
+      }
+      else
+      {
+         if (Input.ParameterOK("StartType","ClosedLoopUseAsFirst"))
+         {
+            ClosedLoopUseAsFirst_ = Input.getPosInt("StartType","ClosedLoopUseAsFirst");
+            if (ClosedLoopUseAsFirst_ >= ClosedLoopStart_)
+            {
+               cerr << "Error: NewtonPCSolution -- ClosedLoopUseAsFirst must be < ClosedLoopStart."
+                    << endl;
+               exit(-33);
+            }
+         }
+         else
+         {
+            // Default Value
+            ClosedLoopUseAsFirst_ = Input.useInt(0,"StartType","ClosedLoopUseAsFirst");
+            FirstSolution_ = one;
+         }
+      }
+
       Restrict_->SetDOF(one);
       
       Matrix Q(count, count);
@@ -742,6 +818,11 @@ int NewtonPCSolution::FindNextSolution()
    {
       CurrentSolution_++;
    }
+   if (CurrentSolution_ == ClosedLoopUseAsFirst_)
+   {
+      // set First Solution for use with Closed Loop check.
+      FirstSolution_ = Restrict_->DOF();
+   }
    
    // always have current solution point printed
    good = 1;
@@ -767,7 +848,7 @@ void NewtonPCSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCross
    int MaxIter = 20;
    ArcLengthSolution S1(Restrict_,Restrict_->DOF(),MaxIter,Converge_,tmp_ds,tmp_ds,
                         tmp_ds,1.0,0.5,1.0,1,0,PreviousSolution_,
-                        Restrict_->DOF()-PreviousSolution_,0,Vector(),10,-1,Echo_);
+                        Restrict_->DOF()-PreviousSolution_,0,Vector(),10,0,-1,Echo_);
    S1.FindCriticalPoint(Lat,TotalNumCPCrossings,Input,Width,out);
    
    // Check to see if we should stop
