@@ -217,7 +217,8 @@ $Rtheta1_1_1 = 0.275914376289;
                                              Lambda            => 0.0
                                             },
             TwoBarTruss => {Caching => Yes, # Yes, No
-                            Theta   => 65*$DEG2RAD
+                            Theta   => 65*$DEG2RAD,
+                            Gamma   => 1.0 # imperfection ratio for bar moduli
                            },
             TwoBarTrussExternal => {# no options
                                    },
