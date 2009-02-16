@@ -64,7 +64,7 @@ public:
    NewtonPCSolution(Restriction* const Restrict,PerlInput const& Input,Vector const& one,
                     int const& Echo=1);
    NewtonPCSolution(Restriction* const Restrict,PerlInput const& Input,int const& Echo);
-   ~NewtonPCSolution() {}
+   ~NewtonPCSolution();
    
    // Functions required by SolutionMethod
    virtual int AllSolutionsFound() const;
@@ -91,6 +91,10 @@ private:
    mutable Vector u_static;
    mutable Vector a_static;
    mutable Vector e_static;
+
+   // counter
+   static int const nocounters_ = 6;
+   mutable int counter_[nocounters_];
 };
 
 #endif

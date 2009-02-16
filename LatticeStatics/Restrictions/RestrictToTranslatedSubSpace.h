@@ -25,16 +25,16 @@ private:
 public:
    RestrictToTranslatedSubSpace(Lattice* const M,PerlInput const& Input);
    
-   ~RestrictToTranslatedSubSpace() {}
+   ~RestrictToTranslatedSubSpace();
    
    // Functions required by Restriction
-   virtual double Energy() const {return Lattice_->E0();}
+   virtual double Energy() const {++counter_[1]; return Lattice_->E0();}
    virtual Vector const& DrDt(Vector const& Diff) const;
    
    //----------------------------------------------------------------
    virtual Vector const& Force() const;
    virtual Matrix const& Stiffness() const;
-   virtual Vector const& DOF() const {return DOF_;}
+   virtual Vector const& DOF() const {++counter_[5]; return DOF_;}
    virtual Vector RestrictDOF(Vector const& dof);
    virtual Vector UnRestrictDOF(Vector const& dof);
    virtual Vector TransformVector(Vector const& T);
@@ -61,6 +61,10 @@ private:
    mutable Matrix E2_tmp_static;
    mutable Matrix Stiff_static;
    mutable Vector stressdt_static;
+
+   // counters
+   static int const nocounters_ = 12;
+   mutable int counter_[nocounters_];
 };
 
 #endif

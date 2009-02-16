@@ -6,6 +6,18 @@
 
 using namespace std;
 
+NewtonPCSolution::~NewtonPCSolution()
+{
+   cout.width(0);
+   cout << "NewtonPCSolution Function Calls:\n"
+        << "\tGetQR - " << counter_[0] << "\n"
+        << "\tMoorePenrose - " << counter_[1] << "\n"
+        << "\tUpdateQR - " << counter_[2] << "\n"
+        << "\tAllSolutionsFound - " << counter_[3] << "\n"
+        << "\tFindNextSolution - " << counter_[4] << "\n"
+        << "\tFindCriticalPoint - " << counter_[5] << "\n";
+}
+
 NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,
                                    Vector const& one,int const& CurrentSolution,
                                    UpdateType const& Type,int const& NumSolutions,
@@ -41,6 +53,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,
      FirstSolution_(FirstSolution),
      PreviousSolution_(FirstSolution_.Dim())
 {
+   for (int i=0;i<nocounters_;++i) counter_[i]=0;
    if (cos(alpha_max_) <= 0.0)
    {
       cerr << "error: NewtonPCSolution::Angle too large!\n";
@@ -90,6 +103,8 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
      Omega_(1.0),
      PreviousSolution_(0)
 {
+   for (int i=0;i<nocounters_;++i) counter_[i]=0;
+   
    // get needed parameters
    PerlInput::HashStruct Hash = Input.getHash("SolutionMethod","NewtonPCSolution");
    if (Input.ParameterOK(Hash,"UpdateType"))
@@ -256,6 +271,8 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
      BifTangent_(),
      Omega_(1.0)
 {
+   for (int i=0;i<nocounters_;++i) counter_[i]=0;
+   
    // get needed parameters
    PerlInput::HashStruct Hash = Input.getHash("SolutionMethod","NewtonPCSolution");
    if (Input.ParameterOK(Hash,"UpdateType"))
@@ -489,6 +506,8 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
 
 int NewtonPCSolution::AllSolutionsFound() const
 {
+   ++counter_[3];
+   
    if (CurrentSolution_ < NumSolutions_)
    {
       return 0;
@@ -501,6 +520,7 @@ int NewtonPCSolution::AllSolutionsFound() const
 
 int NewtonPCSolution::FindNextSolution()
 {
+   ++counter_[4];
    //Finds the next solution
    //Stiffness: NxN+1
    //DOF: N+1
@@ -732,6 +752,8 @@ int NewtonPCSolution::FindNextSolution()
 void NewtonPCSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCrossings,
                                          PerlInput const& Input,int const& Width,ostream& out)
 {
+   ++counter_[5];
+   
    int sz=PreviousSolution_.Dim();
    Vector tmp_diff(sz),tmp_DOF(Restrict_->DOF());
    double tmp_ds=0.0;
@@ -756,6 +778,8 @@ void NewtonPCSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCross
 void NewtonPCSolution::MoorePenrose(Matrix const& Q,Matrix const& R,Vector const& Force,
                                     Vector& Corrector) const
 {
+   ++counter_[1];
+   
    double sum;
    int i,j;
    int k=0;
@@ -790,6 +814,8 @@ void NewtonPCSolution::MoorePenrose(Matrix const& Q,Matrix const& R,Vector const
 
 void NewtonPCSolution::GetQR(Vector const& Force,Vector const& diff,Matrix& Q,Matrix& R) const
 {
+   ++counter_[0];
+   
    int count = Restrict_->DOF().Dim();
    int count_minus_one = count - 1;
    int i,j;
@@ -834,6 +860,8 @@ void NewtonPCSolution::GetQR(Vector const& Force,Vector const& diff,Matrix& Q,Ma
 void NewtonPCSolution::UpdateQR(Vector const& Force,Vector const& difference,Matrix& QBar,
                                 Matrix& RBar) const
 {
+   ++counter_[2];
+   
    int count(Force.Dim());
    int count_plus = count + 1;
    double norm;

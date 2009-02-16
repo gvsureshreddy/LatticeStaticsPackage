@@ -42,9 +42,9 @@ private:
               double const& OriginalDS,double& fa,double& fb,Vector& CurrentTF);
    
    Vector const& ArcLenForce(double const& DS,Vector const& Diff,double const& Aspect) const;
-   Vector ArcLenDef() const {return Restrict_->DOF();}
-   void ArcLenSet(Vector const& val) {Restrict_->SetDOF(val);}
-   void ArcLenUpdate(Vector const& newval) {Restrict_->UpdateDOF(newval);}
+   Vector ArcLenDef() const {++counter_[3]; return Restrict_->DOF();}
+   void ArcLenSet(Vector const& val) {++counter_[4]; Restrict_->SetDOF(val);}
+   void ArcLenUpdate(Vector const& newval) {++counter_[5]; Restrict_->UpdateDOF(newval);}
    double ArcLenAngle(Vector const& Old,Vector const& New,double const& Aspect) const;
    Matrix const& ArcLenStiffness(Vector const& Diff,double const& Aspect) const;
    
@@ -59,7 +59,7 @@ public:
    ArcLengthSolution(Restriction* const Restrict,PerlInput const& Input,
                      Vector const& one,Vector const& two,int const& Echo=1);
    ArcLengthSolution(Restriction* const Restrict,PerlInput const& Input,int const Echo=1);
-   ~ArcLengthSolution() {}
+   ~ArcLengthSolution();
    
    // Functions required by SolutionMethod
    virtual int AllSolutionsFound() const;
@@ -80,6 +80,10 @@ private:
    mutable Vector TF_LHS_static;
    mutable Vector TF_RHS_static;
    mutable Vector CurrentTF_static;
+
+   // counter
+   static int const nocounters_ = 11;
+   mutable int counter_[nocounters_];
 };
 
 #endif

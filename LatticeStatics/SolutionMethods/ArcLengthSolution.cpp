@@ -10,6 +10,23 @@ using namespace std;
 
 extern "C" void qcbfb_output_(int& nfree,double* u,double& prop,int& nint,int* intdata,int& ndouble,double* doubledata);
 
+ArcLengthSolution::~ArcLengthSolution()
+{
+   cout.width(0);
+   cout << "ArcLengthSolution Function Calls:\n"
+        << "\tArcLengthNewton - " << counter_[0] << "\n"
+        << "\tZBrent - " << counter_[1] << "\n"
+        << "\tArcLenForce - " << counter_[2] << "\n"
+        << "\tArcLenDef - " << counter_[3] << "\n"
+        << "\tArcLenSet - " << counter_[4] << "\n"
+        << "\tArcLenUpdate - " << counter_[5] << "\n"
+        << "\tArcLenAngle - " << counter_[6] << "\n"
+        << "\tArcLenStiffness - " << counter_[7] << "\n"
+        << "\tAllSolutionsFound - " << counter_[8] << "\n"
+        << "\tFindNextSolution - " << counter_[9] << "\n"
+        << "\tFindCriticalPoint - " << counter_[10] << "\n";
+}
+
 ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,Vector const& dofs,
                                      int const& MaxIter,double const& Tolerance,
                                      double const& DSMax,double const& DSMin,
@@ -44,6 +61,7 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,Vector const& d
      K_static(DOFS_,DOFS_),
      RestrictK_static(DOFS_-1,DOFS_)
 {
+   for (int i=0;i<nocounters_;++i) counter_[i]=0;
    ArcLenSet(dofs);
 }
 
@@ -56,6 +74,8 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const
      BifTangent_(),
      Difference_(two-one)
 {
+   for (int i=0;i<nocounters_;++i) counter_[i]=0;
+   
    DOFS_=Restrict_->DOF().Dim();
    // initialize "static" members variables
    force_static.Resize(DOFS_);
@@ -107,6 +127,8 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const
       BifStartFlag_(0),
       BifTangent_()
 {
+   for (int i=0;i<nocounters_;++i) counter_[i]=0;
+   
    DOFS_=Restrict_->DOF().Dim();
    // initialize "static" memver variables
    force_static.Resize(DOFS_);
@@ -247,6 +269,8 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const
 Vector const& ArcLengthSolution::ArcLenForce(double const& DS,Vector const& Diff,
                                              double const& Aspect) const
 {
+   ++counter_[2];
+   
    mdfc_static = Restrict_->Force();
    
    force_static[DOFS_-1] = DS*DS - Diff[DOFS_-1]*Diff[DOFS_-1]/(Aspect*Aspect);
@@ -262,6 +286,8 @@ Vector const& ArcLengthSolution::ArcLenForce(double const& DS,Vector const& Diff
 Matrix const& ArcLengthSolution::ArcLenStiffness(Vector const& Diff,double const& Aspect)
    const
 {
+   ++counter_[7];
+   
    RestrictK_static = Restrict_->Stiffness();
    
    for (int i=0;i<DOFS_-1;++i)
@@ -280,6 +306,8 @@ Matrix const& ArcLengthSolution::ArcLenStiffness(Vector const& Diff,double const
 double ArcLengthSolution::ArcLenAngle(Vector const& Old,Vector const& New,double const& Aspect)
    const
 {
+   ++counter_[6];
+   
    double angle = 0.0;
    double NewNorm = 0.0;
    double OldNorm = 0.0;
@@ -302,11 +330,15 @@ double ArcLengthSolution::ArcLenAngle(Vector const& Old,Vector const& New,double
 
 int ArcLengthSolution::AllSolutionsFound() const
 {
+   ++counter_[8];
+   
    return (CurrentSolution_ >= NumSolutions_);
 }
 
 int ArcLengthSolution::FindNextSolution()
 {
+   ++counter_[9];
+   
    int good=0;
    double AngleTest;
    // Assume that first solution should not be strictly restricted to the
@@ -362,6 +394,8 @@ int ArcLengthSolution::FindNextSolution()
 
 void ArcLengthSolution::ArcLengthNewton(int& good)
 {
+   ++counter_[0];
+   
    int itr = 0;
    int Dim=ArcLenDef().Dim();
    double ForceNorm = 0.0;
@@ -453,6 +487,8 @@ void ArcLengthSolution::ArcLengthNewton(int& good)
 void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCrossings,
                                           PerlInput const& Input,int const& Width,ostream& out)
 {
+   ++counter_[10];
+   
    Vector OriginalDOF=ArcLenDef();
    Vector OriginalDiff=Difference_;
    double OriginalDS = CurrentDS_;
@@ -641,6 +677,8 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
 int ArcLengthSolution::ZBrent(Lattice* const Lat,int const& track,Vector const& OriginalDiff,
                               double const& OriginalDS,double& fa,double& fb,Vector& CurrentTF)
 {
+   ++counter_[1];
+   
    int retcode = 1;
    Vector LastDiff(Difference_.Dim(),0.0);
    double LastDS=CurrentDS_;

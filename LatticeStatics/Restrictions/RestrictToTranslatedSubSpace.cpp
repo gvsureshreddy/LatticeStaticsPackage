@@ -1,12 +1,33 @@
 #include "RestrictToTranslatedSubSpace.h"
 #include <sstream>
 
+RestrictToTranslatedSubSpace::~RestrictToTranslatedSubSpace()
+{
+   cout.width(0);
+   cout << "RestrictToTranslatedSubSpace Function Calls:\n"
+        << "\tUpdateLatticeState - " << counter_[0] << "\n"
+        << "\tEnergy - " << counter_[1] << "\n"
+        << "\tDrDt - " << counter_[2] << "\n"
+        << "\tForce - " << counter_[3] << "\n"
+        << "\tStiffness - " << counter_[4] << "\n"
+        << "\tDOF - " << counter_[5] << "\n"
+        << "\tRestrictDOF - " << counter_[6] << "\n"
+        << "\tUnRestrictDOF - " << counter_[7] << "\n"
+        << "\tTransformVector - " << counter_[8] << "\n"
+        << "\tUnTransformVector - " << counter_[9] << "\n"
+        << "\tSetDOF - " << counter_[10] << "\n"
+        << "\tUpdateDOF - " << counter_[11] << "\n";
+}
+
+
 RestrictToTranslatedSubSpace::RestrictToTranslatedSubSpace(Lattice* const M,PerlInput const& Input):
    ForceProjectionMatrix_(),
    DOFProjectionMatrix_(),
    ForceProject_(ForceProjectionMatrix_),
    DOFProject_(DOFProjectionMatrix_)
 {
+   for (int i=0;i<nocounters_;++i) counter_[i] = 0;
+   
    stringstream tmp;
 
    Lattice_ = (Lattice *) M;
@@ -140,6 +161,8 @@ RestrictToTranslatedSubSpace::RestrictToTranslatedSubSpace(Lattice* const M,Perl
 // Functions required by Restriction
 Vector const& RestrictToTranslatedSubSpace::DrDt(Vector const& Diff) const
 {
+   ++counter_[2];
+   
    for (int i=0;i<DOFS_;++i)
    {
       Rest_ddt_static[i] = Diff[i]/Diff[DOFS_];
@@ -152,6 +175,8 @@ Vector const& RestrictToTranslatedSubSpace::DrDt(Vector const& Diff) const
 //----------------------------------------------------------------
 void RestrictToTranslatedSubSpace::UpdateLatticeState()
 {
+   ++counter_[0];
+   
    for (int i=0;i<DOFS_;++i)
    {
       Rest_DOF_static[i] = DOF_[i];
@@ -168,6 +193,8 @@ void RestrictToTranslatedSubSpace::UpdateLatticeState()
 
 Vector const& RestrictToTranslatedSubSpace::Force() const
 {
+   ++counter_[3];
+   
    stress_static = Lattice_->E1();
    
    Multiply(force_static,ForceProject_,stress_static);
@@ -177,6 +204,8 @@ Vector const& RestrictToTranslatedSubSpace::Force() const
 
 Matrix const& RestrictToTranslatedSubSpace::Stiffness() const
 {
+   ++counter_[4];
+   
    Stiff_static = Lattice_->E2();
    stressdt_static = Lattice_->E1DLoad();
    for (int i=0;i<size_static;++i)
@@ -195,6 +224,8 @@ Matrix const& RestrictToTranslatedSubSpace::Stiffness() const
 
 Vector RestrictToTranslatedSubSpace::RestrictDOF(Vector const& dof)
 {
+   ++counter_[6];
+   
    if (dof.Dim() == DOFS_+1)
    {
       return dof;
@@ -220,6 +251,8 @@ Vector RestrictToTranslatedSubSpace::RestrictDOF(Vector const& dof)
 
 Vector RestrictToTranslatedSubSpace::UnRestrictDOF(Vector const& dof)
 {
+   ++counter_[7];
+   
    if (dof.Dim() == DOFS_+1)
    {
       Vector UnRestricted(size_static+1);
@@ -245,6 +278,8 @@ Vector RestrictToTranslatedSubSpace::UnRestrictDOF(Vector const& dof)
 
 Vector RestrictToTranslatedSubSpace::TransformVector(Vector const& T)
 {
+   ++counter_[8];
+   
    if (T.Dim() == DOFS_+1)
    {
       return T;
@@ -264,6 +299,8 @@ Vector RestrictToTranslatedSubSpace::TransformVector(Vector const& T)
 
 Vector RestrictToTranslatedSubSpace::UnTransformVector(Vector const& T)
 {
+   ++counter_[9];
+   
    if (T.Dim() == DOFS_+1)
    {
       Vector UnTransformed(size_static+1);
@@ -283,6 +320,8 @@ Vector RestrictToTranslatedSubSpace::UnTransformVector(Vector const& T)
 
 void RestrictToTranslatedSubSpace::SetDOF(Vector const& dof)
 {
+   ++counter_[10];
+   
    for (int i=0;i<=DOFS_;++i)
    {
       DOF_[i] = dof[i];
@@ -293,6 +332,8 @@ void RestrictToTranslatedSubSpace::SetDOF(Vector const& dof)
 
 void RestrictToTranslatedSubSpace::UpdateDOF(Vector const& dr)
 {
+   ++counter_[11];
+   
    for (int i=0;i<=DOFS_;++i)
    {
       DOF_[i] += dr[i];
