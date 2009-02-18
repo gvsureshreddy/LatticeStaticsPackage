@@ -56,6 +56,11 @@ QC::QC(PerlInput const& Input,int const& Echo,int const& Width):
       // determine translation mode.
       char stor[2048];
       fstream table(tmp,ios::in);
+      if (!table.is_open())
+      {
+         cerr << "Error: QC unable to open file " << tmp << "!" << endl;
+         exit(-12);
+      }
       table.getline(stor,2048); // header line
       table.getline(stor,2048); // header line
       int bfbdof;
@@ -83,6 +88,11 @@ QC::QC(PerlInput const& Input,int const& Echo,int const& Width):
    tmp[len-2] = 'n';
    tmp[len-1] = 0;
    fstream infile(tmp,ios::in);
+   if (!infile.is_open())
+   {
+      cerr << "Error: QC unable to open file" << tmp << "!" << endl;
+      exit(-12);
+   }
    infile.getline(tmp,2048);
    while (strcmp("macros",tmp))
    {
