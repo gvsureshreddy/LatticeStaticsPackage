@@ -14,9 +14,11 @@ private:
    mutable int DOFS_;
    
    mutable Vector DOF_;
+   Vector TranslationMode_;
    mutable double Lambda_;
    
    int Width_;
+   int RemoveTranslation_;
    double Tolerance_;
 
    int SolutionNumber_;

@@ -28,6 +28,12 @@ QC::QC(PerlInput const& Input,int const& Echo,int const& Width):
    PerlInput::HashStruct Hash = Input.getHash("Lattice");
    Hash = Input.getHash(Hash,"QC");
    DOFS_ = Input.getPosInt(Hash,"DOFS");
+   RemoveTranslation_ = Input.getPosInt(Hash,"RemoveTranslation");// 0 -off, 1,2,3 - direction
+   if (RemoveTranslation_ > 3)
+   {
+      cerr << "Error: QC - RemoveTranslation parameter too big must be 0, 1, 2, or 3.\n";
+      exit(-34);
+   }
    if (Input.ParameterOK(Hash,"Tolerance"))
    {
       Tolerance_ = Input.getDouble(Hash,"Tolerance");
@@ -40,10 +46,42 @@ QC::QC(PerlInput const& Input,int const& Echo,int const& Width):
    char tmp[2048];
    strcpy(tmp,Input.LastInputFileName());
    int len = strlen(tmp);
+   tmp[len-3] = 't';
+   tmp[len-2] = 'a';
+   tmp[len-1] = 'b';
+   tmp[len] = 0;
+
+   if (RemoveTranslation_ >= 0)
+   {
+      // determine translation mode.
+      char stor[2048];
+      fstream table(tmp,ios::in);
+      table.getline(stor,2048); // header line
+      table.getline(stor,2048); // header line
+      int bfbdof;
+      int qcnode;
+      int qcdir;
+
+      TranslationMode_.Resize(DOFS_,0.0);
+      for (int i=0;i<DOFS_;++i)
+      {
+         table >> bfbdof;
+         table >> qcnode;
+         table >> qcdir;
+         table.getline(stor,2048); // rest of line
+         if (qcdir == RemoveTranslation_)
+         {
+            TranslationMode_[bfbdof-1] = 1.0;
+         }
+      }
+      table.close();
+
+      TranslationMode_ /= TranslationMode_.Norm();
+   }
+
    tmp[len-3] = 'i';
    tmp[len-2] = 'n';
    tmp[len-1] = 0;
-
    fstream infile(tmp,ios::in);
    infile.getline(tmp,2048);
    while (strcmp("macros",tmp))
@@ -81,6 +119,20 @@ void QC::UpdateValues(UpdateFlag flag) const
       Cached_[0]=1;
       Cached_[1]=1;
       EvaluationCount_[0]++;
+      if (RemoveTranslation_ > 0)
+      {
+         double T=0.0;
+         for (int i=0;i<DOFS_;++i)
+         {
+            T += TranslationMode_[i]*DOF_[i];
+         }
+
+         E0CachedValue_ += 0.5*T*T;
+         for (int i=0;i<DOFS_;++i)
+         {
+            E1CachedValue_[i] += T*TranslationMode_[i];
+         }
+      }
    }
    else if (NeedStiffness==flag)
    {
@@ -92,6 +144,25 @@ void QC::UpdateValues(UpdateFlag flag) const
       Cached_[2]=1;
       Cached_[3]=1;
       EvaluationCount_[1]++;
+
+      if (RemoveTranslation_ > 0)
+      {
+         double T=0.0;
+         for (int i=0;i<DOFS_;++i)
+         {
+            T += TranslationMode_[i]*DOF_[i];
+         }
+
+         E0CachedValue_ += 0.5*T*T;
+         for (int i=0;i<DOFS_;++i)
+         {
+            E1CachedValue_[i] += T*TranslationMode_[i];
+            for (int j=0;j<DOFS_;++j)
+            {
+               E2CachedValue_[i][j] += TranslationMode_[i]*TranslationMode_[j];
+            }
+         }
+      }
    }
    else
    {
