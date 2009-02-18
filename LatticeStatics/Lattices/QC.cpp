@@ -51,7 +51,7 @@ QC::QC(PerlInput const& Input,int const& Echo,int const& Width):
    tmp[len-1] = 'b';
    tmp[len] = 0;
 
-   if (RemoveTranslation_ >= 0)
+   if (RemoveTranslation_ > 0)
    {
       // determine translation mode.
       char stor[2048];
