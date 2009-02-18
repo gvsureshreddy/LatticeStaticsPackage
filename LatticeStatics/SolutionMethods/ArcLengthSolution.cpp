@@ -29,18 +29,20 @@ ArcLengthSolution::~ArcLengthSolution()
 
 ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,Vector const& dofs,
                                      int const& MaxIter,double const& Tolerance,
-                                     double const& DSMax,double const& DSMin,
-                                     double const& CurrentDS,double const& AngleCutoff,
-                                     double const& AngleIncrease,double const& Aspect,
-                                     int const& NumSolutions,int const& CurrentSolution,
-                                     Vector const& FirstSolution,Vector const& Difference,
-                                     int const& BifStartFlag,Vector const& BifTangent,
-                                     int const& ClosedLoopStart,int const& ClosedLoopUseAsFirst,
+                                     ConvergeType CnvrgTyp,double const& DSMax,
+                                     double const& DSMin,double const& CurrentDS,
+                                     double const& AngleCutoff,double const& AngleIncrease,
+                                     double const& Aspect,int const& NumSolutions,
+                                     int const& CurrentSolution,Vector const& FirstSolution,
+                                     Vector const& Difference,int const& BifStartFlag,
+                                     Vector const& BifTangent,int const& ClosedLoopStart,
+                                     int const& ClosedLoopUseAsFirst,
                                      int const& StopAtCPCrossingNum,int const& Echo)
    : Echo_(Echo),
      Restrict_(Restrict),
      DOFS_(Restrict_->DOF().Dim()),
      MaxIter_(MaxIter),
+     ConvergeType_(CnvrgTyp),
      Tolerance_(Tolerance),
      DSMax_(DSMax),
      DSMin_(DSMin),
@@ -87,6 +89,32 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const
    
    PerlInput::HashStruct Hash = Input.getHash("SolutionMethod","ArcLengthSolution");
    MaxIter_ = Input.getPosInt(Hash,"MaxIterations");
+   if (Input.ParameterOK(Hash,"ConvergeType"))
+   {
+      char const* const cnvrgtyp=Input.getString(Hash,"ConvergeType");
+      if (!strcmp("Both",cnvrgtyp))
+      {
+         ConvergeType_ = Both;
+      }
+      else if (!strcmp("Force",cnvrgtyp))
+      {
+         ConvergeType_ = Force;
+      }
+      else if (!strcmp("Displacement",cnvrgtyp))
+      {
+         ConvergeType_ = Displacement;
+      }
+      else
+      {
+         cerr << "Unknown ConvergeType: " << cnvrgtyp << "\nExiting!\n";
+         exit(-22);
+      }
+   }
+   else
+   {
+      Input.useString("Both",Hash,"ConvergeType");  // Default Value
+      ConvergeType_ = Both;
+   }
    Tolerance_ = Input.getDouble(Hash,"Tolerance");
    DSMax_ = Input.getDouble(Hash,"DSMax");
    CurrentDS_ = Input.getDouble(Hash,"DSStart");
@@ -165,6 +193,32 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const
 
    PerlInput::HashStruct Hash = Input.getHash("SolutionMethod","ArcLengthSolution");
    MaxIter_ = Input.getPosInt(Hash,"MaxIterations");
+   if (Input.ParameterOK(Hash,"ConvergeType"))
+   {
+      char const* const cnvrgtyp=Input.getString(Hash,"ConvergeType");
+      if (!strcmp("Both",cnvrgtyp))
+      {
+         ConvergeType_ = Both;
+      }
+      else if (!strcmp("Force",cnvrgtyp))
+      {
+         ConvergeType_ = Force;
+      }
+      else if (!strcmp("Displacement",cnvrgtyp))
+      {
+         ConvergeType_ = Displacement;
+      }
+      else
+      {
+         cerr << "Unknown ConvergeType: " << cnvrgtyp << "\nExiting!\n";
+         exit(-22);
+      }
+   }
+   else
+   {
+      Input.useString("Both",Hash,"ConvergeType");  // Default Value
+      ConvergeType_ = Both;
+   }
    Tolerance_ = Input.getDouble(Hash,"Tolerance");
    DSMax_ = Input.getDouble(Hash,"DSMax");
    CurrentDS_ = Input.getDouble(Hash,"DSStart");
@@ -491,6 +545,7 @@ void ArcLengthSolution::ArcLengthNewton(int& good)
 
    cout << "\tForceNorm = " << ForceNorm << " \tDeltaNorm = " << Magnitude2 << "\n";
 
+   int Converged = 0;
    do
    {
       itr++;
@@ -515,8 +570,30 @@ void ArcLengthSolution::ArcLengthNewton(int& good)
       cout << "\tForceNorm = " << ForceNorm
            << " \tDeltaNorm = " << Magnitude2
            << " \tContraction = " << Kappa << "\n";
+
+      switch (ConvergeType_)
+      {
+         case Both:
+            if ((RHS.Norm() <= Tolerance_) && (Dx.Norm() <= Tolerance_))
+            {
+               Converged = 1;
+            }
+            break;
+         case Force:
+            if (RHS.Norm() <= Tolerance_)
+            {
+               Converged = 1;
+            }
+            break;
+         case Displacement:
+            if (Dx.Norm() <= Tolerance_)
+            {
+               Converged = 1;
+            }
+            break;
+      }
    }
-   while ((itr < MaxIter_) && ((RHS.Norm() > Tolerance_) || (Dx.Norm() > Tolerance_)));
+   while ((itr < MaxIter_) && (!Converged));
    
    if (itr >= MaxIter_)
    {

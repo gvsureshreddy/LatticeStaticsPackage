@@ -13,11 +13,14 @@ class Lattice;
 
 class ArcLengthSolution : public SolutionMethod
 {
+public:
+   enum ConvergeType {Both,Force,Displacement};
 private:
    int Echo_;
    Restriction *Restrict_;
    int DOFS_;
    int MaxIter_;
+   ConvergeType ConvergeType_;  //Quantities to check for convergence
    double Tolerance_;
    
    double DSMax_;
@@ -51,11 +54,12 @@ private:
    
 public:
    ArcLengthSolution(Restriction* const Restrict,Vector const& dofs,
-                     int const& MaxIter,double const& Tolerance,double const& DSMax,
-                     double const& DSMin,double const& CurrentDS,double const& AngleCutoff,
-                     double const& AngleIncrease,double const& Aspect,int const& NumSolutions,
-                     int const& CurrentSolution,Vector const& FirstSolution,
-                     Vector const& Difference,int const& BifStartFlag_,Vector const& BifTangent,
+                     int const& MaxIter,double const& Tolerance,ConvergeType CnvrgTyp,
+                     double const& DSMax,double const& DSMin,double const& CurrentDS,
+                     double const& AngleCutoff,double const& AngleIncrease,double const& Aspect,
+                     int const& NumSolutions,int const& CurrentSolution,
+                     Vector const& FirstSolution,Vector const& Difference,
+                     int const& BifStartFlag_,Vector const& BifTangent,
                      int const& ClosedLoopStart,int const& ClosedLoopUseAsFirst,
                      int const& StopAtCPCrossingNum,int const& Echo);
    ArcLengthSolution(Restriction* const Restrict,PerlInput const& Input,

@@ -846,7 +846,20 @@ void NewtonPCSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCross
    
    //ArcLengthSolution S1(Restrict_,Input,PreviousSolution_,Restrict_->DOF(),1);
    int MaxIter = 20;
-   ArcLengthSolution S1(Restrict_,Restrict_->DOF(),MaxIter,Converge_,tmp_ds,tmp_ds,
+   ArcLengthSolution::ConvergeType CT = ArcLengthSolution::Both; // initialize to avoid compiler complaint
+   switch (ConvergeType_)
+   {
+      case Both:
+         CT = ArcLengthSolution::Both;
+         break;
+      case Force:
+         CT = ArcLengthSolution::Force;
+         break;
+      case Displacement:
+         CT = ArcLengthSolution::Displacement;
+         break;
+   }
+   ArcLengthSolution S1(Restrict_,Restrict_->DOF(),MaxIter,Converge_,CT,tmp_ds,tmp_ds,
                         tmp_ds,1.0,0.5,1.0,1,0,PreviousSolution_,
                         Restrict_->DOF()-PreviousSolution_,0,Vector(),10,0,-1,Echo_);
    S1.FindCriticalPoint(Lat,TotalNumCPCrossings,Input,Width,out);

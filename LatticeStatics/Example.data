@@ -266,6 +266,7 @@ $ArcLenDSMax = 0.01;
                                         },
                    ArcLengthSolution => {MaxIterations       => 50,
                                          Tolerance           => 1.0e-13,
+                                         #ConvergeType        => Both, # Default value = Both, Force, Displacement
                                          DSMax               => $ArcLenDSMax,
                                          DSStart             => 0.01,
                                          DSMin               => $ArcLenDSMax*1.0e-3,
