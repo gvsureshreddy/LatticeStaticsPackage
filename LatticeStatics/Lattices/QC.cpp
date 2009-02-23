@@ -34,31 +34,15 @@ QC::QC(PerlInput const& Input,int const& Echo,int const& Width):
       cerr << "Error: QC - RemoveTranslation parameter too big must be 0, 1, 2, or 3.\n";
       exit(-34);
    }
-   if (Input.ParameterOK(Hash,"Tolerance"))
-   {
-      Tolerance_ = Input.getDouble(Hash,"Tolerance");
-   }
-   else
-   {
-      Tolerance_ = Input.useDouble(1.0e-6,Hash,"Tolerance");  // Default Value
-   }
-   // get input file header
-   char tmp[2048];
-   strcpy(tmp,Input.LastInputFileName());
-   int len = strlen(tmp);
-   tmp[len-3] = 't';
-   tmp[len-2] = 'a';
-   tmp[len-1] = 'b';
-   tmp[len] = 0;
-
    if (RemoveTranslation_ > 0)
    {
       // determine translation mode.
       char stor[2048];
-      fstream table(tmp,ios::in);
+      char const* const tabfile = Input.getString(Hash,"TranslationTable");
+      fstream table(tabfile,ios::in);
       if (!table.is_open())
       {
-         cerr << "Error: QC unable to open file " << tmp << "!" << endl;
+         cerr << "Error: QC unable to open file " << tabfile << "!" << endl;
          exit(-12);
       }
       table.getline(stor,2048); // header line
@@ -83,7 +67,19 @@ QC::QC(PerlInput const& Input,int const& Echo,int const& Width):
 
       TranslationMode_ /= TranslationMode_.Norm();
    }
+   if (Input.ParameterOK(Hash,"Tolerance"))
+   {
+      Tolerance_ = Input.getDouble(Hash,"Tolerance");
+   }
+   else
+   {
+      Tolerance_ = Input.useDouble(1.0e-6,Hash,"Tolerance");  // Default Value
+   }
 
+   // get input file header
+   char tmp[2048];
+   strcpy(tmp,Input.LastInputFileName());
+   int len = strlen(tmp);
    tmp[len-3] = 'i';
    tmp[len-2] = 'n';
    tmp[len-1] = 0;
