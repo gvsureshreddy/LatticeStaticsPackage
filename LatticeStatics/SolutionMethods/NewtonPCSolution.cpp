@@ -646,6 +646,8 @@ int NewtonPCSolution::FindNextSolution()
       Stiff_static = Restrict_->Stiffness();
       Force_static = Restrict_->Force();
       forcenorm = Force_static.Norm();
+      cout << " \tForceNorm = " << forcenorm;
+      
       QR(Stiff_static, Q_static, R_static, 1);
       
       double tansign = 1.0;
@@ -663,7 +665,6 @@ int NewtonPCSolution::FindNextSolution()
       {
          Dot += Tangent1_[i]*Tangent2_[i];
       }
-      
       cout << " \tDot = " << Dot << " \tOmega = " << Omega_ << " \talpha = "
            << acos(fabs(Dot))*180.0/3.1415926 << "\n";
       if (acos(fabs(Dot)) > alpha_max_)
@@ -676,15 +677,23 @@ int NewtonPCSolution::FindNextSolution()
          continue;
       }
       f = max(f,(acos(fabs(Dot))/alpha_max_)*accel_max_);
-      
+
+      // solve and update
       MoorePenrose(Q_static,R_static, Force_static, Corrector_static);
-      
       Magnitude1 = Corrector_static.Norm();
       Magnitude2 = Magnitude1;
-      
+      for (i=0;i<count;i++)
+      {
+         w_static[i] = v_static[i] - Corrector_static[i];
+         difference_static[i] = -Corrector_static[i];
+      }
+      Restrict_->SetDOF(w_static);
+      Force_static = Restrict_->Force();
+      forcenorm = Force_static.Norm();
+
       corrections++;
-      cout << " \tForceNorm = " << forcenorm << " \tDeltaNorm = " << Magnitude1;
-      if (Magnitude1 > delta_max_)
+      cout << " \tCorrectorNorm = " << Magnitude2 << " \tForceNorm = " << forcenorm;
+      if (Magnitude2 > delta_max_)
       {
          f = accel_max_;
          CurrentDS_ /= f;
@@ -693,30 +702,68 @@ int NewtonPCSolution::FindNextSolution()
          ++predictions;
          continue;
       }
-      f = max(f,sqrt(Magnitude1/delta_max_)*accel_max_);
+      f = max(f,sqrt(Magnitude2/delta_max_)*accel_max_);
       cout << " \tAcceleration = " << 1.0/f << "\n";
-      
-      //CORRECTOR LOOP STARTS HERE
+
+      // accpet iteration
+      for(i=0;i<count;i++)
+      {
+         v_static[i] = w_static[i];
+      }
+
+      //test for iteration 1 convergence
       Converge_Test = 0;
+      switch (ConvergeType_)
+      {
+         case Both:
+            if ((forcenorm <= Converge_) && (Magnitude2 <= Converge_))
+            {
+               Converge_Test = 1;
+            }
+            break;
+         case Force:
+            if (forcenorm <= Converge_)
+            {
+               Converge_Test = 1;
+            }
+            break;
+         case Displacement:
+            if (Magnitude2 <= Converge_)
+            {
+               Converge_Test = 1;
+            }
+            break;
+      }
+      if (Converge_Test == 1)
+      {
+         // keep track of DS used to find the current point
+         PreviousDS_ = CurrentDS_;
+         
+         // adaptively change DS for next point
+         CurrentDS_ = CurrentDS_/f;
+         if(CurrentDS_ > MaxDS_)
+         {
+            CurrentDS_ = MaxDS_;
+         }
+      }
+      //CORRECTOR LOOP STARTS HERE (iteration 2)
       do
       {
+         GetQR(Force_static,difference_static,Q_static,R_static);
+         MoorePenrose(Q_static,R_static, Force_static,Corrector_static);
+         Magnitude2 = Corrector_static.Norm();
+         cout << " \tCorrectorNorm = " << Magnitude2;
+         // update
          for (i=0;i<count;i++)
          {
             w_static[i] = v_static[i] - Corrector_static[i];
             difference_static[i] = -Corrector_static[i];
          }
-         
          Restrict_->SetDOF(w_static);
-         
          Force_static = Restrict_->Force();
          forcenorm = Force_static.Norm();
-         cout << "\tForceNorm = " << forcenorm;
-
-         GetQR(Force_static,difference_static,Q_static,R_static);
-         MoorePenrose(Q_static,R_static, Force_static,Corrector_static);
+         cout << " \tForceNorm = " << forcenorm;
          
-         Magnitude2 = Corrector_static.Norm();
-         cout << " \tDeltaNorm = " << Magnitude2;
          if (Magnitude2 > delta_max_)
          {
             f = accel_max_;
@@ -802,8 +849,8 @@ int NewtonPCSolution::FindNextSolution()
            << acos(v_static*BifTangent_)*(57.2957795130823) << "\n";
    }
    
-   cout << "Converged with ForceNorm = " << forcenorm
-        << ",     CorrectorNorm = " << Magnitude2 << "\n";
+   cout << "Converged with CorrectorNorm = " << Magnitude2 
+        << ",     ForceNorm = " << forcenorm << "\n";
    
    if ((ClosedLoopStart_ >= 0) && (CurrentSolution_ > ClosedLoopStart_) &&
        ((Restrict_->DOF() - FirstSolution_).Norm() < CurrentDS_))
