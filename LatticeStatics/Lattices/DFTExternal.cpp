@@ -247,6 +247,7 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
       exit(-2);
    }
 
+   // get energy
    in >> DFTEnergyCachedValue_;
    
    E0CachedValue_ = DFTEnergyCachedValue_;
