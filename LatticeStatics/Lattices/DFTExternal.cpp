@@ -92,7 +92,8 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
    {
       retid=system("./script_main 2 >& /dev/null");
    }
-   cerr << "DFTExternal system() call returned with id: " << flag << endl;
+   cerr << "DFTExternal (flag=" << flag << ") system() call returned with id: " 
+        << retid << endl;
 
    // calculate pressure terms.
    Matrix B(3,3);
@@ -111,7 +112,7 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
    U[0][1]=U[1][0] = DOF_[5];
    double UDet = U.Det();
    double PressureEnergy = Lambda_*UDet;
-   Matrix PressureTerm = PressureEnergy*U.Inverse();
+   Matrix PressureTerm = PressureEnergy*(U.Inverse()).Transpose();
    Vector PressureStress(DOFS_,0.0);
    PressureStress[0] = PressureTerm[0][0];
    PressureStress[1] = PressureTerm[1][1];
@@ -470,6 +471,7 @@ void DFTExternal::Print(ostream& out,PrintDetail const& flag,
    int NoNegTestFunctions;
    double engy;
    double mintestfunct;
+   double J;
    Matrix
       stiff(DOFS_,DOFS_);
    Vector str(DOFS_);
@@ -483,6 +485,9 @@ void DFTExternal::Print(ostream& out,PrintDetail const& flag,
    stiff = E2();
    str = E1();
    engy = E0();
+   J = (1.0+DOF_[0])*( (1.0+DOF_[1])*(1.0+DOF_[2]) - DOF_[3]*DOF_[3] )
+      -(DOF_[5])*( (1.0+DOF_[0])*(1.0+DOF_[2]) - DOF_[4]*DOF_[4] )
+      +(DOF_[4])*( (1.0+DOF_[0])*(1.0+DOF_[1]) - DOF_[5]*DOF_[5] );
    
    NoNegTestFunctions=TestFunctions(TestFunctVals,LHS);
    mintestfunct = TestFunctVals[0];
@@ -505,6 +510,7 @@ void DFTExternal::Print(ostream& out,PrintDetail const& flag,
       case PrintShort:
          out << "Lambda: " << setw(W) << Lambda_ << "\n"
              << "DOF's :" << "\n" << setw(W) << DOF_ << "\n"
+             << "J (V/Vo) :" << setw(W) << J << "\n"
              << "DFT Energy Value:" << setw(W) << DFTEnergyCachedValue_ << "\n"
              << "Potential Value:" << setw(W) << engy << "\n";
 
@@ -518,6 +524,7 @@ void DFTExternal::Print(ostream& out,PrintDetail const& flag,
          {
             cout << "Lambda: " << setw(W) << Lambda_ << "\n"
                  << "DOF's :" << "\n" << setw(W) << DOF_ << "\n"
+                 << "J (V/Vo) :" << setw(W) << J << "\n"
                  << "DFT Energy Value:" << setw(W) << DFTEnergyCachedValue_ << "\n"
                  << "Potential Value:" << setw(W) << engy << "\n";
 
