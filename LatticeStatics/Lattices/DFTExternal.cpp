@@ -252,7 +252,7 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
 
    // Read in DFT information
    Matrix Stresses(3,3);
-   Matrix Forces(DOFS_-6);
+   Matrix Forces(DOFS_-6,1);
    
    in >> DFTEnergyCachedValue_;
    in >> Stresses;
