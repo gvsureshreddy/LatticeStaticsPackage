@@ -34,6 +34,10 @@ Lattice* const InitializeLattice(PerlInput& Input,int const&  Echo,int const& Wi
    {
       return new DFTExternal(Input,Echo,Width);
    }
+   else if (!strcmp("DFTExternalOld",Lat))
+   {
+      return new DFTExternalOld(Input,Echo,Width);
+   }
    else if (!strcmp("QC",Lat))
    {
       return new QC(Input,Echo,Width);

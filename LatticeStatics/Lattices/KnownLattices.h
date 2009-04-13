@@ -9,6 +9,7 @@
 #include "TwoBarTruss.h"
 #include "TwoBarTrussExternal.h"
 #include "DFTExternal.h"
+#include "DFTExternalOld.h"
 #include "QC.h"
 
 Lattice* const InitializeLattice(PerlInput& Input,int const& Echo,int const& Width=20,

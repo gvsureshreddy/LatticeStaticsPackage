@@ -1,10 +1,10 @@
-#include "DFTExternal.h"
+#include "DFTExternalOld.h"
 
 using namespace std;
 
-fstream DFTExternal::dbug;
+fstream DFTExternalOld::dbug;
 
-const double DFTExternal::Alt[3][3][3] = {{{0.0, 0.0, 0.0},
+const double DFTExternalOld::Alt[3][3][3] = {{{0.0, 0.0, 0.0},
                                            {0.0, 0.0, 1.0},
                                            {0.0, -1.0, 0.0}},
                                           {{0.0, 0.0, -1.0},
@@ -14,13 +14,13 @@ const double DFTExternal::Alt[3][3][3] = {{{0.0, 0.0, 0.0},
                                            {-1.0, 0.0, 0.0},
                                            {0.0, 0.0, 0.0}}};
 
-const double DFTExternal::Del[3][3] = {{1.0, 0.0, 0.0},
+const double DFTExternalOld::Del[3][3] = {{1.0, 0.0, 0.0},
                                        {0.0, 1.0, 0.0},
                                        {0.0, 0.0, 1.0}};
 
-DFTExternal::~DFTExternal()
+DFTExternalOld::~DFTExternalOld()
 {
-   cout << "DFTExternal Function Calls:\n"
+   cout << "DFTExternalOld Function Calls:\n"
         << "\tE0 calls - " << CallCount_[1] << "\n"
         << "\tE1 calls - " << CallCount_[2] << "\n"
         << "\tE1DLoad calls - " << CallCount_[3] << "\n"
@@ -28,17 +28,17 @@ DFTExternal::~DFTExternal()
    dbug.close();
 }
 
-DFTExternal::DFTExternal(PerlInput const& Input,int const& Echo,int const& Width):
+DFTExternalOld::DFTExternalOld(PerlInput const& Input,int const& Echo,int const& Width):
    Lattice(Input,Echo),
    Lambda_(0.0),
    Width_(Width)
 {
-   dbug.open("DFTExternal-dof-force.data", ios::out);
+   dbug.open("DFTExternalOld-dof-force.data", ios::out);
    dbug << fixed << setprecision(15);
 
    
    PerlInput::HashStruct Hash = Input.getHash("Lattice");
-   Hash = Input.getHash(Hash,"DFTExternal");
+   Hash = Input.getHash(Hash,"DFTExternalOld");
    DOFS_ = Input.getPosInt(Hash,"DOFS");
    DOF_.Resize(DOFS_,0.0);
    E1CachedValue_.Resize(DOFS_);
@@ -55,7 +55,7 @@ DFTExternal::DFTExternal(PerlInput const& Input,int const& Echo,int const& Width
    }
 }
 
-void DFTExternal::UpdateValues(UpdateFlag flag) const
+void DFTExternalOld::UpdateValues(UpdateFlag flag) const
 {
    int retid;
    fstream in;
@@ -92,7 +92,7 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
    {
       retid=system("./script_main 2 >& /dev/null");
    }
-   cerr << "DFTExternal (flag=" << flag << ") system() call returned with id: " 
+   cerr << "DFTExternalOld (flag=" << flag << ") system() call returned with id: " 
         << retid << endl;
 
    // calculate pressure terms.
@@ -111,7 +111,6 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
    U[2][0]=U[0][2] = DOF_[4];
    U[0][1]=U[1][0] = DOF_[5];
    double UDet = U.Det();
-   Matrix Uinv = U.Inverse();
    double PressureEnergy = Lambda_*UDet;
    Matrix PressureTerm = PressureEnergy*(U.Inverse()).Transpose();
    Vector PressureStress(DOFS_,0.0);
@@ -249,29 +248,11 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
       exit(-2);
    }
 
-
-   // Read in DFT information
-   Matrix Stresses(3,3);
-   Matrix Forces(DOFS_-6);
-   
+   // get energy
    in >> DFTEnergyCachedValue_;
-   in >> Stresses;
-   in >> Forces;
-
-   // set dwdc
-   Matrix dwdc(3,3);
-
-   for (int s=0;s<3;++s)
-      for (int t=0;t<3;++t)
-      {
-         dwdc[s][t] = 0.0;
-         for (int i=0;i<3;++i)
-            for (int j=0;j<3;++j)
-               dwdc[s][t] += 0.5*UDet*Uinv[s][i]*Stresses[i][j]*Uinv[t][j];
-      }
-
-   // set BFB energy value
-   E0CachedValue_ = UDet*DFTEnergyCachedValue_;
+   
+   E0CachedValue_ = DFTEnergyCachedValue_;
+   Cached_[0] = 1;
    // add phantom energy for translations
    double TrEig[3] = {1.0, 2.0, 3.0};
    Vector Tsq(3);
@@ -288,26 +269,37 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
    E0CachedValue_ += -PressureEnergy + 0.5*(TrEig[0]*Tsq[0] + TrEig[1]*Tsq[1] + TrEig[2]*Tsq[2]);
    Cached_[1] = 1;
 
-   // set BFB stress values
-   E1CachedValue_.Resize(DOFS_,0.0);
-   double bfbstresses[3][3];
+   Matrix H(9,9);
+   for (int k=0;k<3;++k)
+      for (int l=0;l<3;++l)
+         for (int i=0;i<3;++i)
+            for (int j=0;j<3;++j)
+            {
+               H[3*i+j][3*k+l] = Del[k][i]*Del[l][j] + Del[k][i]*B[j][l];
+            }
+   // get stresses
+   Matrix tmp(3,3);
+   in >> tmp;
+   Vector Tmp(9);
    for (int i=0;i<3;++i)
       for (int j=0;j<3;++j)
       {
-         bfbstresses[i][j] =0.0;
-         for (int r=0;r<3;++r)
-            bfbstresses[i][j] += U[i][r]*dwdc[r][j] + U[j][r]*dwdc[r][i];
+         Tmp[3*i+j] = tmp[i][j];
       }
+   Tmp = SolvePLU(H,Tmp);
+   // initialize
+   E1CachedValue_.Resize(DOFS_,0.0);
    for (int i=0;i<3;++i)
       for (int j=0;j<3;++j)
-         E1CachedValue_[((i==j)? i : 6-(i+j))] += bfbstresses[i][j];
-
-   // set BFB force values
-   for (int i=0;i<DOFS_-6;++i)
+      {
+         int a = ((i==j)? i : (6-i+j));
+         E1CachedValue_[a] += UDet*Tmp[3*i+j];
+      }
+   // get forces
+   for (int i=6;i<DOFS_;++i)
    {
-      E1CachedValue_[6+i] = UDet*Forces[i][0];
+      in >> E1CachedValue_[i];
    }
-
    // Phantom energy terms for the gradient.
    Vector T(3);
    Vector ME1(DOFS_,0.0);
@@ -328,121 +320,67 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
    E1CachedValue_ += -PressureStress + ME1;
    Cached_[2] = 1;
    
-
-   // Stiffness terms if needed
    if (flag==NeedStiffness)
    {
-      // read in DFT information
-      Matrix StrainStiffnesses(6,6);
-      Matrix CrossStiffnesses(6,DOFS_-6);
-      Matrix ShiftStiffnesses(DOFS_-6,DOFS_-6);
-      
-      in >> StrainStiffnesses;
-      in >> CrossStiffnesses;
-      in >> ShiftStiffnesses;
-      
-      // set d2wdcds and d2wd2c
-      Matrix d2wdcds[3]; for (int i=0;i<3;++i) d2wdcds[i].Resize(3,DOFS_-6);
-      double strainstiffnesses[3][3][3][3];
-      double d2wd2c[3][3][3][3];
-      
-      for (int i=0;i<3;++i)
-         for (int j=0;j<3;++j)
-            for (int k=0;k<DOFS_-6;++k)
-            {
-               d2wdcds[i][j][k] = 0.0;
-               for (int a=0;a<3;++a)
-                  for (int b=0;b<3;++b)
-                  {
-                     d2wdcds[i][j][k] += 0.5*UDet*Uinv[i][a]*
-                        CrossStiffnesses[((a==b)? a : 6-(a+b))][k]*Uinv[j][b];
-                  }
-            }
-
-      Matrix bfbcrossstiffness[3]; for (int i=0;i<3;++i) bfbcrossstiffness[i].Resize(3,DOFS_-6);
-      for (int i=0;i<3;++i)
-         for (int j=0;j<3;++j)
-            for (int k=0;k<DOFS_-6;++k)
-            {
-               bfbcrossstiffness[i][j][k] = 0.0;
-               for (int r=0;r<3;++r)
-                  bfbcrossstiffness[i][j][k]
-                     += U[i][r]*d2wdcds[r][j][k] + U[j][r]*d2wdcds[r][i][k];
-            }
-      
-      for (int a=0;a<3;++a)
-         for (int b=0;b<3;++b)
-            for (int d=0;d<3;++d)
-               for (int g=0;g<3;++g)
-               {
-                  strainstiffnesses[a][b][d][g]
-                     = StrainStiffnesses[((a==b)? a : 6-(a+b))][((d==g)? d : 6-(d+g))];
-               }
-      
-      for (int a=0;a<3;++a)
-         for (int b=0;b<3;++b)
-            for (int d=0;d<3;++d)
-               for (int g=0;g<3;++g)
-               {
-                  d2wd2c[a][b][d][g] = 0.0;
-                  for (int i=0;i<3;++i)
-                     for (int j=0;j<3;++j)
-                        for (int k=0;k<3;++k)
-                           for (int l=0;l<3;++l)
-                              d2wd2c[a][b][d][g] += 0.25*UDet*(
-                                 Uinv[a][i]*strainstiffnesses[i][j][k][l]
-                                 *Uinv[b][j]*Uinv[d][k]*Uinv[g][l]
-                                 - 0.5*(Uinv[a][k]*Uinv[d][i]*Stresses[l][j]
-                                        *Uinv[g][l]*Uinv[b][j]
-                                        + Uinv[a][l]*Uinv[g][i]*Stresses[k][j]
-                                        *Uinv[d][k]*Uinv[b][j]));
-               }
-
-
-      double bfbstrainstiffness[3][3][3][3];
+      Matrix CSym(6,6);
+      in >> CSym;
+      Matrix C(9,9);
       for (int i=0;i<3;++i)
          for (int j=0;j<3;++j)
             for (int k=0;k<3;++k)
                for (int l=0;l<3;++l)
                {
-                  bfbstrainstiffness[i][j][k][l] = 0.5*(Del[i][k]*dwdc[l][j]
-                                                        + Del[i][l]*dwdc[k][j]
-                                                        + Del[j][k]*dwdc[l][i]
-                                                        + Del[j][l]*dwdc[k][i]);
-                  for (int r=0;r<3;++r)
-                     for (int a=0;a<3;++a)
-                     {
-                        bfbstrainstiffness[i][j][k][l] +=
-                           U[i][r]*d2wd2c[r][j][a][l]*U[k][a]
-                           + U[i][r]*d2wd2c[r][j][a][k]*U[l][a]
-                           + U[j][r]*d2wd2c[r][i][a][l]*U[k][a]
-                           + U[j][r]*d2wd2c[r][i][a][k]*U[l][a];
-                     }
+                  int a = ((i==j)? i : (6-(i+j)));
+                  int b = ((k==l)? k : (6-(k+l)));
+                  C[3*i+j][3*k+l] = CSym[a][b];
                }
-
-      // Set bfb stiffness value
-      E2CachedValue_.Resize(DOFS_,DOFS_,0.0);
+      Matrix HInv = H.Inverse();
+      C = HInv*C*(HInv.Transpose());
+      Matrix L(6,6,0.0);
       for (int i=0;i<3;++i)
          for (int j=0;j<3;++j)
             for (int k=0;k<3;++k)
                for (int l=0;l<3;++l)
                {
-                  E2CachedValue_[((i==j)? i : 6-(i+j))][((k==l)? k : 6-(k+l))] +=
-                     bfbstrainstiffness[i][j][k][l];
+                  int a = ((i==j)? i : (6-(i+j)));
+                  int b = ((k==l)? k : (6-(k+l)));
+                  L[a][b] += UDet*C[3*i+j][3*k+l];
                }
-      
-      for (int i=0;i<3;++i)
-         for (int j=0;j<3;++j)
-            for (int k=0;k<DOFS_-6;++k)
-            {
-               E2CachedValue_[((i==j)? i : 6-(i+j))][6+k] += bfbcrossstiffness[i][j][k];
-               E2CachedValue_[6+k][((i==j)? i : 6-(i+j))] += bfbcrossstiffness[i][j][k];
-            }
-
-      for (int i=0;i<DOFS_-6;++i)
-         for (int j=0;j<DOFS_-6;++j)
+      for (int i=0;i<6;++i)
+         for (int j=0;j<6;++j)
          {
-            E2CachedValue_[6+i][6+j] = UDet*ShiftStiffnesses[i][j];
+            E2CachedValue_[i][j] = L[i][j];
+         }
+      Matrix D(DOFS_-6,6);
+      in >> D;
+      Matrix DTmp(DOFS_-6,9);
+      for (int i=0;i<DOFS_-6;++i)
+         for (int j=0;j<3;++j)
+            for (int k=0;k<3;++k)
+            {
+               int a = ((j==k)? j : (6-(j+k)));
+               DTmp[i][3*j+k] = D[i][a];
+            }
+      DTmp = UDet*DTmp*(HInv.Transpose());
+      Matrix DFinal(DOFS_-6,6,0.0);
+      for (int i=0;i<DOFS_-6;++i)
+         for (int j=0;j<3;++j)
+            for (int k=0;k<3;++k)
+            {
+               int a = ((j==k)? j : (6-(j+k)));
+               DFinal[i][a] += DTmp[i][3*j+k];
+            }
+      for (int i=6;i<DOFS_;++i)
+         for (int j=0;j<6;++j)
+         {
+            E2CachedValue_[i][j] = E2CachedValue_[j][i] = DFinal[i-6][j];
+         }
+      Matrix P(DOFS_-6,DOFS_-6);
+      in >> P;
+      for (int i=6;i<DOFS_;++i)
+         for (int j=6;j<DOFS_;++j)
+         {
+            E2CachedValue_[i][j] = P[i-6][j-6];
          }
 
       // Phantom Energy terms
@@ -464,7 +402,7 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
    dbug << setw(Width_) << E1CachedValue_ << endl;
 }
 
-double DFTExternal::E0() const
+double DFTExternalOld::E0() const
 {
    if (!Cached_[1])
    {
@@ -475,7 +413,7 @@ double DFTExternal::E0() const
    return E0CachedValue_;
 }
 
-Vector const& DFTExternal::E1() const
+Vector const& DFTExternalOld::E1() const
 {
    if (!Cached_[2])
    {
@@ -486,7 +424,7 @@ Vector const& DFTExternal::E1() const
    return E1CachedValue_;
 }
 
-Vector const& DFTExternal::E1DLoad() const
+Vector const& DFTExternalOld::E1DLoad() const
 {
    if (!Cached_[3])
    {
@@ -515,7 +453,7 @@ Vector const& DFTExternal::E1DLoad() const
    return E1DLoadCachedValue_;
 }
 
-Matrix const& DFTExternal::E2() const
+Matrix const& DFTExternalOld::E2() const
 {
    if (!Cached_[4])
    {
@@ -526,7 +464,7 @@ Matrix const& DFTExternal::E2() const
    return E2CachedValue_;
 }
 
-void DFTExternal::Print(ostream& out,PrintDetail const& flag,
+void DFTExternalOld::Print(ostream& out,PrintDetail const& flag,
                         PrintPathSolutionType const& SolType)
 {
    int W;
@@ -562,11 +500,11 @@ void DFTExternal::Print(ostream& out,PrintDetail const& flag,
    switch (flag)
    {
       case PrintLong:
-         out << "DFTExternal:" << "\n" << "\n";
+         out << "DFTExternalOld:" << "\n" << "\n";
 
          if (Echo_)
          {
-            cout << "DFTExternal:" << "\n" << "\n";
+            cout << "DFTExternalOld:" << "\n" << "\n";
          }
          // passthrough to short
       case PrintShort:
@@ -603,7 +541,7 @@ void DFTExternal::Print(ostream& out,PrintDetail const& flag,
    dbug << endl;
 }
 
-ostream& operator<<(ostream& out,DFTExternal& A)
+ostream& operator<<(ostream& out,DFTExternalOld& A)
 {
    A.Print(out,Lattice::PrintShort);
    return out;

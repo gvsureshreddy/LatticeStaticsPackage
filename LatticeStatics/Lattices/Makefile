@@ -7,5 +7,6 @@ LATTICES = KnownLattices.cpp\
 	   TwoBarTruss.cpp\
 	   TwoBarTrussExternal.cpp\
 	   DFTExternal.cpp\
+	   DFTExternalOld.cpp\
 	   QC.cpp\
 	   QC-stub.cpp
