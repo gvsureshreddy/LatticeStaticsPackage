@@ -690,8 +690,8 @@ int NewtonPCSolution::FindNextSolution()
       Restrict_->SetDOF(w_static);
       Force_static = Restrict_->Force();
       forcenorm = Force_static.Norm();
-
       corrections++;
+      
       cout << " \tCorrectorNorm = " << Magnitude2 << " \tForceNorm = " << forcenorm;
       if (Magnitude2 > delta_max_)
       {
@@ -746,8 +746,8 @@ int NewtonPCSolution::FindNextSolution()
             CurrentDS_ = MaxDS_;
          }
       }
-      //CORRECTOR LOOP STARTS HERE (iteration 2)
-      do
+      //CORRECTOR LOOP (iteration 2) STARTS HERE 
+      while (Converge_Test != 1)
       {
          GetQR(Force_static,difference_static,Q_static,R_static);
          MoorePenrose(Q_static,R_static, Force_static,Corrector_static);
@@ -762,6 +762,7 @@ int NewtonPCSolution::FindNextSolution()
          Restrict_->SetDOF(w_static);
          Force_static = Restrict_->Force();
          forcenorm = Force_static.Norm();
+         ++corrections;
          cout << " \tForceNorm = " << forcenorm;
          
          if (Magnitude2 > delta_max_)
@@ -825,10 +826,8 @@ int NewtonPCSolution::FindNextSolution()
                CurrentDS_ = MaxDS_;
             }
          }
-         
-         ++corrections;
       }
-      while (Converge_Test != 1);
+      
       cout << "Prediction " << predictions << " Corrector Iterations: " << corrections << "\n";
       ++predictions;
    }
