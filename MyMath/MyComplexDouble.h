@@ -35,7 +35,7 @@ public:
    Elm mod() const { return sqrt(Re_*Re_ + Im_*Im_);}
    Elm arg() const {if (Re_>0.0) return atan(Im_/Re_);
       else if (Re_< 0.0) return 4.0*atan(1.0)-atan(Im_/Re_);
-      else return (Im_ > 0.0)? 2.0atan(1.0) : -2.0*atan(1.0);}
+      else return (Im_ > 0.0)? 2.0*atan(1.0) : -2.0*atan(1.0);}
 
    // Comparison methods...
 
