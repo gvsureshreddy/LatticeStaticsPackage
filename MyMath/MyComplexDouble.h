@@ -33,7 +33,9 @@ public:
    Elm const& real() const { return Re_;}
    Elm const& imag() const { return Im_;}
    Elm mod() const { return sqrt(Re_*Re_ + Im_*Im_);}
-   Elm arg() const { return (Re_>0.0)?atan(Re_/Im_):4.0*atan(1.0)-atan(Re_/Im_);}
+   Elm arg() const {if (Re_>0.0) return atan(Im_/Re_);
+      else if (Re_< 0.0) return 4.0*atan(1.0)-atan(Im_/Re_);
+      else return (Im_ > 0.0)? 2.0atan(1.0) : -2.0*atan(1.0);}
 
    // Comparison methods...
 
