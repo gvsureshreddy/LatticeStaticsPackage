@@ -78,14 +78,18 @@ SolutionMethod* InitializeSolution(Restriction* const Restrict,PerlInput const& 
          {
             ScanningSolution ScanMe(Restrict,Input,Echo);
 
-            good = ScanMe.FindNextSolution();
-            if (good)
+            while (!ScanMe.AllSolutionsFound())
             {
-               count++;
-               out << setw(Width) << *Lat << "Success = 1" << "\n";
-               One = Restrict->DOF();
-               return new NewtonPCSolution(Restrict,Input,One,Echo);
+               good = ScanMe.FindNextSolution();
+               if (good)
+               {
+                  count++;
+                  out << setw(Width) << *Lat << "Success = 1" << "\n";
+               }
             }
+
+            One = Restrict->DOF();
+            return new NewtonPCSolution(Restrict,Input,One,Echo);
          }
       }
    }

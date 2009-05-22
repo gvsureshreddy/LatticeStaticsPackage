@@ -43,7 +43,12 @@ public:
    int HashOK(char const* const HashName) const;
    int ParameterOK(HashStruct const& Hash,char const* const ParamName) const;
    int ParameterOK(char const* const HashName,char const* const ParamName) const
-   {return ParameterOK(getHash(HashName),ParamName);}
+   {
+      if (HashOK(HashName))
+         return ParameterOK(getHash(HashName),ParamName);
+      else
+         return 0;
+   }
    
    HashStruct getHash(char const* const HashName) const;
    HashStruct getHash(HashStruct const& Hash,char const* const ParamName,
