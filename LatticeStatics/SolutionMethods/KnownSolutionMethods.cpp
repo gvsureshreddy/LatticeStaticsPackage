@@ -4,11 +4,13 @@ SolutionMethod* InitializeSolution(Restriction* const Restrict,PerlInput const& 
                                    Lattice* const Lat,ostream& out,int const& Width,
                                    int const& Echo)
 {
-   enum solution {Scanning,ArcLen,NewtonPC};
+   enum solution {RefineEqbm,Scanning,ArcLen,NewtonPC};
    solution solu;
    
    const char *slvmthd = Input.getString("SolutionMethod","Type");
-   if (!strcmp("ScanningSolution",slvmthd))
+   if (!strcmp("RefineEqbmSolution",slvmthd))
+      solu = RefineEqbm;
+   else if (!strcmp("ScanningSolution",slvmthd))
       solu = Scanning;
    else if (!strcmp("ArcLengthSolution",slvmthd))
       solu = ArcLen;
@@ -22,6 +24,10 @@ SolutionMethod* InitializeSolution(Restriction* const Restrict,PerlInput const& 
    
    switch (solu)
    {
+      case RefineEqbm:
+      {
+         return new RefineEqbmSolution(Restrict,Input,0);
+      }
       case Scanning:
       {
          return new ScanningSolution(Restrict,Input,Echo);

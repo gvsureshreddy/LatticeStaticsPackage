@@ -249,50 +249,53 @@ $Rtheta1_1_1 = 0.275914376289;
 #SolutionMethod Parameters
 $ArcLenDSMax = 0.01;
 
-%SolutionMethod = (Type              => NewtonPCSolution, # ArcLengthSolution, ScanningSolution, NewtonPCSolution
-                   NewtonPCSolution  => {UpdateType       => QRUpdate, # Default value = QRUpdate; NoUpdate, StiffnessUpdate, Exact
-                                         NumSolutions        => 1000,
-                                         MaxDS               => 0.1,
-                                         CurrentDS           => 0.001,
-                                         MinDS               => 1e-12,
-                                         Contraction         => 0.1,
-                                         Distance            => 0.01,
-                                         Angle               => 60*$DEG2RAD,
-                                         ConvergeCriteria    => 1e-13#,
-                                         #ConvergeType        => Both, # Default value = Both, Force, Displacement
-                                         #ClosedLoopStart     => 30, # Default value = 30
-                                         #StopAtCPCrossingNum => -1, # Default value = -1
-                                         #Direction           => 1, # Default value = 1
-                                         #Acceleration        => 2.0, # Default value = 2.0
-                                         #StopAtMinDS         => Yes # Default value = Yes, No
-                                        },
-                   ArcLengthSolution => {MaxIterations       => 50,
-                                         Tolerance           => 1.0e-13,
-                                         #ConvergeType        => Both, # Default value = Both, Force, Displacement
-                                         DSMax               => $ArcLenDSMax,
-                                         DSStart             => 0.01,
-                                         DSMin               => $ArcLenDSMax*1.0e-3,
-                                         AngleCutoff         => 25*$DEG2RAD,
-                                         AngleIncrease       => 10*$DEG2RAD,
-                                         Aspect              => 1.0,
-                                         NumSolutions        => 1000,
-                                         #ClosedLoopStart     => 30#, # Default value = 30
-                                         #StopAtCPCrossingNum => -1, # Default value = -1
-                                        },
-                   ScanningSolution  => {MaxIterations      => 50,
-                                         Tolerance          => 1.0e-13,
-                                         NewtonTolerance    => 1.0e-13,
-                                         FullField          => No, # Yes, No
-                                         InitialDeformation => [1.0, 1.0],
-                                         Direction          => Deformation, # Loading, Deformation
-                                         DefParam           => 0,
-                                         Start              => 1.000,
-                                         End                => 1.015,
-                                         Step               => 0.010,
-                                         LineStart          => 0.94,
-                                         LineEnd            => 1.10,
-                                         LineStep           => 0.05
-                                        }
+%SolutionMethod = (Type               => NewtonPCSolution, # RefineEqbmSolution, ArcLengthSolution, ScanningSolution, NewtonPCSolution
+                   NewtonPCSolution   => {UpdateType       => QRUpdate, # Default value = QRUpdate; NoUpdate, StiffnessUpdate, Exact
+                                          NumSolutions        => 1000,
+                                          MaxDS               => 0.1,
+                                          CurrentDS           => 0.001,
+                                          MinDS               => 1e-12,
+                                          Contraction         => 0.1,
+                                          Distance            => 0.01,
+                                          Angle               => 60*$DEG2RAD,
+                                          ConvergeCriteria    => 1e-13#,
+                                          #ConvergeType        => Both, # Default value = Both, Force, Displacement
+                                          #ClosedLoopStart     => 30, # Default value = 30
+                                          #StopAtCPCrossingNum => -1, # Default value = -1
+                                          #Direction           => 1, # Default value = 1
+                                          #Acceleration        => 2.0, # Default value = 2.0
+                                          #StopAtMinDS         => Yes # Default value = Yes, No
+                                         },
+                   ArcLengthSolution  => {MaxIterations       => 50,
+                                          Tolerance           => 1.0e-13,
+                                          #ConvergeType        => Both, # Default value = Both, Force, Displacement
+                                          DSMax               => $ArcLenDSMax,
+                                          DSStart             => 0.01,
+                                          DSMin               => $ArcLenDSMax*1.0e-3,
+                                          AngleCutoff         => 25*$DEG2RAD,
+                                          AngleIncrease       => 10*$DEG2RAD,
+                                          Aspect              => 1.0,
+                                          NumSolutions        => 1000,
+                                          #ClosedLoopStart     => 30#, # Default value = 30
+                                          #StopAtCPCrossingNum => -1, # Default value = -1
+                                         },
+                   ScanningSolution   => {MaxIterations      => 50,
+                                          Tolerance          => 1.0e-13,
+                                          NewtonTolerance    => 1.0e-13,
+                                          FullField          => No, # Yes, No
+                                          InitialDeformation => [1.0, 1.0],
+                                          Direction          => Deformation, # Loading, Deformation
+                                          DefParam           => 0,
+                                          Start              => 1.000,
+                                          End                => 1.015,
+                                          Step               => 0.010,
+                                          LineStart          => 0.94,
+                                          LineEnd            => 1.10,
+                                          LineStep           => 0.05
+                                         },
+                   RefineEqbmSolution => {ConvergeCriteria => 1e-13#,
+                                          #ConvergeType     => Both, # Default value = Both, Force, Displacement
+                                         }
                   );
 
 # Start/Restart Parameters (can be put into start file OR input file)
@@ -343,3 +346,5 @@ $ArcLenDSMax = 0.01;
 #              Epsilon  => 1e-8
 #             );
 
+# RefineEqbm Solution StartTypes:
+#%StartType = (Solution => [1.00000, 1.000000]);

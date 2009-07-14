@@ -40,4 +40,6 @@ TwoBarTrussExternal.d
 DFTExternal.d
 QC-stub.d
 QC.d
+DFTExternalOld.d
+RefineEqbmSolution.d
 

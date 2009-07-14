@@ -2,6 +2,7 @@
 #define RSE__KnownSolutionMethod
 
 #include "PerlInput.h"
+#include "RefineEqbmSolution.h"
 #include "ArcLengthSolution.h"
 #include "ScanningSolution.h"
 #include "NewtonPCSolution.h"
