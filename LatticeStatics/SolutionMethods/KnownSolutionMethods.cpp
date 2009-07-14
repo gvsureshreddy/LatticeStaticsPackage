@@ -82,18 +82,45 @@ SolutionMethod* InitializeSolution(Restriction* const Restrict,PerlInput const& 
          }
          else
          {
-            ScanningSolution ScanMe(Restrict,Input,Echo);
-
-            while (!ScanMe.AllSolutionsFound())
+            // find and setup first solution point method
+            SolutionMethod* slnmthd;
+            PerlInput::HashStruct Hash = Input.getHash("SolutionMethod","NewtonPCSolution");
+            if (Input.ParameterOK(Hash,"FirstPointMethod"))
             {
-               good = ScanMe.FindNextSolution();
+               const char *frstpt = Input.getString(Hash,"FirstPointMethod");
+               if (!strcmp("RefineEqbmSolution",frstpt))
+               {
+                  
+               }
+               else if (!strcmp("ScanningSolution",frstpt))
+               {
+                  slnmthd = new ScanningSolution(Restrict,Input,Echo);
+               }
+               else
+               {
+                  cerr << "Unknown FirstPointMehtod: " << frstpt << "\nExiting!\n";
+                  exit(-21);
+               }
+            }
+            else
+            {
+               // default to RefineEqbmSolution
+               slnmthd = new RefineEqbmSolution(Restrict,Input,0);
+            }
+
+            // Find first solution point
+            while (!slnmthd->AllSolutionsFound())
+            {
+               good = slnmthd->FindNextSolution();
                if (good)
                {
                   count++;
                   out << setw(Width) << *Lat << "Success = 1" << "\n";
                }
             }
-
+            // teardown slnmthd
+            delete slnmthd;
+            
             One = Restrict->DOF();
             return new NewtonPCSolution(Restrict,Input,One,Echo);
          }

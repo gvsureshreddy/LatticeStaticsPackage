@@ -90,9 +90,9 @@ RefineEqbmSolution::RefineEqbmSolution(Restriction* const Restrict,PerlInput con
       Input.useString("Both",Hash,"ConvergeType");  // Default Value
       ConvergeType_ = Both;
    }
-
-   Vector onetmp(Input.getArrayLength("StartType","Solution"));
-   Input.getVector(onetmp,"StartType","Solution");
+   
+   Vector onetmp(Input.getArrayLength(Hash,"Solution"));
+   Input.getVector(onetmp,Hash,"Solution");
    Restrict_->SetDOF(Restrict_->RestrictDOF(onetmp));
 }
 

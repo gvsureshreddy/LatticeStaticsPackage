@@ -295,6 +295,7 @@ $ArcLenDSMax = 0.01;
                                          },
                    RefineEqbmSolution => {ConvergeCriteria => 1e-13#,
                                           #ConvergeType     => Both, # Default value = Both, Force, Displacement
+                                          #Solution => [1.000000000000, 1.000000000000]
                                          }
                   );
 
@@ -345,6 +346,3 @@ $ArcLenDSMax = 0.01;
 #              Solution => [1.000000000000, 1.000000000000],
 #              Epsilon  => 1e-8
 #             );
-
-# RefineEqbm Solution StartTypes:
-#%StartType = (Solution => [1.00000, 1.000000]);
