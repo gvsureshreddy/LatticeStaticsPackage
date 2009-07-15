@@ -36,13 +36,13 @@ YN BisectCP;
 extern "C" void bfb_init_wrapper_(int& nfree,double* ufree_init,double& t,char* bfbfile)
 {
    Vector utmp(nfree);
-   Vector sol(nfree+1);
+   //Vector sol(nfree+1);
    for (int i=0;i<nfree;++i)
    {
       utmp[i] = ufree_init[i];
-      sol[i] = ufree_init[i];
+      //sol[i] = ufree_init[i];
    }
-   sol[nfree] = t;
+   //sol[nfree] = t;
    
    Input.Readfile(bfbfile);
    ostringstream tmp;
@@ -65,15 +65,16 @@ extern "C" void bfb_init_wrapper_(int& nfree,double* ufree_init,double& t,char* 
    Restrict = InitializeRestriction(Lat,Input);
    
    cout << "Restriction: " << Restrict->Name() << "\n";
-   
-   tmp.str("");
-   tmp << scientific << setprecision(Precision);
-   tmp << "$StartType{Solution} = [";
-   tmp << setw(Width) << sol[0];
-   for (int i=1;i<sol.Dim();++i)
-      tmp << "," << setw(Width) << sol[i];
-   tmp << "];";
-   Input.EvaluateString(tmp.str().c_str());
+
+   // Let RefineEqbmSolution take care of giving the first solution, utmp, to NewtonPCSolution
+   //tmp.str("");
+   //tmp << scientific << setprecision(Precision);
+   //tmp << "$StartType{Solution} = [";
+   //tmp << setw(Width) << sol[0];
+   //for (int i=1;i<sol.Dim();++i)
+   //   tmp << "," << setw(Width) << sol[i];
+   //tmp << "];";
+   //Input.EvaluateString(tmp.str().c_str());
    
    SolveMe = InitializeSolution(Restrict,Input,Lat,cout,Width,Echo);
    EigenValues.Resize(Lat->DOF().Dim());
