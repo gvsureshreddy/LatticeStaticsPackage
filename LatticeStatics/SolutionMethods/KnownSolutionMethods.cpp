@@ -90,7 +90,7 @@ SolutionMethod* InitializeSolution(Restriction* const Restrict,PerlInput const& 
                const char *frstpt = Input.getString(Hash,"FirstPointMethod");
                if (!strcmp("RefineEqbmSolution",frstpt))
                {
-                  
+                  slnmthd = new RefineEqbmSolution(Restrict,Input,0);
                }
                else if (!strcmp("ScanningSolution",frstpt))
                {
