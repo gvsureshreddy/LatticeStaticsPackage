@@ -159,10 +159,10 @@ RestrictToTranslatedSubSpace::RestrictToTranslatedSubSpace(Lattice* const M,Perl
 
    // Make sure everything is synchronized
    Vector t = Lattice_->DOF();
-   Vector tt(DOFS_+1);
-   for (int i=0;i<DOFS_;++i) tt[i] = t[i];
-   tt[DOFS_] = Lattice_->LoadParameter();
-   DOF_ = RestrictDOF(tt);
+   Vector tt(t.Dim()+1);
+   for (int i=0;i<t.Dim();++i) tt[i] = t[i];
+   tt[t.Dim()+1] = Lattice_->LoadParameter();
+   SetDOF(RestrictDOF(tt));
 }
 
 // Functions required by Restriction
