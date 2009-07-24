@@ -156,6 +156,9 @@ RestrictToTranslatedSubSpace::RestrictToTranslatedSubSpace(Lattice* const M,Perl
    stressdt_static.Resize(size_static);
    Lat_ddt_static.Resize(size_static);
    Rest_ddt_static.Resize(DOFS_);
+
+   // Make sure everything is synchronized
+   UpdateLatticeState();
 }
 
 // Functions required by Restriction
