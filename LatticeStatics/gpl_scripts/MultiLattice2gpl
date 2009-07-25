@@ -138,7 +138,7 @@ sub loaddata {
   
   if (-e $_[1])
   {
-    open(DATA,"zcat -f $_[1]|") || die "No file, \"$_[0]\": $_[1], $!";
+    open(DATA,"gzcat -f $_[1]|") || die "No file, \"$_[0]\": $_[1], $!";
     
     $bifflag=0;
     $_ = <DATA>;

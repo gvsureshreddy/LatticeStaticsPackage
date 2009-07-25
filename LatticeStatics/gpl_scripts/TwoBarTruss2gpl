@@ -81,7 +81,7 @@ sub loaddata {
 
     if (-e $_[1])
     {
-	open(DATA,"zcat -f $_[1]|") || die "No file, $_[1], $!";
+	open(DATA,"gzcat -f $_[1]|") || die "No file, $_[1], $!";
 
 	$_ = <DATA>;
 	while (! m/^Restriction:/)
