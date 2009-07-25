@@ -158,11 +158,16 @@ RestrictToTranslatedSubSpace::RestrictToTranslatedSubSpace(Lattice* const M,Perl
    Rest_ddt_static.Resize(DOFS_);
 
    // Make sure everything is synchronized
+   cout << "Lattice_->DOF() : " << Lattice_->DOF() << endl;
+   cout << "Restrict->DOF() : " << DOF_ << endl;
    Vector t = Lattice_->DOF();
    Vector tt(t.Dim()+1);
    for (int i=0;i<t.Dim();++i) tt[i] = t[i];
-   tt[t.Dim()] = Lattice_->LoadParameter();
+   tt[t.Dim()] = ((Lattice::Temperature == Lattice_->LoadParameter()) ?
+                  Lattice_->Temp() : Lattice_->Lambda());
    SetDOF(RestrictDOF(tt));
+   cout << "Restrict->DOF() : " << DOF_ << endl;
+   cout << "Lattice_->DOF() : " << Lattice_->DOF() << endl;
 }
 
 // Functions required by Restriction
