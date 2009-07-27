@@ -237,7 +237,11 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
       if (Input.ParameterOK("StartType","ClosedLoopUseAsFirst"))
       {
          ClosedLoopUseAsFirst_ = Input.getPosInt("StartType","ClosedLoopUseAsFirst");
-         if (ClosedLoopUseAsFirst_ >= ClosedLoopStart_)
+         if (ClosedLoopUseAsFirst_ == 0)
+         {
+            FirstSolution_ = one;
+         }
+         else if (ClosedLoopUseAsFirst_ >= ClosedLoopStart_)
          {
             cerr << "Error: NewtonPCSolution -- ClosedLoopUseAsFirst must be < ClosedLoopStart."
                  << endl;
@@ -468,7 +472,11 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
          if (Input.ParameterOK("StartType","ClosedLoopUseAsFirst"))
          {
             ClosedLoopUseAsFirst_ = Input.getPosInt("StartType","ClosedLoopUseAsFirst");
-            if (ClosedLoopUseAsFirst_ >= ClosedLoopStart_)
+            if (ClosedLoopUseAsFirst_ == 0)
+            {
+               FirstSolution_ = one;
+            }
+            else if (ClosedLoopUseAsFirst_ >= ClosedLoopStart_)
             {
                cerr << "Error: NewtonPCSolution -- ClosedLoopUseAsFirst must be < ClosedLoopStart."
                     << endl;
@@ -521,7 +529,11 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
          if (Input.ParameterOK("StartType","ClosedLoopUseAsFirst"))
          {
             ClosedLoopUseAsFirst_ = Input.getPosInt("StartType","ClosedLoopUseAsFirst");
-            if (ClosedLoopUseAsFirst_ >= ClosedLoopStart_)
+            if (ClosedLoopUseAsFirst_ == 0)
+            {
+               FirstSolution_ = one;
+            }
+            else if (ClosedLoopUseAsFirst_ >= ClosedLoopStart_)
             {
                cerr << "Error: NewtonPCSolution -- ClosedLoopUseAsFirst must be < ClosedLoopStart."
                     << endl;
