@@ -714,6 +714,7 @@ int NewtonPCSolution::FindNextSolution()
          ++predictions;
          continue;
       }
+      // the below should depend on the type of updating (currently correct for ExactUpdate)
       f = max(f,sqrt(Magnitude2/delta_max_)*accel_max_);
       cout << " \tAcceleration = " << 1.0/f << "\n";
 
@@ -758,6 +759,7 @@ int NewtonPCSolution::FindNextSolution()
             CurrentDS_ = MaxDS_;
          }
       }
+
       //CORRECTOR LOOP (iteration 2) STARTS HERE 
       while (Converge_Test != 1)
       {
@@ -784,6 +786,7 @@ int NewtonPCSolution::FindNextSolution()
             cout << "\n";
             break;
          }
+         // the below should depend on the type of updating (currently correct for ExactUpdate)
          f = max(f,sqrt(Magnitude2/delta_max_)*accel_max_);
          
          Kappa = Magnitude2/(Magnitude1+Converge_*eta);
@@ -795,6 +798,7 @@ int NewtonPCSolution::FindNextSolution()
             cout << "\n";
             break;
          }
+         // the below should depend on the type of updating (currently correct for ExactUpdate)
          f = max(f,sqrt(Kappa/cont_rate_max_)*accel_max_);
          cout << " \tAcceleration = " << 1.0/f << "\n";
          Magnitude1=Magnitude2;
