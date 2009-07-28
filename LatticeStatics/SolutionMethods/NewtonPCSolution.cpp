@@ -606,6 +606,35 @@ int NewtonPCSolution::AllSolutionsFound() const
    }
 }
 
+
+int NewtonPCSolution::IsConverged(double const& f,double const& d) const
+{
+   int Converged = 0;
+   switch (ConvergeType_)
+   {
+      case Both:
+         if ((f <= Converge_) && (d <= Converge_))
+         {
+            Converged = 1;
+         }
+         break;
+      case Force:
+         if (f <= Converge_)
+         {
+            Converged = 1;
+         }
+         break;
+      case Displacement:
+         if (d <= Converge_)
+         {
+            Converged = 1;
+         }
+         break;
+   }
+
+   return Converged;
+}
+
 int NewtonPCSolution::FindNextSolution()
 {
    ++counter_[4];
@@ -616,7 +645,7 @@ int NewtonPCSolution::FindNextSolution()
    int count = FirstSolution_.Dim();
    int count_minus_one = count -1;
    int good=0;
-   int i, Converge_Test;
+   int i, Converged=0;
    int predictions=1;
    int corrections=0;
    double Kappa=0.0;
@@ -634,7 +663,7 @@ int NewtonPCSolution::FindNextSolution()
       Tangent1_[i] = Tangent2_[i];
    }
    
-   do
+   while(!Converged)
    {
       corrections = 0;
       
@@ -725,43 +754,10 @@ int NewtonPCSolution::FindNextSolution()
       }
 
       //test for iteration 1 convergence
-      Converge_Test = 0;
-      switch (ConvergeType_)
-      {
-         case Both:
-            if ((forcenorm <= Converge_) && (Magnitude2 <= Converge_))
-            {
-               Converge_Test = 1;
-            }
-            break;
-         case Force:
-            if (forcenorm <= Converge_)
-            {
-               Converge_Test = 1;
-            }
-            break;
-         case Displacement:
-            if (Magnitude2 <= Converge_)
-            {
-               Converge_Test = 1;
-            }
-            break;
-      }
-      if (Converge_Test == 1)
-      {
-         // keep track of DS used to find the current point
-         PreviousDS_ = CurrentDS_;
-         
-         // adaptively change DS for next point
-         CurrentDS_ = CurrentDS_/f;
-         if(CurrentDS_ > MaxDS_)
-         {
-            CurrentDS_ = MaxDS_;
-         }
-      }
+      Converged = IsConverged(forcenorm,Magnitude2);
 
       //CORRECTOR LOOP (iteration 2) STARTS HERE 
-      while (Converge_Test != 1)
+      while (!Converged)
       {
          GetQR(Force_static,difference_static,Q_static,R_static);
          MoorePenrose(Q_static,R_static, Force_static,Corrector_static);
@@ -809,45 +805,18 @@ int NewtonPCSolution::FindNextSolution()
             v_static[i] = w_static[i];
          }
 
-         switch (ConvergeType_)
-         {
-            case Both:
-               if ((forcenorm <= Converge_) && (Magnitude2 <= Converge_))
-               {
-                  Converge_Test = 1;
-               }
-               break;
-            case Force:
-               if (forcenorm <= Converge_)
-               {
-                  Converge_Test = 1;
-               }
-               break;
-            case Displacement:
-               if (Magnitude2 <= Converge_)
-               {
-                  Converge_Test = 1;
-               }
-               break;
-         }
-         if (Converge_Test == 1)
-         {
-            // keep track of DS used to find the current point
-            PreviousDS_ = CurrentDS_;
-            
-            // adaptively change DS for next point
-            CurrentDS_ = CurrentDS_/f;
-            if(CurrentDS_ > MaxDS_)
-            {
-               CurrentDS_ = MaxDS_;
-            }
-         }
+         Converged = IsConverged(forcenorm,Magnitude2);
       }
       
       cout << "Prediction " << predictions << " Corrector Iterations: " << corrections << "\n";
       ++predictions;
-   }
-   while (f >= accel_max_);
+   };
+
+   // keep track of DS used to find the current point
+   PreviousDS_ = CurrentDS_;
+   // adaptively change DS for next point
+   CurrentDS_ = CurrentDS_/f;  //note the above ensures that  (1/accel_max_) < f < accel_max_
+   if(CurrentDS_ > MaxDS_) CurrentDS_ = MaxDS_;
    
    if (Dot <= 0.0)
    {

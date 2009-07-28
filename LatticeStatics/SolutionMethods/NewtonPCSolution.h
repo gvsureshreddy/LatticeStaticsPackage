@@ -46,7 +46,8 @@ private:
    Vector PreviousSolution_;    //Previous point on curve
    Vector Tangent1_;            //Tangent vector of ith point
    Vector Tangent2_;            //Tangent Vector of ith + 1 point
-   
+
+   inline int IsConverged(double const& f,double const& d) const;
    void GetQR(Vector const& Force,Vector const& diff,Matrix& Q,Matrix& R) const;
    void MoorePenrose(Matrix const& Q,Matrix const& R,Vector const& Force,Vector& Corrector)
       const;
