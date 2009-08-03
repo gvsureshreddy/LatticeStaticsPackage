@@ -658,7 +658,7 @@ char const* const PerlInput::getString(HashStruct const& Hash,char const* const 
       if (c > -1) ReconstructedInput_ << "[" << c << "]";
       if (d > -1) ReconstructedInput_ << "[" << d << "]";
       if (e > -1) ReconstructedInput_ << "[" << e << "]";
-      ReconstructedInput_ << " = " << SvPV_nolen(ParamVal) << ";\n";
+      ReconstructedInput_ << " = \"" << SvPV_nolen(ParamVal) << "\";\n";
       return SvPV_nolen(ParamVal);
    }
 }
@@ -673,7 +673,7 @@ char const* const PerlInput::useString(char const* const DefaultValue,HashStruct
    if (c > -1) ReconstructedInput_ << "[" << c << "]";
    if (d > -1) ReconstructedInput_ << "[" << d << "]";
    if (e > -1) ReconstructedInput_ << "[" << e << "]";
-   ReconstructedInput_ << " = " << DefaultValue << ";                # Default Value\n";
+   ReconstructedInput_ << " = \"" << DefaultValue << "\";                # Default Value\n";
 
    return DefaultValue;
 }
@@ -688,7 +688,7 @@ void PerlInput::writeString(ostream& out,char const* const Value,HashStruct cons
    if (c > -1) out << "[" << c << "]";
    if (d > -1) out << "[" << d << "]";
    if (e > -1) out << "[" << e << "]";
-   out << " = " << Value << ";\n";
+   out << " = \"" << Value << "\";\n";
 }
 
 void PerlInput::getVector(Vector& Vctr,HashStruct const& Hash,char const* const ParamName,
