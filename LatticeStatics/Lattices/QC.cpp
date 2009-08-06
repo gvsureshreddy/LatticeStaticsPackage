@@ -347,6 +347,15 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int const&
       infile.close();
    }
 
+
+   // touch sentinel file to indicate that all bif pt. files have been created.
+   if (Bif == 1)
+   {
+      ostringstream sentinelfilename;
+      sentinelfilename << "touch " << bfbfilename.str() << ".sentinel";
+      system(sentinelfilename.str().c_str());
+   }
+   
    return Bif;
 }
 
