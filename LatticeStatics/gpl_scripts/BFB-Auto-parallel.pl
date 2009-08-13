@@ -8,17 +8,17 @@ use File::Copy;
 use File::Find;
 
 # argument list
-#  - processor list file (e.g., /tmp/11111.g/machinenames)
+#  - wall-clock time (when should I START shutting down)
 #  - relative path to executable (../column)
 #  - relative path to root directory of bfb-tree
 
 if ((scalar @ARGV) == 0)
 {
   die "Usage\n" .
-        "BFB-auto <processor-list-file> <rel-path-name-of-executable> <rel-path-to-bfbrootdir>\n";
+        "BFB-auto <wall-clock time in seconds for when to STAET shutting down> <rel-path-name-of-executable> <rel-path-to-bfbrootdir>\n";
 }
 
-$ProcList = shift;
+$walltimeout = shift;
 $ProgExec = getcwd() . "/" . shift;
 $RootBFBDir = getcwd() . "/" . shift;
 
@@ -32,10 +32,35 @@ $geo = "columnNi.geo";
 $pots = "Potentials";
 $sleeptime = 15;
 #
-# $walltimeout = 11.75*60*60; # 11:45 hours gives 15 minuets to shut down
-$walltimeout = 15*60;
 $decrement = ceiling($walltimeout/100);
 
+############ get processor names #################
+$i = 0;
+$TotalNumProcessors = 0;
+@ProcList = <"/tmp/*.q/machines">;
+if (scalar @ProcList != 1)
+{
+  die "Could not find unique 'machines' file.\n;";
+}
+else
+{
+  print "Getting processor list from file: $ProcList[0]\n";
+}
+
+open(LST,"<$ProcList[0]");
+while(<LST>)
+{
+  if (!/^$/)
+  {
+    chomp $_;
+    $cpulist[$i] = $_;
+    print "Processor $i has name: ",$cpulist[$i],"\n";
+    $i++;
+    $TotalNumProcessors++;
+  }
+}
+close(LST);
+print "Total number of processors is $TotalNumProcessors.\n\n";
 ############ create runtime sentinel and timer ######################
 
 $maintimerfile = "$RootBFBDir/#MASTER-TIMER#";
@@ -67,29 +92,12 @@ if ($TimerPID == 0)
 print "Done. Timer pid = $TimerPID.\n\n";
 
 
-############ get processor names #################
-$i = 0;
-$TotalNumProcessors = 0;
-open(LST,"<$ProcList");
-while(<LST>)
-{
-  if (!/^$/)
-  {
-    chomp $_;
-    $cpulist[$i] = $_;
-    print "Processor $i has name: ",$cpulist[$i],"\n";
-    $i++;
-    $TotalNumProcessors++;
-  }
-}
-close(LST);
-print "Total number of processors is $TotalNumProcessors.\n\n";
-
-
 ############ clean up aborted directories and files ###############
 print "Processing ABORTED directories.\n";
+$i=0;
 while (defined($_ = find_first($RootBFBDir,"#ABORTED#")))
 {
+  $i++;
   $workingdir = $_;
   $workingdir =~ s/\/#ABORTED#//;
 
@@ -100,11 +108,11 @@ while (defined($_ = find_first($RootBFBDir,"#ABORTED#")))
   
   if ($workingdir eq $RootBFBDir)
   {
-    system("gunzip $workingdir/$InputFileName.bfb.gz $workingdir/$InputFileName.in.gz >& /dev/null");
+    system("gunzip -f $workingdir/$InputFileName.bfb.gz $workingdir/$InputFileName.in.gz >& /dev/null");
   }
   else
   {
-    system("gunzip $workingdir/$shortdir.bfb.gz $workingdir/$shortdir.in.gz $workingdir/$shortdir.res.gz >& /dev/null");
+    system("gunzip -f $workingdir/$shortdir.bfb.gz $workingdir/$shortdir.in.gz $workingdir/$shortdir.res.gz >& /dev/null");
   }
   unlink glob("$workingdir/*.plt.gz");
   unlink "$workingdir/abort.dat";
@@ -115,6 +123,10 @@ while (defined($_ = find_first($RootBFBDir,"#ABORTED#")))
   unlink "$workingdir/qc.log.gz";
 
   move("$workingdir/#ABORTED#","$workingdir/#WAITING#");
+}
+if ($i == 0)
+{
+  print "     No ABORTED directories found.\n";
 }
 print "Done processing ABORTED direcotries.\n\n";
 
@@ -148,7 +160,7 @@ if (-e "$RootBFBDir/$InputFileName.in")
 else
 {
    $zipped = 1;
-   system("gunzip $RootBFBDir/$InputFileName.in.gz");
+   system("gunzip -f $RootBFBDir/$InputFileName.in.gz >& /dev/null");
    open(INFL,"$RootBFBDir/$InputFileName.in") or die "can't open input file to find num. pts.\n";
 }
 $_ = <INFL>;
@@ -163,7 +175,7 @@ while ($_ !~ /^loop/)
 close(INFL);
 if ($zipped == 1)
 {
-  system("gzip $RootBFBDir/$InputFileName.in");
+  system("gzip -f $RootBFBDir/$InputFileName.in >& /dev/null");
 }
 @t = split ',', $_;
 $NumPts = pop @t;
@@ -178,6 +190,14 @@ if (! -e "$RootBFBDir/#DONE#")
 {
   open(ROT,">$RootBFBDir/#WAITING#");
   close(ROT);
+  if (-e "$RootBFBDir/$InputFileName.in")
+  {
+    system("gzip -f $RootBFBDir/$InputFileName.in >& /dev/null");
+  }
+  if (-e "$RootBFBDir/$InputFileName.bfb")
+  {
+    system("gzip -f $RootBFBDir/$InputFileName.bfb >& /dev/null");
+  }
 }
 
 while((-e $maintimerfile) &&
@@ -252,6 +272,7 @@ while((-e $maintimerfile) &&
         {
           # if not the root path
           # update bfb and in files
+          system("gunzip -f $flnm.bfb.gz $flnm.in.gz $flnm.res.gz >& /dev/null");
           find_sym_and_update_bfb("$flnm.bfb");
           update_in_file("$flnm.in",$NumPts);
         }
@@ -260,15 +281,16 @@ while((-e $maintimerfile) &&
           # if the root path
           # set the input file root
           $flnm = $InputFileName;
+          system("gunzip -f $flnm.in.gz $flnm.bfb.gz >& /dev/null");
         }
 
         # run it
-        $retval = system("ssh $cpu \"(cd $newdir && $ProgExec < $flnm.in > $flnm.out;  sync)\"");
+        $retval = system("ssh $cpu \"(cd $newdir && $ProgExec < $flnm.in >& $flnm.out;  sync)\"");
 
         # clean up after the run.
       
         # use -q to stop warnings
-        system("gzip -fq $newdir/$flnm.bfb $newdir/$flnm.in $newdir/$flnm.res $newdir/$flnm.out $newdir/*.plt" .
+        system("gzip -f $newdir/$flnm.bfb $newdir/$flnm.in $newdir/$flnm.res $newdir/$flnm.out $newdir/*.plt" .
                " $newdir/${flnm}_*.res $newdir/*TP*.bfb $newdir/*TP*.res $newdir/$flnm.bpp $newdir/qc.* >& /dev/null");
         if ($retval != 0) # error
         {
@@ -419,7 +441,8 @@ sub find_sentinels
       {
         if (!/sentinel/)
         {
-          move($_, "$dir/$found/");
+          system("gzip -f $_ >& /dev/null");
+          move("$_.gz", "$dir/$found/");
         }
       }
       symlink "../$sym_info", "$dir/$found/$sym_info";
@@ -427,7 +450,7 @@ sub find_sentinels
       symlink "../$pots","$dir/$found/$pots";
       if ($found =~ /\.BP\...\.BP\...\.BP\.../)
       {
-        system("gzip -fq $dir/$found/$found.bfb $dir/$found/$found.in $dir/$found/$found.res >& /dev/null");
+        system("gzip -f $dir/$found/$found.bfb $dir/$found/$found.in $dir/$found/$found.res >& /dev/null");
         open(WAT,">$dir/$found/#SKIPPED#");
         close(WAT);
       }
