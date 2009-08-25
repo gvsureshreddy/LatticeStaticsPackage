@@ -111,7 +111,7 @@ int RefineEqbmSolution::FindNextSolution()
    double dxnorm;
    double forcenorm = Stress.Norm();
 
-   int MaxItr = 20;
+   const int MaxItr = 20;
 
    cout << "ForceNorm = " << forcenorm << "\n";
    
