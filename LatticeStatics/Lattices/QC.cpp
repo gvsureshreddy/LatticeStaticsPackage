@@ -301,7 +301,7 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int const&
    char tmp[2048];
    strcpy(tmp,Input.LastInputFileName());
    tmp[strlen(tmp)-4] = 0;
-   qcfilename << tmp << cpfilename.str() << setw(2) << setfill('0')
+   qcfilename << tmp << cpfilename.str() << setw(3) << setfill('0')
 	      << CPCrossingNum << ".res";
    char fortranstring[80];
    strcpy(fortranstring,qcfilename.str().c_str());
@@ -313,7 +313,7 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int const&
 
    // output a qc input file (if bif pt)
    ostringstream bfbfilename;
-   bfbfilename << tmp << cpfilename.str() << setw(2) << setfill('0') << CPCrossingNum;
+   bfbfilename << tmp << cpfilename.str() << setw(3) << setfill('0') << CPCrossingNum;
    if (1 == Bif)
    {
       fstream infile;

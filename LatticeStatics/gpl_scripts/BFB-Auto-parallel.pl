@@ -37,7 +37,7 @@ $decrement = ceiling($walltimeout/100);
 ############ get processor names #################
 $i = 0;
 $TotalNumProcessors = 0;
-@ProcList = <"/tmp/*.q/machines">;
+@ProcList = glob "/tmp/*.q/machines";
 if (scalar @ProcList != 1)
 {
   die "Could not find unique 'machines' file.\n;";
@@ -448,7 +448,7 @@ sub find_sentinels
       symlink "../$sym_info", "$dir/$found/$sym_info";
       symlink "../$geo","$dir/$found/$geo";
       symlink "../$pots","$dir/$found/$pots";
-      if ($found =~ /\.BP\...\.BP\...\.BP\.../)
+      if ($found =~ /\.BP\....\.BP\....\.BP\..../)
       {
         system("gzip -f $dir/$found/$found.bfb $dir/$found/$found.in $dir/$found/$found.res >& /dev/null");
         open(WAT,">$dir/$found/#SKIPPED#");

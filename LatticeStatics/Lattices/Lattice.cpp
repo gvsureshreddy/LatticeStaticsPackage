@@ -929,7 +929,7 @@ int Lattice::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int c
    else
       cpfilename << ".TP.";
 
-   cpfilename << setw(2) << setfill('0') << CPCrossingNum << UseExtension_;
+   cpfilename << setw(3) << setfill('0') << CPCrossingNum << UseExtension_;
    cpfile.open(cpfilename.str().c_str(),ios::out);
 
    cpfile << setprecision(out.precision()) << scientific;
