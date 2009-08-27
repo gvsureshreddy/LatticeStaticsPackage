@@ -64,7 +64,7 @@ print "Total number of processors is $TotalNumProcessors.\n\n";
 ############ create runtime sentinel and timer ######################
 
 $maintimerfile = "$RootBFBDir/#MASTER-TIMER#";
-print "Seting wall-clock timeout to $walltimeout seconds (",$walltimeout/60," minutes).... ";
+print "Setting wall-clock timeout to $walltimeout seconds (",$walltimeout/60," minutes).... ";
 defined($TimerPID = fork()) or die "can't fork timer.\n";
 if ($TimerPID == 0)
 {
@@ -85,6 +85,8 @@ if ($TimerPID == 0)
     print MAINTIMEFILE "$remainingtime seconds (",$remainingtime/60," minutes) remaining at ", scalar localtime(time()), ".\n";
   }
 
+  close(MAINTIMEFILE);
+
   unlink("$maintimerfile");
 
   exit;
@@ -95,7 +97,11 @@ print "Done. Timer pid = $TimerPID.\n\n";
 ############ clean up aborted directories and files ###############
 print "Processing ABORTED directories.\n";
 $i=0;
-while (defined($_ = find_first($RootBFBDir,"#ABORTED#")))
+
+
+@abtd = ();
+find_names($RootBFBDir,"#ABORTED#",\@abtd);
+foreach (@abtd)
 {
   $i++;
   $workingdir = $_;
@@ -242,14 +248,16 @@ while((-e $maintimerfile) &&
     }
   }
   
-  if ((scalar @cpulist) > 0)
+  ###### one or more processors are available, so look for a path to compute
+  @pths = ();
+  find_names($RootBFBDir,"#WAITING#",\@pths);
+  foreach (@pths)
   {
-    ###### a processor is available, so look for a path to compute
-    $found = find_first($RootBFBDir,"#WAITING#");
-    if (defined($found))  ####### if a path is ready get it started
+    $found = $_;
+    if (scalar @cpulist > 0)  ####### if a processor is ready get it started
     {
       $cpu = shift @cpulist;
-
+      
       # need to move to #RUNNING# before fork to ensure that it is not started multiple times
       $newname = $found;
       $newname =~ s/WAITING/RUNNING/;
@@ -266,7 +274,7 @@ while((-e $maintimerfile) &&
         chdir($newdir);
         @tmp = split('/',$newdir);
         $flnm = pop @tmp;
-
+        
         
         if ($newdir ne $RootBFBDir)
         {
@@ -283,12 +291,12 @@ while((-e $maintimerfile) &&
           $flnm = $InputFileName;
           system("gunzip -f $flnm.in.gz $flnm.bfb.gz >& /dev/null");
         }
-
+        
         # run it
         $retval = system("ssh $cpu \"(cd $newdir && $ProgExec < $flnm.in >& $flnm.out;  sync)\"");
-
+        
         # clean up after the run.
-      
+        
         # use -q to stop warnings
         system("gzip -f $newdir/$flnm.bfb $newdir/$flnm.in $newdir/$flnm.res $newdir/$flnm.out $newdir/*.plt" .
                " $newdir/${flnm}_*.res $newdir/*TP*.bfb $newdir/*TP*.res $newdir/$flnm.bpp $newdir/qc.* >& /dev/null");
@@ -307,25 +315,28 @@ while((-e $maintimerfile) &&
         exit;
         ##### end of child
       }
-    
+      
       # parent continues and updates hash of running processes
       $newdir = $found;
       $newdir =~ s/\/#WAITING#//;
       @tmp = split('/',$newdir);
       $flnm = pop @tmp;
-      print "Process $pid started on $cpu to compute $flnm at ",scalar localtime(time()), ".\n\n";
+      print "Process $pid started on $cpu to compute $flnm at ",scalar localtime(time()),
+      " (",(scalar @cpulist)," processors available).\n\n";
       $RunningProcesses{$pid} = $cpu;
     }
-    else
-    {
-      # if no paths are ready to be computed then sleep
-      sleep($sleeptime);
-    }
+  }
+  
+  if (scalar @cpulist > 0)
+  {
+    # there are no paths ready to be computed then sleep
+    sleep($sleeptime);
   }
 }
 # finished main loop
 
 # set abort.dat for any running processes
+@stillrunning = ();
 find_names($RootBFBDir,"#RUNNING#",\@stillrunning);
 foreach(@stillrunning)
 {
@@ -426,9 +437,13 @@ sub find_sentinels
   my $rootdir = shift;
   my $dir;
   my $found;
+  my @sentls;
 
-  while(defined($found = find_first($rootdir,"sentinel")))
+  @sentls = ();
+  find_names($rootdir,"sentinel",\@sentls);
+  foreach (@sentls)
   {
+    $found = $_;
     $dir = $found;
     $dir =~ s/(.*)\/[^\/]*/$1/;
     $found =~ s/.*\/([^\/]*)\.sentinel/$1/;
