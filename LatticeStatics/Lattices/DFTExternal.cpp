@@ -391,11 +391,16 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
                            for (int l=0;l<3;++l)
                               d2wd2c[a][b][d][g] += 0.25*UDet*(
                                  Uinv[a][i]*strainstiffnesses[i][j][k][l]
-                                 *Uinv[b][j]*Uinv[d][k]*Uinv[g][l]
-                                 - 0.5*(Uinv[a][k]*Uinv[d][i]*Stresses[l][j]
-                                        *Uinv[g][l]*Uinv[b][j]
-                                        + Uinv[a][l]*Uinv[g][i]*Stresses[k][j]
-                                        *Uinv[d][k]*Uinv[b][j]));
+                                 *Uinv[b][j]*Uinv[d][k]*Uinv[g][l]);
+                  
+                  for (int j=0;j<3;++j)
+                     for (int k=0;k<3;++k)
+                        for (int l=0;l<3;++l)
+                           d2wd2c[a][b][d][g] += 0.25*UDet*(
+                              - 0.5*(Uinv[a][k]*Uinv[d][k]*Stresses[l][j]
+                                     *Uinv[g][l]*Uinv[b][j]
+                                     + Uinv[a][l]*Uinv[g][l]*Stresses[k][j]
+                                     *Uinv[d][k]*Uinv[b][j]));
                }
 
 
