@@ -1272,7 +1272,7 @@ ostream& operator<<(ostream& out,PseudoHarmonicMultiChainTTPP& A)
 
 void PseudoHarmonicMultiChainTTPP::DebugMode()
 {
-   char *Commands[] = {
+   const char *Commands[] = {
       "INTERNAL_ATOMS",
       "DOFS",
       "InfluenceDist_",

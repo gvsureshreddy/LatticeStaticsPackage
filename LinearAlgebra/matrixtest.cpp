@@ -726,7 +726,7 @@ Matrix project(int const& N)
 	 
 	 //Generates remainder column vectors
 	 R= N - ((floor(double(N)/(pow(2.0,(i+1)))))*pow(2.0,(i+1)));
-	 if (j==m-1 & R >= pow(2.0,i))
+	 if ((j==m-1) && (R >= pow(2.0,i)))
 	 {
 	    u[0][k]=0;
 	    sum = 0;

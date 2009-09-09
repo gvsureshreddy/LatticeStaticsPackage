@@ -108,7 +108,8 @@ int RefineEqbmSolution::FindNextSolution()
    Matrix tmpStiff(dx.Dim(),dx.Dim()+1,0.0);
    int itr=0;
    int Converged = 0;
-   double dxnorm;
+   // dxnorm initial value: should indicate a problem if this value is ever printed out...
+   double dxnorm = -1.0;
    double forcenorm = Stress.Norm();
 
    const int MaxItr = 20;

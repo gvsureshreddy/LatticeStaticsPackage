@@ -1902,7 +1902,7 @@ ostream& operator<<(ostream& out,MultiLatticeTPP& A)
 
 void MultiLatticeTPP::DebugMode()
 {
-   char *Commands[] = {
+   const char *Commands[] = {
       "InternalAtoms_",
       "DOFS",
       "InfluenceDist_",

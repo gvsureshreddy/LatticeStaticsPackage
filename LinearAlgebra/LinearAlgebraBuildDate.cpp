@@ -1,6 +1,6 @@
-char *LinearAlgebraBuildDate();
+const char *LinearAlgebraBuildDate();
 
-char *LinearAlgebraBuildDate()
+const char *LinearAlgebraBuildDate()
 {
 #ifdef BUILD_DATE
    return BUILD_DATE;

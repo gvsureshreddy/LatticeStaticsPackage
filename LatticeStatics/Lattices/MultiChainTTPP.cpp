@@ -1263,7 +1263,7 @@ ostream& operator<<(ostream& out,MultiChainTTPP& A)
 
 void MultiChainTTPP::DebugMode()
 {
-   char *Commands[] = {
+   const char *Commands[] = {
       "INTERNAL_ATOMS",
       "DOFS",
       "InfluenceDist_",
