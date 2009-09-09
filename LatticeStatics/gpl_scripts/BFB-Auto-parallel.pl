@@ -12,10 +12,12 @@ use File::Find;
 #  - relative path to executable (../column)
 #  - relative path to root directory of bfb-tree
 
+$starttime = time();
+
 if ((scalar @ARGV) == 0)
 {
   die "Usage\n" .
-        "BFB-auto <wall-clock time in seconds for when to STAET shutting down> <rel-path-name-of-executable> <rel-path-to-bfbrootdir>\n";
+        "BFB-auto <wall-clock time in seconds for when to START shutting down> <rel-path-name-of-executable> <rel-path-to-bfbrootdir>\n";
 }
 
 $walltimeout = shift;
@@ -32,6 +34,7 @@ $geo = "columnNi.geo";
 $pots = "Potentials";
 $sleeptime = 15;
 #
+$endtime = $starttime + $walltimeout;
 $decrement = ceiling($walltimeout/100);
 
 ############ get processor names #################
@@ -53,23 +56,31 @@ while(<LST>)
   if (!/^$/)
   {
     chomp $_;
-    $cpulist[$i] = $_;
-    print "Processor $i has name: ",$cpulist[$i],"\n";
+    if ($i > 0)
+    {
+      push @cpulist, $_;
+      print "Processor $i has name: ",$cpulist[-1],"\n";
+      $TotalNumProcessors++;
+    }
+    else
+    {
+      print "Processor $i has name: ",$_, " and is being reserved for this script's use.\n",
+            "\t\t(it is assumed that I am already running on this processor....)\n";
+    }
     $i++;
-    $TotalNumProcessors++;
   }
 }
 close(LST);
-print "Total number of processors is $TotalNumProcessors.\n\n";
+print "Total number of processors available for use is $TotalNumProcessors.\n\n";
 ############ create runtime sentinel and timer ######################
 
 $maintimerfile = "$RootBFBDir/#MASTER-TIMER#";
-print "Setting wall-clock timeout to $walltimeout seconds (",$walltimeout/60," minutes).... ";
+print "Setting wall-clock timeout to ", scalar localtime($endtime), ".... ";
 defined($TimerPID = fork()) or die "can't fork timer.\n";
 if ($TimerPID == 0)
 {
   # Timer's job
-  $remainingtime = $walltimeout;
+  $remainingtime = $endtime - time();
   if ($decrement > $remainingtime)
   {
     $decrement = $remainingtime;
@@ -78,10 +89,10 @@ if ($TimerPID == 0)
   MAINTIMEFILE->autoflush(1);
 
   print MAINTIMEFILE "$remainingtime seconds (",$remainingtime/60," minutes) remaining at ", scalar localtime(time()), ".\n";
-  while($remainingtime > 0)
+  while(time() < $endtime)
   {
     sleep($decrement);
-    $remainingtime -= $decrement;
+    $remainingtime = $endtime - time();
     print MAINTIMEFILE "$remainingtime seconds (",$remainingtime/60," minutes) remaining at ", scalar localtime(time()), ".\n";
   }
 
@@ -150,9 +161,12 @@ if ($SentinelPID == 0)
   {
     find_sentinels($RootBFBDir);
 
+    print SENTINELREPORT ".";
     sleep($sleeptime);
+    print SENTINELREPORT ".";
   }
   
+  print SENTINELREPORT "Exiting ", scalar localtime(time()), "   .\n";
   exit;
 }
 print "Done. Sentinel pid = $SentinelPID.\n\n";
@@ -448,7 +462,7 @@ sub find_sentinels
     $dir =~ s/(.*)\/[^\/]*/$1/;
     $found =~ s/.*\/([^\/]*)\.sentinel/$1/;
    
-    print SENTINELREPORT "Processing $found...";
+    print SENTINELREPORT "\nProcessing $found...";
     if (!-d "$dir/$found")
     { 
       mkdir "$dir/$found";
@@ -483,7 +497,7 @@ sub find_sentinels
         unlink $_;
       }
     }
-    print SENTINELREPORT "   Done at ",scalar localtime(time()), ".\n";
+    print SENTINELREPORT "   Done at ",scalar localtime(time()), ". ";
   }
 }
 
