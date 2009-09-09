@@ -1,4 +1,5 @@
 #include "Dobson.h"
+#include <cstdlib>
 
 Dobson::Dobson(double const& Eps0,double const& Eps1,double const& Sigma0,double const& Sigma1,
                double const& rcut):

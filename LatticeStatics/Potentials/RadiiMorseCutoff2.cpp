@@ -1,4 +1,5 @@
 #include "RadiiMorseCutoff2.h"
+#include <cstdlib>
 
 RadiiMorseCutoff2::RadiiMorseCutoff2(double const& A0,double const& AT,double const& B0,
                                      double const& BT,double const& Rref1,double const& Rtheta1,

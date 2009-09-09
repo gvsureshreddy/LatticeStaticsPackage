@@ -1,4 +1,5 @@
 #include "LJ.h"
+#include <cstdlib>
 
 LJ::LJ(double const& Eps0,double const& Eps1,double const& Sigma0,double const& Sigma1):
    Eps0_(Eps0),Eps1_(Eps1),Sigma0_(Sigma0),Sigma1_(Sigma1)

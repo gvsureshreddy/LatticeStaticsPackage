@@ -1,4 +1,5 @@
 #include "RadiiMorse.h"
+#include <cstdlib>
 
 RadiiMorse::RadiiMorse(double const& A0,double const& AT,double const& B0,double const& BT,
                        double const& Rref1,double const& Rtheta1,double const& Rref2,

@@ -1,4 +1,5 @@
 #include "ChainIterator.h"
+#include <cstdlib>
 
 void ChainIterator::Initialize(int const& GridSize,int const& DoHalfOnly,int const& SkipZero)
 {

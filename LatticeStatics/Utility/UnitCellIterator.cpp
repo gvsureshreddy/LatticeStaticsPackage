@@ -1,4 +1,5 @@
 #include "UnitCellIterator.h"
+#include <cstdlib>
 
 void UnitCellIterator::Initialize(int const& GridSize,int const& DoHalfOnly,int const& SkipZero)
 {

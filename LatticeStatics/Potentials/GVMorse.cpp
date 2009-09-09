@@ -1,4 +1,5 @@
 #include "GVMorse.h"
+#include <cstdlib>
 
 GVMorse::GVMorse(double const& A0,double const& AT,double const& ATPow,double const& B0,
                  double const& BT,double const& BTPow,double const& Rref1,double const& Rtheta1,

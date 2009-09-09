@@ -1,4 +1,5 @@
 #include "TempMorse.h"
+#include <cstdlib>
 
 TempMorse::TempMorse(double const& A0,double const& B0,double const& Alpha,double const& Rref,
                      double const& Tref,double const& Tmelt):

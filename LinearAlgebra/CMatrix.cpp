@@ -1,10 +1,11 @@
 #include "CMatrix.h"
 #include <iomanip>
 #include <string>
+#include <cstring>
 #include <cmath>
 
 // Global IDString
-char CMatrixID[]="$Id: CMatrix.cpp,v 1.20 2008/09/26 01:41:25 elliott Exp $";
+char CMatrixID[]="$Id: CMatrix.cpp,v 1.21 2009/09/09 18:19:49 elliott Exp $";
 
 // Private Methods...
 

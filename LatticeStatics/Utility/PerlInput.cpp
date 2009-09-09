@@ -8,18 +8,20 @@ static PerlInterpreter* my_perl = 0;
 void PerlInput::Initialize()
 {
    ReconstructedInput_ << scientific << setprecision(14);
-   char* args[] = {"perl","-W","-e","0"};
+   const char* args[] = {"perl","-W","-e","0"};
+   int four = 4;
+   char** pargs = const_cast<char**>(args);
    if (my_perl != 0)
    {
       cerr << "PerlInput Error: Can only have one instance of PerlInput!\n";
       exit(-3);
    }
    
-   PERL_SYS_INIT3(4,args,0);
+   PERL_SYS_INIT3(&four,&pargs,0);
    my_perl = perl_alloc();
    perl_construct(my_perl);
    PL_exit_flags|=PERL_EXIT_DESTRUCT_END;
-   perl_parse(my_perl,0,4,args, (char**)0);
+   perl_parse(my_perl,0,4,pargs, (char**)0);
    perl_run(my_perl);
 }
 

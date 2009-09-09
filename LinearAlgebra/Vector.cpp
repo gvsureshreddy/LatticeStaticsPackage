@@ -1,11 +1,13 @@
 #include "Vector.h"
 #include <string>
+#include <cstring>
 #include <iostream>
 #include <iomanip>
 #include <cmath>
+#include <cstdlib>
 
 // Global IDString
-char VectorID[]="$Id: Vector.cpp,v 1.18 2008/12/14 21:29:02 elliott Exp $";
+char VectorID[]="$Id: Vector.cpp,v 1.19 2009/09/09 18:19:49 elliott Exp $";
 
 // Private Functions...
 

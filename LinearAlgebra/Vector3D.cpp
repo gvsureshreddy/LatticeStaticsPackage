@@ -1,13 +1,15 @@
 #include <string>
+#include <cstring>
 #include <iostream>
 #include <iomanip>
 #include <cmath>
+#include <cstdlib>
 #include "Vector3D.h"
 #include "Vector.h"
 #include "Matrix.h"
 
 // Global IDString
-char Vector3DID[]="$Id: Vector3D.cpp,v 1.8 2008/07/08 04:18:33 elliott Exp $";
+char Vector3DID[]="$Id: Vector3D.cpp,v 1.9 2009/09/09 18:19:49 elliott Exp $";
 
 // Private Functions...
 

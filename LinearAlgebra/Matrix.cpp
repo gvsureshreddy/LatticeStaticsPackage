@@ -2,11 +2,12 @@
 #include <iostream>
 #include <iomanip>
 #include <string>
+#include <cstring>
 #include <cmath>
 #include <cstdlib>
 
 // Global IDString
-char MatrixID[]="$Id: Matrix.cpp,v 1.26 2008/12/14 21:29:01 elliott Exp $";
+char MatrixID[]="$Id: Matrix.cpp,v 1.27 2009/09/09 18:19:49 elliott Exp $";
 
 // Private Methods...
 
