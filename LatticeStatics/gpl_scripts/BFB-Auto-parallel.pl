@@ -227,117 +227,94 @@ while((-e $maintimerfile) &&
       )
      )
 {
-  #### if no processors available wait for next to finish
-  if ((scalar @cpulist) == 0)
-  {
-    print "Waiting for next process to end...\n";
-    $pidend = wait;
-    if ($pidend == $SentinelPID)
-    {
-      print "Sentinel process ended.\n\n";
-    }
-    elsif ($pidend == $TimerPID)
-    {
-      print "Timer process ended.\n\n";
-    }
-    else
-    {
-      print "Process $pidend ended on $RunningProcesses{$pidend} (1 processor available).\n\n";
-      push @cpulist, $RunningProcesses{$pidend};
-      delete $RunningProcesses{$pidend};
-    }
-  }
-  else ###### else look for other processes that have ended
-  {
-    foreach (keys %RunningProcesses)
-    {
-      $ans = waitpid($_, &WNOHANG);
-      if ($ans != 0)
-      {
-        push @cpulist, $RunningProcesses{$ans};
-        print "Process $ans ended on $RunningProcesses{$ans} ",
-              "(",(scalar @cpulist)," processors available).\n\n";
-        delete $RunningProcesses{$ans};
-      }
-    }
-  }
-  
-  ###### one or more processors are available, so look for a path to compute
+  #### find any processors that have finished
   @pths = ();
-  find_names($RootBFBDir,"#WAITING#",\@pths);
+  find_names($RootBFBDir,"#RUNNING#",\@pths);
   foreach (@pths)
   {
-    $found = $_;
-    if (scalar @cpulist > 0)  ####### if a processor is ready get it started
+    $curdir = $_;
+    $curdir =~ s/\/#RUNNING#//;
+    @tmp = split('/',$curdir);
+    $flnm = pop @tmp;
+
+    if (! -e "$curdir/#PROCESSING#")
     {
-      $cpu = shift @cpulist;
+      #### process has finished
+      # clean up after the run returns.
       
-      # need to move to #RUNNING# before fork to ensure that it is not started multiple times
-      $newname = $found;
-      $newname =~ s/WAITING/RUNNING/;
-      move($found,$newname);
-      if (!defined($pid = fork()))
+      # use -q to stop warnings
+      system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
+             " $curdir/${flnm}curdir*.res $curdir/*TP*.bfb $curdir/*TP*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+
+      if (-e "$newdir/abort.dat")
       {
-        move($newname,$found);
-        die "can't fork child.\n";
+        move($curdir . "/#RUNNING#", $curdir . "/#ABORTED#");
       }
-      if ($pid == 0)
-      { ##### this is the child
+      else
+      {
+        move($curdir . "/#RUNNING#", $curdir . "/#DONE#");
+      }
+      push @cpulist, $RunningProcesses{$curdir};
+      print "Process ended on $RunningProcesses{$curdir} ",
+            "(", (scalar @cpulist)," processors available).\n\n";
+      delete $RunningProcesses{$curdir};
+    }
+    elsif ( abs(( (stat("$curdir/#PROCESSING#"))[9] - time() )/60.0) > 10.0 ) # if older than 10 minutes
+    {
+      #### process has exited
+      move($curdir . "/#RUNNING#", $curdir . "/#ERROR#");
+      push @cpulist, $RunningProcesses{$curdir};
+      print "Process exited (ERROR) on $RunningProcesses{$curdir} ",
+            "(", (scalar @cpulist)," processors available).\n\n";
+      delete $RunningProcesses{$curdir};
+    }
+  }
+
+  if (scalar @cpulist > 0)  ####### if a processor is ready get it started
+  {
+    ###### one or more processors are available, so look for a path to compute
+    @pths = ();
+    find_names($RootBFBDir,"#WAITING#",\@pths);
+    foreach (@pths)
+    {
+      $found = $_;
+      if (scalar @cpulist > 0)
+      {
+        $cpu = shift @cpulist;
+        
+        $newname = $found;
+        $newname =~ s/WAITING/RUNNING/;
+        move($found,$newname);
+        
         $newdir = $newname;
         $newdir =~ s/\/#RUNNING#//;
-        chdir($newdir);
         @tmp = split('/',$newdir);
         $flnm = pop @tmp;
-        
         
         if ($newdir ne $RootBFBDir)
         {
           # if not the root path
           # update bfb and in files
-          system("gunzip -f $flnm.bfb.gz $flnm.in.gz $flnm.res.gz >& /dev/null");
-          find_sym_and_update_bfb("$flnm.bfb");
-          update_in_file("$flnm.in",$NumPts);
+          system("gunzip -f $newdir/$flnm.bfb.gz $newdir/$flnm.in.gz $newdir/$flnm.res.gz >& /dev/null");
+          find_sym_and_update_bfb($newdir, "$flnm.bfb");
+          update_in_file("$newdir/$flnm.in",$NumPts);
         }
         else
         {
           # if the root path
           # set the input file root
           $flnm = $InputFileName;
-          system("gunzip -f $flnm.in.gz $flnm.bfb.gz >& /dev/null");
+          system("gunzip -f $newdir/$flnm.in.gz $newdir/$flnm.bfb.gz >& /dev/null");
         }
         
         # run it
-        $retval = system("ssh $cpu \"(cd $newdir && $ProgExec < $flnm.in >& $flnm.out;  sync)\"");
+        $retval = system("ssh $cpu \"(cd $newdir; touch \\#PROCESSING#; $ProgExec < $flnm.in >& $flnm.out; /bin/rm -f \\#PROCESSING#) < /dev/null >& /dev/null &\"");
         
-        # clean up after the run.
-        
-        # use -q to stop warnings
-        system("gzip -f $newdir/$flnm.bfb $newdir/$flnm.in $newdir/$flnm.res $newdir/$flnm.out $newdir/*.plt" .
-               " $newdir/${flnm}_*.res $newdir/*TP*.bfb $newdir/*TP*.res $newdir/$flnm.bpp $newdir/qc.* >& /dev/null");
-        if ($retval != 0) # error
-        {
-          move($newdir . "/#RUNNING#", $newdir . "/#ERROR#");
-        }
-        elsif (-e "$newdir/abort.dat")
-        {
-          move($newdir . "/#RUNNING#", $newdir . "/#ABORTED#");
-        }
-        else
-        {
-          move($newdir . "/#RUNNING#", $newdir . "/#DONE#");
-        }
-        exit;
-        ##### end of child
+        # update hash of running processes
+        print "Process started on $cpu to compute $flnm at ",scalar localtime(time()),
+        " (",(scalar @cpulist)," processors available).\n\n";
+        $RunningProcesses{$newdir} = $cpu;
       }
-      
-      # parent continues and updates hash of running processes
-      $newdir = $found;
-      $newdir =~ s/\/#WAITING#//;
-      @tmp = split('/',$newdir);
-      $flnm = pop @tmp;
-      print "Process $pid started on $cpu to compute $flnm at ",scalar localtime(time()),
-      " (",(scalar @cpulist)," processors available).\n\n";
-      $RunningProcesses{$pid} = $cpu;
     }
   }
   
@@ -376,19 +353,59 @@ if (-e "$maintimerfile")
 
 # wait for all child processes to exit
 print "Waiting for child processes to end...\n";
+#### find any processors that have finished
+@pths = ();
+find_names($RootBFBDir,"#RUNNING#",\@pths);
+while ( (scalar @pths) > 0)
+{
+  foreach (@pths)
+  {
+    $curdir = $_;
+    $curdir =~ s/\/#RUNNING#//;
+    @tmp = split('/',$curdir);
+    $flnm = pop @tmp;
+
+    if (! -e "$curdir/#PROCESSING#")
+    {
+      #### process has finished
+      # clean up after the run returns.
+      
+      # use -q to stop warnings
+      system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
+             " $curdir/${flnm}curdir*.res $curdir/*TP*.bfb $curdir/*TP*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+      
+      if (-e "$newdir/abort.dat")
+      {
+        move($curdir . "/#RUNNING#", $curdir . "/#ABORTED#");
+      }
+      else
+      {
+        move($curdir . "/#RUNNING#", $curdir . "/#DONE#");
+      }
+      push @cpulist, $RunningProcesses{$curdir};
+      print "     Process ended on $RunningProcesses{$curdir} ",
+      "(", (scalar @cpulist)," processors available).\n\n";
+      delete $RunningProcesses{$curdir};
+    }
+    elsif ( abs(( (stat("$curdir/#PROCESSING#"))[9] - time() )/60.0) > 10.0 ) # if older than 10 minutes
+    {
+      #### process has exited
+      move($curdir . "/#RUNNING#", $curdir . "/#ERROR#");
+      push @cpulist, $RunningProcesses{$curdir};
+      print "     Process exited (ERROR) on $RunningProcesses{$curdir} ",
+      "(", (scalar @cpulist)," processors available).\n\n";
+      delete $RunningProcesses{$curdir};
+    }
+  }
+
+  sleep($sleeptime);
+  @pths = ();
+  find_names($RootBFBDir,"#RUNNING#",\@pths);
+}
+
 while (-1 != ($ans =wait))
 {
-  if (($ans != $TimerPID) && ($ans != $SentinelPID))
-  {
-    push @cpulist, $RunningProcesses{$ans};
-    print "    Process $ans ended on $RunningProcesses{$ans} ",
-          "(",(scalar @cpulist)," processors available).\n";
-    delete $RunningProcesses{$ans};
-  }
-  else
-  {
-    print "    Process $ans ended.\n";
-  }
+  print "     Process $ans ended.\n";
 }
 print "Done.\n\n";
 
@@ -503,9 +520,10 @@ sub find_sentinels
 
 sub find_sym_and_update_bfb
 {
+  my $curdir = shift;
   my $flnm = shift;
-  do "symmetry_bases.pm";
-  do "$flnm";
+  do "$curdir/symmetry_bases.pm";
+  do "$curdir/$flnm";
 
   my ($T,$Tol,$a,$aa,$aaa,$b,$bb,$bbb,$c,$cc,$ccc,$d,$dd,$ddd,$e,$ee,$eee,$f,$ff,$fff,$g,$gg,
       $ggg,$IsTRx,$IsTRy,$IsTRz,$IsTQx,$IsTQy,$IsTQz,$IsTJ,$SymGrp,$fl);
@@ -626,7 +644,7 @@ sub find_sym_and_update_bfb
   
   $fl='';
   
-  open(ORIGFL,$flnm);
+  open(ORIGFL,"$curdir/$flnm");
   while (<ORIGFL>)
   {
     if (/Restriction{Type}/)
@@ -655,7 +673,7 @@ sub find_sym_and_update_bfb
   }
   close(ORIGFL);
   
-  open(NEWFL,">$flnm");
+  open(NEWFL,">$curdir/$flnm");
   printf NEWFL "$fl";
   close(NEWFL);
 }
