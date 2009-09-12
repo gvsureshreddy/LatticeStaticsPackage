@@ -92,6 +92,10 @@ if ($TimerPID == 0)
   while(time() < $endtime)
   {
     sleep($decrement);
+    if (! -e $maintimerfile) # check if someone removed the timer file
+    {
+      exit;
+    }
     $remainingtime = $endtime - time();
     print MAINTIMEFILE "$remainingtime seconds (",$remainingtime/60," minutes) remaining at ", scalar localtime(time()), ".\n";
   }
