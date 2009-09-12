@@ -338,7 +338,7 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int const&
       infile << "bfb,rest," << bfbfilename.str() << "\n\n";
       infile << "loop,,100\n";
       infile << "   bfb\n";
-      infile << "   touch,,#PROCESSING#\n";
+      infile << "   touch,,\\#PROCESSING#\n";
       infile << "   conv,bfb\n";
       infile << "next\n\n";
       infile << "% End bfb solution (release memory)\n";
