@@ -138,6 +138,7 @@ foreach (@abtd)
   unlink glob("$workingdir/*TP*.gz");
   unlink glob("$workingdir/*.bpp.gz");
   unlink "$workingdir/qc.log.gz";
+  unlink "$workingdir/qc.cmd.gz";
 
   move("$workingdir/#ABORTED#","$workingdir/#WAITING#");
 }
@@ -243,8 +244,20 @@ while((-e $maintimerfile) &&
       # clean up after the run returns.
       
       # use -q to stop warnings
-      system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-             " $curdir/${flnm}curdir*.res $curdir/*TP*.bfb $curdir/*TP*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+      if ($newdir ne $RootBFBDir)
+      {
+        # if not the root path
+        system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
+           " $curdir/${flnm}curdir*.res $curdir/*TP*.bfb $curdir/*TP*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+      }
+      else
+      {
+        # if the root path
+        # set the input file root
+        $flnm = $InputFileName;
+        system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
+           " $curdir/${flnm}curdir*.res $curdir/*TP*.bfb $curdir/*TP*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+      }
 
       if (-e "$newdir/abort.dat")
       {
@@ -259,10 +272,28 @@ while((-e $maintimerfile) &&
             "(", (scalar @cpulist)," processors available).\n\n";
       delete $RunningProcesses{$curdir};
     }
-    elsif ( abs(( (stat("$curdir/#PROCESSING#"))[9] - time() )/60.0) > 10.0 ) # if older than 10 minutes
+    elsif ( abs(( (stat("$curdir/#PROCESSING#"))[9] - time() )/60.0) > 5.0 ) # if older than 5 minutes
     {
       #### process has exited
+      
+      # use -q to stop warnings
+      if ($newdir ne $RootBFBDir)
+      {
+        # if not the root path
+        system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
+           " $curdir/${flnm}curdir*.res $curdir/*TP*.bfb $curdir/*TP*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+      }
+      else
+      {
+        # if the root path
+        # set the input file root
+        $flnm = $InputFileName;
+        system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
+           " $curdir/${flnm}curdir*.res $curdir/*TP*.bfb $curdir/*TP*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+      }
+
       move($curdir . "/#RUNNING#", $curdir . "/#ERROR#");
+      unlink("$curdir/#PROCESSING#");
       push @cpulist, $RunningProcesses{$curdir};
       print "Process exited (ERROR) on $RunningProcesses{$curdir} ",
             "(", (scalar @cpulist)," processors available).\n\n";
@@ -296,7 +327,7 @@ while((-e $maintimerfile) &&
           # if not the root path
           # update bfb and in files
           system("gunzip -f $newdir/$flnm.bfb.gz $newdir/$flnm.in.gz $newdir/$flnm.res.gz >& /dev/null");
-          find_sym_and_update_bfb($newdir, "$flnm.bfb");
+          find_sym_and_update_bfb("$newdir", "$flnm.bfb");
           update_in_file("$newdir/$flnm.in",$NumPts);
         }
         else
@@ -308,7 +339,7 @@ while((-e $maintimerfile) &&
         }
         
         # run it
-        $retval = system("ssh $cpu \"(cd $newdir; touch \\#PROCESSING#; $ProgExec < $flnm.in >& $flnm.out; /bin/rm -f \\#PROCESSING#) < /dev/null >& /dev/null &\"");
+        $retval = system("ssh $cpu \"(cd $newdir; touch \\#PROCESSING#; $ProgExec < $flnm.in >& $flnm.out; if [ \\`grep --count 'QC simulation terminated' qc.log\\` == 1 ]; then /bin/rm -f \\#PROCESSING#; fi) < /dev/null >& /dev/null &\"");
         
         # update hash of running processes
         print "Process started on $cpu to compute $flnm at ",scalar localtime(time()),
@@ -371,8 +402,20 @@ while ( (scalar @pths) > 0)
       # clean up after the run returns.
       
       # use -q to stop warnings
-      system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-             " $curdir/${flnm}curdir*.res $curdir/*TP*.bfb $curdir/*TP*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+      if ($newdir ne $RootBFBDir)
+      {
+        # if not the root path
+        system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
+           " $curdir/${flnm}curdir*.res $curdir/*TP*.bfb $curdir/*TP*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+      }
+      else
+      {
+        # if the root path
+        # set the input file root
+        $flnm = $InputFileName;
+        system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
+           " $curdir/${flnm}curdir*.res $curdir/*TP*.bfb $curdir/*TP*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+      }
       
       if (-e "$newdir/abort.dat")
       {
@@ -387,10 +430,28 @@ while ( (scalar @pths) > 0)
       "(", (scalar @cpulist)," processors available).\n\n";
       delete $RunningProcesses{$curdir};
     }
-    elsif ( abs(( (stat("$curdir/#PROCESSING#"))[9] - time() )/60.0) > 10.0 ) # if older than 10 minutes
+    elsif ( abs(( (stat("$curdir/#PROCESSING#"))[9] - time() )/60.0) > 5.0 ) # if older than 5 minutes
     {
       #### process has exited
+
+      # use -q to stop warnings
+      if ($newdir ne $RootBFBDir)
+      {
+        # if not the root path
+        system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
+           " $curdir/${flnm}curdir*.res $curdir/*TP*.bfb $curdir/*TP*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+      }
+      else
+      {
+        # if the root path
+        # set the input file root
+        $flnm = $InputFileName;
+        system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
+           " $curdir/${flnm}curdir*.res $curdir/*TP*.bfb $curdir/*TP*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+      }
+
       move($curdir . "/#RUNNING#", $curdir . "/#ERROR#");
+      unlink("$curdir/#PROCESSING#");
       push @cpulist, $RunningProcesses{$curdir};
       print "     Process exited (ERROR) on $RunningProcesses{$curdir} ",
       "(", (scalar @cpulist)," processors available).\n\n";
@@ -522,14 +583,19 @@ sub find_sym_and_update_bfb
 {
   my $curdir = shift;
   my $flnm = shift;
+
   do "$curdir/symmetry_bases.pm";
+  
+  my $olddir = cwd();
+  chdir $curdir;
   do "$curdir/$flnm";
+  chdir $olddir;
 
   my ($T,$Tol,$a,$aa,$aaa,$b,$bb,$bbb,$c,$cc,$ccc,$d,$dd,$ddd,$e,$ee,$eee,$f,$ff,$fff,$g,$gg,
       $ggg,$IsTRx,$IsTRy,$IsTRz,$IsTQx,$IsTQy,$IsTQz,$IsTJ,$SymGrp,$fl);
       
-
   @T = @{$StartType{Tangent}};
+
   $Tol = $SolutionMethod{NewtonPCSolution}{ConvergeCriteria};
   pop @T;
   
@@ -673,6 +739,7 @@ sub find_sym_and_update_bfb
   }
   close(ORIGFL);
   
+  unlink("$curdir/$flnm");
   open(NEWFL,">$curdir/$flnm");
   printf NEWFL "$fl";
   close(NEWFL);
