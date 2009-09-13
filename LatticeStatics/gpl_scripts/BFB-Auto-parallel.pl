@@ -211,7 +211,7 @@ print "Using $NumPts points on each BFB curve.\n\n";
 
 ####################### start running #####################
 # check root
-if (! -e "$RootBFBDir/#DONE#")
+if (! ( (-e "$RootBFBDir/#DONE#") || (-e "$RootBFBDir/#ERROR#") ))
 {
   open(ROT,">$RootBFBDir/#WAITING#");
   close(ROT);
@@ -272,8 +272,8 @@ while((-e $maintimerfile) &&
         move($curdir . "/#RUNNING#", $curdir . "/#DONE#");
       }
       push @cpulist, $RunningProcesses{$curdir};
-      print "Process ended on $RunningProcesses{$curdir} ",
-            "(", (scalar @cpulist)," processors available).\n\n";
+      print "Process ended on $RunningProcesses{$curdir} at ",scalar localtime(time()),
+            " (", (scalar @cpulist)," processors available).\n\n";
       delete $RunningProcesses{$curdir};
     }
     elsif ( abs(( (stat("$curdir/#PROCESSING#"))[9] - time() )/60.0) > 5.0 ) # if older than 5 minutes
@@ -299,8 +299,8 @@ while((-e $maintimerfile) &&
       move($curdir . "/#RUNNING#", $curdir . "/#ERROR#");
       unlink("$curdir/#PROCESSING#");
       push @cpulist, $RunningProcesses{$curdir};
-      print "Process exited (ERROR) on $RunningProcesses{$curdir} ",
-            "(", (scalar @cpulist)," processors available).\n\n";
+      print "Process exited (ERROR) on $RunningProcesses{$curdir} at ",scalar localtime(time()),
+            " (", (scalar @cpulist)," processors available).\n\n";
       delete $RunningProcesses{$curdir};
     }
   }
