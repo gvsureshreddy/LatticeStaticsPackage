@@ -272,7 +272,8 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const
       Vector stat(Input.getArrayLength("StartType","BifurcationPoint"));
       Input.getVector(stat,"StartType","BifurcationPoint");
       // Set Lattice state to the bifurcation point
-      ArcLenSet(Restrict_->RestrictDOF(stat));
+      Vector RestrictedStat = Restrict_->RestrictDOF(stat);
+      ArcLenSet(RestrictedStat);
       
       // Set FirstSolution
       FirstSolution_.Resize(DOFS_);
@@ -306,7 +307,7 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const
          }
       }
 
-      cout << "Projection on BifTangent of BifurcationPoint = " << stat*BifTangent_ << "\n";
+      cout << "Projection on BifTangent of BifurcationPoint = " << RestrictedStat*BifTangent_ << "\n";
    }
    else if (!strcmp("Continuation",starttype))
    {
