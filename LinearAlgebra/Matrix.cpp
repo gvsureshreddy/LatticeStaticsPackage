@@ -7,7 +7,7 @@
 #include <cstdlib>
 
 // Global IDString
-char MatrixID[]="$Id: Matrix.cpp,v 1.27 2009/09/09 18:19:49 elliott Exp $";
+char MatrixID[]="$Id: Matrix.cpp,v 1.28 2009/10/19 21:38:05 elliott Exp $";
 
 // Private Methods...
 
@@ -1177,7 +1177,7 @@ Matrix::Elm SVD(Matrix const& A,Matrix& U,Matrix& W,Matrix& V,
 	    }
 	    break;
 	 }
-	 if (its == 30)
+	 if (its == 29)
 	 {
 	    cerr << "no convergence in 30 SVD iterations" << "\n";
 	    exit(-1);
