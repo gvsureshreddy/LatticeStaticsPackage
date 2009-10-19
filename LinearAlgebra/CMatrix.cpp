@@ -5,7 +5,7 @@
 #include <cmath>
 
 // Global IDString
-char CMatrixID[]="$Id: CMatrix.cpp,v 1.21 2009/09/09 18:19:49 elliott Exp $";
+char CMatrixID[]="$Id: CMatrix.cpp,v 1.22 2009/10/19 18:47:19 elliott Exp $";
 
 // Private Methods...
 
@@ -371,7 +371,7 @@ CMatrix CMatrix::Transpose() const
 
 CMatrix CMatrix::Conjugate() const
 {
-   CMatrix A(Cols_,Rows_);
+   CMatrix A(Rows_,Cols_);
 
    for (register int i=0;i<Rows_;++i)
    {
