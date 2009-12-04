@@ -330,7 +330,7 @@ double RadiiMorse::G(double const& NTemp,double const& r2,YDeriv const& dy,TDeri
             case D2T:
                val = ((b(NTemp)*rhat(NTemp,DT)*r)/(rhat(NTemp)*rhat(NTemp))
                       - (b(NTemp,DT)*(r/rhat(NTemp) - 1.0)))*G(NTemp,r2,Y0,DT)
-                  + ((r/rhat(NTemp)*rhat(NTemp))*(2.0*b(NTemp,DT)*rhat(NTemp,DT)
+                  + ((r/(rhat(NTemp)*rhat(NTemp)))*(2.0*b(NTemp,DT)*rhat(NTemp,DT)
                                                   + b(NTemp)*rhat(NTemp,D2T))
                      - ((2.0*b(NTemp)*r*rhat(NTemp,DT)*rhat(NTemp,DT))
                         /(rhat(NTemp)*rhat(NTemp)*rhat(NTemp)))
