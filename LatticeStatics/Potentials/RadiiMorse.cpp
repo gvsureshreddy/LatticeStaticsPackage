@@ -298,7 +298,7 @@ double RadiiMorse::I(double const& NTemp,TDeriv const& dt) const
                  - (b(NTemp)*rhat(NTemp,D2T))/(2.0*rhat(NTemp)*rhat(NTemp))
                  + ((b(NTemp)*rhat(NTemp,DT)*rhat(NTemp,DT))
                     /(rhat(NTemp)*rhat(NTemp)*rhat(NTemp)))
-            );
+                );
          break;
       default:
          cerr << "Error in RadiiMorse::I -- D3T" << "\n";
@@ -321,20 +321,14 @@ double RadiiMorse::G(double const& NTemp,double const& r2,YDeriv const& dy,TDeri
          switch (dt)
          {
             case T0:
-               val = exp(-b(NTemp)*(r/rhat(NTemp) - 1.0));
+               val = exp(2.0*i(NTemp)*r + b(NTemp));
                break;
             case DT:
-               val = ((b(NTemp)*rhat(NTemp,DT)*r)/(rhat(NTemp)*rhat(NTemp))
-                      - (b(NTemp,DT)*(r/rhat(NTemp) - 1.0)))*G(NTemp,r2,Y0,T0);
+               val = (2.0*i(NTemp,DT)*r + b(NTemp,DT))*G(NTemp,r2,Y0,T0);
                break;
             case D2T:
-               val = ((b(NTemp)*rhat(NTemp,DT)*r)/(rhat(NTemp)*rhat(NTemp))
-                      - (b(NTemp,DT)*(r/rhat(NTemp) - 1.0)))*G(NTemp,r2,Y0,DT)
-                  + ((r/(rhat(NTemp)*rhat(NTemp)))*(2.0*b(NTemp,DT)*rhat(NTemp,DT)
-                                                  + b(NTemp)*rhat(NTemp,D2T))
-                     - ((2.0*b(NTemp)*r*rhat(NTemp,DT)*rhat(NTemp,DT))
-                        /(rhat(NTemp)*rhat(NTemp)*rhat(NTemp)))
-                     - b(NTemp,D2T)*(r/rhat(NTemp) - 1.0))*G(NTemp,r2,Y0,T0);
+               val = (2.0*i(NTemp,DT)*r + b(NTemp,DT))*G(NTemp,r2,Y0,DT)
+                   + (2.0*i(NTemp,D2T)*r + b(NTemp,D2T))*G(NTemp,r2,Y0,T0);
                break;
             default:
                cerr << "Error in RadiiMorse::G -- Y0,D3T" << "\n";
