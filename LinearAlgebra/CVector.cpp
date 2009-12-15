@@ -8,7 +8,7 @@
 #include "Matrix.h"
 
 // Global IDString
-char CVectorID[]="$Id: CVector.cpp,v 1.10 2009/09/09 18:19:49 elliott Exp $";
+char CVectorID[]="$Id: CVector.cpp,v 1.11 2009/12/15 16:28:35 elliott Exp $";
 
 // Private Functions...
 
@@ -366,10 +366,9 @@ CVector::Elm const& CVector::operator[](int const& i) const
 
 CVector& CVector::operator=(CVector const& B)
 {
-   if (Cols_!=B.Cols_ || Cols_==0 || B.Cols_==0)
+   if (Cols_!=B.Cols_)
    {
-      cerr << "Error in CVector& operator=() : CVectors not same size "
-           << "or Null CVector"
+      cerr << "Error in CVector& operator=() : CVectors not same size"
            << "\n";
       exit(-1);
    }

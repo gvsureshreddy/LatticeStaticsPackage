@@ -7,7 +7,7 @@
 #include <cstdlib>
 
 // Global IDString
-char MatrixID[]="$Id: Matrix.cpp,v 1.28 2009/10/19 21:38:05 elliott Exp $";
+char MatrixID[]="$Id: Matrix.cpp,v 1.29 2009/12/15 16:28:35 elliott Exp $";
 
 // Private Methods...
 
@@ -321,10 +321,9 @@ Matrix::Elm const* const Matrix::operator[](int const& i) const
    
 Matrix& Matrix::operator=(Matrix const& B)
 {
-   if (Rows_!=B.Rows_ || Cols_!=B.Cols_ || IsNull() || B.IsNull())
+   if (Rows_!=B.Rows_ || Cols_!=B.Cols_)
    {
-      cerr << "Error in Matrix& operator=() : Matricies not same size "
-           << "or Null Matrix"
+      cerr << "Error in Matrix& operator=() : Matricies not same size"
            << "\n";
       exit(-1);
    }

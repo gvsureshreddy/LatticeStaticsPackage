@@ -7,7 +7,7 @@
 #include <cstdlib>
 
 // Global IDString
-char VectorID[]="$Id: Vector.cpp,v 1.19 2009/09/09 18:19:49 elliott Exp $";
+char VectorID[]="$Id: Vector.cpp,v 1.20 2009/12/15 16:28:35 elliott Exp $";
 
 // Private Functions...
 
@@ -342,10 +342,9 @@ Vector::Elm const& Vector::operator[](int const& i) const
 
 Vector& Vector::operator=(Vector const& B)
 {
-   if (Cols_!=B.Cols_ || Cols_==0 || B.Cols_==0)
+   if (Cols_!=B.Cols_)
    {
-      cerr << "Error in Vector& operator=() : Vectors not same size "
-           << "or Null Vector"
+      cerr << "Error in Vector& operator=() : Vectors not same size"
            << "\n";
       exit(-1);
    }

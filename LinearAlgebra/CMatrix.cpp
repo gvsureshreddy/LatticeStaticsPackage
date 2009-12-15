@@ -5,7 +5,7 @@
 #include <cmath>
 
 // Global IDString
-char CMatrixID[]="$Id: CMatrix.cpp,v 1.22 2009/10/19 18:47:19 elliott Exp $";
+char CMatrixID[]="$Id: CMatrix.cpp,v 1.23 2009/12/15 16:28:35 elliott Exp $";
 
 // Private Methods...
 
@@ -322,10 +322,9 @@ CMatrix::Elm const* const CMatrix::operator[](int const& i) const
    
 CMatrix& CMatrix::operator=(CMatrix const& B)
 {
-   if (Rows_!=B.Rows_ || Cols_!=B.Cols_ || IsNull() || B.IsNull())
+   if (Rows_!=B.Rows_ || Cols_!=B.Cols_)
    {
-      cerr << "Error in CMatrix& operator=() : Matricies not same size "
-           << "or Null CMatrix"
+      cerr << "Error in CMatrix& operator=() : Matricies not same size"
            << "\n";
       exit(-1);
    }
