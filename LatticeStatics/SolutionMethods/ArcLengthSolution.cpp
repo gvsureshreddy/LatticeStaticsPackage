@@ -644,7 +644,7 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
    double OriginalDS = CurrentDS_;
    int TestValueDiff;
    int temp;
-   int size = Lat->DOF().Dim();
+   int size = Lat->NumTestFunctions();
    TF_LHS_static.Resize(size);
    TF_RHS_static.Resize(size);
    CurrentTF_static.Resize(size);
@@ -686,7 +686,7 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
    Vector* CPDOFs;
    double* CPLambdas;
    CPDOFs = new Vector[TestValueDiff];
-   for (int i=0;i<TestValueDiff;++i) CPDOFs[i].Resize(size);
+   for (int i=0;i<TestValueDiff;++i) CPDOFs[i].Resize(DOFS_);
    CPLambdas = new double[TestValueDiff];
    int* CPorBifs;
    CPorBifs = new int[TestValueDiff];
@@ -722,8 +722,12 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
       {
          ZBrent(Lat,track,OriginalDiff,OriginalDS,fa,fb,CurrentTF_static);
          double lambda = ArcLenDef()[DOFS_-1];
-         if (((lambda >= LHSLambda) && (lambda <= RHSLambda))
-             || ((lambda <= LHSLambda) && (lambda >= RHSLambda)))
+         if ((Lat->UseEigenValTFs() == 0) || (track >= Lat->DOF().Dim()))
+         {
+            CPorBif = -1; // ExtraTF
+         }
+         else if (((lambda >= LHSLambda) && (lambda <= RHSLambda))
+                  || ((lambda <= LHSLambda) && (lambda >= RHSLambda)))
          {
             CPorBif = 1; // bif point
          }

@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
    int TotalNumCPs = 0;
    int TestValue=-1,
       OldTestValue=TestValue;
-   Vector EigenValues(Lat->DOF().Dim());
+   Vector TestValues(Lat->NumTestFunctions());
    
    while (!SolveMe->AllSolutionsFound())
    {
@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
       {
          // Check for Critical Point Crossing
          OldTestValue = TestValue;
-         TestValue = Lat->TestFunctions(EigenValues);
+         TestValue = Lat->TestFunctions(TestValues);
          if ((OldTestValue != TestValue) && (BisectCP == Yes) && (OldTestValue != -1))
             SolveMe->FindCriticalPoint(Lat,TotalNumCPs,Input,Width,out);
          

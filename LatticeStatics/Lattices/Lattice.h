@@ -20,11 +20,13 @@ public:
    enum StateType {LHS,RHS,CRITPT};
    LoadType LoadParameter_;
    LoadType const& LoadParameter() const {return LoadParameter_;}
-   int OrderedTFs_;  // ensure TFs are in consistent order
-   int LSKAnalysis_; // None,SecondOrder,ThridOrder - do LSK to appropriate order
-   int FullPrint_;   // 1 Print out full vectors and matricies, 0 don't
-   int GuessModes_;  // guess new RestrictToTranslatedSubSpace mode dofs
-   string UseExtension_;  // define an extension to use for input files
+   int OrderedTFs_;      // ensure TFs are in consistent order
+   int UseEigenValTFs_;  // 1 use eigenvalues of E2 as TFs, 0 don't
+   int NumExtraTFs_;     // Number of TFs provided by inherited class
+   int LSKAnalysis_;     // None,SecondOrder,ThridOrder - do LSK to appropriate order
+   int FullPrint_;       // 1 Print out full vectors and matricies, 0 don't
+   int GuessModes_;      // guess new RestrictToTranslatedSubSpace mode dofs
+   string UseExtension_; // define an extension to use for input files
    
    Lattice(PerlInput const& Input,int const& Echo);
    virtual ~Lattice() {}
@@ -49,8 +51,11 @@ public:
    virtual Matrix const& E2() const = 0;
    virtual Matrix const& E3() const = 0;
    virtual Matrix const& E4() const = 0;
-   virtual int TestFunctions(Vector& TF1,StateType const& State=LHS,
-                             Vector* const EV2=0) const;
+   int const UseEigenValTFs() const {return UseEigenValTFs_;}
+   int const NumTestFunctions() const
+   {return (UseEigenValTFs_)?(DOF().Dim()+NumExtraTFs_):NumExtraTFs_;}
+   int TestFunctions(Vector& TF1,StateType const& State=LHS,Vector* const EV2=0) const;
+   virtual void ExtraTestFunctions(Vector& TF) const {};
    virtual void DispersionCurves(Vector const& K,int const& NoPTS,char const* const prefix,
                                  ostream& out) const {};
    virtual int BlochWave(Vector& K) const {return -1;}
@@ -87,6 +92,8 @@ private:
    mutable Matrix EigVectLHS_static;
    mutable Matrix EV1_static;
    mutable Matrix EV2_static;
+   mutable Vector ExTF1_static;
+   mutable Vector ExTF2_static;
 };
 
 #endif
