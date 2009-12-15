@@ -52,6 +52,34 @@ TwoBarTruss::TwoBarTruss(PerlInput const& Input,int const& Echo,int const& Width
 
    Gamma_ = Input.getDouble(Hash,"Gamma");
 
+   if (NumExtraTFs_ > 0)
+   {
+      if (Input.ParameterOK(Hash,"ExtraTFs"))
+      {
+         if (Input.getArrayLength(Hash,"ExtraTFs") == NumExtraTFs_)
+         {
+            ExtraTestFunctions_.Resize(NumExtraTFs_);
+            Input.getVector(ExtraTestFunctions_,Hash,"ExtraTFs");
+         }
+         else
+         {
+            cerr << "Error: ArrayLength of " << Hash.Name
+                 << "{ExtraTFs} is not equal to Lattice{NumExtraTFs}.\n";
+            exit(-2);
+         }
+      }
+      else
+      {
+         cerr << "Error: ExtraTFs not defined but Lattice{NumExtraTFs} = "
+              << NumExtraTFs_ << ".\n";
+         exit(-3);
+      }
+   }
+   else
+   {
+      ExtraTestFunctions_.Resize(0);
+   }
+
    Input.EndofInputSection();
 }
 
@@ -254,6 +282,14 @@ Matrix const& TwoBarTruss::E4() const
    return E4CachedValue_;
 }
 
+void TwoBarTruss::ExtraTestFunctions(Vector& TF) const
+{
+   for (int i=0;i<NumExtraTFs_;++i)
+   {
+      TF[i] = (ExtraTestFunctions_[i] - Lambda());
+   }
+}
+
 void TwoBarTruss::Print(ostream& out,PrintDetail const& flag,
                         PrintPathSolutionType const& SolType)
 {
@@ -264,7 +300,7 @@ void TwoBarTruss::Print(ostream& out,PrintDetail const& flag,
    Matrix
       stiff(DOFS_,DOFS_);
    Vector str(DOFS_);
-   Vector TestFunctVals(DOFS_);
+   Vector TestFunctVals(NumTestFunctions());
    
    W=out.width();
    
@@ -275,10 +311,12 @@ void TwoBarTruss::Print(ostream& out,PrintDetail const& flag,
    str = E1();
    stiff = E2();
    
-   NoNegTestFunctions=TestFunctions(TestFunctVals,LHS);
+   TestFunctions(TestFunctVals,LHS);
+   NoNegTestFunctions = 0;
    mintestfunct = TestFunctVals[0];
-   for (int i=0;i<DOFS_;++i)
+   for (int i=0;i<NumTestFunctions();++i)
    {
+      if ((TestFunctVals[i] < 0.0) && (i < DOFS_)) ++NoNegTestFunctions;
       if (mintestfunct > TestFunctVals[i])
          mintestfunct = TestFunctVals[i];
    }

@@ -31,6 +31,7 @@ private:
    mutable Matrix E2CachedValue_;
    mutable Matrix E3CachedValue_;
    mutable Matrix E4CachedValue_;
+   mutable Vector ExtraTestFunctions_;
    mutable int CallCount_[cachesize];
    
 public:
@@ -51,6 +52,9 @@ public:
    virtual Vector const& E1() const;
    virtual Vector const& E1DLoad() const;
    virtual Matrix const& E2() const;
+   virtual Matrix const& E3() const;
+   virtual Matrix const& E4() const;
+   virtual void ExtraTestFunctions(Vector& TF) const;
    virtual char const* const Type() const {return "TwoBarTruss";}
    virtual void Print(ostream& out,PrintDetail const& flag,
                       PrintPathSolutionType const& SolType = RegularPt);
@@ -66,8 +70,6 @@ public:
    void SetTemp(double const& Ntemp) {}
    Vector const& StressDL() const {return E1DLoad();}
    Matrix const& StiffnessDL() const {return EmptyM_;}
-   virtual Matrix const& E3() const;
-   virtual Matrix const& E4() const;
    virtual void SetParameters(double const* const Vals,int const& ResetRef = 1) {}
    virtual void SetGridSize(int const& Grid) {}
    
