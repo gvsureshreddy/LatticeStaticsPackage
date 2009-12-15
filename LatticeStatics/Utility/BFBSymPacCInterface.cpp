@@ -28,6 +28,7 @@ SolutionMethod *SolveMe;
 int success = 1;
 int TotalNumCPs = 0;
 int TestValue=-1;
+int StableValue=-1;
 int OldTestValue=TestValue;
 Vector EigenValues;
 int Width,Precision,Echo;
@@ -77,7 +78,7 @@ extern "C" void bfb_init_wrapper_(int& nfree,double* ufree_init,double& t,char* 
    //Input.EvaluateString(tmp.str().c_str());
    
    SolveMe = InitializeSolution(Restrict,Input,Lat,cout,Width,Echo);
-   EigenValues.Resize(Lat->DOF().Dim());
+   EigenValues.Resize(Lat->NumTestFunctions());
 
    cout << setw(Width);
    Lat->Print(cout,Lattice::PrintLong);
@@ -92,7 +93,13 @@ extern "C" void bfb_wrapper_(int& bfbstable,int& bfbreturncode)
    // Check for Critical Point Crossing
    OldTestValue = TestValue;
    TestValue = Lat->TestFunctions(EigenValues);
-   if (0 == TestValue)
+
+   StableValue = 0;
+   for (int i=Lat->DOF().Dim();i<EigenValues.Dim();++i)
+   {
+      if (EigenValues[i] < 0.0) ++StableValue;
+   }
+   if (0 == StableValue)
    {
       bfbstable = 0;
    }

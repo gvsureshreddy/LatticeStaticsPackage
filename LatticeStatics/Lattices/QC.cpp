@@ -23,7 +23,8 @@ QC::QC(PerlInput const& Input,int const& Echo,int const& Width):
    Lattice(Input,Echo),
    Lambda_(0.0),
    Width_(Width),
-   SolutionNumber_(0)
+   SolutionNumber_(0),
+   Stable_(1)
 {
    PerlInput::HashStruct Hash = Input.getHash("Lattice");
    Hash = Input.getHash(Hash,"QC");
@@ -34,6 +35,7 @@ QC::QC(PerlInput const& Input,int const& Echo,int const& Width):
       cerr << "Error: QC - RemoveTranslation parameter too big must be 0, 1, 2, or 3.\n";
       exit(-34);
    }
+   
    if (RemoveTranslation_ > 0)
    {
       // determine translation mode.
@@ -67,6 +69,7 @@ QC::QC(PerlInput const& Input,int const& Echo,int const& Width):
 
       TranslationMode_ /= TranslationMode_.Norm();
    }
+   
    if (Input.ParameterOK(Hash,"Tolerance"))
    {
       Tolerance_ = Input.getDouble(Hash,"Tolerance");
@@ -74,6 +77,38 @@ QC::QC(PerlInput const& Input,int const& Echo,int const& Width):
    else
    {
       Tolerance_ = Input.useDouble(1.0e-6,Hash,"Tolerance");  // Default Value
+   }
+
+   if (NumExtraTFs_ > 0)
+   {
+      if (Input.ParameterOK(Hash,"ExtraTFs"))
+      {
+         if (Input.getArrayLength(Hash,"ExtraTFs") == NumExtraTFs_)
+         {
+            ExtraTestFunctions_.Resize(NumExtraTFs_);
+            PreviousExtraTestFunctions_.Resize(NumExtraTFs_);
+            ExtraTestFunctionMultipliers_.Resize(NumExtraTFs_,1.0);
+            Input.getVector(ExtraTestFunctions_,Hash,"ExtraTFs");
+         }
+         else
+         {
+            cerr << "Error: ArrayLength of " << Hash.Name
+                 << "{ExtraTFs} is not equal to Lattice{NumExtraTFs}.\n";
+            exit(-2);
+         }
+      }
+      else
+      {
+         cerr << "Error: ExtraTFs not defined but Lattice{NumExtraTFs} = "
+              << NumExtraTFs_ << ".\n";
+         exit(-3);
+      }
+   }
+   else
+   {
+      ExtraTestFunctions_.Resize(0);
+      PreviousExtraTestFunctions_.Resize(0);
+      ExtraTestFunctionMultipliers_.Resize(0);
    }
 
    // get input file header
@@ -293,8 +328,10 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int const&
    ostringstream cpfilename;
    if (1 == Bif)
       cpfilename << ".BP.";
-   else
+   else if (0 == Bif)
       cpfilename << ".TP.";
+   else
+      cpfilename << ".EP.";
 
    // output a QC restart file
    ostringstream qcfilename;
@@ -360,6 +397,32 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int const&
    return Bif;
 }
 
+void QC::ExtraTestFunctions(Vector& TF) const
+{
+   if (Stable_)
+   {
+      for (int i=0;i<NumExtraTFs_;++i)
+      {
+         TF[i] = ExtraTestFunctionMultipliers_[i]*(ExtraTestFunctions_[i] - Lambda());
+         PreviousExtraTestFunctions_[i] = TF[i];
+      }
+   }
+   else
+   {
+      for (int i=0;i<NumExtraTFs_;++i)
+      {
+         TF[i] = ExtraTestFunctionMultipliers_[i]*(ExtraTestFunctions_[i] - Lambda());
+         if (TF[i]*PreviousExtraTestFunctions_[i] < 0.0)
+         {
+            ExtraTestFunctionMultipliers_[i] *= -1.0;
+            TF[i] = -TF[i];
+         }
+         PreviousExtraTestFunctions_[i] = TF[i];
+      }
+   }
+}
+
+
 
 void QC::Print(ostream& out,PrintDetail const& flag,
                PrintPathSolutionType const& SolType)
@@ -369,7 +432,7 @@ void QC::Print(ostream& out,PrintDetail const& flag,
    double engy;
    double E1norm;
    double mintestfunct;
-   Vector TestFunctVals(DOFS_);
+   Vector TestFunctVals(NumTestFunctions());
    
    W=out.width();
    
@@ -379,13 +442,19 @@ void QC::Print(ostream& out,PrintDetail const& flag,
    engy = E0();
    E1norm = E1().Norm();
    
-   NoNegTestFunctions=TestFunctions(TestFunctVals,LHS);
+   TestFunctions(TestFunctVals,LHS);
    mintestfunct = TestFunctVals[0];
+   // check only the EigenValTFs
    for (int i=0;i<DOFS_;++i)
    {
+      if ((UseEigenValTFs() == 1) && (TestFunctVals[i] < 0.0)) ++NoNegTestFunctions;
       if (mintestfunct > TestFunctVals[i])
          mintestfunct = TestFunctVals[i];
    }
+   if (NoNegTestFunctions == 0)
+      Stable_ = 1;
+   else
+      Stable_ = 0;
    
    switch (flag)
    {
@@ -404,6 +473,12 @@ void QC::Print(ostream& out,PrintDetail const& flag,
              << "Potential Value: " << setw(W) << engy << "\n"
              << "Force Norm: " << setw(W) << E1norm << "\n";
 
+         out << "ExtraTF Info: ";
+         for (int i=DOFS_;i<NumTestFunctions();++i)
+         {
+            out << setw(W) << TestFunctVals[i];
+         }
+         out << "\n";
          out << "Bifurcation Info: " << setw(W) << mintestfunct
              << setw(W) << NoNegTestFunctions << "\n";
          // send to cout also
@@ -415,6 +490,12 @@ void QC::Print(ostream& out,PrintDetail const& flag,
                  << "Potential Value: " << setw(W) << engy << "\n"
                  << "Force Norm: " << setw(W) << E1norm << "\n";
 
+            cout << "ExtraTF Info: ";
+            for (int i=DOFS_;i<NumTestFunctions();++i)
+            {
+               cout << setw(W) << TestFunctVals[i];
+            }
+            cout << "\n";
             cout << "Bifurcation Info: " << setw(W) << mintestfunct
                  << setw(W) << NoNegTestFunctions << "\n";
          }

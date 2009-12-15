@@ -230,7 +230,8 @@ $Rtheta1_1_1 = 0.275914376289;
             QC => {DOFS      => 300,
                    RemoveTranslation => 0, # 0-off, 1,2,3 - direction
                    TranslationTable  => "columnNi.tab",
-                   Tolerance => 1.0e-6 # for numerical derivatives
+                   Tolerance         => 1.0e-6#, # for numerical derivatives
+                   #ExtraTFs          => [1.1]
                   }
            );
 

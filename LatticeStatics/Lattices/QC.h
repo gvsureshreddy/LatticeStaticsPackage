@@ -33,6 +33,10 @@ private:
    mutable Vector E1CachedValue_;
    mutable Vector E1DLoadCachedValue_;
    mutable Matrix E2CachedValue_;
+   mutable Vector ExtraTestFunctions_;
+   mutable Vector PreviousExtraTestFunctions_;
+   mutable Vector ExtraTestFunctionMultipliers_;
+   mutable int Stable_;
    mutable int EvaluationCount_[2];
    mutable int CallCount_[cachesize];
    
@@ -57,6 +61,7 @@ public:
    virtual Matrix const& E2() const;
    virtual Matrix const& StiffnessDL() const;
    virtual Matrix const& E3() const;
+   virtual void ExtraTestFunctions(Vector& TF) const;
    virtual char const* const Type() const {return "QC";}
    virtual void Print(ostream& out,PrintDetail const& flag,
                       PrintPathSolutionType const& SolType = RegularPt);
