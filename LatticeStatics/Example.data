@@ -24,6 +24,8 @@ $Rtheta1_1_1 = 0.275914376289;
 
 %Lattice = (Type            => MultiLatticeTPP, # MultiLatticeTPP, MultiChainTPP, MultiChainTTPP, PseudoHarmonicMultiChainTTPP, TwoBarTruss, TwoBarTrussExternal, DFTExternal, QC
             #OrderedTFs      => No, # Default value = No, Yes
+            #UseEigenValTFs  => Yes, # Default value = Yes, No
+            #NumExraTFs      => 0, # Default value = 0, positive number
             #LSKAnalysis     => SecondOrder, # Default value = SecondOrder, ThirdOrder, None
             #FullPrint       => Yes, # Default value = Yes, No
             #GuessModes      => No, # Default value = No, Yes
@@ -216,9 +218,10 @@ $Rtheta1_1_1 = 0.275914376289;
                                              NTemp             => 1.0,
                                              Lambda            => 0.0
                                             },
-            TwoBarTruss => {Caching => Yes, # Yes, No
-                            Theta   => 65*$DEG2RAD,
-                            Gamma   => 1.0 # imperfection ratio for bar moduli
+            TwoBarTruss => {Caching  => Yes, # Yes, No
+                            Theta    => 65*$DEG2RAD,
+                            Gamma    => 1.0#, # imperfection ratio for bar moduli
+                            #ExtraTFs => [0.1]
                            },
             TwoBarTrussExternal => {# no options
                                    },
