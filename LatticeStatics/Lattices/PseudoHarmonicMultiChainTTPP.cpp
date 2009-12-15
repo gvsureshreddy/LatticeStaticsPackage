@@ -1089,7 +1089,7 @@ void PseudoHarmonicMultiChainTTPP::Print(ostream& out,PrintDetail const& flag,
    pstiff_static.Resize(DOFS,DOFS);
    Matrix CondEV(1,1);
    Matrix CondModuli(1,1);
-   TestFunctVals_static.Resize(DOFS);
+   TestFunctVals_static.Resize(NumTestFunctions());
    int RankOneConvex;
    Vector K(1);
    int BlochWaveStable;

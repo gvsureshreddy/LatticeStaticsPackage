@@ -241,7 +241,7 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput const& Input,int const& Echo,int cons
    CondEV_static.Resize(1,CBK_->Fsize());
    TE_static.Resize(CBK_->DOFS());
    CondModuli_static.Resize(CBK_->Fsize(),CBK_->Fsize());
-   TestFunctVals_static.Resize(CBK_->DOFS());
+   TestFunctVals_static.Resize(NumTestFunctions());
    K_static.Resize(DIM3);
    
    

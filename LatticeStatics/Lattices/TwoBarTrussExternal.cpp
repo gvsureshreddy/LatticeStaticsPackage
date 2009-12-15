@@ -130,7 +130,7 @@ void TwoBarTrussExternal::Print(ostream& out,PrintDetail const& flag,
    Matrix
       stiff(DOFS_,DOFS_);
    Vector str(DOFS_);
-   Vector TestFunctVals(DOFS_);
+   Vector TestFunctVals(NumTestFunctions());
    
    W=out.width();
    
