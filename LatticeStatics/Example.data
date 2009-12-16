@@ -95,6 +95,8 @@ $Rtheta1_1_1 = 0.275914376289;
              LoadProportions     => [1.0, 0.0, 0.0],
              MaxIterations       => 100,
              BlochWaveGridSize   => 5,
+             #ReferenceTemperature => 1.0, # Default value = 1.0
+             #ReferenceLambda      => 0.0, # Default value = 0.0
              NTemp               => 1.0,
              Lambda              => 0.0
             },

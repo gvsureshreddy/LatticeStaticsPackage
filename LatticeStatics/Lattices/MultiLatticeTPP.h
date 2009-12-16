@@ -35,6 +35,8 @@ private:
    int KillTranslations_;
    Vector KillOneRotation_;
    int Density_;
+   double REFTemp_;
+   double REFLambda_;
    double NormModulus_;
    double Tref_;
    double PhiRef_;

@@ -229,6 +229,24 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput const& Input,int const& Echo,int cons
    iter = Input.getPosInt(Hash,"MaxIterations");
    GridSize_ = Input.getPosInt(Hash,"BlochWaveGridSize");
 
+   // values to identifiy REFERNCE CONFIGURATION
+   if (Input.ParameterOK(Hash,"ReferenceTemperature"))
+   {
+      REFTemp_ = Input.getDouble(Hash,"ReferenceTemperature");
+   }
+   else
+   {
+      REFTemp_ = Input.useDouble(1.0,Hash,"ReferenceTemperature"); // Default Value
+   }
+   if (Input.ParameterOK(Hash,"ReferenceLambda"))
+   {
+      REFLambda_ = Input.getDouble(Hash,"ReferenceLambda");
+   }
+   else
+   {
+      REFLambda_ = Input.useDouble(0.0,Hash,"ReferenceLambda"); // Default Value
+   }
+
    // Initialize various data storage space
    ME1_static.Resize(CBK_->DOFS(),0.0);
    ME2_static.Resize(CBK_->DOFS(),CBK_->DOFS(),0.0);
@@ -282,8 +300,8 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput const& Input,int const& Echo,int cons
 
 int MultiLatticeTPP::FindLatticeSpacing(int const& iter)
 {
-   Lambda_=0.0;
-   NTemp_=1.0;
+   Lambda_ = REFLambda_;
+   NTemp_ = REFTemp_;
 
    CBK_->SetReferenceDOFs();
    LatSum_.Recalc();
@@ -1753,6 +1771,8 @@ void MultiLatticeTPP::Print(ostream& out,PrintDetail const& flag,
                 << "Species : " << setw(5) << AtomSpecies_[i]
                 << "          Position : " << setw(W) << CBK_->AtomPositions(i) << "\n";
          }
+         out << "REFTemp_ : " << setw(W) << REFTemp_ << "\n";
+         out << "REFLambda_ : " << setw(W) << REFLambda_ << "\n";
          out << "Influence Distance   : " << setw(W) << InfluenceDist_ << "\n";
          for (int i=0;i<NumberofSpecies_;++i)
          {
@@ -1790,6 +1810,8 @@ void MultiLatticeTPP::Print(ostream& out,PrintDetail const& flag,
                     << "Species : " <<setw(5) << AtomSpecies_[i]
                     << "          Position : " << setw(W) << CBK_->AtomPositions(i) << "\n";
             }
+            cout << "REFTemp_ : " << setw(W) << REFTemp_ << "\n";
+            cout << "REFLambda_ : " << setw(W) << REFLambda_ << "\n";
             cout << "Influence Distance   : " << setw(W) << InfluenceDist_ << "\n";
             for (int i=0;i<NumberofSpecies_;++i)
             {
