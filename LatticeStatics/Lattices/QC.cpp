@@ -444,6 +444,7 @@ void QC::Print(ostream& out,PrintDetail const& flag,
    
    TestFunctions(TestFunctVals,LHS);
    mintestfunct = TestFunctVals[0];
+   NoNegTestFunctions = 0;
    // check only the EigenValTFs
    for (int i=0;i<DOFS_;++i)
    {
