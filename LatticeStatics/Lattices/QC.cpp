@@ -506,6 +506,7 @@ void QC::Print(ostream& out,PrintDetail const& flag,
          double dummy = 0.0;
          int tpflag = -1;
          int bifflag = -2;
+         int extratfflag = -3;
          switch (SolType)
          {
             case NotSolutionPt:
@@ -518,6 +519,9 @@ void QC::Print(ostream& out,PrintDetail const& flag,
                break;
             case BifurcationPt:
                qcbfb_output_(DOFS_,&(DOF_[0]),Lambda_,nint,&bifflag,ndouble,&dummy);
+               break;
+            case ExtraTFPt:
+               qcbfb_output_(DOFS_,&(DOF_[0]),Lambda_,nint,&extratfflag,ndouble,&dummy);
                break;
          }
          break;

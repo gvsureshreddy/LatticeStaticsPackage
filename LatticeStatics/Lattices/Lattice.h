@@ -72,7 +72,7 @@ public:
 
    virtual char const* const Type() const = 0;
    enum PrintDetail {PrintLong,PrintShort};
-   enum PrintPathSolutionType {NotSolutionPt,RegularPt,TurningPt,BifurcationPt};
+   enum PrintPathSolutionType {NotSolutionPt,RegularPt,TurningPt,BifurcationPt,ExtraTFPt};
    virtual void Print(ostream& out,PrintDetail const& flag,
                       PrintPathSolutionType const& SolType = RegularPt) = 0;
    friend ostream& operator<<(ostream& out,Lattice& L)

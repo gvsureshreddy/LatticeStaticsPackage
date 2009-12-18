@@ -686,7 +686,7 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
    Vector* CPDOFs;
    double* CPLambdas;
    CPDOFs = new Vector[TestValueDiff];
-   for (int i=0;i<TestValueDiff;++i) CPDOFs[i].Resize(DOFS_);
+   for (int i=0;i<TestValueDiff;++i) CPDOFs[i].Resize(Lat->DOF().Dim());
    CPLambdas = new double[TestValueDiff];
    int* CPorBifs;
    CPorBifs = new int[TestValueDiff];
@@ -791,8 +791,10 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
       out << setw(Width);
       if (0 == CPorBifs[i])
          Lat->Print(out,Lattice::PrintShort,Lattice::TurningPt);
-      else
+      else if (1 == CPorBifs[i])
          Lat->Print(out,Lattice::PrintShort,Lattice::BifurcationPt);
+      else
+         Lat->Print(out,Lattice::PrintShort,Lattice::ExtraTFPt);
       
       for (int j=0;j<70;j++)
       {
