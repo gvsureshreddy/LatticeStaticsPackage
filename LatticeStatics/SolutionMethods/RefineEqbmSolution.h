@@ -33,7 +33,7 @@ public:
    // Functions required by SolutionMethod
    virtual int AllSolutionsFound() const {return SolutionFound_;}
    virtual int FindNextSolution();
-   virtual void FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCrossings,
+   virtual void FindCriticalPoint(Lattice* const Lat,int* const TotalNumCPCrossings,
                                   PerlInput const& Input,int const& Width,ostream& out) {}
    virtual char const* const Type() const {return "RefineEqbmSolution";}
 };

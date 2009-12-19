@@ -91,7 +91,8 @@ int main(int argc, char *argv[])
    SolveMe = InitializeSolution(Restrict,Input,Lat,out,Width,Echo);
 
    int success = 1;
-   int TotalNumCPs = 0;
+   int* TotalNumCPs = new int[Lat->NumTestFunctions()];
+   for (int i=0;i<Lat->NumTestFunctions();++i) TotalNumCPs[i] = 0;
    int TestValue=-1,
       OldTestValue=TestValue;
    Vector TestValues(Lat->NumTestFunctions());
@@ -107,7 +108,6 @@ int main(int argc, char *argv[])
          TestValue = Lat->TestFunctions(TestValues);
          if ((OldTestValue != TestValue) && (BisectCP == Yes) && (OldTestValue != -1))
             SolveMe->FindCriticalPoint(Lat,TotalNumCPs,Input,Width,out);
-         
          // Send Output
          if (Echo)
          {
@@ -121,6 +121,7 @@ int main(int argc, char *argv[])
    delete SolveMe;
    delete Restrict;
    delete Lat;
+   delete [] TotalNumCPs;
    
    return 0;
 }

@@ -634,7 +634,7 @@ void ArcLengthSolution::ArcLengthNewton(int& good)
    }
 }
 
-void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCrossings,
+void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int* const TotalNumCPCrossings,
                                           PerlInput const& Input,int const& Width,ostream& out)
 {
    ++counter_[10];
@@ -684,10 +684,12 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
    Index = new int[TestValueDiff];
    Vector DSTrack(TestValueDiff);
    Vector* CPDOFs;
-   double* CPLambdas;
    CPDOFs = new Vector[TestValueDiff];
    for (int i=0;i<TestValueDiff;++i) CPDOFs[i].Resize(Lat->DOF().Dim());
+   double* CPLambdas;
    CPLambdas = new double[TestValueDiff];
+   int* CPIndex;
+   CPIndex = new int[TestValueDiff];
    int* CPorBifs;
    CPorBifs = new int[TestValueDiff];
 
@@ -753,12 +755,14 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
          while((spot!=0) && (DSTrack[spot-1] > CurrentDS_))
          {
             DSTrack[spot] = DSTrack[spot-1];
+            CPIndex[spot] = CPIndex[spot - 1];
             CPDOFs[spot] = CPDOFs[spot - 1];
             CPLambdas[spot] = CPLambdas[spot - 1];
             CPorBifs[spot] = CPorBifs[spot - 1];
             spot = spot - 1;
          }
          DSTrack[spot] = CurrentDS_;
+         CPIndex[spot] = track;
          CPDOFs[spot] = Lat->DOF();
          CPLambdas[spot] = ( (Lat->LoadParameter() == Lattice::Load)
                             ? Lat->Lambda() : Lat->Temp() );
@@ -805,18 +809,19 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
       out << "\n";
       
       // Call Lattice function to do any Lattice Specific things
-      Bif=Lat->CriticalPointInfo(TotalNumCPCrossings,
+      Bif=Lat->CriticalPointInfo(TotalNumCPCrossings,CPIndex[i],
                                  Restrict_->DrDt(Restrict_->DOF()-(OriginalDOF-OriginalDiff)),
                                  CPorBifs[i],Multiplicity,10.0*Tolerance_,Width,Input,out);
       
       if (Echo_) cout << "Success = 1" << "\n";
       out << "Success = 1" << "\n";
 
-      ++TotalNumCPCrossings;
+      ++TotalNumCPCrossings[CPIndex[i]];
    }
    
    delete [] Index;
    delete [] CPDOFs;
+   delete [] CPIndex;
    delete [] CPLambdas;
    delete [] CPorBifs;
    
@@ -826,7 +831,9 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCros
    Difference_ = OriginalDiff;
 
    // Check to see if we should stop
-   if ((StopAtCPCrossingNum_ > -1) && (TotalNumCPCrossings >= StopAtCPCrossingNum_))
+   int cumulative = 0;
+   for (int i=0;i<Lat->NumTestFunctions();++i) cumulative += TotalNumCPCrossings[i];
+   if ((StopAtCPCrossingNum_ > -1) && (cumulative >= StopAtCPCrossingNum_))
       CurrentSolution_ = NumSolutions_;
 }
 

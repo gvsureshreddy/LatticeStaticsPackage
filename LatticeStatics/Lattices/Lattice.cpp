@@ -512,14 +512,25 @@ int Lattice::TestFunctions(Vector &TF1,StateType const& State,Vector* const TF2)
    return retval;
 }
 
-int Lattice::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int const& CPorBif,
-                               int const& NumZeroEigenVals,double const& Tolerance,
-                               int const& Width,PerlInput const& Input,ostream& out)
+int Lattice::CriticalPointInfo(int* const CPCrossingNum,int const& TFIndex,Vector const& DrDt,
+                               int const& CPorBif,int const& NumZeroEigenVals,
+                               double const& Tolerance,int const& Width,PerlInput const& Input,
+                               ostream& out)
 {
-   out << "Critical Point Crossing Number: " << CPCrossingNum << "\n";
+   int const IndexZeros = 4;
+   int const OccuranceZeros = 3;
+   out.fill('0');
+   out << "Critical Point Crossing Number: " << setw(IndexZeros)
+       << TFIndex << "." << setw(OccuranceZeros) << CPCrossingNum[TFIndex]
+       << "\n";
+   out.fill(' ');
    if (Echo_)
    {
-      cout << "Critical Point Crossing Number: " << CPCrossingNum << "\n";
+      cout.fill('0');
+      cout << "Critical Point Crossing Number: " << setw(IndexZeros)
+           << TFIndex << "." << setw(OccuranceZeros) << CPCrossingNum[TFIndex]
+           << "\n";
+      cout.fill(' ');
    }
 
    // default to the passed in information
@@ -1012,6 +1023,8 @@ int Lattice::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int c
    // output a new input file to help restart at this critical point
    ostringstream cpfilename;
    fstream cpfile;
+   ostringstream TFOrderFilename;
+   fstream TFOrderFile;
    cpfilename << Input.LastInputFileName();
    if ("" != UseExtension_)
    {
@@ -1023,14 +1036,25 @@ int Lattice::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int c
          cpfilename << a;
       }
    }
+   TFOrderFilename << cpfilename.str() << ".TForder";
+   
    if (1 == Bif)
-      cpfilename << ".BP.";
+      cpfilename << ".B";
    else if (0 == Bif)
-      cpfilename << ".TP.";
+      cpfilename << ".T";
    else
-      cpfilename << ".EP.";
+      cpfilename << ".E";
 
-   cpfilename << setw(3) << setfill('0') << CPCrossingNum << UseExtension_;
+   cpfilename.fill('0');
+   cpfilename << setw(IndexZeros) << TFIndex << "-"
+              << setw(OccuranceZeros) << CPCrossingNum[TFIndex]
+              << UseExtension_;
+   cpfilename.fill(' ');
+
+   TFOrderFile.open(TFOrderFilename.str().c_str(),ios::out | ios::app);
+   TFOrderFile << cpfilename.str() << endl;
+   TFOrderFile.close();
+
    cpfile.open(cpfilename.str().c_str(),ios::out);
 
    cpfile << setprecision(out.precision()) << scientific;

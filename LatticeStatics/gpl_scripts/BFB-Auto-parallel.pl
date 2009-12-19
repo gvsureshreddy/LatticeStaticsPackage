@@ -252,7 +252,7 @@ while((-e $maintimerfile) &&
       {
         # if not the root path
         system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/${flnm}curdir*.res $curdir/*TP*.bfb $curdir/*TP*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+           " $curdir/${flnm}curdir*.res $curdir/*.T*.bfb $curdir/*.T*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
       }
       else
       {
@@ -260,7 +260,7 @@ while((-e $maintimerfile) &&
         # set the input file root
         $flnm = $InputFileName;
         system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/${flnm}curdir*.res $curdir/*TP*.bfb $curdir/*TP*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+           " $curdir/${flnm}curdir*.res $curdir/*.T*.bfb $curdir/*.T*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
       }
 
       if (-e "$newdir/abort.dat")
@@ -285,7 +285,7 @@ while((-e $maintimerfile) &&
       {
         # if not the root path
         system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/${flnm}curdir*.res $curdir/*TP*.bfb $curdir/*TP*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+           " $curdir/${flnm}curdir*.res $curdir/*.T*.bfb $curdir/*.T*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
       }
       else
       {
@@ -293,7 +293,7 @@ while((-e $maintimerfile) &&
         # set the input file root
         $flnm = $InputFileName;
         system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/${flnm}curdir*.res $curdir/*TP*.bfb $curdir/*TP*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+           " $curdir/${flnm}curdir*.res $curdir/*.T*.bfb $curdir/*.T*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
       }
 
       move($curdir . "/#RUNNING#", $curdir . "/#ERROR#");
@@ -410,7 +410,7 @@ while ( (scalar @pths) > 0)
       {
         # if not the root path
         system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/${flnm}curdir*.res $curdir/*TP*.bfb $curdir/*TP*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+           " $curdir/${flnm}curdir*.res $curdir/*.T*.bfb $curdir/*.T*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
       }
       else
       {
@@ -418,7 +418,7 @@ while ( (scalar @pths) > 0)
         # set the input file root
         $flnm = $InputFileName;
         system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/${flnm}curdir*.res $curdir/*TP*.bfb $curdir/*TP*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+           " $curdir/${flnm}curdir*.res $curdir/*.T*.bfb $curdir/*.T*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
       }
       
       if (-e "$newdir/abort.dat")
@@ -443,7 +443,7 @@ while ( (scalar @pths) > 0)
       {
         # if not the root path
         system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/${flnm}curdir*.res $curdir/*TP*.bfb $curdir/*TP*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+           " $curdir/${flnm}curdir*.res $curdir/*.T*.bfb $curdir/*.T*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
       }
       else
       {
@@ -451,7 +451,7 @@ while ( (scalar @pths) > 0)
         # set the input file root
         $flnm = $InputFileName;
         system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/${flnm}curdir*.res $curdir/*TP*.bfb $curdir/*TP*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+           " $curdir/${flnm}curdir*.res $curdir/*.T*.bfb $curdir/*.T*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
       }
 
       move($curdir . "/#RUNNING#", $curdir . "/#ERROR#");
@@ -559,7 +559,7 @@ sub find_sentinels
       symlink "../$sym_info", "$dir/$found/$sym_info";
       symlink "../$geo","$dir/$found/$geo";
       symlink "../$pots","$dir/$found/$pots";
-      if ($found =~ /\.BP\....\.BP\....\.BP\..../)
+      if ($found =~ /\.B....-...\.B....-...\.B....-.../)
       {
         system("gzip -f $dir/$found/$found.bfb $dir/$found/$found.in $dir/$found/$found.res >& /dev/null");
         open(WAT,">$dir/$found/#SKIPPED#");

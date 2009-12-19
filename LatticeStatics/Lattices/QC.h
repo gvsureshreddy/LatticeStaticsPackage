@@ -68,9 +68,10 @@ public:
    
    friend ostream& operator<<(ostream& out,QC& A);
    
-   virtual int CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int const& CPorBif,
-                                 int const& NumZeroEigenVals,double const& Tolerance,
-                                 int const& Width,PerlInput const& Input,ostream& out);
+   virtual int CriticalPointInfo(int* const CPCrossingNum,int const& TFIndex,Vector const& DrDt,
+                                 int const& CPorBif,int const& NumZeroEigenVals,
+                                 double const& Tolerance,int const& Width,PerlInput const& Input,
+                                 ostream& out);
    // ignore these
    double Entropy() const {return 0.0;}
    double HeatCapacity() const {return 0.0;}

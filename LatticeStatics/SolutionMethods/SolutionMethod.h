@@ -14,7 +14,7 @@ public:
    
    virtual int AllSolutionsFound() const = 0;
    virtual int FindNextSolution() = 0;
-   virtual void FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCrossings,
+   virtual void FindCriticalPoint(Lattice* const Lat,int* const TotalNumCPCrossings,
                                   PerlInput const& Input,int const& Width,ostream& out) = 0;
    virtual char const* const Type() const = 0;
 };

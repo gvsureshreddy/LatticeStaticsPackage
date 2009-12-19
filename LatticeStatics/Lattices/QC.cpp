@@ -1,4 +1,4 @@
-#include <fstream>
+ #include <fstream>
 #include "QC.h"
 
 using namespace std;
@@ -315,31 +315,37 @@ Matrix const& QC::E3() const
    return E3_static;
 }
 
-int QC::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int const& CPorBif,
-                          int const& NumZeroEigenVals,double const& Tolerance,
+int QC::CriticalPointInfo(int* const CPCrossingNum,int const& TFIndex,Vector const& DrDt,
+                          int const& CPorBif,int const& NumZeroEigenVals,double const& Tolerance,
                           int const& Width,PerlInput const& Input,ostream& out)
 {
+   int const IndexZeros = 4;
+   int const OccuranceZeros = 3;
+
    int Bif;
 
    // do standard CPInfo stuff and output bfb restart file
-   Bif = Lattice::CriticalPointInfo(CPCrossingNum,DrDt,CPorBif,NumZeroEigenVals,
+   Bif = Lattice::CriticalPointInfo(CPCrossingNum,TFIndex,DrDt,CPorBif,NumZeroEigenVals,
                                     Tolerance,Width,Input,out);
    
    ostringstream cpfilename;
    if (1 == Bif)
-      cpfilename << ".BP.";
+      cpfilename << ".B";
    else if (0 == Bif)
-      cpfilename << ".TP.";
+      cpfilename << ".T";
    else
-      cpfilename << ".EP.";
+      cpfilename << ".E";
 
    // output a QC restart file
    ostringstream qcfilename;
    char tmp[2048];
    strcpy(tmp,Input.LastInputFileName());
    tmp[strlen(tmp)-4] = 0;
-   qcfilename << tmp << cpfilename.str() << setw(3) << setfill('0')
-	      << CPCrossingNum << ".res";
+   qcfilename.fill('0');
+   qcfilename << tmp << cpfilename.str() << setw(IndexZeros)
+	      << TFIndex << "-" << setw(OccuranceZeros)
+              << CPCrossingNum[TFIndex] << ".res";
+   qcfilename.fill(' ');
    char fortranstring[80];
    strcpy(fortranstring,qcfilename.str().c_str());
    for (int i=strlen(fortranstring);i<80;++i)
@@ -350,7 +356,10 @@ int QC::CriticalPointInfo(int const& CPCrossingNum,Vector const& DrDt,int const&
 
    // output a qc input file (if bif pt)
    ostringstream bfbfilename;
-   bfbfilename << tmp << cpfilename.str() << setw(3) << setfill('0') << CPCrossingNum;
+   bfbfilename.fill('0');
+   bfbfilename << tmp << cpfilename.str() << setw(IndexZeros) << TFIndex
+               << "-" << setw(OccuranceZeros) << CPCrossingNum[TFIndex];
+   bfbfilename.fill(' ');
    if (1 == Bif)
    {
       fstream infile;

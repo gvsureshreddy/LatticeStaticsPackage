@@ -861,7 +861,7 @@ int NewtonPCSolution::FindNextSolution()
    return good;
 }
 
-void NewtonPCSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCrossings,
+void NewtonPCSolution::FindCriticalPoint(Lattice* const Lat,int* const TotalNumCPCrossings,
                                          PerlInput const& Input,int const& Width,ostream& out)
 {
    ++counter_[5];
@@ -896,7 +896,9 @@ void NewtonPCSolution::FindCriticalPoint(Lattice* const Lat,int& TotalNumCPCross
    S1.FindCriticalPoint(Lat,TotalNumCPCrossings,Input,Width,out);
    
    // Check to see if we should stop
-   if ((StopAtCPCrossingNum_ > -1) && (TotalNumCPCrossings >= StopAtCPCrossingNum_))
+   int cumulative = 0;
+   for (int i=0;i<Lat->NumTestFunctions();++i) cumulative += TotalNumCPCrossings[i];
+   if ((StopAtCPCrossingNum_ > -1) && (cumulative >= StopAtCPCrossingNum_))
       CurrentSolution_ = NumSolutions_;
 }
 

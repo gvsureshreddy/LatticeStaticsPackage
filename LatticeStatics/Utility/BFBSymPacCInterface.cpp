@@ -26,7 +26,7 @@ Lattice *Lat;
 Restriction *Restrict;
 SolutionMethod *SolveMe;
 int success = 1;
-int TotalNumCPs = 0;
+int* TotalNumCPs = 0;
 int TestValue=-1;
 int StableValue=-1;
 int OldTestValue=TestValue;
@@ -62,6 +62,8 @@ extern "C" void bfb_init_wrapper_(int& nfree,double* ufree_init,double& t,char* 
    Lat = InitializeLattice(Input,Echo,Width,0);
    Lat->SetDOF(utmp);
    Lat->SetLambda(t);
+
+   TotalNumCPs = new int[Lat->NumTestFunctions()];
    
    Restrict = InitializeRestriction(Lat,Input);
    
@@ -131,6 +133,7 @@ extern "C" void bfb_term_wrapper_()
    delete SolveMe;
    delete Restrict;
    delete Lat;
+   delete [] TotalNumCPs;
 }
 
 void GetMainSettings(int& Width,int& Precision,YN& BisectCP,int& Echo,PerlInput const& Input)
