@@ -25,8 +25,8 @@ Lattice::Lattice(PerlInput const& Input,int const& Echo):
    }
    else
    {
-      OrderedTFs_ = 0;
-      Input.useString("No","Lattice","OrderedTFs"); // Default Value
+      OrderedTFs_ = 1;
+      Input.useString("Yes","Lattice","OrderedTFs"); // Default Value
    }
 
    if (Input.ParameterOK("Lattice","UseEigenValTFs"))
