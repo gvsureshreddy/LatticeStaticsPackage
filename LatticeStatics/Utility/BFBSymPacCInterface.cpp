@@ -64,6 +64,7 @@ extern "C" void bfb_init_wrapper_(int& nfree,double* ufree_init,double& t,char* 
    Lat->SetLambda(t);
 
    TotalNumCPs = new int[Lat->NumTestFunctions()];
+   for (int i=0;i<Lat->NumTestFunctions();++i) TotalNumCPs[i] = 0;
    
    Restrict = InitializeRestriction(Lat,Input);
    
