@@ -23,9 +23,11 @@ QC::QC(PerlInput const& Input,int const& Echo,int const& Width):
    Lattice(Input,Echo),
    Lambda_(0.0),
    Width_(Width),
-   SolutionNumber_(0),
-   Stable_(1)
+   SolutionNumber_(0)
 {
+   Stable_[0] = 1;
+   Stable_[1] = 1;
+
    PerlInput::HashStruct Hash = Input.getHash("Lattice");
    Hash = Input.getHash(Hash,"QC");
    DOFS_ = Input.getPosInt(Hash,"DOFS");
@@ -408,7 +410,7 @@ int QC::CriticalPointInfo(int* const CPCrossingNum,int const& TFIndex,Vector con
 
 void QC::ExtraTestFunctions(Vector& TF) const
 {
-   if (Stable_)
+   if ((Stable_[0]) || (Stable_[1]))
    {
       for (int i=0;i<NumExtraTFs_;++i)
       {
@@ -460,10 +462,15 @@ void QC::Print(ostream& out,PrintDetail const& flag,
       if (mintestfunct > TestFunctVals[i])
          mintestfunct = TestFunctVals[i];
    }
+   Stable_[1] = Stable_[0];
    if (NoNegTestFunctions == 0)
-      Stable_ = 1;
+   {
+      Stable_[0] = 1;
+   }
    else
-      Stable_ = 0;
+   {
+      Stable_[0] = 0;
+   }
    
    switch (flag)
    {

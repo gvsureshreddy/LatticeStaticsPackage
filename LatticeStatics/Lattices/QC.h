@@ -36,7 +36,7 @@ private:
    mutable Vector ExtraTestFunctions_;
    mutable Vector PreviousExtraTestFunctions_;
    mutable Vector ExtraTestFunctionMultipliers_;
-   mutable int Stable_;
+   mutable int Stable_[2];
    mutable int EvaluationCount_[2];
    mutable int CallCount_[cachesize];
    

@@ -841,7 +841,7 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum,int const& TFIndex,Vecto
          cpfilename << a;
       }
    }
-   TFOrderFilename << cpfilename.str() << ".TForder";
+   TFOrderFilename << cpfilename.str() << ".TF.order";
    
    if (1 == Bif)
       cpfilename << ".B";
