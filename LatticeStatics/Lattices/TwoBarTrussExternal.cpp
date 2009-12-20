@@ -124,7 +124,7 @@ void TwoBarTrussExternal::Print(ostream& out,PrintDetail const& flag,
                                 PrintPathSolutionType const& SolType)
 {
    int W;
-   int NoNegTestFunctions;
+   int NoNegTestFunctions=0;
    double engy;
    double mintestfunct;
    Matrix
@@ -141,10 +141,11 @@ void TwoBarTrussExternal::Print(ostream& out,PrintDetail const& flag,
    str = E1();
    stiff = E2();
    
-   NoNegTestFunctions=TestFunctions(TestFunctVals,LHS);
+   TestFunctions(TestFunctVals,LHS);
    mintestfunct = TestFunctVals[0];
-   for (int i=0;i<DOFS_;++i)
+   for (int i=0;i<TestFunctVals.Dim();++i)
    {
+      if (TestFunctVals[i] < 0.0) ++NoNegTestFunctions;
       if (mintestfunct > TestFunctVals[i])
          mintestfunct = TestFunctVals[i];
    }

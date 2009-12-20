@@ -437,7 +437,7 @@ void QC::Print(ostream& out,PrintDetail const& flag,
                PrintPathSolutionType const& SolType)
 {
    int W;
-   int NoNegTestFunctions;
+   int NoNegTestFunctions=0;
    double engy;
    double E1norm;
    double mintestfunct;
@@ -453,7 +453,6 @@ void QC::Print(ostream& out,PrintDetail const& flag,
    
    TestFunctions(TestFunctVals,LHS);
    mintestfunct = TestFunctVals[0];
-   NoNegTestFunctions = 0;
    // check only the EigenValTFs
    for (int i=0;i<DOFS_;++i)
    {

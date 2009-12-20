@@ -93,8 +93,7 @@ int main(int argc, char *argv[])
    int success = 1;
    int* TotalNumCPs = new int[Lat->NumTestFunctions()];
    for (int i=0;i<Lat->NumTestFunctions();++i) TotalNumCPs[i] = 0;
-   int TestValue=-1,
-      OldTestValue=TestValue;
+   int TestValue;
    Vector TestValues(Lat->NumTestFunctions());
    
    while (!SolveMe->AllSolutionsFound())
@@ -104,9 +103,8 @@ int main(int argc, char *argv[])
       if (success)
       {
          // Check for Critical Point Crossing
-         OldTestValue = TestValue;
          TestValue = Lat->TestFunctions(TestValues);
-         if ((OldTestValue != TestValue) && (BisectCP == Yes) && (OldTestValue != -1))
+         if ((TestValue != 0) && (BisectCP == Yes))
             SolveMe->FindCriticalPoint(Lat,TotalNumCPs,Input,Width,out);
          // Send Output
          if (Echo)

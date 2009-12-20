@@ -662,23 +662,6 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int* const TotalNum
    LHSLambda = RHSLambda - Difference_[DOFS_-1];
    
    TestValueDiff = Lat->TestFunctions(TF_LHS_static, Lattice::RHS, &TF_RHS_static);
-   if (TestValueDiff < 0)
-   {
-      out << "Note: TestFunctions found a discrepancy between the\n"
-          << "Note: difference in number of negative Test Functions\n"
-          << "Note: and the number of Test Functions that change sign\n"
-          << "Note: from LeftHandSide to RightHandSide.  This is usually\n"
-          << "Note: caused by having too large of a path-following stepsize."
-          << "\n";
-      if (Echo_)
-         cout << "Note: TestFunctions found a discrepancy between the\n"
-              << "Note: difference in number of negative Test Functions\n"
-              << "Note: and the number of Test Functions that change sign\n"
-              << "Note: from LeftHandSide to RightHandSide.  This is usually\n"
-              << "Note: caused by having too large of a path-following stepsize."
-              << "\n";
-      TestValueDiff = -TestValueDiff;
-   }
    
    int* Index;
    Index = new int[TestValueDiff];

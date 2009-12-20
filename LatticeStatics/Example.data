@@ -23,7 +23,6 @@ $B0_1_1  = 7.0;
 $Rtheta1_1_1 = 0.275914376289;
 
 %Lattice = (Type            => MultiLatticeTPP, # MultiLatticeTPP, MultiChainTPP, MultiChainTTPP, PseudoHarmonicMultiChainTTPP, TwoBarTruss, TwoBarTrussExternal, DFTExternal, QC
-            #OrderedTFs      => Yes, # Default value = Yes, No
             #UseEigenValTFs  => Yes, # Default value = Yes, No
             #NumExraTFs      => 0, # Default value = 0, positive number
             #LSKAnalysis     => SecondOrder, # Default value = SecondOrder, ThirdOrder, None

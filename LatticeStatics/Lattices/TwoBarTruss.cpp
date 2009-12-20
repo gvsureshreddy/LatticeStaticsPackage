@@ -294,7 +294,7 @@ void TwoBarTruss::Print(ostream& out,PrintDetail const& flag,
                         PrintPathSolutionType const& SolType)
 {
    int W;
-   int NoNegTestFunctions;
+   int NoNegTestFunctions=0;
    double engy;
    double mintestfunct;
    Matrix
@@ -312,7 +312,6 @@ void TwoBarTruss::Print(ostream& out,PrintDetail const& flag,
    stiff = E2();
    
    TestFunctions(TestFunctVals,LHS);
-   NoNegTestFunctions = 0;
    mintestfunct = TestFunctVals[0];
    for (int i=0;i<NumTestFunctions();++i)
    {

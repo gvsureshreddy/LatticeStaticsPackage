@@ -1083,7 +1083,7 @@ void PseudoHarmonicMultiChainTTPP::Print(ostream& out,PrintDetail const& flag,
                                          PrintPathSolutionType const& SolType)
 {
    int W;
-   int NoNegTestFunctions;
+   int NoNegTestFunctions=0;
    double engy,entropy,heatcapacity;
    str_static.Resize(DOFS);
    pstiff_static.Resize(DOFS,DOFS);
@@ -1106,10 +1106,11 @@ void PseudoHarmonicMultiChainTTPP::Print(ostream& out,PrintDetail const& flag,
    str_static = stress();
    pstiff_static = stiffness();
    
-   NoNegTestFunctions=TestFunctions(TestFunctVals_static,LHS);
+   TestFunctions(TestFunctVals_static,LHS);
    mintestfunct = TestFunctVals_static[0];
    for (int i=0;i<TestFunctVals_static.Dim();++i)
    {
+      if (TestFunctVals_static[i] < 0.0) ++NoNegTestFunctions;
       if (mintestfunct > TestFunctVals_static[i])
          mintestfunct = TestFunctVals_static[i];
    }

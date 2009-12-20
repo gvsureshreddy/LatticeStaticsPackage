@@ -20,7 +20,6 @@ public:
    enum StateType {LHS,RHS,CRITPT};
    LoadType LoadParameter_;
    LoadType const& LoadParameter() const {return LoadParameter_;}
-   int OrderedTFs_;      // ensure TFs are in consistent order
    int UseEigenValTFs_;  // 1 use eigenvalues of E2 as TFs, 0 don't
    int NumExtraTFs_;     // Number of TFs provided by inherited class
    int LSKAnalysis_;     // None,SecondOrder,ThridOrder - do LSK to appropriate order
