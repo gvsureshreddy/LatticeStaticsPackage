@@ -317,7 +317,7 @@ Matrix const& QC::E3() const
    return E3_static;
 }
 
-int Lattice::TestFunctions(Vector &TF1,StateType const& State,Vector* const TF2) const
+int QC::TestFunctions(Vector &TF1,StateType const& State,Vector* const TF2) const
 {
    double sum;
    int NumSwitchTFs = 0;
