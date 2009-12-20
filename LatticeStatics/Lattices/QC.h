@@ -61,6 +61,7 @@ public:
    virtual Matrix const& E2() const;
    virtual Matrix const& StiffnessDL() const;
    virtual Matrix const& E3() const;
+   virtual int TestFunctions(Vector& TF1,StateType const& State=LHS,Vector* const EV2=0) const;
    virtual void ExtraTestFunctions(Vector& TF) const;
    virtual char const* const Type() const {return "QC";}
    virtual void Print(ostream& out,PrintDetail const& flag,

@@ -53,7 +53,7 @@ public:
    int const UseEigenValTFs() const {return UseEigenValTFs_;}
    int const NumTestFunctions() const
    {return (UseEigenValTFs_)?(DOF().Dim()+NumExtraTFs_):NumExtraTFs_;}
-   int TestFunctions(Vector& TF1,StateType const& State=LHS,Vector* const EV2=0) const;
+   virtual int TestFunctions(Vector& TF1,StateType const& State=LHS,Vector* const EV2=0) const;
    virtual void ExtraTestFunctions(Vector& TF) const {};
    virtual void DispersionCurves(Vector const& K,int const& NoPTS,char const* const prefix,
                                  ostream& out) const {};

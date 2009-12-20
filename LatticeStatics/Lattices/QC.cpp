@@ -317,6 +317,32 @@ Matrix const& QC::E3() const
    return E3_static;
 }
 
+int QC::TestFunctions(Vector& TF1,StateType const& State,Vector* const EV2) const
+{
+   int retval;
+
+   retval = Lattice::TestFunctions(TF1,State,EV2);
+
+   // check only the EigenValTFs
+   int NoNegTestFunctions = 0;
+   for (int i=0;i<DOFS_;++i)
+   {
+      if ((UseEigenValTFs() == 1) && (TF1[i] < 0.0)) ++NoNegTestFunctions;
+   }
+   Stable_[1] = Stable_[0];
+   if (NoNegTestFunctions == 0)
+   {
+      Stable_[0] = 1;
+   }
+   else
+   {
+      Stable_[0] = 0;
+   }
+
+   return retval;
+}
+
+
 int QC::CriticalPointInfo(int* const CPCrossingNum,int const& TFIndex,Vector const& DrDt,
                           int const& CPorBif,int const& NumZeroEigenVals,double const& Tolerance,
                           int const& Width,PerlInput const& Input,ostream& out)
@@ -461,15 +487,6 @@ void QC::Print(ostream& out,PrintDetail const& flag,
       if ((UseEigenValTFs() == 1) && (TestFunctVals[i] < 0.0)) ++NoNegTestFunctions;
       if (mintestfunct > TestFunctVals[i])
          mintestfunct = TestFunctVals[i];
-   }
-   Stable_[1] = Stable_[0];
-   if (NoNegTestFunctions == 0)
-   {
-      Stable_[0] = 1;
-   }
-   else
-   {
-      Stable_[0] = 0;
    }
    
    switch (flag)
