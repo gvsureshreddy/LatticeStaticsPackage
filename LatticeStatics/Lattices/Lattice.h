@@ -78,7 +78,7 @@ public:
    friend ostream& operator<<(ostream& out,Lattice& L)
    {L.Print(out,PrintShort); return out;}
 
-private:
+protected:
    // "static" member variables
    // TestFunctions
    mutable int test_flag_static;
