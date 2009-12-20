@@ -317,29 +317,201 @@ Matrix const& QC::E3() const
    return E3_static;
 }
 
-int QC::TestFunctions(Vector& TF1,StateType const& State,Vector* const EV2) const
+int Lattice::TestFunctions(Vector &TF1,StateType const& State,Vector* const TF2) const
 {
-   int retval;
-
-   retval = Lattice::TestFunctions(TF1,State,EV2);
-
-   // check only the EigenValTFs
-   int NoNegTestFunctions = 0;
-   for (int i=0;i<DOFS_;++i)
+   double sum;
+   int NumSwitchTFs = 0;
+   
+   int size=DOF().Dim();
+   if(test_flag_static == 0)
    {
-      if ((UseEigenValTFs() == 1) && (TF1[i] < 0.0)) ++NoNegTestFunctions;
-   }
-   Stable_[1] = Stable_[0];
-   if (NoNegTestFunctions == 0)
-   {
-      Stable_[0] = 1;
-   }
-   else
-   {
-      Stable_[0] = 0;
+      Stiffness_1_static.Resize(size,size);
+      Stiffness_1_static=E2();
+      
+      Stiffness_2_static.Resize(size,size);
+      Stiffness_2_static=Stiffness_1_static;
+      
+      Stiffness_3_static.Resize(size, size);
+      Stiffness_temp_static.Resize(size, size);
+      Stiffness_diagonalized_static.Resize(size, size);
+      EigVect_static.Resize(size, size);
+      EigVectRHS_static.Resize(size, size);
+      EigVectLHS_static.SetIdentity(size);
+      EV1_static.Resize(1,size);
+      EV2_static.Resize(1,size);
+      ExTF1_static.Resize(NumExtraTFs_,0.0);
+      ExTF2_static.Resize(NumExtraTFs_,0.0);
+      
+      test_flag_static = test_flag_static+1;
    }
 
-   return retval;
+   if (UseEigenValTFs_ == 0)
+   {
+      cerr << "UseEigenValTFs_ == 0 --- not programed yet.\n";
+      exit(-5);
+   }
+
+   if (State == LHS)
+   {
+      Stiffness_2_static = E2();
+      
+      //Stiffness_diagonalized = EigVect.Transpose() * (Stiffness_2 * EigVect)
+      //Stiffness_temp = Stiffness_2 * EigVect
+      for (int i =0; i<size; i++)
+      {
+         for (int j=0; j<size; j++)
+         {
+            sum = 0.0;
+            for(int k=0; k<size; k++)
+            {
+               sum += Stiffness_2_static[i][k] * EigVectLHS_static[k][j];
+            }
+            Stiffness_temp_static[i][j] = sum;
+         }
+      }
+      //stiffness_diagonalized = Eigvect.Transpose() * Stiffness_temp
+      for(int i=0; i<size; i++)
+      {
+         for(int j=0; j<size; j++)
+         {
+            sum = 0.0;
+            for (int k=0; k<size; k++)
+            {
+               sum += EigVectLHS_static[k][i] * Stiffness_temp_static[k][j];
+            }
+            Stiffness_diagonalized_static[i][j] = sum;
+         }
+      }
+      
+      for(int i=0;i<size;i++)
+      {
+         EV1_static[0][i] = EV2_static[0][i];
+         for (int j =0;j<size;j++)
+         {
+            EigVectRHS_static[i][j] = EigVectLHS_static[i][j];
+         }
+         
+      }
+      ExTF1_static = ExTF2_static;
+      
+      EV2_static = SymEigVal(Stiffness_diagonalized_static, &EigVect_static);
+
+      // check stability
+      int NoNegEigVals = 0;
+      for (int i=0;i<size;++i)
+      {
+         if (EV2_static[0][i] < 0.0) ++NoNegEigVals;
+      }
+      Stable_[1] = Stable_[0];
+      if (NoNegEigVals > 0)
+      {
+         Stable_[0] = 0;
+      }
+      else
+      {
+         Stable_[0] = 1;
+      }
+      
+      ExtraTestFunctions(ExTF2_static);
+      
+      for(int i=0; i<size; i++)
+      {
+         for(int j=0; j<size; j++)
+         {
+            sum = 0.0;
+            for (int k=0; k<size; k++)
+            {
+               sum += EigVectRHS_static[i][k] * EigVect_static[k][j];
+            }
+            EigVectLHS_static[i][j] = sum;
+         }
+      }
+      
+      for (int i=0;i<size;i++)
+      {
+         if ((EV1_static[0][i] * EV2_static[0][i]) < 0.0) ++NumSwitchTFs;
+         TF1[i]=EV2_static[0][i];
+      }
+      for (int i=0;i<NumExtraTFs_;++i)
+      {
+         if ((ExTF1_static[i] * ExTF2_static[i]) < 0.0) ++NumSwitchTFs;
+         TF1[size+i] = ExTF2_static[i];
+      }
+   }
+   if (State == RHS)
+   {
+      if(TF2 == 0)
+      {
+         cerr << "Error in Lattice::TestFunctions(): TF2 == 0" << "\n";
+         exit(-53);
+      }
+      
+      for (int i=0;i<size;i++)
+      {
+         if ((EV1_static[0][i] * EV2_static[0][i]) < 0.0)
+         {
+            ++NumSwitchTFs;
+         }
+         TF1[i]=EV1_static[0][i];
+         (*TF2)[i]=EV2_static[0][i];
+      }
+      for (int i=0;i<NumExtraTFs_;++i)
+      {
+         if ((ExTF1_static[i] * ExTF2_static[i]) < 0.0)
+         {
+            ++NumSwitchTFs;
+         }
+         TF1[size+i] = ExTF1_static[i];
+         (*TF2)[size+i] = ExTF2_static[i];
+      }
+   }
+   if (State == CRITPT)
+   {
+      Stiffness_3_static = E2();
+      
+      for (int i=0; i<size; i++)
+      {
+         for (int j=0; j<size; j++)
+         {
+            sum = 0.0;
+            for(int k=0; k<size; k++)
+            {
+               sum += Stiffness_3_static[i][k] * EigVectLHS_static[k][j];
+            }
+            Stiffness_temp_static[i][j] = sum;
+         }
+      }
+      //stiffness_diagonalized = Eigvect.Transpose() * Stiffness_temp
+      for(int i=0; i<size; i++)
+      {
+         for(int j=0; j<size; j++)
+         {
+            sum = 0.0;
+            for (int k=0; k<size; k++)
+            {
+               sum += EigVectLHS_static[k][i] * Stiffness_temp_static[k][j];
+            }
+            Stiffness_diagonalized_static[i][j] = sum;
+         }
+      }
+      
+      EV1_static = SymEigVal(Stiffness_diagonalized_static);
+      //EV1 = SymEigVal(Stiffness_diagonalized,&EigVectLHS);
+      ExtraTestFunctions(ExTF1_static);
+      
+      for (int i=0;i<size;i++)
+      {
+         if ((EV1_static[0][i] * EV2_static[0][i]) < 0.0) ++NumSwitchTFs;
+         TF1[i]=EV1_static[0][i];
+      }
+      for (int i=0;i<NumExtraTFs_;++i)
+      {
+         if ((ExTF1_static[i] * ExTF2_static[i]) < 0.0) ++NumSwitchTFs;
+         TF1[size+i] = ExTF1_static[i];
+      }
+   }
+   
+   return NumSwitchTFs;
 }
 
 
