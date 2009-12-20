@@ -725,7 +725,7 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int* const TotalNum
          for(int i=CP+1;i<TestValueDiff;i++)
          {
             temp = Index[i];
-            if(fabs(CurrentTF_static[temp]) <= Tolerance_)
+            if ((fabs(CurrentTF_static[temp]) <= Tolerance_) && (temp < Lat->DOF().Dim())) // only count multiplicity if NOT an ExtraTF
             {
                Index[i] = -1;
                Multiplicity++;
