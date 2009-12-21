@@ -140,7 +140,6 @@ sub loaddata {
   {
     open(DATA,"gzcat -f $_[1]|") || die "No file, \"$_[0]\": $_[1], $!";
     
-    $bifflag=0;
     $_ = <DATA>;
     while (! m/^Restriction:/)
     {
@@ -156,11 +155,11 @@ sub loaddata {
         }
         $fields[1] =~ s/\s+//g;
         $fields[1] =~ s/[,;].*//g;
-        if ($fields[1] eq "Temperature")
+        if (($fields[1] eq "Temperature") || ($fields[1] eq '"Temperature"'))
         {
           $loadparam=1;
         }
-        elsif ($fields[1] eq "Load")
+        elsif (($fields[1] eq "Load") || ($fields[1] eq '"Load"'))
         {
           $loadparam=2;
         }
