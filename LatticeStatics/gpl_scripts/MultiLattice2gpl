@@ -12,7 +12,7 @@ if (scalar(@ARGV) < 3)
 
 $DOFSize = $ARGV[0];
 $StateSize = $DOFSize + 9;
-$StrSPEC = "%14s";
+$StrSPEC = "%-14s";
 $FSPEC = "%14.6f";
 
 if (scalar(@ARGV) >= 4)
