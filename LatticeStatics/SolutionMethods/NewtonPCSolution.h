@@ -22,6 +22,7 @@ private:
    int Echo_;
    int CurrentSolution_;
    UpdateType UpdateType_;      // 0-QR update (default), 1-Stiffness update, 2-none
+   int ComputeExactTangent_;    // 1-Tangent on path (default), 0-Tangent at prediction
    int NumSolutions_;
    
    double MaxDS_;
@@ -56,11 +57,12 @@ private:
    
 public:
    NewtonPCSolution(Restriction* const Restrict,Vector const& one,
-                    int const& CurrentSolution,UpdateType const& Type,int const& NumSolutions,
-                    double const& MaxDS,double const& CurrentDS,double const& MinDS,
-                    double const& cont_rate_max,double const& delta_max,double const& alpha_max,
-                    double const& Converge,ConvergeType CnvrgTyp,Vector const& FirstSolution,
-                    int const& Direction=1,double const& accel_max=2.0,int const& BifStartFlag=0,
+                    int const& CurrentSolution,UpdateType const& Type,
+                    int const& ComputeExactTangent,int const& NumSolutions,double const& MaxDS,
+                    double const& CurrentDS,double const& MinDS,double const& cont_rate_max,
+                    double const& delta_max,double const& alpha_max,double const& Converge,
+                    ConvergeType CnvrgTyp,Vector const& FirstSolution,int const& Direction=1,
+                    double const& accel_max=2.0,int const& BifStartFlag=0,
                     Vector const& BifTangent=Vector(),int const& ClosedLoopStart=CLOSEDDEFAULT,
                     int const& ClosedLoopUseAsFirst=0,int const& StopAtCPCrossingNum=-1,
                     int const& Echo=1);

@@ -20,20 +20,21 @@ NewtonPCSolution::~NewtonPCSolution()
 
 NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,
                                    Vector const& one,int const& CurrentSolution,
-                                   UpdateType const& Type,int const& NumSolutions,
-                                   double const& MaxDS,double const& CurrentDS,
-                                   double const& MinDS,double const& cont_rate_max,
-                                   double const& delta_max,double const& alpha_max,
-                                   double const& Converge,ConvergeType CnvrgTyp,
-                                   Vector const& FirstSolution,int const& Direction,
-                                   double const& accel_max,int const& BifStartFlag,
-                                   Vector const& BifTangent,int const& ClosedLoopStart,
-                                   int const& ClosedLoopUseAsFirst,
+                                   UpdateType const& Type,int const& ComputeExactTangent,
+                                   int const& NumSolutions,double const& MaxDS,
+                                   double const& CurrentDS,double const& MinDS,
+                                   double const& cont_rate_max,double const& delta_max,
+                                   double const& alpha_max,double const& Converge,
+                                   ConvergeType CnvrgTyp,Vector const& FirstSolution,
+                                   int const& Direction,double const& accel_max,
+                                   int const& BifStartFlag,Vector const& BifTangent,
+                                   int const& ClosedLoopStart,int const& ClosedLoopUseAsFirst,
                                    int const& StopAtCPCrossingNum,int const& Echo)
    : Restrict_(Restrict),
      Echo_(Echo),
      CurrentSolution_(CurrentSolution),
      UpdateType_(Type),
+     ComputeExactTangent_(ComputeExactTangent),
      NumSolutions_(NumSolutions),
      MaxDS_(MaxDS),
      PreviousDS_(CurrentDS),
@@ -139,6 +140,30 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
       Input.useString("QRUpdate",Hash,"UpdateType"); // Default Value
       UpdateType_ = QRUpdate;
    }
+
+   if (Input.ParameterOK(Hash,"ComputeExactTangent"))
+   {
+      char const* const tangentchoice=Input.getString(Hash,"ComputeExactTangent");
+      if (!strcmp("Yes",tangentchoice))
+      {
+         ComputeExactTangent_ = 1;
+      }
+      else if (!strcmp("No",tangentchoice))
+      {
+         ComputeExactTangent_ = 0;
+      }
+      else
+      {
+         cerr << "Unknown ComputeExactTangent: " << tangentchoice << "\nExiting!\n";
+         exit(-22);
+      }
+   }
+   else
+   {
+      Input.useString("Yes",Hash,"ComputeExactTangent"); // Default Value
+      ComputeExactTangent_ = 1;
+   }
+   
    NumSolutions_ = Input.getPosInt(Hash,"NumSolutions");
    MaxDS_ = Input.getDouble(Hash,"MaxDS");
    CurrentDS_ = Input.getDouble(Hash,"CurrentDS");
@@ -336,7 +361,30 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
       Input.useString("QRUpdate",Hash,"UpdateType"); // Default Value
       UpdateType_ = QRUpdate;
    }
-   
+
+   if (Input.ParameterOK(Hash,"ComputeExactTangent"))
+   {
+      char const* const tangentchoice=Input.getString(Hash,"ComputeExactTangent");
+      if (!strcmp("Yes",tangentchoice))
+      {
+         ComputeExactTangent_ = 1;
+      }
+      else if (!strcmp("No",tangentchoice))
+      {
+         ComputeExactTangent_ = 0;
+      }
+      else
+      {
+         cerr << "Unknown ComputeExactTangent: " << tangentchoice << "\nExiting!\n";
+         exit(-22);
+      }
+   }
+   else
+   {
+      Input.useString("Yes",Hash,"ComputeExactTangent"); // Default Value
+      ComputeExactTangent_ = 1;
+   }
+
    NumSolutions_ = Input.getPosInt(Hash,"NumSolutions");
    MaxDS_ = Input.getDouble(Hash,"MaxDS");
    CurrentDS_ = Input.getDouble(Hash,"CurrentDS");
@@ -807,7 +855,7 @@ int NewtonPCSolution::FindNextSolution()
 
          Converged = IsConverged(forcenorm,Magnitude2);
       }
-      
+
       cout << "Prediction " << predictions << " Corrector Iterations: " << corrections << "\n";
       ++predictions;
    };
@@ -817,6 +865,29 @@ int NewtonPCSolution::FindNextSolution()
    // adaptively change DS for next point
    CurrentDS_ = CurrentDS_/f;  //note the above ensures that  (1/accel_max_) < f < accel_max_
    if(CurrentDS_ > MaxDS_) CurrentDS_ = MaxDS_;
+
+   if (ComputeExactTangent_ == 1)
+   {
+      // Update to tangent on converged solution
+      Stiff_static = Restrict_->Stiffness();
+      QR(Stiff_static, Q_static, R_static, 1);
+      
+      double tansign = 1.0;
+      for (i=0;i<count_minus_one;++i)
+      {
+         tansign *= R_static[i][i]/fabs(R_static[i][i]);
+      }
+      for(i=0;i<count;i++)
+      {
+         Tangent2_[i] = Direction_*tansign*Q_static[i][count_minus_one];
+      }
+
+      Dot=0.0;
+      for (i=0;i<count;++i)
+      {
+         Dot += Tangent1_[i]*Tangent2_[i];
+      }
+   }
    
    if (Dot <= 0.0)
    {
@@ -854,7 +925,7 @@ int NewtonPCSolution::FindNextSolution()
       // set First Solution for use with Closed Loop check.
       FirstSolution_ = Restrict_->DOF();
    }
-   
+
    // always have current solution point printed
    good = 1;
    
