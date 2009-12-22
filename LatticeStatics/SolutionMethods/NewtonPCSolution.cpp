@@ -856,6 +856,14 @@ int NewtonPCSolution::FindNextSolution()
          Converged = IsConverged(forcenorm,Magnitude2);
       }
 
+      if (Converged && (!Restrict_->SymmetryOK()))
+      {
+         cout << "Jumped to Higher Symmetry Path.  Increasing DS and trying again.\n";
+         Converged = 0;
+         f = accel_max_;
+         CurrentDS_ *= f;
+      }
+      
       cout << "Prediction " << predictions << " Corrector Iterations: " << corrections << "\n";
       ++predictions;
    };

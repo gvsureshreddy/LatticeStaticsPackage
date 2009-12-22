@@ -3,20 +3,23 @@
 
 RestrictToTranslatedSubSpace::~RestrictToTranslatedSubSpace()
 {
+   if (SymmetryCheckCount_ > 0) delete [] SymmetryCheck_;
+   
    cout.width(0);
    cout << "RestrictToTranslatedSubSpace Function Calls:\n"
-        << "\tUpdateLatticeState - " << counter_[0] << "\n"
-        << "\tEnergy - " << counter_[1] << "\n"
-        << "\tDrDt - " << counter_[2] << "\n"
-        << "\tForce - " << counter_[3] << "\n"
-        << "\tStiffness - " << counter_[4] << "\n"
-        << "\tDOF - " << counter_[5] << "\n"
-        << "\tRestrictDOF - " << counter_[6] << "\n"
-        << "\tUnRestrictDOF - " << counter_[7] << "\n"
-        << "\tTransformVector - " << counter_[8] << "\n"
-        << "\tUnTransformVector - " << counter_[9] << "\n"
-        << "\tSetDOF - " << counter_[10] << "\n"
-        << "\tUpdateDOF - " << counter_[11] << "\n";
+        << "\tUpdateLatticeState - " << counter_[UPDATE] << "\n"
+        << "\tEnergy - " << counter_[ENERGY] << "\n"
+        << "\tDrDt - " << counter_[DRDT] << "\n"
+        << "\tForce - " << counter_[FORCE] << "\n"
+        << "\tStiffness - " << counter_[STIFFNESS] << "\n"
+        << "\tDOF - " << counter_[DOFCount] << "\n"
+        << "\tSymmetryOK - " << counter_[SYMMETRY] << "\n"
+        << "\tRestrictDOF - " << counter_[RESTRICT] << "\n"
+        << "\tUnRestrictDOF - " << counter_[UNRESTRICT] << "\n"
+        << "\tTransformVector - " << counter_[TRANSFORM] << "\n"
+        << "\tUnTransformVector - " << counter_[UNTRANSFORM] << "\n"
+        << "\tSetDOF - " << counter_[SETDOF] << "\n"
+        << "\tUpdateDOF - " << counter_[UPDATEDOF] << "\n";
 }
 
 
@@ -115,6 +118,64 @@ RestrictToTranslatedSubSpace::RestrictToTranslatedSubSpace(Lattice* const M,Perl
       delete [] Values;
       DOFProjectionMatrix_.SetNonZeroEntry(nononzero,LatDOFS,DOFS_,1.0);
    }
+
+   if (Input.ParameterOK(Hash,"SymmetryCheckProjectionMatrices"))
+   {
+      SymmetryCheckCount_ = Input.getArrayLength(Hash,"SymmetryCheckProjectionMatrices");
+      SymmetryCheck_ = new SparseMatrix[SymmetryCheckCount_];
+
+      for (int i=0;i<SymmetryCheckCount_;++i)
+      {
+         if (Input.getArrayLength(Hash,"SymmetryCheckProjectionMatrices",i,0) != DOFS_)
+         {
+            cerr << "Error. " << Name()
+                 << " Incorrect number of columns in SymmetryCheckProjectionMatrix"
+                 << " number " << i << "\n";
+            exit(-38);
+         }
+
+         int Rows = Input.getArrayLength(Hash,"SymmetryCheckProjectionMatrices",i);
+         Matrix SCPM(Rows,DOFS_);
+         Input.getMatrix(SCPM,Hash,"SymmetryProjectionMatrices",i);
+         int nononzero = 0;
+         for (int i=0;i<Rows;++i)
+         {
+            for (int j=0;j<DOFS_;++j)
+            {
+               if (fabs(SCPM[i][j]) > 1.0e-15) ++nononzero;
+            }
+         }
+         
+         SymmetryCheck_[i].Resize(Rows,DOFS_+1,nononzero); // DOFS_+1 to ignore load value
+         
+         int count=0;
+         for (int i=0;i<Rows;++i)
+         {
+            for (int j=0;j<DOFS_;++j)
+            {
+               if (fabs(SCPM[i][j]) > 1.0e-15)
+               {
+                  SymmetryCheck_[i].SetNonZeroEntry(count,i,j,SCPM[i][j]);
+                  ++count;
+               }
+            }
+         }
+      }
+
+      if (Input.ParameterOK(Hash,"SymmetryCheckTolerance"))
+      {
+         SymmetryCheckTol_ = Input.getDouble(Hash,"SymmetryCheckTolerance");
+      }
+      else
+      {
+         // Default Value
+         SymmetryCheckTol_ = Input.useDouble(1.0e-15,Hash,"SymmetryCheckTolerance");
+      }
+   }
+   else
+   {
+      SymmetryCheckCount_ = 0;
+   }
    
    //ReferenceState DOF Initialization
    ReferenceState_.Resize(LatDOFS+1,0.0);
@@ -169,7 +230,7 @@ RestrictToTranslatedSubSpace::RestrictToTranslatedSubSpace(Lattice* const M,Perl
 // Functions required by Restriction
 Vector const& RestrictToTranslatedSubSpace::DrDt(Vector const& Diff) const
 {
-   ++counter_[2];
+   ++counter_[DRDT];
    
    for (int i=0;i<DOFS_;++i)
    {
@@ -183,7 +244,7 @@ Vector const& RestrictToTranslatedSubSpace::DrDt(Vector const& Diff) const
 //----------------------------------------------------------------
 void RestrictToTranslatedSubSpace::UpdateLatticeState()
 {
-   ++counter_[0];
+   ++counter_[UPDATE];
    
    for (int i=0;i<DOFS_;++i)
    {
@@ -201,7 +262,7 @@ void RestrictToTranslatedSubSpace::UpdateLatticeState()
 
 Vector const& RestrictToTranslatedSubSpace::Force() const
 {
-   ++counter_[3];
+   ++counter_[FORCE];
    
    stress_static = Lattice_->E1();
    
@@ -212,7 +273,7 @@ Vector const& RestrictToTranslatedSubSpace::Force() const
 
 Matrix const& RestrictToTranslatedSubSpace::Stiffness() const
 {
-   ++counter_[4];
+   ++counter_[STIFFNESS];
    
    Stiff_static = Lattice_->E2();
    stressdt_static = Lattice_->E1DLoad();
@@ -230,9 +291,30 @@ Matrix const& RestrictToTranslatedSubSpace::Stiffness() const
    return K_static;
 }
 
+int RestrictToTranslatedSubSpace::SymmetryOK() const
+{
+   ++counter_[SYMMETRY];
+
+   int retval = SymmetryCheckCount_;
+   for (int i=0;i<SymmetryCheckCount_;++i)
+   {
+      if ((SymmetryCheck_[i]*DOF()).Norm() < SymmetryCheckTol_)
+      {
+         cout << "SymCheck " << i << "is zero\n";
+         --retval;
+      }
+      else
+      {
+         cout << "SymCheck " << i << "is NONzero\n";
+      }
+   }
+
+   return !retval;
+}
+
 Vector RestrictToTranslatedSubSpace::RestrictDOF(Vector const& dof)
 {
-   ++counter_[6];
+   ++counter_[RESTRICT];
    
    if (dof.Dim() == DOFS_+1)
    {
@@ -259,7 +341,7 @@ Vector RestrictToTranslatedSubSpace::RestrictDOF(Vector const& dof)
 
 Vector RestrictToTranslatedSubSpace::UnRestrictDOF(Vector const& dof)
 {
-   ++counter_[7];
+   ++counter_[UNRESTRICT];
    
    if (dof.Dim() == DOFS_+1)
    {
@@ -286,7 +368,7 @@ Vector RestrictToTranslatedSubSpace::UnRestrictDOF(Vector const& dof)
 
 Vector RestrictToTranslatedSubSpace::TransformVector(Vector const& T)
 {
-   ++counter_[8];
+   ++counter_[TRANSFORM];
    
    if (T.Dim() == DOFS_+1)
    {
@@ -307,7 +389,7 @@ Vector RestrictToTranslatedSubSpace::TransformVector(Vector const& T)
 
 Vector RestrictToTranslatedSubSpace::UnTransformVector(Vector const& T)
 {
-   ++counter_[9];
+   ++counter_[UNTRANSFORM];
    
    if (T.Dim() == DOFS_+1)
    {
@@ -328,7 +410,7 @@ Vector RestrictToTranslatedSubSpace::UnTransformVector(Vector const& T)
 
 void RestrictToTranslatedSubSpace::SetDOF(Vector const& dof)
 {
-   ++counter_[10];
+   ++counter_[SETDOF];
    
    for (int i=0;i<=DOFS_;++i)
    {
@@ -340,7 +422,7 @@ void RestrictToTranslatedSubSpace::SetDOF(Vector const& dof)
 
 void RestrictToTranslatedSubSpace::UpdateDOF(Vector const& dr)
 {
-   ++counter_[11];
+   ++counter_[UPDATE];
    
    for (int i=0;i<=DOFS_;++i)
    {

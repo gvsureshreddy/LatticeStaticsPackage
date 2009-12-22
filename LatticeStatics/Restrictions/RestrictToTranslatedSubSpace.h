@@ -16,6 +16,9 @@ private:
    int DOFS_;
    SparseMatrix ForceProjectionMatrix_;
    SparseMatrix DOFProjectionMatrix_;
+   SparseMatrix* SymmetryCheck_;
+   int SymmetryCheckCount_;
+   double SymmetryCheckTol_;
    SparseMatrix const& ForceProject_;
    SparseMatrix const& DOFProject_;
    Vector ReferenceState_;
@@ -35,6 +38,7 @@ public:
    virtual Vector const& Force() const;
    virtual Matrix const& Stiffness() const;
    virtual Vector const& DOF() const {++counter_[5]; return DOF_;}
+   virtual int SymmetryOK() const;
    virtual Vector RestrictDOF(Vector const& dof);
    virtual Vector UnRestrictDOF(Vector const& dof);
    virtual Vector TransformVector(Vector const& T);
@@ -45,6 +49,8 @@ public:
    virtual char const* const Name() const {return "RestrictToTranslatedSubSpace";}
 
 private:
+   enum CounterID {UPDATE,ENERGY,DRDT,FORCE,STIFFNESS,DOFCount,SYMMETRY,RESTRICT,UNRESTRICT,
+                   TRANSFORM,UNTRANSFORM,SETDOF,UPDATEDOF,ENDOFCOUNTERLIST};
    // "static" member variables
    // UpdateLatticeState
    int size_static;
@@ -63,7 +69,7 @@ private:
    mutable Vector stressdt_static;
 
    // counters
-   static int const nocounters_ = 12;
+   static int const nocounters_ = ENDOFCOUNTERLIST;
    mutable int counter_[nocounters_];
 };
 

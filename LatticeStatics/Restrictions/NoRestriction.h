@@ -67,6 +67,7 @@ public:
       return K_static;
    }
    virtual Vector const& DOF() const {return dof_static;}
+   virtual int SymmetryOK() const {return 1;}
    virtual Vector RestrictDOF(Vector const& dof) {return dof;}
    virtual Vector UnRestrictDOF(Vector const& dof) {return dof;}
    virtual Vector TransformVector(Vector const& T) {return T;}

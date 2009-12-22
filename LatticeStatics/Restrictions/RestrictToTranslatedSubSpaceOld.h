@@ -36,6 +36,7 @@ public:
    virtual Vector const& Force() const;
    virtual Matrix const& Stiffness() const;
    virtual Vector const& DOF() const {return DOF_;}
+   virtual int SymmetryOK() const {return 1;}
    virtual Vector RestrictDOF(Vector const& dof);
    virtual Vector UnRestrictDOF(Vector const& dof);
    virtual Vector TransformVector(Vector const& T);
