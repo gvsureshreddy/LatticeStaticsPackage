@@ -105,14 +105,17 @@ int main(int argc, char *argv[])
       {
          // Check for Critical Point Crossing
          TestValue = Lat->TestFunctions(TestValues);
-         if ((TestValue > 0) && (BisectCP == Yes) && (!(FirstSolution--)))
+         if ((TestValue > 0) && (BisectCP == Yes) && (!FirstSolution))
+         {
             SolveMe->FindCriticalPoint(Lat,TotalNumCPs,Input,Width,out);
+         }
          // Send Output
          if (Echo)
          {
             cout << "Restric DOF's:\n" << setw(Width) << Restrict->DOF() << "\n";
          }
          out << setw(Width) << *Lat << "Success = 1" << "\n";
+         FirstSolution = 0;
       }
    }
    
