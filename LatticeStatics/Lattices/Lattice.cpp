@@ -478,16 +478,15 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum,int const& TFIndex,Vecto
          out << "StressDT*Mode[" << i << "] = " << setw(Width) << z << "\n";
          if (Echo_) cout << "StressDT*Mode[" << i << "] = " << setw(Width) << z << "\n";
       }
-      if (Bif != CPorBif) // information conflicts. use CPorBif
+      if (Bif != CPorBif) // information conflicts. use Bif
       {
          out << "NOTE: Conflict between critical point identification methods.\n"
-             << "      Using characterization provided to CriticalPointInfo()." << "\n";
+             << "      Using characterization determined by CriticalPointInfo()." << "\n";
          if (Echo_)
          {
             cout << "NOTE: Conflict between critical point identification methods.\n"
-                 << "      Using characterization provided to CriticalPointInfo()." << "\n";
+                 << "      Using characterization determined by CriticalPointInfo()." << "\n";
          }
-         Bif = CPorBif;
       }
       
       if (LSKAnalysis_ > 0)
