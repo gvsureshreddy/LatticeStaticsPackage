@@ -138,24 +138,24 @@ RestrictToTranslatedSubSpace::RestrictToTranslatedSubSpace(Lattice* const M,Perl
          Matrix SCPM(Rows,DOFS_);
          Input.getMatrix(SCPM,Hash,"SymmetryProjectionMatrices",i);
          int nononzero = 0;
-         for (int i=0;i<Rows;++i)
+         for (int j=0;j<Rows;++j)
          {
-            for (int j=0;j<DOFS_;++j)
+            for (int k=0;k<DOFS_;++k)
             {
-               if (fabs(SCPM[i][j]) > 1.0e-15) ++nononzero;
+               if (fabs(SCPM[j][k]) > 1.0e-15) ++nononzero;
             }
          }
          
          SymmetryCheck_[i].Resize(Rows,DOFS_+1,nononzero); // DOFS_+1 to ignore load value
          
          int count=0;
-         for (int i=0;i<Rows;++i)
+         for (int j=0;j<Rows;++j)
          {
-            for (int j=0;j<DOFS_;++j)
+            for (int k=0;k<DOFS_;++k)
             {
-               if (fabs(SCPM[i][j]) > 1.0e-15)
+               if (fabs(SCPM[j][k]) > 1.0e-15)
                {
-                  SymmetryCheck_[i].SetNonZeroEntry(count,i,j,SCPM[i][j]);
+                  SymmetryCheck_[i].SetNonZeroEntry(count,j,k,SCPM[j][k]);
                   ++count;
                }
             }
