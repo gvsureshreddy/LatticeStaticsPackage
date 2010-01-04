@@ -480,13 +480,14 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum,int const& TFIndex,Vecto
       }
       if (Bif != CPorBif) // information conflicts. use Bif
       {
-         out << "NOTE: Conflict between critical point identification methods.\n"
-             << "      Using characterization determined by CriticalPointInfo()." << "\n";
+         out << "NOTE: Conflict between critical point identification methods in Lattice.\n"
+             << "      Using characterization determined by FindCriticalPoint()." << "\n";
          if (Echo_)
          {
-            cout << "NOTE: Conflict between critical point identification methods.\n"
-                 << "      Using characterization determined by CriticalPointInfo()." << "\n";
+            cout << "NOTE: Conflict between critical point identification methods in Lattice.\n"
+                 << "      Using characterization determined by FindCriticalPoint()." << "\n";
          }
+         Bif = CPorBif;
       }
       
       if (LSKAnalysis_ > 0)
