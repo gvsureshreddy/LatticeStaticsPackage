@@ -673,6 +673,8 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int* const TotalNum
    CPLambdas = new double[TestValueDiff];
    int* CPIndex;
    CPIndex = new int[TestValueDiff];
+   int* CPMultiplicity;
+   CPMultiplicity = new int[TestValueDiff];
    int* CPorBifs;
    CPorBifs = new int[TestValueDiff];
 
@@ -737,8 +739,9 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int* const TotalNum
          spot=num;
          while((spot!=0) && (DSTrack[spot-1] > CurrentDS_))
          {
-            DSTrack[spot] = DSTrack[spot-1];
+            DSTrack[spot] = DSTrack[spot - 1];
             CPIndex[spot] = CPIndex[spot - 1];
+            CPMultiplicity[spot] = CPMultiplicity[spot - 1];
             CPDOFs[spot] = CPDOFs[spot - 1];
             CPLambdas[spot] = CPLambdas[spot - 1];
             CPorBifs[spot] = CPorBifs[spot - 1];
@@ -746,6 +749,7 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int* const TotalNum
          }
          DSTrack[spot] = CurrentDS_;
          CPIndex[spot] = track;
+         CPMultiplicity[spot] = Multiplicity;
          CPDOFs[spot] = Lat->DOF();
          CPLambdas[spot] = ( (Lat->LoadParameter() == Lattice::Load)
                             ? Lat->Lambda() : Lat->Temp() );
@@ -794,7 +798,7 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int* const TotalNum
       // Call Lattice function to do any Lattice Specific things
       Bif=Lat->CriticalPointInfo(TotalNumCPCrossings,CPIndex[i],
                                  Restrict_->DrDt(Restrict_->DOF()-(OriginalDOF-OriginalDiff)),
-                                 CPorBifs[i],Multiplicity,10.0*Tolerance_,Width,Input,out);
+                                 CPorBifs[i],CPMultiplicity[i],10.0*Tolerance_,Width,Input,out);
       
       if (Echo_) cout << "Success = 1" << "\n";
       out << "Success = 1" << "\n";
@@ -805,6 +809,7 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int* const TotalNum
    delete [] Index;
    delete [] CPDOFs;
    delete [] CPIndex;
+   delete [] CPMultiplicity;
    delete [] CPLambdas;
    delete [] CPorBifs;
    
