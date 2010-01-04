@@ -662,22 +662,10 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int* const TotalNum
    LHSLambda = RHSLambda - Difference_[DOFS_-1];
    
    TestValueDiff = Lat->TestFunctions(TF_LHS_static, Lattice::RHS, &TF_RHS_static);
-   
+
+      
    int* Index;
    Index = new int[TestValueDiff];
-   Vector DSTrack(TestValueDiff);
-   Vector* CPDOFs;
-   CPDOFs = new Vector[TestValueDiff];
-   for (int i=0;i<TestValueDiff;++i) CPDOFs[i].Resize(Lat->DOF().Dim());
-   double* CPLambdas;
-   CPLambdas = new double[TestValueDiff];
-   int* CPIndex;
-   CPIndex = new int[TestValueDiff];
-   int* CPMultiplicity;
-   CPMultiplicity = new int[TestValueDiff];
-   int* CPorBifs;
-   CPorBifs = new int[TestValueDiff];
-
    temp = 0;
    for (int i = 0; i< size; i++)
    {
@@ -687,7 +675,50 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int* const TotalNum
          temp++;
       }
    }
+
+   int* ModeType;
+   ModeType = new int[TestValueDiff];
+   Matrix const& LHSEigVect = Lat->LHSEigVect();
+   Vector Mode(LHSEigVect.Rows()+1);
+   for (int i=0;i<TestValueDiff;++i)
+   {
+      if ((Lat->UseEigenValTFs() == 0) || (Index[i] >= Lat->DOF().Dim()))
+      {
+         ModeType[i] = -1;
+      }
+      else
+      {
+         for (int j=0;j<Mode.Dim()-1;++j)
+         {
+            Mode[j] = LHSEigVect[j][Index[i]];
+         }
+         Mode[Mode.Dim()-1] = 0.0;
+         // 1 = bif, 0 = turning pt;
+         double nrm = (Restrict_->TransformVector(Mode)).Norm();
+         if ( nrm < 1.0e-9 )
+         {
+            ModeType[i] = 1;
+         }
+         else
+         {
+            ModeType[i] = 0;
+         }
+      }
+   }
    
+   Vector DSTrack(TestValueDiff);
+   Vector* CPDOFs;
+   CPDOFs = new Vector[TestValueDiff];
+   for (int i=0;i<TestValueDiff;++i) CPDOFs[i].Resize(Lat->DOF().Dim());
+   double* CPLambdas;
+   CPLambdas = new double[TestValueDiff];
+   int* CPIndex;
+   CPIndex = new int[TestValueDiff];
+   int* CPType;
+   CPType = new int[TestValueDiff];
+   int* CPMultiplicity;
+   CPMultiplicity = new int[TestValueDiff];
+
    cout << "TestValueDiff = "<< TestValueDiff << "\n";
    for (int i = 0; i < TestValueDiff; i++)
    {
@@ -708,20 +739,6 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int* const TotalNum
       if(track>=0) //START OF IF STATEMENT
       {
          ZBrent(Lat,track,OriginalDiff,OriginalDS,fa,fb,CurrentTF_static);
-         double lambda = ArcLenDef()[DOFS_-1];
-         if ((Lat->UseEigenValTFs() == 0) || (track >= Lat->DOF().Dim()))
-         {
-            CPorBif = -1; // ExtraTF
-         }
-         else if (((lambda >= LHSLambda) && (lambda <= RHSLambda))
-                  || ((lambda <= LHSLambda) && (lambda >= RHSLambda)))
-         {
-            CPorBif = 1; // bif point
-         }
-         else
-         {
-            CPorBif = 0; // turning point
-         }
          
          Multiplicity = 1;
          for(int i=CP+1;i<TestValueDiff;i++)
@@ -741,19 +758,19 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int* const TotalNum
          {
             DSTrack[spot] = DSTrack[spot - 1];
             CPIndex[spot] = CPIndex[spot - 1];
+            CPType[spot] = CPType[spot - 1];
             CPMultiplicity[spot] = CPMultiplicity[spot - 1];
             CPDOFs[spot] = CPDOFs[spot - 1];
             CPLambdas[spot] = CPLambdas[spot - 1];
-            CPorBifs[spot] = CPorBifs[spot - 1];
             spot = spot - 1;
          }
          DSTrack[spot] = CurrentDS_;
          CPIndex[spot] = track;
+         CPType[spot] = ModeType[CP];
          CPMultiplicity[spot] = Multiplicity;
          CPDOFs[spot] = Lat->DOF();
          CPLambdas[spot] = ( (Lat->LoadParameter() == Lattice::Load)
                             ? Lat->Lambda() : Lat->Temp() );
-         CPorBifs[spot] = CPorBif;
 
          num = num + 1;
       }//END OF IF STATEMENT
@@ -777,12 +794,43 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int* const TotalNum
       }
       if (Echo_) cout << "\n";
       out << "\n";
-      
+
+      // determine CP type
+      if ((Lat->UseEigenValTFs() == 0) || (CPIndex[i] >= Lat->DOF().Dim()))
+      {
+         CPorBif = -1; // ExtraTF
+      }
+      else
+      {
+         if (((CPLambdas[i] >= LHSLambda) && (CPLambdas[i] <= RHSLambda))
+             || ((CPLambdas[i] <= LHSLambda) && (CPLambdas[i] >= RHSLambda)))
+         {
+            CPorBif = 1; // bif point
+         }
+         else
+         {
+            CPorBif = 0; // turning point
+         }
+
+         // Assume it suffices to check the first mode and don't bother with the multiplicity
+         if (CPType[i] != CPorBif)
+         {
+            out << "NOTE: Conflict between critical point identification methods in ArcLengthSolution.\n"
+                << "      Using characterization determined by Group Theory." << "\n";
+            if (Echo_)
+            {
+               cout << "NOTE: Conflict between critical point identification methods in ArcLengthSolution.\n"
+                    << "      Using characterization determined by Group Theory." << "\n";
+            }
+            CPorBif = CPType[i];
+         }
+      }
+
       // Lattice takes care of echo
       out << setw(Width);
-      if (0 == CPorBifs[i])
+      if (0 == CPorBif)
          Lat->Print(out,Lattice::PrintShort,Lattice::TurningPt);
-      else if (1 == CPorBifs[i])
+      else if (1 == CPorBif)
          Lat->Print(out,Lattice::PrintShort,Lattice::BifurcationPt);
       else
          Lat->Print(out,Lattice::PrintShort,Lattice::ExtraTFPt);
@@ -794,11 +842,11 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int* const TotalNum
       }
       if (Echo_) cout << "\n";
       out << "\n";
-      
+
       // Call Lattice function to do any Lattice Specific things
       Bif=Lat->CriticalPointInfo(TotalNumCPCrossings,CPIndex[i],
                                  Restrict_->DrDt(Restrict_->DOF()-(OriginalDOF-OriginalDiff)),
-                                 CPorBifs[i],CPMultiplicity[i],10.0*Tolerance_,Width,Input,out);
+                                 CPorBif,CPMultiplicity[i],10.0*Tolerance_,Width,Input,out);
       
       if (Echo_) cout << "Success = 1" << "\n";
       out << "Success = 1" << "\n";
@@ -807,11 +855,12 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int* const TotalNum
    }
    
    delete [] Index;
+   delete [] ModeType;
    delete [] CPDOFs;
    delete [] CPIndex;
+   delete [] CPType;
    delete [] CPMultiplicity;
    delete [] CPLambdas;
-   delete [] CPorBifs;
    
    // Reset Lattice and ArcLengthSolution
    ArcLenSet(OriginalDOF);
