@@ -136,7 +136,7 @@ RestrictToTranslatedSubSpace::RestrictToTranslatedSubSpace(Lattice* const M,Perl
 
          int Rows = Input.getArrayLength(Hash,"SymmetryCheckProjectionMatrices",i);
          Matrix SCPM(Rows,DOFS_);
-         Input.getMatrix(SCPM,Hash,"SymmetryProjectionMatrices",i);
+         Input.getMatrix(SCPM,Hash,"SymmetryCheckProjectionMatrices",i);
          int nononzero = 0;
          for (int j=0;j<Rows;++j)
          {
@@ -300,12 +300,12 @@ int RestrictToTranslatedSubSpace::SymmetryOK() const
    {
       if ((SymmetryCheck_[i]*DOF()).Norm() < SymmetryCheckTol_)
       {
-         cout << "SymCheck " << i << "is zero\n";
-         --retval;
+         cout << "SymCheck " << i << " is zero\n";
       }
       else
       {
-         cout << "SymCheck " << i << "is NONzero\n";
+         cout << "SymCheck " << i << " is NON-zero\n";
+         --retval;
       }
    }
 
