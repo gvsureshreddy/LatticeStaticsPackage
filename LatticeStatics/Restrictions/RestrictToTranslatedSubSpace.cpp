@@ -122,6 +122,13 @@ RestrictToTranslatedSubSpace::RestrictToTranslatedSubSpace(Lattice* const M,Perl
    if (Input.ParameterOK(Hash,"SymmetryCheckProjectionMatrices"))
    {
       SymmetryCheckCount_ = Input.getArrayLength(Hash,"SymmetryCheckProjectionMatrices");
+      if (SymmetryCheckCount_ == 0)
+      {
+         cerr << "Error. " << Name()
+              << " SymmetryCheckProjectionMatrices is empty\n";
+         exit(-37);
+      }
+      
       SymmetryCheck_ = new SparseMatrix[SymmetryCheckCount_];
 
       for (int i=0;i<SymmetryCheckCount_;++i)
@@ -298,13 +305,8 @@ int RestrictToTranslatedSubSpace::SymmetryOK() const
    int retval = SymmetryCheckCount_;
    for (int i=0;i<SymmetryCheckCount_;++i)
    {
-      if ((SymmetryCheck_[i]*DOF()).Norm() < SymmetryCheckTol_)
+      if ( !((SymmetryCheck_[i]*DOF()).Norm() < SymmetryCheckTol_) )
       {
-         cout << "SymCheck " << i << " is zero\n";
-      }
-      else
-      {
-         cout << "SymCheck " << i << " is NON-zero\n";
          --retval;
       }
    }
