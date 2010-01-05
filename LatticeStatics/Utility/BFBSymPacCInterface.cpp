@@ -29,6 +29,7 @@ int success = 1;
 int* TotalNumCPs = 0;
 int TestValue;
 int StableValue=-1;
+int FirstSolution = 1;
 Vector EigenValues;
 int Width,Precision,Echo;
 YN BisectCP;
@@ -109,7 +110,7 @@ extern "C" void bfb_wrapper_(int& bfbstable,int& bfbreturncode)
       bfbstable = 1;
    }
    
-   if ((TestValue != 0) && (BisectCP == Yes))
+   if ((TestValue > 0) && (BisectCP == Yes) && (!FirstSolution))
    {
       bfbreturncode = 2;
       SolveMe->FindCriticalPoint(Lat,TotalNumCPs,Input,Width,cout);
@@ -118,6 +119,9 @@ extern "C" void bfb_wrapper_(int& bfbstable,int& bfbreturncode)
    {
       bfbreturncode = 0;
    }
+
+   FirstSolution = 0;
+   
    // Send Output
    cout << setw(Width) << *Lat << "Success = 1" << "\n";
    
