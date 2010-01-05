@@ -1024,6 +1024,11 @@ int ArcLengthSolution::ZBrent(Lattice* const Lat,int const& track,Vector const& 
    {
       cout << "Error: ZBrent reached Maximum number of iterations before it converged and exited." << "\n";
    }
+   else
+   {
+      cout << "ZBrent finished with the " << track << "th TestFunction value of " << fb
+           << "\n\n";
+   }
    
    return retcode;
 }
