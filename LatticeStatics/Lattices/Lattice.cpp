@@ -856,8 +856,10 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum,int const& TFIndex,Vecto
               << UseExtension_;
    cpfilename.fill(' ');
 
+   int CPcount = 0;
+   for (int i=0;i<NumTestFunctions();++i) CPcount += CPCrossingNum[i];
    TFOrderFile.open(TFOrderFilename.str().c_str(),ios::out | ios::app);
-   TFOrderFile << cpfilename.str() << endl;
+   TFOrderFile << setw(Width) << CPcount << "     " << cpfilename.str() << endl;
    TFOrderFile.close();
 
    cpfile.open(cpfilename.str().c_str(),ios::out);
