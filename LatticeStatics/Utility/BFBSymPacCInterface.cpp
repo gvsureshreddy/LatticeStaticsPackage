@@ -204,7 +204,7 @@ void InitializeOutputFile(char const* const datafile,char const* const startfile
 
 int RelativeEigVectsOK(Matrix const& EigVects)
 {
-   double const cutoff = 0.9; // 25.8 degrees
+   double const cutoff = 0.8125; // 35.6 degrees
 
    int retval = 1;
    int size = EigVects.Rows();
@@ -223,6 +223,7 @@ int RelativeEigVectsOK(Matrix const& EigVects)
       }
       if ((row != i) || (maxval < cutoff))
       {
+         cout << "RelativeEigVectsOK() failed at i= "<< i <<"  j= " << row << " maxval = " << maxval << "\n";
          retval = 0;
          break;
       }
