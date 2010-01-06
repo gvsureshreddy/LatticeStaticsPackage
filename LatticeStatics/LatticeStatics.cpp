@@ -226,7 +226,7 @@ void InitializeOutputFile(fstream& out,char const* const outfile,char const* con
 
 int RelativeEigVectsOK(Matrix const& EigVects)
 {
-   int const cutoff = 0.9; // 25.8 degrees
+   double const cutoff = 0.9; // 25.8 degrees
 
    int retval = 1;
    int size = EigVects.Rows();
