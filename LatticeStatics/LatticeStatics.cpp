@@ -19,6 +19,7 @@ void GetMainSettings(int& Width,int& Precision,YN& BisectCP,int& Echo,PerlInput 
 void InitializeOutputFile(fstream& out,char const* const outfile,char const* const datafile,
                           char const* const startfile,int const& Precision,int const& Width,
                           int const& Echo);
+int RelativeEigVectsOK(Matrix const& EigVects);
 
 // define as global to allow outatexit to flush
 fstream out;
@@ -105,6 +106,12 @@ int main(int argc, char *argv[])
       {
          // Check for Critical Point Crossing
          TestValue = Lat->TestFunctions(TestValues);
+         if (!RelativeEigVectsOK(Lat->RelativeEigVects()))
+         {
+            cout << "NOTE: Relative Eigenvectors are too far apart!  "
+                 << "Suggest decreasing step size.\n";
+         }
+         
          if ((TestValue > 0) && (BisectCP == Yes) && (!FirstSolution))
          {
             SolveMe->FindCriticalPoint(Lat,TotalNumCPs,Input,Width,out);
@@ -215,4 +222,33 @@ void InitializeOutputFile(fstream& out,char const* const outfile,char const* con
        << "LinearAlgebra Build on: " << LinearAlgebraBuildDate() << "\n"
        << "MyMath Built on:        " << MyMathBuildDate() << "\n"
        << setw(Width);
+}
+
+int RelativeEigVectsOK(Matrix const& EigVects)
+{
+   int const cutoff = 0.9; // 25.8 degrees
+
+   int retval = 1;
+   int size = EigVects.Rows();
+
+   for (int i=0;i<size;++i)
+   {
+      double maxval = fabs(EigVects[0][i]);
+      int row = 0;
+      for (int j=0;j<size;++j)
+      {
+         if (fabs(EigVects[j][i]) > maxval)
+         {
+            maxval = fabs(EigVects[j][i]);
+            row = j;
+         }
+      }
+      if ((row != i) || (maxval < cutoff))
+      {
+         retval = 0;
+         break;
+      }
+   }
+
+   return retval;
 }

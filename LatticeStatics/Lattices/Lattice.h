@@ -56,6 +56,7 @@ public:
    virtual int TestFunctions(Vector& TF1,StateType const& State=LHS,Vector* const EV2=0) const;
    virtual void ExtraTestFunctions(Vector& TF) const {};
    virtual Matrix const & LHSEigVect() {return EigVectLHS_static;}
+   virtual Matrix const & RelativeEigVects() {return EigVect_static;}
    virtual void DispersionCurves(Vector const& K,int const& NoPTS,char const* const prefix,
                                  ostream& out) const {};
    virtual int BlochWave(Vector& K) const {return -1;}
