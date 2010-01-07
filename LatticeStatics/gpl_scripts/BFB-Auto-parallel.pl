@@ -138,8 +138,9 @@ foreach (@abtd)
   unlink glob("$workingdir/*.plt.gz");
   unlink "$workingdir/abort.dat";
   unlink glob("$workingdir/*.out.gz");
-  unlink glob("$workingdir/*BP*.gz");
-  unlink glob("$workingdir/*TP*.gz");
+  unlink glob("$workingdir/*.B[0-9]*.gz");
+  unlink glob("$workingdir/*.T[0-9]*.gz");
+  unlink glob("$workingdir/*.E[0-9]*.gz");
   unlink glob("$workingdir/*.bpp.gz");
   unlink "$workingdir/qc.log.gz";
   unlink "$workingdir/qc.cmd.gz";
@@ -252,7 +253,7 @@ while((-e $maintimerfile) &&
       {
         # if not the root path
         system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/${flnm}curdir*.res $curdir/*.T*.bfb $curdir/*.T*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+           " $curdir/${flnm}curdir*.res $curdir/*.T[0-9]*.bfb $curdir/*.T[0-9]*.res $curdir/*.E[0-9]*.bfb $curdir/*.E[0-9]*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
       }
       else
       {
@@ -260,7 +261,7 @@ while((-e $maintimerfile) &&
         # set the input file root
         $flnm = $InputFileName;
         system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/${flnm}curdir*.res $curdir/*.T*.bfb $curdir/*.T*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+           " $curdir/${flnm}curdir*.res $curdir/*.T[0-9]*.bfb $curdir/*.T[0-9]*.res $curdir/*.E[0-9]*.bfb $curdir/*.E[0-9]*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
       }
 
       if (-e "$newdir/abort.dat")
@@ -285,7 +286,7 @@ while((-e $maintimerfile) &&
       {
         # if not the root path
         system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/${flnm}curdir*.res $curdir/*.T*.bfb $curdir/*.T*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+           " $curdir/${flnm}curdir*.res $curdir/*.T[0-9]*.bfb $curdir/*.T[0-9]*.res $curdir/*.E[0-9]*.bfb $curdir/*.E[0-9]*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
       }
       else
       {
@@ -293,7 +294,7 @@ while((-e $maintimerfile) &&
         # set the input file root
         $flnm = $InputFileName;
         system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/${flnm}curdir*.res $curdir/*.T*.bfb $curdir/*.T*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+           " $curdir/${flnm}curdir*.res $curdir/*.T[0-9]*.bfb $curdir/*.T[0-9]*.res $curdir/*.E[0-9]*.bfb $curdir/*.E[0-9]*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
       }
 
       move($curdir . "/#RUNNING#", $curdir . "/#ERROR#");
@@ -410,7 +411,7 @@ while ( (scalar @pths) > 0)
       {
         # if not the root path
         system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/${flnm}curdir*.res $curdir/*.T*.bfb $curdir/*.T*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+           " $curdir/${flnm}curdir*.res $curdir/*.T[0-9]*.bfb $curdir/*.T[0-9]*.res $curdir/*.E[0-9]*.bfb $curdir/*.E[0-9]*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
       }
       else
       {
@@ -418,7 +419,7 @@ while ( (scalar @pths) > 0)
         # set the input file root
         $flnm = $InputFileName;
         system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/${flnm}curdir*.res $curdir/*.T*.bfb $curdir/*.T*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+           " $curdir/${flnm}curdir*.res $curdir/*.T[0-9]*.bfb $curdir/*.T[0-9]*.res $curdir/*.E[0-9]*.bfb $curdir/*.E[0-9]*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
       }
       
       if (-e "$newdir/abort.dat")
@@ -443,7 +444,7 @@ while ( (scalar @pths) > 0)
       {
         # if not the root path
         system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/${flnm}curdir*.res $curdir/*.T*.bfb $curdir/*.T*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+           " $curdir/${flnm}curdir*.res $curdir/*.T[0-9]*.bfb $curdir/*.T[0-9]*.res $curdir/*.E[0-9]*.bfb $curdir/*.E[0-9]*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
       }
       else
       {
@@ -451,7 +452,7 @@ while ( (scalar @pths) > 0)
         # set the input file root
         $flnm = $InputFileName;
         system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/${flnm}curdir*.res $curdir/*.T*.bfb $curdir/*.T*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+           " $curdir/${flnm}curdir*.res $curdir/*.T[0-9]*.bfb $curdir/*.T[0-9]*.res $curdir/*.E[0-9]*.bfb $curdir/*.E[0-9]*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
       }
 
       move($curdir . "/#RUNNING#", $curdir . "/#ERROR#");
@@ -648,62 +649,77 @@ sub find_sym_and_update_bfb
   if ($IsTRx && $IsTRy && $IsTRz && $IsTQx && $IsTQy && $IsTQz && $IsTJ)
   {
     $SymGrp = "G0";
+    @SymChkList = ();
   }
   elsif ($IsTRx && $IsTRy && $IsTQz)
   {
     $SymGrp = "G4";
+    @SymChkList = ("C0_4");
   }
   elsif ($IsTRx && $IsTRz && $IsTQy)
   {
     $SymGrp = "G5";
+    @SymChkList = ("C0_5");
   }
   elsif ($IsTRy && $IsTRz && $IsTQx)
   {
     $SymGrp = "G6";
+    @SymChkList = ("C0_6");
   }
   elsif ($IsTRz && $IsTQz && $IsTJ)
   {
     $SymGrp = "G7";
+    @SymChkList = ("C0_7");
   }
   elsif ($IsTRx && $IsTQx && $IsTJ)
   {
     $SymGrp = "G12";
+    @SymChkList = ("C0_12");
   }
   elsif ($IsTRy && $IsTQy && $IsTJ)
   {
     $SymGrp = "G13";
+    @SymChkList = ("C0_13");
   }
   elsif ($IsTQx && $IsTQy && $IsTQz)
   {
     $SymGrp = "G14";
+    @SymChkList = ("C0_14");
   }
   elsif ($IsTRx)
   {
     $SymGrp = "G1";
+    @SymChkList = ("C4_1", "C5_1", "C12_1");
   }
   elsif ($IsTRy)
   {
     $SymGrp = "G2";
+    @SymChkList = ("C4_2", "C6_2", "C13_2");
   }
   elsif ($IsTRz)
   {
     $SymGrp = "G3";
+    @SymChkList = ("C5_3", "C6_3", "C7_3");
   }
   elsif ($IsTQx)
   {
     $SymGrp = "G8";
+    @SymChkList = ("C6_8", "C12_8", "C14_8");
   }
   elsif ($IsTQy)
   {
     $SymGrp = "G9";
+    @SymChkList = ("C5_9", "C13_9", "C14_9");
   }
   elsif ($IsTQz)
   {
     $SymGrp = "G10";
+    @SymChkList = ("C4_10", "C7_10", "C14_10");
   }
   elsif ($IsTJ)
   {
     $SymGrp = "G11";
+    @SymChkList = ("C7_11", "C12_11", "C13_11");
   }
   else
   {
@@ -713,6 +729,7 @@ sub find_sym_and_update_bfb
   #print "has symmetry group $SymGrp\n";
   
   $fl='';
+  $SymChk = 0;
   
   open(ORIGFL,"$curdir/$flnm");
   while (<ORIGFL>)
@@ -729,12 +746,35 @@ sub find_sym_and_update_bfb
     
     if (/{RestrictToTranslatedSubSpace}{ProjectionMatrix}/)
     {
+      if ($SymChk == 0)
+      {
+        $fl .= "\$Restriction{RestrictToTranslatedSubSpace}{SymmetryCheckProjectionMatricies} = [";
+        $fl .= "[@" . (shift @SymChkList) . "]";
+        foreach $mat (@SymChkList)
+        {
+          $fl .= ",[@" . $mat . "]";
+        } 
+        $fl .= "];\n";
+      }
+
       $fl .= "\$Restriction{RestrictToTranslatedSubSpace}{ProjectionMatrix} = [@" 
           . $SymGrp . "];\n";
       while ($_ !~ /.*];$/)
       {
         $_=<ORIGFL>;
       }
+    }
+    elsif (/{{RestrictToTranslatedSubSpace}{SymmetryCheckProjectionMatricies}/)
+    {
+      $SymChk = 1;
+
+      $fl .= "\$Restriction{RestrictToTranslatedSubSpace}{SymmetryCheckProjectionMatricies} = [";
+      $fl .= "[@" . (shift @SymChkList) . "]";
+      foreach $mat (@SymChkList)
+      {
+        $fl .= ",[@" . $mat . "]";
+      }
+      $fl .= "];\n";
     }
     else
     {
