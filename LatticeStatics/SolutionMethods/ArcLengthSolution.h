@@ -31,12 +31,14 @@ private:
    double Aspect_;
    
    int NumSolutions_;
+   double CumulativeArcLength_;
    int CurrentSolution_;
    int BifStartFlag_;
    Vector BifTangent_;
    int ClosedLoopStart_;
    int ClosedLoopUseAsFirst_;
    Vector FirstSolution_;
+   double MaxCumulativeArcLength_;
    int StopAtCPCrossingNum_;
    
    Vector Difference_;
@@ -61,7 +63,8 @@ public:
                      Vector const& FirstSolution,Vector const& Difference,
                      int const& BifStartFlag_,Vector const& BifTangent,
                      int const& ClosedLoopStart,int const& ClosedLoopUseAsFirst,
-                     int const& StopAtCPCrossingNum,int const& Echo);
+                     double const& MaxCumulativeArcLength,int const& StopAtCPCrossingNum,
+                     int const& Echo);
    ArcLengthSolution(Restriction* const Restrict,PerlInput const& Input,
                      Vector const& one,Vector const& two,int const& Echo=1);
    ArcLengthSolution(Restriction* const Restrict,PerlInput const& Input,int const Echo=1);

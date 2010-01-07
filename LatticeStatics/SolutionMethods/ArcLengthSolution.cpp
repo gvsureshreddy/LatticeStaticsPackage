@@ -13,6 +13,8 @@ extern "C" void qcbfb_output_(int& nfree,double* u,double& prop,int& nint,int* i
 ArcLengthSolution::~ArcLengthSolution()
 {
    cout.width(0);
+   cout << "ArcLengthSolution Stats:\n"
+        << "\tCumulativeArcLength - " << CumulativeArcLength_ << "\n";
    cout << "ArcLengthSolution Function Calls:\n"
         << "\tArcLengthNewton - " << counter_[0] << "\n"
         << "\tZBrent - " << counter_[1] << "\n"
@@ -37,6 +39,7 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,Vector const& d
                                      Vector const& Difference,int const& BifStartFlag,
                                      Vector const& BifTangent,int const& ClosedLoopStart,
                                      int const& ClosedLoopUseAsFirst,
+                                     double const& MaxCumulativeArcLength,
                                      int const& StopAtCPCrossingNum,int const& Echo)
    : Echo_(Echo),
      Restrict_(Restrict),
@@ -51,12 +54,14 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,Vector const& d
      AngleIncrease_(AngleIncrease),
      Aspect_(Aspect),
      NumSolutions_(NumSolutions_),
+     CumulativeArcLength_(0.0),
      CurrentSolution_(CurrentSolution),
      BifStartFlag_(BifStartFlag),
      BifTangent_(BifTangent),
      ClosedLoopStart_(ClosedLoopStart),
      ClosedLoopUseAsFirst_(ClosedLoopUseAsFirst),
      FirstSolution_(FirstSolution),
+     MaxCumulativeArcLength_(MaxCumulativeArcLength),
      StopAtCPCrossingNum_(StopAtCPCrossingNum),
      Difference_(Difference),
      force_static(DOFS_),
@@ -72,6 +77,7 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const
                                      Vector const& one,Vector const& two,int const& Echo)
    : Echo_(Echo),
      Restrict_(Restrict),
+     CumulativeArcLength_(0.0),
      CurrentSolution_(0),
      BifStartFlag_(0),
      BifTangent_(),
@@ -131,6 +137,18 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const
    {
       ClosedLoopStart_ = Input.useInt(CLOSEDDEFAULT,Hash,"ClosedLoopStart"); // Default Value
    }
+   if (Input.ParameterOK(Hash,"MaxCumulativeArcLength"))
+   {
+      MaxCumulativeArcLength_ = Input.getDouble(Hash,"MaxCumulativeArcLength");
+      if (MaxCumulativeArcLength_ < 0.0)
+      {
+         MaxCumulativeArcLength_ = -1.0;  // Negative values mean don't check
+      }
+   }
+   else
+   {
+      MaxCumulativeArcLength_ = Input.useDouble(-1.0,Hash,"MaxCumulativeArcLength_"); // Default Value
+   }
    if (Input.ParameterOK(Hash,"StopAtCPCrossingNum"))
    {
       StopAtCPCrossingNum_ = Input.getInt(Hash,"StopAtCPCrossingNum");
@@ -182,6 +200,7 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const
                                      int const Echo)
    :  Echo_(Echo),
       Restrict_(Restrict),
+      CumulativeArcLength_(0.0),
       CurrentSolution_(0),
       BifStartFlag_(0),
       BifTangent_()
@@ -238,6 +257,18 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict,PerlInput const
    else
    {
       ClosedLoopStart_ = Input.useInt(CLOSEDDEFAULT,Hash,"ClosedLoopStart"); // Default Value
+   }
+   if (Input.ParameterOK(Hash,"MaxCumulativeArcLength"))
+   {
+      MaxCumulativeArcLength_ = Input.getDouble(Hash,"MaxCumulativeArcLength");
+      if (MaxCumulativeArcLength_ < 0.0)
+      {
+         MaxCumulativeArcLength_ = -1.0;  // Negative values mean don't check
+      }
+   }
+   else
+   {
+      MaxCumulativeArcLength_ = Input.useDouble(-1.0,Hash,"MaxCumulativeArcLength_"); // Default Value
    }
    if (Input.ParameterOK(Hash,"StopAtCPCrossingNum"))
    {
@@ -483,6 +514,17 @@ int ArcLengthSolution::FindNextSolution()
               Difference_ = OldDiff,
               CurrentDS_=CurrentDS_/2.0));
    
+   CumulativeArcLength_ += CurrentDS_;
+   if ((MaxCumulativeArcLength_ >= 0.0) && (CumulativeArcLength_ > MaxCumulativeArcLength_))
+   {
+      // We are done -- set currentsolution to numsolutions-1
+      // it will then be incremented to numsolutions below.
+      cout << "NOTE: MaxCumulativeArcLength reached at Solution # " << CurrentSolution_
+           << " --- Terminating!" << "\n";
+      
+      CurrentSolution_ = NumSolutions_ - 1;
+   }
+   
    if ((AngleTest <= AngleIncrease_) && (CurrentDS_ < DSMax_))
    {
       CurrentDS_ *= 2.0;
@@ -493,7 +535,7 @@ int ArcLengthSolution::FindNextSolution()
    {
       cerr << "ArcLenghtSolution did not converge properly" << "\n";
    }
-   
+
    if ((ClosedLoopStart_ >= 0) && (CurrentSolution_ > ClosedLoopStart_) &&
        ((ArcLenDef() - FirstSolution_).Norm() < CurrentDS_))
    {

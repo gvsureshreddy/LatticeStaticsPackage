@@ -9,6 +9,8 @@ using namespace std;
 NewtonPCSolution::~NewtonPCSolution()
 {
    cout.width(0);
+   cout << "NewtonPCSolution Stats:\n"
+        << "\tCumulativeArcLength - " << CumulativeArcLength_ << "\n";
    cout << "NewtonPCSolution Function Calls:\n"
         << "\tGetQR - " << counter_[0] << "\n"
         << "\tMoorePenrose - " << counter_[1] << "\n"
@@ -29,6 +31,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,
                                    int const& Direction,double const& accel_max,
                                    int const& BifStartFlag,Vector const& BifTangent,
                                    int const& ClosedLoopStart,int const& ClosedLoopUseAsFirst,
+                                   double const& MaxCumulativeArcLength,
                                    int const& StopAtCPCrossingNum,int const& Echo)
    : Restrict_(Restrict),
      Echo_(Echo),
@@ -36,6 +39,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,
      UpdateType_(Type),
      ComputeExactTangent_(ComputeExactTangent),
      NumSolutions_(NumSolutions),
+     CumulativeArcLength_(0.0),
      MaxDS_(MaxDS),
      PreviousDS_(CurrentDS),
      CurrentDS_(CurrentDS),
@@ -49,6 +53,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,
      BifTangent_(BifTangent),
      ClosedLoopStart_(ClosedLoopStart),
      ClosedLoopUseAsFirst_(ClosedLoopUseAsFirst),
+     MaxCumulativeArcLength_(MaxCumulativeArcLength),
      StopAtCPCrossingNum_(StopAtCPCrossingNum),
      Direction_(Direction),
      Omega_(1.0),
@@ -101,6 +106,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
    : Restrict_(Restrict),
      Echo_(Echo),
      CurrentSolution_(0),
+     CumulativeArcLength_(0.0),
      BifStartFlag_(0),
      BifTangent_(),
      Omega_(1.0),
@@ -213,6 +219,19 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
       ClosedLoopStart_ = Input.useInt(CLOSEDDEFAULT,Hash,"ClosedLoopStart"); // Default Value
    }
    
+   if (Input.ParameterOK(Hash,"MaxCumulativeArcLength"))
+   {
+      MaxCumulativeArcLength_ = Input.getDouble(Hash,"MaxCumulativeArcLength");
+      if (MaxCumulativeArcLength_ < 0.0)
+      {
+         MaxCumulativeArcLength_ = -1.0;  // Negative values mean don't check
+      }
+   }
+   else
+   {
+      MaxCumulativeArcLength_ = Input.useDouble(-1.0,Hash,"MaxCumulativeArcLength_"); // Default Value
+   }
+   
    if (Input.ParameterOK(Hash,"StopAtCPCrossingNum"))
    {
       StopAtCPCrossingNum_ = Input.getInt(Hash,"StopAtCPCrossingNum");
@@ -323,6 +342,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
    : Restrict_(Restrict),
      Echo_(Echo),
      CurrentSolution_(0),
+     CumulativeArcLength_(0.0),
      BifStartFlag_(0),
      BifTangent_(),
      Omega_(1.0)
@@ -432,6 +452,19 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,PerlInput const& 
    else
    {
       ClosedLoopStart_ = Input.useInt(CLOSEDDEFAULT,Hash,"ClosedLoopStart"); // Default Value
+   }
+
+   if (Input.ParameterOK(Hash,"MaxCumulativeArcLength"))
+   {
+      MaxCumulativeArcLength_ = Input.getDouble(Hash,"MaxCumulativeArcLength");
+      if (MaxCumulativeArcLength_ < 0.0)
+      {
+         MaxCumulativeArcLength_ = -1.0;  // Negative values mean don't check
+      }
+   }
+   else
+   {
+      MaxCumulativeArcLength_ = Input.useDouble(-1.0,Hash,"MaxCumulativeArcLength_"); // Default Value
    }
    
    if (Input.ParameterOK(Hash,"StopAtCPCrossingNum"))
@@ -868,8 +901,23 @@ int NewtonPCSolution::FindNextSolution()
       ++predictions;
    };
 
+   cout << "Converged with CorrectorNorm = " << Magnitude2 
+        << ",     ForceNorm = " << forcenorm << "\n";
+   
    // keep track of DS used to find the current point
    PreviousDS_ = CurrentDS_;
+
+   CumulativeArcLength_ += CurrentDS_;
+   if ((MaxCumulativeArcLength_ >= 0.0) && (CumulativeArcLength_ > MaxCumulativeArcLength_))
+   {
+      // We are done -- set currentsolution to numsolutions-1
+      // it will then be incremented to numsolutions below.
+      cout << "NOTE: MaxCumulativeArcLength reached at Solution # " << CurrentSolution_
+           << " --- Terminating!" << "\n";
+      
+      CurrentSolution_ = NumSolutions_ - 1;
+   }
+   
    // adaptively change DS for next point
    CurrentDS_ = CurrentDS_/f;  //note the above ensures that  (1/accel_max_) < f < accel_max_
    if(CurrentDS_ > MaxDS_) CurrentDS_ = MaxDS_;
@@ -911,9 +959,6 @@ int NewtonPCSolution::FindNextSolution()
            << ",     Angle (deg.) with BifTangent = "
            << acos(v_static*BifTangent_)*(57.2957795130823) << "\n";
    }
-   
-   cout << "Converged with CorrectorNorm = " << Magnitude2 
-        << ",     ForceNorm = " << forcenorm << "\n";
    
    if ((ClosedLoopStart_ >= 0) && (CurrentSolution_ > ClosedLoopStart_) &&
        ((Restrict_->DOF() - FirstSolution_).Norm() < CurrentDS_))
@@ -971,7 +1016,7 @@ void NewtonPCSolution::FindCriticalPoint(Lattice* const Lat,int* const TotalNumC
    }
    ArcLengthSolution S1(Restrict_,Restrict_->DOF(),MaxIter,Converge_,CT,tmp_ds,tmp_ds,
                         tmp_ds,1.0,0.5,1.0,1,0,PreviousSolution_,
-                        Restrict_->DOF()-PreviousSolution_,0,Vector(),10,0,-1,Echo_);
+                        Restrict_->DOF()-PreviousSolution_,0,Vector(),10,0,-1.0,-1,Echo_);
    S1.FindCriticalPoint(Lat,TotalNumCPCrossings,Input,Width,out);
    
    // Check to see if we should stop
