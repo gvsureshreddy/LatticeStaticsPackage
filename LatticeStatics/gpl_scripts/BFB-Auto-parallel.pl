@@ -729,7 +729,6 @@ sub find_sym_and_update_bfb
   #print "has symmetry group $SymGrp\n";
   
   $fl='';
-  $SymChk = 0;
   
   open(ORIGFL,"$curdir/$flnm");
   while (<ORIGFL>)
@@ -746,35 +745,27 @@ sub find_sym_and_update_bfb
     
     if (/{RestrictToTranslatedSubSpace}{ProjectionMatrix}/)
     {
-      if ($SymChk == 0)
-      {
-        $fl .= "\$Restriction{RestrictToTranslatedSubSpace}{SymmetryCheckProjectionMatricies} = [";
-        $fl .= "[@" . (shift @SymChkList) . "]";
-        foreach $mat (@SymChkList)
-        {
-          $fl .= ",[@" . $mat . "]";
-        } 
-        $fl .= "];\n";
-      }
-
       $fl .= "\$Restriction{RestrictToTranslatedSubSpace}{ProjectionMatrix} = [@" 
           . $SymGrp . "];\n";
       while ($_ !~ /.*];$/)
       {
         $_=<ORIGFL>;
       }
-    }
-    elsif (/{{RestrictToTranslatedSubSpace}{SymmetryCheckProjectionMatricies}/)
-    {
-      $SymChk = 1;
 
       $fl .= "\$Restriction{RestrictToTranslatedSubSpace}{SymmetryCheckProjectionMatricies} = [";
       $fl .= "[@" . (shift @SymChkList) . "]";
       foreach $mat (@SymChkList)
       {
         $fl .= ",[@" . $mat . "]";
-      }
+      } 
       $fl .= "];\n";
+    }
+    elsif (/{{RestrictToTranslatedSubSpace}{SymmetryCheckProjectionMatricies}/)
+    {
+      while($_ !~ /.*];$/)
+      {
+        $_=<ORIGFL>;
+      }
     }
     else
     {
