@@ -168,22 +168,22 @@ RestrictToTranslatedSubSpace::RestrictToTranslatedSubSpace(Lattice* const M,Perl
             }
          }
       }
-
-      if (Input.ParameterOK(Hash,"SymmetryCheckTolerance"))
-      {
-         SymmetryCheckTol_ = Input.getDouble(Hash,"SymmetryCheckTolerance");
-      }
-      else
-      {
-         // Default Value
-         SymmetryCheckTol_ = Input.useDouble(1.0e-15,Hash,"SymmetryCheckTolerance");
-      }
    }
    else
    {
       SymmetryCheckCount_ = 0;
    }
-   
+
+   if (Input.ParameterOK(Hash,"SymmetryCheckTolerance"))
+   {
+      SymmetryCheckTol_ = Input.getDouble(Hash,"SymmetryCheckTolerance");
+   }
+   else
+   {
+      // Default Value
+      SymmetryCheckTol_ = Input.useDouble(1.0e-14,Hash,"SymmetryCheckTolerance");
+   }
+      
    //ReferenceState DOF Initialization
    ReferenceState_.Resize(LatDOFS+1,0.0);
    

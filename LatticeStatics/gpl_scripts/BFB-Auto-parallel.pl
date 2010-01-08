@@ -760,7 +760,7 @@ sub find_sym_and_update_bfb
       } 
       $fl .= "];\n";
     }
-    elsif (/{{RestrictToTranslatedSubSpace}{SymmetryCheckProjectionMatricies}/)
+    elsif (/{RestrictToTranslatedSubSpace}{SymmetryCheckProjectionMatricies}/)
     {
       while($_ !~ /.*];$/)
       {
