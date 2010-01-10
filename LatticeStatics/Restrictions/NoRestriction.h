@@ -32,12 +32,25 @@ private:
    }
 
 public:
-   NoRestriction(Lattice* const M): Lattice_(M),
-                                    dof_static(Lattice_->DOF().Dim()+1),
-                                    ddt_static(Lattice_->DOF().Dim()),
-                                    Stiff_static(Lattice_->DOF().Dim(),Lattice_->DOF().Dim()),
-                                    stressdt_static(Lattice_->DOF().Dim())
-   {}
+   NoRestriction(Lattice* const M,PerlInput const& Input)
+      : Restriction(Input),
+        Lattice_(M),dof_static(Lattice_->DOF().Dim()+1),
+        ddt_static(Lattice_->DOF().Dim()),
+        Stiff_static(Lattice_->DOF().Dim(),Lattice_->DOF().Dim()),
+        stressdt_static(Lattice_->DOF().Dim())
+   {
+      int DOFS = dof_static.Dim();
+      for (int i=0;i<SymmetryCheckCount_;++i)
+      {
+         if (SymmetryCheck_[i].Cols() != DOFS)
+         {
+            cerr << "Error. " << Name()
+                 << " Incorrect number of columns in SymmetryCheckProjectionMatrix"
+                 << " number " << i << "\n";
+            exit(-38);
+         }
+      }
+   }
    
    ~NoRestriction() {}
    
@@ -67,7 +80,6 @@ public:
       return K_static;
    }
    virtual Vector const& DOF() const {return dof_static;}
-   virtual int SymmetryOK() const {return 1;}
    virtual Vector RestrictDOF(Vector const& dof) {return dof;}
    virtual Vector UnRestrictDOF(Vector const& dof) {return dof;}
    virtual Vector TransformVector(Vector const& T) {return T;}

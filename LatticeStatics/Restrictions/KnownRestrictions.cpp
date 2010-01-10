@@ -8,13 +8,9 @@ Restriction* const InitializeRestriction(Lattice* const Lat,PerlInput const& Inp
    {
       return new RestrictToTranslatedSubSpace(Lat,Input);
    }
-   else if (!strcmp("RestrictToTranslatedSubSpaceOld",Restrict))
-   {
-      return new RestrictToTranslatedSubSpaceOld(Lat,Input);
-   }
    else if (!strcmp("NoRestriction",Restrict))
    {
-      return new NoRestriction(Lat);
+      return new NoRestriction(Lat,Input);
    }
    else
    {

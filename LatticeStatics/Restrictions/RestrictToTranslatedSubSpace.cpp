@@ -3,8 +3,6 @@
 
 RestrictToTranslatedSubSpace::~RestrictToTranslatedSubSpace()
 {
-   if (SymmetryCheckCount_ > 0) delete [] SymmetryCheck_;
-   
    cout.width(0);
    cout << "RestrictToTranslatedSubSpace Function Calls:\n"
         << "\tUpdateLatticeState - " << counter_[UPDATE] << "\n"
@@ -13,7 +11,6 @@ RestrictToTranslatedSubSpace::~RestrictToTranslatedSubSpace()
         << "\tForce - " << counter_[FORCE] << "\n"
         << "\tStiffness - " << counter_[STIFFNESS] << "\n"
         << "\tDOF - " << counter_[DOFCount] << "\n"
-        << "\tSymmetryOK - " << counter_[SYMMETRY] << "\n"
         << "\tRestrictDOF - " << counter_[RESTRICT] << "\n"
         << "\tUnRestrictDOF - " << counter_[UNRESTRICT] << "\n"
         << "\tTransformVector - " << counter_[TRANSFORM] << "\n"
@@ -24,6 +21,7 @@ RestrictToTranslatedSubSpace::~RestrictToTranslatedSubSpace()
 
 
 RestrictToTranslatedSubSpace::RestrictToTranslatedSubSpace(Lattice* const M,PerlInput const& Input):
+   Restriction(Input),
    ForceProjectionMatrix_(),
    DOFProjectionMatrix_(),
    ForceProject_(ForceProjectionMatrix_),
@@ -118,72 +116,7 @@ RestrictToTranslatedSubSpace::RestrictToTranslatedSubSpace(Lattice* const M,Perl
       delete [] Values;
       DOFProjectionMatrix_.SetNonZeroEntry(nononzero,LatDOFS,DOFS_,1.0);
    }
-
-   if (Input.ParameterOK(Hash,"SymmetryCheckProjectionMatrices"))
-   {
-      SymmetryCheckCount_ = Input.getArrayLength(Hash,"SymmetryCheckProjectionMatrices");
-      if (SymmetryCheckCount_ == 0)
-      {
-         cerr << "Error. " << Name()
-              << " SymmetryCheckProjectionMatrices is empty\n";
-         exit(-37);
-      }
-      
-      SymmetryCheck_ = new SparseMatrix[SymmetryCheckCount_];
-
-      for (int i=0;i<SymmetryCheckCount_;++i)
-      {
-         if (Input.getArrayLength(Hash,"SymmetryCheckProjectionMatrices",i,0) != DOFS_)
-         {
-            cerr << "Error. " << Name()
-                 << " Incorrect number of columns in SymmetryCheckProjectionMatrix"
-                 << " number " << i << "\n";
-            exit(-38);
-         }
-
-         int Rows = Input.getArrayLength(Hash,"SymmetryCheckProjectionMatrices",i);
-         Matrix SCPM(Rows,DOFS_);
-         Input.getMatrix(SCPM,Hash,"SymmetryCheckProjectionMatrices",i);
-         int nononzero = 0;
-         for (int j=0;j<Rows;++j)
-         {
-            for (int k=0;k<DOFS_;++k)
-            {
-               if (fabs(SCPM[j][k]) > 1.0e-15) ++nononzero;
-            }
-         }
-         
-         SymmetryCheck_[i].Resize(Rows,DOFS_+1,nononzero); // DOFS_+1 to ignore load value
-         
-         int count=0;
-         for (int j=0;j<Rows;++j)
-         {
-            for (int k=0;k<DOFS_;++k)
-            {
-               if (fabs(SCPM[j][k]) > 1.0e-15)
-               {
-                  SymmetryCheck_[i].SetNonZeroEntry(count,j,k,SCPM[j][k]);
-                  ++count;
-               }
-            }
-         }
-      }
-   }
-   else
-   {
-      SymmetryCheckCount_ = 0;
-   }
-
-   if (Input.ParameterOK(Hash,"SymmetryCheckTolerance"))
-   {
-      SymmetryCheckTol_ = Input.getDouble(Hash,"SymmetryCheckTolerance");
-   }
-   else
-   {
-      // Default Value
-      SymmetryCheckTol_ = Input.useDouble(1.0e-14,Hash,"SymmetryCheckTolerance");
-   }
-      
+   
    //ReferenceState DOF Initialization
    ReferenceState_.Resize(LatDOFS+1,0.0);
    
@@ -209,6 +142,17 @@ RestrictToTranslatedSubSpace::RestrictToTranslatedSubSpace(Lattice* const M,Perl
          ReferenceState_[pos[i]] = Vals[i];
       }
       delete [] pos;
+   }
+
+   for (int i=0;i<SymmetryCheckCount_;++i)
+   {
+      if (SymmetryCheck_[i].Cols() != DOFS_+1)
+      {
+         cerr << "Error. " << Name()
+              << " Incorrect number of columns in SymmetryCheckProjectionMatrix"
+              << " number " << i << "\n";
+         exit(-38);
+      }
    }
    Input.EndofInputSection();
 
@@ -296,22 +240,6 @@ Matrix const& RestrictToTranslatedSubSpace::Stiffness() const
    Multiply(K_static,ForceProject_,E2_tmp_static,DOFProject_);
    
    return K_static;
-}
-
-int RestrictToTranslatedSubSpace::SymmetryOK() const
-{
-   ++counter_[SYMMETRY];
-
-   int retval = SymmetryCheckCount_;
-   for (int i=0;i<SymmetryCheckCount_;++i)
-   {
-      if ( !((SymmetryCheck_[i]*DOF()).Norm() < SymmetryCheckTol_) )
-      {
-         --retval;
-      }
-   }
-
-   return !retval;
 }
 
 Vector RestrictToTranslatedSubSpace::RestrictDOF(Vector const& dof)

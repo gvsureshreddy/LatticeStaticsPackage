@@ -1,5 +1,88 @@
 #include "Restriction.h"
 
+Restriction::~Restriction()
+{
+   if (SymmetryCheckCount_ > 0) delete [] SymmetryCheck_;
+}
+
+Restriction::Restriction(PerlInput const& Input)
+{
+   PerlInput::HashStruct Hash = Input.getHash("Restriction");
+   if (Input.ParameterOK(Hash,"SymmetryCheckProjectionMatrices"))
+   {
+      SymmetryCheckCount_ = Input.getArrayLength(Hash,"SymmetryCheckProjectionMatrices");
+      if (SymmetryCheckCount_ == 0)
+      {
+         cerr << "Error. " << Name()
+              << " SymmetryCheckProjectionMatrices is empty\n";
+         exit(-37);
+      }
+      
+      SymmetryCheck_ = new SparseMatrix[SymmetryCheckCount_];
+
+      for (int i=0;i<SymmetryCheckCount_;++i)
+      {
+         int Rows = Input.getArrayLength(Hash,"SymmetryCheckProjectionMatrices",i);
+         int Cols = Input.getArrayLength(Hash,"SymmetryCheckProjectionMatrices",i,0);
+         Matrix SCPM(Rows,Cols);
+         Input.getMatrix(SCPM,Hash,"SymmetryCheckProjectionMatrices",i);
+         int nononzero = 0;
+         for (int j=0;j<Rows;++j)
+         {
+            for (int k=0;k<Cols;++k)
+            {
+               if (fabs(SCPM[j][k]) > 1.0e-15) ++nononzero;
+            }
+         }
+         
+         SymmetryCheck_[i].Resize(Rows,Cols+1,nononzero); // Cols+1 to ignore load value
+         
+         int count=0;
+         for (int j=0;j<Rows;++j)
+         {
+            for (int k=0;k<Cols;++k)
+            {
+               if (fabs(SCPM[j][k]) > 1.0e-15)
+               {
+                  SymmetryCheck_[i].SetNonZeroEntry(count,j,k,SCPM[j][k]);
+                  ++count;
+               }
+            }
+         }
+      }
+   }
+   else
+   {
+      SymmetryCheckCount_ = 0;
+   }
+
+   if (Input.ParameterOK(Hash,"SymmetryCheckTolerance"))
+   {
+      SymmetryCheckTol_ = Input.getDouble(Hash,"SymmetryCheckTolerance");
+   }
+   else
+   {
+      // Default Value
+      SymmetryCheckTol_ = Input.useDouble(1.0e-14,Hash,"SymmetryCheckTolerance");
+   }
+}
+
+int Restriction::SymmetryOK() const
+{
+   int retval = SymmetryCheckCount_;
+   for (int i=0;i<SymmetryCheckCount_;++i)
+   {
+      if ( !((SymmetryCheck_[i]*DOF()).Norm() < SymmetryCheckTol_) )
+      {
+         --retval;
+      }
+   }
+
+   return !retval;
+}
+
+
+
 void Restriction::ConsistencyCheck(Vector const& dof,double const& ConsistencyEpsilon,
                                    int const& Width,ostream& out)
 {

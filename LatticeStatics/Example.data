@@ -238,11 +238,11 @@ $Rtheta1_1_1 = 0.275914376289;
            );
 
 # Restriction Parameters
-%Restriction = (Type                  => RestrictToTranslatedSubSpace, # NoRestriction, RestrictToTranslatedSubSpace, RestrictToTranslatedSubSpaceOld
+%Restriction = (Type                            => RestrictToTranslatedSubSpace, # NoRestriction, RestrictToTranslatedSubSpace, RestrictToTranslatedSubSpaceOld
+                #SymmetryCheckProjectionMatrices => [[[1.0, 0.0]], [[0.0, 1.0]]],
+                #SymmetryCheckTolerance          => 1.0e-14, # Default value = 1.0e-15
                 RestrictToTranslatedSubSpace => {ProjectionMatrix      => [[0.0, 1.0],
                                                                            [1.0, 0.0]], # if ProjectionMatrix is defined, DOFS and DOF_# will be ignored
-                                                 #SymmetryCheckProjectionMatrices => [[[1.0, 0.0]], [[0.0, 1.0]]],
-                                                 #SymmetryCheckTolerance => 1.0e-14, # Default value = 1.0e-15
                                                  DOFS                  => 1,
                                                  DOF_0                 => [[0, 4, 8],
                                                                            [1.0, 1.0, 1.0]]#,
