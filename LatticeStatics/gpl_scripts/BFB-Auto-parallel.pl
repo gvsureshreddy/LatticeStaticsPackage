@@ -560,7 +560,7 @@ sub find_sentinels
       symlink "../$sym_info", "$dir/$found/$sym_info";
       symlink "../$geo","$dir/$found/$geo";
       symlink "../$pots","$dir/$found/$pots";
-      if ($found =~ /\.B....-...\.B....-...\.B....-.../)
+      if ($found =~ /\.B....-...\.B....-...\.B....-...\.B....-.../)
       {
         system("gzip -f $dir/$found/$found.bfb $dir/$found/$found.in $dir/$found/$found.res >& /dev/null");
         open(WAT,">$dir/$found/#SKIPPED#");
@@ -597,7 +597,7 @@ sub find_sym_and_update_bfb
   chdir $olddir;
 
   my ($T,$Tol,$a,$aa,$aaa,$b,$bb,$bbb,$c,$cc,$ccc,$d,$dd,$ddd,$e,$ee,$eee,$f,$ff,$fff,$g,$gg,
-      $ggg,$IsTRx,$IsTRy,$IsTRz,$IsTQx,$IsTQy,$IsTQz,$IsTJ,$SymGrp,$fl);
+      $ggg,$IsTRx,$IsTRy,$IsTRz,$IsTQx,$IsTQy,$IsTQz,$IsTJ,$SymGrp,$fl,$foundsymmat,$dummy,$type);
       
   @T = @{$StartType{Tangent}};
 
@@ -723,12 +723,14 @@ sub find_sym_and_update_bfb
   }
   else
   {
-    die "Can't determine subgroup...\n";
+    $SymGrp = "Id"; # G15
+    @SymChkList = ("C1_15", "C2_15", "C3_15", "C8_15", "C9_15", "C10_15", "C11_15");
   }
 
   #print "has symmetry group $SymGrp\n";
   
   $fl='';
+  $foundsymmat = 0;
   
   open(ORIGFL,"$curdir/$flnm");
   while (<ORIGFL>)
@@ -743,26 +745,50 @@ sub find_sym_and_update_bfb
       }
     }
     
-    if (/{RestrictToTranslatedSubSpace}{ProjectionMatrix}/)
+    # Remove all symmetry matrices
+    if (/{Restriction}{SymmetryCheckProjectionMatricies}/)
     {
-      $fl .= "\$Restriction{RestrictToTranslatedSubSpace}{ProjectionMatrix} = [@" 
-          . $SymGrp . "];\n";
-      while ($_ !~ /.*];$/)
+      while($_ !~ /.*];$/)
       {
         $_=<ORIGFL>;
       }
-
-      $fl .= "\$Restriction{RestrictToTranslatedSubSpace}{SymmetryCheckProjectionMatricies} = [";
+      
+      $foundsymmat += 1;
+    }
+    if ($foundsymmat == 1)
+    {
+      $fl .= "\$Restriction{SymmetryCheckProjectionMatricies} = [";
       $fl .= "[@" . (shift @SymChkList) . "]";
       foreach $mat (@SymChkList)
       {
         $fl .= ",[@" . $mat . "]";
       } 
       $fl .= "];\n";
+      
+      $foundsymmat += 1;
     }
-    elsif (/{RestrictToTranslatedSubSpace}{SymmetryCheckProjectionMatricies}/)
+
+    if (/{Restriction}{Type}/)
     {
-      while($_ !~ /.*];$/)
+      if ($symGrp eq "Id")
+      {
+        $fl .= "\$Restriction{Type} = NoRestriction;\n";
+      }
+      else
+      {
+        $fl .= "\$Restriction{Type} = RestrictToTranslatedSubSpace;\n";
+      }
+    }
+
+    if (/{RestrictToTranslatedSubSpace}{ProjectionMatrix}/)
+    {
+      if ($SymGrp ne "Id")
+      {
+        $fl .= "\$Restriction{RestrictToTranslatedSubSpace}{ProjectionMatrix} = [@" 
+            . $SymGrp . "];\n";
+      }
+
+      while ($_ !~ /.*];$/)
       {
         $_=<ORIGFL>;
       }
