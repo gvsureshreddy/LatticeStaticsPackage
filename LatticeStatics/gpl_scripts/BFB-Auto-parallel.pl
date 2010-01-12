@@ -737,27 +737,25 @@ sub find_sym_and_update_bfb
   {
     if (/Restriction{Type}/)
     {
-      $fl .= $_;
+      if ($SymGrp eq "Id")
+      {
+        $fl .= "\$Restriction{Type} = NoRestriction;\n";
+      }
+      else
+      {
+        $fl .= "\$Restriction{Type} = RestrictToTranslatedSubSpace;\n";
+      }
+
       $_ = <ORIGFL>;
       if (!/symmetry_bases/)
       {
-      $fl .= "use symmetry_bases;\n";
+        $fl .= "use symmetry_bases;\n";
       }
     }
     
-    # Remove all symmetry matrices
-    if (/{Restriction}{SymmetryCheckProjectionMatricies}/)
-    {
-      while($_ !~ /.*];$/)
-      {
-        $_=<ORIGFL>;
-      }
-      
-      $foundsymmat += 1;
-    }
     if ($foundsymmat == 1)
     {
-      $fl .= "\$Restriction{SymmetryCheckProjectionMatricies} = [";
+      $fl .= "\$Restriction{SymmetryCheckProjectionMatrices} = [";
       $fl .= "[@" . (shift @SymChkList) . "]";
       foreach $mat (@SymChkList)
       {
@@ -768,19 +766,17 @@ sub find_sym_and_update_bfb
       $foundsymmat += 1;
     }
 
-    if (/{Restriction}{Type}/)
+    if (/Restriction{SymmetryCheckProjectionMatricies}/)
     {
-      if ($symGrp eq "Id")
+      # Remove all symmetry matrices
+      while($_ !~ /.*];$/)
       {
-        $fl .= "\$Restriction{Type} = NoRestriction;\n";
+        $_=<ORIGFL>;
       }
-      else
-      {
-        $fl .= "\$Restriction{Type} = RestrictToTranslatedSubSpace;\n";
-      }
+      
+      $foundsymmat += 1;
     }
-
-    if (/{RestrictToTranslatedSubSpace}{ProjectionMatrix}/)
+    elsif (/{RestrictToTranslatedSubSpace}{ProjectionMatrix}/)
     {
       if ($SymGrp ne "Id")
       {
