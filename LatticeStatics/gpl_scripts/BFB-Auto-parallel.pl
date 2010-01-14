@@ -730,7 +730,6 @@ sub find_sym_and_update_bfb
   #print "has symmetry group $SymGrp\n";
   
   $fl='';
-  $foundsymmat = 0;
   
   open(ORIGFL,"$curdir/$flnm");
   while (<ORIGFL>)
@@ -751,10 +750,7 @@ sub find_sym_and_update_bfb
       {
         $fl .= "use symmetry_bases;\n";
       }
-    }
-    
-    if ($foundsymmat == 1)
-    {
+
       $fl .= "\$Restriction{SymmetryCheckProjectionMatrices} = [";
       $fl .= "[@" . (shift @SymChkList) . "]";
       foreach $mat (@SymChkList)
@@ -762,10 +758,8 @@ sub find_sym_and_update_bfb
         $fl .= ",[@" . $mat . "]";
       } 
       $fl .= "];\n";
-      
-      $foundsymmat += 1;
     }
-
+    
     if (/Restriction{SymmetryCheckProjectionMatricies}/)
     {
       # Remove all symmetry matrices
@@ -773,8 +767,6 @@ sub find_sym_and_update_bfb
       {
         $_=<ORIGFL>;
       }
-      
-      $foundsymmat += 1;
     }
     elsif (/{RestrictToTranslatedSubSpace}{ProjectionMatrix}/)
     {
