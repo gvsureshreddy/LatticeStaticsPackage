@@ -760,7 +760,7 @@ sub find_sym_and_update_bfb
       $fl .= "];\n";
     }
     
-    if (/Restriction{SymmetryCheckProjectionMatricies}/)
+    if (/Restriction{SymmetryCheckProjectionMatrices}/)
     {
       # Remove all symmetry matrices
       while($_ !~ /.*];$/)
