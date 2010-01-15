@@ -43,7 +43,7 @@ private:
    
    Vector Difference_;
    
-   void ArcLengthNewton(int& good);
+   void ArcLengthNewton(int& good,int& itr,double& forcenorm,double& dxnorm);
    int ZBrent(Lattice* const Lat,int const& track,Vector const& OriginalDiff,
               double const& OriginalDS,double& fa,double& fb,Vector& CurrentTF);
    

@@ -500,21 +500,39 @@ int ArcLengthSolution::FindNextSolution()
    
    Vector OldDiff = Difference_;
    
+   double forcenorm = 0.0;
+   double dxnorm = 0.0;
+   int Prediction = 1;
+   int itr = 0;
    do
    {
-      ArcLengthNewton(good);
+      ArcLengthNewton(good,itr,forcenorm,dxnorm);
       
       AngleTest = ArcLenAngle(OldDiff,Difference_,Aspect_);
       
       cout << "AngleTest = " << AngleTest << "  Cutoff = " << AngleCutoff_ << "\n";
+
+      cout << "Prediction " << Prediction << " Corrector Iterations: " << itr << "\n";
+
+      ++Prediction;
    }
    while (((AngleTest >= AngleFactor*AngleCutoff_) || !good)
           && (CurrentDS_ >= DSMin_)
           && (ArcLenUpdate(-Difference_),// back to previous solution
               Difference_ = OldDiff,
               CurrentDS_=CurrentDS_/2.0));
-   
+
    CumulativeArcLength_ += CurrentDS_;
+
+   cout << "Converged to solution at CumulativeArcLength = " << CumulativeArcLength_
+        << " with CorrectorNorm = " << dxnorm
+        << ",     ForceNorm = " << forcenorm << "\n";
+   
+   if (!good)
+   {
+      cerr << "ArcLenghtSolution did not converge properly" << "\n";
+   }
+
    if ((MaxCumulativeArcLength_ >= 0.0) && (CumulativeArcLength_ > MaxCumulativeArcLength_))
    {
       // We are done -- set currentsolution to numsolutions-1
@@ -531,9 +549,14 @@ int ArcLengthSolution::FindNextSolution()
       if (CurrentDS_ > DSMax_) CurrentDS_ = DSMax_;
    }
    
-   if (!good)
+   if (BifStartFlag_)
    {
-      cerr << "ArcLenghtSolution did not converge properly" << "\n";
+      Vector diff = Difference_;
+      diff[ArcLenDef().Dim() - 1] = 0.0;
+      diff /= diff.Norm();
+      cout << "Projection on BifTangent = " << Restrict_->DOF()*BifTangent_
+           << ",     Angle (deg.) with BifTangent = "
+           << acos(diff*BifTangent_)*(57.2957795130823) << "\n";
    }
 
    if ((ClosedLoopStart_ >= 0) && (CurrentSolution_ > ClosedLoopStart_) &&
@@ -561,11 +584,11 @@ int ArcLengthSolution::FindNextSolution()
    return good;
 }
 
-void ArcLengthSolution::ArcLengthNewton(int& good)
+void ArcLengthSolution::ArcLengthNewton(int& good,int& itr,double& forcenorm,double& dxnorm)
 {
    ++counter_[0];
    
-   int itr = 0;
+   itr = 0;
    int Dim=ArcLenDef().Dim();
    double ForceNorm = 0.0;
    double Magnitude1 = 0.0;
@@ -598,7 +621,9 @@ void ArcLengthSolution::ArcLengthNewton(int& good)
    Magnitude1 = Dx.Norm();
    Magnitude2 = Magnitude1;
 
-   cout << "\tForceNorm = " << ForceNorm << " \tDeltaNorm = " << Magnitude2 << "\n";
+   cout << "\tCorrectorNorm = " << Magnitude2
+        << " \tForceNorm = " << ForceNorm
+        << "\n";
 
    int Converged = 0;
    do
@@ -622,8 +647,8 @@ void ArcLengthSolution::ArcLengthNewton(int& good)
       Kappa = Magnitude2/(Magnitude1+Tolerance_*eta);
       Magnitude1 = Magnitude2;
       
-      cout << "\tForceNorm = " << ForceNorm
-           << " \tDeltaNorm = " << Magnitude2
+      cout << "\tCorrectorNorm = " << Magnitude2
+           << " \tForceNorm = " << ForceNorm
            << " \tContraction = " << Kappa << "\n";
 
       switch (ConvergeType_)
@@ -655,25 +680,11 @@ void ArcLengthSolution::ArcLengthNewton(int& good)
       cerr << "Convergence Not Reached!!! -- ArcLengthNewton" << "\n";
       good = 0;
    }
-   else
-   {
-      cout << "Prediction 1 Corrector Iterations: " << itr << "\n";
 
-      if (BifStartFlag_)
-      {
-         Vector diff = Difference_;
-         diff[Dim-1] = 0.0;
-         diff /= Dx.Norm();
-         cout << "Projection on BifTangent = " << Restrict_->DOF()*BifTangent_
-              << ",     Angle (deg.) with BifTangent = "
-              << acos(diff*BifTangent_)*(57.2957795130823) << "\n";
-      }
-
-      cout << "Converged with ForceNorm = " << RHS.Norm()
-           << ",     CorrectorNorm = " << Dx.Norm() << "\n";
-      
-      good = 1;
-   }
+   forcenorm = RHS.Norm();
+   dxnorm = Dx.Norm();
+   
+   good = 1;
 }
 
 void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat,int* const TotalNumCPCrossings,
@@ -929,6 +940,9 @@ int ArcLengthSolution::ZBrent(Lattice* const Lat,int const& track,Vector const& 
    int loops = 0;
    double factor = 0.0;
    int oldprecision = cout.precision();
+   int itr = 0;
+   double forcenorm = 0.0;
+   double dxnorm = 0.0;
          
    b=OriginalDS;
    c=b;
@@ -1039,7 +1053,10 @@ int ArcLengthSolution::ZBrent(Lattice* const Lat,int const& track,Vector const& 
       CurrentDS_ = b;
       factor = OriginalDS/b;
       Difference_ = OriginalDiff/factor;
-      ArcLengthNewton(good);
+      ArcLengthNewton(good,itr,forcenorm,dxnorm);
+      cout << "Converged with CorrectorNorm = " << dxnorm
+           << ",     ForceNorm = " << forcenorm << "\n";
+      
       if (!good)
       {
          // set back to best solution

@@ -901,13 +901,15 @@ int NewtonPCSolution::FindNextSolution()
       ++predictions;
    };
 
-   cout << "Converged with CorrectorNorm = " << Magnitude2 
-        << ",     ForceNorm = " << forcenorm << "\n";
-   
    // keep track of DS used to find the current point
    PreviousDS_ = CurrentDS_;
 
    CumulativeArcLength_ += CurrentDS_;
+
+   cout << "Converged to solution at CumulativeArcLength = " << CumulativeArcLength_
+        << " with CorrectorNorm = " << Magnitude2 
+        << ",     ForceNorm = " << forcenorm << "\n";
+   
    if ((MaxCumulativeArcLength_ >= 0.0) && (CumulativeArcLength_ > MaxCumulativeArcLength_))
    {
       // We are done -- set currentsolution to numsolutions-1
