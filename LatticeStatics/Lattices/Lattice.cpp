@@ -861,6 +861,7 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum,int const& TFIndex,Vecto
       TFOrderFile.open(TFOrderFilename.str().c_str(),ios::out);
    else
       TFOrderFile.open(TFOrderFilename.str().c_str(),ios::out | ios::app);
+   TFOrderFile << setiosflags(ios::fixed) << setprecision(3*(Width/4));
    TFOrderFile << setw(Width) << CPcount << "     " << cpfilename.str()
                << setw(Width) << ((LoadParameter_ == Temperature) ? Temp() : Lambda())
                << endl;
