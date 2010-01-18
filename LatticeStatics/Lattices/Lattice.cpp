@@ -852,16 +852,22 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum,int const& TFIndex,Vecto
 
    cpfilename.fill('0');
    cpfilename << setw(IndexZeros) << TFIndex << "-"
-              << setw(OccuranceZeros) << CPCrossingNum[TFIndex]
-              << UseExtension_;
+              << setw(OccuranceZeros) << CPCrossingNum[TFIndex];
    cpfilename.fill(' ');
-
+   
    int CPcount = 0;
    for (int i=0;i<NumTestFunctions();++i) CPcount += CPCrossingNum[i];
-   TFOrderFile.open(TFOrderFilename.str().c_str(),ios::out | ios::app);
-   TFOrderFile << setw(Width) << CPcount << "     " << cpfilename.str() << endl;
+   if (CPcount == 0)
+      TFOrderFile.open(TFOrderFilename.str().c_str(),ios::out);
+   else
+      TFOrderFile.open(TFOrderFilename.str().c_str(),ios::out | ios::app);
+   TFOrderFile << setw(Width) << CPcount << "     " << cpfilename.str()
+               << setw(Width) << ((LoadParameter_ == Temperature) ? Temp() : Lambda())
+               << endl;
    TFOrderFile.close();
 
+   // add extension
+   cpfilename << UseExtension_;
    cpfile.open(cpfilename.str().c_str(),ios::out);
 
    cpfile << setprecision(out.precision()) << scientific;
