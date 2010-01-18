@@ -552,7 +552,11 @@ int QC::CriticalPointInfo(int* const CPCrossingNum,int const& TFIndex,Vector con
    {
       fortranstring[i] = ' ';
    }
-   qcbfb_restart_(fortranstring);
+
+   if (Bif != 0)
+   {
+      qcbfb_restart_(fortranstring);
+   }
 
    // output a qc input file (if bif pt)
    ostringstream bfbfilename;

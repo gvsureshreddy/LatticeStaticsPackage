@@ -869,19 +869,20 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum,int const& TFIndex,Vecto
 
    // add extension
    cpfilename << UseExtension_;
-   cpfile.open(cpfilename.str().c_str(),ios::out);
 
-   cpfile << setprecision(out.precision()) << scientific;
    Vector T(dofs+1);
    Vector M(dofs+1);
    Vector dof=DOF();
-   for (int i=0;i<dofs;++i)
-   {
-      T[i] = dof[i];
-   }
-   T[dofs] = ((LoadParameter_ == Temperature) ? Temp() : Lambda());
    if (Bif > 0)
    {
+      cpfile.open(cpfilename.str().c_str(),ios::out);
+      
+      cpfile << setprecision(out.precision()) << scientific;
+      for (int i=0;i<dofs;++i)
+      {
+         T[i] = dof[i];
+      }
+      T[dofs] = ((LoadParameter_ == Temperature) ? Temp() : Lambda());
       cpfile << Input.ReconstructedInput();
       cpfile << "\n\n";
 
@@ -969,11 +970,13 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum,int const& TFIndex,Vecto
          Input.writeVector(cpfile,M,"StartType","Tangent");
       }
       Input.writeVector(cpfile,T,"StartType","BifurcationPoint");
+      cpfile.close();
    }
    else if (Bif == 0) // cover turning points
    {
       // Do nothing
       
+      // cpfile.open(cpfilename.str().c_str(),ios::out);
       // cpfile << Input.ReconstructedInput();
       // cpfile << "\n\n";
       // 
@@ -988,9 +991,11 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum,int const& TFIndex,Vecto
       //    Input.writeVector(cpfile,M,"StartType","Tangent");
       // }
       // Input.writeVector(cpfile,T,"StartType","Solution");
+      // cpfile.close();
    }
    else // cover ExtraTFs
    {
+      cpfile.open(cpfilename.str().c_str(),ios::out);
       cpfile << Input.ReconstructedInput();
       cpfile << "\n\n";
       
@@ -1005,9 +1010,8 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum,int const& TFIndex,Vecto
          Input.writeVector(cpfile,M,"StartType","Tangent");
       }
       Input.writeVector(cpfile,T,"StartType","Solution");
+      cpfile.close();
    }
-
-   cpfile.close();
    
    if (dbg_)
    {

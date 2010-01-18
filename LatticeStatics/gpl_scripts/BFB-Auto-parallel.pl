@@ -154,30 +154,6 @@ if ($i == 0)
 print "Done processing ABORTED direcotries.\n\n";
 
 
-############## spawn process to look for sentinel files ##################
-print "Spawning sentinel process... ";
-
-open(SENTINELREPORT,">$RootBFBDir/SentinelReport.txt");
-SENTINELREPORT->autoflush(1);
-defined($SentinelPID = fork()) or die "can't fork sentinel.\n";
-if ($SentinelPID == 0)
-{
-  # sentinel's job
-  while (-e $maintimerfile)
-  {
-    find_sentinels($RootBFBDir);
-
-    print SENTINELREPORT ".";
-    sleep($sleeptime);
-    print SENTINELREPORT ".";
-  }
-  
-  print SENTINELREPORT "Exiting ", scalar localtime(time()), "   .\n";
-  exit;
-}
-print "Done. Sentinel pid = $SentinelPID.\n\n";
-
-
 ################## find number of point on path requested #########################
 if (-e "$RootBFBDir/$InputFileName.in")
 {
@@ -190,11 +166,11 @@ else
    open(INFL,"$RootBFBDir/$InputFileName.in") or die "can't open input file to find num. pts.\n";
 }
 $_ = <INFL>;
-while ($_ !~ /^bfb/)
+while (defined($_) && ($_ !~ /^bfb/))
 {
    $_ = <INFL>;
 }
-while ($_ !~ /^loop/)
+while (defined($_) && ($_ !~ /^loop/))
 {
    $_ = <INFL>;
 }
@@ -208,6 +184,30 @@ $NumPts = pop @t;
 chomp $NumPts;
 
 print "Using $NumPts points on each BFB curve.\n\n";
+
+
+############## spawn process to look for sentinel files ##################
+print "Spawning sentinel process... ";
+
+open(SENTINELREPORT,">$RootBFBDir/SentinelReport.txt");
+SENTINELREPORT->autoflush(1);
+defined($SentinelPID = fork()) or die "can't fork sentinel.\n";
+if ($SentinelPID == 0)
+{
+  # sentinel's job
+  while (-e $maintimerfile)
+  {
+    find_sentinels($RootBFBDir,$NumPts);
+
+    print SENTINELREPORT ".";
+    sleep($sleeptime);
+    print SENTINELREPORT ".";
+  }
+  
+  print SENTINELREPORT "Exiting ", scalar localtime(time()), "   .\n";
+  exit;
+}
+print "Done. Sentinel pid = $SentinelPID.\n\n";
 
 
 ####################### start running #####################
@@ -474,7 +474,7 @@ while (-1 != ($ans =wait))
 print "Done.\n\n";
 
 # run final sentinel check
-find_sentinels($RootBFBDir);
+find_sentinels($RootBFBDir,$NumPts);
 
 # clean up
 close(SENTINELREPORT);
@@ -530,6 +530,7 @@ sub find_first
 sub find_sentinels
 {
   my $rootdir = shift;
+  my $NumPts = shift;
   my $dir;
   my $found;
   my @sentls;
@@ -546,19 +547,14 @@ sub find_sentinels
     print SENTINELREPORT "\nProcessing $found...";
     if (!-d "$dir/$found")
     { 
+      find_sym_and_update_bfb("$dir","$found.bfb");
+      update_in_file("$dir/$found.in",$NumPts);
+
       mkdir "$dir/$found";
       foreach (glob("$dir/$found.*"))
       {
         if (!/sentinel/)
         {
-          if (/bfb$/)
-          {
-            find_sym_and_update_bfb("$dir","$found.bfb");
-          }
-          if (/in$/)
-          {
-            update_in_file("$dir/$found.in",$NumPts);
-          }
           system("gzip -f $_ >& /dev/null");
           move("$_.gz", "$dir/$found/");
         }
@@ -781,7 +777,7 @@ sub find_sym_and_update_bfb
     if (/Restriction{SymmetryCheckProjectionMatrices}/)
     {
       # Remove all symmetry matrices
-      while($_ !~ /.*];$/)
+      while (defined($_) && ($_ !~ /.*];$/))
       {
         $_=<ORIGFL>;
       }
@@ -794,7 +790,7 @@ sub find_sym_and_update_bfb
             . $SymGrp . "];\n";
       }
 
-      while ($_ !~ /.*];$/)
+      while (defined($_) && ($_ !~ /.*];$/))
       {
         $_=<ORIGFL>;
       }
@@ -819,18 +815,10 @@ sub find_sym_and_update_bfb
     {
       if ((/StartType{Tangent}/) && ($tangent > 1))
       {
-        while ($_ !~ /.*];$/)
-        {
-          $_ = <ORIGFL>;
-        }
         $tangent -= 1;
       }
       elsif ((/StartType{BifurcationPoint}/) && ($bifpt > 1))
       {
-        while ($_ !~ /.*];$/)
-        {
-          $_ = <ORIGFL>;
-        }
         $bifpt -= 1;
       }
       else
