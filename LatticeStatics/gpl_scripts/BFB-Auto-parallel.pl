@@ -332,8 +332,6 @@ while((-e $maintimerfile) &&
           # if not the root path
           # update bfb and in files
           system("gunzip -f $newdir/$flnm.bfb.gz $newdir/$flnm.in.gz $newdir/$flnm.res.gz >& /dev/null");
-          find_sym_and_update_bfb("$newdir", "$flnm.bfb");
-          update_in_file("$newdir/$flnm.in",$NumPts);
         }
         else
         {
@@ -553,6 +551,14 @@ sub find_sentinels
       {
         if (!/sentinel/)
         {
+          if (/bfb$/)
+          {
+            find_sym_and_update_bfb("$dir","$found.bfb");
+          }
+          if (/in$/)
+          {
+            update_in_file("$dir/$found.in",$NumPts);
+          }
           system("gzip -f $_ >& /dev/null");
           move("$_.gz", "$dir/$found/");
         }
@@ -560,6 +566,7 @@ sub find_sentinels
       symlink "../$sym_info", "$dir/$found/$sym_info";
       symlink "../$geo","$dir/$found/$geo";
       symlink "../$pots","$dir/$found/$pots";
+
       if ($found =~ /\.B....-...\.B....-...\.B....-...\.B....-.../)
       {
         system("gzip -f $dir/$found/$found.bfb $dir/$found/$found.in $dir/$found/$found.res >& /dev/null");
@@ -730,10 +737,21 @@ sub find_sym_and_update_bfb
   #print "has symmetry group $SymGrp\n";
   
   $fl='';
+  $tangent = 0;
+  $bifpt = 0;
   
   open(ORIGFL,"$curdir/$flnm");
   while (<ORIGFL>)
   {
+    if (/StartType{Tangent}/)
+    {
+      $tangent += 1;
+    }
+    if (/StartType{BifurcationPoint}/)
+    {
+      $bifpt += 1;
+    }
+
     if (/Restriction{Type}/)
     {
       if ($SymGrp eq "Id")
@@ -787,11 +805,46 @@ sub find_sym_and_update_bfb
     }
   }
   close(ORIGFL);
-  
+
   unlink("$curdir/$flnm");
   open(NEWFL,">$curdir/$flnm");
   printf NEWFL "$fl";
   close(NEWFL);
+
+  if (($tangent > 1) || ($bifpt > 1))
+  {
+    open(ORIGFL,"$curdir/$flnm");
+    $fl = '';
+    while (<ORIGFL>)
+    {
+      if ((/StartType{Tangent}/) && ($tangent > 1))
+      {
+        while ($_ !~ /.*];$/)
+        {
+          $_ = <ORIGFL>;
+        }
+        $tangent -= 1;
+      }
+      elsif ((/StartType{BifurcationPoint}/) && ($bifpt > 1))
+      {
+        while ($_ !~ /.*];$/)
+        {
+          $_ = <ORIGFL>;
+        }
+        $bifpt -= 1;
+      }
+      else
+      {
+        $fl .= $_;
+      }
+    }
+    close(ORIGFL);
+
+    unlink("$curdir/$flnm");
+    open(NEWFL,">$curdir/$flnm");
+    printf NEWFL "$fl";
+    close(NEWFL);
+  }
 }
 
 sub update_in_file

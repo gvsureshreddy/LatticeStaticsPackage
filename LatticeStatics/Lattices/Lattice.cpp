@@ -969,13 +969,32 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum,int const& TFIndex,Vecto
       }
       Input.writeVector(cpfile,T,"StartType","BifurcationPoint");
    }
-   else // cover both turning points and ExtraTFs
+   else if (Bif == 0) // cover turning points
+   {
+      // Do nothing
+      
+      // cpfile << Input.ReconstructedInput();
+      // cpfile << "\n\n";
+      // 
+      // Input.writeString(cpfile,"Continuation","StartType","Type");
+      // for (int i=0;i<count;++i) // be safe, cover a miss-identified point
+      // {
+      //    for (int j=0;j<dofs;++j)
+      //    {
+      //       M[j] = Mode[i][j];
+      //    }
+      //    M[dofs] = 0.0;
+      //    Input.writeVector(cpfile,M,"StartType","Tangent");
+      // }
+      // Input.writeVector(cpfile,T,"StartType","Solution");
+   }
+   else // cover ExtraTFs
    {
       cpfile << Input.ReconstructedInput();
       cpfile << "\n\n";
       
       Input.writeString(cpfile,"Continuation","StartType","Type");
-      for (int i=0;i<count;++i) // be safe, cover a miss-identified bifurcation point
+      for (int i=0;i<count;++i) // be safe, cover a miss-identified point
       {
          for (int j=0;j<dofs;++j)
          {
