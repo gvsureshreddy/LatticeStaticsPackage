@@ -733,22 +733,22 @@ sub find_sym_and_update_bfb
   #print "has symmetry group $SymGrp\n";
   
   $fl='';
-  $tangent = 0;
-  $bifpt = 0;
+  $tangent='';
+  $bifpt='';
   
   open(ORIGFL,"$curdir/$flnm");
   while (<ORIGFL>)
   {
+    # assume tangent and bifpt are one line.  keep only the last one found.
     if (/StartType{Tangent}/)
     {
-      $tangent += 1;
+      $tangent = $_;
     }
-    if (/StartType{BifurcationPoint}/)
+    elsif (/StartType{BifurcationPoint}/)
     {
-      $bifpt += 1;
+      $bifpt = $_;
     }
-
-    if (/Restriction{Type}/)
+    elsif (/Restriction{Type}/)
     {
       if ($SymGrp eq "Id")
       {
@@ -773,8 +773,7 @@ sub find_sym_and_update_bfb
       } 
       $fl .= "];\n";
     }
-    
-    if (/Restriction{SymmetryCheckProjectionMatrices}/)
+    elsif (/Restriction{SymmetryCheckProjectionMatrices}/)
     {
       # Remove all symmetry matrices
       while (defined($_) && ($_ !~ /.*];$/))
@@ -802,37 +801,14 @@ sub find_sym_and_update_bfb
   }
   close(ORIGFL);
 
+  # put in the tangent and the bif pt
+  $fl .= $tangent;
+  $fl .= $bifpt;
+
   unlink("$curdir/$flnm");
   open(NEWFL,">$curdir/$flnm");
   printf NEWFL "$fl";
   close(NEWFL);
-
-  if (($tangent > 1) || ($bifpt > 1))
-  {
-    open(ORIGFL,"$curdir/$flnm");
-    $fl = '';
-    while (<ORIGFL>)
-    {
-      if ((/StartType{Tangent}/) && ($tangent > 1))
-      {
-        $tangent -= 1;
-      }
-      elsif ((/StartType{BifurcationPoint}/) && ($bifpt > 1))
-      {
-        $bifpt -= 1;
-      }
-      else
-      {
-        $fl .= $_;
-      }
-    }
-    close(ORIGFL);
-
-    unlink("$curdir/$flnm");
-    open(NEWFL,">$curdir/$flnm");
-    printf NEWFL "$fl";
-    close(NEWFL);
-  }
 }
 
 sub update_in_file
