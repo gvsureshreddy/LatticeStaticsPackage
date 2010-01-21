@@ -735,7 +735,9 @@ sub find_sym_and_update_bfb
   $fl='';
   $tangent='';
   $bifpt='';
-  
+ 
+ 
+  $fl .= "use symmetry_bases;\n";  # put this at the top to make sure it is loaded before it is needed
   open(ORIGFL,"$curdir/$flnm");
   while (<ORIGFL>)
   {
@@ -757,12 +759,6 @@ sub find_sym_and_update_bfb
       else
       {
         $fl .= "\$Restriction{Type} = RestrictToTranslatedSubSpace;\n";
-      }
-
-      $_ = <ORIGFL>;
-      if (!/symmetry_bases/)
-      {
-        $fl .= "use symmetry_bases;\n";
       }
 
       $fl .= "\$Restriction{SymmetryCheckProjectionMatrices} = [";
