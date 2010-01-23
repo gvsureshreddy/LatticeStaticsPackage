@@ -126,19 +126,9 @@ foreach (@abtd)
   $shortdir = pop @dummy;
 
   print "     Working on: ", $shortdir,"\n";
-  
-  if ($workingdir eq $RootBFBDir)
-  {
-    system("gunzip -f $workingdir/$InputFileName.bfb.gz $workingdir/$InputFileName.in.gz >& /dev/null");
-  }
-  else
-  {
-    system("gunzip -f $workingdir/$shortdir.bfb.gz $workingdir/$shortdir.in.gz $workingdir/$shortdir.res.gz >& /dev/null");
-  }
   unlink glob("$workingdir/*.plt.gz");
   unlink "$workingdir/abort.dat";
   unlink glob("$workingdir/*.out.gz");
-  unlink glob("$workingdir/*.B[0-9]*.gz");
   unlink glob("$workingdir/*.T[0-9]*.gz");
   unlink glob("$workingdir/*.E[0-9]*.gz");
   unlink glob("$workingdir/*.bpp.gz");
@@ -377,7 +367,7 @@ foreach(@stillrunning)
 }
 print "\n";
 
-# check it time remains
+# check if time remains
 if (-e "$maintimerfile")
 {
   print "Finished and Timer file still exists.  Removing.\n";
