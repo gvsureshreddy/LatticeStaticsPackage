@@ -129,8 +129,8 @@ foreach (@abtd)
   unlink glob("$workingdir/*.plt.gz");
   unlink "$workingdir/abort.dat";
   unlink glob("$workingdir/*.out.gz");
-  unlink glob("$workingdir/*.T[0-9]*.gz");
-  unlink glob("$workingdir/*.E[0-9]*.gz");
+  unlink glob("$workingdir/*.E[0-9]{4}-[0-9]{3}.gz");
+  unlink glob("$workingdir/*.TF.order.gz");
   unlink glob("$workingdir/*.bpp.gz");
   unlink "$workingdir/qc.log.gz";
   unlink "$workingdir/qc.cmd.gz";
@@ -243,7 +243,7 @@ while((-e $maintimerfile) &&
       {
         # if not the root path
         system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/${flnm}curdir*.res $curdir/*.T[0-9]*.bfb $curdir/*.T[0-9]*.res $curdir/*.E[0-9]*.bfb $curdir/*.E[0-9]*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+           " $curdir/$flnm.TF.order $curdir/$flnm.E[0-9]{4}-[0-9]{3}.bfb $curdir/$flnm.E[0-9]{4}-[0-9]{3}.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
       }
       else
       {
@@ -251,7 +251,7 @@ while((-e $maintimerfile) &&
         # set the input file root
         $flnm = $InputFileName;
         system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/${flnm}curdir*.res $curdir/*.T[0-9]*.bfb $curdir/*.T[0-9]*.res $curdir/*.E[0-9]*.bfb $curdir/*.E[0-9]*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+           " $curdir/$flnm.TF.order $curdir/$flnm.E[0-9]{4}-[0-9]{3}.bfb $curdir/$flnm.E[0-9]{4}-[0-9]{3}.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
       }
 
       if (-e "$newdir/abort.dat")
@@ -276,7 +276,7 @@ while((-e $maintimerfile) &&
       {
         # if not the root path
         system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/${flnm}curdir*.res $curdir/*.T[0-9]*.bfb $curdir/*.T[0-9]*.res $curdir/*.E[0-9]*.bfb $curdir/*.E[0-9]*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+           " $curdir/$flnm.TF.order $curdir/$flnm.E[0-9]{4}-[0-9]{3}.bfb $curdir/$flnm.E[0-9]{4}-[0-9]{3}.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
       }
       else
       {
@@ -284,7 +284,7 @@ while((-e $maintimerfile) &&
         # set the input file root
         $flnm = $InputFileName;
         system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/${flnm}curdir*.res $curdir/*.T[0-9]*.bfb $curdir/*.T[0-9]*.res $curdir/*.E[0-9]*.bfb $curdir/*.E[0-9]*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+           " $curdir/$flnm.TF.order $curdir/$flnm.E[0-9]{4}-[0-9]{3}.bfb $curdir/$flnm.E[0-9]{4}-[0-9]{3}.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
       }
 
       move($curdir . "/#RUNNING#", $curdir . "/#ERROR#");
@@ -399,7 +399,7 @@ while ( (scalar @pths) > 0)
       {
         # if not the root path
         system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/${flnm}curdir*.res $curdir/*.T[0-9]*.bfb $curdir/*.T[0-9]*.res $curdir/*.E[0-9]*.bfb $curdir/*.E[0-9]*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+           " $curdir/$flnm.TF.order $curdir/$flnm.E[0-9]{4}-[0-9]{3}.bfb $curdir/$flnm.E[0-9]{4}-[0-9]{3}.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
       }
       else
       {
@@ -407,7 +407,7 @@ while ( (scalar @pths) > 0)
         # set the input file root
         $flnm = $InputFileName;
         system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/${flnm}curdir*.res $curdir/*.T[0-9]*.bfb $curdir/*.T[0-9]*.res $curdir/*.E[0-9]*.bfb $curdir/*.E[0-9]*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+           " $curdir/$flnm.TF.order $curdir/$flnm.E[0-9]{3}-[0-9]{3}.bfb $curdir/$flnm.E[0-9]{4}-[0-9]{3}.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
       }
       
       if (-e "$newdir/abort.dat")
@@ -419,8 +419,8 @@ while ( (scalar @pths) > 0)
         move($curdir . "/#RUNNING#", $curdir . "/#DONE#");
       }
       push @cpulist, $RunningProcesses{$curdir};
-      print "     Process ended on $RunningProcesses{$curdir} ",
-      "(", (scalar @cpulist)," processors available).\n\n";
+      print "     Process ended on $RunningProcesses{$curdir} at ", scalar localtime($endtime),
+      " (", (scalar @cpulist)," processors available).\n\n";
       delete $RunningProcesses{$curdir};
     }
     elsif ( abs(( (stat("$curdir/#PROCESSING#"))[9] - time() )/60.0) > 5.0 ) # if older than 5 minutes
@@ -432,7 +432,7 @@ while ( (scalar @pths) > 0)
       {
         # if not the root path
         system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/${flnm}curdir*.res $curdir/*.T[0-9]*.bfb $curdir/*.T[0-9]*.res $curdir/*.E[0-9]*.bfb $curdir/*.E[0-9]*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+           " $curdir/$flnm.TF.order $curdir/$flnm.E[0-9]{4}-[0-9]{3}.bfb $curdir/$flnm.E[0-9]{4}-[0-9]{3}.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
       }
       else
       {
@@ -440,14 +440,14 @@ while ( (scalar @pths) > 0)
         # set the input file root
         $flnm = $InputFileName;
         system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/${flnm}curdir*.res $curdir/*.T[0-9]*.bfb $curdir/*.T[0-9]*.res $curdir/*.E[0-9]*.bfb $curdir/*.E[0-9]*.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+           " $curdir/$flnm.TF.order $curdir/$flnm.E[0-9]{4}-[0-9]{3}.bfb $curdir/$flnm.E[0-9]{4}-[0-9]{3}.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
       }
 
       move($curdir . "/#RUNNING#", $curdir . "/#ERROR#");
       unlink("$curdir/#PROCESSING#");
       push @cpulist, $RunningProcesses{$curdir};
-      print "     Process exited (ERROR) on $RunningProcesses{$curdir} ",
-      "(", (scalar @cpulist)," processors available).\n\n";
+      print "     Process exited (ERROR) on $RunningProcesses{$curdir} at ", scalar localtime($endtime),
+      " (", (scalar @cpulist)," processors available).\n\n";
       delete $RunningProcesses{$curdir};
     }
   }
