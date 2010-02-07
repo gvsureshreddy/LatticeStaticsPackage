@@ -1,6 +1,9 @@
 POTENTIALS = KnownPairPotentials.cpp\
 	     LJ.cpp\
-	     LJCutoff.cpp\
+	     LJConstCutoff.cpp\
+	     LJLinearCutoff.cpp\
+	     LJQuadraticCutoff.cpp\
+	     LJSplineCutoff.cpp\
 	     RadiiMorse.cpp\
 	     RadiiMorseCutoff.cpp\
 	     RadiiMorseCutoff2.cpp\

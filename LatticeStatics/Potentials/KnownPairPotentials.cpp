@@ -13,7 +13,7 @@ PairPotentials* InitializePairPotential(PerlInput::HashStruct const& ParentHash,
    stringstream tmp;
    double Eps0,Eps1,Sigma0,Sigma1,rcut;
    double Tref,A0,AT,ATPow,B0,BT,BTPow,Alpha,Rref1,Rref2,Tmelt;
-   double Rtheta1,Rtheta1Pow,Rtheta2,Rtheta2Pow,Cutoff;
+   double Rtheta1,Rtheta1Pow,Rtheta2,Rtheta2Pow,Cutoff,CutoffStart,CutoffEnd;
 
    tmp.str("");
    tmp << "PotentialType_" << i << "_" << j;
@@ -29,7 +29,7 @@ PairPotentials* InitializePairPotential(PerlInput::HashStruct const& ParentHash,
 
       return new LJ(Eps0,Eps1,Sigma0,Sigma1);
    }
-   else if (!strcmp("LJCutoff",pptype))
+   else if (!strcmp("LJConstCutoff",pptype))
    {
       Eps0 = Input.getDouble(Hash,"Eps0");
       Eps1 = Input.getDouble(Hash,"Eps1");
@@ -37,7 +37,38 @@ PairPotentials* InitializePairPotential(PerlInput::HashStruct const& ParentHash,
       Sigma1 = Input.getDouble(Hash,"Sigma1");
       Cutoff = Input.getDouble(Hash,"Cutoff");
       
-      return new LJCutoff(Eps0,Eps1,Sigma0,Sigma1,Cutoff);
+      return new LJConstCutoff(Eps0,Eps1,Sigma0,Sigma1,Cutoff);
+   }
+   else if (!strcmp("LJLinearCutoff",pptype))
+   {
+      Eps0 = Input.getDouble(Hash,"Eps0");
+      Eps1 = Input.getDouble(Hash,"Eps1");
+      Sigma0 = Input.getDouble(Hash,"Sigma0");
+      Sigma1 = Input.getDouble(Hash,"Sigma1");
+      Cutoff = Input.getDouble(Hash,"Cutoff");
+      
+      return new LJLinearCutoff(Eps0,Eps1,Sigma0,Sigma1,Cutoff);
+   }
+   else if (!strcmp("LJQuadraticCutoff",pptype))
+   {
+      Eps0 = Input.getDouble(Hash,"Eps0");
+      Eps1 = Input.getDouble(Hash,"Eps1");
+      Sigma0 = Input.getDouble(Hash,"Sigma0");
+      Sigma1 = Input.getDouble(Hash,"Sigma1");
+      Cutoff = Input.getDouble(Hash,"Cutoff");
+      
+      return new LJQuadraticCutoff(Eps0,Eps1,Sigma0,Sigma1,Cutoff);
+   }
+   else if (!strcmp("LJSplineCutoff",pptype))
+   {
+      Eps0 = Input.getDouble(Hash,"Eps0");
+      Eps1 = Input.getDouble(Hash,"Eps1");
+      Sigma0 = Input.getDouble(Hash,"Sigma0");
+      Sigma1 = Input.getDouble(Hash,"Sigma1");
+      CutoffStart = Input.getDouble(Hash,"CutoffStart");
+      CutoffEnd = Input.getDouble(Hash,"CutoffEnd");
+      
+      return new LJSplineCutoff(Eps0,Eps1,Sigma0,Sigma1,CutoffStart,CutoffEnd);
    }
    else if (!strcmp("RadiiMorse",pptype))
    {
@@ -139,7 +170,7 @@ void UpdatePairPotential(PerlInput::HashStruct const& ParentHash,PerlInput const
    stringstream tmp;
    double Eps0,Eps1,Sigma0,Sigma1,rcut;
    double Tref,A0,AT,ATPow,B0,BT,BTPow,Alpha,Rref1,Rref2,Tmelt;
-   double Rtheta1,Rtheta1Pow,Rtheta2,Rtheta2Pow,Cutoff;
+   double Rtheta1,Rtheta1Pow,Rtheta2,Rtheta2Pow,Cutoff,CutoffStart,CutoffEnd;
 
    tmp.str("");
    tmp << "PotentialType_" << i << "_" << j;
@@ -173,39 +204,150 @@ void UpdatePairPotential(PerlInput::HashStruct const& ParentHash,PerlInput const
          LJp->SetSigma1(Sigma1);
       }
    }
-   else if (!strcmp(Potential->Type(),"LJCutoff"))
+   else if (!strcmp(Potential->Type(),"LJConstCutoff"))
    {
-      LJCutoff *LJCutoffp;
-      LJCutoffp = dynamic_cast<LJCutoff *>(Potential);
+      LJConstCutoff *LJConstCutoffp;
+      LJConstCutoffp = dynamic_cast<LJConstCutoff *>(Potential);
 
       if (Input.ParameterOK(Hash,"Update-Eps0"))
       {
          Eps0 = Input.getDouble(Hash,"Update-Eps0");
-         LJCutoffp->SetEps0(Eps0);
+         LJConstCutoffp->SetEps0(Eps0);
       }
       
       if (Input.ParameterOK(Hash,"Update-Eps1"))
       {
          Eps1 = Input.getDouble(Hash,"Update-Eps1");
-         LJCutoffp->SetEps1(Eps1);
+         LJConstCutoffp->SetEps1(Eps1);
       }
 
       if (Input.ParameterOK(Hash,"Update-Sigma0"))
       {
          Sigma0 = Input.getDouble(Hash,"Update-Sigma0");
-         LJCutoffp->SetSigma0(Sigma0);
+         LJConstCutoffp->SetSigma0(Sigma0);
       }
 
       if (Input.ParameterOK(Hash,"Update-Sigma1"))
       {
          Sigma1 = Input.getDouble(Hash,"Update-Sigma1");
-         LJCutoffp->SetSigma1(Sigma1);
+         LJConstCutoffp->SetSigma1(Sigma1);
       }
 
       if (Input.ParameterOK(Hash,"Update-Cutoff"))
       {
          Cutoff = Input.getDouble(Hash,"Update-Cutoff");
-         LJCutoffp->SetCutoff(Cutoff);
+         LJConstCutoffp->SetCutoff(Cutoff);
+      }
+   }
+   else if (!strcmp(Potential->Type(),"LJLinearCutoff"))
+   {
+      LJLinearCutoff *LJLinearCutoffp;
+      LJLinearCutoffp = dynamic_cast<LJLinearCutoff *>(Potential);
+
+      if (Input.ParameterOK(Hash,"Update-Eps0"))
+      {
+         Eps0 = Input.getDouble(Hash,"Update-Eps0");
+         LJLinearCutoffp->SetEps0(Eps0);
+      }
+      
+      if (Input.ParameterOK(Hash,"Update-Eps1"))
+      {
+         Eps1 = Input.getDouble(Hash,"Update-Eps1");
+         LJLinearCutoffp->SetEps1(Eps1);
+      }
+
+      if (Input.ParameterOK(Hash,"Update-Sigma0"))
+      {
+         Sigma0 = Input.getDouble(Hash,"Update-Sigma0");
+         LJLinearCutoffp->SetSigma0(Sigma0);
+      }
+
+      if (Input.ParameterOK(Hash,"Update-Sigma1"))
+      {
+         Sigma1 = Input.getDouble(Hash,"Update-Sigma1");
+         LJLinearCutoffp->SetSigma1(Sigma1);
+      }
+
+      if (Input.ParameterOK(Hash,"Update-Cutoff"))
+      {
+         Cutoff = Input.getDouble(Hash,"Update-Cutoff");
+         LJLinearCutoffp->SetCutoff(Cutoff);
+      }
+   }
+   else if (!strcmp(Potential->Type(),"LJQuadraticCutoff"))
+   {
+      LJQuadraticCutoff *LJQuadraticCutoffp;
+      LJQuadraticCutoffp = dynamic_cast<LJQuadraticCutoff *>(Potential);
+
+      if (Input.ParameterOK(Hash,"Update-Eps0"))
+      {
+         Eps0 = Input.getDouble(Hash,"Update-Eps0");
+         LJQuadraticCutoffp->SetEps0(Eps0);
+      }
+      
+      if (Input.ParameterOK(Hash,"Update-Eps1"))
+      {
+         Eps1 = Input.getDouble(Hash,"Update-Eps1");
+         LJQuadraticCutoffp->SetEps1(Eps1);
+      }
+
+      if (Input.ParameterOK(Hash,"Update-Sigma0"))
+      {
+         Sigma0 = Input.getDouble(Hash,"Update-Sigma0");
+         LJQuadraticCutoffp->SetSigma0(Sigma0);
+      }
+
+      if (Input.ParameterOK(Hash,"Update-Sigma1"))
+      {
+         Sigma1 = Input.getDouble(Hash,"Update-Sigma1");
+         LJQuadraticCutoffp->SetSigma1(Sigma1);
+      }
+
+      if (Input.ParameterOK(Hash,"Update-Cutoff"))
+      {
+         Cutoff = Input.getDouble(Hash,"Update-Cutoff");
+         LJQuadraticCutoffp->SetCutoff(Cutoff);
+      }
+   }
+   else if (!strcmp(Potential->Type(),"LJSplineCutoff"))
+   {
+      LJSplineCutoff *LJSplineCutoffp;
+      LJSplineCutoffp = dynamic_cast<LJSplineCutoff *>(Potential);
+
+      if (Input.ParameterOK(Hash,"Update-Eps0"))
+      {
+         Eps0 = Input.getDouble(Hash,"Update-Eps0");
+         LJSplineCutoffp->SetEps0(Eps0);
+      }
+      
+      if (Input.ParameterOK(Hash,"Update-Eps1"))
+      {
+         Eps1 = Input.getDouble(Hash,"Update-Eps1");
+         LJSplineCutoffp->SetEps1(Eps1);
+      }
+
+      if (Input.ParameterOK(Hash,"Update-Sigma0"))
+      {
+         Sigma0 = Input.getDouble(Hash,"Update-Sigma0");
+         LJSplineCutoffp->SetSigma0(Sigma0);
+      }
+
+      if (Input.ParameterOK(Hash,"Update-Sigma1"))
+      {
+         Sigma1 = Input.getDouble(Hash,"Update-Sigma1");
+         LJSplineCutoffp->SetSigma1(Sigma1);
+      }
+
+      if (Input.ParameterOK(Hash,"Update-CutoffStart"))
+      {
+         CutoffStart = Input.getDouble(Hash,"Update-CutoffStart");
+         LJSplineCutoffp->SetCutoffStart(CutoffStart);
+      }
+
+      if (Input.ParameterOK(Hash,"Update-CutoffEnd"))
+      {
+         CutoffEnd = Input.getDouble(Hash,"Update-CutoffEnd");
+         LJSplineCutoffp->SetCutoffEnd(CutoffEnd);
       }
    }
    else if (!strcmp(Potential->Type(),"RadiiMorse"))

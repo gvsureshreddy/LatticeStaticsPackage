@@ -3,7 +3,10 @@
 
 #include "PerlInput.h"
 #include "LJ.h"
-#include "LJCutoff.h"
+#include "LJConstCutoff.h"
+#include "LJLinearCutoff.h"
+#include "LJQuadraticCutoff.h"
+#include "LJSplineCutoff.h"
 #include "RadiiMorse.h"
 #include "RadiiMorseCutoff.h"
 #include "RadiiMorseCutoff2.h"
