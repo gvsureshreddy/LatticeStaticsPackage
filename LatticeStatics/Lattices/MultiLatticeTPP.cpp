@@ -247,6 +247,35 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput const& Input,int const& Echo,int cons
       REFLambda_ = Input.useDouble(0.0,Hash,"ReferenceLambda"); // Default Value
    }
 
+   // Read any Extra Test Functions
+   if (NumExtraTFs_ > 0)
+   {
+      if (Input.ParameterOK(Hash,"ExtraTFs"))
+      {
+         if (Input.getArrayLength(Hash,"ExtraTFs") == NumExtraTFs_)
+         {
+            ExtraTestFunctions_.Resize(NumExtraTFs_);
+            Input.getVector(ExtraTestFunctions_,Hash,"ExtraTFs");
+         }
+         else
+         {
+            cerr << "Error: ArrayLength of " << Hash.Name
+                 << "{ExtraTFs} is not equal to Lattice{NumExtraTFs}.\n";
+            exit(-2);
+         }
+      }
+      else
+      {
+         cerr << "Error: ExtraTFs not defined but Lattice{NumExtraTFs} = "
+              << NumExtraTFs_ << ".\n";
+         exit(-3);
+      }
+   }
+   else
+   {
+      ExtraTestFunctions_.Resize(0);
+   }
+
    // Initialize various data storage space
    ME1_static.Resize(CBK_->DOFS(),0.0);
    ME2_static.Resize(CBK_->DOFS(),CBK_->DOFS(),0.0);
@@ -294,36 +323,7 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput const& Input,int const& Echo,int cons
    
    // Initiate the Unit Cell Iterator for Bloch wave calculations.
    UCIter_(GridSize_);
-
-   // Read any Extra Test Functions
-   if (NumExtraTFs_ > 0)
-   {
-      if (Input.ParameterOK(Hash,"ExtraTFs"))
-      {
-         if (Input.getArrayLength(Hash,"ExtraTFs") == NumExtraTFs_)
-         {
-            ExtraTestFunctions_.Resize(NumExtraTFs_);
-            Input.getVector(ExtraTestFunctions_,Hash,"ExtraTFs");
-         }
-         else
-         {
-            cerr << "Error: ArrayLength of " << Hash.Name
-                 << "{ExtraTFs} is not equal to Lattice{NumExtraTFs}.\n";
-            exit(-2);
-         }
-      }
-      else
-      {
-         cerr << "Error: ExtraTFs not defined but Lattice{NumExtraTFs} = "
-              << NumExtraTFs_ << ".\n";
-         exit(-3);
-      }
-   }
-   else
-   {
-      ExtraTestFunctions_.Resize(0);
-   }
-
+   
    Input.EndofInputSection();
 }
 
@@ -1781,6 +1781,7 @@ void MultiLatticeTPP::Print(ostream& out,PrintDetail const& flag,
    stiff_static = stiffness();
 
    TestFunctions(TestFunctVals_static,LHS);
+   
    mintestfunct = TestFunctVals_static[0];
    for(int i=0;i<TestFunctVals_static.Dim();++i)
    {
