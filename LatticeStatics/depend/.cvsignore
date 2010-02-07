@@ -6,6 +6,10 @@ KnownSolutionMethods.d
 Lattice.d
 LatticeStatics.d
 LJ.d
+LJConstCutoff.d
+LJLinearCutoff.d
+LJQuadraticCutoff.d
+LJSplineCutoff.d
 MultiLatticeTPP.d
 Restriction.d
 RestrictToTranslatedSubSpaceOld.d
@@ -30,7 +34,6 @@ EulerCB.d
 SymLagrangeCB.d
 SymLagrangeWTransCB.d
 Dobson.d
-LJCutoff.d
 RadiiMorse2.d
 RadiiMorseCutoff.d
 RadiiMorseCutoff2.d

@@ -22,6 +22,20 @@ $Rtheta2_0_0 = -0.137957188144 - 0.0082;
 $B0_1_1  = 7.0;
 $Rtheta1_1_1 = 0.275914376289;
 
+# Available potential Types:
+# LJ
+# LJConstCutoff
+# LJLinearCutoff
+# LJQuadraticCutoff
+# LJSplineCutoff
+# Dobson
+# GVMorse
+# RadiiMorse
+# RadiiMorseCutoff
+# RadiiMorseCutoff2
+# TempMorse
+#
+
 %Lattice = (Type            => MultiLatticeTPP, # MultiLatticeTPP, MultiChainTPP, MultiChainTTPP, PseudoHarmonicMultiChainTTPP, TwoBarTruss, TwoBarTrussExternal, DFTExternal, QC
             #UseEigenValTFs  => Yes, # Default value = Yes, No
             #NumExraTFs      => 0, # Default value = 0, positive number
@@ -108,21 +122,21 @@ $Rtheta1_1_1 = 0.275914376289;
                                AtomPosition_3    => 0.75,
                                Tref              => 300.0,
                                AtomSpecies       => [0, 1, 0, 1],
-                               PotentialType_0_0 => {Type    => LJCutoff,
+                               PotentialType_0_0 => {Type    => LJQuadraticCutoff, 
                                                      Cutoff  => 2.0,
                                                      Eps0    => 1.0,
                                                      Eps1    => 0.0,
                                                      Sigma0  => 1.0,
                                                      Sigma1  => 0.0},
                                # Ni-Ti
-                               PotentialType_0_1 => {Type    => LJCutoff,
+                               PotentialType_0_1 => {Type    => LJQuadraticCutoff,
                                                      Cutoff  => 2.0,
                                                      Eps0    => 0.1,
                                                      Eps1    => 0.0,
                                                      Sigma0  => 0.475,
                                                      Sigma1  => 0.0},
                                # Ti-Ti
-                               PotentialType_1_1 => {Type    => LJCutoff,
+                               PotentialType_1_1 => {Type    => LJQuadraticCutoff,
                                                      Cutoff  => 2.0,
                                                      Eps0    => 1.0,
                                                      Eps1    => 0.0,
@@ -148,21 +162,21 @@ $Rtheta1_1_1 = 0.275914376289;
                                AtomPosition_3    => 0.75,
                                Tref              => 300.0,
                                AtomSpecies       => [0, 1, 0, 1],
-                               PotentialType_0_0 => {Type    => LJCutoff,
+                               PotentialType_0_0 => {Type    => LJQuadraticCutoff,
                                                      Cutoff  => 2.0,
                                                      Eps0    => 1.0,
                                                      Eps1    => 0.0,
                                                      Sigma0  => 1.0,
                                                      Sigma1  => 0.0},
                                # Ni-Ti
-                               PotentialType_0_1 => {Type    => LJCutoff,
+                               PotentialType_0_1 => {Type    => LJQuadraticCutoff,
                                                      Cutoff  => 2.0,
                                                      Eps0    => 0.1,
                                                      Eps1    => 0.0,
                                                      Sigma0  => 0.475,
                                                      Sigma1  => 0.0},
                                # Ti-Ti
-                               PotentialType_1_1 => {Type    => LJCutoff,
+                               PotentialType_1_1 => {Type    => LJQuadraticCutoff,
                                                      Cutoff  => 2.0,
                                                      Eps0    => 1.0,
                                                      Eps1    => 0.0,
@@ -188,21 +202,21 @@ $Rtheta1_1_1 = 0.275914376289;
                                              AtomPosition_3    => 0.75,
                                              Tref              => 300.0,
                                              AtomSpecies       => [0, 1, 0, 1],
-                                             PotentialType_0_0 => {Type    => LJCutoff,
+                                             PotentialType_0_0 => {Type    => LJQuadraticCutoff,
                                                                    Cutoff  => 2.0,
                                                                    Eps0    => 1.0,
                                                                    Eps1    => 0.0,
                                                                    Sigma0  => 1.0,
                                                                    Sigma1  => 0.0},
                                              # Ni-Ti
-                                             PotentialType_0_1 => {Type    => LJCutoff,
+                                             PotentialType_0_1 => {Type    => LJQuadraticCutoff,
                                                                    Cutoff  => 2.0,
                                                                    Eps0    => 0.1,
                                                                    Eps1    => 0.0,
                                                                    Sigma0  => 0.475,
                                                                    Sigma1  => 0.0},
                                              # Ti-Ti
-                                             PotentialType_1_1 => {Type    => LJCutoff,
+                                             PotentialType_1_1 => {Type    => LJQuadraticCutoff,
                                                                    Cutoff  => 2.0,
                                                                    Eps0    => 1.0,
                                                                    Eps1    => 0.0,
