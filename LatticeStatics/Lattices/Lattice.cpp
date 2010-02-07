@@ -354,7 +354,7 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum,int const& TFIndex,Vecto
    // default to the passed in information
    int Bif = CPorBif;
 
-   int dofs = 0;
+   int dofs = DOF().Dim();
    int count = 0;
    Matrix Mode;
       
@@ -366,8 +366,6 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum,int const& TFIndex,Vecto
          EigVal=SymEigVal(D2,&EigVec);
       Vector D1T(D2.Cols());
 
-      dofs = D2.Rows();
-      
       if (LoadParameter_ == Temperature)
       {
          D1T=StressDT();
@@ -886,16 +884,18 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum,int const& TFIndex,Vecto
    Vector T(dofs+1);
    Vector M(dofs+1);
    Vector dof=DOF();
+
+   for (int i=0;i<dofs;++i)
+   {
+      T[i] = dof[i];
+   }
+   T[dofs] = ((LoadParameter_ == Temperature) ? Temp() : Lambda());
+   
    if (Bif > 0)
    {
       cpfile.open(cpfilename.str().c_str(),ios::out);
       
       cpfile << setprecision(out.precision()) << scientific;
-      for (int i=0;i<dofs;++i)
-      {
-         T[i] = dof[i];
-      }
-      T[dofs] = ((LoadParameter_ == Temperature) ? Temp() : Lambda());
       cpfile << Input.ReconstructedInput();
       cpfile << "\n\n";
 
@@ -1009,6 +1009,7 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum,int const& TFIndex,Vecto
    else // cover ExtraTFs
    {
       cpfile.open(cpfilename.str().c_str(),ios::out);
+      cpfile << setprecision(out.precision()) << scientific;
       cpfile << Input.ReconstructedInput();
       cpfile << "\n\n";
       
