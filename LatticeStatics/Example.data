@@ -38,7 +38,7 @@ $Rtheta1_1_1 = 0.275914376289;
 
 %Lattice = (Type            => MultiLatticeTPP, # MultiLatticeTPP, MultiChainTPP, MultiChainTTPP, PseudoHarmonicMultiChainTTPP, TwoBarTruss, TwoBarTrussExternal, DFTExternal, QC
             #UseEigenValTFs  => Yes, # Default value = Yes, No
-            #NumExraTFs      => 0, # Default value = 0, positive number
+            #NumExtraTFs      => 0, # Default value = 0, positive number
             #LSKAnalysis     => SecondOrder, # Default value = SecondOrder, ThirdOrder, None
             #FullPrint       => Yes, # Default value = Yes, No
             #GuessModes      => No, # Default value = No, Yes
@@ -112,7 +112,8 @@ $Rtheta1_1_1 = 0.275914376289;
              #ReferenceTemperature => 1.0, # Default value = 1.0
              #ReferenceLambda      => 0.0, # Default value = 0.0
              NTemp               => 1.0,
-             Lambda              => 0.0
+             Lambda              => 0.0#,
+             #ExtraTFs => [0.1]
             },
             MultiChainTPP  => {InternalAtoms     => 4,
                                LatticeBasis      => 1.00,
@@ -328,7 +329,7 @@ $ArcLenDSMax = 0.01;
 
 # NewtonPCSolution StartTypes: Bifurcation, Continuation, ConsistencyCheck
 %StartType = (Type     => Continuation,
-              Solution => [1.000000000000, 1.000000000000],
+              Solution => [1.000000000000, 1.000000000000]#,
               #ClosedLoopUseAsFirst    => 0,  # Default value = 0 
               #ClosedLoopFirstSolution => [0.990000000000, 0.980000000000]
               # The ClosedLoop parameters can be used with Continuation and Bifurcation start types

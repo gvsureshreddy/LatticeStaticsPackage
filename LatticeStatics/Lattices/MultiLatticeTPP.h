@@ -55,6 +55,8 @@ private:
    mutable PPSum LatSum_;
    mutable UnitCellIterator UCIter_;
    int GridSize_;
+   mutable Vector ExtraTestFunctions_;
+
    
    //Pair Potential data
    int NumberofSpecies_;
@@ -112,6 +114,7 @@ public:
    virtual Matrix const& E2() const;
    virtual Matrix const& E3() const;
    virtual Matrix const& E4() const;
+   virtual void ExtraTestFunctions(Vector& TF) const;
    virtual void DispersionCurves(Vector const& K,int const& NoPTS,char const* const prefix,
                                  ostream& out) const
    {ReferenceDispersionCurves(K,NoPTS,prefix,out);}

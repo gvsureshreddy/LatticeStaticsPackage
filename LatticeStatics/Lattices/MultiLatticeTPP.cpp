@@ -295,6 +295,35 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput const& Input,int const& Echo,int cons
    // Initiate the Unit Cell Iterator for Bloch wave calculations.
    UCIter_(GridSize_);
 
+   // Read any Extra Test Functions
+   if (NumExtraTFs_ > 0)
+   {
+      if (Input.ParameterOK(Hash,"ExtraTFs"))
+      {
+         if (Input.getArrayLength(Hash,"ExtraTFs") == NumExtraTFs_)
+         {
+            ExtraTestFunctions_.Resize(NumExtraTFs_);
+            Input.getVector(ExtraTestFunctions_,Hash,"ExtraTFs");
+         }
+         else
+         {
+            cerr << "Error: ArrayLength of " << Hash.Name
+                 << "{ExtraTFs} is not equal to Lattice{NumExtraTFs}.\n";
+            exit(-2);
+         }
+      }
+      else
+      {
+         cerr << "Error: ExtraTFs not defined but Lattice{NumExtraTFs} = "
+              << NumExtraTFs_ << ".\n";
+         exit(-3);
+      }
+   }
+   else
+   {
+      ExtraTestFunctions_.Resize(0);
+   }
+
    Input.EndofInputSection();
 }
 
@@ -1221,6 +1250,22 @@ Matrix const& MultiLatticeTPP::E4() const
    Phi4_static *= 1.0/(2.0*((Density_ ? CBK_->RefVolume() : 1.0)*NormModulus_));
    
    return Phi4_static;
+}
+
+void MultiLatticeTPP::ExtraTestFunctions(Vector& TF) const
+{
+   for (int i=0;i<NumExtraTFs_;++i)
+   {
+      if (LoadParameter_ == Temperature)
+         TF[i] = (ExtraTestFunctions_[i] - Temp());
+      else if (LoadParameter_ == Load)
+         TF[i] = (ExtraTestFunctions_[i] - Lambda());
+      else
+      {
+         cerr << "Error MultiLatticeTPP::ExtraTestFunctions:  Unknown LoadParameter.\n";
+         exit(-2);
+      }
+   }
 }
 
 Matrix const& MultiLatticeTPP::CondensedModuli() const
