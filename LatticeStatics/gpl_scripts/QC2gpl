@@ -6,10 +6,10 @@ use Math::Trig;
 
 if (scalar(@ARGV) < 2)
 {
-  die "Usage: QC2gpl gplfileroot file1.pde [file2.pde ...]\n";
+  die "Usage: QC2gpl gplfileroot file1_PROJ.plt [file2_PROJ.plt ...]\n";
 }
 
-$DOFSize = 2;
+$DOFSize = 3;
 $StateSize = $DOFSize + 1;
 $StrSPEC = "%20s";
 $FSPEC = "%20.10f";
@@ -103,9 +103,16 @@ sub loaddata {
     while (<DATA>)
     {
       @fields=split;
-      push(@DOF,[$fields[0], $fields[1]]);
-      push(@stable,$fields[2]);
-      push(@bifpt,0);
+      push(@DOF,[$fields[0], $fields[3], $fields[1]]);
+      push(@stable,$fields[6]);
+      if ($fields[6] < 0)
+      {
+        push(@bifpt,1);
+      }
+      else
+      {
+        push(@bifpt,0);
+      }
     }
     
     close(DATA);
