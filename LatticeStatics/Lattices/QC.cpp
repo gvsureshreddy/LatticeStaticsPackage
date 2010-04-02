@@ -546,9 +546,9 @@ int QC::CriticalPointInfo(int* const CPCrossingNum,int const& TFIndex,Vector con
 	      << TFIndex << "-" << setw(OccuranceZeros)
               << CPCrossingNum[TFIndex] << ".res";
    qcfilename.fill(' ');
-   char fortranstring[80];
+   char fortranstring[160];
    strcpy(fortranstring,qcfilename.str().c_str());
-   for (int i=strlen(fortranstring);i<80;++i)
+   for (int i=strlen(fortranstring);i<160;++i)
    {
       fortranstring[i] = ' ';
    }
