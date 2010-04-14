@@ -10,7 +10,7 @@ extern "C" void qcbfb_energy_(int* mode,int& nfree,double* u,double& t,double& E
    exit(-1);
 }
 
-extern "C" void qcbfb_restart_(char* filename)
+extern "C" void qcbfb_restart_(char* filename,int const& n)
 {
    cerr << "Error QC object is not designed for stand-alone use.\n";
    exit(-1);

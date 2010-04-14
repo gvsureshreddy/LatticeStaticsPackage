@@ -5,7 +5,8 @@ using namespace std;
 
 extern "C" void qcbfb_energy_(int& mode,int& nfree,double* u,double& t,double& E,double* Eu,
                              double* Euu,double* Eut);
-extern "C" void qcbfb_restart_(char* filename);
+extern "C" void qcbfb_restart_(char* filename,int const & n);
+#define FORTRANSTRINGLEN 160
 extern "C" void qcbfb_output_(int& nfree,double* u,double& prop,int& nint,int* intdata,int& ndouble,double* doubledata);
 
 QC::~QC()
@@ -546,16 +547,17 @@ int QC::CriticalPointInfo(int* const CPCrossingNum,int const& TFIndex,Vector con
 	      << TFIndex << "-" << setw(OccuranceZeros)
               << CPCrossingNum[TFIndex] << ".res";
    qcfilename.fill(' ');
-   char fortranstring[160];
+   char fortranstring[FORTRANSTRINGLEN];
    strcpy(fortranstring,qcfilename.str().c_str());
-   for (int i=strlen(fortranstring);i<160;++i)
+   cout << "fortranstring-->" << fortranstring << "<----" << endl;
+   for (int i=strlen(fortranstring);i<FORTRANSTRINGLEN;++i)
    {
       fortranstring[i] = ' ';
    }
 
    if (Bif != 0)
    {
-      qcbfb_restart_(fortranstring);
+      qcbfb_restart_(fortranstring,FORTRANSTRINGLEN);
    }
 
    // output a qc input file (if bif pt)
