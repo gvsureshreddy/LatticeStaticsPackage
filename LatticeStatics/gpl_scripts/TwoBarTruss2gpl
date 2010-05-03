@@ -310,7 +310,7 @@ sub loaddata {
             $unstabletmp .= sprintf $FSPEC . "\n",$noneg[0];
           }
         }
-        elsif ($stableflag == 0)
+       elsif (($stableflag == 0) && ($bifpt[1] != 1))
         {
           if (!$firstunstable)
           {
@@ -425,7 +425,7 @@ sub loaddata {
             }
           }
         }
-        elsif ($NxtStableflag == 0)
+        elsif (($NxtStableflag == 0) && ($bifpt[0] != 1))
         {
           $nounstable += 1;
           $unstabletmp .= sprintf $FSPEC . $FSPEC,$stress[1],$potential[1];
