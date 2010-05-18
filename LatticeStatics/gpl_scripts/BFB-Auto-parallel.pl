@@ -394,12 +394,11 @@ sub start_waiting_jobs
         my $cpu = shift @cpulist;
         
         my $newdir = $found;
-        $newdir =~ s/$PROCESSFLAG//;
+        $newdir =~ s/\/#$PROCESSFLAG#//;
         unlink($found);
         
         my @tmp = split('/',$newdir);
         my $flnm = pop @tmp;
-        
         if ($newdir ne $RootBFBDir)
         {
           # if not the root path
