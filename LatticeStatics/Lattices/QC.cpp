@@ -590,7 +590,6 @@ int QC::CriticalPointInfo(int* const CPCrossingNum,int const& TFIndex,Vector con
       infile << "bfb,rest," << bfbfilename.str() << "\n\n";
       infile << "loop,,100\n";
       infile << "   bfb\n";
-      infile << "   touch,,\\#PROCESSING#\n";
       infile << "   conv,bfb\n";
       infile << "next\n\n";
       infile << "% End bfb solution (release memory)\n";
