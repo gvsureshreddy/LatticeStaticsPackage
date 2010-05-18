@@ -121,7 +121,7 @@ if ($TimerPID == 0)
 print "Done. Timer pid = $TimerPID.\n\n";
 
 
-############ clean up aborted directories and files ###############
+########### clean up aborted directories and files ###############
 print "Processing $ABORTEDFLAG directories.\n";
 $i=0;
 
@@ -228,6 +228,7 @@ if (! ( (-e "$RootBFBDir/#DONE#") || (-e "$RootBFBDir/#ERROR#") || (-e "$RootBFB
   }
 }
 
+@runningjobs = ();
 while((-e $maintimerfile) &&
       ( ((scalar @cpulist) < $TotalNumProcessors) ||
         (defined(find_first($RootBFBDir,"#$PROCESSFLAG#"))) ||
@@ -235,125 +236,14 @@ while((-e $maintimerfile) &&
       )
      )
 {
-  #### find any processors that have finished
-  @pths = ();
-  find_names($RootBFBDir,"#RUNNING#",\@pths);
-  foreach (@pths)
-  {
-    $curdir = $_;
-    $curdir =~ s/\/#RUNNING#//;
-    @tmp = split('/',$curdir);
-    $flnm = pop @tmp;
+  #### find any jobs that have finished from the 
+  #### list of running job directories (@pths)
+  clean_up_finished_jobs();
 
-    if (! -e "$curdir/#PROCESSING#")
-    {
-      #### process has finished
-      # clean up after the run returns.
-      
-      # use -q to stop warnings
-      if ($curdir ne $RootBFBDir)
-      {
-        # if not the root path
-        system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/$flnm.TF.order $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].bfb $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].res $curdir/$flnm.bpp $curdir/qc.{log,cmd} >& /dev/null");
-      }
-      else
-      {
-        # if the root path
-        # set the input file root
-        $flnm = $InputFileName;
-        system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/$flnm.TF.order $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].bfb $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].res $curdir/$flnm.bpp $curdir/qc.{log,cmd} >& /dev/null");
-      }
+  #### Start as many jobs as possible
+  start_waiting_jobs();
 
-      if (-e "$curdir/abort.dat")
-      {
-        move($curdir . "/#RUNNING#", $curdir . "/#ABORTED#");
-      }
-      else
-      {
-        move($curdir . "/#RUNNING#", $curdir . "/#DONE#");
-      }
-      push @cpulist, $RunningProcesses{$curdir};
-      print "Process ended on $RunningProcesses{$curdir} at ",scalar localtime(time()),
-            " (", (scalar @cpulist)," processors available).\n\n";
-      delete $RunningProcesses{$curdir};
-    }
-    elsif ( abs(( (stat("$curdir/#PROCESSING#"))[9] - time() )/60.0) > 5.0 ) # if older than 5 minutes
-    {
-      #### process has exited
-      
-      # use -q to stop warnings
-      if ($curdir ne $RootBFBDir)
-      {
-        # if not the root path
-        system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/$flnm.TF.order $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].bfb $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].res $curdir/$flnm.bpp $curdir/qc.{log,cmd} >& /dev/null");
-      }
-      else
-      {
-        # if the root path
-        # set the input file root
-        $flnm = $InputFileName;
-        system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/$flnm.TF.order $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].bfb $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].res $curdir/$flnm.bpp $curdir/qc.{log,cmd} >& /dev/null");
-      }
-
-      move($curdir . "/#RUNNING#", $curdir . "/#ERROR#");
-      unlink("$curdir/#PROCESSING#");
-      push @cpulist, $RunningProcesses{$curdir};
-      print "Process exited (ERROR) on $RunningProcesses{$curdir} at ",scalar localtime(time()),
-            " (", (scalar @cpulist)," processors available).\n\n";
-      delete $RunningProcesses{$curdir};
-    }
-  }
-
-  if (scalar @cpulist > 0)  ####### if a processor is ready get it started
-  {
-    ###### one or more processors are available, so look for a path to compute
-    @pths = ();
-    find_names($RootBFBDir,"#$PROCESSFLAG#",\@pths);
-    foreach (@pths)
-    {
-      $found = $_;
-      if (scalar @cpulist > 0)
-      {
-        $cpu = shift @cpulist;
-        
-        $newname = $found;
-        $newname =~ s/$PROCESSFLAG/RUNNING/;
-        move($found,$newname);
-        
-        $newdir = $newname;
-        $newdir =~ s/\/#RUNNING#//;
-        @tmp = split('/',$newdir);
-        $flnm = pop @tmp;
-        
-        if ($newdir ne $RootBFBDir)
-        {
-          # if not the root path
-          # update bfb and in files
-          system("gunzip -f $newdir/$flnm.bfb.gz $newdir/$flnm.in.gz $newdir/$flnm.res.gz >& /dev/null");
-        }
-        else
-        {
-          # if the root path
-          # set the input file root
-          $flnm = $InputFileName;
-          system("gunzip -f $newdir/$flnm.in.gz $newdir/$flnm.bfb.gz >& /dev/null");
-        }
-        
-        # run it
-        $retval = system("ssh $cpu \"(cd $newdir; touch \\#PROCESSING#; $ProgExec < $flnm.in >& $flnm.out; if [ \\`grep --count 'QC simulation terminated' qc.log\\` == 1 ]; then /bin/rm -f \\#PROCESSING#; fi) < /dev/null >& /dev/null &\"");
-        
-        # update hash of running processes
-        print "Process started on $cpu to compute $flnm at ",scalar localtime(time()),
-        " (",(scalar @cpulist)," processors available).\n\n";
-        $RunningProcesses{$newdir} = $cpu;
-      }
-    }
-  }
-  
+  #### if no more waiting jobs are available sleep
   if (scalar @cpulist > 0)
   {
     # there are no paths ready to be computed then sleep
@@ -363,12 +253,9 @@ while((-e $maintimerfile) &&
 # finished main loop
 
 # set abort.dat for any running processes
-@stillrunning = ();
-find_names($RootBFBDir,"#RUNNING#",\@stillrunning);
-foreach(@stillrunning)
+foreach(@runningjobs)
 {
   $abortdir = $_;
-  $abortdir =~ s/\/#RUNNING#//;
 
   $flnm = $abortdir;
   $flnm =~ s/.*\/([^\/]*)$/$1/;
@@ -390,83 +277,11 @@ if (-e "$maintimerfile")
 # wait for all child processes to exit
 print "Waiting for child processes to end...\n";
 #### find any processors that have finished
-@pths = ();
-find_names($RootBFBDir,"#RUNNING#",\@pths);
-while ( (scalar @pths) > 0)
+while ( (scalar @runningjobs) > 0)
 {
-  foreach (@pths)
-  {
-    $curdir = $_;
-    $curdir =~ s/\/#RUNNING#//;
-    @tmp = split('/',$curdir);
-    $flnm = pop @tmp;
-
-    if (! -e "$curdir/#PROCESSING#")
-    {
-      #### process has finished
-      # clean up after the run returns.
-      
-      # use -q to stop warnings
-      if ($curdir ne $RootBFBDir)
-      {
-        # if not the root path
-        system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/$flnm.TF.order $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].bfb $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].res $curdir/$flnm.bpp $curdir/qc.{log,cmd} >& /dev/null");
-      }
-      else
-      {
-        # if the root path
-        # set the input file root
-        $flnm = $InputFileName;
-        system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/$flnm.TF.order $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].bfb $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].res $curdir/$flnm.bpp $curdir/qc.{log,cmd} >& /dev/null");
-      }
-      
-      if (-e "$curdir/abort.dat")
-      {
-        move($curdir . "/#RUNNING#", $curdir . "/#ABORTED#");
-      }
-      else
-      {
-        move($curdir . "/#RUNNING#", $curdir . "/#DONE#");
-      }
-      push @cpulist, $RunningProcesses{$curdir};
-      print "     Process ended on $RunningProcesses{$curdir} at ", scalar localtime($endtime),
-      " (", (scalar @cpulist)," processors available).\n\n";
-      delete $RunningProcesses{$curdir};
-    }
-    elsif ( abs(( (stat("$curdir/#PROCESSING#"))[9] - time() )/60.0) > 5.0 ) # if older than 5 minutes
-    {
-      #### process has exited
-
-      # use -q to stop warnings
-      if ($curdir ne $RootBFBDir)
-      {
-        # if not the root path
-        system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/$flnm.TF.order $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].bfb $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].res $curdir/$flnm.bpp $curdir/qc.{log,cmd} >& /dev/null");
-      }
-      else
-      {
-        # if the root path
-        # set the input file root
-        $flnm = $InputFileName;
-        system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/$flnm.TF.order $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].bfb $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].res $curdir/$flnm.bpp $curdir/qc.{log,cmd} >& /dev/null");
-      }
-
-      move($curdir . "/#RUNNING#", $curdir . "/#ERROR#");
-      unlink("$curdir/#PROCESSING#");
-      push @cpulist, $RunningProcesses{$curdir};
-      print "     Process exited (ERROR) on $RunningProcesses{$curdir} at ", scalar localtime($endtime),
-      " (", (scalar @cpulist)," processors available).\n\n";
-      delete $RunningProcesses{$curdir};
-    }
-  }
+  clean_up_finished_jobs();
 
   sleep($sleeptime);
-  @pths = ();
-  find_names($RootBFBDir,"#RUNNING#",\@pths);
 }
 
 while (-1 != ($ans =wait))
@@ -483,6 +298,136 @@ close(SENTINELREPORT);
 
 print "Ending Parallel QCBFB.\n\n";
 exit;
+
+#--------------------------------------------------------------------------
+sub clean_up_finished_jobs
+{
+  # uses globals:
+  #   runningjobs
+  #   cpulist
+  #   RunningProcesses
+  #   RootBFBDir
+  #
+  my @remainingjobs = ();
+  foreach (@runningjobs)
+  {
+    my $curdir = $_;
+    my @tmp = split('/',$curdir);
+    my $flnm = pop @tmp;
+
+    if (! -e "$curdir/#PROCESSING#")
+    {
+      #### job has finished/exited
+      # clean up after the run returns.
+      
+      # use -q to stop warnings
+      if ($curdir ne $RootBFBDir)
+      {
+        # if not the root path
+        system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt $curdir/$flnm.TF.order $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].bfb $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].res $curdir/$flnm.bpp $curdir/qc.{log,cmd} >& /dev/null");
+      }
+      else
+      {
+        # if the root path
+        # set the input file root
+        $flnm = $InputFileName;
+        system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt $curdir/$flnm.TF.order $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].bfb $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].res $curdir/$flnm.bpp $curdir/qc.{log,cmd} >& /dev/null");
+      }
+
+      # add cpu for current job to available cpulist
+      push @cpulist, $RunningProcesses{$curdir};
+      # remove job key from runningprocesses hash
+      delete $RunningProcesses{$curdir};
+      # print message to screen based on exit status of job
+      if (-e "$curdir/#ABORTED#")
+      {
+        print "Process aborted on $RunningProcesses{$curdir} at ",scalar localtime(time()),
+        " (", (scalar @cpulist)," processors available).\n\n";
+      }
+      elsif (-e "$curdir/#ERROR#")
+      {
+        print "Process exited with ERROR on $RunningProcesses{$curdir} at ",
+        scalar localtime(time()), " (", (scalar @cpulist)," processors available).\n\n";
+      }
+      elsif (-e "$curdir/#DONE#")
+      {
+        print "Process ended on $RunningProcesses{$curdir} at ",scalar localtime(time()),
+        " (", (scalar @cpulist)," processors available).\n\n";
+      }
+      else
+      {
+        # unexpected case.  Some sort of strangeness is going on.
+        print "Process exited with UNKNOWN STRANGENESS on $RunningProcesses{$curdir} at ",
+        scalar localtime(time()), " (", (scalar @cpulist)," processors available).\n\n";
+      }
+    }
+    else
+    {
+      # add to list of still running jobs
+      push @remainingjobs, $_;
+    }
+
+    # update running job list
+    @runningjobs = @remainingjobs;
+  }
+}
+
+#--------------------------------------------------------------------------
+sub start_waiting_jobs
+{
+  #  uses globals:
+  #     cpulist
+  #     RootBFBDir
+  #     runningjobs
+  #     RunningProcesses
+  #
+  if (scalar @cpulist > 0)  ####### if a processor is ready get it started
+  {
+    ###### one or more processors are available, so look for a path to compute
+    my @pths = ();
+    find_names($RootBFBDir,"#$PROCESSFLAG#",\@pths);
+    foreach (@pths)
+    {
+      my $found = $_;
+      if (scalar @cpulist > 0)
+      {
+        my $cpu = shift @cpulist;
+        
+        my $newdir = $found;
+        $newdir =~ s/$PROCESSFLAG//;
+        unlink($found);
+        
+        my @tmp = split('/',$newdir);
+        my $flnm = pop @tmp;
+        
+        if ($newdir ne $RootBFBDir)
+        {
+          # if not the root path
+          # update bfb and in files
+          system("gunzip -f $newdir/$flnm.bfb.gz $newdir/$flnm.in.gz $newdir/$flnm.res.gz >& /dev/null");
+        }
+        else
+        {
+          # if the root path
+          # set the input file root
+          $flnm = $InputFileName;
+          system("gunzip -f $newdir/$flnm.in.gz $newdir/$flnm.bfb.gz >& /dev/null");
+        }
+
+        # run it
+        my $retval = system("ssh $cpu \"(cd $newdir; touch \\#PROCESSING#; $ProgExec < $flnm.in >& $flnm.out; if [ -e abort.dat ]; then /bin/mv -f \\#PROCESSING# \\#ABORTED#; elif [ \\`grep --count 'QC simulation terminated' qc.log\\` == 1 ]; then /bin/mv -f \\#PROCESSING# \\#DONE#; else /bin/mv -f \\#PROCESSING# \\#ERROR#; fi) < /dev/null >& /dev/null &\"");
+        
+        # update runningjobs list
+        push @runningjobs, $newdir;
+        # update hash of running processes hash
+        $RunningProcesses{$newdir} = $cpu;
+        # print message to screen
+        print "Process started on $cpu to compute $flnm at ",scalar localtime(time()),
+        " (",(scalar @cpulist)," processors available).\n\n";
+      }
+    }
+  }
+}
 
 #--------------------------------------------------------------------------
 sub find_names
