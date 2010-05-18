@@ -11,18 +11,30 @@ use File::Find;
 #  - wall-clock time (when should I START shutting down)
 #  - relative path to executable (../column)
 #  - relative path to root directory of bfb-tree
+#  - flag to process "REDO" files
 
 $starttime = time();
 
 if ((scalar @ARGV) == 0)
 {
   die "Usage\n" .
-        "BFB-auto <wall-clock time in seconds for when to START shutting down> <rel-path-name-of-executable> <rel-path-to-bfbrootdir>\n";
+        "BFB-auto <wall-clock time in seconds for when to START shutting down> <rel-path-name-of-executable> <rel-path-to-bfbrootdir> [REDO]\n";
 }
 
 $walltimeout = shift;
 $ProgExec = getcwd() . "/" . shift;
 $RootBFBDir = getcwd() . "/" . shift;
+
+if (scalar(@ARGV) > 0)
+{
+  $PROCESSFLAG = "REDO";
+  $ABORTEDFLAG = "REDOWAITING";
+}
+else
+{
+  $PROCESSFLAG = "WAITING";
+  $ABORTEDFLAG = "ABORTED";
+}
 
 STDIN->autoflush(1);
 print "\n\nStarting Parallel QCBFB\n\n";
@@ -110,17 +122,17 @@ print "Done. Timer pid = $TimerPID.\n\n";
 
 
 ############ clean up aborted directories and files ###############
-print "Processing ABORTED directories.\n";
+print "Processing $ABORTEDFLAG directories.\n";
 $i=0;
 
 
 @abtd = ();
-find_names($RootBFBDir,"#ABORTED#",\@abtd);
+find_names($RootBFBDir,"#$ABORTEDFLAG#",\@abtd);
 foreach (@abtd)
 {
   $i++;
   $workingdir = $_;
-  $workingdir =~ s/\/#ABORTED#//;
+  $workingdir =~ s/\/#$ABORTEDFLAG#//;
 
   @dummy = split('/',$workingdir); 
   $shortdir = pop @dummy;
@@ -129,19 +141,19 @@ foreach (@abtd)
   unlink glob("$workingdir/*.plt.gz");
   unlink "$workingdir/abort.dat";
   unlink glob("$workingdir/*.out.gz");
-  unlink glob("$workingdir/*.E[0-9]{4}-[0-9]{3}.gz");
+  unlink glob("$workingdir/*.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].res.gz");
+  unlink glob("$workingdir/*.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].bfb.gz");
   unlink glob("$workingdir/*.TF.order.gz");
   unlink glob("$workingdir/*.bpp.gz");
-  unlink "$workingdir/qc.log.gz";
-  unlink "$workingdir/qc.cmd.gz";
+  unlink "$workingdir/qc.{log,cmd}.gz";
 
-  move("$workingdir/#ABORTED#","$workingdir/#WAITING#");
+  move("$workingdir/#$ABORTEDFLAG#","$workingdir/#$PROCESSFLAG#");
 }
 if ($i == 0)
 {
-  print "     No ABORTED directories found.\n";
+  print "     No $ABORTEDFLAG directories found.\n";
 }
-print "Done processing ABORTED direcotries.\n\n";
+print "Done processing $ABORTEDFLAG direcotries.\n\n";
 
 
 ################## find number of point on path requested #########################
@@ -202,7 +214,7 @@ print "Done. Sentinel pid = $SentinelPID.\n\n";
 
 ####################### start running #####################
 # check root
-if (! ( (-e "$RootBFBDir/#DONE#") || (-e "$RootBFBDir/#ERROR#") ))
+if (! ( (-e "$RootBFBDir/#DONE#") || (-e "$RootBFBDir/#ERROR#") || (-e "$RootBFBDir/#REDO#") ))
 {
   open(ROT,">$RootBFBDir/#WAITING#");
   close(ROT);
@@ -218,7 +230,7 @@ if (! ( (-e "$RootBFBDir/#DONE#") || (-e "$RootBFBDir/#ERROR#") ))
 
 while((-e $maintimerfile) &&
       ( ((scalar @cpulist) < $TotalNumProcessors) ||
-        (defined(find_first($RootBFBDir,"#WAITING#"))) ||
+        (defined(find_first($RootBFBDir,"#$PROCESSFLAG#"))) ||
         (defined(find_first($RootBFBDir,"sentinel")))
       )
      )
@@ -239,11 +251,11 @@ while((-e $maintimerfile) &&
       # clean up after the run returns.
       
       # use -q to stop warnings
-      if ($newdir ne $RootBFBDir)
+      if ($curdir ne $RootBFBDir)
       {
         # if not the root path
         system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/$flnm.TF.order $curdir/$flnm.E[0-9]{4}-[0-9]{3}.bfb $curdir/$flnm.E[0-9]{4}-[0-9]{3}.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+           " $curdir/$flnm.TF.order $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].bfb $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].res $curdir/$flnm.bpp $curdir/qc.{log,cmd} >& /dev/null");
       }
       else
       {
@@ -251,10 +263,10 @@ while((-e $maintimerfile) &&
         # set the input file root
         $flnm = $InputFileName;
         system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/$flnm.TF.order $curdir/$flnm.E[0-9]{4}-[0-9]{3}.bfb $curdir/$flnm.E[0-9]{4}-[0-9]{3}.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+           " $curdir/$flnm.TF.order $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].bfb $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].res $curdir/$flnm.bpp $curdir/qc.{log,cmd} >& /dev/null");
       }
 
-      if (-e "$newdir/abort.dat")
+      if (-e "$curdir/abort.dat")
       {
         move($curdir . "/#RUNNING#", $curdir . "/#ABORTED#");
       }
@@ -272,11 +284,11 @@ while((-e $maintimerfile) &&
       #### process has exited
       
       # use -q to stop warnings
-      if ($newdir ne $RootBFBDir)
+      if ($curdir ne $RootBFBDir)
       {
         # if not the root path
         system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/$flnm.TF.order $curdir/$flnm.E[0-9]{4}-[0-9]{3}.bfb $curdir/$flnm.E[0-9]{4}-[0-9]{3}.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+           " $curdir/$flnm.TF.order $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].bfb $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].res $curdir/$flnm.bpp $curdir/qc.{log,cmd} >& /dev/null");
       }
       else
       {
@@ -284,7 +296,7 @@ while((-e $maintimerfile) &&
         # set the input file root
         $flnm = $InputFileName;
         system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/$flnm.TF.order $curdir/$flnm.E[0-9]{4}-[0-9]{3}.bfb $curdir/$flnm.E[0-9]{4}-[0-9]{3}.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+           " $curdir/$flnm.TF.order $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].bfb $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].res $curdir/$flnm.bpp $curdir/qc.{log,cmd} >& /dev/null");
       }
 
       move($curdir . "/#RUNNING#", $curdir . "/#ERROR#");
@@ -300,7 +312,7 @@ while((-e $maintimerfile) &&
   {
     ###### one or more processors are available, so look for a path to compute
     @pths = ();
-    find_names($RootBFBDir,"#WAITING#",\@pths);
+    find_names($RootBFBDir,"#$PROCESSFLAG#",\@pths);
     foreach (@pths)
     {
       $found = $_;
@@ -309,7 +321,7 @@ while((-e $maintimerfile) &&
         $cpu = shift @cpulist;
         
         $newname = $found;
-        $newname =~ s/WAITING/RUNNING/;
+        $newname =~ s/$PROCESSFLAG/RUNNING/;
         move($found,$newname);
         
         $newdir = $newname;
@@ -395,11 +407,11 @@ while ( (scalar @pths) > 0)
       # clean up after the run returns.
       
       # use -q to stop warnings
-      if ($newdir ne $RootBFBDir)
+      if ($curdir ne $RootBFBDir)
       {
         # if not the root path
         system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/$flnm.TF.order $curdir/$flnm.E[0-9]{4}-[0-9]{3}.bfb $curdir/$flnm.E[0-9]{4}-[0-9]{3}.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+           " $curdir/$flnm.TF.order $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].bfb $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].res $curdir/$flnm.bpp $curdir/qc.{log,cmd} >& /dev/null");
       }
       else
       {
@@ -407,10 +419,10 @@ while ( (scalar @pths) > 0)
         # set the input file root
         $flnm = $InputFileName;
         system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/$flnm.TF.order $curdir/$flnm.E[0-9]{3}-[0-9]{3}.bfb $curdir/$flnm.E[0-9]{4}-[0-9]{3}.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+           " $curdir/$flnm.TF.order $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].bfb $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].res $curdir/$flnm.bpp $curdir/qc.{log,cmd} >& /dev/null");
       }
       
-      if (-e "$newdir/abort.dat")
+      if (-e "$curdir/abort.dat")
       {
         move($curdir . "/#RUNNING#", $curdir . "/#ABORTED#");
       }
@@ -428,11 +440,11 @@ while ( (scalar @pths) > 0)
       #### process has exited
 
       # use -q to stop warnings
-      if ($newdir ne $RootBFBDir)
+      if ($curdir ne $RootBFBDir)
       {
         # if not the root path
         system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/$flnm.TF.order $curdir/$flnm.E[0-9]{4}-[0-9]{3}.bfb $curdir/$flnm.E[0-9]{4}-[0-9]{3}.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+           " $curdir/$flnm.TF.order $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].bfb $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].res $curdir/$flnm.bpp $curdir/qc.{log,cmd} >& /dev/null");
       }
       else
       {
@@ -440,7 +452,7 @@ while ( (scalar @pths) > 0)
         # set the input file root
         $flnm = $InputFileName;
         system("gzip -f $curdir/$flnm.bfb $curdir/$flnm.in $curdir/$flnm.res $curdir/$flnm.out $curdir/*.plt" .
-           " $curdir/$flnm.TF.order $curdir/$flnm.E[0-9]{4}-[0-9]{3}.bfb $curdir/$flnm.E[0-9]{4}-[0-9]{3}.res $curdir/$flnm.bpp $curdir/qc.* >& /dev/null");
+           " $curdir/$flnm.TF.order $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].bfb $curdir/$flnm.E[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9].res $curdir/$flnm.bpp $curdir/qc.{log,cmd} >& /dev/null");
       }
 
       move($curdir . "/#RUNNING#", $curdir . "/#ERROR#");
