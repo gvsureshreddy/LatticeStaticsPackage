@@ -35,6 +35,7 @@ print GNUPLOTDATA "# gnuplot data file for QC\n#\n";
 $index = 0;
 foreach $fl (@files)
 {
+  print "Working on file: $fl\n";
   loaddata($fl,$index,*GNUPLOTDATA);
   $index += 5;
 }
