@@ -50,6 +50,14 @@ public:
             exit(-38);
          }
       }
+
+      // Make sure everything is synchronized
+      Vector t = Lattice_->DOF();
+      Vector tt(t.Dim()+1);
+      for (int i=0;i<t.Dim();++i) tt[i] = t[i];
+      tt[t.Dim()] = ((Lattice::Temperature == Lattice_->LoadParameter()) ?
+                    Lattice_->Temp() : Lattice_->Lambda());
+      SetDOF(tt);
    }
    
    ~NoRestriction() {}
