@@ -177,9 +177,12 @@ RestrictToTranslatedSubSpace::RestrictToTranslatedSubSpace(Lattice* const M,Perl
                   Lattice_->Temp() : Lattice_->Lambda());
    Vector Rtt = RestrictDOF(tt);
    Vector unRtt = UnRestrictDOF(Rtt);
-   if ( (tt-unRtt).Norm() > 1.0e-15 )
+   
+   if (double zz=(tt-unRtt).Norm() > 1.0e-15 )
    {
-      cerr << "WARNING: " << Name() << ": Lattice DOFs are not consistent with Restriction!\n";
+      cerr << "WARNING: " << Name()
+           << ": Lattice DOFs are not consistent with Restriction! (Norm of difference is: "
+           << zz << "\n";
    }
    SetDOF(RestrictDOF(tt));
 }
