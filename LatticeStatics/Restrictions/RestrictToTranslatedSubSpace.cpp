@@ -175,6 +175,12 @@ RestrictToTranslatedSubSpace::RestrictToTranslatedSubSpace(Lattice* const M,Perl
    for (int i=0;i<t.Dim();++i) tt[i] = t[i];
    tt[t.Dim()] = ((Lattice::Temperature == Lattice_->LoadParameter()) ?
                   Lattice_->Temp() : Lattice_->Lambda());
+   Vector Rtt = RestrictDOF(tt);
+   Vector unRtt = UnRestrictDOF(Rtt);
+   if ( (tt-unRtt).Norm() > 1.0e-15 )
+   {
+      cerr << "WARNING: " << Name() << ": Lattice DOFs are not consistent with Restriction!\n";
+   }
    SetDOF(RestrictDOF(tt));
 }
 
