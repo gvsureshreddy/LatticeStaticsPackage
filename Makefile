@@ -13,12 +13,15 @@ export LIB_LOC
 CC = g++
 OPTIMIZE   = -O
 ANSI       = -pedantic
+#SOLVE      = -DSOLVE_PLU
+SOLVE      =
 TERMINAL = 
 #TERMINAL = -DUNIX_TERMINAL
 
 export CC
 export OPTIMIZE
 export ANSI
+export SOLVE
 export TERMINAL
 
 .PHONY: all install clean
