@@ -111,6 +111,19 @@ PairPotentials* InitializePairPotential(PerlInput::HashStruct const& ParentHash,
 
       return new RadiiMorseCutoff2(A0,AT,B0,BT,Rref1,Rtheta1,Rref2,Rtheta2,Cutoff);
    }
+   else if (!strcmp("RadiiMorseOriginal",pptype))
+   {
+      A0 = Input.getDouble(Hash,"A0");
+      AT = Input.getDouble(Hash,"AT");
+      B0 = Input.getDouble(Hash,"B0");
+      BT = Input.getDouble(Hash,"BT");
+      Rref1 = Input.getDouble(Hash,"Rref1");
+      Rtheta1 = Input.getDouble(Hash,"Rtheta1");
+      Rref2 = Input.getDouble(Hash,"Rref2");
+      Rtheta2 = Input.getDouble(Hash,"Rtheta2");
+      
+      return new RadiiMorseOriginal(A0,AT,B0,BT,Rref1,Rtheta1,Rref2,Rtheta2);
+   }
    else if (!strcmp("GVMorse",pptype))
    {
       A0 = Input.getDouble(Hash,"A0");

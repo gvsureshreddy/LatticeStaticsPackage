@@ -7,6 +7,7 @@ POTENTIALS = KnownPairPotentials.cpp\
 	     RadiiMorse.cpp\
 	     RadiiMorseCutoff.cpp\
 	     RadiiMorseCutoff2.cpp\
+	     RadiiMorseOriginal.cpp\
 	     TempMorse.cpp\
 	     GVMorse.cpp\
 	     Dobson.cpp
