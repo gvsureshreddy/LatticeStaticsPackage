@@ -38,7 +38,7 @@ endif
 #DEBUG      = -g
 #BOUNDS     = -DCHECK_BOUNDS
 DATE_DEF   = -DBUILD_DATE="$(BUILD_DATE)"
-SOLVE      = -DSOLVE_SVD
+#SOLVE      = -DSOLVE_SVD
 CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS) $(SOLVE)
 
 # File Locations ##########################################################
