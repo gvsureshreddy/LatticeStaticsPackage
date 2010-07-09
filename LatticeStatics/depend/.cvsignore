@@ -46,3 +46,5 @@ QC.d
 DFTExternalOld.d
 RefineEqbmSolution.d
 RadiiMorseOriginal.d
+SCLDChainSum.d
+SCLDMultiChainTPP.d
