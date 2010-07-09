@@ -98,6 +98,12 @@ double LJ::G(double const& NTemp,double const& r2,YDeriv const& dy,TDeriv const&
       case D4Y:
          val *= 360.0*pow(r2,-7.0);
          break;
+      case D5Y:
+         val *= -2520.0*pow(r2,-8.0);
+         break;
+      case D6Y:
+         val *= 20160.0*pow(r2,-9.0);
+         break;
       default:
          cerr << "Error in LJ::G dy" << "\n";
          exit(-1);
@@ -145,6 +151,12 @@ double LJ::H(double const& NTemp,double const& r2,YDeriv const& dy,TDeriv const&
          break;
       case D4Y:
          val *= 3024.0*pow(r2,-10.0);
+         break;
+      case D5Y:
+         val *= -30240.0*pow(r2,-11.0);
+         break;
+      case D6Y:
+         val *= 332640.0*pow(r2,-12.0);
          break;
       default:
          cerr << "Error in LJ::H dy" << "\n";
