@@ -45,6 +45,12 @@ double RadiiMorseCutoff::CutoffFunction(double const& NTemp,double const& r2,YDe
       case D4Y:
          val = 0.0;
          break;
+      case D5Y:
+         val = 0.0;
+         break;
+      case D6Y:
+         val = 0.0;
+         break;
       case DYmax:
       default:
          cerr << "Error in RadiiMorseCutoff::CutoffFunction()\n";
