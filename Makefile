@@ -11,6 +11,7 @@ export INCL_LOC
 export LIB_LOC
 
 CC = g++
+#CC = g++ -fopenmp
 OPTIMIZE   = -O
 ANSI       = -pedantic
 #SOLVE      = -DSOLVE_PLU
