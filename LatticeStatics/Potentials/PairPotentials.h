@@ -12,7 +12,7 @@ using namespace std;
 class PairPotentials
 {
 public:
-   enum YDeriv {Y0,DY,D2Y,D3Y,D4Y,DYmax};
+   enum YDeriv {Y0,DY,D2Y,D3Y,D4Y,D5Y,D6Y,DYmax};
    enum TDeriv {T0,DT,D2T,DTmax};
    
    virtual ~PairPotentials() {};
