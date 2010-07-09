@@ -30,7 +30,7 @@ void ChainIterator::Initialize(int const& GridSize,int const& DoHalfOnly,int con
    }
    
    int even = 1-GridSize_%2;
-   for (int k= DoHalfOnly ? 0 : -GridSize_/2-(!DoHalfOnly&&even); k <= GridSize_/2; ++k)
+   for (int k = DoHalfOnly ? 0 : -GridSize_/2-(!DoHalfOnly&&even); k <= GridSize_/2; ++k)
    {
       if (!(SkipZero && (k == 0)))
       {
