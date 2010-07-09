@@ -3,7 +3,7 @@ LATTICES = KnownLattices.cpp\
 	   MultiLatticeTPP.cpp\
 	   MultiChainTPP.cpp\
 	   MultiChainTTPP.cpp\
-	   PseudoHarmonicMultiChainTTPP.cpp\
+	   SCLDMultiChainTPP.cpp\
 	   TwoBarTruss.cpp\
 	   TwoBarTrussExternal.cpp\
 	   DFTExternal.cpp\
