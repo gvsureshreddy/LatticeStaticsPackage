@@ -18,3 +18,4 @@ SymLagrangeWTransCB.d
 PrintPotentials.d
 EnergyLandscape.d
 TwoBarTrussModel.d
+SCLDChainSum.d
