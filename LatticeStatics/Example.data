@@ -13,6 +13,10 @@ use Math::Trig;
 $spacing = 1.17984390811391227;
 $DEG2RAD = atan2(1,1)*4/180;
 
+$Tref = 300.0; # Kelvin
+$kB = 8.61734229*0.00001*$Tref; # these units are same as guthikonda-elliott-2010 JMPS paper
+$h  = 6.58211814*0.0001; # these units are same as guthikonda-elliott-2010 JMPS paper
+
 $PotType = RadiiMorse;
 $B0_0_0  = 4.0;
 $A0_0_0  = 0.0135279320059;
@@ -37,7 +41,7 @@ $Rtheta1_1_1 = 0.275914376289;
 # TempMorse
 #
 
-%Lattice = (Type            => MultiLatticeTPP, # MultiLatticeTPP, MultiChainTPP, MultiChainTTPP, PseudoHarmonicMultiChainTTPP, TwoBarTruss, TwoBarTrussExternal, DFTExternal, QC
+%Lattice = (Type            => MultiLatticeTPP, # MultiLatticeTPP, MultiChainTPP, MultiChainTTPP, SCLDMultiChainTPP, TwoBarTruss, TwoBarTrussExternal, DFTExternal, QC
             #UseEigenValTFs  => Yes, # Default value = Yes, No
             #NumExtraTFs      => 0, # Default value = 0, positive number
             #LSKAnalysis     => SecondOrder, # Default value = SecondOrder, ThirdOrder, None
@@ -196,81 +200,86 @@ $Rtheta1_1_1 = 0.275914376289;
                                NTemp             => 1.0,
                                Lambda            => 0.0
                               },
-            PseudoHarmonicMultiChainTTPP => {InternalAtoms     => 4,
-                                             LatticeBasis      => 1.00,
-                                             AtomPosition_0    => 0.00,
-                                             AtomPosition_1    => 0.25,
-                                             AtomPosition_2    => 0.50,
-                                             AtomPosition_3    => 0.75,
-                                             Tref              => 300.0,
-                                             AtomSpecies       => [0, 1, 0, 1],
-                                             PotentialType_0_0 => {Type    => LJQuadraticCutoff,
-                                                                   Cutoff  => 2.0,
-                                                                   Eps0    => 1.0,
-                                                                   Eps1    => 0.0,
-                                                                   Sigma0  => 1.0,
-                                                                   Sigma1  => 0.0},
-                                             # Ni-Ti
-                                             PotentialType_0_1 => {Type    => LJQuadraticCutoff,
-                                                                   Cutoff  => 2.0,
-                                                                   Eps0    => 0.1,
-                                                                   Eps1    => 0.0,
-                                                                   Sigma0  => 0.475,
-                                                                   Sigma1  => 0.0},
-                                             # Ti-Ti
-                                             PotentialType_1_1 => {Type    => LJQuadraticCutoff,
-                                                                   Cutoff  => 2.0,
-                                                                   Eps0    => 1.0,
-                                                                   Eps1    => 0.0,
-                                                                   Sigma0  => 0.85,
-                                                                   Sigma1  => 0.0},
-                                             AtomicMass_0      => 1.0,
-                                             AtomicMass_1      => 1.1,
-                                             InfluenceDist     => 7.0,
-                                             Density           => 1, # Default value = 1; 0
-                                             NormModulus       => 1.0,
-                                             LoadingParameter  => Load, # Temperature, Load
-                                             MaxIterations     => 50,
-                                             BlochWaveGridSize => 5,
-                                             CBKinematics      => LagrangeCB, # Default value = LagrangeCB; MixedCB
-                                             NTemp             => 1.0,
-                                             Lambda            => 0.0
-                                            },
-            TwoBarTruss => {Caching  => Yes, # Yes, No
-                            Theta    => 65*$DEG2RAD,
-                            Gamma    => 1.0#, # imperfection ratio for bar moduli
-                            #ExtraTFs => [0.1]
-                           },
-            TwoBarTrussExternal => {# no options
-                                   },
-            DFTExternal => {DOFS => 9
-                           },
-            QC => {DOFS      => 300,
-                   RemoveTranslation => 0, # 0-off, 1,2,3 - direction
-                   TranslationTable  => "columnNi.tab",
-                   Tolerance         => 1.0e-6#, # for numerical derivatives
-                   #ExtraTFs          => [1.1]
-                  }
-           );
-
-# Restriction Parameters
-%Restriction = (Type                            => RestrictToTranslatedSubSpace, # NoRestriction, RestrictToTranslatedSubSpace
-                #SymmetryCheckProjectionMatrices => [[[1.0, 0.0]], [[0.0, 1.0]]],
-                #SymmetryCheckTolerance          => 1.0e-14, # Default value = 1.0e-15
-                RestrictToTranslatedSubSpace => {ProjectionMatrix      => [[0.0, 1.0],
-                                                                           [1.0, 0.0]], # if ProjectionMatrix is defined, DOFS and DOF_# will be ignored
-                                                 DOFS                  => 1,
-                                                 DOF_0                 => [[0, 4, 8],
-                                                                           [1.0, 1.0, 1.0]]#,
-                                                 #UseReferenceState    => No, # Default value = No, Yes
-                                                 #ReferenceState       => [[0, 4, 8],
-                                                 #                         [1.0, 1.0, 1.0]] # Can Include Loading Parameter as last element
-                                                }
-                );
-
-
-
-#SolutionMethod Parameters
+            SCLDMultiChainTPP => {InternalAtoms     => 4,
+                                  LatticeBasis      => 1.00,
+                                  AtomPosition_0    => 0.00,
+                                  AtomPosition_1    => 0.25,
+                                  AtomPosition_2    => 0.50,
+                                  AtomPosition_3    => 0.75,
+                                  Tref              => 300.0,
+                                  AtomSpecies       => [0, 1, 0, 1],
+                                  PotentialType_0_0 => {Type    => LJQuadraticCutoff,
+                                                        Cutoff  => 2.0,
+                                                        Eps0    => 1.0,
+                                                        Eps1    => 0.0,
+                                                        Sigma0  => 1.0,
+                                                        Sigma1  => 0.0},
+                                  # Ni-Ti
+                                  PotentialType_0_1 => {Type    => LJQuadraticCutoff,
+                                                        Cutoff  => 2.0,
+                                                        Eps0    => 0.1,
+                                                        Eps1    => 0.0,
+                                                        Sigma0  => 0.475,
+                                                        Sigma1  => 0.0},
+                                  # Ti-Ti
+                                  PotentialType_1_1 => {Type    => LJQuadraticCutoff,
+                                                        Cutoff  => 2.0,
+                                                        Eps0    => 1.0,
+                                                        Eps1    => 0.0,
+                                                        Sigma0  => 0.85,
+                                                        Sigma1  => 0.0},
+                                  AtomicMass_0      => 1.0,
+                                  AtomicMass_1      => 1.1,
+                                  InfluenceDist     => 7.0,
+                                  Density           => 1, # Default value = 1; 0
+                                  NormModulus       => 1.0,
+                                  LoadingParameter  => Load, # Temperature, Load
+                                  MaxIterations     => 50,
+                                  BlochWaveGridSize => 5,
+                                  CBKinematics      => LagrangeCB, # Default value = LagrangeCB; MixedCB
+                                  NTemp             => 1.0,
+                                  Lambda            => 0.0,
+                                  RefNTemp          => 1.0,
+                                  RefLambda         => 0.0,
+                                  kB                => $kB,
+                                  h                 => $h#,
+                                  #InitialEigVals   => [[0]] # See SCLDMultiChainTPP.cpp
+                                 },
+             TwoBarTruss => {Caching  => Yes, # Yes, No
+                             Theta    => 65*$DEG2RAD,
+                             Gamma    => 1.0#, # imperfection ratio for bar moduli
+                             #ExtraTFs => [0.1]
+                            },
+             TwoBarTrussExternal => {# no options
+                                    },
+             DFTExternal => {DOFS => 9
+                            },
+             QC => {DOFS      => 300,
+                    RemoveTranslation => 0, # 0-off, 1,2,3 - direction
+                    TranslationTable  => "columnNi.tab",
+                    Tolerance         => 1.0e-6#, # for numerical derivatives
+                    #ExtraTFs          => [1.1]
+                   }
+            );
+  
+#  Restriction Parameters
+% Restriction = (Type                            => RestrictToTranslatedSubSpace, # NoRestriction, RestrictToTranslatedSubSpace
+                 #SymmetryCheckProjectionMatrices => [[[1.0, 0.0]], [[0.0, 1.0]]],
+                 #SymmetryCheckTolerance          => 1.0e-14, # Default value = 1.0e-15
+                 RestrictToTranslatedSubSpace => {ProjectionMatrix      => [[0.0, 1.0],
+                                                                            [1.0, 0.0]], # if ProjectionMatrix is defined, DOFS and DOF_# will be ignored
+                                                  DOFS                  => 1,
+                                                  DOF_0                 => [[0, 4, 8],
+                                                                            [1.0, 1.0, 1.0]]#,
+                                                  #UseReferenceState    => No, # Default value = No, Yes
+                                                  #ReferenceState       => [[0, 4, 8],
+                                                  #                         [1.0, 1.0, 1.0]] # Can Include Loading Parameter as last element
+                                                 }
+                 );
+  
+  
+  
+# SolutionMethod Parameters
 $ArcLenDSMax = 0.01;
 
 %SolutionMethod = (Type               => NewtonPCSolution, # RefineEqbmSolution, ArcLengthSolution, ScanningSolution, NewtonPCSolution
