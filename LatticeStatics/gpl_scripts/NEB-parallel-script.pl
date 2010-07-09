@@ -265,9 +265,10 @@ sub clean_up_finished_jobs
       push @remainingjobs, $_;
     }
 
-    # update running job list
-    @runningjobs = @remainingjobs;
   }
+
+  # update running job list
+  @runningjobs = @remainingjobs;
 }
 
 #--------------------------------------------------------------------------

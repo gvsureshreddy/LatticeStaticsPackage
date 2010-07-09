@@ -366,10 +366,10 @@ sub clean_up_finished_jobs
       # add to list of still running jobs
       push @remainingjobs, $_;
     }
-
-    # update running job list
-    @runningjobs = @remainingjobs;
   }
+
+  # update running job list
+  @runningjobs = @remainingjobs;
 }
 
 #--------------------------------------------------------------------------
