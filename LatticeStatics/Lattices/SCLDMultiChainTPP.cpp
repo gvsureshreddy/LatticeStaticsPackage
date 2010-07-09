@@ -10,6 +10,15 @@
 #include <omp.h>
 #endif
 
+//  If you want to use OpenMP then make the following changes:
+//  
+//  1) Change "CC = g++" to "CC = g++ -fopenmp" in Makefile
+//  2) Recompile the entire code
+//  3) Specify the number of processors by typing "export OMP_NUM_THREADS=8" in the terminal
+//  4) Run the code: nice nohup bin/LatticeStatics input output >& term &
+//  5) You can check the performance of CPU by typing "top"...the LatticeStatics code should take around 780 to 800% of CPU performance since we are using 8 processors
+
+
 using namespace std;
 
 const int SCLDMultiChainTPP::DIM1 = 1;
@@ -29,7 +38,6 @@ SCLDMultiChainTPP::~SCLDMultiChainTPP()
    delete [] Potential_;
    delete [] AtomPositions_;
 
-// Additions by gv-begin ***********************************************
    delete [] HEigVals_static;
 
    for (int x=0;x<DOFS;++x)
@@ -91,8 +99,6 @@ SCLDMultiChainTPP::~SCLDMultiChainTPP()
    delete [] EigValsDOF_static;
    delete [] EigValsTDOF_static;
    delete [] EigValsDOFDOF_static;
-
-// Additions by gv-end ***********************************************
 }
 
 SCLDMultiChainTPP::SCLDMultiChainTPP(PerlInput const& Input,
@@ -131,13 +137,11 @@ SCLDMultiChainTPP::SCLDMultiChainTPP(PerlInput const& Input,
    for (int i=0;i<INTERNAL_ATOMS;++i)
       BodyForce_[i].Resize(DIM1,0.0);
    
-// Additions by gv-begin ***********************************************
    // Get Boltzmann constant 
    kB_ = Input.getDouble(Hash,"kB");
 
    // Get Planck constant 
    h_ = Input.getDouble(Hash,"h");
-// Additions by gv-end ***********************************************
 
    // Get Thermo parameters
    Tref_ = Input.getDouble(Hash,"Tref");
@@ -193,11 +197,9 @@ SCLDMultiChainTPP::SCLDMultiChainTPP(PerlInput const& Input,
    }
    
    // Get Lattice parameters
-// Additions by gv-begin*********************************************************************************************************
    //NTemp_ = 1.0;
    RefNTemp_ = Input.getDouble(Hash,"RefNTemp");
    NTemp_ = RefNTemp_;
-// Additions by gv-end*********************************************************************************************************
    InfluenceDist_ = Input.getDouble(Hash,"InfluenceDist");
    if (Input.ParameterOK(Hash,"Density"))
    {
@@ -223,24 +225,20 @@ SCLDMultiChainTPP::SCLDMultiChainTPP(PerlInput const& Input,
    {
       cerr << "Unknown Loading Parameter" << "\n"; exit(-1);
    }
-// Additions by gv-begin*********************************************************************************************************
    //Lambda_ = 0.0;
    RefLambda_ = Input.getDouble(Hash,"RefLambda");
    Lambda_ = RefLambda_;
-// Additions by gv-end*********************************************************************************************************
    
    // needed to initialize reference length
    int iter;
    iter = Input.getPosInt(Hash,"MaxIterations");
    GridSize_ = Input.getPosInt(Hash,"BlochWaveGridSize");
 
-// Additions by gv-begin*********************************************************************************************************   
    if (GridSize_%2 == 1)
    {
        cout << "GridSize is odd. Please keep it some even number. Even number is good for converged results when GridSize is increased." << endl;
        exit(-1);
    }
-// Additions by gv-end*********************************************************************************************************   
 
    //set LagrangeCB_
    const char *CBKin = Input.getString(Hash,"CBKinematics");
@@ -261,7 +259,6 @@ SCLDMultiChainTPP::SCLDMultiChainTPP(PerlInput const& Input,
    SCLDChainSum_(&DOF_,LagrangeCB_,1,&RefLattice_,INTERNAL_ATOMS,AtomPositions_,Potential_,
              &InfluenceDist_,&NTemp_);
    
-// Additions by gv-begin ***********************************************
    // Initiate the Unit Cell Iterator for Bloch wave calculations.
    ChainIter_(GridSize_,1,0);
    ChainIterNew_(GridSize_,1,0);
@@ -357,8 +354,6 @@ SCLDMultiChainTPP::SCLDMultiChainTPP(PerlInput const& Input,
        InitialEigVals_available = 0;
    }
 
-// Additions by gv-end ***********************************************
-
    int err=0;
    err=FindLatticeSpacing(iter);
    if (err)
@@ -369,12 +364,10 @@ SCLDMultiChainTPP::SCLDMultiChainTPP(PerlInput const& Input,
    
    // Setup initial status for parameters
 
-// Additions by gv-begin*********************************************************************************************************
    //NTemp_ = Input.getDouble(Hash,"NTemp");
    //Lambda_ = Input.getDouble(Hash,"Lambda");
    NTemp_ = RefNTemp_;
    Lambda_ = RefLambda_;
-// Additions by gv-end*********************************************************************************************************
 
    // Make any changes to atomic potentials that might be required
    for (int i=0;i<INTERNAL_ATOMS;++i)
@@ -396,12 +389,10 @@ SCLDMultiChainTPP::SCLDMultiChainTPP(PerlInput const& Input,
 
 int SCLDMultiChainTPP::FindLatticeSpacing(int const& iter)
 {
-// Additions by gv-begin ***************************************************************************************************
    //Lambda_=0.0;
    //NTemp_=1.0;
    Lambda_=RefLambda_;
    NTemp_=RefNTemp_;
-// Additions by gv-end *****************************************************************************************************
    DOF_[0] = 1.0;
    for (int i=1;i<DOFS;i++)
    {
@@ -410,20 +401,16 @@ int SCLDMultiChainTPP::FindLatticeSpacing(int const& iter)
    
    SCLDChainSum_.Recalc();
 
-// Additions by gv-begin ***************************************************************************************************
    FreqCached = 0;
    FirstConverged = 0;
    FirstPrintLong = 0;
-// Additions by gv-end *****************************************************************************************************
 
    if (Echo_)
       RefineEqbm(1.0e-13,iter,&cout);
    else
       RefineEqbm(1.0e-13,iter,0);
 
-// Additions by gv-begin ***************************************************************************************************
    FreqCached = 0;
-// Additions by gv-end *****************************************************************************************************
 
    // Clean up numerical round off (at least for zero values)
    for (int i=0;i<DOFS;++i)
@@ -536,9 +523,7 @@ double SCLDMultiChainTPP::E0() const
 {
    double E0,Tsq;
 
-// Additions by gv-begin ***********************************************
    E0 = FreeEnergy();
-// Additions by gv-end ***********************************************
 
    Tsq=0;
    
@@ -595,7 +580,6 @@ double SCLDMultiChainTPP::energy(PairPotentials::TDeriv const& dt) const
    return Phi;
 }
 
-// Additions by gv-begin *****************************************************************************************************************
 double SCLDMultiChainTPP::FreeEnergy(PairPotentials::TDeriv const& dt) const
 {
     double FPhi = 0.0;
@@ -675,16 +659,13 @@ double SCLDMultiChainTPP::FreeEnergy(PairPotentials::TDeriv const& dt) const
 
     return FPhi;
 }
-// Additions by gv-end ************************************************************************************************************************
 
 Vector const& SCLDMultiChainTPP::E1() const
 {
    Phi1_static.Resize(DOFS,0.0);
    double T=0.0;
 
-// Additions by gv-begin ***********************************************
    Phi1_static = Fstress();
-// Additions by gv-end ***********************************************
    
    for (int i=0;i<INTERNAL_ATOMS;++i) T+=DOF_[i+1];
    T=T/INTERNAL_ATOMS;
@@ -788,7 +769,6 @@ Vector const& SCLDMultiChainTPP::stress(PairPotentials::TDeriv const& dt,
    return stress_static;
 }
 
-// Additions by gv-begin ******************************************************************************************************************************
 Vector const& SCLDMultiChainTPP::Fstress(PairPotentials::TDeriv const& dt,LDeriv const& dl) const
 {
     double Vr;
@@ -880,16 +860,13 @@ Vector const& SCLDMultiChainTPP::Fstress(PairPotentials::TDeriv const& dt,LDeriv
 
     return Fstress_static;
 }
-// Additions by gv-end *******************************************************************************************************************************
 
 Matrix const& SCLDMultiChainTPP::E2() const
 {
    Phi2_static.Resize(DOFS,DOFS,0.0);
    static int i,j;
 
-// Additions by gv-begin ***********************************************
    Phi2_static = Fstiffness();
-// Additions by gv-end ***********************************************
    
    // Add translational stiffness
    double factor = 1.0/INTERNAL_ATOMS;
@@ -987,8 +964,6 @@ Matrix const& SCLDMultiChainTPP::stiffness(PairPotentials::TDeriv const& dt,
    return stiff_static;
 }
 
-
-// Additions by gv-begin ********************************************************************************************************************************
 Matrix const& SCLDMultiChainTPP::Fstiffness(PairPotentials::TDeriv const& dt,LDeriv const& dl) const
 {
     double Vr;
@@ -1072,8 +1047,6 @@ Matrix const& SCLDMultiChainTPP::Fstiffness(PairPotentials::TDeriv const& dt,LDe
 
     return FPhi2_static;
 }
-// Additions by gv-end ********************************************************************************************************************************
-
 
 Matrix const& SCLDMultiChainTPP::E3() const
 {
@@ -1383,7 +1356,6 @@ Matrix const& SCLDMultiChainTPP::CondensedModuli() const
    return CM_static;
 }
 
-// Additions by gv-begin************************************************************************************************
 Vector const& SCLDMultiChainTPP::ThermalExpansion() const
 {
    ThermalExp_static.Resize(DOFS);
@@ -1393,8 +1365,6 @@ Vector const& SCLDMultiChainTPP::ThermalExpansion() const
    return ThermalExp_static = SolvePLU(E2(),-StressDT());
 #endif
 }
-// Additions by gv-end************************************************************************************************
-
 
 int SCLDMultiChainTPP::comp(void const* const a,void const* const b)
 {
@@ -1449,7 +1419,6 @@ void SCLDMultiChainTPP::interpolate(Matrix* const EigVals,int const& zero,
    }
 }
 
-// Additions by gv-begin *************************************************************************************************************************
 CMatrix const& SCLDMultiChainTPP::ReferenceDynamicalStiffness(Vector const& K,PairPotentials::TDeriv const& dt,int const& DOFderiv,int const& x,int const& y) const
 {
    double pi = 4.0*atan(1.0);
@@ -1720,7 +1689,6 @@ CMatrix const& SCLDMultiChainTPP::ReferenceDynamicalStiffness(Vector const& K,Pa
    
    return Dk_static;
 }
-// Additions by gv-end *********************************************************************************************************************************
 
 void SCLDMultiChainTPP::ReferenceDispersionCurves(Vector const& K,int const& NoPTS,
                                                              char const* const prefix,
@@ -1785,7 +1753,6 @@ void SCLDMultiChainTPP::ReferenceDispersionCurves(Vector const& K,int const& NoP
    }
 }
 
-// Additions by gv-begin ******************************************************************************************************************************
 void SCLDMultiChainTPP::ReferenceHarmonic() const 
 {
 if (FreqCached == 0)
@@ -2068,9 +2035,7 @@ cout << "Harmonic Total time OMP: " << (start_omp-end_omp)*CLOCKS_PER_SEC << end
 #endif
 }
 }
-// Additions by gv-end *********************************************************************************************************************************************************
 
-// Additions by gv-begin **********************************************************************************************************************************************************
 void SCLDMultiChainTPP::ReferenceV4() const
 {
 if (FreqCached == 0)
@@ -2421,10 +2386,7 @@ cout << "V4 Total time OMP: " << (start_omp-end_omp)*CLOCKS_PER_SEC << endl;
 #endif
 }
 }
-// Additions by gv-end ***********************************************
 
-
-// Additions by gv-begin ***********************************************
 void SCLDMultiChainTPP::ReferencePseudoHarmonic() const
 {
 if (FreqCached == 0)
@@ -2910,9 +2872,7 @@ cout << "SC Total time OMP: " << (start_omp-end_omp)*CLOCKS_PER_SEC << endl;
 FreqCached = 1;
 
 }
-// Additions by gv-end ***********************************************
 
-// Additions by gv-begin ***********************************************
 int SCLDMultiChainTPP::ReferenceBlochWave(Vector& K) const
 {  
    int i=0;
@@ -2942,7 +2902,6 @@ int SCLDMultiChainTPP::ReferenceBlochWave(Vector& K) const
    return NumOfNegEV;
 
 }
-// Additions by gv-end ***********************************************
 
 void SCLDMultiChainTPP::LongWavelengthModuli(double const& dk,int const& gridsize,
                                                         char const* const prefix,ostream& out)
@@ -2991,14 +2950,11 @@ void SCLDMultiChainTPP::Print(ostream& out,PrintDetail const& flag,
    out.width(0);
    if (Echo_) cout.width(0);
    
-// Additions by gv-begin ***********************************************
    engy = FreeEnergy();
-// Additions by gv-end ***********************************************
 
    entropy = Entropy();
    heatcapacity = HeatCapacity();
 
-// Additions by gv-begin ***********************************************
    str_static = Fstress();
    pstiff_static = Fstiffness();
    TE_static = ThermalExpansion();
@@ -3009,7 +2965,6 @@ void SCLDMultiChainTPP::Print(ostream& out,PrintDetail const& flag,
 
    Stiff = stiffness();
    VibStiff = pstiff_static - Stiff;
-// Additions by gv-end ***********************************************
    
    TestFunctions(TestFunctVals_static,LHS);
    mintestfunct = TestFunctVals_static[0];
@@ -3104,10 +3059,8 @@ void SCLDMultiChainTPP::Print(ostream& out,PrintDetail const& flag,
             cout << "Normalization Modulus : " << setw(W) << NormModulus_ << "\n";
          }    
 
-// Additions by gv-begin**************************************************************************************************************         
          FirstPrintLong = 1;
          cout << "FirstConvergedPrintLong: " << FirstConverged << endl;
-// Additions by gv-begin**************************************************************************************************************         
 
          // passthrough to short
       case PrintShort:
@@ -3125,10 +3078,8 @@ void SCLDMultiChainTPP::Print(ostream& out,PrintDetail const& flag,
          }
          out << "Stress (Normalized):" << "\n" << setw(W) << str_static << "\n\n"
              << "Stiffness (Normalized):" << setw(W) << pstiff_static
-// Additions by gv-begin**************************************************************************************************************************         
 //             << "Vib. Stiffness (Normalized):" << setw(W) << VibStiff
 //             << "Stat. Stiffness (Normalized):" << setw(W) << Stiff
-// Additions by gv-end*****************************************************************************************************************************         
              << "Eigenvalue Info:"  <<"\n"<< setw(W) << TestFunctVals_static <<"\n"
              << "Bifurcation Info:" << setw(W) << mintestfunct
              << setw(W) << NoNegTestFunctions << "\n"
@@ -3137,7 +3088,6 @@ void SCLDMultiChainTPP::Print(ostream& out,PrintDetail const& flag,
              << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << "\n"
              << "BlochWave Stability:" << setw(W) << BlochWaveStable << ", "
              << setw(W) << K << "\n"
-// Additions by gv-begin***************************************************************************************************************************         
              << "EigVals: " << "\n";
          for (int i=0;i<(GridSize_/2+1);++i)
          {
@@ -3192,7 +3142,7 @@ void SCLDMultiChainTPP::Print(ostream& out,PrintDetail const& flag,
             }
             out << "\n";
          }
-// Additions by gv-end**************************************************************************************************************************         
+
          out << endl;
          // send to cout also
          if (Echo_)
@@ -3223,7 +3173,7 @@ void SCLDMultiChainTPP::Print(ostream& out,PrintDetail const& flag,
                  << setw(W) << K << "\n";
             cout << endl;
          }
-// Additions by gv-begin**************************************************************************************************************         
+
          cout << "FirstConvergedPrintShort: " << FirstConverged << endl;
          if (FirstPrintLong == 2 && FirstConverged == 1)
          {
@@ -3260,7 +3210,6 @@ void SCLDMultiChainTPP::Print(ostream& out,PrintDetail const& flag,
              cout << "gvError FirstConverged FirstPrintLong: Print: " << endl;
              exit(-1);
          }
-// Additions by gv-end**************************************************************************************************************         
 
          break;
    }

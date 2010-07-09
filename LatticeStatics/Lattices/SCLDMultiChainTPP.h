@@ -42,7 +42,6 @@ private:
    mutable SCLDChainSum SCLDChainSum_;
    mutable ChainIterator ChainIter_;
 
-// Additions by gv-begin ***********************************************
    double RefNTemp_;
    double RefLambda_;
 
@@ -50,7 +49,6 @@ private:
    mutable int FreqCached;
    mutable int FirstConverged;
    mutable int FirstPrintLong;
-// Additions by gv-end ***********************************************
 
    int GridSize_;
    
@@ -69,24 +67,19 @@ private:
    Matrix const& stiffness(PairPotentials::TDeriv const& dt=PairPotentials::T0,
                            LDeriv const& dl=L0) const;
 
-// Additions by gv-begin **********************************************************************************************************
    double FreeEnergy(PairPotentials::TDeriv const& dt=PairPotentials::T0) const;
    Vector const& Fstress(PairPotentials::TDeriv const& dt=PairPotentials::T0,LDeriv const& dl=L0) const;
    Matrix const& Fstiffness(PairPotentials::TDeriv const& dt=PairPotentials::T0,LDeriv const& dl=L0) const;
-// Additions by gv-end ************************************************************************************************************
 
    void ReferenceDispersionCurves(Vector const& K,int const& NoPTS,char const* const prefix,
                                   ostream& out) const;
 
-// Additions by gv-begin **********************************************************************************************************
    void ReferenceHarmonic() const;
    void ReferenceV4() const;
    void ReferencePseudoHarmonic() const;
    CMatrix const& ReferenceDynamicalStiffness(Vector const& K,PairPotentials::TDeriv const& dt=PairPotentials::T0,
                                                               int const& DOFderiv=0,int const& x=0,int const& y=0) const;
    Vector const& ThermalExpansion() const;
-// Additions by gv-end ***********************************************************************************************************
-   
 
    int ReferenceBlochWave(Vector& K) const;
    // Needed for DispersionCurves()
@@ -105,7 +98,6 @@ public:
    Vector const& DOF() const {return DOF_;}
 
    Matrix const& RefLattice() const {return RefLattice_;}
-// Additions by gv-begin ***********************************************
    void SetDOF(Vector const& dof) {DOF_ = dof; 
    FreqCached = 0; SCLDChainSum_.Recalc();}
    // Entropy is NEGATIVE dE/dT
@@ -120,7 +112,6 @@ public:
    virtual void SetGridSize(int const& Grid) {GridSize_=Grid; ChainIter_(GridSize_,0,0);}
    // ThermalExpansion
    mutable Vector ThermalExp_static;
-// Additions by gv-end ***********************************************
 
    double Temp() const {return NTemp_;}
 
@@ -192,11 +183,7 @@ private:
    // CondensedModuli
    mutable Matrix CM_static;
 
-
-// Additions by gv-begin*****************************************************************************************
    mutable Vector TE_static;
-// Additions by gv-end*****************************************************************************************
-
 
    // E3
    mutable Matrix Phi3_static;
@@ -205,7 +192,6 @@ private:
    // ReferenceDynamicalStiffness
    mutable CMatrix Dk_static;
 
-// Additions by gv-begin ***********************************************
    // ReferenceBlochWave
    mutable CMatrix A_static;
    mutable CMatrix A_DOF_static;
@@ -239,7 +225,6 @@ private:
    mutable int InitialEigVals_available;
    mutable Matrix InitialHEigVals_static;
    mutable int InitialHEigVals_available;
-// Additions by gv-end ***********************************************
 
    // Print
    mutable Vector str_static;
