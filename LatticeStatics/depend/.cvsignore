@@ -9,6 +9,7 @@ LJ.d
 LJConstCutoff.d
 LJLinearCutoff.d
 LJQuadraticCutoff.d
+LJDobson.d
 LJSplineCutoff.d
 MultiLatticeTPP.d
 Restriction.d

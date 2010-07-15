@@ -59,6 +59,16 @@ PairPotentials* InitializePairPotential(PerlInput::HashStruct const& ParentHash,
       
       return new LJQuadraticCutoff(Eps0,Eps1,Sigma0,Sigma1,Cutoff);
    }
+   else if (!strcmp("LJDobson",pptype))
+   {
+      Eps0 = Input.getDouble(Hash,"Eps0");
+      Eps1 = Input.getDouble(Hash,"Eps1");
+      Sigma0 = Input.getDouble(Hash,"Sigma0");
+      Sigma1 = Input.getDouble(Hash,"Sigma1");
+      Cutoff = Input.getDouble(Hash,"Cutoff");
+      
+      return new LJDobson(Eps0,Eps1,Sigma0,Sigma1,Cutoff);
+   }
    else if (!strcmp("LJSplineCutoff",pptype))
    {
       Eps0 = Input.getDouble(Hash,"Eps0");

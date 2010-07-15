@@ -3,6 +3,7 @@ POTENTIALS = KnownPairPotentials.cpp\
 	     LJConstCutoff.cpp\
 	     LJLinearCutoff.cpp\
 	     LJQuadraticCutoff.cpp\
+	     LJDobson.cpp\
 	     LJSplineCutoff.cpp\
 	     RadiiMorse.cpp\
 	     RadiiMorseCutoff.cpp\

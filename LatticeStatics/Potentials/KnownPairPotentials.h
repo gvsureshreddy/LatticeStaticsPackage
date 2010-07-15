@@ -7,6 +7,7 @@
 #include "LJLinearCutoff.h"
 #include "LJQuadraticCutoff.h"
 #include "LJSplineCutoff.h"
+#include "LJDobson.h"
 #include "RadiiMorse.h"
 #include "RadiiMorseCutoff.h"
 #include "RadiiMorseCutoff2.h"
