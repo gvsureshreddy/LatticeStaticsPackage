@@ -297,6 +297,41 @@ void UpdatePairPotential(PerlInput::HashStruct const& ParentHash,PerlInput const
          LJLinearCutoffp->SetCutoff(Cutoff);
       }
    }
+   else if (!strcmp(Potential->Type(),"LJDobson"))
+   {
+      LJDobson *LJDobsonp;
+      LJDobsonp = dynamic_cast<LJDobson *>(Potential);
+
+      if (Input.ParameterOK(Hash,"Update-Eps0"))
+      {
+         Eps0 = Input.getDouble(Hash,"Update-Eps0");
+         LJDobsonp->SetEps0(Eps0);
+      }
+      
+      if (Input.ParameterOK(Hash,"Update-Eps1"))
+      {
+         Eps1 = Input.getDouble(Hash,"Update-Eps1");
+         LJDobsonp->SetEps1(Eps1);
+      }
+
+      if (Input.ParameterOK(Hash,"Update-Sigma0"))
+      {
+         Sigma0 = Input.getDouble(Hash,"Update-Sigma0");
+         LJDobsonp->SetSigma0(Sigma0);
+      }
+
+      if (Input.ParameterOK(Hash,"Update-Sigma1"))
+      {
+         Sigma1 = Input.getDouble(Hash,"Update-Sigma1");
+         LJDobsonp->SetSigma1(Sigma1);
+      }
+
+      if (Input.ParameterOK(Hash,"Update-Cutoff"))
+      {
+         Cutoff = Input.getDouble(Hash,"Update-Cutoff");
+         LJDobsonp->SetCutoff(Cutoff);
+      }
+   }
    else if (!strcmp(Potential->Type(),"LJQuadraticCutoff"))
    {
       LJQuadraticCutoff *LJQuadraticCutoffp;
