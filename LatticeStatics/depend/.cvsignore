@@ -28,7 +28,6 @@ ChainIterator.d
 ChainSum.d
 MultiChainTPP.d
 MultiChainTTPP.d
-PseudoHarmonicMultiChainTTPP.d
 LagrangeCB.d
 MixedCB.d
 EulerCB.d
@@ -48,4 +47,5 @@ DFTExternalOld.d
 RefineEqbmSolution.d
 RadiiMorseOriginal.d
 SCLDChainSum.d
-SCLDMultiChainTPP.d
+SCLDQMultiChainTPP.d
+SCLDCMultiChainTPP.d

@@ -41,7 +41,7 @@ $Rtheta1_1_1 = 0.275914376289;
 # TempMorse
 #
 
-%Lattice = (Type            => MultiLatticeTPP, # MultiLatticeTPP, MultiChainTPP, MultiChainTTPP, SCLDMultiChainTPP, TwoBarTruss, TwoBarTrussExternal, DFTExternal, QC
+%Lattice = (Type            => MultiLatticeTPP, # MultiLatticeTPP, MultiChainTPP, MultiChainTTPP, SCLDQMultiChainTPP, SCLDCMultiChainTPP, TwoBarTruss, TwoBarTrussExternal, DFTExternal, QC
             #UseEigenValTFs  => Yes, # Default value = Yes, No
             #NumExtraTFs      => 0, # Default value = 0, positive number
             #LSKAnalysis     => SecondOrder, # Default value = SecondOrder, ThirdOrder, None
@@ -200,7 +200,7 @@ $Rtheta1_1_1 = 0.275914376289;
                                NTemp             => 1.0,
                                Lambda            => 0.0
                               },
-            SCLDMultiChainTPP => {InternalAtoms     => 4,
+            SCLDQMultiChainTPP => {InternalAtoms     => 4, # same works for SCLDCMultiChainTPP
                                   LatticeBasis      => 1.00,
                                   AtomPosition_0    => 0.00,
                                   AtomPosition_1    => 0.25,
