@@ -424,7 +424,14 @@ int SCLDCMultiChainTPP::FindLatticeSpacing(int const& iter)
    // update atom pos
    for (int i=0;i<INTERNAL_ATOMS;++i)
    {
-      AtomPositions_[i][0] += DOF_[i+1];
+      if (LagrangeCB_)
+      {
+         AtomPositions_[i][0] += DOF_[i+1];
+      }
+      else
+      {
+         AtomPositions_[i][0] += DOF_[i+1]/DOF_[0];
+      }
    }
    
    // reset DOF
