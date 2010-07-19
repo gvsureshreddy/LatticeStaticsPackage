@@ -155,7 +155,7 @@ MultiChainTTPP::MultiChainTTPP(PerlInput const& Input,int const& Echo,int const&
    }
    else
    {
-      LagrangeCB_ = 0;
+      LagrangeCB_ = 1;
    }
    
    // Initiate the Lattice Sum object
@@ -223,7 +223,14 @@ int MultiChainTTPP::FindLatticeSpacing(int const& iter)
    // update atom pos
    for (int i=0;i<INTERNAL_ATOMS;++i)
    {
-      AtomPositions_[i][0] += DOF_[i+1];
+      if (LagrangeCB_)
+      {
+         AtomPositions_[i][0] += DOF_[i+1];
+      }
+      else
+      {
+         AtomPositions_[i][0] += DOF_[i+1]/DOF_[0];
+      }
    }
    
    // reset DOF

@@ -223,7 +223,14 @@ int MultiChainTPP::FindLatticeSpacing(int const& iter)
    // update atom pos
    for (int i=1;i<INTERNAL_ATOMS;++i)
    {
-      AtomPositions_[i][0] += DOF_[i];
+      if (LagrangeCB_)
+      {
+         AtomPositions_[i][0] += DOF_[i];
+      }
+      else
+      {
+         AtomPositions_[i][0] += DOF_[i]/DOF_[0];
+      }
    }
    
    // reset DOF
