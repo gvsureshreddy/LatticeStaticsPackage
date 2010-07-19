@@ -18,9 +18,13 @@ Lattice* const InitializeLattice(PerlInput& Input,int const&  Echo,int const& Wi
    {
       return new MultiChainTTPP(Input,Echo,Width,Debug);
    }
-   else if (!strcmp("SCLDMultiChainTPP",Lat))
+   else if (!strcmp("SCLDQMultiChainTPP",Lat))
    {
-      return new SCLDMultiChainTPP(Input,Echo,Width,Debug);
+      return new SCLDQMultiChainTPP(Input,Echo,Width,Debug);
+   }
+   else if (!strcmp("SCLDCMultiChainTPP",Lat))
+   {
+      return new SCLDCMultiChainTPP(Input,Echo,Width,Debug);
    }
    else if (!strcmp("TwoBarTruss",Lat))
    {

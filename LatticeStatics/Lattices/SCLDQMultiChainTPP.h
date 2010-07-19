@@ -1,5 +1,5 @@
-#ifndef RSE__SCLDMultiChainTPP
-#define RSE__SCLDMultiChainTPP
+#ifndef RSE__SCLDQMultiChainTPP
+#define RSE__SCLDQMultiChainTPP
 
 #include "PerlInput.h"
 #include "Lattice.h"
@@ -11,7 +11,7 @@
 
 using namespace std;
 
-class SCLDMultiChainTPP : public Lattice
+class SCLDQMultiChainTPP : public Lattice
 {
 private:
    const static int DIM1;
@@ -135,15 +135,15 @@ public:
                                      char const* const prefix,ostream& out) const;
    virtual void SetParameters(double const* const Vals,int const& ResetRef = 1);
    virtual void NeighborDistances(int const& cutoff,ostream& out) const;
-   virtual char const* const Type() const {return "SCLDMultiChainTPP";}
+   virtual char const* const Type() const {return "SCLDQMultiChainTPP";}
    virtual void DebugMode();
    virtual void Print(ostream& out,PrintDetail const& flag,
                       PrintPathSolutionType const& SolType = RegularPt);
    
-   // Functions provided by SCLDMultiChainTPP
-   SCLDMultiChainTPP(PerlInput const& Input,int const& Echo=1,int const& Width=20,
+   // Functions provided by SCLDQMultiChainTPP
+   SCLDQMultiChainTPP(PerlInput const& Input,int const& Echo=1,int const& Width=20,
                   int const& Debug=0);
-   ~SCLDMultiChainTPP();
+   ~SCLDQMultiChainTPP();
    
    double InfluenceDist() const {return InfluenceDist_;}
    void SetInfluenceDist(double const& InfluenceDist) {InfluenceDist_=InfluenceDist;}
@@ -151,7 +151,7 @@ public:
    inline double Del(int const& i,int const& j) const {return i==j;}
    Vector const& BodyForce(int const& i) const {return BodyForce_[i]; }
    double NormModulus() const {return NormModulus_;}
-   friend ostream& operator<<(ostream& out,SCLDMultiChainTPP& A);
+   friend ostream& operator<<(ostream& out,SCLDQMultiChainTPP& A);
    
 private:
    double PI(double const* const Dx,double const* const DX) const;
