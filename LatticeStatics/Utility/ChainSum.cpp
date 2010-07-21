@@ -90,7 +90,7 @@ void ChainSum::Initialize()
    }
    
    // Set to inverse eigenvalue
-   tmp = 1.0/F_;
+   tmp = 1.0/(((*RefLattice_)[0][0])*F_);
    Influancedist=tmp*(*InfluanceDist_);
    
    tmp = 1;
