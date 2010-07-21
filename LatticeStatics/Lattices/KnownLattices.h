@@ -7,6 +7,8 @@
 #include "MultiChainTTPP.h"
 #include "SCLDQMultiChainTPP.h"
 #include "SCLDCMultiChainTPP.h"
+#include "QHQMultiChainTPP.h"
+#include "QHCMultiChainTPP.h"
 #include "TwoBarTruss.h"
 #include "TwoBarTrussExternal.h"
 #include "DFTExternal.h"

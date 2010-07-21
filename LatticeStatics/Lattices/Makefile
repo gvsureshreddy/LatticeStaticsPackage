@@ -5,6 +5,8 @@ LATTICES = KnownLattices.cpp\
 	   MultiChainTTPP.cpp\
 	   SCLDQMultiChainTPP.cpp\
 	   SCLDCMultiChainTPP.cpp\
+	   QHQMultiChainTPP.cpp\
+	   QHCMultiChainTPP.cpp\
 	   TwoBarTruss.cpp\
 	   TwoBarTrussExternal.cpp\
 	   DFTExternal.cpp\
