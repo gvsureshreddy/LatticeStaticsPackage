@@ -10,17 +10,20 @@ RefineEqbmSolution::RefineEqbmSolution(Restriction* const Restrict,Vector const&
    : Restrict_(Restrict),
      Echo_(Echo),
      SolutionFound_(0),
+     NumSolutions_(1),
      Converge_(Converge),
      ConvergeType_(CnvrgTyp)
 {
-   Restrict_->SetDOF(one);
+   Guesses_ = new Vector(one.Dim());
+   Guesses_[0] = one;
 }
 
 RefineEqbmSolution::RefineEqbmSolution(Restriction* const Restrict,PerlInput const& Input,
                                        Vector const& one,int const& Echo)
    : Restrict_(Restrict),
      Echo_(Echo),
-     SolutionFound_(0)
+     SolutionFound_(0),
+     NumSolutions_(1)
 {
    // get needed parameters
    PerlInput::HashStruct Hash = Input.getHash("SolutionMethod","RefineEqbmSolution");
@@ -52,7 +55,9 @@ RefineEqbmSolution::RefineEqbmSolution(Restriction* const Restrict,PerlInput con
       ConvergeType_ = Both;
    }
 
-   Restrict_->SetDOF(one);
+   
+   Guesses_ = new Vector(one.Dim());
+   Guesses_[0] = one;
 }
 
 RefineEqbmSolution::RefineEqbmSolution(Restriction* const Restrict,PerlInput const& Input,
@@ -93,14 +98,31 @@ RefineEqbmSolution::RefineEqbmSolution(Restriction* const Restrict,PerlInput con
 
    if (Input.ParameterOK(Hash,"Solution"))
    {
-      Vector onetmp(Input.getArrayLength(Hash,"Solution"));
-      Input.getVector(onetmp,Hash,"Solution");
-      Restrict_->SetDOF(Restrict_->RestrictDOF(onetmp));
+      int r,c;
+      r = Input.getArrayLength(Hash,"Solution");
+      c = Input.getArrayLength(Hash,"Solution",0);
+      Guesses_ = new Vector[r];
+      NumSolutions_ = r;
+      for (int i=0;i<r;++i)
+      {
+         Guesses_[i].Resize(c);
+         Input.getVector(Guesses_[i],Hash,"Solution",i);
+      }
    }
 }
 
 int RefineEqbmSolution::FindNextSolution()
 {
+   // set dofs to next guess
+   if (SolutionFound_ < NumSolutions_)
+   {
+      Restrict_->SetDOF(Restrict_->RestrictDOF(Guesses_[SolutionFound_]));
+   }
+   else
+   {
+      cerr << "RefineEqbmSolution::FindNextSolution() called too many times.\n";
+      exit(-31);
+   }
    Vector DOF = Restrict_->DOF();
    Vector dx(Restrict_->Force().Dim(),0.0);
    Vector Stress=Restrict_->Force();
@@ -111,6 +133,7 @@ int RefineEqbmSolution::FindNextSolution()
    // dxnorm initial value: should indicate a problem if this value is ever printed out...
    double dxnorm = -1.0;
    double forcenorm = Stress.Norm();
+
 
    const int MaxItr = 20;
 
@@ -165,7 +188,8 @@ int RefineEqbmSolution::FindNextSolution()
    cout << "Corrector Iterations: " << itr << "\n"
         << "Converged with CorrectorNorm = " << dxnorm << ",     ForceNorm = " << forcenorm
         << "\n";
-   SolutionFound_ = 1;
+   
+   ++SolutionFound_;
 
    return 1;
 }

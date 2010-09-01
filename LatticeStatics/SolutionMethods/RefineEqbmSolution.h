@@ -18,6 +18,8 @@ private:
    
    int Echo_;
    int SolutionFound_;
+   int NumSolutions_;
+   Vector* Guesses_;
 
    double Converge_;            //Convergence criteria
    ConvergeType ConvergeType_;  //Quantities to check for convergence
@@ -28,10 +30,10 @@ public:
    RefineEqbmSolution(Restriction* const Restrict,PerlInput const& Input,Vector const& one,
                     int const& Echo=1);
    RefineEqbmSolution(Restriction* const Restrict,PerlInput const& Input,int const& Echo);
-   ~RefineEqbmSolution() {}
+   ~RefineEqbmSolution() {delete [] Guesses_;}
    
    // Functions required by SolutionMethod
-   virtual int AllSolutionsFound() const {return SolutionFound_;}
+   virtual int AllSolutionsFound() const {return SolutionFound_ >= NumSolutions_;}
    virtual int FindNextSolution();
    virtual void FindCriticalPoint(Lattice* const Lat,int* const TotalNumCPCrossings,
                                   PerlInput const& Input,int const& Width,ostream& out) {}
