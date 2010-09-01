@@ -167,6 +167,7 @@ $Rtheta1_1_1 = 0.275914376289;
                                AtomPosition_2    => 0.50,
                                AtomPosition_3    => 0.75,
                                Tref              => 300.0,
+                               NumAtomSpecies    => 2,
                                AtomSpecies       => [0, 1, 0, 1],
                                PotentialType_0_0 => {Type    => LJQuadraticCutoff,
                                                      Cutoff  => 2.0,
@@ -331,7 +332,8 @@ $ArcLenDSMax = 0.01;
                                          },
                    RefineEqbmSolution => {ConvergeCriteria => 1e-13#,
                                           #ConvergeType     => Both, # Default value = Both, Force, Displacement
-                                          #Solution => [1.000000000000, 1.000000000000]
+                                          #Solution => [[1.000000000000, 1.000000000000],
+                                          #             [1.100000000000, 1.100000000000]]
                                          }
                   );
 
