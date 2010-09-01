@@ -62,13 +62,7 @@ MultiChainTTPP::MultiChainTTPP(PerlInput const& Input,int const& Echo,int const&
    //EntropyRef_ = Input.getDouble(Hash,"EntropyRef");
    //HeatCapacityRef_ = Input.getDouble(Hash,"HeatCapacityRef");
 
-   Input.getIntVector(AtomSpecies_,INTERNAL_ATOMS,Hash,"AtomSpecies");
-   NumberofSpecies_ = AtomSpecies_[0];
-   for (int i=1;i<INTERNAL_ATOMS;++i)
-      if (NumberofSpecies_ < AtomSpecies_[i])
-         NumberofSpecies_ = AtomSpecies_[i];
-   NumberofSpecies_++;
-   
+   NumberofSpecies_ = Input.getInt(Hash,"NumAtomSpecies");
    // Get Potential Parameters
    SpeciesPotential_ = new PairPotentials**[NumberofSpecies_];
    SpeciesPotential_[0] = new PairPotentials*[NumberofSpecies_*NumberofSpecies_];
@@ -98,6 +92,7 @@ MultiChainTTPP::MultiChainTTPP(PerlInput const& Input,int const& Echo,int const&
       SpeciesMass_[i] = Input.getDouble(Hash,tmp.str().c_str());
    }
    
+   Input.getIntVector(AtomSpecies_,INTERNAL_ATOMS,Hash,"AtomSpecies");
    for (int i=0;i<INTERNAL_ATOMS;++i)
    {
       for (int j=i;j<INTERNAL_ATOMS;++j)
@@ -184,6 +179,19 @@ MultiChainTTPP::MultiChainTTPP(PerlInput const& Input,int const& Echo,int const&
          else
             UpdatePairPotential(Hash,Input,
                                 AtomSpecies_[j],AtomSpecies_[i],Potential_[j][i]);
+      }
+
+      // update atom types!
+      Input.getIntVector(AtomSpecies_,INTERNAL_ATOMS,Hash,"Update-AtomSpecies");
+      for (int i=0;i<INTERNAL_ATOMS;++i)
+      {
+         for (int j=i;j<INTERNAL_ATOMS;++j)
+         {
+            Potential_[i][j] = Potential_[j][i]
+               = SpeciesPotential_[AtomSpecies_[i]][AtomSpecies_[j]];
+         }
+         
+         AtomicMass_[i] = SpeciesMass_[AtomSpecies_[i]];
       }
    }
    ChainSum_.Recalc();
