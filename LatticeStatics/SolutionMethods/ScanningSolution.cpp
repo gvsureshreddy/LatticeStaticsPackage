@@ -250,9 +250,9 @@ Matrix const& ScanningSolution::ScanningStiffness() const
       {
          if (i != ScnDefParam_)
          {
+            b=0;
             for (int j=0;j<DOFS_-1;++j)
             {
-               b=0;
                if (j != ScnDefParam_)
                {
                   K_static[a][b] = RestrictK_static[i][j];
