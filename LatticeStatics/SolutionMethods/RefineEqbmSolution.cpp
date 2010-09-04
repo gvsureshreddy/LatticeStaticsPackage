@@ -109,6 +109,13 @@ RefineEqbmSolution::RefineEqbmSolution(Restriction* const Restrict,PerlInput con
          Input.getVector(Guesses_[i],Hash,"Solution",i);
       }
    }
+   else
+   {
+      NumSolutions_ = 1;
+      Guesses_ = new Vector[1];
+      Guesses_[0].Resize(Restrict_->DOF().Dim());
+      Guesses_[0] = Restrict_->DOF();
+   }
 }
 
 int RefineEqbmSolution::FindNextSolution()
