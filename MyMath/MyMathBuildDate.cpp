@@ -1,6 +1,6 @@
-char *MyMathBuildDate();
+char* MyMathBuildDate();
 
-char *MyMathBuildDate()
+char* MyMathBuildDate()
 {
 #ifdef BUILD_DATE
    return BUILD_DATE;
