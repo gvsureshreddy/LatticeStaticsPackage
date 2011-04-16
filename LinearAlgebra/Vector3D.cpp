@@ -9,7 +9,7 @@
 #include "Matrix.h"
 
 // Global IDString
-char Vector3DID[]="$Id: Vector3D.cpp,v 1.9 2009/09/09 18:19:49 elliott Exp $";
+char Vector3DID[] = "$Id: Vector3D.cpp,v 1.10 2011/04/16 02:45:42 elliott Exp $";
 
 // Private Functions...
 
@@ -17,20 +17,20 @@ char Vector3DID[]="$Id: Vector3D.cpp,v 1.9 2009/09/09 18:19:49 elliott Exp $";
 
 Vector3D::Vector3D(Vector3D::Elm const& InitVal)
 {
-   for (int i=0;i<V3DLEN;i++)
-      Elements_[i]=InitVal;
+   for (int i = 0; i < V3DLEN; i++)
+      Elements_[i] = InitVal;
 }
 
-Vector3D::Vector3D(Vector3D::Elm const& x,Vector3D::Elm const& y,Vector3D::Elm const& z)
+Vector3D::Vector3D(Vector3D::Elm const& x, Vector3D::Elm const& y, Vector3D::Elm const& z)
 {
-   Elements_[0]=x;
-   Elements_[1]=y;
-   Elements_[2]=z;
+   Elements_[0] = x;
+   Elements_[1] = y;
+   Elements_[2] = z;
 }
 
 Vector3D::Vector3D(Vector3D const& A)
 {
-   memmove(Elements_,A.Elements_,sizeof(Vector3D::Elm[V3DLEN]));
+   memmove(Elements_, A.Elements_, sizeof(Vector3D::Elm[V3DLEN]));
 
    return;
 }
@@ -42,20 +42,20 @@ Vector3D::Vector3D(Vector const& A)
       cerr << "Vector3D: error: Constructor: Wrong Size" << "\n";
       exit(-1);
    }
-   
-   memmove(Elements_,A.Elements_,sizeof(Vector3D::Elm[V3DLEN]));
+
+   memmove(Elements_, A.Elements_, sizeof(Vector3D::Elm[V3DLEN]));
 
    return;
 }
 
 Vector3D& Vector3D::operator=(Vector3D const& B)
 {
-   memmove(Elements_,B.Elements_,sizeof(Vector3D::Elm[V3DLEN]));
+   memmove(Elements_, B.Elements_, sizeof(Vector3D::Elm[V3DLEN]));
 
    return *this;
 }
 
-Vector3D operator*(Vector3D const& A,Matrix const& B)
+Vector3D operator*(Vector3D const& A, Matrix const& B)
 {
    if (B.Rows_ != V3DLEN)
    {
@@ -64,18 +64,18 @@ Vector3D operator*(Vector3D const& A,Matrix const& B)
    }
 
    Vector3D z(0.0);
-   for (int i=0;i<V3DLEN;i++)
+   for (int i = 0; i < V3DLEN; i++)
    {
-      for (int j=0;j<V3DLEN;j++)
+      for (int j = 0; j < V3DLEN; j++)
       {
-	 z[i] += A[j]*B[j][i];
+         z[i] += A[j] * B[j][i];
       }
    }
 
    return z;
 }
 
-Vector3D operator*(Matrix const& A,Vector3D const& B)
+Vector3D operator*(Matrix const& A, Vector3D const& B)
 {
    if (A.Cols_ != V3DLEN)
    {
@@ -84,22 +84,22 @@ Vector3D operator*(Matrix const& A,Vector3D const& B)
    }
 
    Vector3D z(0.0);
-   for (int i=0;i<V3DLEN;i++)
+   for (int i = 0; i < V3DLEN; i++)
    {
-      for (int j=0;j<V3DLEN;j++)
+      for (int j = 0; j < V3DLEN; j++)
       {
-	 z[i] += A[i][j]*B[j];
+         z[i] += A[i][j] * B[j];
       }
    }
 
    return z;
 }
 
-ostream& operator<<(ostream& out,Vector3D const& A)
+ostream& operator<<(ostream& out, Vector3D const& A)
 {
-   int W=out.width();
+   int W = out.width();
 
-   for (register int i=0;i<V3DLEN;i++)
+   for (register int i = 0; i < V3DLEN; i++)
    {
       out << setw(W) << A[i];
    }
@@ -107,9 +107,9 @@ ostream& operator<<(ostream& out,Vector3D const& A)
    return out;
 }
 
-istream& operator>>(istream& in,Vector3D& A)
+istream& operator>>(istream& in, Vector3D& A)
 {
-   for (register int i=0;i<V3DLEN;i++)
+   for (register int i = 0; i < V3DLEN; i++)
       in >> A[i];
 
    return in;
@@ -119,3 +119,4 @@ char const* const Vector3D::Revision()
 {
    return Vector3DID;
 }
+
