@@ -182,7 +182,7 @@ MultiChainTTPP::MultiChainTTPP(PerlInput const& Input,int const& Echo,int const&
       }
 
       // update atom types!
-      Input.getIntVector(AtomSpecies_,INTERNAL_ATOMS,Hash,"Update-AtomSpecies");
+      Input.getIntVector(AtomSpecies_,INTERNAL_ATOMS,Hash,"Update_AtomSpecies");
       for (int i=0;i<INTERNAL_ATOMS;++i)
       {
          for (int j=i;j<INTERNAL_ATOMS;++j)
