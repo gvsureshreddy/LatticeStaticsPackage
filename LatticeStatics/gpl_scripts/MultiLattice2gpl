@@ -5,9 +5,9 @@
 
 use Math::Trig;
 
-if (scalar(@ARGV) < 3)
+if (scalar(@ARGV) < 5)
 {
-  die "Usage: MultiLattice2gpl dofs dataname gplfilename [crystalline|CB|phonon] [cartesian|euler] [directory list]\n";
+  die "Usage: MultiLattice2gpl dofs gplfilename <crystalline|CB|phonon> <cartesian|euler> <file list>\n";
 }
 
 $DOFSize = $ARGV[0];
@@ -15,74 +15,55 @@ $StateSize = $DOFSize + 9;
 $StrSPEC = "%-14s";
 $FSPEC = "%14.6f";
 
-if (scalar(@ARGV) >= 4)
+if ($ARGV[2] eq "crystalline" || $ARGV[2] eq "CB" || $ARGV[2] eq "phonon")
 {
-  if ($ARGV[3] eq "crystalline" || $ARGV[3] eq "CB" || $ARGV[3] eq "phonon")
-  {
-    $StabType = $ARGV[3];
-  }
-  else
-  {
-    die "Unknown option of crystallline|CB|phonon : $ARGV[3]\n";
-  }
+  $StabType = $ARGV[2];
 }
 else
 {
-  $StabType = "crystalline";
+  die "Unknown option of crystallline|CB|phonon : $ARGV[2]\n";
 }
 
-if (scalar(@ARGV) >= 5)
+if ($ARGV[3] eq "euler" || $ARGV[3] eq "Euler")
 {
-  if ($ARGV[4] eq "euler" || $ARGV[4] eq "Euler")
-  {
-    $Euler = 1;
-  }
-  elsif ($ARGV[4] eq "cartesian" || $ARGV[4] eq "Cartesian")
-  {
-    $Euler = 0;
-  }
-  else
-  {
-    die "Unknown option for cartesian|euler : $ARGV[4]\n";
-  }
+  $Euler = 1;
 }
-else
+elsif ($ARGV[3] eq "cartesian" || $ARGV[3] eq "Cartesian")
 {
   $Euler = 0;
 }
-
-if (scalar(@ARGV) <6)
-{
-  chomp($dataset=`pwd`);
-  @dir = glob("./*");
-}
 else
 {
-  chomp($dataset=`pwd`);
-  ($dummy,$dummy,$dummy,$dummy,$dummy,@dir) = @ARGV;
+  die "Unknown option for cartesian|euler : $ARGV[3]\n";
 }
-for (my $i=0;$i<@dir;$i+=1)
+
+for (my $i=4;$i<@ARGV;$i+=1)
 {
-  if (-d $dir[$i])
+  if (-e $ARGV[$i])
   {
-    push @directories, $dir[$i];
+    push @files, $ARGV[$i];
   }
   else
   {
-    print "Directory $dir[$i] does not exist! --- ignoring.\n";
+    print "The file $ARGV[$i] does not exist! --- ignoring.\n";
   }
 }
 
-open(GNUPLOT,">$ARGV[2]")
-    || die "Unable to open $ARGV[2] for write: $!";
+open(GNUPLOT,">$ARGV[1]")
+    || die "Unable to open $ARGV[1] for write: $!";
 
-print GNUPLOT "# gnuplot data file for ${dataset}\n#\n";
+$date = `date`; chomp($date);
+$pwd = `pwd`; chomp($pwd);
+print GNUPLOT "# gnuplot data file created on $date -- from directory: $pwd\n";
+print GNUPLOT "# with command line: MultiLattice2gpl ";
+for ($i=0;$i<@ARGV;$i+=1) { print GNUPLOT "$ARGV[$i] ";}
+print GNUPLOT "\n#\n";
 
 $index = 0;
-foreach $dir (@directories)
+foreach $fl (@files)
 {
-  chdir $dataset;
-  loaddata($dataset . "/" . $dir ,$ARGV[1],$index,*GNUPLOT);
+  print "Working on file: $fl\n";
+  loaddata($fl,$index,*GNUPLOT);
   $index += 5;
 }
 
@@ -95,11 +76,10 @@ close(GNUPLOT);
 #
 # Note: subroutine leaves current directory changed.
 #
-# $_[0] -- Directory name
-# $_[1] -- Data file name
-# $_[2] -- Gnuplot data file Index for critical point section
+# $_[0] -- Data file name
+# $_[1] -- Gnuplot data file Index for critical point section
 #          Note (stable section is index+1, unstable section index+2)
-# $_[3] -- reference to output file
+# $_[2] -- reference to output file
 #
 sub loaddata {
   my(@fields,@temp,@bifpt,@stress,@conjtostress,@DOF,
@@ -107,7 +87,7 @@ sub loaddata {
      $stableflag,$stable_nodata,$unstable_nodata,$bifpoints,$turnpoints,
      $reconstturnpts,$gridsize,$loadparam,$loadgrad,$oldloadgrad,$recalc,$BWrecalc,
      $outputfl);
-  $outputfl = $_[3];
+  $outputfl = $_[2];
   $bifheader = "";
   $bif = "";
   $biftmp = "";
@@ -126,9 +106,6 @@ sub loaddata {
   
   my($firststable,$firstunstable);
   
-  #chdir $_[0] || die "No $_[0] Directory, $!";
-  chdir $_[0];
-  
   # flag to make sure there is data in the index
   $stable_nodata = 1;
   $unstable_nodata = 1;
@@ -136,9 +113,9 @@ sub loaddata {
   $turnpoints = 0;
   $reconstturnpts = 0;
   
-  if (-e $_[1])
+  if (-e $_[0])
   {
-    open(DATA,"gzcat -f $_[1]|") || die "No file, \"$_[0]\": $_[1], $!";
+    open(DATA,"gzcat -f $_[0]|") || die "No file: $_[0], $!";
     
     $_ = <DATA>;
     while (! m/^Restriction:/)
@@ -318,11 +295,11 @@ sub loaddata {
   }
   else
   {
-    print "No file, \"$_[1]\" in $_[0]!\n";
+    print "No file: $_[0]!\n";
   }
   
-  $bifheader .= sprintf "# Index $_[2]\n";
-  $bifheader .= sprintf "# $_[0]/$_[1] --- Bifurcation Points\n";
+  $bifheader .= sprintf "# Index $_[1]\n";
+  $bifheader .= sprintf "# $_[0] --- Bifurcation Points\n";
   $bifheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
   "# Temperature","Stress","ConjToStress","Potential","Entropy","HeatCapacity";
   for (my $i=0;$i<$DOFSize;$i+=1)
@@ -332,8 +309,8 @@ sub loaddata {
   $bifheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . "\n",
   "NumNeg TFs","Rk 1 Convex","Blochwave";
   
-  $turnheader .= sprintf "# Index " . ($_[2]+1) . "\n";
-  $turnheader .= sprintf "# $_[0]/$_[1] --- Turning Points\n";
+  $turnheader .= sprintf "# Index " . ($_[1]+1) . "\n";
+  $turnheader .= sprintf "# $_[0] --- Turning Points\n";
   $turnheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
   "# Temperature","Stress","ConjToStress","Potential","Entropy","HeatCapacity";
   for (my $i=0;$i<$DOFSize;$i+=1)
@@ -343,8 +320,8 @@ sub loaddata {
   $turnheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . "\n",
   "NumNeg TFs","Rk 1 Convex","Blochwave";
   
-  $reconstturnheader .= sprintf "# Index " . ($_[2]+2) . "\n";
-  $reconstturnheader .= sprintf "# $_[0]/$_[1] --- Reconstructive Turning Points\n";
+  $reconstturnheader .= sprintf "# Index " . ($_[1]+2) . "\n";
+  $reconstturnheader .= sprintf "# $_[0] --- Reconstructive Turning Points\n";
   $reconstturnheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
   "# Temperature","Stress","ConjToStress","Potential","Entropy","HeatCapacity";
   for (my $i=0;$i<$DOFSize;$i+=1)
@@ -354,8 +331,8 @@ sub loaddata {
   $reconstturnheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . "\n",
   "NumNeg TFs","Rk 1 Convex","Blochwave";
   
-  $stableheader .= sprintf "# Index " . ($_[2]+3) . "\n";
-  $stableheader .= sprintf "# $_[0]/$_[1] --- Stable\n";
+  $stableheader .= sprintf "# Index " . ($_[1]+3) . "\n";
+  $stableheader .= sprintf "# $_[0] --- Stable\n";
   $stableheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
   "# Temperature","Stress","ConjToStress","Potential","Entropy","HeatCapacity";
   for (my $i=0;$i<$DOFSize;$i+=1)
@@ -365,8 +342,8 @@ sub loaddata {
   $stableheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . "\n",
   "NumNeg TFs","Rk 1 Convex","Blochwave";
   
-  $unstableheader .= sprintf "# Index " . ($_[2]+4) . "\n";
-  $unstableheader .= sprintf "# $_[0]/$_[1] --- Unstable\n";
+  $unstableheader .= sprintf "# Index " . ($_[1]+4) . "\n";
+  $unstableheader .= sprintf "# $_[0] --- Unstable\n";
   $unstableheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
   "# Temperature","Stress","ConjToStress","Potential","Entropy","HeatCapacity";
   for (my $i=0;$i<$DOFSize;$i+=1)
@@ -483,7 +460,7 @@ sub loaddata {
         {
           if (!$firststable)
           {
-            $stable .= sprintf "# name: Index_" . ($_[2]+3) . "_$substable\n";
+            $stable .= sprintf "# name: Index_" . ($_[1]+3) . "_$substable\n";
             $stable .= sprintf "# type: matrix\n";
             $stable .= sprintf "# rows: $nostable\n";
             $stable .= sprintf "# columns: %i\n",$StateSize;
@@ -511,7 +488,7 @@ sub loaddata {
         {
           if (!$firstunstable)
           {
-            $unstable .= sprintf "# name: Index_" . ($_[2]+4). "_$subunstable\n";
+            $unstable .= sprintf "# name: Index_" . ($_[1]+4). "_$subunstable\n";
             $unstable .= sprintf "# type: matrix\n";
             $unstable .= sprintf "# rows: $nounstable\n";
             $unstable .= sprintf "# columns: %i\n",$StateSize;
@@ -540,7 +517,7 @@ sub loaddata {
       {
         if (!$firstunstable)
         {
-          $unstable .= sprintf "# name: Index_" . ($_[2]+4). "_$subunstable\n";
+          $unstable .= sprintf "# name: Index_" . ($_[1]+4). "_$subunstable\n";
           $unstable .= sprintf "# type: matrix\n";
           $unstable .= sprintf "# rows: $nounstable\n";
           $unstable .= sprintf "# columns: %i\n",$StateSize;
@@ -616,7 +593,7 @@ sub loaddata {
           
           if (!$firststable)
           {
-            $stable .= sprintf "# name: Index_" . ($_[2]+3) . "_$substable\n";
+            $stable .= sprintf "# name: Index_" . ($_[1]+3) . "_$substable\n";
             $stable .= sprintf "# type: matrix\n";
             $stable .= sprintf "# rows: $nostable\n";
             $stable .= sprintf "# columns: %i\n",$StateSize;
@@ -645,7 +622,7 @@ sub loaddata {
           
           if (!$firstunstable)
           {
-            $unstable .= sprintf "# name: Index_" . ($_[2]+4). "_$subunstable\n";
+            $unstable .= sprintf "# name: Index_" . ($_[1]+4). "_$subunstable\n";
             $unstable .= sprintf "# type: matrix\n";
             $unstable .= sprintf "# rows: $nounstable\n";
             $unstable .= sprintf "# columns: %i\n",$StateSize;
@@ -675,7 +652,7 @@ sub loaddata {
         
         if (!$firststable)
         {
-          $stable .= sprintf "# name: Index_" . ($_[2]+3) . "_$substable\n";
+          $stable .= sprintf "# name: Index_" . ($_[1]+3) . "_$substable\n";
           $stable .= sprintf "# type: matrix\n";
           $stable .= sprintf "# rows: $nostable\n";
           $stable .= sprintf "# columns: %i\n",$StateSize;
@@ -708,7 +685,7 @@ sub loaddata {
   # Make sure there is at least one data point in each index
   if ($bifpoints == 0)
   {
-    $bif .= sprintf "# name: Index_$_[2]_0\n";
+    $bif .= sprintf "# name: Index_$_[1]_0\n";
     $bif .= sprintf "# type: matrix\n";
     $bif .= sprintf "# rows: 1\n";
     $bif .= sprintf "# columns: %i\n",$StateSize;
@@ -722,7 +699,7 @@ sub loaddata {
   {
     if ($bifpoints > 0)
     {
-      $bif .= sprintf "# name: Index_$_[2]_0\n";
+      $bif .= sprintf "# name: Index_$_[1]_0\n";
       $bif .= sprintf "# type: matrix\n";
       $bif .= sprintf "# rows: $bifpoints\n";
       $bif .= sprintf "# columns: %i\n",$StateSize;
@@ -732,7 +709,7 @@ sub loaddata {
   
   if ($turnpoints == 0)
   {
-    $turn .= sprintf "# name: Index_" . ($_[2]+1) ,"_0\n";
+    $turn .= sprintf "# name: Index_" . ($_[1]+1) ,"_0\n";
     $turn .= sprintf "# type: matrix\n";
     $turn .= sprintf "# rows: 1\n";
     $turn .= sprintf "# columns: %i\n",$StateSize;
@@ -746,7 +723,7 @@ sub loaddata {
   {
     if ($turnpoints > 0)
     {
-      $turn .= sprintf "# name: Index_" . ($_[2]+1) . "_0\n";
+      $turn .= sprintf "# name: Index_" . ($_[1]+1) . "_0\n";
       $turn .= sprintf "# type: matrix\n";
       $turn .= sprintf "# rows: $turnpoints\n";
       $turn .= sprintf "# columns: %i\n",$StateSize;
@@ -756,7 +733,7 @@ sub loaddata {
   
   if ($reconstturnpts == 0)
   {
-    $reconstturn .= sprintf "# name: Index_" . ($_[2]+2) . "_0\n";
+    $reconstturn .= sprintf "# name: Index_" . ($_[1]+2) . "_0\n";
     $reconstturn .= sprintf "# type: matrix\n";
     $reconstturn .= sprintf "# rows: 1\n";
     $reconstturn .= sprintf "# columns: %i\n",$StateSize;
@@ -770,7 +747,7 @@ sub loaddata {
   {
     if ($reconstturnpts > 0)
     {
-      $reconstturn .= sprintf "# name: Index_" . ($_[2]+2) . "_0\n";
+      $reconstturn .= sprintf "# name: Index_" . ($_[1]+2) . "_0\n";
       $reconstturn .= sprintf "# type: matrix\n";
       $reconstturn .= sprintf "# rows: $reconstturnpts\n";
       $reconstturn .= sprintf "# columns: %i\n",$StateSize;
@@ -780,7 +757,7 @@ sub loaddata {
   
   if ($stable_nodata)
   {
-    $stable .= sprintf "# name: Index_" . ($_[2]+3) . "_$substable\n";
+    $stable .= sprintf "# name: Index_" . ($_[1]+3) . "_$substable\n";
     $stable .= sprintf "# type: matrix\n";
     $stable .= sprintf "# rows: 1\n";
     $stable .= sprintf "# columns: %i\n",$StateSize;
@@ -794,7 +771,7 @@ sub loaddata {
   {
     if ($nostable > 0)
     {
-      $stable .= sprintf "# name: Index_" . ($_[2]+3) . "_$substable\n";
+      $stable .= sprintf "# name: Index_" . ($_[1]+3) . "_$substable\n";
       $stable .= sprintf "# type: matrix\n";
       $stable .= sprintf "# rows: $nostable\n";
       $stable .= sprintf "# columns: %i\n",$StateSize;
@@ -804,7 +781,7 @@ sub loaddata {
   
   if ($unstable_nodata)
   {
-    $unstable .= sprintf "# name: Index_" . ($_[2]+4) . "_$subunstable\n";
+    $unstable .= sprintf "# name: Index_" . ($_[1]+4) . "_$subunstable\n";
     $unstable .= sprintf "# type: matrix\n";
     $unstable .= sprintf "# rows: 1\n";
     $unstable .= sprintf "# columns: %i\n",$StateSize;
@@ -818,7 +795,7 @@ sub loaddata {
   {
     if ($nounstable > 0)
     {
-      $unstable .= sprintf "# name: Index_" . ($_[2]+4) . "_$subunstable\n";
+      $unstable .= sprintf "# name: Index_" . ($_[1]+4) . "_$subunstable\n";
       $unstable .= sprintf "# type: matrix\n";
       $unstable .= sprintf "# rows: $nounstable\n";
       $unstable .= sprintf "# columns: %i\n",$StateSize;
