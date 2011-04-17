@@ -1,4 +1,5 @@
 POTENTIALS = KnownPairPotentials.cpp\
+	     RandomAlloy.cpp\
 	     LJ.cpp\
 	     LJConstCutoff.cpp\
 	     LJLinearCutoff.cpp\

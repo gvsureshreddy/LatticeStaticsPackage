@@ -2,6 +2,7 @@
 #define RSE__KnownPairPotentials
 
 #include "PerlInput.h"
+#include "RandomAlloy.h"
 #include "LJ.h"
 #include "LJConstCutoff.h"
 #include "LJLinearCutoff.h"

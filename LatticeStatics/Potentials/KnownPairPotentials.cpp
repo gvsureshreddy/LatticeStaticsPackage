@@ -11,6 +11,7 @@ PairPotentials* InitializePairPotential(PerlInput::HashStruct const& ParentHash,
                                         PerlInput const& Input,int const& i,int const& j)
 {
    stringstream tmp;
+   double CompA,CompB;
    double Eps0,Eps1,Sigma0,Sigma1,rcut;
    double Tref,A0,AT,ATPow,B0,BT,BTPow,Alpha,Rref1,Rref2,Tmelt;
    double Rtheta1,Rtheta1Pow,Rtheta2,Rtheta2Pow,Cutoff,CutoffStart,CutoffEnd;
@@ -20,6 +21,14 @@ PairPotentials* InitializePairPotential(PerlInput::HashStruct const& ParentHash,
    PerlInput::HashStruct Hash = Input.getHash(ParentHash,tmp.str().c_str());
 
    char const* const pptype = Input.getString(Hash,"Type");
+   if (!strcmp("RandomAlloy",pptype))
+   {
+      CompA = Input.getDouble(Hash,"CompOfSubLatA");
+      CompB = Input.getDouble(Hash,"CompOfSubLatB");
+      char const* const PotsHash = Input.getString(Hash,"PotentialsHashName");
+
+      return new RandomAlloy(CompA,CompB,Input,PotsHash);
+   }
    if (!strcmp("LJ",pptype))
    {
       Eps0 = Input.getDouble(Hash,"Eps0");
@@ -191,6 +200,7 @@ void UpdatePairPotential(PerlInput::HashStruct const& ParentHash,PerlInput const
                          int const& i,int const& j,PairPotentials* const Potential)
 {
    stringstream tmp;
+   double CompA,CompB;
    double Eps0,Eps1,Sigma0,Sigma1,rcut;
    double Tref,A0,AT,ATPow,B0,BT,BTPow,Alpha,Rref1,Rref2,Tmelt;
    double Rtheta1,Rtheta1Pow,Rtheta2,Rtheta2Pow,Cutoff,CutoffStart,CutoffEnd;
@@ -198,32 +208,48 @@ void UpdatePairPotential(PerlInput::HashStruct const& ParentHash,PerlInput const
    tmp.str("");
    tmp << "PotentialType_" << i << "_" << j;
    PerlInput::HashStruct Hash = Input.getHash(ParentHash,tmp.str().c_str());
-   if (!strcmp(Potential->Type(),"LJ"))
+   if (!strcmp(Potential->Type(),"RandomAlloy"))
+   {
+      RandomAlloy *RAp;
+      RAp = dynamic_cast<RandomAlloy *>(Potential);
+
+      if (Input.ParameterOK(Hash,"Update_CompOfSubLatA"))
+      {
+         CompA = Input.getDouble(Hash,"Update_CompOfSubLatA");
+         RAp->SetCompOfSubLatA(CompA);
+      }
+      if (Input.ParameterOK(Hash,"Update_CompOfSubLatB"))
+      {
+         CompB = Input.getDouble(Hash,"Update_CompOfSubLatB");
+         RAp->SetCompOfSubLatB(CompB);
+      }         
+   }
+   else if (!strcmp(Potential->Type(),"LJ"))
    {
       LJ *LJp;
       LJp = dynamic_cast<LJ *>(Potential);
 
-      if (Input.ParameterOK(Hash,"Update-Eps0"))
+      if (Input.ParameterOK(Hash,"Update_Eps0"))
       {
-         Eps0 = Input.getDouble(Hash,"Update-Eps0");
+         Eps0 = Input.getDouble(Hash,"Update_Eps0");
          LJp->SetEps0(Eps0);
       }
 
-      if (Input.ParameterOK(Hash,"Update-Eps1"))
+      if (Input.ParameterOK(Hash,"Update_Eps1"))
       {
-         Eps1 = Input.getDouble(Hash,"Update-Eps1");
+         Eps1 = Input.getDouble(Hash,"Update_Eps1");
          LJp->SetEps1(Eps1);
       }
 
-      if (Input.ParameterOK(Hash,"Update-Sigma0"))
+      if (Input.ParameterOK(Hash,"Update_Sigma0"))
       {
-         Sigma0 = Input.getDouble(Hash,"Update-Sigma0");
+         Sigma0 = Input.getDouble(Hash,"Update_Sigma0");
          LJp->SetSigma0(Sigma0);
       }
       
-      if (Input.ParameterOK(Hash,"Update-Sigma1"))
+      if (Input.ParameterOK(Hash,"Update_Sigma1"))
       {
-         Sigma1 = Input.getDouble(Hash,"Update-Sigma1");
+         Sigma1 = Input.getDouble(Hash,"Update_Sigma1");
          LJp->SetSigma1(Sigma1);
       }
    }
@@ -232,33 +258,33 @@ void UpdatePairPotential(PerlInput::HashStruct const& ParentHash,PerlInput const
       LJConstCutoff *LJConstCutoffp;
       LJConstCutoffp = dynamic_cast<LJConstCutoff *>(Potential);
 
-      if (Input.ParameterOK(Hash,"Update-Eps0"))
+      if (Input.ParameterOK(Hash,"Update_Eps0"))
       {
-         Eps0 = Input.getDouble(Hash,"Update-Eps0");
+         Eps0 = Input.getDouble(Hash,"Update_Eps0");
          LJConstCutoffp->SetEps0(Eps0);
       }
       
-      if (Input.ParameterOK(Hash,"Update-Eps1"))
+      if (Input.ParameterOK(Hash,"Update_Eps1"))
       {
-         Eps1 = Input.getDouble(Hash,"Update-Eps1");
+         Eps1 = Input.getDouble(Hash,"Update_Eps1");
          LJConstCutoffp->SetEps1(Eps1);
       }
 
-      if (Input.ParameterOK(Hash,"Update-Sigma0"))
+      if (Input.ParameterOK(Hash,"Update_Sigma0"))
       {
-         Sigma0 = Input.getDouble(Hash,"Update-Sigma0");
+         Sigma0 = Input.getDouble(Hash,"Update_Sigma0");
          LJConstCutoffp->SetSigma0(Sigma0);
       }
 
-      if (Input.ParameterOK(Hash,"Update-Sigma1"))
+      if (Input.ParameterOK(Hash,"Update_Sigma1"))
       {
-         Sigma1 = Input.getDouble(Hash,"Update-Sigma1");
+         Sigma1 = Input.getDouble(Hash,"Update_Sigma1");
          LJConstCutoffp->SetSigma1(Sigma1);
       }
 
-      if (Input.ParameterOK(Hash,"Update-Cutoff"))
+      if (Input.ParameterOK(Hash,"Update_Cutoff"))
       {
-         Cutoff = Input.getDouble(Hash,"Update-Cutoff");
+         Cutoff = Input.getDouble(Hash,"Update_Cutoff");
          LJConstCutoffp->SetCutoff(Cutoff);
       }
    }
@@ -267,33 +293,33 @@ void UpdatePairPotential(PerlInput::HashStruct const& ParentHash,PerlInput const
       LJLinearCutoff *LJLinearCutoffp;
       LJLinearCutoffp = dynamic_cast<LJLinearCutoff *>(Potential);
 
-      if (Input.ParameterOK(Hash,"Update-Eps0"))
+      if (Input.ParameterOK(Hash,"Update_Eps0"))
       {
-         Eps0 = Input.getDouble(Hash,"Update-Eps0");
+         Eps0 = Input.getDouble(Hash,"Update_Eps0");
          LJLinearCutoffp->SetEps0(Eps0);
       }
       
-      if (Input.ParameterOK(Hash,"Update-Eps1"))
+      if (Input.ParameterOK(Hash,"Update_Eps1"))
       {
-         Eps1 = Input.getDouble(Hash,"Update-Eps1");
+         Eps1 = Input.getDouble(Hash,"Update_Eps1");
          LJLinearCutoffp->SetEps1(Eps1);
       }
 
-      if (Input.ParameterOK(Hash,"Update-Sigma0"))
+      if (Input.ParameterOK(Hash,"Update_Sigma0"))
       {
-         Sigma0 = Input.getDouble(Hash,"Update-Sigma0");
+         Sigma0 = Input.getDouble(Hash,"Update_Sigma0");
          LJLinearCutoffp->SetSigma0(Sigma0);
       }
 
-      if (Input.ParameterOK(Hash,"Update-Sigma1"))
+      if (Input.ParameterOK(Hash,"Update_Sigma1"))
       {
-         Sigma1 = Input.getDouble(Hash,"Update-Sigma1");
+         Sigma1 = Input.getDouble(Hash,"Update_Sigma1");
          LJLinearCutoffp->SetSigma1(Sigma1);
       }
 
-      if (Input.ParameterOK(Hash,"Update-Cutoff"))
+      if (Input.ParameterOK(Hash,"Update_Cutoff"))
       {
-         Cutoff = Input.getDouble(Hash,"Update-Cutoff");
+         Cutoff = Input.getDouble(Hash,"Update_Cutoff");
          LJLinearCutoffp->SetCutoff(Cutoff);
       }
    }
@@ -302,33 +328,33 @@ void UpdatePairPotential(PerlInput::HashStruct const& ParentHash,PerlInput const
       LJDobson *LJDobsonp;
       LJDobsonp = dynamic_cast<LJDobson *>(Potential);
 
-      if (Input.ParameterOK(Hash,"Update-Eps0"))
+      if (Input.ParameterOK(Hash,"Update_Eps0"))
       {
-         Eps0 = Input.getDouble(Hash,"Update-Eps0");
+         Eps0 = Input.getDouble(Hash,"Update_Eps0");
          LJDobsonp->SetEps0(Eps0);
       }
       
-      if (Input.ParameterOK(Hash,"Update-Eps1"))
+      if (Input.ParameterOK(Hash,"Update_Eps1"))
       {
-         Eps1 = Input.getDouble(Hash,"Update-Eps1");
+         Eps1 = Input.getDouble(Hash,"Update_Eps1");
          LJDobsonp->SetEps1(Eps1);
       }
 
-      if (Input.ParameterOK(Hash,"Update-Sigma0"))
+      if (Input.ParameterOK(Hash,"Update_Sigma0"))
       {
-         Sigma0 = Input.getDouble(Hash,"Update-Sigma0");
+         Sigma0 = Input.getDouble(Hash,"Update_Sigma0");
          LJDobsonp->SetSigma0(Sigma0);
       }
 
-      if (Input.ParameterOK(Hash,"Update-Sigma1"))
+      if (Input.ParameterOK(Hash,"Update_Sigma1"))
       {
-         Sigma1 = Input.getDouble(Hash,"Update-Sigma1");
+         Sigma1 = Input.getDouble(Hash,"Update_Sigma1");
          LJDobsonp->SetSigma1(Sigma1);
       }
 
-      if (Input.ParameterOK(Hash,"Update-Cutoff"))
+      if (Input.ParameterOK(Hash,"Update_Cutoff"))
       {
-         Cutoff = Input.getDouble(Hash,"Update-Cutoff");
+         Cutoff = Input.getDouble(Hash,"Update_Cutoff");
          LJDobsonp->SetCutoff(Cutoff);
       }
    }
@@ -337,33 +363,33 @@ void UpdatePairPotential(PerlInput::HashStruct const& ParentHash,PerlInput const
       LJQuadraticCutoff *LJQuadraticCutoffp;
       LJQuadraticCutoffp = dynamic_cast<LJQuadraticCutoff *>(Potential);
 
-      if (Input.ParameterOK(Hash,"Update-Eps0"))
+      if (Input.ParameterOK(Hash,"Update_Eps0"))
       {
-         Eps0 = Input.getDouble(Hash,"Update-Eps0");
+         Eps0 = Input.getDouble(Hash,"Update_Eps0");
          LJQuadraticCutoffp->SetEps0(Eps0);
       }
       
-      if (Input.ParameterOK(Hash,"Update-Eps1"))
+      if (Input.ParameterOK(Hash,"Update_Eps1"))
       {
-         Eps1 = Input.getDouble(Hash,"Update-Eps1");
+         Eps1 = Input.getDouble(Hash,"Update_Eps1");
          LJQuadraticCutoffp->SetEps1(Eps1);
       }
 
-      if (Input.ParameterOK(Hash,"Update-Sigma0"))
+      if (Input.ParameterOK(Hash,"Update_Sigma0"))
       {
-         Sigma0 = Input.getDouble(Hash,"Update-Sigma0");
+         Sigma0 = Input.getDouble(Hash,"Update_Sigma0");
          LJQuadraticCutoffp->SetSigma0(Sigma0);
       }
 
-      if (Input.ParameterOK(Hash,"Update-Sigma1"))
+      if (Input.ParameterOK(Hash,"Update_Sigma1"))
       {
-         Sigma1 = Input.getDouble(Hash,"Update-Sigma1");
+         Sigma1 = Input.getDouble(Hash,"Update_Sigma1");
          LJQuadraticCutoffp->SetSigma1(Sigma1);
       }
 
-      if (Input.ParameterOK(Hash,"Update-Cutoff"))
+      if (Input.ParameterOK(Hash,"Update_Cutoff"))
       {
-         Cutoff = Input.getDouble(Hash,"Update-Cutoff");
+         Cutoff = Input.getDouble(Hash,"Update_Cutoff");
          LJQuadraticCutoffp->SetCutoff(Cutoff);
       }
    }
@@ -372,39 +398,39 @@ void UpdatePairPotential(PerlInput::HashStruct const& ParentHash,PerlInput const
       LJSplineCutoff *LJSplineCutoffp;
       LJSplineCutoffp = dynamic_cast<LJSplineCutoff *>(Potential);
 
-      if (Input.ParameterOK(Hash,"Update-Eps0"))
+      if (Input.ParameterOK(Hash,"Update_Eps0"))
       {
-         Eps0 = Input.getDouble(Hash,"Update-Eps0");
+         Eps0 = Input.getDouble(Hash,"Update_Eps0");
          LJSplineCutoffp->SetEps0(Eps0);
       }
       
-      if (Input.ParameterOK(Hash,"Update-Eps1"))
+      if (Input.ParameterOK(Hash,"Update_Eps1"))
       {
-         Eps1 = Input.getDouble(Hash,"Update-Eps1");
+         Eps1 = Input.getDouble(Hash,"Update_Eps1");
          LJSplineCutoffp->SetEps1(Eps1);
       }
 
-      if (Input.ParameterOK(Hash,"Update-Sigma0"))
+      if (Input.ParameterOK(Hash,"Update_Sigma0"))
       {
-         Sigma0 = Input.getDouble(Hash,"Update-Sigma0");
+         Sigma0 = Input.getDouble(Hash,"Update_Sigma0");
          LJSplineCutoffp->SetSigma0(Sigma0);
       }
 
-      if (Input.ParameterOK(Hash,"Update-Sigma1"))
+      if (Input.ParameterOK(Hash,"Update_Sigma1"))
       {
-         Sigma1 = Input.getDouble(Hash,"Update-Sigma1");
+         Sigma1 = Input.getDouble(Hash,"Update_Sigma1");
          LJSplineCutoffp->SetSigma1(Sigma1);
       }
 
-      if (Input.ParameterOK(Hash,"Update-CutoffStart"))
+      if (Input.ParameterOK(Hash,"Update_CutoffStart"))
       {
-         CutoffStart = Input.getDouble(Hash,"Update-CutoffStart");
+         CutoffStart = Input.getDouble(Hash,"Update_CutoffStart");
          LJSplineCutoffp->SetCutoffStart(CutoffStart);
       }
 
-      if (Input.ParameterOK(Hash,"Update-CutoffEnd"))
+      if (Input.ParameterOK(Hash,"Update_CutoffEnd"))
       {
-         CutoffEnd = Input.getDouble(Hash,"Update-CutoffEnd");
+         CutoffEnd = Input.getDouble(Hash,"Update_CutoffEnd");
          LJSplineCutoffp->SetCutoffEnd(CutoffEnd);
       }
    }
@@ -413,51 +439,51 @@ void UpdatePairPotential(PerlInput::HashStruct const& ParentHash,PerlInput const
       RadiiMorse *RM;
       RM = dynamic_cast<RadiiMorse *>(Potential);
       
-      if (Input.ParameterOK(Hash,"Update-A0"))
+      if (Input.ParameterOK(Hash,"Update_A0"))
       {
-         A0 = Input.getDouble(Hash,"Update-A0");
+         A0 = Input.getDouble(Hash,"Update_A0");
          RM->SetA0(A0);
       }
 
-      if (Input.ParameterOK(Hash,"Update-AT"))
+      if (Input.ParameterOK(Hash,"Update_AT"))
       {
-         AT = Input.getDouble(Hash,"Update-AT");
+         AT = Input.getDouble(Hash,"Update_AT");
          RM->SetAT(AT);
       }
 
-      if (Input.ParameterOK(Hash,"Update-B0"))
+      if (Input.ParameterOK(Hash,"Update_B0"))
       {
-         B0 = Input.getDouble(Hash,"Update-B0");
+         B0 = Input.getDouble(Hash,"Update_B0");
          RM->SetB0(B0);
       }
 
-      if (Input.ParameterOK(Hash,"Update-BT"))
+      if (Input.ParameterOK(Hash,"Update_BT"))
       {
-         BT = Input.getDouble(Hash,"Update-BT");
+         BT = Input.getDouble(Hash,"Update_BT");
          RM->SetBT(BT);
       }
 
-      if (Input.ParameterOK(Hash,"Update-Rref1"))
+      if (Input.ParameterOK(Hash,"Update_Rref1"))
       {
-         Rref1 = Input.getDouble(Hash,"Update-Rref1");
+         Rref1 = Input.getDouble(Hash,"Update_Rref1");
          RM->SetRref1(Rref1);
       }
       
-      if (Input.ParameterOK(Hash,"Update-Rtheta1"))
+      if (Input.ParameterOK(Hash,"Update_Rtheta1"))
       {
-         Rtheta1 = Input.getDouble(Hash,"Update-Rtheta1");
+         Rtheta1 = Input.getDouble(Hash,"Update_Rtheta1");
          RM->SetRtheta1(Rtheta1);
       }
       
-      if (Input.ParameterOK(Hash,"Update-Rref2"))
+      if (Input.ParameterOK(Hash,"Update_Rref2"))
       {
-         Rref2 = Input.getDouble(Hash,"Update-Rref2");
+         Rref2 = Input.getDouble(Hash,"Update_Rref2");
          RM->SetRref2(Rref2);
       }
       
-      if (Input.ParameterOK(Hash,"Update-Rtheta2"))
+      if (Input.ParameterOK(Hash,"Update_Rtheta2"))
       {
-         Rtheta2 = Input.getDouble(Hash,"Update-Rtheta2");
+         Rtheta2 = Input.getDouble(Hash,"Update_Rtheta2");
          RM->SetRtheta2(Rtheta2);
       }
    }
@@ -466,57 +492,57 @@ void UpdatePairPotential(PerlInput::HashStruct const& ParentHash,PerlInput const
       RadiiMorseCutoff *RM;
       RM = dynamic_cast<RadiiMorseCutoff *>(Potential);
       
-      if (Input.ParameterOK(Hash,"Update-A0"))
+      if (Input.ParameterOK(Hash,"Update_A0"))
       {
-         A0 = Input.getDouble(Hash,"Update-A0");
+         A0 = Input.getDouble(Hash,"Update_A0");
          RM->SetA0(A0);
       }
 
-      if (Input.ParameterOK(Hash,"Update-AT"))
+      if (Input.ParameterOK(Hash,"Update_AT"))
       {
-         AT = Input.getDouble(Hash,"Update-AT");
+         AT = Input.getDouble(Hash,"Update_AT");
          RM->SetAT(AT);
       }
 
-      if (Input.ParameterOK(Hash,"Update-B0"))
+      if (Input.ParameterOK(Hash,"Update_B0"))
       {
-         B0 = Input.getDouble(Hash,"Update-B0");
+         B0 = Input.getDouble(Hash,"Update_B0");
          RM->SetB0(B0);
       }
 
-      if (Input.ParameterOK(Hash,"Update-BT"))
+      if (Input.ParameterOK(Hash,"Update_BT"))
       {
-         BT = Input.getDouble(Hash,"Update-BT");
+         BT = Input.getDouble(Hash,"Update_BT");
          RM->SetBT(BT);
       }
 
-      if (Input.ParameterOK(Hash,"Update-Rref1"))
+      if (Input.ParameterOK(Hash,"Update_Rref1"))
       {
-         Rref1 = Input.getDouble(Hash,"Update-Rref1");
+         Rref1 = Input.getDouble(Hash,"Update_Rref1");
          RM->SetRref1(Rref1);
       }
       
-      if (Input.ParameterOK(Hash,"Update-Rtheta1"))
+      if (Input.ParameterOK(Hash,"Update_Rtheta1"))
       {
-         Rtheta1 = Input.getDouble(Hash,"Update-Rtheta1");
+         Rtheta1 = Input.getDouble(Hash,"Update_Rtheta1");
          RM->SetRtheta1(Rtheta1);
       }
       
-      if (Input.ParameterOK(Hash,"Update-Rref2"))
+      if (Input.ParameterOK(Hash,"Update_Rref2"))
       {
-         Rref2 = Input.getDouble(Hash,"Update-Rref2");
+         Rref2 = Input.getDouble(Hash,"Update_Rref2");
          RM->SetRref2(Rref2);
       }
       
-      if (Input.ParameterOK(Hash,"Update-Rtheta2"))
+      if (Input.ParameterOK(Hash,"Update_Rtheta2"))
       {
-         Rtheta2 = Input.getDouble(Hash,"Update-Rtheta2");
+         Rtheta2 = Input.getDouble(Hash,"Update_Rtheta2");
          RM->SetRtheta2(Rtheta2);
       }
 
-      if (Input.ParameterOK(Hash,"Update-Cutoff"))
+      if (Input.ParameterOK(Hash,"Update_Cutoff"))
       {
-         Cutoff = Input.getDouble(Hash,"Update-Cutoff");
+         Cutoff = Input.getDouble(Hash,"Update_Cutoff");
          RM->SetCutoff(Cutoff);
       }
    }
@@ -525,57 +551,57 @@ void UpdatePairPotential(PerlInput::HashStruct const& ParentHash,PerlInput const
       RadiiMorseCutoff2 *RM;
       RM = dynamic_cast<RadiiMorseCutoff2 *>(Potential);
       
-      if (Input.ParameterOK(Hash,"Update-A0"))
+      if (Input.ParameterOK(Hash,"Update_A0"))
       {
-         A0 = Input.getDouble(Hash,"Update-A0");
+         A0 = Input.getDouble(Hash,"Update_A0");
          RM->SetA0(A0);
       }
 
-      if (Input.ParameterOK(Hash,"Update-AT"))
+      if (Input.ParameterOK(Hash,"Update_AT"))
       {
-         AT = Input.getDouble(Hash,"Update-AT");
+         AT = Input.getDouble(Hash,"Update_AT");
          RM->SetAT(AT);
       }
 
-      if (Input.ParameterOK(Hash,"Update-B0"))
+      if (Input.ParameterOK(Hash,"Update_B0"))
       {
-         B0 = Input.getDouble(Hash,"Update-B0");
+         B0 = Input.getDouble(Hash,"Update_B0");
          RM->SetB0(B0);
       }
 
-      if (Input.ParameterOK(Hash,"Update-BT"))
+      if (Input.ParameterOK(Hash,"Update_BT"))
       {
-         BT = Input.getDouble(Hash,"Update-BT");
+         BT = Input.getDouble(Hash,"Update_BT");
          RM->SetBT(BT);
       }
 
-      if (Input.ParameterOK(Hash,"Update-Rref1"))
+      if (Input.ParameterOK(Hash,"Update_Rref1"))
       {
-         Rref1 = Input.getDouble(Hash,"Update-Rref1");
+         Rref1 = Input.getDouble(Hash,"Update_Rref1");
          RM->SetRref1(Rref1);
       }
       
-      if (Input.ParameterOK(Hash,"Update-Rtheta1"))
+      if (Input.ParameterOK(Hash,"Update_Rtheta1"))
       {
-         Rtheta1 = Input.getDouble(Hash,"Update-Rtheta1");
+         Rtheta1 = Input.getDouble(Hash,"Update_Rtheta1");
          RM->SetRtheta1(Rtheta1);
       }
       
-      if (Input.ParameterOK(Hash,"Update-Rref2"))
+      if (Input.ParameterOK(Hash,"Update_Rref2"))
       {
-         Rref2 = Input.getDouble(Hash,"Update-Rref2");
+         Rref2 = Input.getDouble(Hash,"Update_Rref2");
          RM->SetRref2(Rref2);
       }
       
-      if (Input.ParameterOK(Hash,"Update-Rtheta2"))
+      if (Input.ParameterOK(Hash,"Update_Rtheta2"))
       {
-         Rtheta2 = Input.getDouble(Hash,"Update-Rtheta2");
+         Rtheta2 = Input.getDouble(Hash,"Update_Rtheta2");
          RM->SetRtheta2(Rtheta2);
       }
 
-      if (Input.ParameterOK(Hash,"Update-Cutoff"))
+      if (Input.ParameterOK(Hash,"Update_Cutoff"))
       {
-         Cutoff = Input.getDouble(Hash,"Update-Cutoff");
+         Cutoff = Input.getDouble(Hash,"Update_Cutoff");
          RM->SetCutoff(Cutoff);
       }
    }
@@ -584,75 +610,75 @@ void UpdatePairPotential(PerlInput::HashStruct const& ParentHash,PerlInput const
       GVMorse *RM;
       RM = dynamic_cast<GVMorse *>(Potential);
       
-      if (Input.ParameterOK(Hash,"Update-A0"))
+      if (Input.ParameterOK(Hash,"Update_A0"))
       {
-         A0 = Input.getDouble(Hash,"Update-A0");
+         A0 = Input.getDouble(Hash,"Update_A0");
          RM->SetA0(A0);
       }
 
-      if (Input.ParameterOK(Hash,"Update-AT"))
+      if (Input.ParameterOK(Hash,"Update_AT"))
       {
-         AT = Input.getDouble(Hash,"Update-AT");
+         AT = Input.getDouble(Hash,"Update_AT");
          RM->SetAT(AT);
       }
 
-      if (Input.ParameterOK(Hash,"Update-ATPow"))
+      if (Input.ParameterOK(Hash,"Update_ATPow"))
       {
-         ATPow = Input.getDouble(Hash,"Update-ATPow");
+         ATPow = Input.getDouble(Hash,"Update_ATPow");
          RM->SetATPow(ATPow);
       }
 
-      if (Input.ParameterOK(Hash,"Update-B0"))
+      if (Input.ParameterOK(Hash,"Update_B0"))
       {
-         B0 = Input.getDouble(Hash,"Update-B0");
+         B0 = Input.getDouble(Hash,"Update_B0");
          RM->SetB0(B0);
       }
 
-      if (Input.ParameterOK(Hash,"Update-BT"))
+      if (Input.ParameterOK(Hash,"Update_BT"))
       {
-         BT = Input.getDouble(Hash,"Update-BT");
+         BT = Input.getDouble(Hash,"Update_BT");
          RM->SetBT(BT);
       }
 
-      if (Input.ParameterOK(Hash,"Update-BTPow"))
+      if (Input.ParameterOK(Hash,"Update_BTPow"))
       {
-         BTPow = Input.getDouble(Hash,"Update-BTPow");
+         BTPow = Input.getDouble(Hash,"Update_BTPow");
          RM->SetBTPow(BTPow);
       }
 
-      if (Input.ParameterOK(Hash,"Update-Rref1"))
+      if (Input.ParameterOK(Hash,"Update_Rref1"))
       {
-         Rref1 = Input.getDouble(Hash,"Update-Rref1");
+         Rref1 = Input.getDouble(Hash,"Update_Rref1");
          RM->SetRref1(Rref1);
       }
       
-      if (Input.ParameterOK(Hash,"Update-Rtheta1"))
+      if (Input.ParameterOK(Hash,"Update_Rtheta1"))
       {
-         Rtheta1 = Input.getDouble(Hash,"Update-Rtheta1");
+         Rtheta1 = Input.getDouble(Hash,"Update_Rtheta1");
          RM->SetRtheta1(Rtheta1);
       }
 
-      if (Input.ParameterOK(Hash,"Update-Rtheta1Pow"))
+      if (Input.ParameterOK(Hash,"Update_Rtheta1Pow"))
       {
-         Rtheta1Pow = Input.getDouble(Hash,"Update-Rtheta1Pow");
+         Rtheta1Pow = Input.getDouble(Hash,"Update_Rtheta1Pow");
          RM->SetRtheta1Pow(Rtheta1Pow);
       }
 
-      if (Input.ParameterOK(Hash,"Update-Rref2"))
+      if (Input.ParameterOK(Hash,"Update_Rref2"))
       {
-         Rref2 = Input.getDouble(Hash,"Update-Rref2");
+         Rref2 = Input.getDouble(Hash,"Update_Rref2");
          RM->SetRref2(Rref2);
       }
       
-      if (Input.ParameterOK(Hash,"Update-Rtheta2"))
+      if (Input.ParameterOK(Hash,"Update_Rtheta2"))
       {
-         Rtheta2 = Input.getDouble(Hash,"Update-Rtheta2");
+         Rtheta2 = Input.getDouble(Hash,"Update_Rtheta2");
          RM->SetRtheta2(Rtheta2);
       }
 
-      if (Input.ParameterOK(Hash,"Update-Rtheta2Pow"))
+      if (Input.ParameterOK(Hash,"Update_Rtheta2Pow"))
       {
-         Rtheta2Pow = Input.getDouble(Hash,"Update-Rtheta2Pow");
+         Rtheta2Pow = Input.getDouble(Hash,"Update_Rtheta2Pow");
          RM->SetRtheta2Pow(Rtheta2Pow);
       }
    }
@@ -661,39 +687,39 @@ void UpdatePairPotential(PerlInput::HashStruct const& ParentHash,PerlInput const
       TempMorse *TM;
       TM = dynamic_cast<TempMorse *>(Potential);
       
-      if (Input.ParameterOK(Hash,"Update-Tref"))
+      if (Input.ParameterOK(Hash,"Update_Tref"))
       {
-         Tref = Input.getDouble(Hash,"Update-Tref");
+         Tref = Input.getDouble(Hash,"Update_Tref");
          TM->SetTref(Tref);
       }
 
-      if (Input.ParameterOK(Hash,"Update-A0"))
+      if (Input.ParameterOK(Hash,"Update_A0"))
       {
-         A0 = Input.getDouble(Hash,"Update-A0");
+         A0 = Input.getDouble(Hash,"Update_A0");
          TM->SetA0(A0);
       }
 
-      if (Input.ParameterOK(Hash,"Update-B0"))
+      if (Input.ParameterOK(Hash,"Update_B0"))
       {
-         B0 = Input.getDouble(Hash,"Update-B0");
+         B0 = Input.getDouble(Hash,"Update_B0");
          TM->SetB0(B0);
       }
 
-      if (Input.ParameterOK(Hash,"Update-Alpha"))
+      if (Input.ParameterOK(Hash,"Update_Alpha"))
       {
-         Alpha = Input.getDouble(Hash,"Update-Alpha");
+         Alpha = Input.getDouble(Hash,"Update_Alpha");
          TM->SetAlpha(Alpha);
       }
 
-      if (Input.ParameterOK(Hash,"Update-Rref"))
+      if (Input.ParameterOK(Hash,"Update_Rref"))
       {
-         Rref1 = Input.getDouble(Hash,"Update-Rref");
+         Rref1 = Input.getDouble(Hash,"Update_Rref");
          TM->SetRref(Rref1);
       }
 
-      if (Input.ParameterOK(Hash,"Update-Tmelt"))
+      if (Input.ParameterOK(Hash,"Update_Tmelt"))
       {
-         Tmelt = Input.getDouble(Hash,"Update-Tmelt");
+         Tmelt = Input.getDouble(Hash,"Update_Tmelt");
          TM->SetTmelt(Tmelt);
       }
    }
@@ -702,33 +728,33 @@ void UpdatePairPotential(PerlInput::HashStruct const& ParentHash,PerlInput const
       Dobson *Dobsonp;
       Dobsonp = dynamic_cast<Dobson *>(Potential);
 
-      if (Input.ParameterOK(Hash,"Update-Eps0"))
+      if (Input.ParameterOK(Hash,"Update_Eps0"))
       {
-         Eps0 = Input.getDouble(Hash,"Update-Eps0");
+         Eps0 = Input.getDouble(Hash,"Update_Eps0");
          Dobsonp->SetEps0(Eps0);
       }
 
-      if (Input.ParameterOK(Hash,"Update-Eps1"))
+      if (Input.ParameterOK(Hash,"Update_Eps1"))
       {
-         Eps1 = Input.getDouble(Hash,"Update-Eps1");
+         Eps1 = Input.getDouble(Hash,"Update_Eps1");
          Dobsonp->SetEps1(Eps1);
       }
 
-      if (Input.ParameterOK(Hash,"Update-Sigma0"))
+      if (Input.ParameterOK(Hash,"Update_Sigma0"))
       {
-         Sigma0 = Input.getDouble(Hash,"Update-Sigma0");
+         Sigma0 = Input.getDouble(Hash,"Update_Sigma0");
          Dobsonp->SetSigma0(Sigma0);
       }
       
-      if (Input.ParameterOK(Hash,"Update-Sigma1"))
+      if (Input.ParameterOK(Hash,"Update_Sigma1"))
       {
-         Sigma1 = Input.getDouble(Hash,"Update-Sigma1");
+         Sigma1 = Input.getDouble(Hash,"Update_Sigma1");
          Dobsonp->SetSigma1(Sigma1);
       }
 
-      if (Input.ParameterOK(Hash,"Update-rcut"))
+      if (Input.ParameterOK(Hash,"Update_rcut"))
       {
-         rcut = Input.getDouble(Hash,"Update-rcut");
+         rcut = Input.getDouble(Hash,"Update_rcut");
          Dobsonp->Setrcut(rcut);
       }
    }
