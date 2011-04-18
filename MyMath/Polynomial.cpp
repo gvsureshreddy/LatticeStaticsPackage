@@ -9,7 +9,9 @@ void PolyRootsLaguerre(MyComplexDouble const* const Coeff, int const& Degree,
 
    // Copy of coefficients for successive deflation.
    for (j = 0; j <= Degree; j++)
+   {
       ad[j] = Coeff[j];
+   }
    // Loop over each root to be found.
    for (j = Degree; j >= 1; j--)
    {
@@ -19,7 +21,9 @@ void PolyRootsLaguerre(MyComplexDouble const* const Coeff, int const& Degree,
       // find the root
       Laguerre(ad, j, &x);
       if (fabs(x.imag()) <= 2.0 * EPS * fabs(x.real()))
+      {
          x = MyComplexDouble(x.real());
+      }
       Roots[j - 1] = x;
       b = ad[j];  // forward deflation.
       for (jj = j - 1; jj >= 0; jj--)
@@ -33,7 +37,9 @@ void PolyRootsLaguerre(MyComplexDouble const* const Coeff, int const& Degree,
    if (Polish)
    {
       for (j = 1; j <= Degree; j++)
+      {
          Laguerre(Coeff, Degree, &Roots[j - 1]);
+      }
    }
 
    for (j = 1; j <= Degree - 1; j++)
@@ -42,7 +48,9 @@ void PolyRootsLaguerre(MyComplexDouble const* const Coeff, int const& Degree,
       for (i = j - 1; i >= 0; i--)
       {
          if (Roots[i].real() <= x.real())
+         {
             break;
+         }
          Roots[i + 1] = Roots[i];
       }
       Roots[i + 1] = x;
@@ -84,7 +92,9 @@ int Laguerre(MyComplexDouble const* const Coeff, int const& Degree,
       err *= EPSS;
       // we are on the root
       if (abs(b) <= err)
+      {
          return iter;
+      }
       // the generic case: use Laguerre's formula
 
       g = d / b;
@@ -96,17 +106,25 @@ int Laguerre(MyComplexDouble const* const Coeff, int const& Degree,
       abp = abs(gp);
       abm = abs(gm);
       if (abp < abm)
+      {
          gp = gm;
+      }
       dx = ((FMAX(abp, abm) > 0.0 ? MyComplexDouble(Degree, 0.0) / gp
              : (1.0 + abx) * (MyComplexDouble(cos(double(iter)), sin(double(iter))))));
       x1 = *X - dx;
 
       if ((X->real() == x1.real()) && (X->imag() == x1.imag()))
+      {
          return iter;
+      }
       if (iter % MT)
+      {
          (*X) = x1;
+      }
       else
+      {
          (*X) = (*X) - ((double(iter) / MT) * dx);
+      }
    }
 
    cerr << "too many iteration in Laguerre" << "\n";
@@ -119,7 +137,9 @@ void PolyMult(MyComplexDouble const* const A, int const& DegA, MyComplexDouble c
    int DegC = DegA + DegB;
 
    for (int i = 0; i <= DegC; i++)
+   {
       Result[i] = MyComplexDouble(0.0, 0.0);
+   }
    for (int i = 0; i <= DegA; i++)
    {
       for (int j = 0; j <= DegB; j++)

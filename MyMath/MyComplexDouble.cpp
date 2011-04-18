@@ -1,7 +1,7 @@
 #include "MyComplexDouble.h"
 
 // Global IDString
-char MyComplexDoubleID[] = "$Id: MyComplexDouble.cpp,v 1.6 2011/04/16 02:21:24 elliott Exp $";
+char MyComplexDoubleID[] = "$Id: MyComplexDouble.cpp,v 1.7 2011/04/18 16:29:28 elliott Exp $";
 
 // Private Functions...
 
@@ -97,8 +97,8 @@ ostream& operator<<(ostream& out, MyComplexDouble const& A)
    out.width(0);
 
    out << "(" << setw(W) << A.Re_
-   << "," << setw(W) << A.Im_
-   << ")";
+       << "," << setw(W) << A.Im_
+       << ")";
 
    return out;
 }
@@ -121,7 +121,9 @@ istream& operator>>(istream& in, MyComplexDouble& A)
             A.Im_ = im;
          }
          else
+         {
             in.setstate(ios_base::failbit);
+         }
       }
       else if (ch == ')')
       {
