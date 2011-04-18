@@ -15,9 +15,9 @@ class Lattice
 public:
    int Echo_;
    int dbg_;
-   
-   enum LoadType {Temperature,Load};
-   enum StateType {LHS,RHS,CRITPT};
+
+   enum LoadType {Temperature, Load};
+   enum StateType {LHS, RHS, CRITPT};
    LoadType LoadParameter_;
    LoadType const& LoadParameter() const {return LoadParameter_;}
    int UseEigenValTFs_;  // 1 use eigenvalues of E2 as TFs, 0 don't
@@ -26,10 +26,10 @@ public:
    int FullPrint_;       // 1 Print out full vectors and matricies, 0 don't
    int GuessModes_;      // guess new RestrictToTranslatedSubSpace mode dofs
    string UseExtension_; // define an extension to use for input files
-   
-   Lattice(PerlInput const& Input,int const& Echo);
+
+   Lattice(PerlInput const& Input, int const& Echo);
    virtual ~Lattice() {}
-   
+
    virtual Vector const& DOF() const = 0;
    virtual void SetDOF(Vector const& dof) = 0;
    virtual double Entropy() const = 0;
@@ -43,7 +43,7 @@ public:
    virtual double Lambda() const = 0;
    virtual void SetLambda(double const& lambda) = 0;
    void SetLoadParameter(double const& load);
-   
+
    virtual double E0() const = 0;
    virtual Vector const& E1() const = 0;
    virtual Vector const& E1DLoad() const = 0;
@@ -52,33 +52,33 @@ public:
    virtual Matrix const& E4() const = 0;
    int const UseEigenValTFs() const {return UseEigenValTFs_;}
    int const NumTestFunctions() const
-   {return (UseEigenValTFs_)?(DOF().Dim()+NumExtraTFs_):NumExtraTFs_;}
-   virtual int TestFunctions(Vector& TF1,StateType const& State=LHS,Vector* const EV2=0) const;
-   virtual void ExtraTestFunctions(Vector& TF) const {};
-   virtual Matrix const & LHSEigVect() {return EigVectLHS_static;}
-   virtual Matrix const & RelativeEigVects() {return EigVect_static;}
-   virtual void DispersionCurves(Vector const& K,int const& NoPTS,char const* const prefix,
-                                 ostream& out) const {};
+   {return (UseEigenValTFs_) ? (DOF().Dim() + NumExtraTFs_) : NumExtraTFs_;}
+   virtual int TestFunctions(Vector& TF1, StateType const& State = LHS, Vector* const EV2 = 0) const;
+   virtual void ExtraTestFunctions(Vector& TF) const {}
+   virtual Matrix const& LHSEigVect() {return EigVectLHS_static;}
+   virtual Matrix const& RelativeEigVects() {return EigVect_static;}
+   virtual void DispersionCurves(Vector const& K, int const& NoPTS, char const* const prefix,
+                                 ostream& out) const {}
    virtual int BlochWave(Vector& K) const {return -1;}
-   virtual void LongWavelengthModuli(double const& dk,int const& gridsize,
-                                     char const* const prefix,ostream& out) const {};
-   virtual void SetParameters(double const* const Vals,int const& ResetRef = 1) = 0;
+   virtual void LongWavelengthModuli(double const& dk, int const& gridsize,
+                                     char const* const prefix, ostream& out) const {}
+   virtual void SetParameters(double const* const Vals, int const& ResetRef = 1) = 0;
    virtual void SetGridSize(int const& Grid) = 0;
-   virtual void NeighborDistances(int const& cutoff,ostream& out) const {};
-   virtual int CriticalPointInfo(int* const CPCrossingNum,int const& TFIndex,Vector const& DrDt,
-                                 int const& CPorBif,int const& NumZeroEigenVals,
-                                 double const& Tolerance,int const& Width,PerlInput const& Input,
+   virtual void NeighborDistances(int const& cutoff, ostream& out) const {}
+   virtual int CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vector const& DrDt,
+                                 int const& CPorBif, int const& NumZeroEigenVals,
+                                 double const& Tolerance, int const& Width, PerlInput const& Input,
                                  ostream& out);
-   void ConsistencyCheck(double const& ConsistencyEpsilon,int const& Width,ostream& out);
-   virtual void DebugMode() {};
+   void ConsistencyCheck(double const& ConsistencyEpsilon, int const& Width, ostream& out);
+   virtual void DebugMode() {}
 
    virtual char const* const Type() const = 0;
-   enum PrintDetail {PrintLong,PrintShort};
-   enum PrintPathSolutionType {NotSolutionPt,RegularPt,TurningPt,BifurcationPt,ExtraTFPt};
-   virtual void Print(ostream& out,PrintDetail const& flag,
+   enum PrintDetail {PrintLong, PrintShort};
+   enum PrintPathSolutionType {NotSolutionPt, RegularPt, TurningPt, BifurcationPt, ExtraTFPt};
+   virtual void Print(ostream& out, PrintDetail const& flag,
                       PrintPathSolutionType const& SolType = RegularPt) = 0;
-   friend ostream& operator<<(ostream& out,Lattice& L)
-   {L.Print(out,PrintShort); return out;}
+   friend ostream& operator<<(ostream& out, Lattice& L)
+   {L.Print(out, PrintShort); return out;}
 
 protected:
    // "static" member variables
@@ -99,3 +99,4 @@ protected:
 };
 
 #endif
+

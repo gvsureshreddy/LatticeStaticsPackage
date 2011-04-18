@@ -12,20 +12,20 @@ TwoBarTrussExternal::~TwoBarTrussExternal()
         << "\tE2 calls - " << CallCount_[3] << "\n";
 }
 
-TwoBarTrussExternal::TwoBarTrussExternal(PerlInput const& Input,int const& Echo,int const& Width):
-   Lattice(Input,Echo),
+TwoBarTrussExternal::TwoBarTrussExternal(PerlInput const& Input, int const& Echo, int const& Width) :
+   Lattice(Input, Echo),
    DOFS_(2),
-   DOF_(DOFS_,0.0),
+   DOF_(DOFS_, 0.0),
    Lambda_(0.0),
    Width_(Width),
    E1CachedValue_(2),
    E1DLoadCachedValue_(2),
-   E2CachedValue_(2,2),
-   EmptyV_(2,0.0),
-   EmptyM_(2,2,0.0)
+   E2CachedValue_(2, 2),
+   EmptyV_(2, 0.0),
+   EmptyM_(2, 2, 0.0)
 {
    LoadParameter_ = Load;
-   for (int i=0;i<cachesize;++i)
+   for (int i = 0; i < cachesize; ++i)
    {
       Cached_[i] = 0;
       CallCount_[i] = 0;
@@ -36,7 +36,7 @@ void TwoBarTrussExternal::UpdateValues() const
 {
    fstream in;
    fstream out;
-   out.open("TwoBarTrussModelInput",ios::out);
+   out.open("TwoBarTrussModelInput", ios::out);
    if (out.fail())
    {
       cerr << "Error: Unable to open file : " << "TwoBarTrussModelInput" << " for write"
@@ -56,7 +56,7 @@ void TwoBarTrussExternal::UpdateValues() const
 
    system("TwoBarTrussModel TwoBarTrussModelInput TwoBarTrussModelOutput >& /dev/null");
 
-   in.open("TwoBarTrussModelOutput",ios::in);
+   in.open("TwoBarTrussModelOutput", ios::in);
    if (in.fail())
    {
       cerr << "Error: Unable to open file : " << "TwoBarTrussModelOutput" << "for read" << "\n";
@@ -67,7 +67,8 @@ void TwoBarTrussExternal::UpdateValues() const
    in >> E1DLoadCachedValue_;
    in >> E2CachedValue_;
 
-   for (int i=0;i<cachesize;++i) Cached_[i] = 1;
+   for (int i = 0; i < cachesize; ++i)
+      Cached_[i] = 1;
 
    in.close();
 }
@@ -80,7 +81,7 @@ double TwoBarTrussExternal::E0() const
       Cached_[0] = 1;
       CallCount_[0]++;
    }
-   
+
    return E0CachedValue_;
 }
 
@@ -104,7 +105,7 @@ Vector const& TwoBarTrussExternal::E1DLoad() const
       Cached_[2] = 1;
       CallCount_[2]++;
    }
-   
+
    return E1DLoadCachedValue_;
 }
 
@@ -116,40 +117,42 @@ Matrix const& TwoBarTrussExternal::E2() const
       Cached_[3] = 1;
       CallCount_[3]++;
    }
-   
+
    return E2CachedValue_;
 }
 
-void TwoBarTrussExternal::Print(ostream& out,PrintDetail const& flag,
+void TwoBarTrussExternal::Print(ostream& out, PrintDetail const& flag,
                                 PrintPathSolutionType const& SolType)
 {
    int W;
-   int NoNegTestFunctions=0;
+   int NoNegTestFunctions = 0;
    double engy;
    double mintestfunct;
    Matrix
-      stiff(DOFS_,DOFS_);
+   stiff(DOFS_, DOFS_);
    Vector str(DOFS_);
    Vector TestFunctVals(NumTestFunctions());
-   
-   W=out.width();
-   
+
+   W = out.width();
+
    out.width(0);
-   if (Echo_) cout.width(0);
-   
+   if (Echo_)
+      cout.width(0);
+
    engy = E0();
    str = E1();
    stiff = E2();
-   
-   TestFunctions(TestFunctVals,LHS);
+
+   TestFunctions(TestFunctVals, LHS);
    mintestfunct = TestFunctVals[0];
-   for (int i=0;i<TestFunctVals.Dim();++i)
+   for (int i = 0; i < TestFunctVals.Dim(); ++i)
    {
-      if (TestFunctVals[i] < 0.0) ++NoNegTestFunctions;
+      if (TestFunctVals[i] < 0.0)
+         ++NoNegTestFunctions;
       if (mintestfunct > TestFunctVals[i])
          mintestfunct = TestFunctVals[i];
    }
-   
+
    switch (flag)
    {
       case PrintLong:
@@ -159,7 +162,7 @@ void TwoBarTrussExternal::Print(ostream& out,PrintDetail const& flag,
          {
             cout << "TwoBarTrussExternal:" << "\n" << "\n";
          }
-         // passthrough to short
+      // passthrough to short
       case PrintShort:
          out << "Lambda: " << setw(W) << Lambda_ << "\n"
              << "DOF's :" << "\n" << setw(W) << DOF_ << "\n"
@@ -167,7 +170,7 @@ void TwoBarTrussExternal::Print(ostream& out,PrintDetail const& flag,
 
          out << "Stress:" << "\n" << setw(W) << str << "\n\n"
              << "Stiffness:" << setw(W) << stiff
-             << "Eigenvalue Info:"  << "\n"<< setw(W) << TestFunctVals << "\n"
+             << "Eigenvalue Info:" << "\n" << setw(W) << TestFunctVals << "\n"
              << "Bifurcation Info:" << setw(W) << mintestfunct
              << setw(W) << NoNegTestFunctions << "\n";
          // send to cout also
@@ -179,7 +182,7 @@ void TwoBarTrussExternal::Print(ostream& out,PrintDetail const& flag,
 
             cout << "Stress:" << "\n" << setw(W) << str << "\n\n"
                  << "Stiffness:" << setw(W) << stiff
-                 << "Eigenvalue Info:"  << "\n" << setw(W) << TestFunctVals <<"\n"
+                 << "Eigenvalue Info:" << "\n" << setw(W) << TestFunctVals << "\n"
                  << "Bifurcation Info:" << setw(W) << mintestfunct
                  << setw(W) << NoNegTestFunctions << "\n";
          }
@@ -187,8 +190,9 @@ void TwoBarTrussExternal::Print(ostream& out,PrintDetail const& flag,
    }
 }
 
-ostream& operator<<(ostream& out,TwoBarTrussExternal& A)
+ostream& operator<<(ostream& out, TwoBarTrussExternal& A)
 {
-   A.Print(out,Lattice::PrintShort);
+   A.Print(out, Lattice::PrintShort);
    return out;
 }
+
