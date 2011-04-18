@@ -41,7 +41,10 @@ public:
 
    // Algebraic Operators...
 
-   friend Vector& operator+(Vector& A) {return A;}
+   friend Vector& operator+(Vector& A)
+   {
+      return A;
+   }
    friend Vector operator+(Vector const& A, Vector const& B);
    friend Vector operator-(Vector const& A, Vector const& B);
    friend Vector operator-(Vector const& A);
@@ -65,17 +68,35 @@ public:
    Elm const& operator[](int const& i) const;
 #else
    // Without Bounds Checking!!!
-   inline Elm& operator[](int const& i) {return Elements_[i];}
-   inline Elm const& operator[](int const& i) const {return Elements_[i];}
+   inline Elm& operator[](int const& i)
+   {
+      return Elements_[i];
+   }
+   inline Elm const& operator[](int const& i) const
+   {
+      return Elements_[i];
+   }
 #endif
 
    // Assignment Operatons
 
    Vector& operator=(Vector const& B);
-   Vector& operator+=(Vector const& B) {return *this = *this + B;}
-   Vector& operator-=(Vector const& B) {return *this = *this - B;}
-   Vector& operator*=(Elm const& B) {return *this = *this * B;}
-   Vector& operator/=(Elm const& B) {return *this = *this / B;}
+   Vector& operator+=(Vector const& B)
+   {
+      return *this = *this + B;
+   }
+   Vector& operator-=(Vector const& B)
+   {
+      return *this = *this - B;
+   }
+   Vector& operator*=(Elm const& B)
+   {
+      return *this = *this * B;
+   }
+   Vector& operator/=(Elm const& B)
+   {
+      return *this = *this / B;
+   }
 
    // Destructively Resize Vector
    // No change if size dosen't change
@@ -83,7 +104,10 @@ public:
    void Resize(int const& Cols, Elm const& InitVal);
 
    // Operations & Etc...
-   int const& Dim() const {return Cols_;}
+   int const& Dim() const
+   {
+      return Cols_;
+   }
    // Standard IR^n Norm
    Matrix::Elm Norm() const;
 

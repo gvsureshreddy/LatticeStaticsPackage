@@ -9,7 +9,7 @@
 #include "Matrix.h"
 
 // Global IDString
-char Vector3DID[] = "$Id: Vector3D.cpp,v 1.10 2011/04/16 02:45:42 elliott Exp $";
+char Vector3DID[] = "$Id: Vector3D.cpp,v 1.11 2011/04/18 16:31:46 elliott Exp $";
 
 // Private Functions...
 
@@ -18,7 +18,9 @@ char Vector3DID[] = "$Id: Vector3D.cpp,v 1.10 2011/04/16 02:45:42 elliott Exp $"
 Vector3D::Vector3D(Vector3D::Elm const& InitVal)
 {
    for (int i = 0; i < V3DLEN; i++)
+   {
       Elements_[i] = InitVal;
+   }
 }
 
 Vector3D::Vector3D(Vector3D::Elm const& x, Vector3D::Elm const& y, Vector3D::Elm const& z)
@@ -110,7 +112,9 @@ ostream& operator<<(ostream& out, Vector3D const& A)
 istream& operator>>(istream& in, Vector3D& A)
 {
    for (register int i = 0; i < V3DLEN; i++)
+   {
       in >> A[i];
+   }
 
    return in;
 }

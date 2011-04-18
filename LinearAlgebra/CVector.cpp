@@ -8,7 +8,7 @@
 #include "Matrix.h"
 
 // Global IDString
-char CVectorID[] = "$Id: CVector.cpp,v 1.12 2011/04/16 02:45:42 elliott Exp $";
+char CVectorID[] = "$Id: CVector.cpp,v 1.13 2011/04/18 16:31:46 elliott Exp $";
 
 // Private Functions...
 
@@ -43,7 +43,9 @@ CVector::CVector(int const& Cols, CVector::Elm const& InitVal)
       Elements_ = new CVector::Elm[Cols_];
 
       for (register int j = 0; j < Cols_; j++)
+      {
          Elements_[j] = InitVal;
+      }
    }
 
    return;
@@ -233,7 +235,9 @@ CVector operator-(CVector const& A)
    CVector B(A.Cols_);
 
    for (register int i = 0; i < A.Cols_; i++)
+   {
       B[i] = -A[i];
+   }
 
    return B;
 }
@@ -457,7 +461,9 @@ ostream& operator<<(ostream& out, CVector const& A)
 istream& operator>>(istream& in, CVector& A)
 {
    for (register int i = 0; i < A.Cols_; i++)
+   {
       in >> A[i];
+   }
 
    return in;
 }

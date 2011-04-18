@@ -50,12 +50,21 @@ public:
    ~CMatrix();
 
    // Size Access...
-   int const& Rows() const {return Rows_;}
-   int const& Cols() const {return Cols_;}
+   int const& Rows() const
+   {
+      return Rows_;
+   }
+   int const& Cols() const
+   {
+      return Cols_;
+   }
 
    // Mathematical Operations...
 
-   friend CMatrix& operator+(CMatrix& A) {return A;}
+   friend CMatrix& operator+(CMatrix& A)
+   {
+      return A;
+   }
    friend CMatrix operator+(CMatrix const& A, CMatrix const& B);
    friend CMatrix operator-(CMatrix const& A);
    friend CMatrix operator-(CMatrix const& A, CMatrix const& B);
@@ -81,17 +90,35 @@ public:
    Elm* const operator[](int const& i);
 #else
    // Note: NO Index checking
-   inline Elm const* const operator[](int const& i) const {return Elements_[i];}
-   inline Elm* const operator[](int const& i) {return Elements_[i];}
+   inline Elm const* const operator[](int const& i) const
+   {
+      return Elements_[i];
+   }
+   inline Elm* const operator[](int const& i)
+   {
+      return Elements_[i];
+   }
 #endif
 
    // Assignment Operations
 
    CMatrix& operator=(CMatrix const& B);
-   CMatrix& operator+=(CMatrix const& B) {return *this = *this + B;}
-   CMatrix& operator-=(CMatrix const& B) {return *this = *this - B;}
-   CMatrix& operator*=(CMatrix const& B) {return *this = *this * B;}
-   CMatrix& operator*=(Elm const& B) {return *this = *this * B;}
+   CMatrix& operator+=(CMatrix const& B)
+   {
+      return *this = *this + B;
+   }
+   CMatrix& operator-=(CMatrix const& B)
+   {
+      return *this = *this - B;
+   }
+   CMatrix& operator*=(CMatrix const& B)
+   {
+      return *this = *this * B;
+   }
+   CMatrix& operator*=(Elm const& B)
+   {
+      return *this = *this * B;
+   }
 
    // Misc. CMatrix Operatons
 
@@ -99,10 +126,19 @@ public:
    CMatrix Transpose() const;
    CMatrix Conjugate() const;
 
-   CMatrix ConjTrans() const {return (this->Transpose()).Conjugate();}
+   CMatrix ConjTrans() const
+   {
+      return (this->Transpose()).Conjugate();
+   }
    CMatrix Inverse() const;
-   int IsSquare() const {return Rows_ == Cols_;}
-   int IsNull() const {return (Rows_ == 0 || Cols_ == 0);}
+   int IsSquare() const
+   {
+      return Rows_ == Cols_;
+   }
+   int IsNull() const
+   {
+      return (Rows_ == 0 || Cols_ == 0);
+   }
 
    // Destructively Resize CMatrix
    // No change if size does not change

@@ -6,7 +6,7 @@
 #include "Vector.h"
 
 // Global IDString
-char CMatrixID[] = "$Id: CMatrix.cpp,v 1.25 2011/04/16 02:45:42 elliott Exp $";
+char CMatrixID[] = "$Id: CMatrix.cpp,v 1.26 2011/04/18 16:31:46 elliott Exp $";
 
 // Private Methods...
 
@@ -95,7 +95,9 @@ CMatrix::CMatrix(int const& Rows, int const& Cols, CMatrix::Elm const& InitVal) 
       for (register int i = 0; i < Rows_; i++)
       {
          for (register int j = 0; j < Cols_; j++)
+         {
             Elements_[i][j] = InitVal;
+         }
       }
    }
    return;
@@ -370,16 +372,22 @@ CMatrix& CMatrix::operator=(CMatrix const& B)
 CMatrix& CMatrix::SetIdentity(int const& Size)
 {
    if ((Rows_ != Size) || (Cols_ != Size))
+   {
       Resize(Size, Size);
+   }
 
    for (register int i = 0; i < Size; i++)
    {
       for (register int j = 0; j < Size; j++)
       {
          if (i == j)
+         {
             Elements_[i][i] = 1.0;
+         }
          else
+         {
             Elements_[i][j] = 0.0;
+         }
       }
    }
 
@@ -432,11 +440,15 @@ CMatrix CMatrix::Inverse() const
       X = SolvePLU(*this, B);
 
       for (register int j = 0; j < Rows_; j++)
+      {
          C[j][i] = X[j][0];
+      }
 
       B[i][0] = 0;
       if (i != Cols_ - 1)
+      {
          B[i + 1][0] = 1.0;
+      }
    }
 
    return C;
@@ -524,7 +536,9 @@ CMatrix::Elm CMatrix::Det() const
    }
 
    if (Rows_ == 1)
+   {
       return Elements_[0][0];
+   }
    else
    {
       Elm det(0.0, 0.0);
@@ -566,7 +580,9 @@ void PLU(CMatrix const& A, CMatrix& P, CMatrix& L, CMatrix& U)
       for (register int j = 0; j < A.Cols_; j++)
       {
          if (abs(Temp[i][j]) > abs(S[i][0]))
+         {
             S[i][0] = Temp[i][j];
+         }
       }
    }
 
@@ -668,7 +684,9 @@ Matrix HermiteEigVal(CMatrix A, CMatrix* const B, int const& MaxItr, double cons
          for (int j = i + 1; j < A.Cols_; j++)
          {
             if (abs(A[i][j]) < Tol)
+            {
                continue;
+            }
             else
             {
                aij1 = A[i][j];
@@ -691,9 +709,13 @@ Matrix HermiteEigVal(CMatrix A, CMatrix* const B, int const& MaxItr, double cons
                }
 
                if (abs(t1) >= abs(t2))
+               {
                   t = t2;
+               }
                else
+               {
                   t = t1;
+               }
 
                fun = t * t + 2.0 * t * tau - aij1 / (aij1.conj());
 
@@ -803,9 +825,13 @@ void QR(CMatrix const& A, CMatrix& Q, CMatrix& R, int const& CalcTranspose)
       for (j = 0; j < n; ++j)
       {
          if (CalcTranspose)
+         {
             R[i][j] = A[j][i];
+         }
          else
+         {
             R[i][j] = A[i][j];
+         }
       }
    }
    Q.SetIdentity(m);
@@ -895,7 +921,9 @@ CMatrix RightEigVals(CMatrix const& A, int const& MaxItr, double const& Tol)
 
    CMatrix REVs(1, n);
    for (int i = 0; i < n; ++i)
+   {
       REVs[0][i] = T[i][i];
+   }
 
    if (iterations >= MaxItr)
    {
@@ -1032,25 +1060,35 @@ ostream& operator<<(ostream& out, CMatrix const& A)
    out << "\n";
 
    if (CMatrix::MathematicaPrintFlag)
+   {
       out << setw(0) << "{{";
+   }
    for (register int i = 0; i < A.Rows_; i++)
    {
       for (register int j = 0; j < A.Cols_; j++)
       {
          out << setw(W) << A[i][j];
          if ((CMatrix::MathematicaPrintFlag) && (j != (A.Cols_ - 1)))
+         {
             out << ",";
+         }
       }
 
       if (CMatrix::MathematicaPrintFlag)
       {
          if (i != (A.Rows_ - 1))
+         {
             out << "},\n {";
+         }
          else
+         {
             out << "}}";
+         }
       }
       else
+      {
          out << "\n";
+      }
    }
 
    out << "\n";
@@ -1061,8 +1099,12 @@ ostream& operator<<(ostream& out, CMatrix const& A)
 istream& operator>>(istream& in, CMatrix& A)
 {
    for (register int i = 0; i < A.Rows_; i++)
+   {
       for (register int j = 0; j < A.Cols_; j++)
+      {
          in >> A[i][j];
+      }
+   }
 
    return in;
 }

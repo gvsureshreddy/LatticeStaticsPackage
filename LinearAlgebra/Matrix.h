@@ -54,12 +54,21 @@ public:
    ~Matrix();
 
    // Size Access...
-   int const& Rows() const {return Rows_;}
-   int const& Cols() const {return Cols_;}
+   int const& Rows() const
+   {
+      return Rows_;
+   }
+   int const& Cols() const
+   {
+      return Cols_;
+   }
 
    // Mathematical Operations...
 
-   friend Matrix& operator+(Matrix& A) {return A;}
+   friend Matrix& operator+(Matrix& A)
+   {
+      return A;
+   }
    friend Matrix operator+(Matrix const& A, Matrix const& B);
    friend Matrix operator-(Matrix const& A);
    friend Matrix operator-(Matrix const& A, Matrix const& B);
@@ -84,26 +93,53 @@ public:
    Elm const* const operator[](int const& i) const;
 #else
    // Note: NO Index checking
-   inline Elm* const operator[](int const& i) {return Elements_[i];}
-   inline Elm const* const operator[](int const& i) const {return Elements_[i];}
+   inline Elm* const operator[](int const& i)
+   {
+      return Elements_[i];
+   }
+   inline Elm const* const operator[](int const& i) const
+   {
+      return Elements_[i];
+   }
 #endif
 
    // Assignment Operations
 
    Matrix& operator=(Matrix const& B);
-   Matrix& operator+=(Matrix const& B) {return *this = *this + B;}
-   Matrix& operator-=(Matrix const& B) {return *this = *this - B;}
-   Matrix& operator*=(Matrix const& B) {return *this = *this * B;}
-   Matrix& operator*=(Elm const& B)    {return *this = *this * B;}
-   Matrix& operator/=(Elm const& B)    {return *this = *this / B;}
+   Matrix& operator+=(Matrix const& B)
+   {
+      return *this = *this + B;
+   }
+   Matrix& operator-=(Matrix const& B)
+   {
+      return *this = *this - B;
+   }
+   Matrix& operator*=(Matrix const& B)
+   {
+      return *this = *this * B;
+   }
+   Matrix& operator*=(Elm const& B)
+   {
+      return *this = *this * B;
+   }
+   Matrix& operator/=(Elm const& B)
+   {
+      return *this = *this / B;
+   }
 
    // Misc. Matrix Operatons
 
    Matrix& SetIdentity(int const& Size = 0);
    Matrix Transpose() const;
    Matrix Inverse() const;
-   int IsSquare() const {return Rows_ == Cols_;}
-   int IsNull() const {return (Rows_ == 0 || Cols_ == 0);}
+   int IsSquare() const
+   {
+      return Rows_ == Cols_;
+   }
+   int IsNull() const
+   {
+      return (Rows_ == 0 || Cols_ == 0);
+   }
 
    // Destructively Resize Matrix
    // No change if size does not change

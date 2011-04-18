@@ -45,11 +45,13 @@ int main()
    //   Matrix::MathematicaPrintFlag=1;
 
    for (int i = 0; i < 3; i++)
+   {
       for (int j = 0; j < 3; j++)
       {
          A[i][j] = double(rand() % 10);
          CA[i][j] = MyComplexDouble(rand() % 10, rand() % 10);
       }
+   }
 
 
    for (int i = 0; i < 3; i++)
@@ -189,7 +191,9 @@ int main()
    {
       Matrix Q(3, 3), R(3, 6), X(6, 1), B(3, 1);
       for (int i = 0; i < 3; ++i)
+      {
          B[i][0] = b[i];
+      }
       cout << "b=" << setw(20) << b << "\n";
       QR(C, Q, R);
       SolveQR(Q, R, X, B);
@@ -201,7 +205,9 @@ int main()
    {
       Matrix Q(3, 3), R(3, 6), X(3, 1), f(6, 1);
       for (int i = 0; i < 6; ++i)
+      {
          f[i][0] = c[i];
+      }
       cout << "c=" << setw(20) << c << "\n";
       QR(C.Transpose(), Q, R, 1);
       SolveQR(Q, R, X, f);
@@ -280,7 +286,9 @@ int main()
    cout << "x=E^-1*c\n" << setw(20) << SolvePLU(E, c) << "\n";
    Matrix QQQ(6, 6), RRR(6, 6), XXX(6, 1), CCC(6, 1);
    for (int i = 0; i < 6; ++i)
+   {
       CCC[i][0] = c[i];
+   }
    QR(E, QQQ, RRR);
    SolveQR(QQQ, RRR, XXX, CCC);
    cout << "x=R^-1*Q^T*c" << setw(20) << XXX.Transpose() << "\n";
@@ -403,8 +411,12 @@ int main()
    cout << "SVD" << "\n" << setw(20) << B* C* D.Transpose() << "\n";
 
    for (int i = 0; i < C.Rows(); i++)
+   {
       if (C[i][i])
+      {
          C[i][i] = 1.0 / C[i][i];
+      }
+   }
 
    cout << "A^-1 via SVD" << "\n" << setw(20) << D* C* B.Transpose() << "\n"
         << setw(20) << A * (D * C * B.Transpose()) << "\n";
@@ -417,8 +429,12 @@ int main()
    cout << "W" << "\n" << setw(20) << C << "\n";
 
    for (int i = 0; i < C.Rows(); i++)
+   {
       if (C[i][i])
+      {
          C[i][i] = 1.0 / C[i][i];
+      }
+   }
 
    cout << "A^-1 via SVD" << "\n" << setw(20) << D* C* B.Transpose() << "\n"
         << setw(20) << A * (D * C * B.Transpose()) << "\n";

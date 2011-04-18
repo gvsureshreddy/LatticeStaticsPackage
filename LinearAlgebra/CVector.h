@@ -42,7 +42,10 @@ public:
 
    // Algebraic Operators...
 
-   friend CVector& operator+(CVector& A) {return A;}
+   friend CVector& operator+(CVector& A)
+   {
+      return A;
+   }
    friend CVector operator+(CVector const& A, CVector const& B);
    friend CVector operator-(CVector const& A, CVector const& B);
    friend CVector operator-(CVector const& A);
@@ -61,16 +64,31 @@ public:
    Elm const& operator[](int const& i) const;
 #else
    // Without Bounds Checking!!!
-   inline Elm& operator[](int const& i) {return Elements_[i];}
-   inline Elm const& operator[](int const& i) const {return Elements_[i];}
+   inline Elm& operator[](int const& i)
+   {
+      return Elements_[i];
+   }
+   inline Elm const& operator[](int const& i) const
+   {
+      return Elements_[i];
+   }
 #endif
 
    // Assignment Operatons
 
    CVector& operator=(CVector const& B);
-   CVector& operator+=(CVector const& B) {return *this = *this + B;}
-   CVector& operator-=(CVector const& B) {return *this = *this - B;}
-   CVector& operator*=(Elm const& B) {return *this = (*this) * B;}
+   CVector& operator+=(CVector const& B)
+   {
+      return *this = *this + B;
+   }
+   CVector& operator-=(CVector const& B)
+   {
+      return *this = *this - B;
+   }
+   CVector& operator*=(Elm const& B)
+   {
+      return *this = (*this) * B;
+   }
 
    // Destructively Resize CVector
    // No change if size dosen't change
@@ -78,7 +96,10 @@ public:
    void Resize(int const& Cols, Elm const& InitVal);
 
    // Operations & Etc...
-   int const& Dim() const {return Cols_;}
+   int const& Dim() const
+   {
+      return Cols_;
+   }
    // Standard IC^n Norm
    Elm Norm() const;
 

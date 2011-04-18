@@ -80,7 +80,9 @@ int main(int argc, char* argv[])
    LineofNodes = Yp % Zp;
 
    for (int i = 0; i < size; ++i)
+   {
       cout << setw(20) << EigVals[0][i];
+   }
 
    cout << setw(20) << acos(X * LineofNodes);
    cout << setw(20) << acos(Z * Zp);

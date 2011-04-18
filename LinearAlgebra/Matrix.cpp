@@ -7,7 +7,7 @@
 #include <cstdlib>
 
 // Global IDString
-char MatrixID[] = "$Id: Matrix.cpp,v 1.31 2011/04/16 02:45:42 elliott Exp $";
+char MatrixID[] = "$Id: Matrix.cpp,v 1.32 2011/04/18 16:31:46 elliott Exp $";
 
 // Private Methods...
 
@@ -20,11 +20,15 @@ Matrix::Elm pythag(Matrix::Elm const& a, Matrix::Elm const& b)
    absa = fabs(a);
    absb = fabs(b);
    if (absa > absb)
+   {
       return absa * sqrt(1.0 + ((absb / absa) * (absb / absa)));
+   }
    else
+   {
       return (absb == 0.0 ?
               0.0 :
               absb * sqrt(1.0 + ((absa / absb) * (absa / absb))));
+   }
 }
 
 
@@ -117,7 +121,9 @@ Matrix::Matrix(int const& Rows, int const& Cols, Matrix::Elm const& InitVal)
       for (register int i = 0; i < Rows_; i++)
       {
          for (register int j = 0; j < Cols_; j++)
+         {
             Elements_[i][j] = InitVal;
+         }
       }
    }
    return;
@@ -336,16 +342,22 @@ Matrix& Matrix::operator=(Matrix const& B)
 Matrix& Matrix::SetIdentity(int const& Size)
 {
    if ((Rows_ != Size) || (Cols_ != Size))
+   {
       Resize(Size, Size);
+   }
 
    for (register int i = 0; i < Size; i++)
    {
       for (register int j = 0; j < Size; j++)
       {
          if (i == j)
+         {
             Elements_[i][i] = 1.0;
+         }
          else
+         {
             Elements_[i][j] = 0;
+         }
       }
    }
 
@@ -388,11 +400,15 @@ Matrix Matrix::Inverse() const
 #endif
 
       for (register int j = 0; j < Rows_; j++)
+      {
          C[j][i] = X[j][0];
+      }
 
       B[i][0] = 0;
       if (i != Cols_ - 1)
+      {
          B[i + 1][0] = 1.0;
+      }
    }
 
    return C;
@@ -480,7 +496,9 @@ Matrix::Elm Matrix::Det() const
    }
 
    if (Rows_ == 1)
+   {
       return Elements_[0][0];
+   }
    else
    {
       Matrix::Elm det = 0;
@@ -523,7 +541,9 @@ void PLU(Matrix const& A, Matrix& P, Matrix& L, Matrix& U)
       for (register int j = 0; j < A.Cols_; j++)
       {
          if (fabs(Temp[i][j]) > S[i][0])
+         {
             S[i][0] = fabs(Temp[i][j]);
+         }
       }
    }
 
@@ -630,9 +650,13 @@ void QR(Matrix const& A, Matrix& Q, Matrix& R, int const& CalcTranspose)
       for (j = 0; j < n; ++j)
       {
          if (CalcTranspose)
+         {
             R[i][j] = A[j][i];
+         }
          else
+         {
             R[i][j] = A[i][j];
+         }
       }
    }
    Q.SetIdentity(m);
@@ -1005,7 +1029,9 @@ Matrix::Elm SVD(Matrix const& A, Matrix& U, Matrix& W, Matrix& V,
       if (i < A.Rows_)
       {
          for (int k = i; k < A.Rows_; k++)
+         {
             scale += fabs(U[k][i]);
+         }
          if (scale)
          {
             for (int k = i; k < A.Rows_; k++)
@@ -1021,14 +1047,20 @@ Matrix::Elm SVD(Matrix const& A, Matrix& U, Matrix& W, Matrix& V,
             {
                s = 0.0;
                for (int k = i; k < A.Rows_; k++)
+               {
                   s += U[k][i] * U[k][j];
+               }
                f = s / h;
                for (int k = i; k < A.Rows_; k++)
+               {
                   U[k][j] += f * U[k][i];
+               }
             }
 
             for (int k = i; k < A.Rows_; k++)
+            {
                U[k][i] *= scale;
+            }
          }
       }
 
@@ -1038,7 +1070,9 @@ Matrix::Elm SVD(Matrix const& A, Matrix& U, Matrix& W, Matrix& V,
       if ((i < A.Rows_) && (i != A.Cols_ - 1))
       {
          for (int k = l; k < A.Cols_; k++)
+         {
             scale += fabs(U[i][k]);
+         }
          if (scale)
          {
             for (int k = l; k < A.Cols_; k++)
@@ -1051,17 +1085,25 @@ Matrix::Elm SVD(Matrix const& A, Matrix& U, Matrix& W, Matrix& V,
             h = f * g - s;
             U[i][l] = f - g;
             for (int k = l; k < A.Cols_; k++)
+            {
                temp[k] = U[i][k] / h;
+            }
             for (int j = l; j < A.Rows_; j++)
             {
                s = 0.0;
                for (int k = l; k < A.Cols_; k++)
+               {
                   s += U[j][k] * U[i][k];
+               }
                for (int k = l; k < A.Cols_; k++)
+               {
                   U[j][k] += s * temp[k];
+               }
             }
             for (int k = l; k < A.Cols_; k++)
+            {
                U[i][k] *= scale;
+            }
          }
       }
 
@@ -1078,19 +1120,27 @@ Matrix::Elm SVD(Matrix const& A, Matrix& U, Matrix& W, Matrix& V,
          if (g)
          {
             for (int j = l; j < A.Cols_; j++)
+            {
                // Double division to avoid possible underflow
                V[j][i] = (U[i][j] / U[i][l]) / g;
+            }
             for (int j = l; j < A.Cols_; j++)
             {
                s = 0.0;
                for (int k = l; k < A.Cols_; k++)
+               {
                   s += U[i][k] * V[k][j];
+               }
                for (int k = l; k < A.Cols_; k++)
+               {
                   V[k][j] += s * V[k][i];
+               }
             }
          }
          for (int j = l; j < A.Cols_; j++)
+         {
             V[i][j] = V[j][i] = 0.0;
+         }
       }
       V[i][i] = 1.0;
       g = temp[i];
@@ -1103,7 +1153,9 @@ Matrix::Elm SVD(Matrix const& A, Matrix& U, Matrix& W, Matrix& V,
       l = i + 1;
       g = W[i][i];
       for (int j = l; j < A.Cols_; j++)
+      {
          U[i][j] = 0.0;
+      }
       if (g)
       {
          g = 1.0 / g;
@@ -1111,18 +1163,26 @@ Matrix::Elm SVD(Matrix const& A, Matrix& U, Matrix& W, Matrix& V,
          {
             s = 0.0;
             for (int k = l; k < A.Rows_; k++)
+            {
                s += U[k][i] * U[k][j];
+            }
             f = (s / U[i][i]) * g;
             for (int k = i; k < A.Rows_; k++)
+            {
                U[k][j] += f * U[k][i];
+            }
          }
          for (int j = i; j < A.Rows_; j++)
+         {
             U[j][i] *= g;
+         }
       }
       else
       {
          for (int j = i; j < A.Rows_; j++)
+         {
             U[j][i] = 0.0;
+         }
       }
       ++U[i][i];
    }
@@ -1145,7 +1205,9 @@ Matrix::Elm SVD(Matrix const& A, Matrix& U, Matrix& W, Matrix& V,
                break;
             }
             if (fabs(W[nm][nm]) + anorm == anorm)
+            {
                break;
+            }
          }
          if (flag)
          {
@@ -1157,7 +1219,9 @@ Matrix::Elm SVD(Matrix const& A, Matrix& U, Matrix& W, Matrix& V,
                f = s * temp[i];
                temp[i] = c * temp[i];
                if (fabs(f) + anorm == anorm)
+               {
                   break;
+               }
                g = W[i][i];
                h = pythag(f, g);
                W[i][i] = h;
@@ -1183,7 +1247,9 @@ Matrix::Elm SVD(Matrix const& A, Matrix& U, Matrix& W, Matrix& V,
             {
                W[k][k] = -z;
                for (int j = 0; j < A.Cols_; j++)
+               {
                   V[j][k] = -V[j][k];
+               }
             }
             break;
          }
@@ -1260,12 +1326,20 @@ Matrix::Elm SVD(Matrix const& A, Matrix& U, Matrix& W, Matrix& V,
       wmax = 0.0,
       wmin;
    for (int j = 0; j < A.Cols_; j++)
+   {
       if (W[j][j] > wmax)
+      {
          wmax = W[j][j];
+      }
+   }
    wmin = wmax;
    for (int j = 0; j < A.Cols_; j++)
+   {
       if (W[j][j] < wmin)
+      {
          wmin = W[j][j];
+      }
+   }
 
    ConditionNumber = wmax / wmin;
    if (PrintFlag)
@@ -1385,7 +1459,9 @@ Matrix SymEigVal(Matrix A, Matrix* const B, int const& MaxItr, double const& Tol
    }
 
    for (int i = 0; i < A.Cols_; i++)
+   {
       EigVals[0][i] = A[i][i];
+   }
 
    return EigVals;
 }
@@ -1533,7 +1609,9 @@ Matrix SolveSVD(Matrix const& A, Matrix const& B,
       if (W[j][j])
       {
          for (i = 0; i < A.Rows_; i++)
+         {
             s += U[i][j] * B[i][0];
+         }
          // This is the divide by W[j][j];
          s /= W[j][j];
       }
@@ -1545,7 +1623,9 @@ Matrix SolveSVD(Matrix const& A, Matrix const& B,
    {
       s = 0.0;
       for (jj = 0; jj < A.Cols_; jj++)
+      {
          s += V[j][jj] * tmp[jj];
+      }
       x[j][0] = s;
    }
 
@@ -1562,25 +1642,35 @@ ostream& operator<<(ostream& out, Matrix const& A)
    out << "\n";
 
    if (Matrix::MathematicaPrintFlag)
+   {
       out << setw(0) << "{{";
+   }
    for (register int i = 0; i < A.Rows_; i++)
    {
       for (register int j = 0; j < A.Cols_; j++)
       {
          out << setw(W) << A[i][j];
          if ((Matrix::MathematicaPrintFlag) && (j != (A.Cols_ - 1)))
+         {
             out << ",";
+         }
       }
 
       if (Matrix::MathematicaPrintFlag)
       {
          if (i != (A.Rows_ - 1))
+         {
             out << "},\n {";
+         }
          else
+         {
             out << "}}";
+         }
       }
       else
+      {
          out << "\n";
+      }
    }
 
    out << "\n";
@@ -1591,8 +1681,12 @@ ostream& operator<<(ostream& out, Matrix const& A)
 istream& operator>>(istream& in, Matrix& A)
 {
    for (register int i = 0; i < A.Rows_; i++)
+   {
       for (register int j = 0; j < A.Cols_; j++)
+      {
          in >> A[i][j];
+      }
+   }
 
    return in;
 }
