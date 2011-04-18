@@ -89,7 +89,9 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
       out << setw(30) << DOF_[i];
       q = (q + 1) % 3;
       if (q == 0)
+      {
          out << "\n";
+      }
    }
 
    out.close();
@@ -278,8 +280,12 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
       {
          dwdc[s][t] = 0.0;
          for (int i = 0; i < 3; ++i)
+         {
             for (int j = 0; j < 3; ++j)
+            {
                dwdc[s][t] += 0.5 * UDet * Uinv[s][i] * Stresses[i][j] * Uinv[t][j];
+            }
+         }
       }
    }
 
@@ -310,13 +316,19 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
       {
          bfbstresses[i][j] = 0.0;
          for (int r = 0; r < 3; ++r)
+         {
             bfbstresses[i][j] += U[i][r] * dwdc[r][j] + U[j][r] * dwdc[r][i];
+         }
       }
    }
 
    for (int i = 0; i < 3; ++i)
+   {
       for (int j = 0; j < 3; ++j)
+      {
          E1CachedValue_[((i == j) ? i : 6 - (i + j))] += bfbstresses[i][j];
+      }
+   }
 
    // set BFB force values
    for (int i = 0; i < DOFS_ - 6; ++i)
@@ -331,7 +343,9 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
    {
       T[j] = 0.0;
       for (int i = 0; i < InternalAtoms; ++i)
+      {
          T[j] += DOF_[6 + 3 * i + j];
+      }
       T[j] /= InternalAtoms;
    }
    for (int i = 0; i < InternalAtoms; ++i)
@@ -359,7 +373,9 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
 
       // set d2wdcds and d2wd2c
       Matrix d2wdcds[3]; for (int i = 0; i < 3; ++i)
+      {
          d2wdcds[i].Resize(3, DOFS_ - 6);
+      }
       double strainstiffnesses[3][3][3][3];
       double d2wd2c[3][3][3][3];
 
@@ -383,7 +399,9 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
       }
 
       Matrix bfbcrossstiffness[3]; for (int i = 0; i < 3; ++i)
+      {
          bfbcrossstiffness[i].Resize(3, DOFS_ - 6);
+      }
       for (int i = 0; i < 3; ++i)
       {
          for (int j = 0; j < 3; ++j)
@@ -392,8 +410,10 @@ void DFTExternal::UpdateValues(UpdateFlag flag) const
             {
                bfbcrossstiffness[i][j][k] = 0.0;
                for (int r = 0; r < 3; ++r)
+               {
                   bfbcrossstiffness[i][j][k]
                      += U[i][r] * d2wdcds[r][j][k] + U[j][r] * d2wdcds[r][i][k];
+               }
             }
          }
       }
@@ -624,7 +644,9 @@ void DFTExternal::Print(ostream& out, PrintDetail const& flag,
 
    out.width(0);
    if (Echo_)
+   {
       cout.width(0);
+   }
 
    stiff = E2();
    str = E1();
@@ -638,9 +660,13 @@ void DFTExternal::Print(ostream& out, PrintDetail const& flag,
    for (int i = 0; i < TestFunctVals.Dim(); ++i)
    {
       if (TestFunctVals[i] < 0.0)
+      {
          ++NoNegTestFunctions;
+      }
       if (mintestfunct > TestFunctVals[i])
+      {
          mintestfunct = TestFunctVals[i];
+      }
    }
 
    switch (flag)

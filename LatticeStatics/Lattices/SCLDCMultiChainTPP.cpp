@@ -29,8 +29,12 @@ SCLDCMultiChainTPP::~SCLDCMultiChainTPP()
    delete[] SpeciesMass_;
    delete[] AtomicMass_;
    for (int i = 0; i < NumberofSpecies_; ++i)
+   {
       for (int j = i; j < NumberofSpecies_; ++j)
+      {
          delete SpeciesPotential_[i][j];
+      }
+   }
    delete[] SpeciesPotential_[0];
    delete[] SpeciesPotential_;
    delete[] Potential_[0];
@@ -134,7 +138,9 @@ SCLDCMultiChainTPP::SCLDCMultiChainTPP(PerlInput const& Input,
    // Setup Bodyforce_
    BodyForce_ = new Vector[INTERNAL_ATOMS];
    for (int i = 0; i < INTERNAL_ATOMS; ++i)
+   {
       BodyForce_[i].Resize(DIM1, 0.0);
+   }
 
    // Get Boltzmann constant
    kB_ = Input.getDouble(Hash, "kB");
@@ -151,8 +157,12 @@ SCLDCMultiChainTPP::SCLDCMultiChainTPP(PerlInput const& Input,
    Input.getIntVector(AtomSpecies_, INTERNAL_ATOMS, Hash, "AtomSpecies");
    NumberofSpecies_ = AtomSpecies_[0];
    for (int i = 1; i < INTERNAL_ATOMS; ++i)
+   {
       if (NumberofSpecies_ < AtomSpecies_[i])
+      {
          NumberofSpecies_ = AtomSpecies_[i];
+      }
+   }
    NumberofSpecies_++;
 
    // Get Potential Parameters
@@ -306,7 +316,9 @@ SCLDCMultiChainTPP::SCLDCMultiChainTPP(PerlInput const& Input,
    V4DOFDOF_static = new Matrix *[DOFS];
 
    for (int x = 0; x < DOFS; ++x)
+   {
       V4DOFDOF_static[x] = new Matrix[DOFS];
+   }
 
    EigVals_previous_static = new Matrix[GridSize_ / 2 + 1];
 
@@ -374,11 +386,15 @@ SCLDCMultiChainTPP::SCLDCMultiChainTPP(PerlInput const& Input,
       for (int j = i; j < INTERNAL_ATOMS; ++j)
       {
          if (AtomSpecies_[i] < AtomSpecies_[j])
+         {
             UpdatePairPotential(Hash, Input,
                                 AtomSpecies_[i], AtomSpecies_[j], Potential_[i][j]);
+         }
          else
+         {
             UpdatePairPotential(Hash, Input,
                                 AtomSpecies_[j], AtomSpecies_[i], Potential_[j][i]);
+         }
       }
    }
    SCLDChainSum_.Recalc();
@@ -405,9 +421,13 @@ int SCLDCMultiChainTPP::FindLatticeSpacing(int const& iter)
    FirstPrintLong = 0;
 
    if (Echo_)
+   {
       RefineEqbm(1.0e-13, iter, &cout);
+   }
    else
+   {
       RefineEqbm(1.0e-13, iter, 0);
+   }
 
    FreqCached = 0;
 
@@ -415,7 +435,9 @@ int SCLDCMultiChainTPP::FindLatticeSpacing(int const& iter)
    for (int i = 0; i < DOFS; ++i)
    {
       if (fabs(DOF_[i]) < 1.0e-13)
+      {
          DOF_[i] = 0.0;
+      }
    }
 
    // Update RefLattice_
@@ -536,7 +558,9 @@ double SCLDCMultiChainTPP::E0() const
    Tsq = 0;
 
    for (int i = 0; i < INTERNAL_ATOMS; ++i)
+   {
       Tsq += DOF_[i + 1];
+   }
    Tsq = (Tsq * Tsq) / INTERNAL_ATOMS;
 
    return E0 + 0.5 * Tsq;
@@ -657,11 +681,17 @@ double SCLDCMultiChainTPP::FreeEnergy(PairPotentials::TDeriv const& dt) const
 
    // Adding potential energy
    if (dt == PairPotentials::T0)
+   {
       FPhi += energy(PairPotentials::T0);
+   }
    else if (dt == PairPotentials::DT)
+   {
       FPhi += energy(PairPotentials::DT);
+   }
    else if (dt == PairPotentials::D2T)
+   {
       FPhi += energy(PairPotentials::D2T);
+   }
    else
    {
       cerr << "Error in SCLDCMultiChainTPP::FreeEnergy" << "\n";
@@ -679,10 +709,14 @@ Vector const& SCLDCMultiChainTPP::E1() const
    Phi1_static = Fstress();
 
    for (int i = 0; i < INTERNAL_ATOMS; ++i)
+   {
       T += DOF_[i + 1];
+   }
    T = T / INTERNAL_ATOMS;
    for (int i = 1; i < DOFS; ++i)
+   {
       Phi1_static[i] += T;
+   }
 
    return Phi1_static;
 }
@@ -721,10 +755,14 @@ Vector const& SCLDCMultiChainTPP::stress(PairPotentials::TDeriv const& dt,
 
          // Claculate the Stress
          if (dt == PairPotentials::T0)
+         {
             phi = SCLDChainSum_.phi1();
+         }
          else if (dt == PairPotentials::DT)
+         {
             phi = Potential_[SCLDChainSum_.Atom(0)][SCLDChainSum_.Atom(1)]->PairPotential(
                NTemp_, SCLDChainSum_.r2(), PairPotentials::DY, dt);
+         }
          else
          {
             cerr << "Error in SCLDCMultiChainTPP::stress" << "\n";
@@ -772,7 +810,9 @@ Vector const& SCLDCMultiChainTPP::stress(PairPotentials::TDeriv const& dt,
    for (int k = 0; k < DOFS; ++k)
    {
       if (fabs(stress_static[k]) < Tol)
+      {
          stress_static[k] = 0.0;
+      }
    }
 
    cout << "stress:" << endl;
@@ -860,8 +900,12 @@ Vector const& SCLDCMultiChainTPP::Fstress(PairPotentials::TDeriv const& dt, LDer
 
    // Clean up numerical round off (at least for zero values)
    for (int k = 0; k < DOFS; ++k)
+   {
       if (fabs(Fstress_static[k]) < Tol)
+      {
          Fstress_static[k] = 0.0;
+      }
+   }
 
    //    cout << "Vib. stress:" << endl;
    //    cout << setw(20) << Fstress_static << endl;
@@ -881,8 +925,12 @@ Matrix const& SCLDCMultiChainTPP::E2() const
    // Add translational stiffness
    double factor = 1.0 / INTERNAL_ATOMS;
    for (i = 0; i < INTERNAL_ATOMS; ++i)
+   {
       for (j = 0; j < INTERNAL_ATOMS; ++j)
+      {
          Phi2_static[i + 1][j + 1] += factor;
+      }
+   }
 
    return Phi2_static;
 }
@@ -963,9 +1011,15 @@ Matrix const& SCLDCMultiChainTPP::stiffness(PairPotentials::TDeriv const& dt,
 
    // Clean up numerical round off (at least for zero values)
    for (int k = 0; k < DOFS; ++k)
+   {
       for (int l = 0; l < DOFS; ++l)
+      {
          if (fabs(stiff_static[k][l]) < Tol)
+         {
             stiff_static[k][l] = 0.0;
+         }
+      }
+   }
 
 
    //   cout << "stiffness:" << endl;
@@ -1044,9 +1098,15 @@ Matrix const& SCLDCMultiChainTPP::Fstiffness(PairPotentials::TDeriv const& dt, L
 
    // Clean up numerical round off (at least for zero values)
    for (int k = 0; k < DOFS; ++k)
+   {
       for (int l = 0; l < DOFS; ++l)
+      {
          if (fabs(FPhi2_static[k][l]) < Tol)
+         {
             FPhi2_static[k][l] = 0.0;
+         }
+      }
+   }
 
    //    cout << "Vib. stiffness:" << endl;
    //    cout << setw(20) << FPhi2_static << endl;
@@ -1402,7 +1462,9 @@ int SCLDCMultiChainTPP::comp(void const* const a, void const* const b)
 {
    double t;
    if (*((double*) a) == *((double*) b))
+   {
       return 0;
+   }
    else
    {
       t = *((double*) a) - *((double*) b);
@@ -1415,7 +1477,9 @@ int SCLDCMultiChainTPP::abscomp(void const* const a, void const* const b)
 {
    double t;
    if (fabs(*((double*) a)) == fabs(*((double*) b)))
+   {
       return 0;
+   }
    else
    {
       t = fabs(*((double*) a)) - fabs(*((double*) b));
@@ -1732,14 +1796,18 @@ void SCLDCMultiChainTPP::ReferenceDispersionCurves(Vector const& K, int const& N
    int w = out.width();
    out.width(0);
    if (Echo_)
+   {
       cout.width(0);
+   }
 
    double InverseLat;
    InverseLat = 1.0 / RefLattice_[0][0];
 
    Matrix EigVal[3];
    for (int i = 0; i < 3; ++i)
+   {
       EigVal[i].Resize(1, INTERNAL_ATOMS);
+   }
 
    double Z1, Z2;
    Z1 = K[0];
@@ -1760,16 +1828,22 @@ void SCLDCMultiChainTPP::ReferenceDispersionCurves(Vector const& K, int const& N
 
       out << prefix << setw(w) << k * dz;
       if (Echo_)
+      {
          cout << prefix << setw(w) << k * dz;
+      }
       for (int i = 0; i < INTERNAL_ATOMS; ++i)
       {
          out << setw(w) << EigVal[k][0][i];
          if (Echo_)
+         {
             cout << setw(w) << EigVal[k][0][i];
+         }
       }
       out << "\n";
       if (Echo_)
+      {
          cout << "\n";
+      }
    }
    int zero = 0, one = 1, two = 2;
    for (int k = 2; k < NoPTS; ++k)
@@ -1781,17 +1855,22 @@ void SCLDCMultiChainTPP::ReferenceDispersionCurves(Vector const& K, int const& N
 
       out << prefix << setw(w) << k * dz;
       if (Echo_)
+      {
          cout << prefix << setw(w) << k * dz;
+      }
       for (int i = 0; i < INTERNAL_ATOMS; ++i)
       {
          out << setw(w) << EigVal[two][0][i];
          if (Echo_)
+         {
             cout << setw(w) << EigVal[two][0][i];
-         ;
+         }
       }
       out << "\n";
       if (Echo_)
+      {
          cout << "\n";
+      }
 
       zero = (zero + 1) % 3; one = (zero + 1) % 3; two = (one + 1) % 3;
    }
@@ -1835,7 +1914,7 @@ void SCLDCMultiChainTPP::ReferenceHarmonic() const
          i = i + 1;
       }
 
-    #pragma omp parallel for private(Eig,temp,temp1,temp2,EigVec_norm,J,F,X,A_static,A_DOF_static,A_DOF2_static,A_DOFDOF_static) schedule(dynamic)
+#pragma omp parallel for private(Eig,temp,temp1,temp2,EigVec_norm,J,F,X,A_static,A_DOF_static,A_DOF2_static,A_DOFDOF_static) schedule(dynamic)
       for (i = 0; i < (GridSize_ / 2 + 1); ++i)
       {
          // HEigVals_static and HEigVec_static
@@ -1844,7 +1923,7 @@ void SCLDCMultiChainTPP::ReferenceHarmonic() const
          Eig.Resize(INTERNAL_ATOMS, INTERNAL_ATOMS, 0.0);
          EigVec_norm.Resize(INTERNAL_ATOMS);
 
-        #pragma omp critical
+#pragma omp critical
          {
             A_static = ReferenceDynamicalStiffness(Z_static[i], PairPotentials::T0, 0, 0, 0);
          }
@@ -1876,7 +1955,9 @@ void SCLDCMultiChainTPP::ReferenceHarmonic() const
             (HEigVec_static[i])[k].Resize(INTERNAL_ATOMS, 1, 0.0);
 
             for (int p = 0; p < INTERNAL_ATOMS; ++p)
+            {
                ((HEigVec_static[i])[k])[p][0] = Eig[p][k];
+            }
          }
 
 
@@ -1884,7 +1965,9 @@ void SCLDCMultiChainTPP::ReferenceHarmonic() const
          for (int k = 0; k < INTERNAL_ATOMS; ++k)
          {
             if (fabs((HEigVals_static[i])[0][k]) < Tol)
+            {
                (HEigVals_static[i])[0][k] = 0.0;
+            }
          }
 
          // checking whether any eigen values are repeated
@@ -1922,7 +2005,7 @@ void SCLDCMultiChainTPP::ReferenceHarmonic() const
             A_DOF_static.Resize(INTERNAL_ATOMS, INTERNAL_ATOMS, 0.0);
             (HEigValsDOF_static[x])[i].Resize(1, INTERNAL_ATOMS, 0.0);
 
-            #pragma omp critical
+#pragma omp critical
             {
                A_DOF_static = ReferenceDynamicalStiffness(Z_static[i], PairPotentials::T0, 1, x, 0);
             }
@@ -1961,7 +2044,7 @@ void SCLDCMultiChainTPP::ReferenceHarmonic() const
          {
             A_DOF_static.Resize(INTERNAL_ATOMS, INTERNAL_ATOMS, 0.0);
 
-            #pragma omp critical
+#pragma omp critical
             {
                A_DOF_static = ReferenceDynamicalStiffness(Z_static[i], PairPotentials::T0, 1, x, 0);
             }
@@ -1970,7 +2053,7 @@ void SCLDCMultiChainTPP::ReferenceHarmonic() const
             {
                A_DOF2_static.Resize(INTERNAL_ATOMS, INTERNAL_ATOMS, 0.0);
 
-                #pragma omp critical
+#pragma omp critical
                {
                   A_DOF2_static = ReferenceDynamicalStiffness(Z_static[i], PairPotentials::T0, 1, y, 0);
                }
@@ -1978,7 +2061,7 @@ void SCLDCMultiChainTPP::ReferenceHarmonic() const
                A_DOFDOF_static.Resize(INTERNAL_ATOMS, INTERNAL_ATOMS, 0.0);
                ((HEigValsDOFDOF_static[x])[y])[i].Resize(1, INTERNAL_ATOMS, 0.0);
 
-                #pragma omp critical
+#pragma omp critical
                {
                   A_DOFDOF_static = ReferenceDynamicalStiffness(Z_static[i], PairPotentials::T0, 2, x, y);
                }
@@ -2118,7 +2201,9 @@ void SCLDCMultiChainTPP::ReferenceV4() const
          (V4DOF_static[x]).Resize((GridSize_ / 2 + 1) * INTERNAL_ATOMS, (GridSize_ / 2 + 1) * INTERNAL_ATOMS, 0.0);
 
          for (int y = x; y < DOFS; ++y)
+         {
             ((V4DOFDOF_static[x])[y]).Resize((GridSize_ / 2 + 1) * INTERNAL_ATOMS, (GridSize_ / 2 + 1) * INTERNAL_ATOMS, 0.0);
+         }
       }
 
 
@@ -2151,7 +2236,7 @@ void SCLDCMultiChainTPP::ReferenceV4() const
                   + 140 * SCLDChainSum_.phi4();
 
          // #pragma omp parallel for schedule(dynamic) // collapse only works when gcc version is greater than 4.3 or something..it works on "bop.aem.umn.edu" but not "soul.aem.umn.edu" machine
-        #pragma omp parallel for schedule(dynamic) collapse(4)
+#pragma omp parallel for schedule(dynamic) collapse(4)
          for (int i = 0; i < (GridSize_ / 2 + 1); ++i)
          {
             for (int k = 0; k < INTERNAL_ATOMS; ++k)
@@ -2423,7 +2508,9 @@ void SCLDCMultiChainTPP::ReferenceV4() const
          V4DOF_static[x] /= (GridSize_ + 2);
 
          for (int y = x; y < DOFS; ++y)
+         {
             (V4DOFDOF_static[x])[y] /= (GridSize_ + 2);
+         }
       }
 
 
@@ -2465,9 +2552,13 @@ void SCLDCMultiChainTPP::ReferencePseudoHarmonic() const
          for (int k = 0; k < INTERNAL_ATOMS; ++k)
          {
             if (FirstConverged == 1)
+            {
                X_previous[i * INTERNAL_ATOMS + k][0] = (EigVals_previous_static[i])[0][k];
+            }
             else if (FirstConverged == 0)
+            {
                X_previous[i * INTERNAL_ATOMS + k][0] = (HEigVals_static[i])[0][k];
+            }
             else
             {
                cout << "Error in initiating the X_previous: EigVals" << endl;
@@ -2496,7 +2587,9 @@ void SCLDCMultiChainTPP::ReferencePseudoHarmonic() const
                         F[i * INTERNAL_ATOMS + k][0] += 2.0 * 0.5 * kB_ * NTemp_ * V4_static[i * INTERNAL_ATOMS + k][j * INTERNAL_ATOMS + l] / X_previous[j * INTERNAL_ATOMS + l][0];
                      }
                      else
+                     {
                         F[i * INTERNAL_ATOMS + k][0] += 0.0;
+                     }
 
                      if ((i == j) && (k == l))
                      {
@@ -2505,7 +2598,9 @@ void SCLDCMultiChainTPP::ReferencePseudoHarmonic() const
                            J[i * INTERNAL_ATOMS + k][j * INTERNAL_ATOMS + l] = -1.0 - 2.0 * 0.5 * kB_ * NTemp_ * V4_static[i * INTERNAL_ATOMS + k][j * INTERNAL_ATOMS + l] / (X_previous[j * INTERNAL_ATOMS + l][0] * X_previous[j * INTERNAL_ATOMS + l][0]);
                         }
                         else
+                        {
                            J[i * INTERNAL_ATOMS + k][j * INTERNAL_ATOMS + l] = -1.0;
+                        }
                      }
                      else
                      {
@@ -2514,7 +2609,9 @@ void SCLDCMultiChainTPP::ReferencePseudoHarmonic() const
                            J[i * INTERNAL_ATOMS + k][j * INTERNAL_ATOMS + l] = -2.0 * 0.5 * kB_ * NTemp_ * V4_static[i * INTERNAL_ATOMS + k][j * INTERNAL_ATOMS + l] / (X_previous[j * INTERNAL_ATOMS + l][0] * X_previous[j * INTERNAL_ATOMS + l][0]);
                         }
                         else
+                        {
                            J[i * INTERNAL_ATOMS + k][j * INTERNAL_ATOMS + l] = 0.0;
+                        }
                      }
                   }
                }
@@ -2534,12 +2631,16 @@ void SCLDCMultiChainTPP::ReferencePseudoHarmonic() const
                break;
             }
             else
+            {
                converged = 1;
+            }
          }
 
          // copying X to X-previous for next iteration
          for (int p = 0; p < (GridSize_ / 2 + 1) * INTERNAL_ATOMS; ++p)
+         {
             X_previous[p][0] = X[p][0];
+         }
 
          counter = counter + 1;
          if (counter > MaxCounter)
@@ -2558,7 +2659,9 @@ void SCLDCMultiChainTPP::ReferencePseudoHarmonic() const
 
             // Clean up numerical round off (at least for zero values)
             if (fabs((EigVals_static[i])[0][k]) < Tol)
+            {
                (EigVals_static[i])[0][k] = 0.0;
+            }
          }
       }
 
@@ -2597,7 +2700,9 @@ void SCLDCMultiChainTPP::ReferencePseudoHarmonic() const
                      B[i * INTERNAL_ATOMS + k][0] -= 2.0 * 0.5 * kB_ * V4_static[i * INTERNAL_ATOMS + k][j * INTERNAL_ATOMS + l] / (EigVals_static[j])[0][l];
                   }
                   else
+                  {
                      B[i * INTERNAL_ATOMS + k][0] -= 0.0;
+                  }
 
                   if ((i == j) && (k == l))
                   {
@@ -2607,7 +2712,9 @@ void SCLDCMultiChainTPP::ReferencePseudoHarmonic() const
                                                                             / ((EigVals_static[j])[0][l] * (EigVals_static[j])[0][l]);
                      }
                      else
+                     {
                         A[i * INTERNAL_ATOMS + k][j * INTERNAL_ATOMS + l] = -1.0;
+                     }
                   }
                   else
                   {
@@ -2617,7 +2724,9 @@ void SCLDCMultiChainTPP::ReferencePseudoHarmonic() const
                                                                             / ((EigVals_static[j])[0][l] * (EigVals_static[j])[0][l]);
                      }
                      else
+                     {
                         A[i * INTERNAL_ATOMS + k][j * INTERNAL_ATOMS + l] = 0.0;
+                     }
                   }
                }
             }
@@ -2683,7 +2792,9 @@ void SCLDCMultiChainTPP::ReferencePseudoHarmonic() const
                                                            );
                   }
                   else
+                  {
                      B[i * INTERNAL_ATOMS + k][0] -= 0.0;
+                  }
                }
             }
          }
@@ -2718,7 +2829,7 @@ void SCLDCMultiChainTPP::ReferencePseudoHarmonic() const
 
 
       //  Finding EigValsDOF_static
-    #pragma omp parallel for private(B,X) schedule(dynamic)
+#pragma omp parallel for private(B,X) schedule(dynamic)
       for (int x = 0; x < DOFS; ++x)
       {
          B.Resize((GridSize_ / 2 + 1) * INTERNAL_ATOMS, 1, 0.0);
@@ -2739,7 +2850,9 @@ void SCLDCMultiChainTPP::ReferencePseudoHarmonic() const
                         B[i * INTERNAL_ATOMS + k][0] -= 2.0 * 0.5 * kB_ * NTemp_ * (V4DOF_static[x])[i * INTERNAL_ATOMS + k][j * INTERNAL_ATOMS + l] / (EigVals_static[j])[0][l];
                      }
                      else
+                     {
                         B[i * INTERNAL_ATOMS + k][0] -= 0.0;
+                     }
                   }
                }
             }
@@ -2779,7 +2892,7 @@ void SCLDCMultiChainTPP::ReferencePseudoHarmonic() const
 
 
       //  Finding EigValsTDOF_static
-    #pragma omp parallel for private(B,X) schedule(dynamic)
+#pragma omp parallel for private(B,X) schedule(dynamic)
       for (int x = 0; x < DOFS; ++x)
       {
          B.Resize((GridSize_ / 2 + 1) * INTERNAL_ATOMS, 1, 0.0);
@@ -2809,7 +2922,9 @@ void SCLDCMultiChainTPP::ReferencePseudoHarmonic() const
                                                               );
                      }
                      else
+                     {
                         B[i * INTERNAL_ATOMS + k][0] -= 0.0;
+                     }
                   }
                }
             }
@@ -2850,7 +2965,7 @@ void SCLDCMultiChainTPP::ReferencePseudoHarmonic() const
 
 
       //  Finding EigValsDOFDOF_static
-    #pragma omp parallel for private(B,X) schedule(dynamic)
+#pragma omp parallel for private(B,X) schedule(dynamic)
       for (int x = 0; x < DOFS; ++x)
       {
          for (int y = x; y < DOFS; ++y)
@@ -2881,7 +2996,9 @@ void SCLDCMultiChainTPP::ReferencePseudoHarmonic() const
                                                                  );
                         }
                         else
+                        {
                            B[i * INTERNAL_ATOMS + k][0] -= 0.0;
+                        }
                      }
                   }
                }
@@ -2929,7 +3046,9 @@ int SCLDCMultiChainTPP::ReferenceBlochWave(Vector& K) const
          if ((EigVals_static[i])[0][k] < MinEigVal)
          {
             if (fabs((EigVals_static[i])[0][k]) > Tol)
+            {
                MinEigVal = (EigVals_static[i])[0][k];
+            }
          }
          if ((EigVals_static[i])[0][k] < -Tol)
          {
@@ -2946,7 +3065,8 @@ int SCLDCMultiChainTPP::ReferenceBlochWave(Vector& K) const
 void SCLDCMultiChainTPP::LongWavelengthModuli(double const& dk, int const& gridsize,
                                               char const* const prefix, ostream& out)
 const
-{}
+{
+}
 
 void SCLDCMultiChainTPP::NeighborDistances(int const& cutoff, ostream& out) const
 {
@@ -2988,7 +3108,9 @@ void SCLDCMultiChainTPP::Print(ostream& out, PrintDetail const& flag,
 
    out.width(0);
    if (Echo_)
+   {
       cout.width(0);
+   }
 
    engy = FreeEnergy();
 
@@ -3011,9 +3133,13 @@ void SCLDCMultiChainTPP::Print(ostream& out, PrintDetail const& flag,
    for (int i = 0; i < TestFunctVals_static.Dim(); ++i)
    {
       if (TestFunctVals_static[i] < 0.0)
+      {
          ++NoNegTestFunctions;
+      }
       if (mintestfunct > TestFunctVals_static[i])
+      {
          mintestfunct = TestFunctVals_static[i];
+      }
    }
 
    CondModuli = CondensedModuli();
@@ -3219,7 +3345,9 @@ void SCLDCMultiChainTPP::Print(ostream& out, PrintDetail const& flag,
          if ((FirstPrintLong == 2) && (FirstConverged == 1))
          {
             for (int i = 0; i < (GridSize_ / 2 + 1); ++i)
+            {
                EigVals_previous_static[i] = EigVals_static[i];
+            }
 
             FirstConverged = 1;
          }
@@ -3337,26 +3465,44 @@ void SCLDCMultiChainTPP::DebugMode()
    {
       indx = 0;
       if (response == Commands[indx++])
+      {
          cout << "INTERNAL_ATOMS = " << INTERNAL_ATOMS << "\n";
+      }
       else if (response == Commands[indx++])
+      {
          cout << "DOFS = " << DOFS << "\n";
+      }
       else if (response == Commands[indx++])
+      {
          cout << "InfluenceDist_ = " << InfluenceDist_ << "\n";
+      }
       else if (response == Commands[indx++])
+      {
          cout << "NTemp_ = " << NTemp_ << "\n";
+      }
       else if (response == Commands[indx++])
       {
          for (int i = 0; i < DOFS; ++i)
+         {
             cout << "DOF_[" << i << "] = " << DOF_[i] << "\n";
+         }
       }
       else if (response == Commands[indx++])
+      {
          cout << "RefLattice_= " << setw(W) << RefLattice_;
+      }
       else if (response == Commands[indx++])
+      {
          cout << "Density_= " << Density_ << "\n";
+      }
       else if (response == Commands[indx++])
+      {
          cout << "NormModulus_= " << NormModulus_ << "\n";
+      }
       else if (response == Commands[indx++])
+      {
          cout << "Lambda_= " << Lambda_ << "\n";
+      }
       else if (response == Commands[indx++])
       {
          for (int i = 0; i < INTERNAL_ATOMS; ++i)
@@ -3374,7 +3520,9 @@ void SCLDCMultiChainTPP::DebugMode()
          }
       }
       else if (response == Commands[indx++])
+      {
          cout << "GridSize_= " << GridSize_ << "\n";
+      }
       else if (response == Commands[indx++])
       {
          for (int i = 0; i < INTERNAL_ATOMS; ++i)
@@ -3387,11 +3535,17 @@ void SCLDCMultiChainTPP::DebugMode()
          }
       }
       else if (response == Commands[indx++])
+      {
          cout << "stress= " << setw(W) << stress();
+      }
       else if (response == Commands[indx++])
+      {
          cout << "stiffness= " << setw(W) << stiffness();
+      }
       else if (response == Commands[indx++])
+      {
          cout << "CondensedModuli= " << setw(W) << CondensedModuli();
+      }
       else if (response == Commands[indx++])
       {
          Vector K(6, 0.0);
@@ -3435,9 +3589,13 @@ void SCLDCMultiChainTPP::DebugMode()
          SetDOF(DOF);
       }
       else if (response == Commands[indx++])
+      {
          cout << "StressDT= " << setw(W) << StressDT();
+      }
       else if (response == Commands[indx++])
+      {
          cout << "StiffnessDT= " << setw(W) << StiffnessDT();
+      }
       else if (response == Commands[indx++])
       {
          double Temp;
@@ -3455,17 +3613,29 @@ void SCLDCMultiChainTPP::DebugMode()
          SetInfluenceDist(dist);
       }
       else if (response == Commands[indx++])
+      {
          cout << "energy= " << energy() << "\n";
+      }
       else if (response == Commands[indx++])
+      {
          cout << "E0= " << setw(W) << E0();
+      }
       else if (response == Commands[indx++])
+      {
          cout << "E1= " << setw(W) << E1();
+      }
       else if (response == Commands[indx++])
+      {
          cout << "E2= " << setw(W) << E2();
+      }
       else if (response == Commands[indx++])
+      {
          cout << "E3= " << setw(W) << E3();
+      }
       else if (response == Commands[indx++])
+      {
          cout << "E4= " << setw(W) << E4();
+      }
       else if (response == Commands[indx++])
       {
          int GridSize;
@@ -3563,7 +3733,9 @@ void SCLDCMultiChainTPP::DebugMode()
          vals = new double[sze];
          cout << "\tEnter new Parameter values > ";
          for (int i = 0; i < sze; ++i)
+         {
             cin >> vals[i];
+         }
          SetParameters(vals);
       }
       else if ((response == "?") || (response == "help"))
@@ -3573,9 +3745,13 @@ void SCLDCMultiChainTPP::DebugMode()
          {
             cout << "  " << setw(30) << Commands[i];
             if ((i == NOcommands / 2) && !NOcommands % 2)
+            {
                cout << "\n";
+            }
             else
+            {
                cout << setw(30) << Commands[NOcommands / 2 + i] << "\n";
+            }
 
             if (!((i + 1) % 30))
             {
@@ -3584,13 +3760,16 @@ void SCLDCMultiChainTPP::DebugMode()
                cin.sync(); // clear input
                ans = kbhitWait();
                if (ans == 'q')
+               {
                   break;
+               }
             }
          }
          cout << resetiosflags(ios::left) << "\n";
       }
       else if ((response == "\n") || (response == ""))
-      {}
+      {
+      }
       else
       {
          cout << "!--- Error - Unknown command ---!" << "\n" << "\n";

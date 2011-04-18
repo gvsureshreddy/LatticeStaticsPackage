@@ -40,20 +40,34 @@ public:
    ~TwoBarTruss();
 
    // Virtual Functions required by Lattice
-   Vector const& DOF() const {return DOF_;}
+   Vector const& DOF() const
+   {
+      return DOF_;
+   }
    void SetDOF(Vector const& dof)
    {
       DOF_ = dof; if (Caching_)
+      {
          for (int i = 0; i < cachesize; ++i)
+         {
             Cached_[i] = 0;
+         }
+      }
    }
 
-   double Lambda() const {return Lambda_;}
+   double Lambda() const
+   {
+      return Lambda_;
+   }
    void SetLambda(double const& lambda)
    {
       Lambda_ = lambda; if (Caching_)
+      {
          for (int i = 0; i < cachesize; ++i)
+         {
             Cached_[i] = 0;
+         }
+      }
    }
 
    virtual double E0() const;
@@ -63,23 +77,53 @@ public:
    virtual Matrix const& E3() const;
    virtual Matrix const& E4() const;
    virtual void ExtraTestFunctions(Vector& TF) const;
-   virtual char const* const Type() const {return "TwoBarTruss";}
+   virtual char const* const Type() const
+   {
+      return "TwoBarTruss";
+   }
    virtual void Print(ostream& out, PrintDetail const& flag,
                       PrintPathSolutionType const& SolType = RegularPt);
 
    friend ostream& operator<<(ostream& out, TwoBarTruss& A);
 
    // ignore these
-   double Entropy() const {return 0.0;}
-   double HeatCapacity() const {return 0.0;}
-   Vector const& StressDT() const {return EmptyV_;}
-   Matrix const& StiffnessDT() const {return EmptyM_;}
-   double Temp() const {return 0.0;}
-   void SetTemp(double const& Ntemp) {}
-   Vector const& StressDL() const {return E1DLoad();}
-   Matrix const& StiffnessDL() const {return EmptyM_;}
-   virtual void SetParameters(double const* const Vals, int const& ResetRef = 1) {}
-   virtual void SetGridSize(int const& Grid) {}
+   double Entropy() const
+   {
+      return 0.0;
+   }
+   double HeatCapacity() const
+   {
+      return 0.0;
+   }
+   Vector const& StressDT() const
+   {
+      return EmptyV_;
+   }
+   Matrix const& StiffnessDT() const
+   {
+      return EmptyM_;
+   }
+   double Temp() const
+   {
+      return 0.0;
+   }
+   void SetTemp(double const& Ntemp)
+   {
+   }
+   Vector const& StressDL() const
+   {
+      return E1DLoad();
+   }
+   Matrix const& StiffnessDL() const
+   {
+      return EmptyM_;
+   }
+   virtual void SetParameters(double const* const Vals, int const& ResetRef = 1)
+   {
+   }
+   virtual void SetGridSize(int const& Grid)
+   {
+   }
 
 private:
    // temp storage space

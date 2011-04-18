@@ -240,7 +240,9 @@ int Lattice::TestFunctions(Vector& TF1, StateType const& State, Vector* const TF
          for (int i = 0; i < size; i++)
          {
             if ((EV1_static[0][i] * EV2_static[0][i]) < 0.0)
+            {
                ++NumSwitchTFs;
+            }
             TF1[i] = EV2_static[0][i];
          }
       }
@@ -251,7 +253,9 @@ int Lattice::TestFunctions(Vector& TF1, StateType const& State, Vector* const TF
       for (int i = 0; i < NumExtraTFs_; ++i)
       {
          if ((ExTF1_static[i] * ExTF2_static[i]) < 0.0)
+         {
             ++NumSwitchTFs;
+         }
          TF1[size + i] = ExTF2_static[i];
       }
    }
@@ -317,7 +321,9 @@ int Lattice::TestFunctions(Vector& TF1, StateType const& State, Vector* const TF
          for (int i = 0; i < size; i++)
          {
             if ((EV1_static[0][i] * EV2_static[0][i]) < 0.0)
+            {
                ++NumSwitchTFs;
+            }
             TF1[i] = EV1_static[0][i];
          }
       }
@@ -326,7 +332,9 @@ int Lattice::TestFunctions(Vector& TF1, StateType const& State, Vector* const TF
       for (int i = 0; i < NumExtraTFs_; ++i)
       {
          if ((ExTF1_static[i] * ExTF2_static[i]) < 0.0)
+         {
             ++NumSwitchTFs;
+         }
          TF1[size + i] = ExTF1_static[i];
       }
    }
@@ -411,13 +419,17 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
                for (int k = 0; k < count; ++k)
                {
                   if (Ind[k] == i)
+                  {
                      skp = 1;
+                  }
                }
 
                if (!skp)
                {
                   if (fabs(EigVal[0][i]) < fabs(EigVal[0][Ind[count]]))
+                  {
                      Ind[count] = i;
+                  }
                }
             }
             count++;
@@ -433,12 +445,16 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
       }
 
       for (int i = 0; i < count; ++i)
+      {
          out << "Mode[" << i << "] DOF: " << Ind[i] << ",  ";
+      }
       out << "\n";
       if (Echo_)
       {
          for (int i = 0; i < count; ++i)
+         {
             cout << "Mode[" << i << "] DOF: " << Ind[i] << ",  ";
+         }
          cout << "\n";
       }
 
@@ -457,25 +473,35 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
       {
          out << "EigenValues" << "\n" << setw(Width) << EigVal;
          if (Echo_)
+         {
             cout << "EigenValues" << "\n" << setw(Width) << EigVal;
+         }
          out << "EigenVectors" << "\n" << setw(Width) << EigVec;
          if (Echo_)
+         {
             cout << "EigenVectors" << "\n" << setw(Width) << EigVec;
+         }
       }
       else
       {
          out << "EigenValues: ";
          if (Echo_)
+         {
             cout << "EigenValues: ";
+         }
          for (int i = 0; i < count; ++i)
          {
             out << setw(Width) << EigVal[0][Ind[i]];
             if (Echo_)
+            {
                cout << setw(Width) << EigVal[0][Ind[i]];
+            }
          }
          out << "\n";
          if (Echo_)
+         {
             cout << "\n";
+         }
       }
 
       // Print out results
@@ -483,10 +509,14 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
       {
          out << "-";
          if (Echo_)
+         {
             cout << "-";
+         }
       }
       out << "\n"; if (Echo_)
+      {
          cout << "\n";
+      }
 
       // Print out the critical point character test (Limit-load/Bifurcation)
       Bif = 1;
@@ -498,10 +528,14 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
             z += Mode[i][j] * D1T[j];
          }
          if (fabs(z) > Tolerance)
+         {
             Bif = 0;
+         }
          out << "StressDT*Mode[" << i << "] = " << setw(Width) << z << "\n";
          if (Echo_)
+         {
             cout << "StressDT*Mode[" << i << "] = " << setw(Width) << z << "\n";
+         }
       }
       if (Bif != CPorBif) // information conflicts. use Bif
       {
@@ -530,7 +564,9 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
 
          Matrix* Eijk = new Matrix[count];
          for (int i = 0; i < count; ++i)
+         {
             Eijk[i].Resize(count, count);
+         }
          Matrix EijT(count, count);
 
          // Eijk
@@ -580,13 +616,17 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
          // Print out results
          out << "\n" << "\n" << "2nd Order Bifurcation Equations:" << "\n";
          if (Echo_)
+         {
             cout << "\n" << "\n" << "2nd Order Bifurcation Equations:" << "\n";
+         }
 
          int prec = out.precision();
 
          out.flags(ios::scientific); out << setprecision(prec / 2);
          if (Echo_)
+         {
             cout.flags(ios::scientific);
+         }
          cout << setprecision(prec / 2);
 
          for (int i = 0; i < count; i++)
@@ -596,11 +636,13 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
                for (int k = j; k < count; k++)
                {
                   if (Echo_)
+                  {
                      cout << "(" << setw(Width)
                           << Eijk[i][j][k] + ((j == k) ? 0.0 : Eijk[i][k][j])
                           << ")a_" << j
                           << "a_" << k
                           << " + ";
+                  }
                   out << "(" << setw(Width)
                       << Eijk[i][j][k] + ((j == k) ? 0.0 : Eijk[i][k][j])
                       << ")a_" << j
@@ -612,23 +654,29 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
 
             out << "2T_1( ";
             if (Echo_)
+            {
                cout << "2T_1( ";
+            }
 
             for (int j = 0; j < count - 1; j++)
             {
                if (Echo_)
+               {
                   cout << "(" << setw(Width)
                        << EijT[i][j]
                        << ")a_" << j
                        << " + ";
+               }
                out << "(" << setw(Width)
                    << EijT[i][j]
                    << ")a_" << j
                    << " + ";
             }
             if (Echo_)
+            {
                cout << "(" << setw(Width) << EijT[i][count - 1] << ")a_" << count - 1
                     << " ) = 0" << "\n";
+            }
             out << "(" << setw(Width) << EijT[i][count - 1] << ")a_" << count - 1
                 << " ) = 0" << "\n";
          }
@@ -638,10 +686,14 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
          {
             out << "\n" << "DrDt = " << setw(Width) << DrDt << "\n";
             if (Echo_)
+            {
                cout << "\n" << "DrDt = " << setw(Width) << DrDt << "\n";
+            }
             out << "Eijk = " << "\n";
             if (Echo_)
+            {
                cout << "Eijk = " << "\n";
+            }
             for (int i = 0; i < count; ++i)
             {
                for (int j = 0; j < count; ++j)
@@ -650,36 +702,50 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
                   {
                      out << setw(Width) << Eijk[i][j][k];
                      if (Echo_)
+                     {
                         cout << setw(Width) << Eijk[i][j][k];
+                     }
                   }
                   out << "\n";
                   if (Echo_)
+                  {
                      cout << "\n";
+                  }
                }
             }
 
             out << "\n";
             if (Echo_)
+            {
                cout << "\n";
+            }
 
             out << "EijT = " << "\n";
             if (Echo_)
+            {
                cout << "EijT = " << "\n";
+            }
             for (int i = 0; i < count; ++i)
             {
                for (int j = 0; j < count; ++j)
                {
                   out << setw(Width) << EijT[i][j];
                   if (Echo_)
+                  {
                      cout << setw(Width) << EijT[i][j];
+                  }
                }
                out << "\n";
                if (Echo_)
+               {
                   cout << "\n";
+               }
             }
             out << "\n";
             if (Echo_)
+            {
                cout << "\n";
+            }
          }
          // ----------------------------
 
@@ -702,7 +768,9 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
             Matrix* Vij;
             Vij = new Matrix[count];
             for (int i = 0; i < count; ++i)
+            {
                Vij[i].Resize(count, dofs);
+            }
             Matrix D4 = E4(),
             S(dofs - count, dofs);
 
@@ -749,7 +817,9 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
                   if (FullPrint_)
                   {
                      if (Echo_)
+                     {
                         cout << "\n" << "V[" << i << "][" << j << "]=";
+                     }
                      out << "\n" << "V[" << i << "][" << j << "]=";
                   }
 
@@ -767,7 +837,9 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
                      if (FullPrint_)
                      {
                         if (Echo_)
+                        {
                            cout << setw(Width) << Vij[i][j][k];
+                        }
                         out << setw(Width) << Vij[i][j][k];
                      }
                   }
@@ -777,7 +849,9 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
             if (FullPrint_)
             {
                if (Echo_)
+               {
                   cout << "\n";
+               }
                out << "\n";
             }
 
@@ -826,7 +900,9 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
 
             // Print out results
             if (Echo_)
+            {
                cout << "\n" << "3rd Order Bifurcation Equations:" << "\n";
+            }
             out << "\n" << "3rd Order Bifurcation Equations:" << "\n";
 
             for (int i = 0; i < count; i++)
@@ -838,6 +914,7 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
                      for (int l = k; l < count; l++)
                      {
                         if (Echo_)
+                        {
                            cout << "(" << setw(Width)
                                 << Eijkl[i][j][k][l] + ((j == k) ? 0.0 : Eijkl[i][k][j][l])
                            + ((j == l) ? 0.0 : Eijkl[i][l][k][j]) + ((k == l) ? 0.0 : Eijkl[i][j][l][k])
@@ -845,6 +922,7 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
                                 << "a_" << k
                                 << "a_" << l
                                 << " + ";
+                        }
                         out << "(" << setw(Width)
                             << Eijkl[i][j][k][l] + ((j == k) ? 0.0 : Eijkl[i][k][j][l])
                         + ((j == l) ? 0.0 : Eijkl[i][l][k][j]) + ((k == l) ? 0.0 : Eijkl[i][j][l][k])
@@ -857,24 +935,30 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
                }
 
                if (Echo_)
+               {
                   cout << "3T_2( ";
+               }
                out << "3T_2( ";
 
                for (int j = 0; j < count - 1; j++)
                {
                   if (Echo_)
+                  {
                      cout << "(" << setw(Width)
                           << EijT[i][j]
                           << ")a_" << j
                           << " + ";
+                  }
                   out << "(" << setw(Width)
                       << EijT[i][j]
                       << ")a_" << j
                       << " + ";
                }
                if (Echo_)
+               {
                   cout << "(" << setw(Width) << EijT[i][count - 1] << ")a_" << count - 1
                        << " ) = 0" << "\n";
+               }
                out << "(" << setw(Width) << EijT[i][count - 1] << ")a_" << count - 1
                    << " ) = 0" << "\n";
             }
@@ -884,7 +968,9 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
             {
                out << "\n" << "Eijkl = " << "\n";
                if (Echo_)
+               {
                   cout << "\n" << "Eijkl = " << "\n";
+               }
                for (int i = 0; i < count; ++i)
                {
                   for (int j = 0; j < count; ++j)
@@ -895,19 +981,25 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
                         {
                            out << setw(Width) << Eijkl[i][j][k][l];
                            if (Echo_)
+                           {
                               cout << setw(Width) << Eijkl[i][j][k][l];
+                           }
                         }
                      }
 
                      out << "\n";
                      if (Echo_)
+                     {
                         cout << "\n";
+                     }
                   }
                }
 
                out << "\n";
                if (Echo_)
+               {
                   cout << "\n";
+               }
             }
             // ----------------------------
 
@@ -922,7 +1014,9 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
 
          out.flags(ios::fixed); out << setprecision(prec);
          if (Echo_)
+         {
             cout.flags(ios::fixed);
+         }
          cout << setprecision(prec);
       }
 
@@ -937,11 +1031,15 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
    for (int i = 0; i < 70; i++)
    {
       if (Echo_)
+      {
          cout << "-";
+      }
       out << "-";
    }
    if (Echo_)
+   {
       cout << endl;
+   }
    out << endl;
 
    // output a new input file to help restart at this critical point
@@ -963,11 +1061,17 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
    TFOrderFilename << cpfilename.str() << ".TF.order";
 
    if (1 == Bif)
+   {
       cpfilename << ".B";
+   }
    else if (0 == Bif)
+   {
       cpfilename << ".T";
+   }
    else
+   {
       cpfilename << ".E";
+   }
 
    cpfilename.fill('0');
    cpfilename << setw(IndexZeros) << TFIndex << "-"
@@ -976,11 +1080,17 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
 
    int CPcount = 0;
    for (int i = 0; i < NumTestFunctions(); ++i)
+   {
       CPcount += CPCrossingNum[i];
+   }
    if (CPcount == 0)
+   {
       TFOrderFile.open(TFOrderFilename.str().c_str(), ios::out);
+   }
    else
+   {
       TFOrderFile.open(TFOrderFilename.str().c_str(), ios::out | ios::app);
+   }
    TFOrderFile << setiosflags(ios::fixed) << setprecision(Width / 2);
    TFOrderFile << setw(Width) << CPcount << "     " << cpfilename.str()
                << setw(Width) << ((LoadParameter_ == Temperature) ? Temp() : Lambda())
@@ -1014,12 +1124,16 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
          colms = new int*[dofs];
          colms[0] = new int[dofs * dofs];
          for (int i = 1; i < dofs; ++i)
+         {
             colms[i] = colms[i - 1] + dofs;
+         }
          int** colmssgn;
          colmssgn = new int*[dofs];
          colmssgn[0] = new int[dofs * dofs];
          for (int i = 1; i < dofs; ++i)
+         {
             colmssgn[i] = colmssgn[i - 1] + dofs;
+         }
          int* colmscnt = new int[dofs];
 
          for (int i = 0; i < count; ++i)
@@ -1031,7 +1145,9 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
             {
                colmscnt[j] = 0;
                for (int k = 0; k < dofs; ++k)
+               {
                   colms[k][j] = colmssgn[k][j] = 0;
+               }
             }
             for (int j = 0; j < dofs; ++j)
             {
@@ -1069,7 +1185,9 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
                                        "DOF_?", 0);
                Vector z(colmscnt[j]);
                for (int k = 0; k < colmscnt[j]; ++k)
+               {
                   z[k] = colmssgn[j][k];
+               }
                Input.writeVector(cpfile, z,
                                  Input.useHash("Restriction", "RestrictToTranslatedSubSpace"),
                                  "DOF_?", 1);
@@ -1179,7 +1297,9 @@ void Lattice::ConsistencyCheck(double const& ConsistencyEpsilon, int const& Widt
 
    out.flags(ios::scientific);
    if (Echo_)
+   {
       cout.flags(ios::scientific);
+   }
 
    // Do Consistency check
    int Do2 = 1, Do3 = 0, Do4 = 0;
@@ -1187,12 +1307,16 @@ void Lattice::ConsistencyCheck(double const& ConsistencyEpsilon, int const& Widt
    if (Echo_)
    {
       for (int i = 0; i < 70; i++)
+      {
          cout << "=";
+      }
       cout << "\n";
       cout << "Consistency Check." << "\n";
    }
    for (int i = 0; i < 70; i++)
+   {
       out << "=";
+   }
    out << "\n";
    out << "Consistency Check." << "\n";
 
@@ -1203,19 +1327,31 @@ void Lattice::ConsistencyCheck(double const& ConsistencyEpsilon, int const& Widt
    cout << "For E4 (1-yes,0-no) :"; cin >> Do4;
 
    if (Do2)
+   {
       Stiff = ConsistencyEpsilon * E2();
+   }
    if (Do3)
+   {
       D3 = ConsistencyEpsilon * E3();
+   }
    if (Do4)
+   {
       D4 = ConsistencyEpsilon * E4();
+   }
 
    potential = E0();
    if (Do2)
+   {
       stress1 = E1();
+   }
    if (Do3)
+   {
       stiff1 = E2();
+   }
    if (Do4)
+   {
       d31 = E3();
+   }
    for (int i = 0; i < Dim; ++i)
    {
       // Perturb the lattice state
@@ -1225,22 +1361,32 @@ void Lattice::ConsistencyCheck(double const& ConsistencyEpsilon, int const& Widt
       // Get Check
       PerturbedForce[i] = E0() - potential;
       if (Do2)
+      {
          stress2 = E1();
+      }
       if (Do3)
+      {
          stiff2 = E2();
+      }
       if (Do4)
+      {
          d32 = E3();
+      }
       for (int j = 0; j < Dim; j++)
       {
          if (Do2)
+         {
             PerturbedStiff[j][i] = stress2[j] - stress1[j];
+         }
 
          if (Do3 || Do4)
          {
             for (int k = 0; k < Dim; ++k)
             {
                if (Do3)
+               {
                   PerturbedD3[k * Dim + j][i] = stiff2[k][j] - stiff1[k][j];
+               }
 
                if (Do4)
                {
@@ -1292,11 +1438,17 @@ void Lattice::ConsistencyCheck(double const& ConsistencyEpsilon, int const& Widt
       cout << "Difference" << "\n";
       cout << setw(Width) << Force - PerturbedForce << "\n" << "\n";
       if (Do2)
+      {
          cout << setw(Width) << Stiff - PerturbedStiff << "\n";
+      }
       if (Do3)
+      {
          cout << setw(Width) << D3 - PerturbedD3 << "\n";
+      }
       if (Do4)
+      {
          cout << setw(Width) << D4 - PerturbedD4 << "\n";
+      }
    }
 
    out << "E1(U) * Epsilon" << "\n";
@@ -1331,25 +1483,37 @@ void Lattice::ConsistencyCheck(double const& ConsistencyEpsilon, int const& Widt
    out << "Difference" << "\n";
    out << setw(Width) << Force - PerturbedForce << "\n" << "\n";
    if (Do2)
+   {
       out << setw(Width) << Stiff - PerturbedStiff << "\n";
+   }
    if (Do3)
+   {
       out << setw(Width) << D3 - PerturbedD3 << "\n";
+   }
    if (Do4)
+   {
       out << setw(Width) << D4 - PerturbedD4 << "\n";
+   }
 
    out.flags(ios::fixed);
    if (Echo_)
+   {
       cout.flags(ios::fixed);
+   }
 
 
    if (Echo_)
    {
       for (int i = 0; i < 70; i++)
+      {
          cout << "=";
+      }
       cout << endl;
    }
    for (int i = 0; i < 70; i++)
+   {
       out << "=";
+   }
    out << endl;
 }
 

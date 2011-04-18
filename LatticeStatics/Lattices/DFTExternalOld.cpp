@@ -89,7 +89,9 @@ void DFTExternalOld::UpdateValues(UpdateFlag flag) const
       out << setw(30) << DOF_[i];
       q = (q + 1) % 3;
       if (q == 0)
+      {
          out << "\n";
+      }
    }
 
    out.close();
@@ -331,7 +333,9 @@ void DFTExternalOld::UpdateValues(UpdateFlag flag) const
    {
       T[j] = 0.0;
       for (int i = 0; i < InternalAtoms; ++i)
+      {
          T[j] += DOF_[6 + 3 * i + j];
+      }
       T[j] /= InternalAtoms;
    }
    for (int i = 0; i < InternalAtoms; ++i)
@@ -541,7 +545,9 @@ void DFTExternalOld::Print(ostream& out, PrintDetail const& flag,
 
    out.width(0);
    if (Echo_)
+   {
       cout.width(0);
+   }
 
    stiff = E2();
    str = E1();
@@ -555,9 +561,13 @@ void DFTExternalOld::Print(ostream& out, PrintDetail const& flag,
    for (int i = 0; i < TestFunctVals.Dim(); ++i)
    {
       if (TestFunctVals[i] < 0.0)
+      {
          ++NoNegTestFunctions;
+      }
       if (mintestfunct > TestFunctVals[i])
+      {
          mintestfunct = TestFunctVals[i];
+      }
    }
 
    switch (flag)

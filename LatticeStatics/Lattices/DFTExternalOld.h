@@ -37,48 +37,91 @@ public:
    ~DFTExternalOld();
 
    // Virtual Functions required by Lattice
-   Vector const& DOF() const {return DOF_;}
+   Vector const& DOF() const
+   {
+      return DOF_;
+   }
    void SetDOF(Vector const& dof)
    {
       DOF_ = dof;
       for (int i = 0; i < cachesize; ++i)
+      {
          Cached_[i] = 0;
+      }
    }
 
-   double Lambda() const {return Lambda_;}
+   double Lambda() const
+   {
+      return Lambda_;
+   }
    void SetLambda(double const& lambda)
    {
       Lambda_ = lambda;
       for (int i = 0; i < cachesize; ++i)
+      {
          Cached_[i] = 0;
+      }
    }
 
    virtual double E0() const;
    virtual Vector const& E1() const;
    virtual Vector const& E1DLoad() const;
    virtual Matrix const& E2() const;
-   virtual char const* const Type() const {return "DFTExternalOld";}
+   virtual char const* const Type() const
+   {
+      return "DFTExternalOld";
+   }
    virtual void Print(ostream& out, PrintDetail const& flag,
                       PrintPathSolutionType const& SolType = RegularPt);
 
    friend ostream& operator<<(ostream& out, DFTExternalOld& A);
 
    // ignore these
-   double Entropy() const {return 0.0;}
-   double HeatCapacity() const {return 0.0;}
-   Vector const& StressDT() const {return EmptyV_;}
-   Matrix const& StiffnessDT() const {return EmptyM_;}
-   double Temp() const {return 0.0;}
-   void SetTemp(double const& Ntemp) {}
-   Vector const& StressDL() const {return E1DLoad();}
+   double Entropy() const
+   {
+      return 0.0;
+   }
+   double HeatCapacity() const
+   {
+      return 0.0;
+   }
+   Vector const& StressDT() const
+   {
+      return EmptyV_;
+   }
+   Matrix const& StiffnessDT() const
+   {
+      return EmptyM_;
+   }
+   double Temp() const
+   {
+      return 0.0;
+   }
+   void SetTemp(double const& Ntemp)
+   {
+   }
+   Vector const& StressDL() const
+   {
+      return E1DLoad();
+   }
    Matrix const& StiffnessDL() const
-   {cerr << "DFTExternalOld::StiffnessDL() Not Programmed\n"; return EmptyM_;}
+   {
+      cerr << "DFTExternalOld::StiffnessDL() Not Programmed\n"; return EmptyM_;
+   }
    virtual Matrix const& E3() const
-   {cerr << "DFTExternalOld::E3() Not Programmed\n"; exit(-1); return EmptyM_;}
+   {
+      cerr << "DFTExternalOld::E3() Not Programmed\n"; exit(-1); return EmptyM_;
+   }
    virtual Matrix const& E4() const
-   {cerr << "DFTExternalOld::E4() Not Programmed\n"; exit(-1); return EmptyM_;}
-   virtual void SetParameters(double const* const Vals, int const& ResetRef = 1) {}
-   virtual void SetGridSize(int const& Grid) {}
+   {
+      cerr << "DFTExternalOld::E4() Not Programmed\n"; exit(-1); return EmptyM_;
+   }
+   virtual void SetParameters(double const* const Vals, int const& ResetRef = 1)
+   {
+   }
+   virtual void SetGridSize(int const& Grid)
+   {
+   }
 
 private:
    // place holder

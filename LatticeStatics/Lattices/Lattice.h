@@ -19,7 +19,10 @@ public:
    enum LoadType {Temperature, Load};
    enum StateType {LHS, RHS, CRITPT};
    LoadType LoadParameter_;
-   LoadType const& LoadParameter() const {return LoadParameter_;}
+   LoadType const& LoadParameter() const
+   {
+      return LoadParameter_;
+   }
    int UseEigenValTFs_;  // 1 use eigenvalues of E2 as TFs, 0 don't
    int NumExtraTFs_;     // Number of TFs provided by inherited class
    int LSKAnalysis_;     // None,SecondOrder,ThridOrder - do LSK to appropriate order
@@ -28,7 +31,9 @@ public:
    string UseExtension_; // define an extension to use for input files
 
    Lattice(PerlInput const& Input, int const& Echo);
-   virtual ~Lattice() {}
+   virtual ~Lattice()
+   {
+   }
 
    virtual Vector const& DOF() const = 0;
    virtual void SetDOF(Vector const& dof) = 0;
@@ -50,27 +55,51 @@ public:
    virtual Matrix const& E2() const = 0;
    virtual Matrix const& E3() const = 0;
    virtual Matrix const& E4() const = 0;
-   int const UseEigenValTFs() const {return UseEigenValTFs_;}
+   int const UseEigenValTFs() const
+   {
+      return UseEigenValTFs_;
+   }
    int const NumTestFunctions() const
-   {return (UseEigenValTFs_) ? (DOF().Dim() + NumExtraTFs_) : NumExtraTFs_;}
+   {
+      return (UseEigenValTFs_) ? (DOF().Dim() + NumExtraTFs_) : NumExtraTFs_;
+   }
    virtual int TestFunctions(Vector& TF1, StateType const& State = LHS, Vector* const EV2 = 0) const;
-   virtual void ExtraTestFunctions(Vector& TF) const {}
-   virtual Matrix const& LHSEigVect() {return EigVectLHS_static;}
-   virtual Matrix const& RelativeEigVects() {return EigVect_static;}
+   virtual void ExtraTestFunctions(Vector& TF) const
+   {
+   }
+   virtual Matrix const& LHSEigVect()
+   {
+      return EigVectLHS_static;
+   }
+   virtual Matrix const& RelativeEigVects()
+   {
+      return EigVect_static;
+   }
    virtual void DispersionCurves(Vector const& K, int const& NoPTS, char const* const prefix,
-                                 ostream& out) const {}
-   virtual int BlochWave(Vector& K) const {return -1;}
+                                 ostream& out) const
+   {
+   }
+   virtual int BlochWave(Vector& K) const
+   {
+      return -1;
+   }
    virtual void LongWavelengthModuli(double const& dk, int const& gridsize,
-                                     char const* const prefix, ostream& out) const {}
+                                     char const* const prefix, ostream& out) const
+   {
+   }
    virtual void SetParameters(double const* const Vals, int const& ResetRef = 1) = 0;
    virtual void SetGridSize(int const& Grid) = 0;
-   virtual void NeighborDistances(int const& cutoff, ostream& out) const {}
+   virtual void NeighborDistances(int const& cutoff, ostream& out) const
+   {
+   }
    virtual int CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vector const& DrDt,
                                  int const& CPorBif, int const& NumZeroEigenVals,
                                  double const& Tolerance, int const& Width, PerlInput const& Input,
                                  ostream& out);
    void ConsistencyCheck(double const& ConsistencyEpsilon, int const& Width, ostream& out);
-   virtual void DebugMode() {}
+   virtual void DebugMode()
+   {
+   }
 
    virtual char const* const Type() const = 0;
    enum PrintDetail {PrintLong, PrintShort};
@@ -78,7 +107,9 @@ public:
    virtual void Print(ostream& out, PrintDetail const& flag,
                       PrintPathSolutionType const& SolType = RegularPt) = 0;
    friend ostream& operator<<(ostream& out, Lattice& L)
-   {L.Print(out, PrintShort); return out;}
+   {
+      L.Print(out, PrintShort); return out;
+   }
 
 protected:
    // "static" member variables

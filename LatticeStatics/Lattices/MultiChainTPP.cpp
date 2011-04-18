@@ -13,8 +13,12 @@ MultiChainTPP::~MultiChainTPP()
    delete[] SpeciesMass_;
    delete[] AtomicMass_;
    for (int i = 0; i < NumberofSpecies_; ++i)
+   {
       for (int j = i; j < NumberofSpecies_; ++j)
+      {
          delete SpeciesPotential_[i][j];
+      }
+   }
    delete[] SpeciesPotential_[0];
    delete[] SpeciesPotential_;
    delete[] Potential_[0];
@@ -54,7 +58,9 @@ MultiChainTPP::MultiChainTPP(PerlInput const& Input, int const& Echo, int const&
    // Setup Bodyforce_
    BodyForce_ = new Vector[INTERNAL_ATOMS];
    for (int i = 0; i < INTERNAL_ATOMS; ++i)
+   {
       BodyForce_[i].Resize(DIM1, 0.0);
+   }
 
    // Get Thermo parameters
    Tref_ = Input.getDouble(Hash, "Tref");
@@ -66,8 +72,12 @@ MultiChainTPP::MultiChainTPP(PerlInput const& Input, int const& Echo, int const&
 
    NumberofSpecies_ = AtomSpecies_[0];
    for (int i = 1; i < INTERNAL_ATOMS; ++i)
+   {
       if (NumberofSpecies_ < AtomSpecies_[i])
+      {
          NumberofSpecies_ = AtomSpecies_[i];
+      }
+   }
    NumberofSpecies_++;
 
    // Get Potential Parameters
@@ -180,11 +190,15 @@ MultiChainTPP::MultiChainTPP(PerlInput const& Input, int const& Echo, int const&
       for (int j = i; j < INTERNAL_ATOMS; ++j)
       {
          if (AtomSpecies_[i] < AtomSpecies_[j])
+         {
             UpdatePairPotential(Hash, Input,
                                 AtomSpecies_[i], AtomSpecies_[j], Potential_[i][j]);
+         }
          else
+         {
             UpdatePairPotential(Hash, Input,
                                 AtomSpecies_[j], AtomSpecies_[i], Potential_[j][i]);
+         }
       }
    }
    ChainSum_.Recalc();
@@ -207,15 +221,21 @@ int MultiChainTPP::FindLatticeSpacing(int const& iter)
    ChainSum_.Recalc();
 
    if (Echo_)
+   {
       RefineEqbm(1.0e-13, iter, &cout);
+   }
    else
+   {
       RefineEqbm(1.0e-13, iter, 0);
+   }
 
    // Clean up numerical round off (at least for zero values)
    for (int i = 0; i < DOFS; ++i)
    {
       if (fabs(DOF_[i]) < 1.0e-13)
+      {
          DOF_[i] = 0.0;
+      }
    }
 
    // Update RefLattice_
@@ -400,10 +420,14 @@ Vector const& MultiChainTPP::stress(PairPotentials::TDeriv const& dt, LDeriv con
 
          // Claculate the Stress
          if (dt == PairPotentials::T0)
+         {
             phi = ChainSum_.phi1();
+         }
          else if (dt == PairPotentials::DT)
+         {
             phi = Potential_[ChainSum_.Atom(0)][ChainSum_.Atom(1)]->PairPotential(
                NTemp_, ChainSum_.r2(), PairPotentials::DY, dt);
+         }
          else
          {
             cerr << "Error in MultiChainTPP::stress" << "\n";
@@ -856,7 +880,9 @@ int MultiChainTPP::comp(void const* const a, void const* const b)
 {
    double t;
    if (*((double*) a) == *((double*) b))
+   {
       return 0;
+   }
    else
    {
       t = *((double*) a) - *((double*) b);
@@ -869,7 +895,9 @@ int MultiChainTPP::abscomp(void const* const a, void const* const b)
 {
    double t;
    if (fabs(*((double*) a)) == fabs(*((double*) b)))
+   {
       return 0;
+   }
    else
    {
       t = fabs(*((double*) a)) - fabs(*((double*) b));
@@ -956,14 +984,18 @@ void MultiChainTPP::ReferenceDispersionCurves(Vector const& K, int const& NoPTS,
    int w = out.width();
    out.width(0);
    if (Echo_)
+   {
       cout.width(0);
+   }
 
    double InverseLat;
    InverseLat = 1.0 / RefLattice_[0][0];
 
    Matrix EigVal[3];
    for (int i = 0; i < 3; ++i)
+   {
       EigVal[i].Resize(1, INTERNAL_ATOMS);
+   }
 
    double Z1, Z2;
    Z1 = K[0];
@@ -984,16 +1016,22 @@ void MultiChainTPP::ReferenceDispersionCurves(Vector const& K, int const& NoPTS,
 
       out << prefix << setw(w) << k * dz;
       if (Echo_)
+      {
          cout << prefix << setw(w) << k * dz;
+      }
       for (int i = 0; i < INTERNAL_ATOMS; ++i)
       {
          out << setw(w) << EigVal[k][0][i];
          if (Echo_)
+         {
             cout << setw(w) << EigVal[k][0][i];
+         }
       }
       out << "\n";
       if (Echo_)
+      {
          cout << "\n";
+      }
    }
    int zero = 0, one = 1, two = 2;
    for (int k = 2; k < NoPTS; ++k)
@@ -1005,16 +1043,22 @@ void MultiChainTPP::ReferenceDispersionCurves(Vector const& K, int const& NoPTS,
 
       out << prefix << setw(w) << k * dz;
       if (Echo_)
+      {
          cout << prefix << setw(w) << k * dz;
+      }
       for (int i = 0; i < INTERNAL_ATOMS; ++i)
       {
          out << setw(w) << EigVal[two][0][i];
          if (Echo_)
+         {
             cout << setw(w) << EigVal[two][0][i];
+         }
       }
       out << "\n";
       if (Echo_)
+      {
          cout << "\n";
+      }
 
       zero = (zero + 1) % 3; one = (zero + 1) % 3; two = (one + 1) % 3;
    }
@@ -1028,7 +1072,9 @@ int MultiChainTPP::ReferenceBlochWave(Vector& K) const
    Vector Z(1);
 
    for (int i = 0; i < K.Dim(); ++i)
+   {
       K[i] = 0.0;
+   }
 
    InverseLat = 1.0 / RefLattice_[0][0];
 
@@ -1056,7 +1102,8 @@ int MultiChainTPP::ReferenceBlochWave(Vector& K) const
 
 void MultiChainTPP::LongWavelengthModuli(double const& dk, int const& gridsize,
                                          char const* const prefix, ostream& out) const
-{}
+{
+}
 
 void MultiChainTPP::NeighborDistances(int const& cutoff, ostream& out) const
 {
@@ -1097,7 +1144,9 @@ void MultiChainTPP::Print(ostream& out, PrintDetail const& flag,
 
    out.width(0);
    if (Echo_)
+   {
       cout.width(0);
+   }
 
    engy = energy();
    entropy = Entropy();
@@ -1110,9 +1159,13 @@ void MultiChainTPP::Print(ostream& out, PrintDetail const& flag,
    for (int i = 0; i < TestFunctVals_static.Dim(); ++i)
    {
       if (TestFunctVals_static[i] < 0.0)
+      {
          ++NoNegTestFunctions;
+      }
       if (mintestfunct > TestFunctVals_static[i])
+      {
          mintestfunct = TestFunctVals_static[i];
+      }
    }
 
    CondModuli = CondensedModuli();
@@ -1332,26 +1385,44 @@ void MultiChainTPP::DebugMode()
    {
       indx = 0;
       if (response == Commands[indx++])
+      {
          cout << "INTERNAL_ATOMS = " << INTERNAL_ATOMS << "\n";
+      }
       else if (response == Commands[indx++])
+      {
          cout << "DOFS = " << DOFS << "\n";
+      }
       else if (response == Commands[indx++])
+      {
          cout << "InfluenceDist_ = " << InfluenceDist_ << "\n";
+      }
       else if (response == Commands[indx++])
+      {
          cout << "NTemp_ = " << NTemp_ << "\n";
+      }
       else if (response == Commands[indx++])
       {
          for (int i = 0; i < DOFS; ++i)
+         {
             cout << "DOF_[" << i << "] = " << DOF_[i] << "\n";
+         }
       }
       else if (response == Commands[indx++])
+      {
          cout << "RefLattice_= " << setw(W) << RefLattice_;
+      }
       else if (response == Commands[indx++])
+      {
          cout << "Density_= " << Density_ << "\n";
+      }
       else if (response == Commands[indx++])
+      {
          cout << "NormModulus_= " << NormModulus_ << "\n";
+      }
       else if (response == Commands[indx++])
+      {
          cout << "Lambda_= " << Lambda_ << "\n";
+      }
       else if (response == Commands[indx++])
       {
          for (int i = 0; i < INTERNAL_ATOMS; ++i)
@@ -1369,7 +1440,9 @@ void MultiChainTPP::DebugMode()
          }
       }
       else if (response == Commands[indx++])
+      {
          cout << "GridSize_= " << GridSize_ << "\n";
+      }
       else if (response == Commands[indx++])
       {
          for (int i = 0; i < INTERNAL_ATOMS; ++i)
@@ -1382,11 +1455,17 @@ void MultiChainTPP::DebugMode()
          }
       }
       else if (response == Commands[indx++])
+      {
          cout << "stress= " << setw(W) << stress();
+      }
       else if (response == Commands[indx++])
+      {
          cout << "stiffness= " << setw(W) << stiffness();
+      }
       else if (response == Commands[indx++])
+      {
          cout << "CondensedModuli= " << setw(W) << CondensedModuli();
+      }
       else if (response == Commands[indx++])
       {
          Vector K(6, 0.0);
@@ -1430,9 +1509,13 @@ void MultiChainTPP::DebugMode()
          SetDOF(DOF);
       }
       else if (response == Commands[indx++])
+      {
          cout << "StressDT= " << setw(W) << StressDT();
+      }
       else if (response == Commands[indx++])
+      {
          cout << "StiffnessDT= " << setw(W) << StiffnessDT();
+      }
       else if (response == Commands[indx++])
       {
          double Temp;
@@ -1450,17 +1533,29 @@ void MultiChainTPP::DebugMode()
          SetInfluenceDist(dist);
       }
       else if (response == Commands[indx++])
+      {
          cout << "energy= " << energy() << "\n";
+      }
       else if (response == Commands[indx++])
+      {
          cout << "E0= " << setw(W) << E0();
+      }
       else if (response == Commands[indx++])
+      {
          cout << "E1= " << setw(W) << E1();
+      }
       else if (response == Commands[indx++])
+      {
          cout << "E2= " << setw(W) << E2();
+      }
       else if (response == Commands[indx++])
+      {
          cout << "E3= " << setw(W) << E3();
+      }
       else if (response == Commands[indx++])
+      {
          cout << "E4= " << setw(W) << E4();
+      }
       else if (response == Commands[indx++])
       {
          int GridSize;
@@ -1558,7 +1653,9 @@ void MultiChainTPP::DebugMode()
          vals = new double[sze];
          cout << "\tEnter new Parameter values > ";
          for (int i = 0; i < sze; ++i)
+         {
             cin >> vals[i];
+         }
          SetParameters(vals);
       }
       else if ((response == "?") || (response == "help"))
@@ -1568,9 +1665,13 @@ void MultiChainTPP::DebugMode()
          {
             cout << "  " << setw(30) << Commands[i];
             if ((i == NOcommands / 2) && !NOcommands % 2)
+            {
                cout << "\n";
+            }
             else
+            {
                cout << setw(30) << Commands[NOcommands / 2 + i] << "\n";
+            }
 
             if (!((i + 1) % 30))
             {
@@ -1579,13 +1680,16 @@ void MultiChainTPP::DebugMode()
                cin.sync(); // clear input
                ans = kbhitWait();
                if (ans == 'q')
+               {
                   break;
+               }
             }
          }
          cout << resetiosflags(ios::left) << "\n";
       }
       else if ((response == "\n") || (response == ""))
-      {}
+      {
+      }
       else
       {
          cout << "!--- Error - Unknown command ---!" << "\n" << "\n";

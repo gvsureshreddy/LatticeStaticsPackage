@@ -69,25 +69,66 @@ private:
    static int abscomp(void const* const a, void const* const b);
 
 public:
-   Vector const& AtomPositions(int const& i) const {return AtomPositions_[i];}
+   Vector const& AtomPositions(int const& i) const
+   {
+      return AtomPositions_[i];
+   }
 
 
    // Virtual Functions required by Lattice
-   Vector const& DOF() const {return DOF_;}
-   void SetDOF(Vector const& dof) {DOF_ = dof; ChainSum_.Recalc();}
+   Vector const& DOF() const
+   {
+      return DOF_;
+   }
+   void SetDOF(Vector const& dof)
+   {
+      DOF_ = dof; ChainSum_.Recalc();
+   }
    // Entropy is NEGATIVE dE/dT
-   double Entropy() const {return -energy(PairPotentials::DT);}
-   double HeatCapacity() const {return -NTemp_* energy(PairPotentials::D2T);}
-   Vector const& StressDT() const {return stress(PairPotentials::DT);}
-   Matrix const& StiffnessDT() const {return stiffness(PairPotentials::DT);}
-   double Temp() const {return NTemp_;}
-   void SetTemp(double const& Ntemp) {NTemp_ = Ntemp; ChainSum_.Recalc();}
-   Vector const& StressDL() const {return stress(PairPotentials::T0, DL);}
-   Matrix const& StiffnessDL() const {return stiffness(PairPotentials::T0, DL);}
+   double Entropy() const
+   {
+      return -energy(PairPotentials::DT);
+   }
+   double HeatCapacity() const
+   {
+      return -NTemp_* energy(PairPotentials::D2T);
+   }
+   Vector const& StressDT() const
+   {
+      return stress(PairPotentials::DT);
+   }
+   Matrix const& StiffnessDT() const
+   {
+      return stiffness(PairPotentials::DT);
+   }
+   double Temp() const
+   {
+      return NTemp_;
+   }
+   void SetTemp(double const& Ntemp)
+   {
+      NTemp_ = Ntemp; ChainSum_.Recalc();
+   }
+   Vector const& StressDL() const
+   {
+      return stress(PairPotentials::T0, DL);
+   }
+   Matrix const& StiffnessDL() const
+   {
+      return stiffness(PairPotentials::T0, DL);
+   }
    virtual Vector const& E1DLoad() const
-   {return (LoadParameter_ == Temperature) ? StressDT() : StressDL();}
-   double Lambda() const {return Lambda_;}
-   void SetLambda(double const& lambda) {Lambda_ = lambda;}
+   {
+      return (LoadParameter_ == Temperature) ? StressDT() : StressDL();
+   }
+   double Lambda() const
+   {
+      return Lambda_;
+   }
+   void SetLambda(double const& lambda)
+   {
+      Lambda_ = lambda;
+   }
 
    virtual double E0() const;
    virtual Vector const& E1() const;
@@ -98,14 +139,25 @@ public:
    virtual Matrix const& E4() const;
    virtual void DispersionCurves(Vector const& K, int const& NoPTS, char const* const prefix,
                                  ostream& out) const
-   {ReferenceDispersionCurves(K, NoPTS, prefix, out);}
-   virtual int BlochWave(Vector& K) const {return ReferenceBlochWave(K);}
+   {
+      ReferenceDispersionCurves(K, NoPTS, prefix, out);
+   }
+   virtual int BlochWave(Vector& K) const
+   {
+      return ReferenceBlochWave(K);
+   }
    virtual void LongWavelengthModuli(double const& dk, int const& gridsize,
                                      char const* const prefix, ostream& out) const;
    virtual void SetParameters(double const* const Vals, int const& ResetRef = 1);
-   virtual void SetGridSize(int const& Grid) {GridSize_ = Grid; ChainIter_(GridSize_);}
+   virtual void SetGridSize(int const& Grid)
+   {
+      GridSize_ = Grid; ChainIter_(GridSize_);
+   }
    virtual void NeighborDistances(int const& cutoff, ostream& out) const;
-   virtual char const* const Type() const {return "MultiChainTTPP";}
+   virtual char const* const Type() const
+   {
+      return "MultiChainTTPP";
+   }
    virtual void DebugMode();
    virtual void Print(ostream& out, PrintDetail const& flag,
                       PrintPathSolutionType const& SolType = RegularPt);
@@ -115,12 +167,27 @@ public:
                   int const& Debug = 0);
    ~MultiChainTTPP();
 
-   double InfluenceDist() const {return InfluenceDist_;}
-   void SetInfluenceDist(double const& InfluenceDist) {InfluenceDist_ = InfluenceDist;}
+   double InfluenceDist() const
+   {
+      return InfluenceDist_;
+   }
+   void SetInfluenceDist(double const& InfluenceDist)
+   {
+      InfluenceDist_ = InfluenceDist;
+   }
 
-   inline double Del(int const& i, int const& j) const {return i == j;}
-   Vector const& BodyForce(int const& i) const {return BodyForce_[i]; }
-   double NormModulus() const {return NormModulus_;}
+   inline double Del(int const& i, int const& j) const
+   {
+      return i == j;
+   }
+   Vector const& BodyForce(int const& i) const
+   {
+      return BodyForce_[i];
+   }
+   double NormModulus() const
+   {
+      return NormModulus_;
+   }
    friend ostream& operator<<(ostream& out, MultiChainTTPP& A);
 
 private:
@@ -135,7 +202,9 @@ private:
    double LAMDA(int const& p, int const& q, int const& i, int const& j) const;
 
    inline double DELTA(int const& s, int const& p, int const& q) const
-   {return Del(s, q) - Del(s, p);}
+   {
+      return Del(s, q) - Del(s, p);
+   }
    int FindLatticeSpacing(int const& iter);
    void RefineEqbm(double const& Tol, int const& MaxItr, ostream* const out);
 

@@ -68,7 +68,9 @@ void TwoBarTrussExternal::UpdateValues() const
    in >> E2CachedValue_;
 
    for (int i = 0; i < cachesize; ++i)
+   {
       Cached_[i] = 1;
+   }
 
    in.close();
 }
@@ -137,7 +139,9 @@ void TwoBarTrussExternal::Print(ostream& out, PrintDetail const& flag,
 
    out.width(0);
    if (Echo_)
+   {
       cout.width(0);
+   }
 
    engy = E0();
    str = E1();
@@ -148,9 +152,13 @@ void TwoBarTrussExternal::Print(ostream& out, PrintDetail const& flag,
    for (int i = 0; i < TestFunctVals.Dim(); ++i)
    {
       if (TestFunctVals[i] < 0.0)
+      {
          ++NoNegTestFunctions;
+      }
       if (mintestfunct > TestFunctVals[i])
+      {
          mintestfunct = TestFunctVals[i];
+      }
    }
 
    switch (flag)

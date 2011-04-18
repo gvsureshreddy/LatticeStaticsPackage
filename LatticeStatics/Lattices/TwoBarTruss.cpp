@@ -306,7 +306,9 @@ void TwoBarTruss::Print(ostream& out, PrintDetail const& flag,
 
    out.width(0);
    if (Echo_)
+   {
       cout.width(0);
+   }
 
    engy = E0();
    str = E1();
@@ -317,9 +319,13 @@ void TwoBarTruss::Print(ostream& out, PrintDetail const& flag,
    for (int i = 0; i < NumTestFunctions(); ++i)
    {
       if ((TestFunctVals[i] < 0.0) && (i < DOFS_))
+      {
          ++NoNegTestFunctions;
+      }
       if (mintestfunct > TestFunctVals[i])
+      {
          mintestfunct = TestFunctVals[i];
+      }
    }
 
    switch (flag)

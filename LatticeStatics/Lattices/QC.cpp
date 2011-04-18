@@ -1,4 +1,4 @@
- #include <fstream>
+#include <fstream>
 #include "QC.h"
 
 using namespace std;
@@ -264,15 +264,21 @@ Matrix const& QC::StiffnessDL() const
    double load = Lambda_;
 
    Lambda_ = load + 10.0 * Tolerance_; for (int i = 0; i < cachesize; ++i)
+   {
       Cached_[i] = 0;
+   }
    stiffdl_static = E2();
    Lambda_ = load - 10.0 * Tolerance_; for (int i = 0; i < cachesize; ++i)
+   {
       Cached_[i] = 0;
+   }
    stiffdl_static -= E2();
    stiffdl_static /= 2.0 * Tolerance_;
 
    Lambda_ = load; for (int i = 0; i < cachesize; ++i)
+   {
       Cached_[i] = 0;
+   }
    return stiffdl_static;
 }
 
@@ -286,7 +292,9 @@ Matrix const& QC::E3() const
       pert.Resize(DOFS_, 0.0);
       pert[i] = Tolerance_;
       DOF_ = OrigDOF + pert; for (int r = 0; r < cachesize; ++r)
+      {
          Cached_[r] = 0;
+      }
       {
          Matrix const& stiff = E2();
          for (int j = 0; j < DOFS_; ++j)
@@ -298,7 +306,9 @@ Matrix const& QC::E3() const
          }
       }
       DOF_ = OrigDOF - pert; for (int r = 0; r < cachesize; ++r)
+      {
          Cached_[r] = 0;
+      }
       {
          Matrix const& stiff = E2();
          for (int j = 0; j < DOFS_; ++j)
@@ -319,7 +329,9 @@ Matrix const& QC::E3() const
    }
 
    DOF_ = OrigDOF; for (int r = 0; r < cachesize; ++r)
+   {
       Cached_[r] = 0;
+   }
 
    return E3_static;
 }
@@ -407,7 +419,9 @@ int QC::TestFunctions(Vector& TF1, StateType const& State, Vector* const TF2) co
       for (int i = 0; i < size; ++i)
       {
          if (EV2_static[0][i] < 0.0)
+         {
             ++NoNegEigVals;
+         }
       }
       Stable_[1] = Stable_[0];
       if (NoNegEigVals > 0)
@@ -437,13 +451,17 @@ int QC::TestFunctions(Vector& TF1, StateType const& State, Vector* const TF2) co
       for (int i = 0; i < size; i++)
       {
          if ((EV1_static[0][i] * EV2_static[0][i]) < 0.0)
+         {
             ++NumSwitchTFs;
+         }
          TF1[i] = EV2_static[0][i];
       }
       for (int i = 0; i < NumExtraTFs_; ++i)
       {
          if ((ExTF1_static[i] * ExTF2_static[i]) < 0.0)
+         {
             ++NumSwitchTFs;
+         }
          TF1[size + i] = ExTF2_static[i];
       }
    }
@@ -511,13 +529,17 @@ int QC::TestFunctions(Vector& TF1, StateType const& State, Vector* const TF2) co
       for (int i = 0; i < size; i++)
       {
          if ((EV1_static[0][i] * EV2_static[0][i]) < 0.0)
+         {
             ++NumSwitchTFs;
+         }
          TF1[i] = EV1_static[0][i];
       }
       for (int i = 0; i < NumExtraTFs_; ++i)
       {
          if ((ExTF1_static[i] * ExTF2_static[i]) < 0.0)
+         {
             ++NumSwitchTFs;
+         }
          TF1[size + i] = ExTF1_static[i];
       }
    }
@@ -541,11 +563,17 @@ int QC::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vector c
 
    ostringstream cpfilename;
    if (1 == Bif)
+   {
       cpfilename << ".B";
+   }
    else if (0 == Bif)
+   {
       cpfilename << ".T";
+   }
    else
+   {
       cpfilename << ".E";
+   }
 
    // output a QC restart file
    ostringstream qcfilename;
@@ -662,7 +690,9 @@ void QC::Print(ostream& out, PrintDetail const& flag,
 
    out.width(0);
    if (Echo_)
+   {
       cout.width(0);
+   }
 
    engy = E0();
    E1norm = E1().Norm();
@@ -673,9 +703,13 @@ void QC::Print(ostream& out, PrintDetail const& flag,
    for (int i = 0; i < DOFS_; ++i)
    {
       if ((UseEigenValTFs() == 1) && (TestFunctVals[i] < 0.0))
+      {
          ++NoNegTestFunctions;
+      }
       if (mintestfunct > TestFunctVals[i])
+      {
          mintestfunct = TestFunctVals[i];
+      }
    }
 
    switch (flag)
