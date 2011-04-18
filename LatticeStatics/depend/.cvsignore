@@ -11,6 +11,7 @@ LJLinearCutoff.d
 LJQuadraticCutoff.d
 LJDobson.d
 LJSplineCutoff.d
+RandomAlloy.d
 MultiLatticeTPP.d
 Restriction.d
 RestrictToTranslatedSubSpaceOld.d
