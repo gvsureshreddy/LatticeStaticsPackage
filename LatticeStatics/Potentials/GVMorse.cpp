@@ -1,12 +1,12 @@
 #include "GVMorse.h"
 #include <cstdlib>
 
-GVMorse::GVMorse(double const& A0,double const& AT,double const& ATPow,double const& B0,
-                 double const& BT,double const& BTPow,double const& Rref1,double const& Rtheta1,
-                 double const& Rtheta1Pow,double const& Rref2,double const& Rtheta2,
-                 double const& Rtheta2Pow):
-   RadiiMorse(A0,AT,B0,BT,Rref1,Rtheta1,Rref2,Rtheta2),ATPow_(ATPow),BTPow_(BTPow),
-   Rtheta1Pow_(Rtheta1Pow),Rtheta2Pow_(Rtheta2Pow)
+GVMorse::GVMorse(double const& A0, double const& AT, double const& ATPow, double const& B0,
+                 double const& BT, double const& BTPow, double const& Rref1, double const& Rtheta1,
+                 double const& Rtheta1Pow, double const& Rref2, double const& Rtheta2,
+                 double const& Rtheta2Pow) :
+   RadiiMorse(A0, AT, B0, BT, Rref1, Rtheta1, Rref2, Rtheta2), ATPow_(ATPow), BTPow_(BTPow),
+   Rtheta1Pow_(Rtheta1Pow), Rtheta2Pow_(Rtheta2Pow)
 {
 }
 
@@ -26,80 +26,80 @@ void GVMorse::SetParameters(double const* const Vals)
    SetRtheta2Pow(Vals[11]);
 }
 
-double GVMorse::A(double const& NTemp,TDeriv const& dt) const
+double GVMorse::A(double const& NTemp, TDeriv const& dt) const
 {
    double retval;
    switch (dt)
    {
       case T0:
-         retval = A0_ + AT_*(pow(NTemp,ATPow_)-1.0);
+         retval = A0_ + AT_ * (pow(NTemp, ATPow_) - 1.0);
          break;
       case DT:
-         retval = AT_*ATPow_*pow(NTemp,ATPow_-1.0);
+         retval = AT_ * ATPow_ * pow(NTemp, ATPow_ - 1.0);
          break;
       case D2T:
-         retval = AT_*ATPow_*(ATPow_-1.0)*pow(NTemp,ATPow_-2.0);
+         retval = AT_ * ATPow_ * (ATPow_ - 1.0) * pow(NTemp, ATPow_ - 2.0);
          break;
       default:
          cerr << "Error in GVMorse::A" << "\n";
          exit(-1);
    }
-   
+
    return retval;
 }
 
-double GVMorse::Beta(double const& NTemp,TDeriv const& dt) const
+double GVMorse::Beta(double const& NTemp, TDeriv const& dt) const
 {
    double retval;
-   
+
    switch (dt)
    {
       case T0:
-         retval = B0_ + BT_*(pow(NTemp,BTPow_)-1.0);
+         retval = B0_ + BT_ * (pow(NTemp, BTPow_) - 1.0);
          break;
       case DT:
-         retval = BT_*BTPow_*pow(NTemp,BTPow_-1.0);
+         retval = BT_ * BTPow_ * pow(NTemp, BTPow_ - 1.0);
          break;
       case D2T:
-         retval = BT_*BTPow_*(BTPow_-1.0)*pow(NTemp,BTPow_-2.0); 
+         retval = BT_ * BTPow_ * (BTPow_ - 1.0) * pow(NTemp, BTPow_ - 2.0);
          break;
       default:
          cerr << "Error in GVMorse::Beta" << "\n";
          exit(-1);
    }
-   
+
    return retval;
 }
 
-double GVMorse::Rhat(double const& NTemp,TDeriv const& dt) const
+double GVMorse::Rhat(double const& NTemp, TDeriv const& dt) const
 {
    double rhat;
-   
+
    switch (dt)
    {
       case T0:
-         rhat = Rref1_ + Rtheta1_*(exp(Rtheta1Pow_*(NTemp-1.0)) - 1.0);
+         rhat = Rref1_ + Rtheta1_ * (exp(Rtheta1Pow_ * (NTemp - 1.0)) - 1.0);
          break;
       case DT:
-         rhat = Rtheta1_*exp(Rtheta1Pow_*(NTemp-1.0))*Rtheta1Pow_;
+         rhat = Rtheta1_ * exp(Rtheta1Pow_ * (NTemp - 1.0)) * Rtheta1Pow_;
          break;
       case D2T:
-         rhat = Rtheta1_*exp(Rtheta1Pow_*(NTemp-1.0))*Rtheta1Pow_*Rtheta1Pow_;
+         rhat = Rtheta1_ * exp(Rtheta1Pow_ * (NTemp - 1.0)) * Rtheta1Pow_ * Rtheta1Pow_;
          break;
       default:
          cerr << "Error in GVMorse::Rhat" << "\n";
          exit(-1);
    }
-   
+
    return rhat;
 }
 
-void GVMorse::Print(ostream &out) const
+void GVMorse::Print(ostream& out) const
 {
-   int W=out.width();
-   
+   int W = out.width();
+
    out.width(0);
-   
+
    out << "A0=" << setw(W) << A0_
        << "; AT=" << setw(W) << AT_
        << "; ATPow=" << setw(W) << ATPow_
@@ -114,8 +114,9 @@ void GVMorse::Print(ostream &out) const
        << "; Rtheta2Pow=" << setw(W) << Rtheta2Pow_;
 }
 
-ostream& operator<<(ostream& out,GVMorse const& A)
+ostream& operator<<(ostream& out, GVMorse const& A)
 {
    A.Print(out);
    return out;
 }
+

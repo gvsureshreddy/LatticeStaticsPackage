@@ -5,6 +5,7 @@
 #include "RestrictToTranslatedSubSpace.h"
 #include "NoRestriction.h"
 
-Restriction* const InitializeRestriction(Lattice* const Lat,PerlInput const& Input);
+Restriction* const InitializeRestriction(Lattice* const Lat, PerlInput const& Input);
 
 #endif
+

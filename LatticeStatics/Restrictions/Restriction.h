@@ -10,15 +10,15 @@ protected:
    SparseMatrix* SymmetryCheck_;
    int SymmetryCheckCount_;
    double SymmetryCheckTol_;
-   
+
 public:
    virtual ~Restriction();
 
    Restriction(PerlInput const& Input);
-   
+
    virtual double Energy() const = 0;
    virtual Vector const& DrDt(Vector const& Diff) const = 0;
-   
+
    virtual Vector const& Force() const = 0;
    virtual Matrix const& Stiffness() const = 0;
    virtual Vector const& DOF() const = 0;
@@ -30,12 +30,18 @@ public:
    virtual void SetDOF(Vector const& dof) = 0;
    virtual void UpdateDOF(Vector const& dr) = 0;
 
-   void ConsistencyCheck(Vector const& dof,double const& ConsistencyEpsilon,int const& Width,
+   void ConsistencyCheck(Vector const& dof, double const& ConsistencyEpsilon, int const& Width,
                          ostream& out);
-   
-   virtual char const* const Name() const {return "Restriction";}
-   friend ostream& operator<<(ostream& out,Restriction const& R)
-   {out << R.Name(); return out;}
+
+   virtual char const* const Name() const
+   {
+      return "Restriction";
+   }
+   friend ostream& operator<<(ostream& out, Restriction const& R)
+   {
+      out << R.Name(); return out;
+   }
 };
 
 #endif
+

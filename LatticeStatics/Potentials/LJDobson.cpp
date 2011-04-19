@@ -1,9 +1,9 @@
 #include "LJDobson.h"
 #include <cstdlib>
 
-LJDobson::LJDobson(double const& Eps0,double const& Eps1,double const& Sigma0,
-                   double const& Sigma1,double const& Cutoff):
-   LJ(Eps0,Eps1,Sigma0,Sigma1),Cutoff_(Cutoff)
+LJDobson::LJDobson(double const& Eps0, double const& Eps1, double const& Sigma0,
+                   double const& Sigma1, double const& Cutoff) :
+   LJ(Eps0, Eps1, Sigma0, Sigma1), Cutoff_(Cutoff)
 {
 }
 
@@ -13,23 +13,23 @@ void LJDobson::SetParameters(double const* const Vals)
    LJ::SetParameters(&(Vals[1]));
 }
 
-double LJDobson::CutoffFunction(double const& NTemp,double const& r2,YDeriv const& dy,
+double LJDobson::CutoffFunction(double const& NTemp, double const& r2, YDeriv const& dy,
                                 TDeriv const& dt) const
 {
-   double val=0;
+   double val = 0;
 
-   double A,B;
-   
+   double A, B;
+
    switch (dy)
    {
       case Y0:
-         A = -(1.0/(2.0*Cutoff_))*(LJ::PairPotential(NTemp,Cutoff_*Cutoff_,DY,dt)*2.0*Cutoff_);
-         B = (Cutoff_/2.0)*(LJ::PairPotential(NTemp,Cutoff_*Cutoff_,DY,dt)) -
-            LJ::PairPotential(NTemp,Cutoff_*Cutoff_,Y0,dt);
-         val = A*r2 + B;
+         A = -(1.0 / (2.0 * Cutoff_)) * (LJ::PairPotential(NTemp, Cutoff_ * Cutoff_, DY, dt) * 2.0 * Cutoff_);
+         B = (Cutoff_ / 2.0) * (LJ::PairPotential(NTemp, Cutoff_ * Cutoff_, DY, dt)) -
+             LJ::PairPotential(NTemp, Cutoff_ * Cutoff_, Y0, dt);
+         val = A * r2 + B;
          break;
       case DY:
-         A = -(1.0/(2.0*Cutoff_))*(LJ::PairPotential(NTemp,Cutoff_*Cutoff_,DY,dt)*2.0*Cutoff_);
+         A = -(1.0 / (2.0 * Cutoff_)) * (LJ::PairPotential(NTemp, Cutoff_ * Cutoff_, DY, dt) * 2.0 * Cutoff_);
          val = A;
          break;
       case D2Y:
@@ -56,22 +56,26 @@ double LJDobson::CutoffFunction(double const& NTemp,double const& r2,YDeriv cons
    return val;
 }
 
-double LJDobson::PairPotential(double const& NTemp,double const& r2,YDeriv const& dy,
+double LJDobson::PairPotential(double const& NTemp, double const& r2, YDeriv const& dy,
                                TDeriv const& dt) const
 {
-   if (r2 >= Cutoff_*Cutoff_)
+   if (r2 >= Cutoff_ * Cutoff_)
+   {
       return 0.0;
+   }
    else
-      return (LJ::PairPotential(NTemp,r2,dy,dt)
-              + CutoffFunction(NTemp,r2,dy,dt));
+   {
+      return (LJ::PairPotential(NTemp, r2, dy, dt)
+              + CutoffFunction(NTemp, r2, dy, dt));
+   }
 }
 
 void LJDobson::Print(ostream& out) const
 {
-   int W=out.width();
-   
+   int W = out.width();
+
    out.width(0);
-   
+
    out << "Eps0=" << setw(W) << Eps0_
        << "; Eps1=" << setw(W) << Eps1_
        << "; Sigma0=" << setw(W) << Sigma0_
@@ -79,8 +83,9 @@ void LJDobson::Print(ostream& out) const
        << "; Cutoff=" << setw(W) << Cutoff_;
 }
 
-ostream& operator<<(ostream& out,LJDobson const& A)
+ostream& operator<<(ostream& out, LJDobson const& A)
 {
    A.Print(out);
    return out;
 }
+

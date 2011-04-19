@@ -11,8 +11,8 @@ using namespace std;
 class RestrictToTranslatedSubSpace : public Restriction
 {
 private:
-   Lattice *Lattice_;
-   
+   Lattice* Lattice_;
+
    int DOFS_;
    SparseMatrix ForceProjectionMatrix_;
    SparseMatrix DOFProjectionMatrix_;
@@ -20,33 +20,42 @@ private:
    SparseMatrix const& DOFProject_;
    Vector ReferenceState_;
    Vector DOF_;
-   
+
    void UpdateLatticeState();
 public:
-   RestrictToTranslatedSubSpace(Lattice* const M,PerlInput const& Input);
-   
+   RestrictToTranslatedSubSpace(Lattice* const M, PerlInput const& Input);
+
    ~RestrictToTranslatedSubSpace();
-   
+
    // Functions required by Restriction
-   virtual double Energy() const {++counter_[1]; return Lattice_->E0();}
+   virtual double Energy() const
+   {
+      ++counter_[1]; return Lattice_->E0();
+   }
    virtual Vector const& DrDt(Vector const& Diff) const;
-   
-   //----------------------------------------------------------------
+
+   // ----------------------------------------------------------------
    virtual Vector const& Force() const;
    virtual Matrix const& Stiffness() const;
-   virtual Vector const& DOF() const {++counter_[5]; return DOF_;}
+   virtual Vector const& DOF() const
+   {
+      ++counter_[5]; return DOF_;
+   }
    virtual Vector RestrictDOF(Vector const& dof);
    virtual Vector UnRestrictDOF(Vector const& dof);
    virtual Vector TransformVector(Vector const& T);
    virtual Vector UnTransformVector(Vector const& T);
    virtual void SetDOF(Vector const& dof);
    virtual void UpdateDOF(Vector const& dr);
-   //----------------------------------------------------------------
-   virtual char const* const Name() const {return "RestrictToTranslatedSubSpace";}
+   // ----------------------------------------------------------------
+   virtual char const* const Name() const
+   {
+      return "RestrictToTranslatedSubSpace";
+   }
 
 private:
-   enum CounterID {UPDATE,ENERGY,DRDT,FORCE,STIFFNESS,DOFCount,RESTRICT,UNRESTRICT,
-                   TRANSFORM,UNTRANSFORM,SETDOF,UPDATEDOF,ENDOFCOUNTERLIST};
+   enum CounterID {UPDATE, ENERGY, DRDT, FORCE, STIFFNESS, DOFCount, RESTRICT, UNRESTRICT,
+                   TRANSFORM, UNTRANSFORM, SETDOF, UPDATEDOF, ENDOFCOUNTERLIST};
    // "static" member variables
    // UpdateLatticeState
    int size_static;
@@ -70,3 +79,4 @@ private:
 };
 
 #endif
+

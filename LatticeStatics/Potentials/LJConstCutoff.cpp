@@ -1,9 +1,9 @@
 #include "LJConstCutoff.h"
 #include <cstdlib>
 
-LJConstCutoff::LJConstCutoff(double const& Eps0,double const& Eps1,double const& Sigma0,
-                   double const& Sigma1,double const& Cutoff):
-   LJ(Eps0,Eps1,Sigma0,Sigma1),Cutoff_(Cutoff)
+LJConstCutoff::LJConstCutoff(double const& Eps0, double const& Eps1, double const& Sigma0,
+                             double const& Sigma1, double const& Cutoff) :
+   LJ(Eps0, Eps1, Sigma0, Sigma1), Cutoff_(Cutoff)
 {
 }
 
@@ -13,15 +13,15 @@ void LJConstCutoff::SetParameters(double const* const Vals)
    LJ::SetParameters(&(Vals[1]));
 }
 
-double LJConstCutoff::CutoffFunction(double const& NTemp,double const& r2,YDeriv const& dy,
+double LJConstCutoff::CutoffFunction(double const& NTemp, double const& r2, YDeriv const& dy,
                                      TDeriv const& dt) const
 {
-   double val=0;
-   
+   double val = 0;
+
    switch (dy)
    {
       case Y0:
-         val = -LJ::PairPotential(NTemp,Cutoff_*Cutoff_,Y0,dt);
+         val = -LJ::PairPotential(NTemp, Cutoff_ * Cutoff_, Y0, dt);
          break;
       case DY:
          val = 0.0;
@@ -42,22 +42,26 @@ double LJConstCutoff::CutoffFunction(double const& NTemp,double const& r2,YDeriv
    return val;
 }
 
-double LJConstCutoff::PairPotential(double const& NTemp,double const& r2,YDeriv const& dy,
+double LJConstCutoff::PairPotential(double const& NTemp, double const& r2, YDeriv const& dy,
                                     TDeriv const& dt) const
 {
-   if (r2 >= Cutoff_*Cutoff_)
+   if (r2 >= Cutoff_ * Cutoff_)
+   {
       return 0.0;
+   }
    else
-      return (LJ::PairPotential(NTemp,r2,dy,dt)
-              + CutoffFunction(NTemp,r2,dy,dt));
+   {
+      return (LJ::PairPotential(NTemp, r2, dy, dt)
+              + CutoffFunction(NTemp, r2, dy, dt));
+   }
 }
 
 void LJConstCutoff::Print(ostream& out) const
 {
-   int W=out.width();
-   
+   int W = out.width();
+
    out.width(0);
-   
+
    out << "Eps0=" << setw(W) << Eps0_
        << "; Eps1=" << setw(W) << Eps1_
        << "; Sigma0=" << setw(W) << Sigma0_
@@ -65,8 +69,9 @@ void LJConstCutoff::Print(ostream& out) const
        << "; Cutoff=" << setw(W) << Cutoff_;
 }
 
-ostream& operator<<(ostream& out,LJConstCutoff const& A)
+ostream& operator<<(ostream& out, LJConstCutoff const& A)
 {
    A.Print(out);
    return out;
 }
+

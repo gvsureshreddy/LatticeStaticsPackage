@@ -1,16 +1,16 @@
 #include "KnownRestrictions.h"
 
-Restriction* const InitializeRestriction(Lattice* const Lat,PerlInput const& Input)
+Restriction* const InitializeRestriction(Lattice* const Lat, PerlInput const& Input)
 {
-   const char *Restrict = Input.getString("Restriction","Type");
+   const char* Restrict = Input.getString("Restriction", "Type");
 
-   if (!strcmp("RestrictToTranslatedSubSpace",Restrict))
+   if (!strcmp("RestrictToTranslatedSubSpace", Restrict))
    {
-      return new RestrictToTranslatedSubSpace(Lat,Input);
+      return new RestrictToTranslatedSubSpace(Lat, Input);
    }
-   else if (!strcmp("NoRestriction",Restrict))
+   else if (!strcmp("NoRestriction", Restrict))
    {
-      return new NoRestriction(Lat,Input);
+      return new NoRestriction(Lat, Input);
    }
    else
    {
@@ -18,7 +18,7 @@ Restriction* const InitializeRestriction(Lattice* const Lat,PerlInput const& Inp
       exit(-1);
    }
    Input.EndofInputSection();
-   
+
    return 0;
 }
 

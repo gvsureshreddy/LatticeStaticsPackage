@@ -18,12 +18,13 @@
 #include "Dobson.h"
 
 PairPotentials* InitializePairPotential(PerlInput::HashStruct const& ParentHash,
-                                        PerlInput const& Input,int const& i,int const& j);
-PairPotentials* InitializePairPotential(char const* const HashName,PerlInput const& Input,
-                                        int const& i,int const& j);
-void UpdatePairPotential(PerlInput::HashStruct const& ParentHash,PerlInput const& Input,
-                         int const& i,int const& j,PairPotentials* const Potential);
-void UpdatePairPotential(char const* const HashName,PerlInput const& Input,int const& i,
-                         int const& j,PairPotentials* const Potential);
+                                        PerlInput const& Input, int const& i, int const& j);
+PairPotentials* InitializePairPotential(char const* const HashName, PerlInput const& Input,
+                                        int const& i, int const& j);
+void UpdatePairPotential(PerlInput::HashStruct const& ParentHash, PerlInput const& Input,
+                         int const& i, int const& j, PairPotentials* const Potential);
+void UpdatePairPotential(char const* const HashName, PerlInput const& Input, int const& i,
+                         int const& j, PairPotentials* const Potential);
 
 #endif
+
