@@ -1,4 +1,4 @@
-1 # include "QHQMultiChainTPP.h"
+# include "QHQMultiChainTPP.h"
 #include "UtilityFunctions.h"
 #include <cmath>
 #include <cstdlib>
@@ -2171,7 +2171,6 @@ void QHQMultiChainTPP::ReferenceV4() const
 #endif
 
       double pi = 4.0 * atan(1.0);
-      double Tol = 1.0e-12;
       MyComplexDouble Ic(0, 1);
       double InverseLat = 1.0 / RefLattice_[0][0];
       MyComplexDouble A = (2.0 * pi - 2.0 * pi / 2.5) * InverseLat;
