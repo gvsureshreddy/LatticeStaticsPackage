@@ -7,8 +7,9 @@
 #include "ScanningSolution.h"
 #include "NewtonPCSolution.h"
 
-SolutionMethod* InitializeSolution(Restriction* const Restrict,PerlInput const& Input,
-                                   Lattice* const Lat,ostream& out,int const& Width,
+SolutionMethod* InitializeSolution(Restriction* const Restrict, PerlInput const& Input,
+                                   Lattice* const Lat, ostream& out, int const& Width,
                                    int const& Echo);
 
 #endif
+
