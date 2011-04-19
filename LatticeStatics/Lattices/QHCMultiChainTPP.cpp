@@ -106,8 +106,8 @@ QHCMultiChainTPP::~QHCMultiChainTPP()
 
 QHCMultiChainTPP::QHCMultiChainTPP(PerlInput const& Input,
                                    int const& Echo, int const& Width,
-                                   int const& Debug)
-   : Lattice(Input, Echo)
+                                   int const& Debug) :
+   Lattice(Input, Echo)
 {
    dbg_ = Debug;
    // Get Lattice definition

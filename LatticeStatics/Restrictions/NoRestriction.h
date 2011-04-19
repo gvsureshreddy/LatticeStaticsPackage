@@ -36,8 +36,8 @@ private:
    }
 
 public:
-   NoRestriction(Lattice* const M, PerlInput const& Input)
-      : Restriction(Input),
+   NoRestriction(Lattice* const M, PerlInput const& Input) :
+      Restriction(Input),
       Lattice_(M), dof_static(Lattice_->DOF().Dim() + 1),
       ddt_static(Lattice_->DOF().Dim()),
       Stiff_static(Lattice_->DOF().Dim(), Lattice_->DOF().Dim()),
