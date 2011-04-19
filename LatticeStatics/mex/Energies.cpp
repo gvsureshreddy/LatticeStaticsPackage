@@ -13,12 +13,12 @@
 // [A0, AT, B0, BT, Rref1, Rtheta1, Rref2, Rtheta2]
 // Lat0 -- FCC Ni; Lat1 -- FCC Ti; Lat2 -- B2 NiTi
 
-void mexFunction(int nlhs, mxArray *plhs[ ],int nrhs, const mxArray *prhs[ ]) 
+void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[])
 {
    int j;
-   double *output;
+   double* output;
 
-   static int flag=1;
+   static int flag = 1;
 
    static PerlInput Input;
    if (flag)
@@ -44,32 +44,32 @@ void mexFunction(int nlhs, mxArray *plhs[ ],int nrhs, const mxArray *prhs[ ])
    }
    static MultiLatticeTPP Lat2(Input);
 
-   flag=0;
+   flag = 0;
 
-   int m,n;
+   int m, n;
    m = mxGetM(prhs[0]);
    n = mxGetN(prhs[0]);
    if ((m != 1) && (n != totparams))
    {
-      mexPrintf("Input must be of size 1x%i\n",totparams);
+      mexPrintf("Input must be of size 1x%i\n", totparams);
       mexErrMsgTxt("Input wrong size. exiting");
    }
 
-   double *params;
+   double* params;
 
    params = mxGetPr(prhs[0]);
 
    Lat0.SetParameters(&(params[0]));
    Lat1.SetParameters(&(params[param0]));
-   Lat2.SetParameters(&(params[param0+param1]));
+   Lat2.SetParameters(&(params[param0 + param1]));
 
-// Create the array
-   plhs[0] = mxCreateDoubleMatrix(1,3,mxREAL);
+   // Create the array
+   plhs[0] = mxCreateDoubleMatrix(1, 3, mxREAL);
    output = mxGetPr(plhs[0]);
 
 
    output[0] = Lat0.E0();
    output[1] = Lat1.E0();
    output[2] = Lat2.E0();
-
 }
+

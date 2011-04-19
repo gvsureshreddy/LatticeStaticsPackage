@@ -8,43 +8,49 @@
 
 using namespace std;
 
-class LagrangeCB: public CBKinematics
+class LagrangeCB : public CBKinematics
 {
 private:
    virtual void Reset();
-   
+
 public:
-   LagrangeCB(int const& InternalAtoms,Matrix& RefLattice,Vector* const AtomPositions);
-   LagrangeCB(PerlInput const& Input,PerlInput::HashStruct const* const ParentHash=0);
-   virtual ~LagrangeCB() {};
-   
+   LagrangeCB(int const& InternalAtoms, Matrix& RefLattice, Vector* const AtomPositions);
+   LagrangeCB(PerlInput const& Input, PerlInput::HashStruct const* const ParentHash = 0);
+   virtual ~LagrangeCB()
+   {
+   }
+
 #include "FwithTransMapping.def"
-   
+
    virtual Vector FractionalPosVec(int const& p) const;
-   virtual double DX(double const* const X,int const& p,int const& q,int const& i) const;
-   virtual double Dx(double const* const X,int const& p,int const& q,int const& i) const;
-   
-   virtual double DyDF(double const* const Dx,double const* const DX,int const& r,
+   virtual double DX(double const* const X, int const& p, int const& q, int const& i) const;
+   virtual double Dx(double const* const X, int const& p, int const& q, int const& i) const;
+
+   virtual double DyDF(double const* const Dx, double const* const DX, int const& r,
                        int const& s) const;
-   virtual double D2yDFF(double const* const DX,int const& r,int const& s,int const& t,
+   virtual double D2yDFF(double const* const DX, int const& r, int const& s, int const& t,
                          int const& u) const;
-   virtual double DyDS(double const* const Dx,int const& p,int const& q,int const& i,
+   virtual double DyDS(double const* const Dx, int const& p, int const& q, int const& i,
                        int const& j) const;
-   virtual double D2yDSS(int const& p,int const& q,int const& i,int const& j,int const& k,
+   virtual double D2yDSS(int const& p, int const& q, int const& i, int const& j, int const& k,
                          int const& l) const;
-   virtual double D2yDFS(double const* const Dx,double const* const DX,int const& p,
-                         int const& q,int const& i,int const& j,int const& k,int const& l)
-      const;
-   virtual double D3yDFFS(double const* const DX,int const& p,int const& q,int const& i,
-                          int const& j,int const& k,int const& l,int const& m,int const& n)
-      const;
-   virtual double D3yDSSF(int const& p,int const& q,int const& i,int const& j,int const& k,
-                          int const& l,int const& m,int const& n) const;
-   virtual double D4yDFFSS(int const& p,int const& q,int const& i,int const& j,int const& k,
-                           int const& l,int const& m,int const& n,int const& a,int const& b)
-      const;
-   
-   virtual char const* const IDString() const {return "LagrangeCB";}
+   virtual double D2yDFS(double const* const Dx, double const* const DX, int const& p,
+                         int const& q, int const& i, int const& j, int const& k, int const& l)
+   const;
+   virtual double D3yDFFS(double const* const DX, int const& p, int const& q, int const& i,
+                          int const& j, int const& k, int const& l, int const& m, int const& n)
+   const;
+   virtual double D3yDSSF(int const& p, int const& q, int const& i, int const& j, int const& k,
+                          int const& l, int const& m, int const& n) const;
+   virtual double D4yDFFSS(int const& p, int const& q, int const& i, int const& j, int const& k,
+                           int const& l, int const& m, int const& n, int const& a, int const& b)
+   const;
+
+   virtual char const* const IDString() const
+   {
+      return "LagrangeCB";
+   }
 };
 
 #endif
+

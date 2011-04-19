@@ -1,97 +1,111 @@
-   virtual inline int Fsize() const {return 6;}
-   virtual inline int Ssize() const {return DIM3*(InternalAtoms_-1);}
-   virtual inline int NoTrans() const {return 1;}
+virtual inline int Fsize() const
+{
+   return 6;
+}
+virtual inline int Ssize() const
+{
+   return DIM3 * (InternalAtoms_ - 1);
+}
+virtual inline int NoTrans() const
+{
+   return 1;
+}
 
-   virtual inline int INDF(int const& i,int const& j) const
+virtual inline int INDF(int const& i, int const& j) const
+{
+   if (i == j)
    {
-      if (i==j)
-         return i;
-      else
-         return 2+i+j;
+      return i;
    }
+   else
+   {
+      return 2 + i + j;
+   }
+}
 
-   virtual inline int INDS(int const& i,int const& j) const
+virtual inline int INDS(int const& i, int const& j) const
+{
+   if (!i)
    {
-      if (!i)
-      {
-         cerr << "Error: INDS(i,j) i==0!!!!!" << "\n";
-         exit(-1);
-      }
-      
-      return 6 + (i-1)*3 + j;
-   }
-   
-   virtual inline int INDFF(int const& k,int const& l,int const& m,int const& n) const
-   {
-      if (k==l)
-      {
-         if (m==n)
-         {
-            return DOFS()*k+m;
-         }
-         else
-         {
-            return DOFS()*k + 2+m+n;
-         }
-      }
-      else
-      {
-         if (m==n)
-         {
-            return DOFS()*(2+k+l) + m;
-         }
-         else
-         {
-            return DOFS()*(2+k+l) + 2+m+n;
-         }
-      }
+      cerr << "Error: INDS(i,j) i==0!!!!!" << "\n";
+      exit(-1);
    }
 
-   virtual inline int INDSS(int const& k,int const& l,int const& m,int const& n) const
+   return 6 + (i - 1) * 3 + j;
+}
+
+virtual inline int INDFF(int const& k, int const& l, int const& m, int const& n) const
+{
+   if (k == l)
    {
-      if (!k || !m)
+      if (m == n)
       {
-         cerr << "Error : INDSS(k,l,m,n) i==0 OR m==0!!!!!!" << "\n";
-         exit(-1);
-      }
-      
-      return 6*DOFS() + 6
-         + DOFS()*( (k-1)*3 + l )
-         + ( (m-1)*3 + n );
-   }
-   
-   virtual inline int INDFS(int const& i,int const& j,int const& m,int const& n) const
-   {
-      if (!m)
-      {
-         cerr << "Error : INDFS(i,j,m,n) m==0!!!!!!" << "\n";
-         exit(-1);
-      }
-      
-      if (i==j)
-      {
-         return DOFS()*i + 6 + (m-1)*3+n;
+         return DOFS() * k + m;
       }
       else
       {
-         return DOFS()*(2+i+j) + 6 + (m-1)*3+n;
+         return DOFS() * k + 2 + m + n;
       }
    }
-   
-   virtual inline int INDSF(int const& m,int const& n,int const& i,int const& j) const
+   else
    {
-      if (!m)
+      if (m == n)
       {
-         cerr << "Error : INDSF(m,n,i,j) m==0!!!!!!" << "\n";
-         exit(-1);
-      }
-      
-      if (i==j)
-      {
-         return 6*DOFS() + DOFS()*( (m-1)*3+n ) + i;
+         return DOFS() * (2 + k + l) + m;
       }
       else
       {
-         return 6*DOFS() + DOFS()*( (m-1)*3+n ) + 2+i+j;
+         return DOFS() * (2 + k + l) + 2 + m + n;
       }
    }
+}
+
+virtual inline int INDSS(int const& k, int const& l, int const& m, int const& n) const
+{
+   if (!k || !m)
+   {
+      cerr << "Error : INDSS(k,l,m,n) i==0 OR m==0!!!!!!" << "\n";
+      exit(-1);
+   }
+
+   return 6 * DOFS() + 6
+          + DOFS() * ((k - 1) * 3 + l)
+          + ((m - 1) * 3 + n);
+}
+
+virtual inline int INDFS(int const& i, int const& j, int const& m, int const& n) const
+{
+   if (!m)
+   {
+      cerr << "Error : INDFS(i,j,m,n) m==0!!!!!!" << "\n";
+      exit(-1);
+   }
+
+   if (i == j)
+   {
+      return DOFS() * i + 6 + (m - 1) * 3 + n;
+   }
+   else
+   {
+      return DOFS() * (2 + i + j) + 6 + (m - 1) * 3 + n;
+   }
+}
+
+virtual inline int INDSF(int const& m, int const& n, int const& i, int const& j) const
+{
+   if (!m)
+   {
+      cerr << "Error : INDSF(m,n,i,j) m==0!!!!!!" << "\n";
+      exit(-1);
+   }
+
+   if (i == j)
+   {
+      return 6 * DOFS() + DOFS() * ((m - 1) * 3 + n) + i;
+   }
+   else
+   {
+      return 6 * DOFS() + DOFS() * ((m - 1) * 3 + n) + 2 + i + j;
+   }
+}
+

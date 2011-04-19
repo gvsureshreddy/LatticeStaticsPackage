@@ -19,12 +19,13 @@ using namespace std;
 char kbhitWait();
 int EnterDebugMode();
 
-int FullScanRank1Convex3D(CBKinematics const* const CBK,Matrix const& K,double const& dx);
-int FullScanRank1Convex2D(Matrix const& K,double const& dx);
-int Rank1Convex3D(CBKinematics const* const CBK,Matrix const& K,double const& dx);
-int Rank1Convex2D(Matrix const& K,double const& dx);
+int FullScanRank1Convex3D(CBKinematics const* const CBK, Matrix const& K, double const& dx);
+int FullScanRank1Convex2D(Matrix const& K, double const& dx);
+int Rank1Convex3D(CBKinematics const* const CBK, Matrix const& K, double const& dx);
+int Rank1Convex2D(Matrix const& K, double const& dx);
 
 Matrix TranslationProjection1D(int const& NoAtoms);
-Matrix TranslationProjection3D(int const& Fsize,int const& NoAtoms);
+Matrix TranslationProjection3D(int const& Fsize, int const& NoAtoms);
 
 #endif
+
