@@ -15,9 +15,9 @@ MultiLatticeTPP::~MultiLatticeTPP()
    delete[] BodyForce_;
    delete[] SpeciesMass_;
    delete[] AtomicMass_;
-   for (int i = 0; i < NumberofSpecies_; ++i)
+   for (int i = 0; i < CBK_->NumberofSpecies(); ++i)
    {
-      for (int j = i; j < NumberofSpecies_; ++j)
+      for (int j = i; j < CBK_->NumberofSpecies(); ++j)
       {
          delete SpeciesPotential_[i][j];
       }
@@ -129,23 +129,12 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput const& Input, int const& Echo, int co
    // EntropyRef_ = Input.getDouble(Hash,"EntropyRef");
    // HeatCapacityRef_ = Input.getDouble(Hash,"HeatCapacityRef");
 
-   Input.getPosIntVector(AtomSpecies_, InternalAtoms_, Hash, "AtomSpecies");
-   NumberofSpecies_ = AtomSpecies_[0];
-   for (int i = 1; i < InternalAtoms_; ++i)
-   {
-      if (NumberofSpecies_ < AtomSpecies_[i])
-      {
-         NumberofSpecies_ = AtomSpecies_[i];
-      }
-   }
-   NumberofSpecies_++;
-
    // Get Potential Parameters
-   SpeciesPotential_ = new PairPotentials * *[NumberofSpecies_];
-   SpeciesPotential_[0] = new PairPotentials *[NumberofSpecies_ * NumberofSpecies_];
-   for (int i = 1; i < NumberofSpecies_; ++i)
+   SpeciesPotential_ = new PairPotentials * *[CBK_->NumberofSpecies()];
+   SpeciesPotential_[0] = new PairPotentials *[CBK_->NumberofSpecies() * CBK_->NumberofSpecies()];
+   for (int i = 1; i < CBK_->NumberofSpecies(); ++i)
    {
-      SpeciesPotential_[i] = SpeciesPotential_[i - 1] + NumberofSpecies_;
+      SpeciesPotential_[i] = SpeciesPotential_[i - 1] + CBK_->NumberofSpecies();
    }
    Potential_ = new PairPotentials * *[InternalAtoms_];
    Potential_[0] = new PairPotentials *[InternalAtoms_ * InternalAtoms_];
@@ -154,12 +143,12 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput const& Input, int const& Echo, int co
       Potential_[i] = Potential_[i - 1] + InternalAtoms_;
    }
 
-   SpeciesMass_ = new double[NumberofSpecies_];
+   SpeciesMass_ = new double[CBK_->NumberofSpecies()];
    AtomicMass_ = new double[InternalAtoms_];
 
-   for (int i = 0; i < NumberofSpecies_; ++i)
+   for (int i = 0; i < CBK_->NumberofSpecies(); ++i)
    {
-      for (int j = i; j < NumberofSpecies_; ++j)
+      for (int j = i; j < CBK_->NumberofSpecies(); ++j)
       {
          SpeciesPotential_[i][j] =
             SpeciesPotential_[j][i] = InitializePairPotential(Hash, Input, i, j);
@@ -172,10 +161,10 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput const& Input, int const& Echo, int co
       for (int j = i; j < InternalAtoms_; ++j)
       {
          Potential_[i][j] =
-            Potential_[j][i] = SpeciesPotential_[AtomSpecies_[i]][AtomSpecies_[j]];
+            Potential_[j][i] = SpeciesPotential_[CBK_->AtomSpecies(i)][CBK_->AtomSpecies(j)];
       }
 
-      AtomicMass_[i] = SpeciesMass_[AtomSpecies_[i]];
+      AtomicMass_[i] = SpeciesMass_[CBK_->AtomSpecies(i)];
    }
 
    // Get Lattice parameters
@@ -331,15 +320,15 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput const& Input, int const& Echo, int co
    {
       for (int j = i; j < InternalAtoms_; ++j)
       {
-         if (AtomSpecies_[i] < AtomSpecies_[j])
+         if (CBK_->AtomSpecies(i) < CBK_->AtomSpecies(j))
          {
             UpdatePairPotential(Hash, Input,
-                                AtomSpecies_[i], AtomSpecies_[j], Potential_[i][j]);
+                                CBK_->AtomSpecies(i), CBK_->AtomSpecies(j), Potential_[i][j]);
          }
          else
          {
             UpdatePairPotential(Hash, Input,
-                                AtomSpecies_[j], AtomSpecies_[i], Potential_[j][i]);
+                                CBK_->AtomSpecies(j), CBK_->AtomSpecies(i), Potential_[j][i]);
          }
       }
    }
@@ -393,9 +382,9 @@ void MultiLatticeTPP::SetParameters(double const* const Vals, int const& ResetRe
 {
    int no = SpeciesPotential_[0][0]->GetNoParameters();
    int cur = 0;
-   for (int i = 0; i < NumberofSpecies_; ++i)
+   for (int i = 0; i < CBK_->NumberofSpecies(); ++i)
    {
-      for (int j = i; j < NumberofSpecies_; ++j)
+      for (int j = i; j < CBK_->NumberofSpecies(); ++j)
       {
          SpeciesPotential_[i][j]->SetParameters(&(Vals[cur]));
          cur += no;
@@ -2101,13 +2090,13 @@ void MultiLatticeTPP::Print(ostream& out, PrintDetail const& flag,
          for (int i = 0; i < InternalAtoms_; ++i)
          {
             out << "Atom_" << i << "          "
-                << "Species : " << setw(5) << AtomSpecies_[i]
+                << "Species : " << setw(5) << CBK_->AtomSpecies(i)
                 << "          Position : " << setw(W) << CBK_->AtomPositions(i) << "\n";
          }
          out << "REFTemp_ : " << setw(W) << REFTemp_ << "\n";
          out << "REFLambda_ : " << setw(W) << REFLambda_ << "\n";
          out << "Influence Distance   : " << setw(W) << InfluenceDist_ << "\n";
-         for (int i = 0; i < NumberofSpecies_; ++i)
+         for (int i = 0; i < CBK_->NumberofSpecies(); ++i)
          {
             out << "Atomic Mass " << i << "  : "
                 << setw(W) << SpeciesMass_[i] << "\n";
@@ -2117,9 +2106,9 @@ void MultiLatticeTPP::Print(ostream& out, PrintDetail const& flag,
          // << "EntropyRef = " << setw(W) << EntropyRef_ << "; "
          // << "HeatCapacityRef = " << setw(W) << HeatCapacityRef_ << "\n";
          out << "Potential Parameters : " << "\n";
-         for (int i = 0; i < NumberofSpecies_; ++i)
+         for (int i = 0; i < CBK_->NumberofSpecies(); ++i)
          {
-            for (int j = i; j < NumberofSpecies_; j++)
+            for (int j = i; j < CBK_->NumberofSpecies(); j++)
             {
                out << "[" << i << "][" << j << "] -- "
                    << (*SpeciesPotential_[i][j]).Type() << " -- "
@@ -2140,13 +2129,13 @@ void MultiLatticeTPP::Print(ostream& out, PrintDetail const& flag,
             for (int i = 0; i < InternalAtoms_; ++i)
             {
                cout << "Atom_" << i << "          "
-                    << "Species : " << setw(5) << AtomSpecies_[i]
+                    << "Species : " << setw(5) << CBK_->AtomSpecies(i)
                     << "          Position : " << setw(W) << CBK_->AtomPositions(i) << "\n";
             }
             cout << "REFTemp_ : " << setw(W) << REFTemp_ << "\n";
             cout << "REFLambda_ : " << setw(W) << REFLambda_ << "\n";
             cout << "Influence Distance   : " << setw(W) << InfluenceDist_ << "\n";
-            for (int i = 0; i < NumberofSpecies_; ++i)
+            for (int i = 0; i < CBK_->NumberofSpecies(); ++i)
             {
                cout << "Atomic Mass " << i << "  : "
                     << setw(W) << SpeciesMass_[i] << "\n";
@@ -2156,9 +2145,9 @@ void MultiLatticeTPP::Print(ostream& out, PrintDetail const& flag,
             // << "EntropyRef = " << setw(W) << EntropyRef_ << "; "
             // << "HeatCapacityRef = " << setw(W) << HeatCapacityRef_ << "\n";
             cout << "Potential Parameters : " << "\n";
-            for (int i = 0; i < NumberofSpecies_; ++i)
+            for (int i = 0; i < CBK_->NumberofSpecies(); ++i)
             {
-               for (int j = i; j < NumberofSpecies_; j++)
+               for (int j = i; j < CBK_->NumberofSpecies(); j++)
                {
                   cout << "[" << i << "][" << j << "] -- "
                        << (*SpeciesPotential_[i][j]).Type() << " -- "
@@ -2630,7 +2619,7 @@ void MultiLatticeTPP::DebugMode()
       {
          int no = SpeciesPotential_[0][0]->GetNoParameters();
          double* vals;
-         int sze = no * ((NumberofSpecies_ + 1) * (NumberofSpecies_) / 2);
+         int sze = no * ((CBK_->NumberofSpecies() + 1) * (CBK_->NumberofSpecies()) / 2);
          vals = new double[sze];
          cout << "\tEnter new Parameter values > ";
          for (int i = 0; i < sze; ++i)
@@ -2746,11 +2735,11 @@ void MultiLatticeTPP::PrintCurrentCrystalParamaters(ostream& out) const
    out << "\n" << "ATOMS" << "\n"
        << "NAME" << setw(W) << "X" << setw(W) << "Y" << setw(W) << "Z" << "\n";
    char const* species[] = {"Ni", "Ti", "C"};
-   out << setw(4) << species[(AtomSpecies_[0] > 3) ? 3 : AtomSpecies_[0]]
+   out << setw(4) << species[(CBK_->AtomSpecies(0) > 3) ? 3 : CBK_->AtomSpecies(0)]
        << setw(W) << CBK_->FractionalPosVec(0) << "\n";
    for (int i = 1; i < InternalAtoms_; ++i)
    {
-      out << setw(4) << species[(AtomSpecies_[i] > 3) ? 3 : AtomSpecies_[i]];
+      out << setw(4) << species[(CBK_->AtomSpecies(i) > 3) ? 3 : CBK_->AtomSpecies(i)];
       out << setw(W) << CBK_->FractionalPosVec(i) << "\n";
    }
 
@@ -2765,4 +2754,3 @@ void MultiLatticeTPP::PrintCurrentCrystalParamaters(ostream& out) const
        << setw(W) << CurrentLattice[1] << "\n"
        << setw(W) << CurrentLattice[2] << "\n";
 }
-
