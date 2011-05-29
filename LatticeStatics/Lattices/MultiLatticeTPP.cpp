@@ -2089,7 +2089,7 @@ void MultiLatticeTPP::Print(ostream& out, PrintDetail const& flag,
          out << "RefLattice_ : " << setw(W) << CBK_->RefLattice();
          for (int i = 0; i < InternalAtoms_; ++i)
          {
-            out << "Atom_" << i << "          "
+            out << "Atom_" << i << (i > 9 ? "" : " ") << "          "
                 << "Species : " << setw(5) << CBK_->AtomSpecies(i)
                 << "          Position : " << setw(W) << CBK_->AtomPositions(i) << "\n";
          }
@@ -2128,7 +2128,7 @@ void MultiLatticeTPP::Print(ostream& out, PrintDetail const& flag,
             cout << "RefLattice_ : " << setw(W) << CBK_->RefLattice();
             for (int i = 0; i < InternalAtoms_; ++i)
             {
-               cout << "Atom_" << i << "          "
+               cout << "Atom_" << i << (i > 9 ? "" : " ") << "          "
                     << "Species : " << setw(5) << CBK_->AtomSpecies(i)
                     << "          Position : " << setw(W) << CBK_->AtomPositions(i) << "\n";
             }
