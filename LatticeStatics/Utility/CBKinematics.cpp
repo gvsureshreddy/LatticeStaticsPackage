@@ -81,7 +81,7 @@ CBKinematics::CBKinematics(PerlInput const& Input, PerlInput::HashStruct const* 
          {
             Mu[i][j] = double(mu[i][j]);
 
-            if (mu[i][j] < 0)
+            if (mu[j][i] < 0)
             {
                if (mu[j][i] < latrange[i][0])
                {
