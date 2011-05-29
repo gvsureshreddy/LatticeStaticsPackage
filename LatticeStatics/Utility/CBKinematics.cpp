@@ -30,12 +30,17 @@ CBKinematics::CBKinematics(PerlInput const& Input, PerlInput::HashStruct const* 
       Hash = Input.getHash("CBKinematics");
    }
 
-   // Set number of atoms in unit cell
-   InternalAtoms_ = Input.getPosInt(Hash, "InternalAtoms");
-
    // Set RefLattice_
    RefLattice_.Resize(DIM3, DIM3);
    Input.getMatrix(RefLattice_, Hash, "LatticeBasis");
+
+   // Set number of atoms in unit cell
+   InternalAtoms_ = Input.getPosInt(Hash, "InternalAtoms");
+   if (InternalAtoms_ > CBK_MAX_ATOMS)
+   {
+      cerr << "Error: CBK, InternalAtoms > CBK_MAX_ATOMS=" << CBK_MAX_ATOMS << ", exiting...\n";
+      exit(-23);
+   }
 
    // Set AtomPositions_
    InternalPOS_ = new Vector[InternalAtoms_];
@@ -43,6 +48,136 @@ CBKinematics::CBKinematics(PerlInput const& Input, PerlInput::HashStruct const* 
    {
       InternalPOS_[i].Resize(DIM3);
       Input.getVector(InternalPOS_[i], Hash, "AtomPositions", i);
+   }
+
+   // Set AtomSpecies_
+   Input.getPosIntVector(AtomSpecies_, InternalAtoms_, Hash, "AtomSpecies");
+   NumberofSpecies_ = AtomSpecies_[0];
+   for (int i = 1; i < InternalAtoms_; ++i)
+   {
+      if (NumberofSpecies_ < AtomSpecies_[i])
+      {
+         NumberofSpecies_ = AtomSpecies_[i];
+      }
+   }
+   NumberofSpecies_++;
+
+   // Check for supercell specification
+   if (Input.ParameterOK(Hash, "SuperCell"))
+   {
+      int mu[DIM3][DIM3];
+      int latrange[DIM3][2];
+      int TmpIntAtoms;
+      Input.getIntMatrix(&(mu[0][0]), DIM3, DIM3, Hash, "SuperCell");
+      Matrix Mu(DIM3, DIM3);
+      Matrix MuInv(DIM3, DIM3);
+      Matrix TmpRefLat(DIM3, DIM3, 0.0);
+      for (int i = 0; i < DIM3; ++i)
+      {
+         latrange[i][0] = 0;
+         latrange[i][1] = 0;
+         for (int j = 0; j < DIM3; ++j)
+         {
+            Mu[i][j] = double(mu[i][j]);
+
+            if (mu[i][j] < 0)
+            {
+               if (mu[i][j] < latrange[i][0])
+               {
+                  latrange[i][0] = mu[i][j];
+               }
+            }
+            else
+            {
+               if (mu[i][j] > latrange[i][1])
+               {
+                  latrange[i][1] = mu[i][j];
+               }
+            }
+         }
+      }
+      MuInv = Mu.Inverse();
+
+      // Find lattice vectors in supercell
+      int det = int(Mu.Det());
+      int cnt = 0;
+      Vector* CellVecs = new Vector[det];
+      Vector L(DIM3);
+      Vector l(DIM3);
+      for (int i = latrange[0][0]; i <= latrange[0][1]; ++i)
+      {
+         for (int j = latrange[1][0]; j <= latrange[1][1]; ++j)
+         {
+            for (int k = latrange[2][0]; k <= latrange[2][1]; ++k)
+            {
+               L[0] = i;
+               L[1] = j;
+               L[2] = k;
+
+               l = MuInv * L;
+
+               if (((l[0] >= 0.0) && (l[0] < 1.0)) &&
+                   ((l[1] >= 0.0) && (l[1] < 1.0)) &&
+                   ((l[2] >= 0.0) && (l[2] < 1.0)))
+               {
+                  CellVecs[cnt].Resize(DIM3);
+                  CellVecs[cnt][0] = double(i);
+                  CellVecs[cnt][1] = double(j);
+                  CellVecs[cnt][2] = double(k);
+                  cnt++;
+               }
+            }
+         }
+      }
+
+      // Overwrite with new valuse and add to input file
+      TmpRefLat = Mu * RefLattice_;
+      Input.useMatrix(TmpRefLat, Hash, "LatticeBasis"); // should change this so it doesn't print 'default value'
+      RefLattice_ = TmpRefLat;
+
+      TmpIntAtoms = cnt * InternalAtoms_;
+      Input.usePosInt(TmpIntAtoms, Hash, "InternalAtoms"); // see above note
+      if (InternalAtoms_ > CBK_MAX_ATOMS)
+      {
+         cerr << "Error: CBK, InternalAtoms > CBK_MAX_ATOMS=" << CBK_MAX_ATOMS
+              << ", exiting...\n";
+         exit(-23);
+      }
+
+      Vector* TmpIntPOS = new Vector[TmpIntAtoms];
+      for (int i = 0; i < cnt; ++i)
+      {
+         for (int j = 0; j < InternalAtoms_; ++j)
+         {
+            TmpIntPOS[i * InternalAtoms_ + j].Resize(DIM3);
+            TmpIntPOS[i * InternalAtoms_ + j] = MuInv * (CellVecs[i] + InternalPOS_[j]);
+            for (int k = 0; k < DIM3; ++k)
+            {
+               // for the case where atom sits on boundary of cell,
+               // make sure it is on "lower left"
+               if (TmpIntPOS[i * InternalAtoms_ + j][k] >= 1.0)
+               {
+                  TmpIntPOS[i * InternalAtoms_ + j][k]--;
+               }
+            }
+            Input.useVector(TmpIntPOS[i * InternalAtoms_ + j], Hash, "AtomPositions",
+                            i * InternalAtoms_ + j); // see above note
+         }
+      }
+      delete[] CellVecs;
+
+      for (int i = 1; i < cnt; ++i)
+      {
+         for (int j = 0; j < InternalAtoms_; ++j)
+         {
+            AtomSpecies_[i * InternalAtoms_ + j] = AtomSpecies_[j];
+         }
+      }
+
+      delete[] InternalPOS_;
+      InternalPOS_ = TmpIntPOS;
+
+      InternalAtoms_ = TmpIntAtoms;
    }
 }
 
@@ -129,4 +264,3 @@ Vector CBKinematics::CurrentLatticeVec(int const& p) const
 
    return tmp;
 }
-

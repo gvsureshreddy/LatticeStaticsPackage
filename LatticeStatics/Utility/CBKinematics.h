@@ -5,6 +5,9 @@
 #include <Vector.h>
 #include "PerlInput.h"
 
+// Max number of atoms in unit cell. might need to be changed...
+#define CBK_MAX_ATOMS 100
+
 using namespace std;
 
 class CBKinematics
@@ -17,6 +20,8 @@ public:
 
    Vector DOF_;
    int InternalAtoms_;
+   int NumberofSpecies_;
+   int AtomSpecies_[CBK_MAX_ATOMS];
    Matrix RefLattice_;
    Vector* InternalPOS_;
 
@@ -38,22 +43,37 @@ public:
    {
       return InternalAtoms_;
    }
+
+   int const& NumberofSpecies() const
+   {
+      return NumberofSpecies_;
+   }
+
+   int const& AtomSpecies(int const& i) const
+   {
+      return AtomSpecies_[i];
+   }
+
    Matrix const& RefLattice() const
    {
       return RefLattice_;
    }
+
    double RefVolume() const
    {
       return RefLattice_.Det();
    }
+
    Vector const& DOF() const
    {
       return DOF_;
    }
+
    void SetDOF(Vector const& dof)
    {
       DOF_ = dof; Reset();
    }
+
    Vector const& AtomPositions(int const& i) const
    {
       return InternalPOS_[i];
@@ -63,6 +83,7 @@ public:
    {
       return Fsize() + Ssize();
    }
+
    virtual int Fsize() const = 0;
    virtual int Ssize() const = 0;
    virtual int NoTrans() const = 0;
@@ -78,6 +99,7 @@ public:
    {
       return Vector(DIM3, 0.0);
    }
+
    virtual double DX(double const* const X, int const& p, int const& q, int const& i) const = 0;
    virtual double Dx(double const* const X, int const& p, int const& q, int const& i) const = 0;
 
@@ -105,6 +127,7 @@ public:
    {
       return i == j;
    }
+
    inline double DELTA(int const& s, int const& p, int const& q) const
    {
       return Del(s, q) - Del(s, p);
@@ -118,4 +141,3 @@ public:
 };
 
 #endif
-
