@@ -80,4 +80,3 @@ int main()
       cout << setw(20) << Roots[i] << "\n";
    }
 }
-

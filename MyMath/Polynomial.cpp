@@ -148,4 +148,3 @@ void PolyMult(MyComplexDouble const* const A, int const& DegA, MyComplexDouble c
       }
    }
 }
-

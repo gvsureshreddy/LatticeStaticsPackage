@@ -27,6 +27,7 @@ using namespace std;
 // Coeff[0..Degree] define the poly sum(i=0)(m) Coeff[i]x^i
 void PolyRootsLaguerre(MyComplexDouble const* const Coeff, int const& Degree,
                        MyComplexDouble* const Roots, int const& Polish);
+
 // Lagurre's method to find a root of a polynomial near X
 int Laguerre(MyComplexDouble const* const Coeff, int const& Degree,
              MyComplexDouble* const X);
@@ -36,4 +37,3 @@ void PolyMult(MyComplexDouble const* const A, int const& DegA, MyComplexDouble c
               int const& DegB, MyComplexDouble* const Result);
 
 #endif
-

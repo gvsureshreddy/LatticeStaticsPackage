@@ -1,7 +1,7 @@
 #include "MyComplexDouble.h"
 
 // Global IDString
-char MyComplexDoubleID[] = "$Id: MyComplexDouble.cpp,v 1.7 2011/04/18 16:29:28 elliott Exp $";
+char MyComplexDoubleID[] = "$Id: MyComplexDouble.cpp,v 1.8 2011/05/30 15:01:07 elliott Exp $";
 
 // Private Functions...
 
@@ -150,4 +150,3 @@ char const* const MyComplexDouble::Revision()
 {
    return MyComplexDoubleID;
 }
-

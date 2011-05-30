@@ -8,4 +8,3 @@ char* MyMathBuildDate()
    return "Unknown";
 #endif
 }
-

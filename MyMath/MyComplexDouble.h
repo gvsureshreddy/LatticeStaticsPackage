@@ -26,6 +26,7 @@ public:
    MyComplexDouble(double const& Re = 0.0, double const& Im = 0.0) : Re_(Re), Im_(Im)
    {
    }
+
    MyComplexDouble(MyComplexDouble const& CDB)
    {
       Re_ = CDB.Re_; Im_ = CDB.Im_;
@@ -41,14 +42,17 @@ public:
    {
       return Re_;
    }
+
    Elm const& imag() const
    {
       return Im_;
    }
+
    Elm mod() const
    {
       return sqrt(Re_ * Re_ + Im_ * Im_);
    }
+
    Elm arg() const
    {
       if (Re_ > 0.0)
@@ -71,6 +75,7 @@ public:
    {
       return ((Re_ == right.Re_) && (Im_ == right.Im_));
    }
+
    int operator!=(MyComplexDouble const& right) const
    {
       return ((Re_ != right.Re_) || (Im_ != right.Im_));
@@ -82,30 +87,30 @@ public:
    {
       return MyComplexDouble(Re_, -Im_);
    }
+
    friend MyComplexDouble& operator+(MyComplexDouble& A)
    {
       return A;
    }
+
    friend MyComplexDouble operator-(MyComplexDouble const& A);
-   friend MyComplexDouble operator+(MyComplexDouble const& A,
-                                    MyComplexDouble const& B);
-   friend MyComplexDouble operator-(MyComplexDouble const& A,
-                                    MyComplexDouble const& B);
-   friend MyComplexDouble operator*(MyComplexDouble const& A,
-                                    MyComplexDouble const& B);
+   friend MyComplexDouble operator+(MyComplexDouble const& A, MyComplexDouble const& B);
+   friend MyComplexDouble operator-(MyComplexDouble const& A, MyComplexDouble const& B);
+   friend MyComplexDouble operator*(MyComplexDouble const& A, MyComplexDouble const& B);
    friend MyComplexDouble operator*(double const& A, MyComplexDouble const& B);
    friend MyComplexDouble operator*(MyComplexDouble const& A, double const& B);
-   friend MyComplexDouble operator/(MyComplexDouble const& A,
-                                    MyComplexDouble const& B);
+   friend MyComplexDouble operator/(MyComplexDouble const& A, MyComplexDouble const& B);
    friend MyComplexDouble operator/(MyComplexDouble const& A, double const& B);
    friend MyComplexDouble operator/(double const& A, MyComplexDouble const& B)
    {
       return MyComplexDouble(A) / B;
    }
+
    friend double abs(MyComplexDouble const& A)
    {
       return A.mod();
    }
+
    friend MyComplexDouble sqrt(MyComplexDouble const& A);
 
    // Elementary Functions...
@@ -120,22 +125,27 @@ public:
    {
       return *this = *this + B;
    }
+
    MyComplexDouble& operator-=(MyComplexDouble const& B)
    {
       return *this = *this - B;
    }
+
    MyComplexDouble& operator*=(MyComplexDouble const& B)
    {
       return *this = *this * B;
    }
+
    MyComplexDouble& operator*=(double const& B)
    {
       return *this = *this * B;
    }
+
    MyComplexDouble& operator/=(MyComplexDouble const& B)
    {
       return *this = *this / B;
    }
+
    MyComplexDouble& operator/=(double const& B)
    {
       return *this = *this / B;
@@ -149,4 +159,3 @@ public:
 };
 
 #endif
-
