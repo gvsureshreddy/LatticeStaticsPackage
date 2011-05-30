@@ -95,4 +95,3 @@ ostream& operator<<(ostream& out, RadiiMorseCutoff const& A)
    A.Print(out);
    return out;
 }
-

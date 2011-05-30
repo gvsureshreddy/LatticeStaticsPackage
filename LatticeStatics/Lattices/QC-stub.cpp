@@ -27,4 +27,3 @@ extern "C" void qcbfb_scan_(int& nfree, double* u, double& prop, double& dprop, 
    cerr << "erro not standalone\n";
    exit(-1);
 }
-

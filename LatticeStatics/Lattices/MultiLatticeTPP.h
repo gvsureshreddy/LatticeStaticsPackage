@@ -25,6 +25,7 @@ private:
 
    double InfluenceDist_;
    double NTemp_;
+
    // DOF[i] = [F00 F01 F02 F10 F11 F12 F20 F21 F22 S00 S01 S02 S11 S12 S13 S21... ...]
    // if using a FwithTransMapping CBkinematics
    // or
@@ -67,8 +68,7 @@ private:
 
    double energy(PairPotentials::TDeriv const& dt = PairPotentials::T0) const;
    Vector const& stress(PairPotentials::TDeriv const& dt = PairPotentials::T0,
-                        LDeriv const& dl = L0)
-   const;
+                        LDeriv const& dl = L0) const;
    Matrix const& stiffness(PairPotentials::TDeriv const& dt = PairPotentials::T0,
                            LDeriv const& dl = L0) const;
 
@@ -76,12 +76,14 @@ private:
                                   ostream& out) const;
    int ReferenceBlochWave(Vector& K) const;
    CMatrix const& ReferenceDynamicalStiffness(Vector const& K) const;
+
    // Needed for DispersionCurves()
    //
    // find next eigval in position two based on previous two values
    // stored in zero and one position.
    static void interpolate(Matrix* const EigVals, int const& zero, int const& one,
                            int const& two);
+
    // compair function for qsort
    static int comp(void const* const a, void const* const b);
    static int abscomp(void const* const a, void const* const b);
@@ -247,31 +249,42 @@ private:
    mutable double Phi0_static;
    mutable double Tsq_static[3];
    mutable double Rsq_static[3];
+
    // E1
    mutable Vector ME1_static;
    mutable double T_static[3];
    mutable double R_static[3];
+
    // stress
    mutable Vector S_static;
+
    // E2
    mutable Matrix ME2_static;
+
    // stiffness
    mutable Matrix Phi2_static;
+
    // CondensedModuli
    mutable Matrix CM_static;
+
    // ThermalExpansion
    mutable Vector ThermalExp_static;
+
    // E3
    mutable Matrix Phi3_static;
+
    // E4
    mutable Matrix Phi4_static;
+
    // ReferenceDynamicalStiffness
    mutable CMatrix Dk_static;
+
    // ReferenceBlochWave
    mutable CMatrix A_static;
    mutable Matrix EigVals_static;
    mutable Matrix InverseLat_static;
    mutable Vector Z_static;
+
    // Print
    mutable Vector str_static;
    mutable Matrix stiff_static;

@@ -88,4 +88,3 @@ ostream& operator<<(ostream& out, LJDobson const& A)
    A.Print(out);
    return out;
 }
-

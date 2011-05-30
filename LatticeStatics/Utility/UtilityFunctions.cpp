@@ -615,4 +615,3 @@ Matrix TranslationProjection3D(int const& Fsize, int const& NoAtoms)
 
    return P;
 }
-

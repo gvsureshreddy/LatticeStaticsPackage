@@ -158,4 +158,3 @@ void Restriction::ConsistencyCheck(Vector const& dof, double const& ConsistencyE
    }
    out << "\n";
 }
-

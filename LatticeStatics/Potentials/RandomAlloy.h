@@ -28,17 +28,21 @@ public:
          delete BinaryAlloyPots[i];
       }
    }
+
    friend ostream& operator<<(ostream& out, RandomAlloy const& A);
    double PairPotential(double const& NTemp, double const& r2, YDeriv const& dy = Y0,
                         TDeriv const& dt = T0) const;
+
    // Don't bother with Get/Set-Parameters
    virtual int GetNoParameters() const
    {
       return 0;
    }
+
    virtual void SetParameters(double const* const Vals)
    {
    }
+
    // ....
    virtual void Print(ostream& out) const;
    virtual char const* const Type() const
@@ -50,12 +54,13 @@ public:
    {
       CompOfSubLatA_ = CompA;
    }
+
    void SetCompOfSubLatB(double const& CompB)
    {
       CompOfSubLatB_ = CompB;
    }
+
 private:
 };
 
 #endif
-

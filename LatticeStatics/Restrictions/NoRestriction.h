@@ -76,6 +76,7 @@ public:
    {
       return Lattice_->E0();
    }
+
    virtual Vector const& DrDt(Vector const& Diff) const
    {
       for (int i = 0; i < ddt_static.Dim(); ++i)
@@ -90,6 +91,7 @@ public:
    {
       return Lattice_->E1();
    }
+
    virtual Matrix const& Stiffness() const
    {
       K_static.Resize(Lattice_->DOF().Dim(), Lattice_->DOF().Dim() + 1, 0.0);
@@ -105,34 +107,42 @@ public:
       }
       return K_static;
    }
+
    virtual Vector const& DOF() const
    {
       return dof_static;
    }
+
    virtual Vector RestrictDOF(Vector const& dof)
    {
       return dof;
    }
+
    virtual Vector UnRestrictDOF(Vector const& dof)
    {
       return dof;
    }
+
    virtual Vector TransformVector(Vector const& T)
    {
       return T;
    }
+
    virtual Vector UnTransformVector(Vector const& T)
    {
       return T;
    }
+
    virtual void SetDOF(Vector const& dof)
    {
       dof_static = dof; UpdateLatticeDOF();
    }
+
    virtual void UpdateDOF(Vector const& dr)
    {
       dof_static += dr; UpdateLatticeDOF();
    }
+
    // ----------------------------------------------------------------
    virtual char const* const Name() const
    {
@@ -142,8 +152,10 @@ public:
 private:
    // "static" member variables
    mutable Vector dof_static;
+
    // DrDt
    mutable Vector ddt_static;
+
    // Stiffness
    mutable Matrix K_static;
    mutable Matrix Stiff_static;
@@ -151,4 +163,3 @@ private:
 };
 
 #endif
-

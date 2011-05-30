@@ -380,4 +380,3 @@ void RestrictToTranslatedSubSpace::UpdateDOF(Vector const& dr)
 
    UpdateLatticeState();
 }
-

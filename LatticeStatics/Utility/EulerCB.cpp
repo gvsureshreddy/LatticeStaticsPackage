@@ -142,4 +142,3 @@ double EulerCB::D4yDFFSS(int const& p, int const& q, int const& i, int const& j,
 {
    return 0.0;
 }
-

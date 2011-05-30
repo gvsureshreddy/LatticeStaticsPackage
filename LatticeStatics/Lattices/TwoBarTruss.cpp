@@ -374,4 +374,3 @@ ostream& operator<<(ostream& out, TwoBarTruss& A)
    A.Print(out, Lattice::PrintShort);
    return out;
 }
-

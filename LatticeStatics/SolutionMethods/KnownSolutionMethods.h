@@ -12,4 +12,3 @@ SolutionMethod* InitializeSolution(Restriction* const Restrict, PerlInput const&
                                    int const& Echo);
 
 #endif
-

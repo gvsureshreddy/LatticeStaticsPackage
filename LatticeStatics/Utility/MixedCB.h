@@ -26,8 +26,8 @@ public:
    virtual double DX(double const* const X, int const& p, int const& q, int const& i) const;
    virtual double Dx(double const* const X, int const& p, int const& q, int const& i) const;
 
-   virtual double DyDF(double const* const Dx, double const* const DX, int const& r, int const& s)
-   const;
+   virtual double DyDF(double const* const Dx, double const* const DX, int const& r,
+                       int const& s) const;
    virtual double D2yDFF(double const* const DX, int const& r, int const& s, int const& t,
                          int const& u) const;
    virtual double DyDS(double const* const Dx, int const& p, int const& q, int const& i,
@@ -53,4 +53,3 @@ public:
 };
 
 #endif
-

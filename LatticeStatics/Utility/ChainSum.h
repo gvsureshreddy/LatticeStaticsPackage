@@ -41,9 +41,10 @@ public:
    ChainSum()
    {
    }
+
    ChainSum(Vector const* const DOF, int const& LagrangeCB, int const& Translations,
-            Matrix const* const RefLat, int const& InternalAtoms, Vector const* const InternalPOS,
-            PairPotentials const* const* const* const PairPot,
+            Matrix const* const RefLat, int const& InternalAtoms,
+            Vector const* const InternalPOS, PairPotentials const* const* const* const PairPot,
             double const* const InfluDist, double const* const Ntemp);
    ~ChainSum()
    {
@@ -60,10 +61,12 @@ public:
    {
       Recalc_ = 1;
    }
+
    int Done() const
    {
       return CurrentPOS_ >= Pairs_;
    }
+
    void operator++()
    {
       ++CurrentPOS_;
@@ -73,34 +76,42 @@ public:
    {
       return RelPosDATA_[CurrentPOS_][CHAINSUMdXstart + i];
    }
+
    double const* const pDX() const
    {
       return &(RelPosDATA_[CurrentPOS_][CHAINSUMdXstart]);
    }
+
    double Dx(int const& i) const
    {
       return RelPosDATA_[CurrentPOS_][CHAINSUMdxstart + i];
    }
+
    double const* const pDx() const
    {
       return &(RelPosDATA_[CurrentPOS_][CHAINSUMdxstart]);
    }
+
    double r2() const
    {
       return RelPosDATA_[CurrentPOS_][CHAINSUMr2start];
    }
+
    int Atom(int const& i) const
    {
       return int(RelPosDATA_[CurrentPOS_][CHAINSUMatomstart + i]);
    }
+
    double phi1() const
    {
       return RelPosDATA_[CurrentPOS_][CHAINSUMphi1start];
    }
+
    double phi2() const
    {
       return RelPosDATA_[CurrentPOS_][CHAINSUMphi2start];
    }
+
    double J() const
    {
       return F_;
@@ -112,6 +123,7 @@ public:
    {
       return Pairs_;
    }
+
    int Capacity() const
    {
       return RelPosDATA_.Rows();
@@ -119,4 +131,3 @@ public:
 };
 
 #endif
-

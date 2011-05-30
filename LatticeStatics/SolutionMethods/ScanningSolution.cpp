@@ -537,4 +537,3 @@ void ScanningSolution::ScanningNewton(int& good)
       good = 1;
    }
 }
-

@@ -8,4 +8,3 @@
 Restriction* const InitializeRestriction(Lattice* const Lat, PerlInput const& Input);
 
 #endif
-

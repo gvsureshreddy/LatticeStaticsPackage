@@ -1384,4 +1384,3 @@ int ArcLengthSolution::ZBrent(Lattice* const Lat, int const& track, Vector const
 // }
 //
 //
-

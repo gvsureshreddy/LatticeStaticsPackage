@@ -196,4 +196,3 @@ void InitializeOutputFile(fstream& out, char const* const outfile, char const* c
        << "# LinearAlgebra Build on: " << LinearAlgebraBuildDate() << "\n"
        << "# MyMath Built on:        " << MyMathBuildDate() << "\n";
 }
-

@@ -18,6 +18,7 @@ public:
    GVMorse()
    {
    }
+
    GVMorse(double const& A0, double const& AT, double const& ATPow, double const& B0,
            double const& BT, double const& BTPow, double const& Rref1, double const& Rtheta1,
            double const& Rtheta1Pow, double const& Rref2, double const& Rtheta2,
@@ -25,11 +26,13 @@ public:
    ~GVMorse()
    {
    }
+
    friend ostream& operator<<(ostream& out, GVMorse const& A);
    virtual int GetNoParameters() const
    {
       return 12;
    }
+
    virtual void SetParameters(double const* const Vals);
    virtual void Print(ostream& out) const;
    virtual char const* const Type() const
@@ -41,14 +44,17 @@ public:
    {
       return ATPow_;
    }
+
    double const& BTPow() const
    {
       return BTPow_;
    }
+
    double const& Rtheta1Pow() const
    {
       return Rtheta1Pow_;
    }
+
    double const& Rtheta2Pow() const
    {
       return Rtheta2Pow_;
@@ -58,14 +64,17 @@ public:
    {
       ATPow_ = ATPow;
    }
+
    void SetBTPow(double const& BTPow)
    {
       BTPow_ = BTPow;
    }
+
    void SetRtheta1Pow(double const& Rtheta1Pow)
    {
       Rtheta1Pow_ = Rtheta1Pow;
    }
+
    void SetRtheta2Pow(double const& Rtheta2Pow)
    {
       Rtheta2Pow_ = Rtheta2Pow;
@@ -78,4 +87,3 @@ private:
 };
 
 #endif
-

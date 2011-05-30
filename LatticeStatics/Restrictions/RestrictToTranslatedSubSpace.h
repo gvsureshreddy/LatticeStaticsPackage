@@ -32,6 +32,7 @@ public:
    {
       ++counter_[1]; return Lattice_->E0();
    }
+
    virtual Vector const& DrDt(Vector const& Diff) const;
 
    // ----------------------------------------------------------------
@@ -41,12 +42,14 @@ public:
    {
       ++counter_[5]; return DOF_;
    }
+
    virtual Vector RestrictDOF(Vector const& dof);
    virtual Vector UnRestrictDOF(Vector const& dof);
    virtual Vector TransformVector(Vector const& T);
    virtual Vector UnTransformVector(Vector const& T);
    virtual void SetDOF(Vector const& dof);
    virtual void UpdateDOF(Vector const& dr);
+
    // ----------------------------------------------------------------
    virtual char const* const Name() const
    {
@@ -61,12 +64,15 @@ private:
    int size_static;
    Vector Lat_DOF_static;
    Vector Rest_DOF_static;
+
    // DrDt
    mutable Vector Lat_ddt_static;
    mutable Vector Rest_ddt_static;
+
    // Force
    mutable Vector force_static;
    mutable Vector stress_static;
+
    // Stiffness
    mutable Matrix K_static;
    mutable Matrix E2_tmp_static;
@@ -79,4 +85,3 @@ private:
 };
 
 #endif
-

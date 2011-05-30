@@ -218,4 +218,3 @@ void RefineEquilibrium(Lattice* const Lat, double const& Tol, int const& Width, 
       }
    }
 }
-

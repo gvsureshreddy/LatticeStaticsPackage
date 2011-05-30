@@ -44,6 +44,7 @@ public:
    {
       return DOF_;
    }
+
    void SetDOF(Vector const& dof)
    {
       DOF_ = dof; if (Caching_)
@@ -59,6 +60,7 @@ public:
    {
       return Lambda_;
    }
+
    void SetLambda(double const& lambda)
    {
       Lambda_ = lambda; if (Caching_)
@@ -81,6 +83,7 @@ public:
    {
       return "TwoBarTruss";
    }
+
    virtual void Print(ostream& out, PrintDetail const& flag,
                       PrintPathSolutionType const& SolType = RegularPt);
 
@@ -91,36 +94,45 @@ public:
    {
       return 0.0;
    }
+
    double HeatCapacity() const
    {
       return 0.0;
    }
+
    Vector const& StressDT() const
    {
       return EmptyV_;
    }
+
    Matrix const& StiffnessDT() const
    {
       return EmptyM_;
    }
+
    double Temp() const
    {
       return 0.0;
    }
+
    void SetTemp(double const& Ntemp)
    {
    }
+
    Vector const& StressDL() const
    {
       return E1DLoad();
    }
+
    Matrix const& StiffnessDL() const
    {
       return EmptyM_;
    }
+
    virtual void SetParameters(double const* const Vals, int const& ResetRef = 1)
    {
    }
+
    virtual void SetGridSize(int const& Grid)
    {
    }
@@ -139,10 +151,10 @@ private:
    mutable double eps2uu_;
    mutable double eps2vv_;
    mutable double eps2uv_;
+
    // place holder
    Vector EmptyV_;
    Matrix EmptyM_;
 };
 
 #endif
-

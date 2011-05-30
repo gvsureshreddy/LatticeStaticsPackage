@@ -3737,4 +3737,3 @@ void QHCMultiChainTPP::RefineEqbm(double const& Tol, int const& MaxItr,
       }
    }
 }
-

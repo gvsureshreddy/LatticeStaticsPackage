@@ -423,4 +423,3 @@ ostream& operator<<(ostream& out, Dobson const& A)
    A.Print(out);
    return out;
 }
-

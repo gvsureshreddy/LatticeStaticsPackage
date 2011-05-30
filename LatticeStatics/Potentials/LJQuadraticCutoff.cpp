@@ -82,4 +82,3 @@ ostream& operator<<(ostream& out, LJQuadraticCutoff const& A)
    A.Print(out);
    return out;
 }
-

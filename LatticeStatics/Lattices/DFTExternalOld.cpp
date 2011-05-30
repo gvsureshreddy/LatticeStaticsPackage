@@ -619,4 +619,3 @@ ostream& operator<<(ostream& out, DFTExternalOld& A)
    A.Print(out, Lattice::PrintShort);
    return out;
 }
-

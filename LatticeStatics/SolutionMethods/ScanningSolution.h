@@ -75,6 +75,7 @@ public:
                                   PerlInput const& Input, int const& Width, ostream& out)
    {
    }
+
    virtual char const* const Type() const
    {
       return "ScanningSolution";
@@ -84,13 +85,14 @@ private:
    // "static" member variables
    // ScanningDef
    mutable Vector DEF_static;
+
    // ScanningForce
    mutable Vector stress_static;
    mutable Vector force_static;
+
    // ScanningStiffness
    mutable Matrix RestrictK_static;
    mutable Matrix K_static;
 };
 
 #endif
-

@@ -30,6 +30,7 @@ public:
    {
       Initialize();
    }
+
    PerlInput(char const* const datafile);
    virtual ~PerlInput();
 
@@ -39,6 +40,7 @@ public:
    {
       return LastInputFileName_.c_str();
    }
+
    void EvaluateString(char const* const expression);
    void ClearHash(char const* const hashname);
 
@@ -46,6 +48,7 @@ public:
    {
       return ReconstructedInput_.str();
    }
+
    void EndofInputSection() const
    {
       ReconstructedInput_ << "\n";
@@ -84,9 +87,11 @@ public:
    }
 
    int getArrayLength(HashStruct const& Hash, char const* const ParamName,
-                      int const& a = -1, int const& b = -1, int const& c = -1, int const& d = -1) const;
+                      int const& a = -1, int const& b = -1, int const& c = -1, int const& d = -1)
+   const;
    int getArrayLength(char const* const HashName, char const* const ParamName,
-                      int const& a = -1, int const& b = -1, int const& c = -1, int const& d = -1) const
+                      int const& a = -1, int const& b = -1, int const& c = -1, int const& d = -1)
+   const
    {
       return getArrayLength(getHash(HashName), ParamName, a, b, c, d);
    }
@@ -129,8 +134,8 @@ public:
               int const& a = -1, int const& b = -1, int const& c = -1, int const& d = -1,
               int const& e = -1) const;
    int getInt(char const* const HashName, char const* const ParamName,
-              int const& a = -1, int const& b = -1, int const& c = -1, int const& d = -1, int const& e = -1)
-   const
+              int const& a = -1, int const& b = -1, int const& c = -1, int const& d = -1,
+              int const& e = -1) const
    {
       return getInt(getHash(HashName), ParamName, a, b, c, d, e);
    }
@@ -141,8 +146,8 @@ public:
               int const& e = -1) const;
    int useInt(int const& DefaultValue,
               char const* const HashName, char const* const ParamName,
-              int const& a = -1, int const& b = -1, int const& c = -1, int const& d = -1, int const& e = -1)
-   const
+              int const& a = -1, int const& b = -1, int const& c = -1, int const& d = -1,
+              int const& e = -1) const
    {
       return useInt(DefaultValue, useHash(HashName), ParamName, a, b, c, d, e);
    }
@@ -194,23 +199,23 @@ public:
    }
 
    char const* const getString(HashStruct const& Hash, char const* const ParamName,
-                               int const& a = -1, int const& b = -1, int const& c = -1, int const& d = -1,
-                               int const& e = -1) const;
+                               int const& a = -1, int const& b = -1, int const& c = -1,
+                               int const& d = -1, int const& e = -1) const;
    char const* const getString(char const* const HashName, char const* const ParamName,
-                               int const& a = -1, int const& b = -1, int const& c = -1, int const& d = -1,
-                               int const& e = -1) const
+                               int const& a = -1, int const& b = -1, int const& c = -1,
+                               int const& d = -1, int const& e = -1) const
    {
       return getString(getHash(HashName), ParamName, a, b, c, d, e);
    }
 
    char const* const useString(char const* const DefaultValue,
                                HashStruct const& Hash, char const* const ParamName,
-                               int const& a = -1, int const& b = -1, int const& c = -1, int const& d = -1,
-                               int const& e = -1) const;
+                               int const& a = -1, int const& b = -1, int const& c = -1,
+                               int const& d = -1, int const& e = -1) const;
    char const* const useString(char const* const DefaultValue,
                                char const* const HashName, char const* const ParamName,
-                               int const& a = -1, int const& b = -1, int const& c = -1, int const& d = -1,
-                               int const& e = -1) const
+                               int const& a = -1, int const& b = -1, int const& c = -1,
+                               int const& d = -1, int const& e = -1) const
    {
       return useString(DefaultValue, useHash(HashName), ParamName, a, b, c, d, e);
    }
@@ -228,28 +233,31 @@ public:
    }
 
    void getVector(Vector& Vect, HashStruct const& Hash, char const* const ParamName,
-                  int const& a = -1, int const& b = -1, int const& c = -1, int const& d = -1) const;
+                  int const& a = -1, int const& b = -1, int const& c = -1, int const& d = -1)
+   const;
    void getVector(Vector& Vect, char const* const HashName, char const* const ParamName,
-                  int const& a = -1, int const& b = -1, int const& c = -1, int const& d = -1) const
+                  int const& a = -1, int const& b = -1, int const& c = -1, int const& d = -1)
+   const
    {
       getVector(Vect, getHash(HashName), ParamName, a, b, c, d);
    }
 
    void useVector(Vector const& DefaultVect, HashStruct const& Hash, char const* const ParamName,
-                  int const& a = -1, int const& b = -1, int const& c = -1, int const& d = -1) const;
+                  int const& a = -1, int const& b = -1, int const& c = -1, int const& d = -1)
+   const;
    void useVector(Vector const& DefaultVect, char const* const HashName,
-                  char const* const ParamName, int const& a = -1, int const& b = -1, int const& c = -1,
-                  int const& d = -1) const
+                  char const* const ParamName, int const& a = -1, int const& b = -1,
+                  int const& c = -1, int const& d = -1) const
    {
       useVector(DefaultVect, useHash(HashName), ParamName, a, b, c, d);
    }
 
    void writeVector(ostream& out, Vector const& Vect, HashStruct const& Hash,
-                    char const* const ParamName, int const& a = -1, int const& b = -1, int const& c = -1,
-                    int const& d = -1) const;
+                    char const* const ParamName, int const& a = -1, int const& b = -1,
+                    int const& c = -1, int const& d = -1) const;
    void writeVector(ostream& out, Vector const& Vect, char const* const HashName,
-                    char const* const ParamName, int const& a = -1, int const& b = -1, int const& c = -1,
-                    int const& d = -1) const
+                    char const* const ParamName, int const& a = -1, int const& b = -1,
+                    int const& c = -1, int const& d = -1) const
    {
       writeVector(out, Vect, useHash(HashName), ParamName, a, b, c, d);
    }
@@ -265,18 +273,18 @@ public:
    void useMatrix(Matrix const& DefaultMtrx, HashStruct const& Hash, char const* const ParamName,
                   int const& a = -1, int const& b = -1, int const& c = -1) const;
    void useMatrix(Matrix const& DefaultMtrx, char const* const HashName,
-                  char const* const ParamName, int const& a = -1, int const& b = -1, int const& c = -1)
-   const
+                  char const* const ParamName, int const& a = -1, int const& b = -1,
+                  int const& c = -1) const
    {
       useMatrix(DefaultMtrx, useHash(HashName), ParamName, a, b, c);
    }
 
    void writeMatrix(ostream& out, Matrix const& Mtrx, HashStruct const& Hash,
-                    char const* const ParamName, int const& a = -1, int const& b = -1, int const& c = -1)
-   const;
+                    char const* const ParamName, int const& a = -1, int const& b = -1,
+                    int const& c = -1) const;
    void writeMatrix(ostream& out, Matrix const& Mtrx, char const* const HashName,
-                    char const* const ParamName, int const& a = -1, int const& b = -1, int const& c = -1)
-   const
+                    char const* const ParamName, int const& a = -1, int const& b = -1,
+                    int const& c = -1) const
    {
       writeMatrix(out, Mtrx, useHash(HashName), ParamName, a, b, c);
    }
@@ -305,8 +313,9 @@ public:
                        HashStruct const& Hash, char const* const ParamName, int const& a = -1,
                        int const& b = -1, int const& c = -1, int const& d = -1) const;
    void writeIntVector(ostream& out, int const* const IntArry, int const& len,
-                       char const* const HashName, char const* const ParamName, int const& a = -1,
-                       int const& b = -1, int const& c = -1, int const& d = -1) const
+                       char const* const HashName, char const* const ParamName,
+                       int const& a = -1, int const& b = -1, int const& c = -1,
+                       int const& d = -1) const
    {
       writeIntVector(out, IntArry, len, useHash(HashName), ParamName, a, b, c, d);
    }
@@ -323,28 +332,32 @@ public:
 
    void usePosIntVector(int const* const DefaultPosIntArry, int const& len,
                         HashStruct const& Hash, char const* const ParamName,
-                        int const& a = -1, int const& b = -1, int const& c = -1, int const& d = -1) const;
+                        int const& a = -1, int const& b = -1, int const& c = -1,
+                        int const& d = -1) const;
    void usePosIntVector(int const* const DefaultPosIntArry, int const& len,
-                        char const* const HashName, char const* const ParamName, int const& a = -1,
-                        int const& b = -1, int const& c = -1, int const& d = -1) const
+                        char const* const HashName, char const* const ParamName,
+                        int const& a = -1, int const& b = -1, int const& c = -1,
+                        int const& d = -1) const
    {
       usePosIntVector(DefaultPosIntArry, len, useHash(HashName), ParamName, a, b, c, d);
    }
 
    void writePosIntVector(ostream& out, int const* const PosIntArry, int const& len,
                           HashStruct const& Hash, char const* const ParamName,
-                          int const& a = -1, int const& b = -1, int const& c = -1, int const& d = -1)
+                          int const& a = -1, int const& b = -1, int const& c = -1,
+                          int const& d = -1)
    const;
    void writePosIntVector(ostream& out, int const* const PosIntArry, int const& len,
                           char const* const HashName, char const* const ParamName,
-                          int const& a = -1, int const& b = -1, int const& c = -1, int const& d = -1) const
+                          int const& a = -1, int const& b = -1, int const& c = -1,
+                          int const& d = -1) const
    {
       writePosIntVector(out, PosIntArry, len, useHash(HashName), ParamName, a, b, c, d);
    }
 
-   void getIntMatrix(int* const IntMtrx, int const& rows, int const& cols, HashStruct const& Hash,
-                     char const* const ParamName, int const& a = -1, int const& b = -1,
-                     int const& c = -1) const;
+   void getIntMatrix(int* const IntMtrx, int const& rows, int const& cols,
+                     HashStruct const& Hash, char const* const ParamName, int const& a = -1,
+                     int const& b = -1, int const& c = -1) const;
    void getIntMatrix(int* const IntMtrx, int const& rows, int const& cols,
                      char const* const HashName, char const* const ParamName,
                      int const& a = -1, int const& b = -1, int const& c = -1) const
@@ -405,4 +418,3 @@ public:
 };
 
 #endif
-

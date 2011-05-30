@@ -52,4 +52,3 @@ ostream& operator<<(ostream& out, RandomAlloy const& A)
    A.Print(out);
    return out;
 }
-

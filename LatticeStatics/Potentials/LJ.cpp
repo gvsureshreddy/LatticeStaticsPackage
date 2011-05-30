@@ -221,4 +221,3 @@ ostream& operator<<(ostream& out, LJ const& A)
    A.Print(out);
    return out;
 }
-

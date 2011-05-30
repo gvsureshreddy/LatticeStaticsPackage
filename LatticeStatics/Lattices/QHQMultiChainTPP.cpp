@@ -1,4 +1,4 @@
-# include "QHQMultiChainTPP.h"
+#include "QHQMultiChainTPP.h"
 #include "UtilityFunctions.h"
 #include <cmath>
 #include <cstdlib>
@@ -3738,4 +3738,3 @@ void QHQMultiChainTPP::RefineEqbm(double const& Tol, int const& MaxItr,
       }
    }
 }
-

@@ -143,4 +143,3 @@ const
 {
    return 0.0;
 }
-

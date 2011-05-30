@@ -41,4 +41,3 @@ virtual inline int INDSF(int const& m, int const& n, int const& i, int const& j)
 {
    return 9 * DOFS() + DOFS() * (3 * m + n) + 3 * i + j;
 }
-

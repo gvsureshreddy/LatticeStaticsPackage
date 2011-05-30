@@ -1242,4 +1242,3 @@ void NewtonPCSolution::UpdateQR(Vector const& Force, Vector const& difference, M
       }
    }
 }
-

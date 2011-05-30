@@ -1516,4 +1516,3 @@ void Lattice::ConsistencyCheck(double const& ConsistencyEpsilon, int const& Widt
    }
    out << endl;
 }
-

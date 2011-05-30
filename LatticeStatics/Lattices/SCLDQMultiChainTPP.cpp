@@ -3811,4 +3811,3 @@ void SCLDQMultiChainTPP::RefineEqbm(double const& Tol, int const& MaxItr,
       }
    }
 }
-

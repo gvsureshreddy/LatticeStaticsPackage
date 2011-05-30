@@ -28,4 +28,3 @@ Matrix TranslationProjection1D(int const& NoAtoms);
 Matrix TranslationProjection3D(int const& Fsize, int const& NoAtoms);
 
 #endif
-

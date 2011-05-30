@@ -14,8 +14,10 @@ private:
    virtual void Reset();
 
 public:
-   SymLagrangeWTransCB(int const& InternalAtoms, Matrix& RefLattice, Vector* const AtomPositions);
-   SymLagrangeWTransCB(PerlInput const& Input, PerlInput::HashStruct const* const ParentHash = 0);
+   SymLagrangeWTransCB(int const& InternalAtoms, Matrix& RefLattice,
+                       Vector* const AtomPositions);
+   SymLagrangeWTransCB(PerlInput const& Input,
+                       PerlInput::HashStruct const* const ParentHash = 0);
    virtual ~SymLagrangeWTransCB()
    {
    }
@@ -26,7 +28,8 @@ public:
    virtual double DX(double const* const X, int const& p, int const& q, int const& i) const;
    virtual double Dx(double const* const X, int const& p, int const& q, int const& i) const;
 
-   virtual double DyDF(double const* const Dx, double const* const DX, int const& r, int const& s)
+   virtual double DyDF(double const* const Dx, double const* const DX, int const& r,
+                       int const& s)
    const;
    virtual double D2yDFF(double const* const DX, int const& r, int const& s, int const& t,
                          int const& u) const;
@@ -53,4 +56,3 @@ public:
 };
 
 #endif
-

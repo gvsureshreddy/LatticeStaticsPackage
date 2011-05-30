@@ -20,6 +20,7 @@ private:
 
    double InfluenceDist_;
    double NTemp_;
+
    // DOF[i] = [F S1 S2 S3 ...]
    Vector DOF_;
    int LagrangeCB_;
@@ -50,8 +51,8 @@ private:
    Vector* AtomPositions_;
 
    double energy(PairPotentials::TDeriv const& dt = PairPotentials::T0) const;
-   Vector const& stress(PairPotentials::TDeriv const& dt = PairPotentials::T0, LDeriv const& dl = L0)
-   const;
+   Vector const& stress(PairPotentials::TDeriv const& dt = PairPotentials::T0,
+                        LDeriv const& dl = L0) const;
    Matrix const& stiffness(PairPotentials::TDeriv const& dt = PairPotentials::T0,
                            LDeriv const& dl = L0) const;
 
@@ -59,11 +60,14 @@ private:
                                   ostream& out) const;
    int ReferenceBlochWave(Vector& K) const;
    CMatrix const& ReferenceDynamicalStiffness(Vector const& K) const;
+
    // Needed for DispersionCurves()
    //
    // find next eigval in position two based on previous two values
    // stored in zero and one position.
-   static void interpolate(Matrix* const EigVals, int const& zero, int const& one, int const& two);
+   static void interpolate(Matrix* const EigVals, int const& zero, int const& one,
+                           int const& two);
+
    // compair function for qsort
    static int comp(void const* const a, void const* const b);
    static int abscomp(void const* const a, void const* const b);
@@ -80,51 +84,63 @@ public:
    {
       return DOF_;
    }
+
    void SetDOF(Vector const& dof)
    {
       DOF_ = dof; ChainSum_.Recalc();
    }
+
    // Entropy is NEGATIVE dE/dT
    double Entropy() const
    {
       return -energy(PairPotentials::DT);
    }
+
    double HeatCapacity() const
    {
       return -NTemp_* energy(PairPotentials::D2T);
    }
+
    Vector const& StressDT() const
    {
       return stress(PairPotentials::DT);
    }
+
    Matrix const& StiffnessDT() const
    {
       return stiffness(PairPotentials::DT);
    }
+
    double Temp() const
    {
       return NTemp_;
    }
+
    void SetTemp(double const& Ntemp)
    {
       NTemp_ = Ntemp; ChainSum_.Recalc();
    }
+
    Vector const& StressDL() const
    {
       return stress(PairPotentials::T0, DL);
    }
+
    Matrix const& StiffnessDL() const
    {
       return stiffness(PairPotentials::T0, DL);
    }
+
    virtual Vector const& E1DLoad() const
    {
       return (LoadParameter_ == Temperature) ? StressDT() : StressDL();
    }
+
    double Lambda() const
    {
       return Lambda_;
    }
+
    void SetLambda(double const& lambda)
    {
       Lambda_ = lambda;
@@ -134,14 +150,17 @@ public:
    {
       return energy();
    }
+
    virtual Vector const& E1() const
    {
       return stress();
    }
+
    virtual Matrix const& E2() const
    {
       return stiffness();
    }
+
    Matrix const& CondensedModuli() const;
 
    virtual Matrix const& E3() const;
@@ -151,10 +170,12 @@ public:
    {
       ReferenceDispersionCurves(K, NoPTS, prefix, out);
    }
+
    virtual int BlochWave(Vector& K) const
    {
       return ReferenceBlochWave(K);
    }
+
    virtual void LongWavelengthModuli(double const& dk, int const& gridsize,
                                      char const* const prefix, ostream& out) const;
    virtual void SetParameters(double const* const Vals, int const& ResetRef = 1);
@@ -162,11 +183,13 @@ public:
    {
       GridSize_ = Grid; ChainIter_(GridSize_);
    }
+
    virtual void NeighborDistances(int const& cutoff, ostream& out) const;
    virtual char const* const Type() const
    {
       return "MultiChainTPP";
    }
+
    virtual void DebugMode();
    virtual void Print(ostream& out, PrintDetail const& flag,
                       PrintPathSolutionType const& SolType = RegularPt);
@@ -180,6 +203,7 @@ public:
    {
       return InfluenceDist_;
    }
+
    void SetInfluenceDist(double const& InfluenceDist)
    {
       InfluenceDist_ = InfluenceDist;
@@ -189,14 +213,17 @@ public:
    {
       return i == j;
    }
+
    Vector const& BodyForce(int const& i) const
    {
       return BodyForce_[i];
    }
+
    double const& NormModulus() const
    {
       return NormModulus_;
    }
+
    friend ostream& operator<<(ostream& out, MultiChainTPP& A);
 
 private:
@@ -214,25 +241,33 @@ private:
    {
       return Del(s, q) - Del(s, p);
    }
+
    int FindLatticeSpacing(int const& iter);
    void RefineEqbm(double const& Tol, int const& MaxItr, ostream* const out);
 
    // "static" member variables
    // stress
    mutable Vector Phi1_static;
+
    // stiffness
    mutable Matrix Phi2_static;
+
    // CondenssedModuli
    mutable Matrix CM_static;
+
    // E3
    mutable Matrix Phi3_static;
+
    // E4
    mutable Matrix Phi4_static;
+
    // ReferenceDynamicalStiffness
    mutable CMatrix Dk_static;
+
    // ReferenceBlochWave
    mutable CMatrix A_static;
    mutable Matrix EigVals_static;
+
    // Print
    mutable Vector str_static;
    mutable Matrix stiff_static;
@@ -240,4 +275,3 @@ private:
 };
 
 #endif
-

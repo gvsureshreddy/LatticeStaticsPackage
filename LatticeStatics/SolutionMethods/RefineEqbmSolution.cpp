@@ -206,4 +206,3 @@ int RefineEqbmSolution::FindNextSolution()
 
    return 1;
 }
-

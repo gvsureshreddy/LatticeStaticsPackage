@@ -41,6 +41,7 @@ public:
    {
       return DOF_;
    }
+
    void SetDOF(Vector const& dof)
    {
       DOF_ = dof;
@@ -54,6 +55,7 @@ public:
    {
       return Lambda_;
    }
+
    void SetLambda(double const& lambda)
    {
       Lambda_ = lambda;
@@ -71,6 +73,7 @@ public:
    {
       return "DFTExternalOld";
    }
+
    virtual void Print(ostream& out, PrintDetail const& flag,
                       PrintPathSolutionType const& SolType = RegularPt);
 
@@ -81,44 +84,55 @@ public:
    {
       return 0.0;
    }
+
    double HeatCapacity() const
    {
       return 0.0;
    }
+
    Vector const& StressDT() const
    {
       return EmptyV_;
    }
+
    Matrix const& StiffnessDT() const
    {
       return EmptyM_;
    }
+
    double Temp() const
    {
       return 0.0;
    }
+
    void SetTemp(double const& Ntemp)
    {
    }
+
    Vector const& StressDL() const
    {
       return E1DLoad();
    }
+
    Matrix const& StiffnessDL() const
    {
       cerr << "DFTExternalOld::StiffnessDL() Not Programmed\n"; return EmptyM_;
    }
+
    virtual Matrix const& E3() const
    {
       cerr << "DFTExternalOld::E3() Not Programmed\n"; exit(-1); return EmptyM_;
    }
+
    virtual Matrix const& E4() const
    {
       cerr << "DFTExternalOld::E4() Not Programmed\n"; exit(-1); return EmptyM_;
    }
+
    virtual void SetParameters(double const* const Vals, int const& ResetRef = 1)
    {
    }
+
    virtual void SetGridSize(int const& Grid)
    {
    }
@@ -134,4 +148,3 @@ private:
 };
 
 #endif
-

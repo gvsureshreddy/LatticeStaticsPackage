@@ -185,4 +185,3 @@ const
            (RefLattice_[n][j] * RefLattice_[b][l]
             + RefLattice_[n][l] * RefLattice_[b][j]));
 }
-

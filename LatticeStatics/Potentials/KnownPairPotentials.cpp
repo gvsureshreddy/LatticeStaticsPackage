@@ -766,4 +766,3 @@ void UpdatePairPotential(PerlInput::HashStruct const& ParentHash, PerlInput cons
       exit(-1);
    }
 }
-

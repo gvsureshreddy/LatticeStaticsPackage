@@ -789,4 +789,3 @@ ostream& operator<<(ostream& out, QC& A)
    A.Print(out, Lattice::PrintShort);
    return out;
 }
-

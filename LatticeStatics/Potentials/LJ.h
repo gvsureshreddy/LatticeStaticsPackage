@@ -24,10 +24,12 @@ public:
    LJ()
    {
    }
+
    LJ(double const& Eps0, double const& Eps1, double const& Sigma0, double const& Sigma1);
    ~LJ()
    {
    }
+
    friend ostream& operator<<(ostream& out, LJ const& A);
    double PairPotential(double const& NTemp, double const& r2, YDeriv const& dy = Y0,
                         TDeriv const& dt = T0) const;
@@ -35,6 +37,7 @@ public:
    {
       return 4;
    }
+
    virtual void SetParameters(double const* const Vals);
    virtual void Print(ostream& out) const;
    virtual char const* const Type() const
@@ -46,14 +49,17 @@ public:
    {
       return Eps0_;
    }
+
    double const& Eps1() const
    {
       return Eps1_;
    }
+
    double const& Sigma0() const
    {
       return Sigma0_;
    }
+
    double const& Sigma1() const
    {
       return Sigma1_;
@@ -63,18 +69,22 @@ public:
    {
       Eps0_ = Eps0;
    }
+
    void SetEps1(double const& Eps1)
    {
       Eps1_ = Eps1;
    }
+
    void SetSigma0(double const& Sigma0)
    {
       Sigma0_ = Sigma0;
    }
+
    void SetSigma1(double const& Sigma1)
    {
       Sigma1_ = Sigma1;
    }
+
 private:
    double Eps(double const& NTemp, TDeriv const& dt = T0) const;
    inline double e(double const& NTemp, TDeriv const& dt = T0) const
@@ -89,17 +99,18 @@ private:
    }
 
    double G(double const& NTemp, double const& r2, YDeriv const& dy, TDeriv const& dt) const;
-   inline double g(double const& NTemp, double const& r2, YDeriv const& dy, TDeriv const& dt) const
+   inline double g(double const& NTemp, double const& r2, YDeriv const& dy, TDeriv const& dt)
+   const
    {
       return (Gchk_[dy][dt]) ? Gval_[dy][dt] : Gval_[dy][dt] = G(NTemp, r2, dy, dt);
    }
 
    double H(double const& NTemp, double const& r2, YDeriv const& dy, TDeriv const& dt) const;
-   inline double h(double const& NTemp, double const& r2, YDeriv const& dy, TDeriv const& dt) const
+   inline double h(double const& NTemp, double const& r2, YDeriv const& dy, TDeriv const& dt)
+   const
    {
       return (Hchk_[dy][dt]) ? Hval_[dy][dt] : Hval_[dy][dt] = H(NTemp, r2, dy, dt);
    }
 };
 
 #endif
-

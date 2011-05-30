@@ -19,11 +19,13 @@ public:
    ChainIterator() : Vectors_(0)
    {
    }
+
    ChainIterator(int const& GridSize, int const& DoHalfOnly = 1, int const& SkipZero = 1)
       : Vectors_(0)
    {
       Initialize(GridSize, DoHalfOnly, SkipZero);
    }
+
    ~ChainIterator();
 
    void operator()(int const& GridSize, int const& DoHalfOnly = 1, int const& SkipZero = 1)
@@ -40,10 +42,12 @@ public:
    {
       return VectorsLen_ <= CurrentPOS_;
    }
+
    double const& operator[](int const& i) const
    {
       return Vectors_[CurrentPOS_][i];
    }
+
    void operator++()
    {
       ++CurrentPOS_;
@@ -51,4 +55,3 @@ public:
 };
 
 #endif
-

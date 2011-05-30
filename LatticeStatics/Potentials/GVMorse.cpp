@@ -119,4 +119,3 @@ ostream& operator<<(ostream& out, GVMorse const& A)
    A.Print(out);
    return out;
 }
-

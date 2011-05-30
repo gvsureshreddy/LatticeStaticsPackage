@@ -231,4 +231,3 @@ int CHAINSUMind(double const& i, double const& j)
 
    return ((J - 1) * J) / 2 + I;
 }
-

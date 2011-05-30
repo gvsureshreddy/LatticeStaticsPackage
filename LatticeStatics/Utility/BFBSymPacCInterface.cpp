@@ -241,4 +241,3 @@ int RelativeEigVectsOK(Matrix const& EigVects)
 
    return retval;
 }
-

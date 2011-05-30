@@ -207,4 +207,3 @@ double SymLagrangeWTransCB::D4yDFFSS(int const& p, int const& q, int const& i, i
             + Del(j, l) * RefLattice_[n][k] * RefLattice_[b][i]
             + Del(j, l) * RefLattice_[b][k] * RefLattice_[n][i]));
 }
-

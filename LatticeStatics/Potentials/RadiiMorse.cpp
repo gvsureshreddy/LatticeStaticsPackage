@@ -638,4 +638,3 @@ ostream& operator<<(ostream& out, RadiiMorse const& A)
    A.Print(out);
    return out;
 }
-

@@ -129,4 +129,3 @@ ostream& operator<<(ostream& out, LJSplineCutoff const& A)
    A.Print(out);
    return out;
 }
-

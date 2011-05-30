@@ -59,43 +59,53 @@ public:
    {
       return UseEigenValTFs_;
    }
+
    int const NumTestFunctions() const
    {
       return (UseEigenValTFs_) ? (DOF().Dim() + NumExtraTFs_) : NumExtraTFs_;
    }
-   virtual int TestFunctions(Vector& TF1, StateType const& State = LHS, Vector* const EV2 = 0) const;
+
+   virtual int TestFunctions(Vector& TF1, StateType const& State = LHS, Vector* const EV2 = 0)
+   const;
    virtual void ExtraTestFunctions(Vector& TF) const
    {
    }
+
    virtual Matrix const& LHSEigVect()
    {
       return EigVectLHS_static;
    }
+
    virtual Matrix const& RelativeEigVects()
    {
       return EigVect_static;
    }
+
    virtual void DispersionCurves(Vector const& K, int const& NoPTS, char const* const prefix,
                                  ostream& out) const
    {
    }
+
    virtual int BlochWave(Vector& K) const
    {
       return -1;
    }
+
    virtual void LongWavelengthModuli(double const& dk, int const& gridsize,
                                      char const* const prefix, ostream& out) const
    {
    }
+
    virtual void SetParameters(double const* const Vals, int const& ResetRef = 1) = 0;
    virtual void SetGridSize(int const& Grid) = 0;
    virtual void NeighborDistances(int const& cutoff, ostream& out) const
    {
    }
-   virtual int CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vector const& DrDt,
-                                 int const& CPorBif, int const& NumZeroEigenVals,
-                                 double const& Tolerance, int const& Width, PerlInput const& Input,
-                                 ostream& out);
+
+   virtual int CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex,
+                                 Vector const& DrDt, int const& CPorBif,
+                                 int const& NumZeroEigenVals, double const& Tolerance,
+                                 int const& Width, PerlInput const& Input, ostream& out);
    void ConsistencyCheck(double const& ConsistencyEpsilon, int const& Width, ostream& out);
    virtual void DebugMode()
    {
@@ -130,4 +140,3 @@ protected:
 };
 
 #endif
-

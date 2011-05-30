@@ -62,4 +62,3 @@ void GetMainSettings(int& Width, int& Precision, PerlInput const& Input)
    Precision = Input.getPosInt("Main", "Precision");
    Input.EndofInputSection();
 }
-

@@ -137,4 +137,3 @@ SolutionMethod* InitializeSolution(Restriction* const Restrict, PerlInput const&
 
    return 0;
 }
-

@@ -74,4 +74,3 @@ ostream& operator<<(ostream& out, LJConstCutoff const& A)
    A.Print(out);
    return out;
 }
-

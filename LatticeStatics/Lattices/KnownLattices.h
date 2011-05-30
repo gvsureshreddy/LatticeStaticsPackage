@@ -19,4 +19,3 @@ Lattice* const InitializeLattice(PerlInput& Input, int const& Echo, int const& W
                                  int const& Debug = 0);
 
 #endif
-

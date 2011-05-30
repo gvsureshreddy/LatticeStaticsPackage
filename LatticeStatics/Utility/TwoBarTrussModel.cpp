@@ -76,4 +76,3 @@ void InitializeOutputFile(fstream& out, char const* const outfile, char const* c
 
    out << setiosflags(ios::scientific) << setprecision(Precision);
 }
-

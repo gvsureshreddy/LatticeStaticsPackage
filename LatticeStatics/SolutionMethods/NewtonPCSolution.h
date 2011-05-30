@@ -65,8 +65,10 @@ public:
                     double const& delta_max, double const& alpha_max, double const& Converge,
                     ConvergeType CnvrgTyp, Vector const& FirstSolution, int const& Direction = 1,
                     double const& accel_max = 2.0, int const& BifStartFlag = 0,
-                    Vector const& BifTangent = Vector(), int const& ClosedLoopStart = CLOSEDDEFAULT,
-                    int const& ClosedLoopUseAsFirst = 0, double const& MaxCumulativeArcLength = -1.0,
+                    Vector const& BifTangent = Vector(),
+                    int const& ClosedLoopStart = CLOSEDDEFAULT,
+                    int const& ClosedLoopUseAsFirst = 0,
+                    double const& MaxCumulativeArcLength = -1.0,
                     int const& StopAtCPCrossingNum = -1, int const& Echo = 1);
    NewtonPCSolution(Restriction* const Restrict, PerlInput const& Input, Vector const& one,
                     int const& Echo = 1);
@@ -93,10 +95,13 @@ private:
    mutable Vector difference_static;
    mutable Matrix Q_static;
    mutable Matrix R_static;
+
    // GetQR
    mutable Matrix Stiff_static;
+
    // MoorePenrose
    mutable Vector y_static;
+
    // QRUpdate
    mutable Vector u_static;
    mutable Vector a_static;
@@ -108,4 +113,3 @@ private:
 };
 
 #endif
-

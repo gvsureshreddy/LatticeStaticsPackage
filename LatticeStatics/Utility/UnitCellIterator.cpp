@@ -100,4 +100,3 @@ UnitCellIterator::~UnitCellIterator()
    delete[] Vectors_[0];
    delete[] Vectors_;
 }
-

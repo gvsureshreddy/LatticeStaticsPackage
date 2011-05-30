@@ -37,6 +37,7 @@ public:
    {
       return "Restriction";
    }
+
    friend ostream& operator<<(ostream& out, Restriction const& R)
    {
       out << R.Name(); return out;
@@ -44,4 +45,3 @@ public:
 };
 
 #endif
-

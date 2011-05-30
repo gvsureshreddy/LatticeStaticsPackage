@@ -8,4 +8,3 @@ const char* builddate()
    return "Unknown";
 #endif
 }
-

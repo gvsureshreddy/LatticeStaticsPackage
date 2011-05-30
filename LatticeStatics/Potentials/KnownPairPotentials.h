@@ -27,4 +27,3 @@ void UpdatePairPotential(char const* const HashName, PerlInput const& Input, int
                          int const& j, PairPotentials* const Potential);
 
 #endif
-

@@ -203,4 +203,3 @@ ostream& operator<<(ostream& out, TwoBarTrussExternal& A)
    A.Print(out, Lattice::PrintShort);
    return out;
 }
-

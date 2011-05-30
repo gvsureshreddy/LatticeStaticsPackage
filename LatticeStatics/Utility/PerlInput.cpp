@@ -2546,4 +2546,3 @@ void PerlInput::writePosIntMatrix(ostream& out, int const* const PosIntMtrx, int
       }
    }
 }
-

@@ -1729,4 +1729,3 @@ void MultiChainTPP::RefineEqbm(double const& Tol, int const& MaxItr, ostream* co
       }
    }
 }
-

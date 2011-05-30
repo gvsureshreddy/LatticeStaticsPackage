@@ -211,4 +211,3 @@ ostream& operator<<(ostream& out, TempMorse const& A)
    A.Print(out);
    return out;
 }
-

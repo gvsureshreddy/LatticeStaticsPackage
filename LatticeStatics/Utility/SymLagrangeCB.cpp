@@ -208,4 +208,3 @@ const
             + Del(j, l) * RefLattice_[n][k] * RefLattice_[b][i]
             + Del(j, l) * RefLattice_[b][k] * RefLattice_[n][i]));
 }
-

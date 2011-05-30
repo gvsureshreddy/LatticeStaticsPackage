@@ -32,12 +32,14 @@ public:
    RadiiMorseOriginal()
    {
    }
+
    RadiiMorseOriginal(double const& A0, double const& AT, double const& B0, double const& BT,
                       double const& Rref1, double const& Rtheta1, double const& Rref2,
                       double const& Rtheta2);
    ~RadiiMorseOriginal()
    {
    }
+
    friend ostream& operator<<(ostream& out, RadiiMorseOriginal const& A);
    double PairPotential(double const& NTemp, double const& r2, YDeriv const& dy = Y0,
                         TDeriv const& dt = T0) const;
@@ -45,6 +47,7 @@ public:
    {
       return 8;
    }
+
    virtual void SetParameters(double const* const Vals);
    virtual void Print(ostream& out) const;
    virtual char const* const Type() const
@@ -56,30 +59,37 @@ public:
    {
       return A0_;
    }
+
    double const& AT() const
    {
       return AT_;
    }
+
    double const& B0() const
    {
       return B0_;
    }
+
    double const& BT() const
    {
       return BT_;
    }
+
    double const& Rref1() const
    {
       return Rref1_;
    }
+
    double const& Rtheta1() const
    {
       return Rtheta1_;
    }
+
    double const& Rref2() const
    {
       return Rref2_;
    }
+
    double const& Rtheta2() const
    {
       return Rtheta2_;
@@ -89,34 +99,42 @@ public:
    {
       A0_ = A0;
    }
+
    void SetAT(double const& AT)
    {
       AT_ = AT;
    }
+
    void SetB0(double const& B0)
    {
       B0_ = B0;
    }
+
    void SetBT(double const& BT)
    {
       BT_ = BT;
    }
+
    void SetRref1(double const& Rref1)
    {
       Rref1_ = Rref1;
    }
+
    void SetRtheta1(double const& Rtheta1)
    {
       Rtheta1_ = Rtheta1;
    }
+
    void SetRref2(double const& Rref2)
    {
       Rref2_ = Rref2;
    }
+
    void SetRtheta2(double const& Rtheta2)
    {
       Rtheta2_ = Rtheta2;
    }
+
 private:
    virtual double A(double const& NTemp, TDeriv const& dt = T0) const;
    inline double a(double const& NTemp, TDeriv const& dt = T0) const
@@ -137,7 +155,8 @@ private:
    }
 
    double G(double const& NTemp, double const& r2, YDeriv const& dy, TDeriv const& dt) const;
-   inline double g(double const& NTemp, double const& r2, YDeriv const& dy, TDeriv const& dt) const
+   inline double g(double const& NTemp, double const& r2, YDeriv const& dy, TDeriv const& dt)
+   const
    {
       return (Gchk_[dy][dt]) ? Gval_[dy][dt] : Gval_[dy][dt] = G(NTemp, r2, dy, dt);
    }
@@ -150,4 +169,3 @@ private:
 };
 
 #endif
-

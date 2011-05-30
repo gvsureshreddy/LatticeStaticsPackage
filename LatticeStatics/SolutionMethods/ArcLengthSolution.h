@@ -52,14 +52,17 @@ private:
    {
       ++counter_[3]; return Restrict_->DOF();
    }
+
    void ArcLenSet(Vector const& val)
    {
       ++counter_[4]; Restrict_->SetDOF(val);
    }
+
    void ArcLenUpdate(Vector const& newval)
    {
       ++counter_[5]; Restrict_->UpdateDOF(newval);
    }
+
    double ArcLenAngle(Vector const& Old, Vector const& New, double const& Aspect) const;
    Matrix const& ArcLenStiffness(Vector const& Diff, double const& Aspect) const;
 
@@ -67,8 +70,8 @@ public:
    ArcLengthSolution(Restriction* const Restrict, Vector const& dofs,
                      int const& MaxIter, double const& Tolerance, ConvergeType CnvrgTyp,
                      double const& DSMax, double const& DSMin, double const& CurrentDS,
-                     double const& AngleCutoff, double const& AngleIncrease, double const& Aspect,
-                     int const& NumSolutions, int const& CurrentSolution,
+                     double const& AngleCutoff, double const& AngleIncrease,
+                     double const& Aspect, int const& NumSolutions, int const& CurrentSolution,
                      Vector const& FirstSolution, Vector const& Difference,
                      int const& BifStartFlag_, Vector const& BifTangent,
                      int const& ClosedLoopStart, int const& ClosedLoopUseAsFirst,
@@ -94,9 +97,11 @@ private:
    // ArcLenForce
    mutable Vector force_static;
    mutable Vector mdfc_static;
+
    // ArcLenStiffness
    mutable Matrix K_static;
    mutable Matrix RestrictK_static;
+
    // FindCriticalPoint
    mutable Vector TF_LHS_static;
    mutable Vector TF_RHS_static;
@@ -108,4 +113,3 @@ private:
 };
 
 #endif
-
