@@ -8,7 +8,7 @@
 #include "Matrix.h"
 
 // Global IDString
-char CVectorID[] = "$Id: CVector.cpp,v 1.13 2011/04/18 16:31:46 elliott Exp $";
+char CVectorID[] = "$Id: CVector.cpp,v 1.14 2011/05/30 15:48:37 elliott Exp $";
 
 // Private Functions...
 
@@ -472,4 +472,3 @@ char const* const CVector::Revision()
 {
    return CVectorID;
 }
-

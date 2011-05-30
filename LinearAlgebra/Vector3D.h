@@ -28,6 +28,7 @@ public:
    Vector3D()
    {
    }
+
    Vector3D(Elm const& InitVal);
    Vector3D(Elm const& x, Elm const& y, Elm const& z);
    Vector3D(Vector3D const& A);
@@ -45,22 +46,26 @@ public:
    {
       return A;
    }
+
    inline friend Vector3D operator+(Vector3D const& A, Vector3D const& B)
    {
       return Vector3D(A[0] + B[0],
                       A[1] + B[1],
                       A[2] + B[2]);
    }
+
    inline friend Vector3D operator-(Vector3D const& A, Vector3D const& B)
    {
       return Vector3D(A[0] - B[0],
                       A[1] - B[1],
                       A[2] - B[2]);
    }
+
    inline friend Vector3D operator-(Vector3D const& A)
    {
       return Vector3D(-A[0], -A[1], -A[2]);
    }
+
    // Dot Product
    inline friend Elm operator*(Vector3D const& A, Vector3D const& B)
    {
@@ -68,6 +73,7 @@ public:
               A[1] * B[1] +
               A[2] * B[2]);
    }
+
    // Cross Product
    inline friend Vector3D operator%(Vector3D const& A, Vector3D const& B)
    {
@@ -75,15 +81,18 @@ public:
                       -(A[0] * B[2] - A[2] * B[0]),
                       A[0] * B[1] - A[1] * B[0]);
    }
+
    // Scalar Products
    inline friend Vector3D operator*(Elm const& A, Vector3D const& B)
    {
       return Vector3D(A * B[0], A * B[1], A * B[2]);
    }
+
    inline friend Vector3D operator*(Vector3D const& A, Elm const& B)
    {
       return Vector3D(B * A[0], B * A[1], B * A[2]);
    }
+
    inline friend Vector3D operator/(Vector3D const& A, Elm const& B)
    {
       return Vector3D(A[0] / B, A[1] / B, A[2] / B);
@@ -100,6 +109,7 @@ public:
    {
       return Elements_[i];
    }
+
    inline Elm const& operator[](int const& i) const
    {
       return Elements_[i];
@@ -112,14 +122,17 @@ public:
    {
       return *this = *this + B;
    }
+
    inline Vector3D& operator-=(Vector3D const& B)
    {
       return *this = *this - B;
    }
+
    inline Vector3D& operator*=(Vector3D const& B)
    {
       return *this = *this * B;
    }
+
    inline Vector3D& operator*=(Elm const& B)
    {
       return *this = *this * B;
@@ -138,4 +151,3 @@ public:
 };
 
 #endif
-

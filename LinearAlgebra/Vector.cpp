@@ -7,7 +7,7 @@
 #include <cstdlib>
 
 // Global IDString
-char VectorID[] = "$Id: Vector.cpp,v 1.23 2011/04/18 16:31:46 elliott Exp $";
+char VectorID[] = "$Id: Vector.cpp,v 1.24 2011/05/30 15:48:37 elliott Exp $";
 
 // Private Functions...
 
@@ -492,4 +492,3 @@ char const* const Vector::Revision()
 {
    return VectorID;
 }
-

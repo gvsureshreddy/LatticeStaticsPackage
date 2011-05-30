@@ -58,6 +58,7 @@ public:
    {
       return Rows_;
    }
+
    int const& Cols() const
    {
       return Cols_;
@@ -69,6 +70,7 @@ public:
    {
       return A;
    }
+
    friend Matrix operator+(Matrix const& A, Matrix const& B);
    friend Matrix operator-(Matrix const& A);
    friend Matrix operator-(Matrix const& A, Matrix const& B);
@@ -77,11 +79,13 @@ public:
    friend Matrix operator*(Matrix const& A, Elm const& B);
    friend Matrix operator*(SparseMatrix const& A, Matrix const& B);
    friend Matrix operator*(Matrix const& A, SparseMatrix const& B);
+
    // Below are defined in corresponding class --------------------
    friend Vector operator*(Matrix const& A, Vector const& B);
    friend Vector operator*(Vector const& A, Matrix const& B);
    friend Vector3D operator*(Matrix const& A, Vector3D const& B);
    friend Vector3D operator*(Vector3D const& A, Matrix const& B);
+
    // -------------------------------------------------------------
    friend Matrix operator/(Matrix const& A, Elm const& B);
 
@@ -97,6 +101,7 @@ public:
    {
       return Elements_[i];
    }
+
    inline Elm const* const operator[](int const& i) const
    {
       return Elements_[i];
@@ -110,18 +115,22 @@ public:
    {
       return *this = *this + B;
    }
+
    Matrix& operator-=(Matrix const& B)
    {
       return *this = *this - B;
    }
+
    Matrix& operator*=(Matrix const& B)
    {
       return *this = *this * B;
    }
+
    Matrix& operator*=(Elm const& B)
    {
       return *this = *this * B;
    }
+
    Matrix& operator/=(Elm const& B)
    {
       return *this = *this / B;
@@ -136,6 +145,7 @@ public:
    {
       return Rows_ == Cols_;
    }
+
    int IsNull() const
    {
       return (Rows_ == 0 || Cols_ == 0);
@@ -241,4 +251,3 @@ public:
 };
 
 #endif
-

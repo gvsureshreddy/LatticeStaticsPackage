@@ -9,7 +9,7 @@
 #include "Matrix.h"
 
 // Global IDString
-char Vector3DID[] = "$Id: Vector3D.cpp,v 1.11 2011/04/18 16:31:46 elliott Exp $";
+char Vector3DID[] = "$Id: Vector3D.cpp,v 1.12 2011/05/30 15:48:37 elliott Exp $";
 
 // Private Functions...
 
@@ -123,4 +123,3 @@ char const* const Vector3D::Revision()
 {
    return Vector3DID;
 }
-

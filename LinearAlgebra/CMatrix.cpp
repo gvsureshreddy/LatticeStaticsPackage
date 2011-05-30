@@ -6,7 +6,7 @@
 #include "Vector.h"
 
 // Global IDString
-char CMatrixID[] = "$Id: CMatrix.cpp,v 1.26 2011/04/18 16:31:46 elliott Exp $";
+char CMatrixID[] = "$Id: CMatrix.cpp,v 1.27 2011/05/30 15:48:37 elliott Exp $";
 
 // Private Methods...
 
@@ -1113,4 +1113,3 @@ char* CMatrix::Revision()
 {
    return CMatrixID;
 }
-

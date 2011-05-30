@@ -54,6 +54,7 @@ public:
    {
       return Rows_;
    }
+
    int const& Cols() const
    {
       return Cols_;
@@ -65,6 +66,7 @@ public:
    {
       return A;
    }
+
    friend CMatrix operator+(CMatrix const& A, CMatrix const& B);
    friend CMatrix operator-(CMatrix const& A);
    friend CMatrix operator-(CMatrix const& A, CMatrix const& B);
@@ -79,6 +81,7 @@ public:
    friend Vector operator*(Vector const& A, CMatrix const& B);
    friend Vector3D operator*(CMatrix const& A, Vector3D const& B);
    friend Vector3D operator*(Vector3D const& A, CMatrix const& B);
+
    // -------------------------------------------------------------
    friend CMatrix operator/(CMatrix const& A, Elm const& B);
 
@@ -94,6 +97,7 @@ public:
    {
       return Elements_[i];
    }
+
    inline Elm* const operator[](int const& i)
    {
       return Elements_[i];
@@ -107,14 +111,17 @@ public:
    {
       return *this = *this + B;
    }
+
    CMatrix& operator-=(CMatrix const& B)
    {
       return *this = *this - B;
    }
+
    CMatrix& operator*=(CMatrix const& B)
    {
       return *this = *this * B;
    }
+
    CMatrix& operator*=(Elm const& B)
    {
       return *this = *this * B;
@@ -130,11 +137,13 @@ public:
    {
       return (this->Transpose()).Conjugate();
    }
+
    CMatrix Inverse() const;
    int IsSquare() const
    {
       return Rows_ == Cols_;
    }
+
    int IsNull() const
    {
       return (Rows_ == 0 || Cols_ == 0);
@@ -149,6 +158,7 @@ public:
 
    // Deterimnent
    Elm Det() const;
+
    // Set P,L,U to the corresponding matricies of the PLU
    // decomposition of A
    friend void PLU(CMatrix const& A, CMatrix& P, CMatrix& L, CMatrix& U);
@@ -193,7 +203,8 @@ public:
    // Return solution x of the linear system A*x=B
    // Uses PLU decomposition and Forward and Backwards substitution
    friend CMatrix SolvePLU(CMatrix const& A, CMatrix const& B);
-   friend CMatrix SolvePLU(CMatrix const& P, CMatrix const& L, CMatrix const& U, CMatrix const& B);
+   friend CMatrix SolvePLU(CMatrix const& P, CMatrix const& L, CMatrix const& U,
+                           CMatrix const& B);
 
    // Output/Input Functions
    friend ostream& operator<<(ostream& out, CMatrix const& A);
@@ -203,4 +214,3 @@ public:
 };
 
 #endif
-

@@ -7,7 +7,7 @@
 #include <cstdlib>
 
 // Global IDString
-char MatrixID[] = "$Id: Matrix.cpp,v 1.32 2011/04/18 16:31:46 elliott Exp $";
+char MatrixID[] = "$Id: Matrix.cpp,v 1.33 2011/05/30 15:48:37 elliott Exp $";
 
 // Private Methods...
 
@@ -1695,4 +1695,3 @@ char const* const Matrix::Revision()
 {
    return MatrixID;
 }
-

@@ -8,4 +8,3 @@ const char* LinearAlgebraBuildDate()
    return "Unknown";
 #endif
 }
-

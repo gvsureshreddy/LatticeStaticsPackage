@@ -783,4 +783,3 @@ Matrix project(int const& N)
 
    return u;
 }
-

@@ -38,9 +38,11 @@ public:
    // Postcondition. Matrix of size RowsXCols
    //   allocated and each element set to Initial Value
    // Defaults: Rows=0,Cols=0,Initial Value= (Uninitialized)
-   SparseMatrix() : NoNonZero_(-1), Rows_(0), Cols_(0), Row_id_(0), Column_id_(0), Nonzero_entry_(0)
+   SparseMatrix() : NoNonZero_(-1), Rows_(0), Cols_(0), Row_id_(0), Column_id_(0),
+      Nonzero_entry_(0)
    {
    }
+
    SparseMatrix(Matrix const& A, double const& tol = SPARSETOL);
    SparseMatrix(Matrix const& A, int const& NoEntries, double const& tol = SPARSETOL);
    SparseMatrix(SparseMatrix const& A);
@@ -54,10 +56,12 @@ public:
    {
       return Rows_;
    }
+
    int const& Cols() const
    {
       return Cols_;
    }
+
    int const& NoNonZero() const
    {
       return NoNonZero_;
@@ -75,6 +79,7 @@ public:
    {
       return A;
    }
+
    friend SparseMatrix operator-(SparseMatrix const& A);
 
    friend void Add(Matrix& Y, SparseMatrix const& A, SparseMatrix const& B);
@@ -84,10 +89,12 @@ public:
    {
       Matrix Y(A.Rows(), A.Cols()); Add(Y, A, B); return Y;
    }
+
    friend Matrix operator+(Matrix const& A, SparseMatrix const& B)
    {
       Matrix Y(A.Rows(), A.Cols()); Add(Y, A, B); return Y;
    }
+
    friend Matrix operator+(SparseMatrix const& A, Matrix const& B)
    {
       Matrix Y(A.Rows(), A.Cols()); Add(Y, A, B); return Y;
@@ -98,11 +105,13 @@ public:
    {
       Matrix Y(A.Rows(), A.Cols()); Subtract(Y, A, B); return Y;
    }
+
    friend void Subtract(Matrix& Y, Matrix const& A, SparseMatrix const& B);
    friend Matrix operator-(Matrix const& A, SparseMatrix const& B)
    {
       Matrix Y(A.Rows(), A.Cols()); Subtract(Y, A, B); return Y;
    }
+
    friend void Subtract(Matrix& Y, SparseMatrix const& A, Matrix const& B);
    friend Matrix operator-(SparseMatrix const& A, Matrix const& B)
    {
@@ -114,6 +123,7 @@ public:
    {
       SparseMatrix Y(B.Rows(), B.Cols(), B.NoNonZero()); Multiply(Y, A, B); return Y;
    }
+
    friend void Multiply(SparseMatrix& Y, SparseMatrix const& A, double const& B);
    friend SparseMatrix operator*(SparseMatrix const& A, double const& B)
    {
@@ -126,13 +136,15 @@ public:
       Matrix Y(A.Rows(), B.Cols()); Multiply(Y, A, B); return Y;
    }
 
-   friend void Multiply(Matrix& Y, SparseMatrix const& A, Matrix const& B, SparseMatrix const& C);
+   friend void Multiply(Matrix& Y, SparseMatrix const& A, Matrix const& B,
+                        SparseMatrix const& C);
 
    friend void Multiply(Matrix& Y, SparseMatrix const& A, Matrix const& B);
    friend Matrix operator*(SparseMatrix const& A, Matrix const& B)
    {
       Matrix Y(A.Rows(), B.Cols()); Multiply(Y, A, B); return Y;
    }
+
    friend void Multiply(Matrix& Y, Matrix const& A, SparseMatrix const& B);
    friend Matrix operator*(Matrix const& A, SparseMatrix const& B)
    {
@@ -144,6 +156,7 @@ public:
    {
       Vector Y(A.Rows()); Multiply(Y, A, B); return Y;
    }
+
    friend void Multiply(Vector& Y, Vector const& A, SparseMatrix const& B);
    friend Vector operator*(Vector const& A, SparseMatrix const& B)
    {
@@ -155,6 +168,7 @@ public:
    {
       Vector3D Y; Multiply(Y, A, B); return Y;
    }
+
    friend void Multiply(Vector3D& Y, Vector3D const& A, SparseMatrix const& B);
    friend Vector3D operator*(Vector3D const& A, SparseMatrix const& B)
    {
@@ -182,4 +196,3 @@ public:
 };
 
 #endif
-

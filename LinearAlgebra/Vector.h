@@ -45,11 +45,14 @@ public:
    {
       return A;
    }
+
    friend Vector operator+(Vector const& A, Vector const& B);
    friend Vector operator-(Vector const& A, Vector const& B);
    friend Vector operator-(Vector const& A);
+
    // Dot Product
    friend Elm const operator*(Vector const& A, Vector const& B);
+
    // Cross Product (Cols_==3 Only)
    friend Vector operator%(Vector const& A, Vector const& B);
    friend Vector operator*(Matrix const& A, Vector const& B);
@@ -72,6 +75,7 @@ public:
    {
       return Elements_[i];
    }
+
    inline Elm const& operator[](int const& i) const
    {
       return Elements_[i];
@@ -85,14 +89,17 @@ public:
    {
       return *this = *this + B;
    }
+
    Vector& operator-=(Vector const& B)
    {
       return *this = *this - B;
    }
+
    Vector& operator*=(Elm const& B)
    {
       return *this = *this * B;
    }
+
    Vector& operator/=(Elm const& B)
    {
       return *this = *this / B;
@@ -108,6 +115,7 @@ public:
    {
       return Cols_;
    }
+
    // Standard IR^n Norm
    Matrix::Elm Norm() const;
 
@@ -118,8 +126,10 @@ public:
    // using A^{+} = (A^{T}*A)^{-1}*A^{T}, with A=Q*R if A.Rows() > A.Cols()
    // using A^{+} = A^{T}*(A*A^{T})^{-1}, with A^{T}=Q*R if A.Rows() < A.Cols()
    friend void SolveQR(Matrix const& Q, Matrix const& R, Vector& x, Vector const& B);
+
    // Uses PLU decomposition with Forward and Backwards substitution
    friend Vector SolvePLU(Matrix const& A, Vector const& B);
+
    // Uses SVD decomposition.
    friend Vector SolveSVD(Matrix const& A, Vector const& B, Elm const& MaxCond = MAXCONDITION,
                           int const& PrintFlag = 0);
@@ -136,4 +146,3 @@ public:
 };
 
 #endif
-
