@@ -100,6 +100,11 @@ public:
       return Vector(DIM3, 0.0);
    }
 
+   // computes supercell information.
+   // Don't forget to delete the memory allocated for SuperCellInternalPOS!!!!
+   void SuperCellInfo(int const SuperCell[3][3], Matrix& SuperCellRefLattice,
+                      int& SuperCellInternalAtoms, Vector*& SuperCellInternalPOS,
+                      int* const SuperCellAtomSpecies) const;
    virtual double DX(double const* const X, int const& p, int const& q, int const& i) const = 0;
    virtual double Dx(double const* const X, int const& p, int const& q, int const& i) const = 0;
 

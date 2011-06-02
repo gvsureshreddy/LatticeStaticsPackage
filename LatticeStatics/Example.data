@@ -57,7 +57,11 @@ $Rtheta1_1_1 = 0.275914376289;
                                      AtomPositions => [[0.0, 0.0, 0.0],
                                                        [0.5, 0.0, 0.5],
                                                        [0.5, 0.5, 0.0],
-                                                       [0.0, 0.5, 0.5]]
+                                                       [0.0, 0.5, 0.5]],
+                                     AtomSpecies   => [0, 1, 0, 1]#,
+                                     #SuperCell     => [[2, 0, 0],
+                                     #                  [0, 1, 0],
+                                     #                  [0, 0, 1]]
                                     },
              RotationConstraint  => [FullRotationConstraint],
              #RotationConstraint  => [NoRotationConstraint],
@@ -65,7 +69,6 @@ $Rtheta1_1_1 = 0.275914376289;
              #                        [1.0,-1.0, 0.0],
              #                        [0.0, 0.0, 1.0]],
              Tref                => 300.0,
-             AtomSpecies         => [0, 1, 0, 1],
              # Ni-Ni
              PotentialType_0_0   => {Type       => $PotType,
                                      A0         => $A0_0_0,
