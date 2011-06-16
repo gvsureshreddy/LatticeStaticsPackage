@@ -202,7 +202,7 @@ Matrix const& TwoBarTruss::E3() const
       E3CachedValue_[1][1] = Gamma_ * (2.0 * eps1uv_ * eps1v_ + eps1u_ * eps1vv_)
                              + (2.0 * eps2uv_ * eps2v_ + eps2u_ * eps2vv_);
       // vuu
-      E3CachedValue_[2][0] = E2CachedValue_[0][1];
+      E3CachedValue_[2][0] = E3CachedValue_[0][1];
       // vuv
       E3CachedValue_[2][1] = E3CachedValue_[1][1];
       // vvu
