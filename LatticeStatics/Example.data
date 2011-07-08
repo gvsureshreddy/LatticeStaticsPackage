@@ -251,11 +251,17 @@ $Rtheta1_1_1 = 0.275914376289;
                                  },
              TwoBarTruss => {Caching  => Yes, # Yes, No
                              Theta    => 65*$DEG2RAD,
-                             Gamma    => 1.0#, # imperfection ratio for bar moduli
+                             Gamma    => 1.0#, # imperfection ratio for bar moduli (1.0 = perfect)
                              #ExtraTFs => [0.1]
                             },
              TwoBarTrussExternal => {# no options
                                     },
+             FourBarTruss => {Caching  => Yes, # Yes, No
+                              Theta    => 45*$DEG2RAD,
+                              Psi      => 10*$DEG2RAD
+                              Gamma    => 1.0#, # imperfection ratio for bar moduli (1.0 = perfect)
+                              #ExtraTFs => [0.1]
+                             },
              DFTExternal => {DOFS => 9
                             },
              QC => {DOFS      => 300,

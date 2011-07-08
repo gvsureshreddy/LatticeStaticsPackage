@@ -11,6 +11,7 @@
 #include "QHCMultiChainTPP.h"
 #include "TwoBarTruss.h"
 #include "TwoBarTrussExternal.h"
+#include "FourBarTruss.h"
 #include "DFTExternal.h"
 #include "DFTExternalOld.h"
 #include "QC.h"

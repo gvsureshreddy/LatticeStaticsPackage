@@ -42,6 +42,10 @@ Lattice* const InitializeLattice(PerlInput& Input, int const& Echo, int const& W
    {
       return new TwoBarTrussExternal(Input, Echo, Width);
    }
+   else if (!strcmp("FourBarTruss", Lat))
+   {
+      return new FourBarTruss(Input, Echo, Width);
+   }
    else if (!strcmp("DFTExternal", Lat))
    {
       return new DFTExternal(Input, Echo, Width);

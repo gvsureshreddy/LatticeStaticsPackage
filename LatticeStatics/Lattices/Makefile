@@ -9,6 +9,7 @@ LATTICES = KnownLattices.cpp\
 	   QHCMultiChainTPP.cpp\
 	   TwoBarTruss.cpp\
 	   TwoBarTrussExternal.cpp\
+	   FourBarTruss.cpp\
 	   DFTExternal.cpp\
 	   DFTExternalOld.cpp\
 	   QC.cpp\

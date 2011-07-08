@@ -41,6 +41,7 @@ RadiiMorseCutoff2.d
 NewtonPCSolution.d
 TwoBarTruss.d
 TwoBarTrussExternal.d
+FourBarTruss.d
 DFTExternal.d
 QC-stub.d
 QC.d
