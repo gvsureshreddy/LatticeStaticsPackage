@@ -283,7 +283,7 @@ int Lattice::TestFunctions(Vector& TF1, StateType const& State, Vector* const TF
          (*TF2)[size + i] = ExTF2_static[i];
       }
    }
-   if (State == CRITPT)
+   if (State == INTERMED)
    {
       if (UseEigenValTFs_ != 0)
       {
@@ -315,7 +315,7 @@ int Lattice::TestFunctions(Vector& TF1, StateType const& State, Vector* const TF
             }
          }
 
-         EV1_static = SymEigVal(Stiffness_diagonalized_static);
+         EV1_static = SymEigVal(Stiffness_diagonalized_static, &EigVect_static);
          // EV1 = SymEigVal(Stiffness_diagonalized,&EigVectLHS);
 
          for (int i = 0; i < size; i++)

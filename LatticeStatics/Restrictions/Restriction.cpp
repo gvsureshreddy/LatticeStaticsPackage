@@ -87,8 +87,6 @@ int Restriction::SymmetryOK() const
    return !retval;
 }
 
-
-
 void Restriction::ConsistencyCheck(Vector const& dof, double const& ConsistencyEpsilon,
                                    int const& Width, ostream& out)
 {

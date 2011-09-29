@@ -492,7 +492,7 @@ int QC::TestFunctions(Vector& TF1, StateType const& State, Vector* const TF2) co
          (*TF2)[size + i] = ExTF2_static[i];
       }
    }
-   if (State == CRITPT)
+   if (State == INTERMED)
    {
       Stiffness_3_static = E2();
 
@@ -522,7 +522,7 @@ int QC::TestFunctions(Vector& TF1, StateType const& State, Vector* const TF2) co
          }
       }
 
-      EV1_static = SymEigVal(Stiffness_diagonalized_static);
+      EV1_static = SymEigVal(Stiffness_diagonalized_static, &EigVect_static);
       // EV1 = SymEigVal(Stiffness_diagonalized,&EigVectLHS);
       ExtraTestFunctions(ExTF1_static);
 

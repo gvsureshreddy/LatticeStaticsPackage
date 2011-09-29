@@ -20,7 +20,6 @@ enum YN {No, Yes};
 void GetMainSettings(int& Width, int& Precision, YN& BisectCP, int& Echo, PerlInput const& Input);
 void InitializeOutputFile(char const* const datafile, char const* const startfile,
                           int const& Precision, int const& Width, int const& Echo);
-int RelativeEigVectsOK(Matrix const& EigVects);
 
 PerlInput Input;
 Lattice* Lat;
@@ -99,11 +98,6 @@ extern "C" void bfb_wrapper_(int& bfbstable, int& bfbreturncode)
 
    // Check for Critical Point Crossing
    TestValue = Lat->TestFunctions(EigenValues);
-   if (!RelativeEigVectsOK(Lat->RelativeEigVects()))
-   {
-      cout << "NOTE: Relative Eigenvectors are too far apart!  "
-           << "Suggest decreasing step size.\n";
-   }
 
    StableValue = 0;
    for (int i = Lat->DOF().Dim(); i < EigenValues.Dim(); ++i)
@@ -210,34 +204,4 @@ void InitializeOutputFile(char const* const datafile, char const* const startfil
         << "LinearAlgebra Build on: " << LinearAlgebraBuildDate() << "\n"
         << "MyMath Built on:        " << MyMathBuildDate() << "\n"
         << setw(Width);
-}
-
-int RelativeEigVectsOK(Matrix const& EigVects)
-{
-   double const cutoff = 0.8125; // 35.6 degrees
-
-   int retval = 1;
-   int size = EigVects.Rows();
-
-   for (int i = 0; i < size; ++i)
-   {
-      double maxval = fabs(EigVects[0][i]);
-      int row = 0;
-      for (int j = 0; j < size; ++j)
-      {
-         if (fabs(EigVects[j][i]) > maxval)
-         {
-            maxval = fabs(EigVects[j][i]);
-            row = j;
-         }
-      }
-      if ((row != i) || (maxval < cutoff))
-      {
-         cout << "RelativeEigVectsOK() failed at i= " << i << "  j= " << row << " maxval = " << maxval << "\n";
-         retval = 0;
-         break;
-      }
-   }
-
-   return retval;
 }

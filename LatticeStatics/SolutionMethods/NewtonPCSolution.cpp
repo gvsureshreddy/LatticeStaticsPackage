@@ -26,11 +26,12 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,
                                    int const& NumSolutions, double const& MaxDS,
                                    double const& CurrentDS, double const& MinDS,
                                    double const& cont_rate_max, double const& delta_max,
-                                   double const& alpha_max, double const& Converge,
-                                   ConvergeType CnvrgTyp, Vector const& FirstSolution,
-                                   int const& Direction, double const& accel_max,
-                                   int const& BifStartFlag, Vector const& BifTangent,
-                                   int const& ClosedLoopStart, int const& ClosedLoopUseAsFirst,
+                                   double const& alpha_max, double const& eig_angle_max,
+                                   double const& Converge, ConvergeType CnvrgTyp,
+                                   Vector const& FirstSolution, int const& Direction,
+                                   double const& accel_max, int const& BifStartFlag,
+                                   Vector const& BifTangent, int const& ClosedLoopStart,
+                                   int const& ClosedLoopUseAsFirst,
                                    double const& MaxCumulativeArcLength,
                                    int const& StopAtCPCrossingNum, int const& Echo) :
    Restrict_(Restrict),
@@ -47,6 +48,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,
    cont_rate_max_(cont_rate_max),
    delta_max_(delta_max),
    alpha_max_(alpha_max),
+   eig_angle_max_(eig_angle_max),
    Converge_(Converge),
    ConvergeType_(CnvrgTyp),
    BifStartFlag_(BifStartFlag),
@@ -188,6 +190,14 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict, PerlInput const&
    {
       cerr << "error: NewtonPCSolution::Angle too large!\n";
       exit(-22);
+   }
+   if (Input.ParameterOK(Hash, "MaxEigVectAngle"))
+   {
+      eig_angle_max_ = Input.getDouble(Hash, "MaxEigVectAngle");
+   }
+   else
+   {
+      Input.useDouble(-1.0, Hash, "MaxEigVectAngle"); // Default Value
    }
    Converge_ = Input.getDouble(Hash, "ConvergeCriteria");
    if (Input.ParameterOK(Hash, "ConvergeType"))
@@ -426,6 +436,14 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict, PerlInput const&
    {
       cerr << "error: NewtonPCSolution::Angle too large!\n";
       exit(-22);
+   }
+   if (Input.ParameterOK(Hash, "MaxEigVectAngle"))
+   {
+      eig_angle_max_ = Input.getDouble(Hash, "MaxEigVectAngle");
+   }
+   else
+   {
+      Input.useDouble(-1.0, Hash, "MaxEigVectAngle"); // Default Value
    }
    Converge_ = Input.getDouble(Hash, "ConvergeCriteria");
    if (Input.ParameterOK(Hash, "ConvergeType"))
@@ -905,6 +923,14 @@ int NewtonPCSolution::FindNextSolution()
          f = accel_max_;
          CurrentDS_ *= f;
       }
+      if (Converged && (!RelativeEigVectsOK()))
+      {
+         cout << "Eigen-vector rotations were too big (based on MaxEigVectAngle) "
+              << "during this step.  Decreasing DS and trying again.\n";
+         Converged = 0;
+         f = accel_max_;
+         CurrentDS_ /= f;
+      }
 
       cout << "Prediction " << predictions << " Corrector Iterations: " << corrections << "\n";
       ++predictions;
@@ -1029,7 +1055,7 @@ void NewtonPCSolution::FindCriticalPoint(Lattice* const Lat, int* const TotalNum
          break;
    }
    ArcLengthSolution S1(Restrict_, Restrict_->DOF(), MaxIter, Converge_, CT, tmp_ds, tmp_ds,
-                        tmp_ds, 1.0, 0.5, 1.0, 1, 0, PreviousSolution_,
+                        tmp_ds, 1.0, 0.5, 1.0, eig_angle_max_, 1, 0, PreviousSolution_,
                         Restrict_->DOF() - PreviousSolution_, 0, Vector(), 10, 0, -1.0, -1, Echo_);
    S1.FindCriticalPoint(Lat, TotalNumCPCrossings, Input, Width, out);
 
@@ -1241,4 +1267,37 @@ void NewtonPCSolution::UpdateQR(Vector const& Force, Vector const& difference, M
          QBar[count][i + 1] = A2;
       }
    }
+}
+
+int NewtonPCSolution::RelativeEigVectsOK() const
+{
+   int retval = 1;
+
+   if ((CurrentSolution_ > 0) && (eig_angle_max_ > 0.0)) // check enabled
+   {
+      double proj = cos(eig_angle_max_);
+      Matrix RelEigVects = Restrict_->RelativeEigVects();
+      int size = RelEigVects.Rows();
+      
+      for (int i = 0; i < size; ++i)
+      {
+         double maxval = fabs(RelEigVects[0][i]);
+         int row = 0;
+         for (int j = 0; j < size; ++j)
+         {
+            if (fabs(RelEigVects[j][i]) > maxval)
+            {
+               maxval = fabs(RelEigVects[j][i]);
+               row = j;
+            }
+         }
+         if ((row != i) || (maxval < proj))
+         {
+            retval = 0;
+            break;
+         }
+      }
+   }
+
+   return retval;
 }

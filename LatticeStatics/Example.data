@@ -302,6 +302,7 @@ $ArcLenDSMax = 0.01;
                                           Contraction            => 0.1,
                                           Distance               => 0.01,
                                           Angle                  => 60*$DEG2RAD,
+                                          #MaxEigVectAngle        => -1.0, # Default value = -1.0 --- negative means disable check
                                           ConvergeCriteria       => 1e-13#,
                                           #ConvergeType           => Both, # Default value = Both, Force, Displacement
                                           #ClosedLoopStart        => 30, # Default value = 30
@@ -319,6 +320,7 @@ $ArcLenDSMax = 0.01;
                                           AngleCutoff            => 25*$DEG2RAD,
                                           AngleIncrease          => 10*$DEG2RAD,
                                           Aspect                 => 1.0,
+                                          #MaxEigVectAngle        => -1.0, # Default value = -1.0 --- negative means disable check
                                           NumSolutions           => 1000,
                                           #ClosedLoopStart        => 30#, # Default value = 30
                                           #MaxCumulativeArcLength => 100, # Default value = -1 --- negative means ignore

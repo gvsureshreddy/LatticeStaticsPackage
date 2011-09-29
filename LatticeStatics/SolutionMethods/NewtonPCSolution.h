@@ -33,6 +33,7 @@ private:
    double cont_rate_max_;            // Max contraction rate
    double delta_max_;                // Max distance to (from predicted to corrected point) curve
    double alpha_max_;                // Max angle to curve (must be less than pi/2)
+   double eig_angle_max_;            // Max angle between eigen-vectors of Restriction's eigs.
    double Converge_;                 // Convergence criteria
    ConvergeType ConvergeType_;       // Quantities to check for convergence
    int BifStartFlag_;                // Flag to keep track of start type (1-bif,0-other)
@@ -56,16 +57,17 @@ private:
    const;
    void UpdateQR(Vector const& Force, Vector const& difference, Matrix& Q, Matrix& R)
    const;
-
+   int RelativeEigVectsOK() const;
+   
 public:
    NewtonPCSolution(Restriction* const Restrict, Vector const& one,
                     int const& CurrentSolution, UpdateType const& Type,
                     int const& ComputeExactTangent, int const& NumSolutions, double const& MaxDS,
                     double const& CurrentDS, double const& MinDS, double const& cont_rate_max,
-                    double const& delta_max, double const& alpha_max, double const& Converge,
-                    ConvergeType CnvrgTyp, Vector const& FirstSolution, int const& Direction = 1,
-                    double const& accel_max = 2.0, int const& BifStartFlag = 0,
-                    Vector const& BifTangent = Vector(),
+                    double const& delta_max, double const& alpha_max, double const& eig_angle_max,
+                    double const& Converge, ConvergeType CnvrgTyp, Vector const& FirstSolution,
+                    int const& Direction = 1, double const& accel_max = 2.0,
+                    int const& BifStartFlag = 0, Vector const& BifTangent = Vector(),
                     int const& ClosedLoopStart = CLOSEDDEFAULT,
                     int const& ClosedLoopUseAsFirst = 0,
                     double const& MaxCumulativeArcLength = -1.0,

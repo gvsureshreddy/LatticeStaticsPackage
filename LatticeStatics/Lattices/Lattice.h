@@ -17,7 +17,7 @@ public:
    int dbg_;
 
    enum LoadType {Temperature, Load};
-   enum StateType {LHS, RHS, CRITPT};
+   enum StateType {LHS, RHS, INTERMED};
    LoadType LoadParameter_;
    LoadType const& LoadParameter() const
    {

@@ -29,6 +29,7 @@ private:
    double AngleCutoff_;
    double AngleIncrease_;
    double Aspect_;
+   double eig_angle_max_;
 
    int NumSolutions_;
    double CumulativeArcLength_;
@@ -66,12 +67,15 @@ private:
    double ArcLenAngle(Vector const& Old, Vector const& New, double const& Aspect) const;
    Matrix const& ArcLenStiffness(Vector const& Diff, double const& Aspect) const;
 
+   int RelativeEigVectsOK() const;
+
 public:
    ArcLengthSolution(Restriction* const Restrict, Vector const& dofs,
                      int const& MaxIter, double const& Tolerance, ConvergeType CnvrgTyp,
                      double const& DSMax, double const& DSMin, double const& CurrentDS,
                      double const& AngleCutoff, double const& AngleIncrease,
-                     double const& Aspect, int const& NumSolutions, int const& CurrentSolution,
+                     double const& Aspect, double const& eig_angle_max,
+                     int const& NumSolutions, int const& CurrentSolution,
                      Vector const& FirstSolution, Vector const& Difference,
                      int const& BifStartFlag_, Vector const& BifTangent,
                      int const& ClosedLoopStart, int const& ClosedLoopUseAsFirst,
