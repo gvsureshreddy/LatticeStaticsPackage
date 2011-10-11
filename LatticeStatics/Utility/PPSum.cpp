@@ -16,8 +16,7 @@ PPSum::PPSum(CBKinematics* const CBK, int const& InternalAtoms, PairPotentials**
    CBK_(CBK),
    CurrentPOS_(0),
    Pairs_(0),
-   RelPosDATA_(int (pow(2 * (*InfluDist), double (3)) * pow(double (InternalAtoms),
-                                                            double (2))), PPSUMdatalen)
+   RelPosDATA_()
 {
    Initialize();
 }
@@ -34,9 +33,6 @@ void PPSum::operator()(CBKinematics* const CBK, int const& InternalAtoms,
    Pairs_ = 0;
    Potential_ = PairPot;
    Ntemp_ = Ntemp;
-   RelPosDATA_.Resize(
-      int(pow(2 * (*InfluDist), double(3)) * pow(double(InternalAtoms), double(2))),
-      PPSUMdatalen);
 
    Initialize();
 }
