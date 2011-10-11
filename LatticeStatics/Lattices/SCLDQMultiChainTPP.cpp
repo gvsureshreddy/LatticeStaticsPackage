@@ -55,8 +55,6 @@ SCLDQMultiChainTPP::~SCLDQMultiChainTPP()
    delete[] HEigValsDOF_static;
    delete[] HEigValsDOFDOF_static;
 
-   delete[] HEigVec_static;
-
    for (int i = 0; i < (GridSize_ / 2 + 1); ++i)
    {
       for (int k = 0; k < INTERNAL_ATOMS; ++k)
@@ -72,6 +70,9 @@ SCLDQMultiChainTPP::~SCLDQMultiChainTPP()
       delete[] HEigVecDOF_static[i];
       delete[] HEigVecDOFDOF_static[i];
    }
+   delete[] HEigVec_static;
+   delete[] HEigVecDOF_static;
+   delete[] HEigVecDOFDOF_static;
 
    delete[] V4DOF_static;
 
