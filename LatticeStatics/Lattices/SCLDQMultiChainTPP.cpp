@@ -2181,6 +2181,7 @@ void SCLDQMultiChainTPP::ReferenceV4() const
       double pi = 4.0 * atan(1.0);
       MyComplexDouble Ic(0, 1);
       double InverseLat = 1.0 / RefLattice_[0][0];
+      // A & B define an affine scaling of k-space inorder to avoid the k=0 and k=0.5 points
       MyComplexDouble A = (2.0 * pi - 2.0 * pi / 2.5) * InverseLat;
       MyComplexDouble B = (2.0 * pi / 4.0) * InverseLat;
 
@@ -2259,10 +2260,12 @@ void SCLDQMultiChainTPP::ReferenceV4() const
                      double Iter, IterNew;
 
                      Iter = (Z_static[i])[0];
+                     // Avoid points that will have repeated eigenvalues
                      Z = (A * Iter + B) * Ic;
                      Exp1 = exp(-Z * DXref);
 
                      IterNew = (Z_static[j])[0];
+                     // Avoid points that will have repeated eigenvalues
                      ZNew = (A * IterNew + B) * Ic;
                      Exp2 = exp(-ZNew * DXref);
 
@@ -2503,6 +2506,7 @@ void SCLDQMultiChainTPP::ReferenceV4() const
 
 
       // V4 = V4 / (GridSize_+2)
+      // the +2 accounts for the two extra k-points added when we avoid the k=0 and k=0.5 values
       V4_static /= (GridSize_ + 2);
 
       for (int x = 0; x < DOFS; ++x)
@@ -2584,6 +2588,9 @@ void SCLDQMultiChainTPP::ReferencePseudoHarmonic() const
                {
                   for (int l = 0; l < INTERNAL_ATOMS; ++l)
                   {
+                     // Here it is assumed that all "k-points" are strictly INSIDE the half-BZ
+                     // i.e., 0 < Z_static[j][0] < 0.5.  Thus, each k-point has a corresponding
+                     // -k-point, which explains the factor of 2.0 everywhere below.
                      if (X_previous[j * INTERNAL_ATOMS + l][0] > Tol)
                      {
                         F[i * INTERNAL_ATOMS + k][0] += 2.0 * 0.5 * kB_ * NTemp_ * V4_static[i * INTERNAL_ATOMS + k][j * INTERNAL_ATOMS + l] / X_previous[j * INTERNAL_ATOMS + l][0];
@@ -3289,25 +3296,25 @@ void SCLDQMultiChainTPP::Print(ostream& out, PrintDetail const& flag,
          {
             for (int k = 0; k < INTERNAL_ATOMS; ++k)
             {
-               out << setw(W) << ((HEigValsDOF_static[1])[i])[0][k];
+               out << setw(W) << ((HEigValsDOF_static[i])[i])[0][k];
             }
             out << "\n";
          }
-         out << "EigValsDOFDOF x=1, y=1: " << "\n";
+         out << "EigValsDOF x=0: " << "\n";
          for (int i = 0; i < (GridSize_ / 2 + 1); ++i)
          {
             for (int k = 0; k < INTERNAL_ATOMS; ++k)
             {
-               out << setw(25) << (((EigValsDOFDOF_static[1])[1])[i])[0][k];
+               out << setw(W) << ((EigValsDOF_static[0])[i])[0][k];
             }
             out << "\n";
          }
-         out << "HEigValsDOFDOF x=1, y=1: " << "\n";
+         out << "HEigValsDOF x=0: " << "\n";
          for (int i = 0; i < (GridSize_ / 2 + 1); ++i)
          {
             for (int k = 0; k < INTERNAL_ATOMS; ++k)
             {
-               out << setw(25) << (((HEigValsDOFDOF_static[1])[1])[i])[0][k];
+               out << setw(W) << ((HEigValsDOF_static[0])[i])[0][k];
             }
             out << "\n";
          }
