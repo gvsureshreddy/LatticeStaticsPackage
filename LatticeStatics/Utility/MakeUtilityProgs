@@ -253,6 +253,7 @@ clean:
 		  $(addprefix lib/,$(NEIGHBORSOBJECTS:$(OBJ_EXT)=.*)) \
 		  $(addprefix lib/,$(PRINTPOTSOBJECTS:$(OBJ_EXT)=.*)) \
 		  $(addprefix lib/,$(ENERGYLANDOBJECTS:$(OBJ_EXT)=.*)) \
+		  $(addprefix lib/,$(TWOBARTRUSSOBJECTS:$(OBJ_EXT)=.*)) \
 		  bin/DispersionCurves \
 		  bin/Rank1Convex \
 		  bin/LongWavelengthModuli \
