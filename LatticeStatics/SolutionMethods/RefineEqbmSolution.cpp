@@ -137,6 +137,7 @@ int RefineEqbmSolution::FindNextSolution()
    Matrix tmpStiff(dx.Dim(), dx.Dim() + 1, 0.0);
    int itr = 0;
    int Converged = 0;
+   double Tol = DOF.Dim()*Converge_;
    // dxnorm initial value: should indicate a problem if this value is ever printed out...
    double dxnorm = -1.0;
    double forcenorm = Stress.Norm();
@@ -179,19 +180,19 @@ int RefineEqbmSolution::FindNextSolution()
       switch (ConvergeType_)
       {
          case Both:
-            if ((forcenorm <= Converge_) && (dxnorm <= Converge_))
+            if ((forcenorm <= Tol) && (dxnorm <= Tol))
             {
                Converged = 1;
             }
             break;
          case Force:
-            if (forcenorm <= Converge_)
+            if (forcenorm <= Tol)
             {
                Converged = 1;
             }
             break;
          case Displacement:
-            if (dxnorm <= Converge_)
+            if (dxnorm <= Tol)
             {
                Converged = 1;
             }

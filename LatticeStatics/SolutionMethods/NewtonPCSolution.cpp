@@ -715,25 +715,26 @@ int NewtonPCSolution::AllSolutionsFound() const
 }
 
 
-int NewtonPCSolution::IsConverged(double const& f, double const& d) const
+int NewtonPCSolution::IsConverged(double const& f, double const& d, int const& count) const
 {
+   double Tol = double(count)*Converge_;
    int Converged = 0;
    switch (ConvergeType_)
    {
       case Both:
-         if ((f <= Converge_) && (d <= Converge_))
+         if ((f <= Tol) && (d <= Tol))
          {
             Converged = 1;
          }
          break;
       case Force:
-         if (f <= Converge_)
+         if (f <= Tol)
          {
             Converged = 1;
          }
          break;
       case Displacement:
-         if (d <= Converge_)
+         if (d <= Tol)
          {
             Converged = 1;
          }
@@ -862,7 +863,7 @@ int NewtonPCSolution::FindNextSolution()
       }
 
       // test for iteration 1 convergence
-      Converged = IsConverged(forcenorm, Magnitude2);
+      Converged = IsConverged(forcenorm, Magnitude2, count);
 
       // CORRECTOR LOOP (iteration 2) STARTS HERE
       while (!Converged)
@@ -913,7 +914,7 @@ int NewtonPCSolution::FindNextSolution()
             v_static[i] = w_static[i];
          }
 
-         Converged = IsConverged(forcenorm, Magnitude2);
+         Converged = IsConverged(forcenorm, Magnitude2, count);
       }
 
       if (Converged && (!Restrict_->SymmetryOK()))

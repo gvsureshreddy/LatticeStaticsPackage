@@ -290,7 +290,6 @@ int ScanningSolution::FindNextSolution()
 {
    int good = 0;
    int iteration = 0;
-
    if (OnSolution_ == Yes)
    {
       if (ScanFullField_ == No)
@@ -472,6 +471,7 @@ void ScanningSolution::ScanningNewton(int& good)
 
    Vector RHS = -ScanningForce();
    Vector dx(RHS.Dim());
+   const double Tol = RHS.Dim()*NewtonTolerance_;
 
    if (Direction_ == Loading)
    {
@@ -504,7 +504,7 @@ void ScanningSolution::ScanningNewton(int& good)
 
    // Iterate until convergence
    // 1/05 changed from relative criterion to absolute stopping criterion
-   while ((dx.Norm() > NewtonTolerance_) && (itr < MaxIter_))
+   while ((dx.Norm() > Tol) && (itr < MaxIter_))
    {
       itr++;
 

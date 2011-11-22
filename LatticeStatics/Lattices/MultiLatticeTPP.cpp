@@ -342,6 +342,8 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput const& Input, int const& Echo, int co
 
 int MultiLatticeTPP::FindLatticeSpacing(int const& iter)
 {
+   const double Tol = DOF().Dim()*1.0e-13;
+   
    Lambda_ = REFLambda_;
    NTemp_ = REFTemp_;
 
@@ -350,18 +352,18 @@ int MultiLatticeTPP::FindLatticeSpacing(int const& iter)
 
    if (Echo_)
    {
-      RefineEqbm(1.0e-13, iter, &cout);
+      RefineEqbm(Tol, iter, &cout);
    }
    else
    {
-      RefineEqbm(1.0e-13, iter, 0);
+      RefineEqbm(Tol, iter, 0);
    }
 
    // Clean up numerical round off (at least for zero values)
    Vector doftmp(CBK_->DOFS(), 0.0);
    for (int i = 0; i < CBK_->DOFS(); ++i)
    {
-      if (fabs(CBK_->DOF()[i]) < 1.0e-13)
+      if (fabs(CBK_->DOF()[i]) < Tol)
       {
          doftmp[i] = 0.0;
       }

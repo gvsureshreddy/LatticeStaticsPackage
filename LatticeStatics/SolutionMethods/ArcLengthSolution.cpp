@@ -691,19 +691,19 @@ void ArcLengthSolution::ArcLengthNewton(int& good, int& itr, double& forcenorm, 
       switch (ConvergeType_)
       {
          case Both:
-            if ((RHS.Norm() <= Tolerance_) && (Dx.Norm() <= Tolerance_))
+            if ((RHS.Norm() <= RHS.Dim()*Tolerance_) && (Dx.Norm() <= Dx.Dim()*Tolerance_))
             {
                Converged = 1;
             }
             break;
          case Force:
-            if (RHS.Norm() <= Tolerance_)
+            if (RHS.Norm() <= RHS.Dim()*Tolerance_)
             {
                Converged = 1;
             }
             break;
          case Displacement:
-            if (Dx.Norm() <= Tolerance_)
+            if (Dx.Norm() <= Dx.Dim()*Tolerance_)
             {
                Converged = 1;
             }
