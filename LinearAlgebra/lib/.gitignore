@@ -19,4 +19,6 @@ Vector.ti
 Vector3D.ti
 matrixtest.ii
 matrixtest.ti
+PrincipalSys.o
+SparseMatrix.o
 
