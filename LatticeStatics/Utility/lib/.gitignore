@@ -24,4 +24,17 @@ ChainIterator.ti
 ChainSum.ti
 EulerCB.ti
 LagrangeCB.ti
+CBKinematics.o
+ChainIterator.o
+ChainSum.o
+EnergyLandscape.o
+EulerCB.o
+LagrangeCB.o
+MixedCB.o
+PerlInput.o
+PrintPotentials.o
+SCLDChainSum.o
+SymLagrangeCB.o
+SymLagrangeWTransCB.o
+TwoBarTrussModel.o
 

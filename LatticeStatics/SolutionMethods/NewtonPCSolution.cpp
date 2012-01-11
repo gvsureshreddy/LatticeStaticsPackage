@@ -198,6 +198,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict, PerlInput const&
    else
    {
       Input.useDouble(-1.0, Hash, "MaxEigVectAngle"); // Default Value
+      eig_angle_max_ = -1.0;
    }
    Converge_ = Input.getDouble(Hash, "ConvergeCriteria");
    if (Input.ParameterOK(Hash, "ConvergeType"))

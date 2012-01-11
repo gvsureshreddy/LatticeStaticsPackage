@@ -142,6 +142,7 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict, PerlInput cons
    else
    {
       Input.useDouble(-1.0, Hash, "MaxEigVectAngle"); // Default Value
+      eig_angle_max_ = -1.0;
    }
    NumSolutions_ = Input.getPosInt(Hash, "NumSolutions");
    if (Input.ParameterOK(Hash, "ClosedLoopStart"))
@@ -274,6 +275,7 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict, PerlInput cons
    else
    {
       Input.useDouble(-1.0, Hash, "MaxEigVectAngle"); // Default Value
+      eig_angle_max_ = -1.0;
    }
    NumSolutions_ = Input.getPosInt(Hash, "NumSolutions");
    if (Input.ParameterOK(Hash, "ClosedLoopStart"))
