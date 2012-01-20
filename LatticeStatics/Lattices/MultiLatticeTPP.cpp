@@ -304,14 +304,32 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput const& Input, int const& Echo, int co
    // Initiate the Lattice Sum object
    LatSum_(CBK_, InternalAtoms_, Potential_, &InfluenceDist_, &NTemp_);
 
-   int err = 0;
-   err = FindLatticeSpacing(iter);
-   if (err)
+   if (Input.ParameterOK(Hash, "InitialEqbm"))
    {
-      cerr << "unable to find initial lattice spacing!" << "\n";
-      exit(-1);
+      const char* init_equil = Input.getString(Hash, "InitialEqbm");
+      if (!strcmp("Yes",init_equil) || !strcmp("yes",init_equil))
+      {
+         int err = 0;
+         err = FindLatticeSpacing(iter);
+         if (err)
+         {
+            cerr << "unable to find initial lattice spacing!" << "\n";
+            exit(-1);
+         }
+      }
    }
-
+   else
+   {
+      Input.useString("Yes", Hash, "InitialEqbm");
+      int err = 0;
+      err = FindLatticeSpacing(iter);
+      if (err)
+      {
+         cerr << "unable to find initial lattice spacing!" << "\n";
+         exit(-1);
+      }
+   }
+   
    // Setup initial status for parameters
    NTemp_ = Input.getDouble(Hash, "NTemp");
    Lambda_ = Input.getDouble(Hash, "Lambda");

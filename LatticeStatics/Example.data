@@ -107,6 +107,7 @@ $Rtheta1_1_1 = 0.275914376289;
                                      Rtheta2Pow => 1.0},
              AtomicMasses        => [1.0, 47.88/58.69],
              InfluenceDist       => 7.0,
+             InitialEqbm         => Yes, # Default value = Yes; No
              Density             => 1, # Default value = 1; 0
              NormModulus         => 1.0,
              ConvexityDX         => 1.0*$DEG2RAD,
