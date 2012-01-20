@@ -36,6 +36,7 @@ SymLagrangeCB.d
 SymLagrangeWTransCB.d
 Dobson.d
 RadiiMorse2.d
+RadiiMorseConstCutoff.d
 RadiiMorseCutoff.d
 RadiiMorseCutoff2.d
 NewtonPCSolution.d

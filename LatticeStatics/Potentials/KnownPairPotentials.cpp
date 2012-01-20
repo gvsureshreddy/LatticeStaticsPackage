@@ -102,6 +102,20 @@ PairPotentials* InitializePairPotential(PerlInput::HashStruct const& ParentHash,
 
       return new RadiiMorse(A0, AT, B0, BT, Rref1, Rtheta1, Rref2, Rtheta2);
    }
+   else if (!strcmp("RadiiMorseConstCutoff", pptype))
+   {
+      A0 = Input.getDouble(Hash, "A0");
+      AT = Input.getDouble(Hash, "AT");
+      B0 = Input.getDouble(Hash, "B0");
+      BT = Input.getDouble(Hash, "BT");
+      Rref1 = Input.getDouble(Hash, "Rref1");
+      Rtheta1 = Input.getDouble(Hash, "Rtheta1");
+      Rref2 = Input.getDouble(Hash, "Rref2");
+      Rtheta2 = Input.getDouble(Hash, "Rtheta2");
+      Cutoff = Input.getDouble(Hash, "Cutoff");
+
+      return new RadiiMorseConstCutoff(A0, AT, B0, BT, Rref1, Rtheta1, Rref2, Rtheta2, Cutoff);
+   }
    else if (!strcmp("RadiiMorseCutoff", pptype))
    {
       A0 = Input.getDouble(Hash, "A0");
@@ -487,6 +501,65 @@ void UpdatePairPotential(PerlInput::HashStruct const& ParentHash, PerlInput cons
       {
          Rtheta2 = Input.getDouble(Hash, "Update_Rtheta2");
          RM->SetRtheta2(Rtheta2);
+      }
+   }
+   else if (!strcmp(Potential->Type(), "RadiiMorseConstCutoff"))
+   {
+      RadiiMorseConstCutoff* RM;
+      RM = dynamic_cast<RadiiMorseConstCutoff*>(Potential);
+
+      if (Input.ParameterOK(Hash, "Update_A0"))
+      {
+         A0 = Input.getDouble(Hash, "Update_A0");
+         RM->SetA0(A0);
+      }
+
+      if (Input.ParameterOK(Hash, "Update_AT"))
+      {
+         AT = Input.getDouble(Hash, "Update_AT");
+         RM->SetAT(AT);
+      }
+
+      if (Input.ParameterOK(Hash, "Update_B0"))
+      {
+         B0 = Input.getDouble(Hash, "Update_B0");
+         RM->SetB0(B0);
+      }
+
+      if (Input.ParameterOK(Hash, "Update_BT"))
+      {
+         BT = Input.getDouble(Hash, "Update_BT");
+         RM->SetBT(BT);
+      }
+
+      if (Input.ParameterOK(Hash, "Update_Rref1"))
+      {
+         Rref1 = Input.getDouble(Hash, "Update_Rref1");
+         RM->SetRref1(Rref1);
+      }
+
+      if (Input.ParameterOK(Hash, "Update_Rtheta1"))
+      {
+         Rtheta1 = Input.getDouble(Hash, "Update_Rtheta1");
+         RM->SetRtheta1(Rtheta1);
+      }
+
+      if (Input.ParameterOK(Hash, "Update_Rref2"))
+      {
+         Rref2 = Input.getDouble(Hash, "Update_Rref2");
+         RM->SetRref2(Rref2);
+      }
+
+      if (Input.ParameterOK(Hash, "Update_Rtheta2"))
+      {
+         Rtheta2 = Input.getDouble(Hash, "Update_Rtheta2");
+         RM->SetRtheta2(Rtheta2);
+      }
+
+      if (Input.ParameterOK(Hash, "Update_Cutoff"))
+      {
+         Cutoff = Input.getDouble(Hash, "Update_Cutoff");
+         RM->SetCutoff(Cutoff);
       }
    }
    else if (!strcmp(Potential->Type(), "RadiiMorseCutoff"))

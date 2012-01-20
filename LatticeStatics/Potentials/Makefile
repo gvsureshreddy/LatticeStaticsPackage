@@ -7,6 +7,7 @@ POTENTIALS = KnownPairPotentials.cpp\
 	     LJDobson.cpp\
 	     LJSplineCutoff.cpp\
 	     RadiiMorse.cpp\
+	     RadiiMorseConstCutoff.cpp\
 	     RadiiMorseCutoff.cpp\
 	     RadiiMorseCutoff2.cpp\
 	     RadiiMorseOriginal.cpp\

@@ -61,6 +61,7 @@ QC-stub.o
 QC.o
 QHCMultiChainTPP.o
 QHQMultiChainTPP.o
+RadiiMorseConstCutoff.o
 RadiiMorseCutoff.o
 RadiiMorseCutoff2.o
 RadiiMorseOriginal.o

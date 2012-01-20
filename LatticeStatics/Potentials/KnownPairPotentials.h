@@ -10,6 +10,7 @@
 #include "LJSplineCutoff.h"
 #include "LJDobson.h"
 #include "RadiiMorse.h"
+#include "RadiiMorseConstCutoff.h"
 #include "RadiiMorseCutoff.h"
 #include "RadiiMorseCutoff2.h"
 #include "RadiiMorseOriginal.h"
