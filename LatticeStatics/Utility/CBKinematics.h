@@ -59,6 +59,11 @@ public:
       return RefLattice_;
    }
 
+   double DeltaVolume() const
+   {
+      return F_.Det();
+   }
+
    double RefVolume() const
    {
       return RefLattice_.Det();

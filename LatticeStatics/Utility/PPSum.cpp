@@ -16,8 +16,7 @@ PPSum::PPSum(CBKinematics* const CBK, int const& InternalAtoms, PairPotentials**
    CBK_(CBK),
    CurrentPOS_(0),
    Pairs_(0),
-   RelPosDATA_(int (pow(2 * (*InfluDist), double (3)) * pow(double (InternalAtoms),
-                                                            double (2))), PPSUMdatalen)
+   RelPosDATA_()
 {
    Initialize();
 }
@@ -34,9 +33,6 @@ void PPSum::operator()(CBKinematics* const CBK, int const& InternalAtoms,
    Pairs_ = 0;
    Potential_ = PairPot;
    Ntemp_ = Ntemp;
-   RelPosDATA_.Resize(
-      int(pow(2 * (*InfluDist), double(3)) * pow(double(InternalAtoms), double(2))),
-      PPSUMdatalen);
 
    Initialize();
 }
@@ -59,6 +55,8 @@ void PPSum::Initialize()
    double Influencedist[3], tmp;
    int p, q, i;
    int Top[3], Bottom[3], CurrentInfluenceDist;
+   double AtomicDensity;
+   double SphereVol;
 
    CBK_->InfluenceRegion(Influencedist);
    for (i = 0; i < 3; i++)
@@ -79,12 +77,13 @@ void PPSum::Initialize()
       Bottom[p] = -CurrentInfluenceDist;
    }
 
-   // set tmp to the number of pairs in the cube to be scanned
-   tmp *= InternalAtoms_ * InternalAtoms_;
-   // Vol of sphere of R=0.5 is 0.52
-   // make sure there is enough memory to store a sphere (which fits inside
-   // the cube) of pairs.
-   if (RelPosDATA_.Rows() < 0.55 * tmp)
+   // set tmp to the number of pairs in the sphere to be scanned
+   AtomicDensity = InternalAtoms_ / ((CBK_->DeltaVolume()) * (CBK_->RefVolume()));
+   SphereVol = (4.0 * 3.15 / 3.0) * (*InfluenceDist_) * (*InfluenceDist_) * (*InfluenceDist_);
+   tmp = ceil(3.0 * InternalAtoms_ * AtomicDensity * SphereVol);
+
+   // make sure there is enough memory to store the pairs.
+   if (RelPosDATA_.Rows() < tmp)
    {
       RelPosDATA_.Resize(int(tmp), PPSUMdatalen);
       cerr << "Resizing RELPOSDATA matrix in PPSum object to " << tmp << "\n";
@@ -127,6 +126,11 @@ void PPSum::Initialize()
                         *Ntemp_, RelPosDATA_[Pairs_][PPSUMr2start], PairPotentials::D2Y);
 
                      ++Pairs_;
+                     if (Pairs_ >= RelPosDATA_.Rows())
+                     {
+                        cerr << "Not enough memory to store all pairs (PPSum Initialize())." << endl;
+                        exit(-1);
+                     }
                   }
                }
             }
