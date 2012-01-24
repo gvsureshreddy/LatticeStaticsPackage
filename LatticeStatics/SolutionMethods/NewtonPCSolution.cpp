@@ -996,6 +996,8 @@ int NewtonPCSolution::FindNextSolution()
    // always have current solution point printed
    good = 1;
 
+   cout << " \n Solutions Found = " << CurrentSolution_ << endl;
+
    return good;
 }
 
