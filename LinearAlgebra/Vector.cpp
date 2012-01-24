@@ -492,3 +492,33 @@ char const* const Vector::Revision()
 {
    return VectorID;
 }
+
+Matrix::Elm Vector::MaxElement() const
+{
+   Elm max = Elements_[0]; // start with max = first element
+
+   for (int i = 1; i < Cols_; i++)
+   {
+      if (Elements_[i] > max)
+      {
+         max = Elements_[i];
+      }
+   }
+
+   return max;
+}
+
+Matrix::Elm Vector::MinElement() const
+{
+   Elm min = Elements_[0]; // start with min = first element
+
+   for (int i = 1; i < Cols_; i++)
+   {
+      if (Elements_[i] < min)
+      {
+         min = Elements_[i];
+      }
+   }
+
+   return min;
+}
