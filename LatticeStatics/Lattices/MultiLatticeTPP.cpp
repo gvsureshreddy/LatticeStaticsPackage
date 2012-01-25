@@ -655,12 +655,25 @@ Vector const& MultiLatticeTPP::stress(PairPotentials::TDeriv const& dt, LDeriv c
                S_static[CBK_->INDF(i, j)] += phi * CBK_->DyDF(LatSum_.pDx(), LatSum_.pDX(), i, j);
             }
          }
-         for (i = CBK_->NoTrans(); i < InternalAtoms_; i++)
+         // for (i = CBK_->NoTrans(); i < InternalAtoms_; i++)
+         // {
+         //    for (j = 0; j < DIM3; j++)
+         //    {
+         //       S_static[CBK_->INDS(i, j)] += phi * CBK_->DyDS(LatSum_.pDx(), LatSum_.Atom(0),
+         //                                                      LatSum_.Atom(1), i, j);
+         //    }
+         // }
+         for (j = 0; j < DIM3; j++)
          {
-            for (j = 0; j < DIM3; j++)
+            if (LatSum_.Atom(0) >= CBK_->NoTrans())
             {
-               S_static[CBK_->INDS(i, j)] += phi * CBK_->DyDS(LatSum_.pDx(), LatSum_.Atom(0),
-                                                              LatSum_.Atom(1), i, j);
+               S_static[CBK_->INDS(LatSum_.Atom(0), j)] += phi * CBK_->DyDS(LatSum_.pDx(), LatSum_.Atom(0),
+                                                                            LatSum_.Atom(1), LatSum_.Atom(0), j);
+            }
+            if (LatSum_.Atom(1) >= CBK_->NoTrans())
+            {
+               S_static[CBK_->INDS(LatSum_.Atom(1), j)] += phi * CBK_->DyDS(LatSum_.pDx(), LatSum_.Atom(0),
+                                                                            LatSum_.Atom(1), LatSum_.Atom(1), j);
             }
          }
       }
@@ -808,39 +821,89 @@ Matrix const& MultiLatticeTPP::stiffness(PairPotentials::TDeriv const& dt, LDeri
                }
             }
          }
+
          // Lower Diag Block (CBK_->Ssize(),CBK_->Ssize())
-         for (i = CBK_->NoTrans(); i < InternalAtoms_; i++)
+         // for (i = CBK_->NoTrans(); i < InternalAtoms_; i++)
+         // {
+         //    for (j = 0; j < DIM3; j++)
+         //    {
+         //       for (k = CBK_->NoTrans(); k < InternalAtoms_; k++)
+         //       {
+         //          for (l = 0; l < DIM3; l++)
+         //          {
+         //             Phi2_static[CBK_->INDS(i, j)][CBK_->INDS(k, l)] +=
+         //                phi * (CBK_->DyDS(LatSum_.pDx(), LatSum_.Atom(0), LatSum_.Atom(1), i, j)
+         //                       * CBK_->DyDS(LatSum_.pDx(), LatSum_.Atom(0), LatSum_.Atom(1), k, l))
+         //                + phi1* CBK_->D2yDSS(LatSum_.Atom(0), LatSum_.Atom(1), i, j, k, l);
+         //          }
+         //       }
+         //    }
+         // }
+         i = LatSum_.Atom(0);
+         k = LatSum_.Atom(1);
+         for (j = 0; j < DIM3; j++)
          {
-            for (j = 0; j < DIM3; j++)
+            for (l = 0; l < DIM3; l++)
             {
-               for (k = CBK_->NoTrans(); k < InternalAtoms_; k++)
+               if ((i >= CBK_->NoTrans()) && (k >= CBK_->NoTrans()))
                {
-                  for (l = 0; l < DIM3; l++)
-                  {
-                     Phi2_static[CBK_->INDS(i, j)][CBK_->INDS(k, l)] +=
-                        phi * (CBK_->DyDS(LatSum_.pDx(), LatSum_.Atom(0), LatSum_.Atom(1), i, j)
-                               * CBK_->DyDS(LatSum_.pDx(), LatSum_.Atom(0), LatSum_.Atom(1), k, l))
-                        + phi1* CBK_->D2yDSS(LatSum_.Atom(0), LatSum_.Atom(1), i, j, k, l);
-                  }
+                  Phi2_static[CBK_->INDS(i, j)][CBK_->INDS(i, l)] +=
+                     phi * (CBK_->DyDS(LatSum_.pDx(), i, k, i, j) * CBK_->DyDS(LatSum_.pDx(), i, k, i, l))
+                     + phi1* CBK_->D2yDSS(i, k, i, j, i, l);
+
+                  Phi2_static[CBK_->INDS(i, j)][CBK_->INDS(k, l)] +=
+                     phi * (CBK_->DyDS(LatSum_.pDx(), i, k, i, j) * CBK_->DyDS(LatSum_.pDx(), i, k, k, l))
+                     + phi1* CBK_->D2yDSS(i, k, i, j, k, l);
+                  Phi2_static[CBK_->INDS(k, j)][CBK_->INDS(i, l)] +=
+                     phi * (CBK_->DyDS(LatSum_.pDx(), i, k, k, j) * CBK_->DyDS(LatSum_.pDx(), i, k, i, l))
+                     + phi1* CBK_->D2yDSS(i, k, k, j, i, l);
+
+                  Phi2_static[CBK_->INDS(k, j)][CBK_->INDS(k, l)] +=
+                     phi * (CBK_->DyDS(LatSum_.pDx(), i, k, k, j) * CBK_->DyDS(LatSum_.pDx(), i, k, k, l))
+                     + phi1* CBK_->D2yDSS(i, k, k, j, k, l);
                }
             }
          }
+         
          // Off Diag Blocks
+         // for (i = 0; i < DIM3; i++)
+         // {
+         //    for (j = 0; j < DIM3; j++)
+         //    {
+         //       for (k = CBK_->NoTrans(); k < InternalAtoms_; k++)
+         //       {
+         //          for (l = 0; l < DIM3; l++)
+         //          {
+         //             Phi2_static[CBK_->INDF(i, j)][CBK_->INDS(k, l)] =
+         //                Phi2_static[CBK_->INDS(k, l)][CBK_->INDF(i, j)] +=
+         //                   phi * (CBK_->DyDF(LatSum_.pDx(), LatSum_.pDX(), i, j)
+         //                          * CBK_->DyDS(LatSum_.pDx(), LatSum_.Atom(0), LatSum_.Atom(1), k, l))
+         //                   + phi1* CBK_->D2yDFS(LatSum_.pDx(), LatSum_.pDX(),
+         //                                        LatSum_.Atom(0), LatSum_.Atom(1), i, j, k, l);
+         //          }
+         //       }
+         //    }
+         // }
          for (i = 0; i < DIM3; i++)
          {
             for (j = 0; j < DIM3; j++)
             {
-               for (k = CBK_->NoTrans(); k < InternalAtoms_; k++)
+               for (l = 0; l < DIM3; l++)
                {
-                  for (l = 0; l < DIM3; l++)
-                  {
-                     Phi2_static[CBK_->INDF(i, j)][CBK_->INDS(k, l)] =
-                        Phi2_static[CBK_->INDS(k, l)][CBK_->INDF(i, j)] +=
-                           phi * (CBK_->DyDF(LatSum_.pDx(), LatSum_.pDX(), i, j)
-                                  * CBK_->DyDS(LatSum_.pDx(), LatSum_.Atom(0), LatSum_.Atom(1), k, l))
-                           + phi1* CBK_->D2yDFS(LatSum_.pDx(), LatSum_.pDX(),
-                                                LatSum_.Atom(0), LatSum_.Atom(1), i, j, k, l);
-                  }
+                  k = LatSum_.Atom(0);
+                  Phi2_static[CBK_->INDF(i, j)][CBK_->INDS(k, l)] =
+                     Phi2_static[CBK_->INDS(k, l)][CBK_->INDF(i, j)] +=
+                     phi * (CBK_->DyDF(LatSum_.pDx(), LatSum_.pDX(), i, j)
+                            * CBK_->DyDS(LatSum_.pDx(), LatSum_.Atom(0), LatSum_.Atom(1), k, l))
+                     + phi1* CBK_->D2yDFS(LatSum_.pDx(), LatSum_.pDX(),
+                                          LatSum_.Atom(0), LatSum_.Atom(1), i, j, k, l);
+                  k = LatSum_.Atom(1);
+                  Phi2_static[CBK_->INDF(i, j)][CBK_->INDS(k, l)] =
+                     Phi2_static[CBK_->INDS(k, l)][CBK_->INDF(i, j)] +=
+                     phi * (CBK_->DyDF(LatSum_.pDx(), LatSum_.pDX(), i, j)
+                            * CBK_->DyDS(LatSum_.pDx(), LatSum_.Atom(0), LatSum_.Atom(1), k, l))
+                     + phi1* CBK_->D2yDFS(LatSum_.pDx(), LatSum_.pDX(),
+                                          LatSum_.Atom(0), LatSum_.Atom(1), i, j, k, l);
                }
             }
          }
