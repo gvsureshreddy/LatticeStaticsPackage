@@ -7,7 +7,7 @@
 #include <cstdlib>
 
 // Global IDString
-char MatrixID[] = "$Id: Matrix.cpp,v 1.33 2011/05/30 15:48:37 elliott Exp $";
+char MatrixID[] = "Matrix";
 
 // Private Methods...
 

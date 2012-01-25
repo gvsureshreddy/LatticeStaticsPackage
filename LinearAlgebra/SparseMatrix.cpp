@@ -9,7 +9,7 @@
 #include <cstdlib>
 
 // Global IDString
-char SparseMatrixID[] = "$Id: SparseMatrix.cpp,v 1.18 2011/05/30 15:48:37 elliott Exp $";
+char SparseMatrixID[] = "SparseMatrix$";
 
 SparseMatrix::SparseMatrix(Matrix const& A, double const& tol)
 {

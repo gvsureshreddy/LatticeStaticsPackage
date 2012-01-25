@@ -8,7 +8,7 @@
 #include "Matrix.h"
 
 // Global IDString
-char CVectorID[] = "$Id: CVector.cpp,v 1.14 2011/05/30 15:48:37 elliott Exp $";
+char CVectorID[] = "CVector";
 
 // Private Functions...
 

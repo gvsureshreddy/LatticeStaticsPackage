@@ -9,7 +9,7 @@
 #include "Matrix.h"
 
 // Global IDString
-char Vector3DID[] = "$Id: Vector3D.cpp,v 1.12 2011/05/30 15:48:37 elliott Exp $";
+char Vector3DID[] = "Vector3D";
 
 // Private Functions...
 

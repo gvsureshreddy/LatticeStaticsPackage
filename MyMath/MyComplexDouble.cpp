@@ -1,7 +1,7 @@
 #include "MyComplexDouble.h"
 
 // Global IDString
-char MyComplexDoubleID[] = "$Id: MyComplexDouble.cpp,v 1.8 2011/05/30 15:01:07 elliott Exp $";
+char MyComplexDoubleID[] = "MyComplexDouble";
 
 // Private Functions...
 
