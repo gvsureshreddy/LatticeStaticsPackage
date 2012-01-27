@@ -42,6 +42,24 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput const& Input, int const& Echo, int co
    int needKillRotations = 1;
    KillRotations_ = 0; // 0-do nothing, 1-kill one rotation, 2-kill three rotations
 
+   if (Input.ParameterOK(Hash, "FastPrint"))
+   {
+      const char* FastPrnt = Input.getString(Hash, "FastPrint");
+      if ((!strcmp("Yes", FastPrnt)) || (!strcmp("yes", FastPrnt)))
+      {
+         FastPrint_ = 1;
+      }
+      else
+      {
+         FastPrint_ = 0;
+      }
+   }
+   else
+   {
+      FastPrint_ = 0;
+      Input.useString("No", Hash, "FastPrint");
+   }
+   
    PerlInput::HashStruct CBKHash = Input.getHash(Hash, "CBKinematics");
    const char* CBKin = Input.getString(CBKHash, "Type");
    if (!strcmp("SymLagrangeCB", CBKin))
@@ -599,9 +617,30 @@ Vector const& MultiLatticeTPP::E1() const
 
 Vector const& MultiLatticeTPP::stress(PairPotentials::TDeriv const& dt, LDeriv const& dl) const
 {
+   double DX[DIM3];
+   double Dx[DIM3];
+   double r2, r;
    double ForceNorm = 0.0;
    double phi, Vr;
    int i, j;
+   int Atom0, Atom1;
+   int INDF[DIM3][DIM3];
+   int INDS[CBK_MAX_ATOMS][DIM3];
+   int NoTrans = CBK_->NoTrans();
+   double increment;
+   
+   // initialize INDF and INDS
+   for (i = 0; i < DIM3; ++i)
+   {
+      for (j = 0; j < DIM3; ++j)
+      {
+         INDF[i][j] = CBK_->INDF(i,j);
+      }
+      for (j = 0; j < InternalAtoms_; ++j)
+      {
+         INDS[j][i] = CBK_->INDS(j,i);
+      }
+   }
 
    S_static.Resize(CBK_->DOFS(), 0.0);
 
@@ -619,17 +658,28 @@ Vector const& MultiLatticeTPP::stress(PairPotentials::TDeriv const& dt, LDeriv c
 
       for (LatSum_.Reset(); !LatSum_.Done(); ++LatSum_)
       {
+         // Compute fixed values
+         Atom0 = LatSum_.Atom(0);
+         Atom1 = LatSum_.Atom(1);
+         r2 = LatSum_.r2();
+         r = sqrt(r2);
+         for (i = 0; i < DIM3; ++i)
+         {
+            DX[i] = LatSum_.DX(i);
+            Dx[i] = LatSum_.Dx(i);
+         }
+         
          // Calculate bodyforce
          // NOTE: phi1 = d(phi)/d(r2)
          // We need d(phi)/dr = 2*r*d(phi)/d(r2)
-         phi = 2.0 * sqrt(LatSum_.r2()) * LatSum_.phi1();
+         phi = 2.0 * sqrt(r2) * LatSum_.phi1();
          if (ForceNorm < fabs(-phi / 2.0))
          {
             ForceNorm = fabs(-phi / 2.0);
          }
          for (i = 0; i < DIM3; i++)
          {
-            BodyForce_[LatSum_.Atom(0)][i] += -phi* LatSum_.Dx(i) / (2.0 * sqrt(LatSum_.r2()));
+            BodyForce_[Atom0][i] += -phi* Dx[i] / (2.0 * r);
          }
 
          // Claculate the Stress
@@ -639,8 +689,8 @@ Vector const& MultiLatticeTPP::stress(PairPotentials::TDeriv const& dt, LDeriv c
          }
          else if (dt == PairPotentials::DT)
          {
-            phi = Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
-               NTemp_, LatSum_.r2(), PairPotentials::DY, dt);
+            phi = Potential_[Atom0][Atom1]->PairPotential(
+               NTemp_, r2, PairPotentials::DY, dt);
          }
          else
          {
@@ -652,7 +702,7 @@ Vector const& MultiLatticeTPP::stress(PairPotentials::TDeriv const& dt, LDeriv c
          {
             for (j = 0; j < DIM3; j++)
             {
-               S_static[CBK_->INDF(i, j)] += phi * CBK_->DyDF(LatSum_.pDx(), LatSum_.pDX(), i, j);
+               S_static[INDF[i][j]] += phi * CBK_->DyDF(Dx, DX, i, j);
             }
          }
          // for (i = CBK_->NoTrans(); i < InternalAtoms_; i++)
@@ -665,15 +715,16 @@ Vector const& MultiLatticeTPP::stress(PairPotentials::TDeriv const& dt, LDeriv c
          // }
          for (j = 0; j < DIM3; j++)
          {
-            if (LatSum_.Atom(0) >= CBK_->NoTrans())
+            if (Atom0 >= NoTrans)
             {
-               S_static[CBK_->INDS(LatSum_.Atom(0), j)] += phi * CBK_->DyDS(LatSum_.pDx(), LatSum_.Atom(0),
-                                                                            LatSum_.Atom(1), LatSum_.Atom(0), j);
-            }
-            if (LatSum_.Atom(1) >= CBK_->NoTrans())
-            {
-               S_static[CBK_->INDS(LatSum_.Atom(1), j)] += phi * CBK_->DyDS(LatSum_.pDx(), LatSum_.Atom(0),
-                                                                            LatSum_.Atom(1), LatSum_.Atom(1), j);
+               increment = phi * CBK_->DyDS(Dx, Atom0, Atom1, Atom0, j);
+               S_static[INDS[Atom0][j]] += increment;
+               
+               if (Atom1 >= NoTrans)
+               {
+                  // S_static[INDS[Atom1][j]] += phi * CBK_->DyDS(Dx, Atom0, Atom1, Atom1, j);
+                  S_static[INDS[Atom1][j]] -= increment;
+               }
             }
          }
       }
@@ -697,7 +748,7 @@ Vector const& MultiLatticeTPP::stress(PairPotentials::TDeriv const& dt, LDeriv c
          {
             for (j = 0; j < DIM3; ++j)
             {
-               S_static[CBK_->INDF(i, j)] -= Lambda_ * Loading_[j][i];
+               S_static[INDF[i][j]] -= Lambda_ * Loading_[j][i];
             }
          }
       }
@@ -709,7 +760,7 @@ Vector const& MultiLatticeTPP::stress(PairPotentials::TDeriv const& dt, LDeriv c
       {
          for (j = 0; j < DIM3; ++j)
          {
-            S_static[CBK_->INDF(i, j)] -= Loading_[j][i];
+            S_static[INDF[i][j]] -= Loading_[j][i];
          }
       }
    }
@@ -779,6 +830,31 @@ Matrix const& MultiLatticeTPP::stiffness(PairPotentials::TDeriv const& dt, LDeri
    Matrix F(DIM3, DIM3);
    double phi, phi1;
    int i, j, k, l;
+   double DX[DIM3];
+   double Dx[DIM3];
+   double r2, r;
+   double ForceNorm = 0.0;
+   int Atom0, Atom1;
+   int INDF[DIM3][DIM3];
+   int INDS[CBK_MAX_ATOMS][DIM3];
+   int NoTrans = CBK_->NoTrans();
+   double DyDF[DIM3][DIM3];
+   double DyDS[2][DIM3];
+   double D2yDSS[2][DIM3][2][DIM3];
+   double D2yDFS[DIM3][DIM3][2][DIM3];
+   
+   // initialize INDF and INDS
+   for (i = 0; i < DIM3; ++i)
+   {
+      for (j = 0; j < DIM3; ++j)
+      {
+         INDF[i][j] = CBK_->INDF(i,j);
+      }
+      for (j = 0; j < InternalAtoms_; ++j)
+      {
+         INDS[j][i] = CBK_->INDS(j,i);
+      }
+   }
 
    Phi2_static.Resize(CBK_->DOFS(), CBK_->DOFS(), 0.0);
 
@@ -786,6 +862,38 @@ Matrix const& MultiLatticeTPP::stiffness(PairPotentials::TDeriv const& dt, LDeri
    {
       for (LatSum_.Reset(); !LatSum_.Done(); ++LatSum_)
       {
+         // Compute fixed values
+         Atom0 = LatSum_.Atom(0);
+         Atom1 = LatSum_.Atom(1);
+         r2 = LatSum_.r2();
+         r = sqrt(r);
+         for (i = 0; i < DIM3; ++i)
+         {
+            DX[i] = LatSum_.DX(i);
+            Dx[i] = LatSum_.Dx(i);
+         }
+         for (i = 0; i < DIM3; ++i)
+         {
+            DyDS[0][i] = CBK_->DyDS(Dx, Atom0, Atom1, Atom0, i);
+            DyDS[1][i] = CBK_->DyDS(Dx, Atom0, Atom1, Atom1, i);
+            for (j = 0; j < DIM3; ++j)
+            {
+               DyDF[i][j] = CBK_->DyDF(Dx, DX, i, j);
+
+               D2yDSS[0][i][0][j] = CBK_->D2yDSS(Atom0, Atom1, Atom0, i, Atom0, j);
+               D2yDSS[0][i][1][j] = CBK_->D2yDSS(Atom0, Atom1, Atom0, i, Atom1, j);
+               D2yDSS[1][i][0][j] = CBK_->D2yDSS(Atom0, Atom1, Atom1, i, Atom0, j);
+               D2yDSS[1][i][1][j] = CBK_->D2yDSS(Atom0, Atom1, Atom1, i, Atom1, j);
+
+               for (k = 0; k < DIM3; ++k)
+               {
+                  D2yDFS[i][j][0][k] = CBK_->D2yDFS(Dx, DX, Atom0, Atom1, i, j, Atom0, k);
+                  D2yDFS[i][j][1][k] = CBK_->D2yDFS(Dx, DX, Atom0, Atom1, i, j, Atom1, k);
+               }            
+            }
+         }
+         
+         
          if (dt == PairPotentials::T0)
          {
             phi = LatSum_.phi2();
@@ -793,10 +901,10 @@ Matrix const& MultiLatticeTPP::stiffness(PairPotentials::TDeriv const& dt, LDeri
          }
          else if (dt == PairPotentials::DT)
          {
-            phi = Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
-               NTemp_, LatSum_.r2(), PairPotentials::D2Y, dt);
-            phi1 = Potential_[LatSum_.Atom(0)][LatSum_.Atom(1)]->PairPotential(
-               NTemp_, LatSum_.r2(), PairPotentials::DY, dt);
+            phi = Potential_[Atom0][Atom1]->PairPotential(
+               NTemp_, r2, PairPotentials::D2Y, dt);
+            phi1 = Potential_[Atom0][Atom1]->PairPotential(
+               NTemp_, r2, PairPotentials::DY, dt);
          }
          else
          {
@@ -813,54 +921,45 @@ Matrix const& MultiLatticeTPP::stiffness(PairPotentials::TDeriv const& dt, LDeri
                {
                   for (l = 0; l < DIM3; l++)
                   {
-                     Phi2_static[CBK_->INDF(i, j)][CBK_->INDF(k, l)] +=
-                        phi * (CBK_->DyDF(LatSum_.pDx(), LatSum_.pDX(), i, j)
-                               * CBK_->DyDF(LatSum_.pDx(), LatSum_.pDX(), k, l))
-                        + phi1* CBK_->D2yDFF(LatSum_.pDX(), i, j, k, l);
+                     Phi2_static[INDF[i][j]][INDF[k][l]] +=
+                        phi * (DyDF[i][j] * DyDF[k][l]) + phi1* CBK_->D2yDFF(DX, i, j, k, l);
                   }
                }
             }
          }
 
          // Lower Diag Block (CBK_->Ssize(),CBK_->Ssize())
-         // for (i = CBK_->NoTrans(); i < InternalAtoms_; i++)
+         // for (i = NoTrans; i < InternalAtoms_; i++)
          // {
          //    for (j = 0; j < DIM3; j++)
          //    {
-         //       for (k = CBK_->NoTrans(); k < InternalAtoms_; k++)
+         //       for (k = NoTrans; k < InternalAtoms_; k++)
          //       {
          //          for (l = 0; l < DIM3; l++)
          //          {
-         //             Phi2_static[CBK_->INDS(i, j)][CBK_->INDS(k, l)] +=
-         //                phi * (CBK_->DyDS(LatSum_.pDx(), LatSum_.Atom(0), LatSum_.Atom(1), i, j)
-         //                       * CBK_->DyDS(LatSum_.pDx(), LatSum_.Atom(0), LatSum_.Atom(1), k, l))
-         //                + phi1* CBK_->D2yDSS(LatSum_.Atom(0), LatSum_.Atom(1), i, j, k, l);
+         //             Phi2_static[INDS[i][j]][INDS[k][l]] +=
+         //                phi * (CBK_->DyDS(Dx, Atom0, Atom1, i, j) * CBK_->DyDS(Dx, Atom0, Atom1, k, l))
+         //                + phi1* CBK_->D2yDSS(Atom0, Atom1, i, j, k, l);
          //          }
          //       }
          //    }
          // }
-         i = LatSum_.Atom(0);
-         k = LatSum_.Atom(1);
          for (j = 0; j < DIM3; j++)
          {
             for (l = 0; l < DIM3; l++)
             {
-               if ((i >= CBK_->NoTrans()) && (k >= CBK_->NoTrans()))
+               if ((Atom0 >= NoTrans) && (Atom1 >= NoTrans))
                {
-                  Phi2_static[CBK_->INDS(i, j)][CBK_->INDS(i, l)] +=
-                     phi * (CBK_->DyDS(LatSum_.pDx(), i, k, i, j) * CBK_->DyDS(LatSum_.pDx(), i, k, i, l))
-                     + phi1* CBK_->D2yDSS(i, k, i, j, i, l);
+                  Phi2_static[INDS[Atom0][j]][INDS[Atom0][l]] +=
+                     phi * (DyDS[0][j] * DyDS[0][l]) + phi1* D2yDSS[0][j][0][l];
+                  
+                  Phi2_static[INDS[Atom0][j]][INDS[Atom1][l]] +=
+                     phi * (DyDS[0][j] * DyDS[1][l]) + phi1* D2yDSS[0][j][1][l];
+                  Phi2_static[INDS[Atom1][j]][INDS[Atom0][l]] +=
+                     phi * (DyDS[1][j] * DyDS[0][l]) + phi1* D2yDSS[1][j][0][l];
 
-                  Phi2_static[CBK_->INDS(i, j)][CBK_->INDS(k, l)] +=
-                     phi * (CBK_->DyDS(LatSum_.pDx(), i, k, i, j) * CBK_->DyDS(LatSum_.pDx(), i, k, k, l))
-                     + phi1* CBK_->D2yDSS(i, k, i, j, k, l);
-                  Phi2_static[CBK_->INDS(k, j)][CBK_->INDS(i, l)] +=
-                     phi * (CBK_->DyDS(LatSum_.pDx(), i, k, k, j) * CBK_->DyDS(LatSum_.pDx(), i, k, i, l))
-                     + phi1* CBK_->D2yDSS(i, k, k, j, i, l);
-
-                  Phi2_static[CBK_->INDS(k, j)][CBK_->INDS(k, l)] +=
-                     phi * (CBK_->DyDS(LatSum_.pDx(), i, k, k, j) * CBK_->DyDS(LatSum_.pDx(), i, k, k, l))
-                     + phi1* CBK_->D2yDSS(i, k, k, j, k, l);
+                  Phi2_static[INDS[Atom1][j]][INDS[Atom1][l]] +=
+                     phi * (DyDS[1][j] * DyDS[1][l]) + phi1* D2yDSS[1][j][1][l];
                }
             }
          }
@@ -870,16 +969,15 @@ Matrix const& MultiLatticeTPP::stiffness(PairPotentials::TDeriv const& dt, LDeri
          // {
          //    for (j = 0; j < DIM3; j++)
          //    {
-         //       for (k = CBK_->NoTrans(); k < InternalAtoms_; k++)
+         //       for (k = NoTrans; k < InternalAtoms_; k++)
          //       {
          //          for (l = 0; l < DIM3; l++)
          //          {
-         //             Phi2_static[CBK_->INDF(i, j)][CBK_->INDS(k, l)] =
-         //                Phi2_static[CBK_->INDS(k, l)][CBK_->INDF(i, j)] +=
-         //                   phi * (CBK_->DyDF(LatSum_.pDx(), LatSum_.pDX(), i, j)
-         //                          * CBK_->DyDS(LatSum_.pDx(), LatSum_.Atom(0), LatSum_.Atom(1), k, l))
-         //                   + phi1* CBK_->D2yDFS(LatSum_.pDx(), LatSum_.pDX(),
-         //                                        LatSum_.Atom(0), LatSum_.Atom(1), i, j, k, l);
+         //             Phi2_static[INDF[i][j]][INDS[k][l]] =
+         //                Phi2_static[INDS[k][l]][INDF[i][j]] +=
+         //                   phi * (CBK_->DyDF(Dx, DX, i, j)
+         //                          * CBK_->DyDS(Dx, Atom0, Atom1, k, l))
+         //                   + phi1* CBK_->D2yDFS(Dx, DX, Atom0, Atom1, i, j, k, l);
          //          }
          //       }
          //    }
@@ -890,20 +988,12 @@ Matrix const& MultiLatticeTPP::stiffness(PairPotentials::TDeriv const& dt, LDeri
             {
                for (l = 0; l < DIM3; l++)
                {
-                  k = LatSum_.Atom(0);
-                  Phi2_static[CBK_->INDF(i, j)][CBK_->INDS(k, l)] =
-                     Phi2_static[CBK_->INDS(k, l)][CBK_->INDF(i, j)] +=
-                     phi * (CBK_->DyDF(LatSum_.pDx(), LatSum_.pDX(), i, j)
-                            * CBK_->DyDS(LatSum_.pDx(), LatSum_.Atom(0), LatSum_.Atom(1), k, l))
-                     + phi1* CBK_->D2yDFS(LatSum_.pDx(), LatSum_.pDX(),
-                                          LatSum_.Atom(0), LatSum_.Atom(1), i, j, k, l);
-                  k = LatSum_.Atom(1);
-                  Phi2_static[CBK_->INDF(i, j)][CBK_->INDS(k, l)] =
-                     Phi2_static[CBK_->INDS(k, l)][CBK_->INDF(i, j)] +=
-                     phi * (CBK_->DyDF(LatSum_.pDx(), LatSum_.pDX(), i, j)
-                            * CBK_->DyDS(LatSum_.pDx(), LatSum_.Atom(0), LatSum_.Atom(1), k, l))
-                     + phi1* CBK_->D2yDFS(LatSum_.pDx(), LatSum_.pDX(),
-                                          LatSum_.Atom(0), LatSum_.Atom(1), i, j, k, l);
+                  Phi2_static[INDF[i][j]][INDS[Atom0][l]] =
+                     Phi2_static[INDS[Atom0][l]][INDF[i][j]] +=
+                     phi * (DyDF[i][j] * DyDS[0][l]) + phi1* D2yDFS[i][j][0][l];
+                  Phi2_static[INDF[i][j]][INDS[Atom1][l]] =
+                     Phi2_static[INDS[Atom1][l]][INDF[i][j]] +=
+                     phi * (DyDF[i][j] * DyDS[1][l]) + phi1* D2yDFS[i][j][1][l];
                }
             }
          }
@@ -2116,6 +2206,7 @@ void MultiLatticeTPP::Print(ostream& out, PrintDetail const& flag,
    int BlochWaveStable;
    double mintestfunct;
    double conj;
+   int NoFP = !FastPrint_;
 
    W = out.width();
 
@@ -2127,42 +2218,43 @@ void MultiLatticeTPP::Print(ostream& out, PrintDetail const& flag,
 
    engy = energy();
    conj = ConjugateToLambda();
-   TE_static = ThermalExpansion();
-   entropy = Entropy();
-   heatcapacity = HeatCapacity();
    str_static = stress();
-   stiff_static = stiffness();
-
-   TestFunctions(TestFunctVals_static, LHS);
-
-   mintestfunct = TestFunctVals_static[0];
-   for (int i = 0; i < TestFunctVals_static.Dim(); ++i)
+   if (NoFP)
    {
-      if (TestFunctVals_static[i] < 0.0)
+      stiff_static = stiffness();
+      TE_static = ThermalExpansion();
+      entropy = Entropy();
+      heatcapacity = HeatCapacity();
+
+      TestFunctions(TestFunctVals_static, LHS);
+      mintestfunct = TestFunctVals_static[0];
+      for (int i = 0; i < TestFunctVals_static.Dim(); ++i)
       {
-         ++NoNegTestFunctions;
-      }
-      if (mintestfunct > TestFunctVals_static[i])
-      {
+         if (TestFunctVals_static[i] < 0.0)
+         {
+            ++NoNegTestFunctions;
+         }
+         if (mintestfunct > TestFunctVals_static[i])
+         {
          mintestfunct = TestFunctVals_static[i];
+         }
+      }
+
+      CondModuli_static = CondensedModuli();
+      CondEV_static = SymEigVal(CondModuli_static);
+      RankOneConvex = FullScanRank1Convex3D(CBK_, CondModuli_static, ConvexityDX_);
+      
+      K_static.Resize(DIM3, 0.0);
+      if (RankOneConvex)
+      {
+         BlochWaveStable = BlochWave(K_static);
+      }
+      else
+      {
+         BlochWaveStable = -1;
       }
    }
-
-   CondModuli_static = CondensedModuli();
-
-   CondEV_static = SymEigVal(CondModuli_static);
-   RankOneConvex = FullScanRank1Convex3D(CBK_, CondModuli_static, ConvexityDX_);
-
-   K_static.Resize(DIM3, 0.0);
-   if (RankOneConvex)
-   {
-      BlochWaveStable = BlochWave(K_static);
-   }
-   else
-   {
-      BlochWaveStable = -1;
-   }
-
+   
    switch (flag)
    {
       case PrintLong:
@@ -2248,44 +2340,52 @@ void MultiLatticeTPP::Print(ostream& out, PrintDetail const& flag,
              << "Lambda (Normalized): " << setw(W) << Lambda_ << "\n"
              << "ConjugateToLambda: " << setw(W) << conj << "\n"
              << "DOF's :" << "\n" << setw(W) << CBK_->DOF() << "\n"
-             << "Potential Value (Normalized):" << setw(W) << engy << "\n"
-             << "Thermal Expansion:" << "\n" << setw(W) << TE_static << "\n\n"
-             << "Entropy:" << setw(W) << entropy << "\n"
-             << "HeatCapacity:" << setw(W) << heatcapacity << "\n";
-         for (int i = 0; i < InternalAtoms_; ++i)
+             << "Potential Value (Normalized):" << setw(W) << engy << "\n";
+         if(NoFP)
          {
-            out << "BodyForce Value " << i << " (Inf Normalized):"
-                << setw(W) << BodyForce_[i] << "\n";
+            out << "Thermal Expansion:" << "\n" << setw(W) << TE_static << "\n\n"
+                << "Entropy:" << setw(W) << entropy << "\n"
+                << "HeatCapacity:" << setw(W) << heatcapacity << "\n";
+            for (int i = 0; i < InternalAtoms_; ++i)
+            {
+               out << "BodyForce Value " << i << " (Inf Normalized):"
+                   << setw(W) << BodyForce_[i] << "\n";
+            }
          }
-         out << "Stress (Normalized):" << "\n" << setw(W) << str_static << "\n\n"
-             << "Stiffness (Normalized):" << setw(W) << stiff_static
-             << "Eigenvalue Info (Rots->1,2,3; Trans->4,5,6):" << "\n" << setw(W)
-             << TestFunctVals_static << "\n"
-             << "Bifurcation Info:" << setw(W) << mintestfunct
-             << setw(W) << NoNegTestFunctions << "\n"
-             << "Condensed Moduli (Normalized):" << setw(W) << CondModuli_static
-             << "CondEV Info:" << setw(W) << CondEV_static
-             << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << "\n"
-             << "BlochWave Stability (GridSize=" << GridSize_ << "):"
-             << setw(W) << BlochWaveStable << ", "
-             << setw(W) << K_static << endl;
+         out << "Stress (Normalized):" << "\n" << setw(W) << str_static << "\n";
+         if (NoFP)
+            out << "\nStiffness (Normalized):" << setw(W) << stiff_static
+                << "Eigenvalue Info (Rots->1,2,3; Trans->4,5,6):" << "\n" << setw(W)
+                << TestFunctVals_static << "\n"
+                << "Bifurcation Info:" << setw(W) << mintestfunct
+                << setw(W) << NoNegTestFunctions << "\n"
+                << "Condensed Moduli (Normalized):" << setw(W) << CondModuli_static
+                << "CondEV Info:" << setw(W) << CondEV_static
+                << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << "\n"
+                << "BlochWave Stability (GridSize=" << GridSize_ << "):"
+                << setw(W) << BlochWaveStable << ", "
+                << setw(W) << K_static << endl;
          if (Echo_)
          {
             cout << "Temperature (Ref Normalized): " << setw(W) << NTemp_ << "\n"
                  << "Lambda (Normalized): " << setw(W) << Lambda_ << "\n"
                  << "ConjugateToLambda: " << setw(W) << conj << "\n"
                  << "DOF's :" << "\n" << setw(W) << CBK_->DOF() << "\n"
-                 << "Potential Value (Normalized):" << setw(W) << engy << "\n"
-                 << "Thermal Expansion:" << "\n" << setw(W) << TE_static << "\n"
-                 << "Entropy:" << setw(W) << entropy << "\n"
-                 << "HeatCapacity:" << setw(W) << heatcapacity << "\n";
-            for (int i = 0; i < InternalAtoms_; ++i)
+                 << "Potential Value (Normalized):" << setw(W) << engy << "\n";
+            if (NoFP)
             {
-               cout << "BodyForce Value " << i << " (Inf Normalized):"
-                    << setw(W) << BodyForce_[i] << "\n";
+               cout << "Thermal Expansion:" << "\n" << setw(W) << TE_static << "\n"
+                    << "Entropy:" << setw(W) << entropy << "\n"
+                    << "HeatCapacity:" << setw(W) << heatcapacity << "\n";
+               for (int i = 0; i < InternalAtoms_; ++i)
+               {
+                  cout << "BodyForce Value " << i << " (Inf Normalized):"
+                       << setw(W) << BodyForce_[i] << "\n";
+               }
             }
-            cout << "Stress (Normalized):" << "\n" << setw(W) << str_static << "\n\n"
-                 << "Stiffness (Normalized):" << setw(W) << stiff_static
+            cout << "Stress (Normalized):" << "\n" << setw(W) << str_static << "\n";
+            if (NoFP)
+               cout << "\nStiffness (Normalized):" << setw(W) << stiff_static
                  << "Eigenvalue Info (Rots->1,2,3; Trans->4,5,6):" << "\n" << setw(W)
                  << TestFunctVals_static << "\n"
                  << "Bifurcation Info:" << setw(W) << mintestfunct

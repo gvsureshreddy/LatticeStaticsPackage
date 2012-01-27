@@ -49,7 +49,8 @@ $Rtheta1_1_1 = 0.275914376289;
             #GuessModes      => No, # Default value = No, Yes
             #UseExtension    => "", # Default value = ""
             MultiLatticeTPP => 
-            {CBKinematics        => {Type => LagrangeCB, # SymLagrangeCB, SymLagrangeWTransCB, LagrangeCB, MixedCB, EulerCB
+            {FastPrint           => No, # Default value = No, Yes
+             CBKinematics        => {Type => LagrangeCB, # SymLagrangeCB, SymLagrangeWTransCB, LagrangeCB, MixedCB, EulerCB
                                      InternalAtoms => 4,
                                      LatticeBasis  => [[$spacing, $spacing, 0.0],
                                                        [-$spacing, $spacing, 0.0],

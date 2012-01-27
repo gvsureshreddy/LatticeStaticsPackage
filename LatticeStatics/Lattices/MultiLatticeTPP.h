@@ -64,6 +64,7 @@ private:
    PairPotentials*** Potential_;
 
    // Misc
+   int FastPrint_;
    double ConvexityDX_;
 
    double energy(PairPotentials::TDeriv const& dt = PairPotentials::T0) const;

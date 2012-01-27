@@ -6,7 +6,7 @@
 #include "PerlInput.h"
 
 // Max number of atoms in unit cell. might need to be changed...
-#define CBK_MAX_ATOMS 100
+#define CBK_MAX_ATOMS 1000
 
 using namespace std;
 
