@@ -13,6 +13,8 @@ export LIB_LOC
 CC = g++
 #CC = g++ -fopenmp
 OPTIMIZE   = -O
+#DEBUG      = -g -m32
+#PROFILE    = -pg
 ANSI       = -pedantic
 #SOLVE      = -DSOLVE_PLU
 SOLVE      =
@@ -21,6 +23,8 @@ TERMINAL =
 
 export CC
 export OPTIMIZE
+export DEBUG
+export PROFILE
 export ANSI
 export SOLVE
 export TERMINAL
