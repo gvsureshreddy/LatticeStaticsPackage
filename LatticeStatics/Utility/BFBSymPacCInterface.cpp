@@ -16,24 +16,19 @@ char* builddate();
 
 using namespace std;
 
-enum YN {No, Yes};
-void GetMainSettings(int& Width, int& Precision, YN& BisectCP, int& Echo, PerlInput const& Input);
+void GetMainSettings(int& Width, int& Precision, int& Echo, PerlInput const& Input);
 void InitializeOutputFile(char const* const datafile, char const* const startfile,
                           int const& Precision, int const& Width, int const& Echo);
-int RelativeEigVectsOK(Matrix const& EigVects);
 
 PerlInput Input;
 Lattice* Lat;
 Restriction* Restrict;
 SolutionMethod* SolveMe;
 int success = 1;
-int* TotalNumCPs = 0;
 int TestValue;
 int StableValue = -1;
-int FirstSolution = 1;
 Vector EigenValues;
 int Width, Precision, Echo;
-YN BisectCP;
 
 extern "C" void bfb_init_wrapper_(int& nfree, double* ufree_init, double& t, char* bfbfile)
 {
@@ -56,19 +51,13 @@ extern "C" void bfb_init_wrapper_(int& nfree, double* ufree_init, double& t, cha
    tmp.str("");
    tmp << "$Lattice{NewtonPCSolution}{NumSolutions} = 100000;";
    Input.EvaluateString(tmp.str().c_str());
-   GetMainSettings(Width, Precision, BisectCP, Echo, Input);
+   GetMainSettings(Width, Precision, Echo, Input);
 
    InitializeOutputFile(bfbfile, 0, Precision, Width, Echo);
 
    Lat = InitializeLattice(Input, Echo, Width, 0);
    Lat->SetDOF(utmp);
    Lat->SetLambda(t);
-
-   TotalNumCPs = new int[Lat->NumTestFunctions()];
-   for (int i = 0; i < Lat->NumTestFunctions(); ++i)
-   {
-      TotalNumCPs[i] = 0;
-   }
 
    Restrict = InitializeRestriction(Lat, Input);
 
@@ -94,17 +83,10 @@ extern "C" void bfb_init_wrapper_(int& nfree, double* ufree_init, double& t, cha
 // bfbreturncode: 0-regular point, 1-terminate, 2-critical point
 extern "C" void bfb_wrapper_(int& bfbstable, int& bfbreturncode)
 {
-   success = SolveMe->FindNextSolution();
+   success = SolveMe->FindNextSolution(Input, Width, cout);
    // always returns 1
 
-   // Check for Critical Point Crossing
    TestValue = Lat->TestFunctions(EigenValues);
-   if (!RelativeEigVectsOK(Lat->RelativeEigVects()))
-   {
-      cout << "NOTE: Relative Eigenvectors are too far apart!  "
-           << "Suggest decreasing step size.\n";
-   }
-
    StableValue = 0;
    for (int i = Lat->DOF().Dim(); i < EigenValues.Dim(); ++i)
    {
@@ -122,20 +104,14 @@ extern "C" void bfb_wrapper_(int& bfbstable, int& bfbreturncode)
       bfbstable = 1;
    }
 
-   if ((TestValue > 0) && (BisectCP == Yes) && (!FirstSolution))
+   if (success == 2)
    {
       bfbreturncode = 2;
-      SolveMe->FindCriticalPoint(Lat, TotalNumCPs, Input, Width, cout);
    }
    else
    {
       bfbreturncode = 0;
    }
-
-   FirstSolution = 0;
-
-   // Send Output
-   cout << setw(Width) << *Lat << "Success = 1" << "\n";
 
    if (SolveMe->AllSolutionsFound())
    {
@@ -148,13 +124,10 @@ extern "C" void bfb_term_wrapper_()
    delete SolveMe;
    delete Restrict;
    delete Lat;
-   delete[] TotalNumCPs;
 }
 
-void GetMainSettings(int& Width, int& Precision, YN& BisectCP, int& Echo, PerlInput const& Input)
+void GetMainSettings(int& Width, int& Precision, int& Echo, PerlInput const& Input)
 {
-   string bisect;
-
    Width = Input.getInt("Main", "FieldWidth");
    Precision = Input.getInt("Main", "Precision");
    if (Input.ParameterOK("Main", "Echo"))
@@ -164,20 +137,6 @@ void GetMainSettings(int& Width, int& Precision, YN& BisectCP, int& Echo, PerlIn
    else
    {
       Echo = Input.useInt(1, "Main", "Echo"); // Default value
-   }
-   char const* const bisectcp = Input.getString("Main", "BisectCP");
-   if (!strcmp("Yes", bisectcp))
-   {
-      BisectCP = Yes;
-   }
-   else if (!strcmp("No", bisectcp))
-   {
-      BisectCP = No;
-   }
-   else
-   {
-      cerr << "Unknown BisectCP option : " << bisect << "\n";
-      exit(-1);
    }
    Input.EndofInputSection();
 }
@@ -210,34 +169,4 @@ void InitializeOutputFile(char const* const datafile, char const* const startfil
         << "LinearAlgebra Build on: " << LinearAlgebraBuildDate() << "\n"
         << "MyMath Built on:        " << MyMathBuildDate() << "\n"
         << setw(Width);
-}
-
-int RelativeEigVectsOK(Matrix const& EigVects)
-{
-   double const cutoff = 0.8125; // 35.6 degrees
-
-   int retval = 1;
-   int size = EigVects.Rows();
-
-   for (int i = 0; i < size; ++i)
-   {
-      double maxval = fabs(EigVects[0][i]);
-      int row = 0;
-      for (int j = 0; j < size; ++j)
-      {
-         if (fabs(EigVects[j][i]) > maxval)
-         {
-            maxval = fabs(EigVects[j][i]);
-            row = j;
-         }
-      }
-      if ((row != i) || (maxval < cutoff))
-      {
-         cout << "RelativeEigVectsOK() failed at i= " << i << "  j= " << row << " maxval = " << maxval << "\n";
-         retval = 0;
-         break;
-      }
-   }
-
-   return retval;
 }

@@ -8,7 +8,8 @@ Restriction::~Restriction()
    }
 }
 
-Restriction::Restriction(PerlInput const& Input)
+Restriction::Restriction(PerlInput const& Input) :
+   Lattice_(NULL)
 {
    PerlInput::HashStruct Hash = Input.getHash("Restriction");
    if (Input.ParameterOK(Hash, "SymmetryCheckProjectionMatrices"))

@@ -11,8 +11,6 @@ using namespace std;
 class RestrictToTranslatedSubSpace : public Restriction
 {
 private:
-   Lattice* Lattice_;
-
    int DOFS_;
    SparseMatrix ForceProjectionMatrix_;
    SparseMatrix DOFProjectionMatrix_;
@@ -49,7 +47,7 @@ public:
    virtual Vector UnTransformVector(Vector const& T);
    virtual void SetDOF(Vector const& dof);
    virtual void UpdateDOF(Vector const& dr);
-
+   
    // ----------------------------------------------------------------
    virtual char const* const Name() const
    {

@@ -118,7 +118,7 @@ RefineEqbmSolution::RefineEqbmSolution(Restriction* const Restrict, PerlInput co
    }
 }
 
-int RefineEqbmSolution::FindNextSolution()
+int RefineEqbmSolution::FindNextSolution(PerlInput const& Input, int const& Width, ostream& out)
 {
    // set dofs to next guess
    if (SolutionFound_ < NumSolutions_)

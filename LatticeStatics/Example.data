@@ -4,9 +4,8 @@ use Math::Trig;
 
 # Main LatticeStatics Program Parameters
 %Main = (FieldWidth     => 20,
-         Precision      => 12,
+         Precision      => 12
          #Echo           => 1, # Default value = 1
-         BisectCP       => Yes, # Yes, No
          );
 
 # Lattice Parameters
@@ -302,8 +301,9 @@ $ArcLenDSMax = 0.01;
                                           Contraction            => 0.1,
                                           Distance               => 0.01,
                                           Angle                  => 60*$DEG2RAD,
-                                          ConvergeCriteria       => 1e-13#,
+                                          ConvergeCriteria       => 1e-13,
                                           #ConvergeType           => Both, # Default value = Both, Force, Displacement
+                                          BisectCP               => Yes
                                           #ClosedLoopStart        => 30, # Default value = 30
                                           #MaxCumulativeArcLength => 100, # Default value = -1 --- negative means ignore
                                           #StopAtCPCrossingNum    => -1, # Default value = -1
@@ -313,6 +313,7 @@ $ArcLenDSMax = 0.01;
                    ArcLengthSolution  => {MaxIterations          => 50,
                                           Tolerance              => 1.0e-13,
                                           #ConvergeType           => Both, # Default value = Both, Force, Displacement
+                                          BisectCP               => Yes,
                                           DSMax                  => $ArcLenDSMax,
                                           DSStart                => 0.01,
                                           DSMin                  => $ArcLenDSMax*1.0e-3,

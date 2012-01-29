@@ -41,7 +41,7 @@ public:
       return SolutionFound_ >= NumSolutions_;
    }
 
-   virtual int FindNextSolution();
+   virtual int FindNextSolution(PerlInput const& Input, int const& Width, ostream& out);
    virtual void FindCriticalPoint(Lattice* const Lat, int* const TotalNumCPCrossings,
                                   PerlInput const& Input, int const& Width, ostream& out)
    {

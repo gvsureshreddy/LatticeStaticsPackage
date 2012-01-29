@@ -21,6 +21,7 @@ private:
    int DOFS_;
    int MaxIter_;
    ConvergeType ConvergeType_;  // Quantities to check for convergence
+   int BisectCP_;
    double Tolerance_;
 
    double DSMax_;
@@ -39,6 +40,7 @@ private:
    int ClosedLoopUseAsFirst_;
    Vector FirstSolution_;
    double MaxCumulativeArcLength_;
+   int* TotalNumCPs_;
    int StopAtCPCrossingNum_;
 
    Vector Difference_;
@@ -65,18 +67,19 @@ private:
 
    double ArcLenAngle(Vector const& Old, Vector const& New, double const& Aspect) const;
    Matrix const& ArcLenStiffness(Vector const& Diff, double const& Aspect) const;
-
+   int RelativeEigVectsOK(Matrix const& EigVects) const;
+   
 public:
    ArcLengthSolution(Restriction* const Restrict, Vector const& dofs,
                      int const& MaxIter, double const& Tolerance, ConvergeType CnvrgTyp,
-                     double const& DSMax, double const& DSMin, double const& CurrentDS,
-                     double const& AngleCutoff, double const& AngleIncrease,
-                     double const& Aspect, int const& NumSolutions, int const& CurrentSolution,
-                     Vector const& FirstSolution, Vector const& Difference,
-                     int const& BifStartFlag_, Vector const& BifTangent,
-                     int const& ClosedLoopStart, int const& ClosedLoopUseAsFirst,
-                     double const& MaxCumulativeArcLength, int const& StopAtCPCrossingNum,
-                     int const& Echo);
+                     int const& BisectCP, double const& DSMax, double const& DSMin,
+                     double const& CurrentDS, double const& AngleCutoff,
+                     double const& AngleIncrease, double const& Aspect, int const& NumSolutions,
+                     int const& CurrentSolution, Vector const& FirstSolution,
+                     Vector const& Difference, int const& BifStartFlag_,
+                     Vector const& BifTangent, int const& ClosedLoopStart,
+                     int const& ClosedLoopUseAsFirst, double const& MaxCumulativeArcLength,
+                     int const& StopAtCPCrossingNum,int const& Echo);
    ArcLengthSolution(Restriction* const Restrict, PerlInput const& Input,
                      Vector const& one, Vector const& two, int const& Echo = 1);
    ArcLengthSolution(Restriction* const Restrict, PerlInput const& Input, int const Echo = 1);
@@ -84,7 +87,7 @@ public:
 
    // Functions required by SolutionMethod
    virtual int AllSolutionsFound() const;
-   virtual int FindNextSolution();
+   virtual int FindNextSolution(PerlInput const& Input, int const& Width, ostream& out);
    virtual void FindCriticalPoint(Lattice* const Lat, int* const TotalNumCPCrossings,
                                   PerlInput const& Input, int const& Width, ostream& out);
    virtual char const* const Type() const
@@ -94,6 +97,10 @@ public:
 
 private:
    // "static" member variables
+
+   // FindNextSolution
+   mutable Vector TestValues_static;
+   
    // ArcLenForce
    mutable Vector force_static;
    mutable Vector mdfc_static;

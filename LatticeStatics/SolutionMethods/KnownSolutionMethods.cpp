@@ -58,7 +58,7 @@ SolutionMethod* InitializeSolution(Restriction* const Restrict, PerlInput const&
             while (!ScanMe.AllSolutionsFound())
             {
                One = Two;
-               good = ScanMe.FindNextSolution();
+               good = ScanMe.FindNextSolution(Input, Width, out);
                if (good)
                {
                   count++;
@@ -119,7 +119,7 @@ SolutionMethod* InitializeSolution(Restriction* const Restrict, PerlInput const&
             // Find first solution point
             while (!slnmthd->AllSolutionsFound())
             {
-               good = slnmthd->FindNextSolution();
+               good = slnmthd->FindNextSolution(Input, Width, out);
                if (good)
                {
                   count++;
