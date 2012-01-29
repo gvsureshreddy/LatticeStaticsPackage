@@ -29,16 +29,6 @@ Lattice::Lattice(PerlInput const& Input, int const& Echo) :
       Input.useString("Yes", "Lattice", "UseEigenValTFs"); // Default Value
    }
 
-   if (Input.ParameterOK("Lattice", "NumExtraTFs"))
-   {
-      NumExtraTFs_ = Input.getPosInt("Lattice", "NumExtraTFs");
-   }
-   else
-   {
-      NumExtraTFs_ = 0;
-      Input.usePosInt(0, "Lattice", "NumExtraTFs"); // Default Value
-   }
-
    if (Input.ParameterOK("Lattice", "LSKAnalysis"))
    {
       char const* const lsk = Input.getString("Lattice", "LSKAnalysis");

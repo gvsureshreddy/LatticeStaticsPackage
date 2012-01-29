@@ -42,7 +42,6 @@ $Rtheta1_1_1 = 0.275914376289;
 
 %Lattice = (Type            => MultiLatticeTPP, # MultiLatticeTPP, MultiChainTPP, MultiChainTTPP, SCLDQMultiChainTPP, SCLDCMultiChainTPP, TwoBarTruss, TwoBarTrussExternal, DFTExternal, QC
             #UseEigenValTFs  => Yes, # Default value = Yes, No
-            #NumExtraTFs      => 0, # Default value = 0, positive number
             #LSKAnalysis     => SecondOrder, # Default value = SecondOrder, ThirdOrder, None
             #FullPrint       => Yes, # Default value = Yes, No
             #GuessModes      => No, # Default value = No, Yes
@@ -248,18 +247,20 @@ $Rtheta1_1_1 = 0.275914376289;
                                   h                 => $h#,
                                   #InitialEigVals   => [[0]] # See SCLDMultiChainTPP.cpp
                                  },
-             TwoBarTruss => {Caching  => Yes, # Yes, No
-                             Theta    => 65*$DEG2RAD,
-                             Gamma    => 1.0#, # imperfection ratio for bar moduli (1.0 = perfect)
-                             #ExtraTFs => [0.1]
+             TwoBarTruss => {Caching     => Yes, # Yes, No
+                             Theta       => 65*$DEG2RAD,
+                             Gamma       => 1.0#, # imperfection ratio for bar moduli (1.0 = perfect)
+                             #NumExtraTFs => 0, # Default value = 0, positive number
+                             #ExtraTFs    => [0.1]
                             },
              TwoBarTrussExternal => {# no options
                                     },
-             FourBarTruss => {Caching  => Yes, # Yes, No
-                              Theta    => 45*$DEG2RAD,
-                              Psi      => 10*$DEG2RAD
-                              Gamma    => 1.0#, # imperfection ratio for bar moduli (1.0 = perfect)
-                              #ExtraTFs => [0.1]
+             FourBarTruss => {Caching     => Yes, # Yes, No
+                              Theta       => 45*$DEG2RAD,
+                              Psi         => 10*$DEG2RAD
+                              Gamma       => 1.0#, # imperfection ratio for bar moduli (1.0 = perfect)
+                              #NumExtraTFs => 0, # Default value = 0, positive number
+                              #ExtraTFs    => [0.1]
                              },
              DFTExternal => {DOFS => 9
                             },
@@ -267,6 +268,7 @@ $Rtheta1_1_1 = 0.275914376289;
                     RemoveTranslation => 0, # 0-off, 1,2,3 - direction
                     TranslationTable  => "columnNi.tab",
                     Tolerance         => 1.0e-6#, # for numerical derivatives
+                    #NumExtraTFs       => 0, # Default value = 0, positive number
                     #ExtraTFs          => [1.1]
                    }
             );

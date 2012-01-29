@@ -82,6 +82,15 @@ QC::QC(PerlInput const& Input, int const& Echo, int const& Width) :
       Tolerance_ = Input.useDouble(1.0e-6, Hash, "Tolerance");  // Default Value
    }
 
+   if (Input.ParameterOK(Hash, "NumExtraTFs"))
+   {
+      NumExtraTFs_ = Input.getPosInt(Hash, "NumExtraTFs");
+   }
+   else
+   {
+      NumExtraTFs_ = 0;
+      Input.usePosInt(0, Hash, "NumExtraTFs"); // Default Value
+   }
    if (NumExtraTFs_ > 0)
    {
       if (Input.ParameterOK(Hash, "ExtraTFs"))
