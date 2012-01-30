@@ -1240,15 +1240,6 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
       cpfile << "\n\n";
 
       Input.writeString(cpfile, "Continuation", "StartType", "Type");
-      for (int i = 0; i < count; ++i) // be safe, cover a miss-identified point
-      {
-         for (int j = 0; j < dofs; ++j)
-         {
-            M[j] = Mode[i][j];
-         }
-         M[dofs] = 0.0;
-         Input.writeVector(cpfile, M, "StartType", "Tangent");
-      }
       Input.writeVector(cpfile, T, "StartType", "Solution");
       cpfile.close();
    }
