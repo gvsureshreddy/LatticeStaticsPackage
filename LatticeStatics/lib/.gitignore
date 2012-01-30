@@ -76,4 +76,5 @@ SymLagrangeCB.o
 SymLagrangeWTransCB.o
 TwoBarTruss.o
 TwoBarTrussExternal.o
-
+NEBSolution.o
+ODSolution.o
