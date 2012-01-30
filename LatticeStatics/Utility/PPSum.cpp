@@ -80,7 +80,7 @@ void PPSum::Initialize()
    // set tmp to the number of pairs in the sphere to be scanned
    AtomicDensity = InternalAtoms_ / ((CBK_->DeltaVolume()) * (CBK_->RefVolume()));
    SphereVol = (4.0 * 3.15 / 3.0) * (*InfluenceDist_) * (*InfluenceDist_) * (*InfluenceDist_);
-   tmp = ceil(3.0 * InternalAtoms_ * AtomicDensity * SphereVol);
+   tmp = ceil(1.05 * InternalAtoms_ * AtomicDensity * SphereVol);
 
    // make sure there is enough memory to store the pairs.
    if (RelPosDATA_.Rows() < tmp)
