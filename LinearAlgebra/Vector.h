@@ -118,6 +118,8 @@ public:
 
    // Standard IR^n Norm
    Matrix::Elm Norm() const;
+   Matrix::Elm MaxElement() const;
+   Matrix::Elm MinElement() const;
 
    // Operations & Etc...
 

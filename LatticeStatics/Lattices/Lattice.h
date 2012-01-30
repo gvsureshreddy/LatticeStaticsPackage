@@ -76,7 +76,7 @@ public:
       return EigVectLHS_static;
    }
 
-   virtual Matrix const& RelativeEigVects()
+   virtual Matrix const& RelativeEigVects() const
    {
       return EigVect_static;
    }

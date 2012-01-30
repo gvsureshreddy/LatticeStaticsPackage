@@ -4,9 +4,8 @@ use Math::Trig;
 
 # Main LatticeStatics Program Parameters
 %Main = (FieldWidth     => 20,
-         Precision      => 12,
+         Precision      => 12
          #Echo           => 1, # Default value = 1
-         BisectCP       => Yes, # Yes, No
          );
 
 # Lattice Parameters
@@ -43,7 +42,6 @@ $Rtheta1_1_1 = 0.275914376289;
 
 %Lattice = (Type            => MultiLatticeTPP, # MultiLatticeTPP, MultiChainTPP, MultiChainTTPP, SCLDQMultiChainTPP, SCLDCMultiChainTPP, TwoBarTruss, TwoBarTrussExternal, DFTExternal, QC
             #UseEigenValTFs  => Yes, # Default value = Yes, No
-            #NumExtraTFs      => 0, # Default value = 0, positive number
             #LSKAnalysis     => SecondOrder, # Default value = SecondOrder, ThirdOrder, None
             #FullPrint       => Yes, # Default value = Yes, No
             #GuessModes      => No, # Default value = No, Yes
@@ -123,7 +121,10 @@ $Rtheta1_1_1 = 0.275914376289;
              #ReferenceLambda      => 0.0, # Default value = 0.0
              NTemp               => 1.0,
              Lambda              => 0.0#,
-             #ExtraTFs => [0.1]
+             ExtraTestFunctions  => {Type              => None#, # None, KVectors, LoadingParameters
+                                     #KVectors          => [[1.0, 1.0, 1.0, 2.0, 3.0]]
+                                     #LoadingParameters => [0.1, 0.5, 1.2, 2.0]
+                                    },
             },
             MultiChainTPP  => {InternalAtoms     => 4,
                                LatticeBasis      => 1.00,
@@ -251,18 +252,20 @@ $Rtheta1_1_1 = 0.275914376289;
                                   h                 => $h#,
                                   #InitialEigVals   => [[0]] # See SCLDMultiChainTPP.cpp
                                  },
-             TwoBarTruss => {Caching  => Yes, # Yes, No
-                             Theta    => 65*$DEG2RAD,
-                             Gamma    => 1.0#, # imperfection ratio for bar moduli (1.0 = perfect)
-                             #ExtraTFs => [0.1]
+             TwoBarTruss => {Caching     => Yes, # Yes, No
+                             Theta       => 65*$DEG2RAD,
+                             Gamma       => 1.0#, # imperfection ratio for bar moduli (1.0 = perfect)
+                             #NumExtraTFs => 0, # Default value = 0, positive number
+                             #ExtraTFs    => [0.1]
                             },
              TwoBarTrussExternal => {# no options
                                     },
-             FourBarTruss => {Caching  => Yes, # Yes, No
-                              Theta    => 45*$DEG2RAD,
-                              Psi      => 10*$DEG2RAD
-                              Gamma    => 1.0#, # imperfection ratio for bar moduli (1.0 = perfect)
-                              #ExtraTFs => [0.1]
+             FourBarTruss => {Caching     => Yes, # Yes, No
+                              Theta       => 45*$DEG2RAD,
+                              Psi         => 10*$DEG2RAD
+                              Gamma       => 1.0#, # imperfection ratio for bar moduli (1.0 = perfect)
+                              #NumExtraTFs => 0, # Default value = 0, positive number
+                              #ExtraTFs    => [0.1]
                              },
              DFTExternal => {DOFS => 9
                             },
@@ -270,6 +273,7 @@ $Rtheta1_1_1 = 0.275914376289;
                     RemoveTranslation => 0, # 0-off, 1,2,3 - direction
                     TranslationTable  => "columnNi.tab",
                     Tolerance         => 1.0e-6#, # for numerical derivatives
+                    #NumExtraTFs       => 0, # Default value = 0, positive number
                     #ExtraTFs          => [1.1]
                    }
             );
@@ -294,7 +298,7 @@ $Rtheta1_1_1 = 0.275914376289;
 # SolutionMethod Parameters
 $ArcLenDSMax = 0.01;
 
-%SolutionMethod = (Type               => NewtonPCSolution, # RefineEqbmSolution, ArcLengthSolution, ScanningSolution, NewtonPCSolution
+%SolutionMethod = (Type               => NewtonPCSolution, # RefineEqbmSolution, ArcLengthSolution, ScanningSolution, NewtonPCSolution, ODSolution, NEBSolution
                    NewtonPCSolution   => {UpdateType             => QRUpdate, # Default value = QRUpdate; NoUpdate, StiffnessUpdate, Exact
                                           #ComputeExactTangent    => Yes, # Default value = Yes, No
                                           NumSolutions           => 1000,
@@ -307,6 +311,7 @@ $ArcLenDSMax = 0.01;
                                           #MaxEigVectAngle        => -1.0, # Default value = -1.0 --- negative means disable check
                                           ConvergeCriteria       => 1e-13#,
                                           #ConvergeType           => Both, # Default value = Both, Force, Displacement
+                                          BisectCP               => Yes
                                           #ClosedLoopStart        => 30, # Default value = 30
                                           #MaxCumulativeArcLength => 100, # Default value = -1 --- negative means ignore
                                           #StopAtCPCrossingNum    => -1, # Default value = -1
@@ -316,6 +321,7 @@ $ArcLenDSMax = 0.01;
                    ArcLengthSolution  => {MaxIterations          => 50,
                                           Tolerance              => 1.0e-13,
                                           #ConvergeType           => Both, # Default value = Both, Force, Displacement
+                                          BisectCP               => Yes,
                                           DSMax                  => $ArcLenDSMax,
                                           DSStart                => 0.01,
                                           DSMin                  => $ArcLenDSMax*1.0e-3,
@@ -346,6 +352,26 @@ $ArcLenDSMax = 0.01;
                                           #ConvergeType     => Both, # Default value = Both, Force, Displacement
                                           #Solution => [[1.000000000000, 1.000000000000],
                                           #             [1.100000000000, 1.100000000000]]
+                                         },
+                   ODSolution         => {ConvergCriteria  => 1e-13,
+                                          #ConvergeType     => Both, # Default value = Both, Force, Displacement
+                                          InitialState     => [1.0, 1.0],
+                                          InitialTangent   => [1.0, 1.0],
+                                          Epsilon          => 0.1,
+                                          dt               => 0.1
+                                         },
+                   NEBSolution        => {ConvergCriteria         => 1e-13,
+                                          #ConvergeType            => Both, # Default value = Both, Force, Displacement
+                                          SpringK                 => 1.0,
+                                          QDMass                  => 1.0,
+                                          dt                      => 1.0,
+                                          tFinal                  => 1.0,
+                                          #IntermediateStateMatrix => [[1.0, 1.0], [1.5, 1.5]],
+                                          NumReplicas             => 100,
+                                          #VelocityScaling         => 0.0, # Default value = 0.0
+                                          #RandomSeed              => 1,   # Required when VelocityScaling != 0.0
+                                          InitialState            => [1.0, 1.0],
+                                          FinalState              => [2.0, 2.0]
                                          }
                   );
 

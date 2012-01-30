@@ -56,8 +56,13 @@ private:
    mutable PPSum LatSum_;
    mutable UnitCellIterator UCIter_;
    int GridSize_;
-   mutable Vector ExtraTestFunctions_;
 
+   int TFType_;
+   Matrix KVectorMatrix_;
+   int DynMatrixDim_;
+   int NumKVectors_;
+   Vector TFLoad_;
+	
 
    // Pair Potential data
    PairPotentials*** SpeciesPotential_;
@@ -77,6 +82,10 @@ private:
                                   ostream& out) const;
    int ReferenceBlochWave(Vector& K) const;
    CMatrix const& ReferenceDynamicalStiffness(Vector const& K) const;
+   
+   int GCD(int x, int y) const;
+   Matrix const PairwiseReduction(Matrix const& RowLatVects) const;	
+   void NewCBCellSingleK(int TFIndex,int Width, ostream& out) const;
 
    // Needed for DispersionCurves()
    //
@@ -96,6 +105,9 @@ public:
    }
 
 
+   void KPrint(int TFIndex, int Width, ostream& out) const;
+   void TFCritPtInfo(int TFIndex, int Width, ostream& out) const;
+   
    // Virtual Functions required by Lattice
    Vector const& DOF() const
    {
@@ -169,6 +181,10 @@ public:
    virtual Matrix const& E2() const;
    virtual Matrix const& E3() const;
    virtual Matrix const& E4() const;
+   virtual int CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex,
+                                 Vector const& DrDt, int const& CPorBif,
+                                 int const& NumZeroEigenVals, double const& Tolerance,
+                                 int const& Width, PerlInput const& Input, ostream& out);
    virtual void ExtraTestFunctions(Vector& TF) const;
    virtual void DispersionCurves(Vector const& K, int const& NoPTS, char const* const prefix,
                                  ostream& out) const
@@ -293,6 +309,7 @@ private:
    mutable Vector TE_static;
    mutable Matrix CondModuli_static;
    mutable Vector TestFunctVals_static;
+   mutable Vector TestFunctVals_Print;
    mutable Vector K_static;
 };
 

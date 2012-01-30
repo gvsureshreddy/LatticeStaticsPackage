@@ -9,8 +9,6 @@ using namespace std;
 class NoRestriction : public Restriction
 {
 private:
-   Lattice* Lattice_;
-
    void UpdateLatticeDOF()
    {
       Vector tmpdof(Lattice_->DOF().Dim());
@@ -37,12 +35,13 @@ private:
 
 public:
    NoRestriction(Lattice* const M, PerlInput const& Input) :
-      Restriction(Input),
-      Lattice_(M), dof_static(Lattice_->DOF().Dim() + 1),
+      Restriction(Input), dof_static(Lattice_->DOF().Dim() + 1),
       ddt_static(Lattice_->DOF().Dim()),
       Stiff_static(Lattice_->DOF().Dim(), Lattice_->DOF().Dim()),
       stressdt_static(Lattice_->DOF().Dim())
    {
+      Lattice_ = M;
+      
       int DOFS = dof_static.Dim();
       for (int i = 0; i < SymmetryCheckCount_; ++i)
       {

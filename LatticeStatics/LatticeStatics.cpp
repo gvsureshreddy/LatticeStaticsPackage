@@ -14,8 +14,7 @@ char* builddate();
 
 using namespace std;
 
-enum YN {No, Yes};
-void GetMainSettings(int& Width, int& Precision, YN& BisectCP, int& Echo, PerlInput const& Input);
+void GetMainSettings(int& Width, int& Precision, int& Echo, PerlInput const& Input);
 void InitializeOutputFile(fstream& out, char const* const outfile, char const* const datafile,
                           char const* const startfile, int const& Precision, int const& Width,
                           int const& Echo);
@@ -75,9 +74,8 @@ int main(int argc, char* argv[])
    SolutionMethod* SolveMe;
 
    int Width, Precision, Echo;
-   YN BisectCP;
 
-   GetMainSettings(Width, Precision, BisectCP, Echo, Input);
+   GetMainSettings(Width, Precision, Echo, Input);
 
    // out declared at global level
    InitializeOutputFile(out, outputfile, datafile, startfile, Precision, Width, Echo);
@@ -98,51 +96,22 @@ int main(int argc, char* argv[])
    SolveMe = InitializeSolution(Restrict, Input, Lat, out, Width, Echo);
 
    int success = 1;
-   int* TotalNumCPs = new int[Lat->NumTestFunctions()];
-   for (int i = 0; i < Lat->NumTestFunctions(); ++i)
-   {
-      TotalNumCPs[i] = 0;
-   }
-   int TestValue;
-   int FirstSolution = 1;
-   Vector TestValues(Lat->NumTestFunctions());
 
    while (!SolveMe->AllSolutionsFound())
    {
-      success = SolveMe->FindNextSolution();
-
-      if (success)
-      {
-         // Check for Critical Point Crossing
-         TestValue = Lat->TestFunctions(TestValues);
-
-         if ((TestValue > 0) && (BisectCP == Yes) && (!FirstSolution))
-         {
-            SolveMe->FindCriticalPoint(Lat, TotalNumCPs, Input, Width, out);
-         }
-         // Send Output
-         if (Echo)
-         {
-            cout << "Restric DOF's:\n" << setw(Width) << Restrict->DOF() << "\n";
-         }
-         out << setw(Width) << *Lat << "Success = 1" << "\n";
-         FirstSolution = 0;
-      }
+      success = SolveMe->FindNextSolution(Input, Width, out);
    }
 
    out.close();
    delete SolveMe;
    delete Restrict;
    delete Lat;
-   delete[] TotalNumCPs;
 
    return 0;
 }
 
-void GetMainSettings(int& Width, int& Precision, YN& BisectCP, int& Echo, PerlInput const& Input)
+void GetMainSettings(int& Width, int& Precision, int& Echo, PerlInput const& Input)
 {
-   string bisect;
-
    Width = Input.getInt("Main", "FieldWidth");
    Precision = Input.getInt("Main", "Precision");
    if (Input.ParameterOK("Main", "Echo"))
@@ -152,20 +121,6 @@ void GetMainSettings(int& Width, int& Precision, YN& BisectCP, int& Echo, PerlIn
    else
    {
       Echo = Input.useInt(1, "Main", "Echo"); // Default value
-   }
-   char const* const bisectcp = Input.getString("Main", "BisectCP");
-   if (!strcmp("Yes", bisectcp))
-   {
-      BisectCP = Yes;
-   }
-   else if (!strcmp("No", bisectcp))
-   {
-      BisectCP = No;
-   }
-   else
-   {
-      cerr << "Unknown BisectCP option : " << bisect << "\n";
-      exit(-1);
    }
    Input.EndofInputSection();
 }

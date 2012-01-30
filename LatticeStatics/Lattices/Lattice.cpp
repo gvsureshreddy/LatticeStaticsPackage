@@ -29,16 +29,6 @@ Lattice::Lattice(PerlInput const& Input, int const& Echo) :
       Input.useString("Yes", "Lattice", "UseEigenValTFs"); // Default Value
    }
 
-   if (Input.ParameterOK("Lattice", "NumExtraTFs"))
-   {
-      NumExtraTFs_ = Input.getPosInt("Lattice", "NumExtraTFs");
-   }
-   else
-   {
-      NumExtraTFs_ = 0;
-      Input.usePosInt(0, "Lattice", "NumExtraTFs"); // Default Value
-   }
-
    if (Input.ParameterOK("Lattice", "LSKAnalysis"))
    {
       char const* const lsk = Input.getString("Lattice", "LSKAnalysis");
@@ -246,11 +236,14 @@ int Lattice::TestFunctions(Vector& TF1, StateType const& State, Vector* const TF
             TF1[i] = EV2_static[0][i];
          }
       }
-
-      ExTF1_static = ExTF2_static;
-      ExtraTestFunctions(ExTF2_static);
-
-      for (int i = 0; i < NumExtraTFs_; ++i)
+	   
+      if(NumExtraTFs_>0)
+      {
+         ExTF1_static = ExTF2_static;
+         ExtraTestFunctions(ExTF2_static);
+      }
+      
+      for (int i=0;i<NumExtraTFs_;++i)
       {
          if ((ExTF1_static[i] * ExTF2_static[i]) < 0.0)
          {
@@ -328,8 +321,11 @@ int Lattice::TestFunctions(Vector& TF1, StateType const& State, Vector* const TF
          }
       }
 
-      ExtraTestFunctions(ExTF1_static);
-      for (int i = 0; i < NumExtraTFs_; ++i)
+      if(NumExtraTFs_>0)
+      {
+         ExtraTestFunctions(ExTF1_static);
+      }
+      for (int i=0;i<NumExtraTFs_;++i)
       {
          if ((ExTF1_static[i] * ExTF2_static[i]) < 0.0)
          {

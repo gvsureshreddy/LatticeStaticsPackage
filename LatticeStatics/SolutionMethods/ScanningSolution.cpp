@@ -286,7 +286,7 @@ int ScanningSolution::AllSolutionsFound() const
           > ScanEnd_ * (ScanStep_ / fabs(ScanStep_));
 }
 
-int ScanningSolution::FindNextSolution()
+int ScanningSolution::FindNextSolution(PerlInput const& Input, int const& Width, ostream& out)
 {
    int good = 0;
    int iteration = 0;

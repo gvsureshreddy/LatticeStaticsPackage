@@ -36,11 +36,13 @@ private:
    double eig_angle_max_;            // Max angle between eigen-vectors of Restriction's eigs.
    double Converge_;                 // Convergence criteria
    ConvergeType ConvergeType_;       // Quantities to check for convergence
+   int BisectCP_;                    // Flag to control bisection for critical points
    int BifStartFlag_;                // Flag to keep track of start type (1-bif,0-other)
    Vector BifTangent_;               // Start Tangent vector to be used to print out projection
    int ClosedLoopStart_;             // Closed loop test variable
    int ClosedLoopUseAsFirst_;        // Closed loop solution number to use as first point
    double MaxCumulativeArcLength_;   // Stop after covering a max amount of arclength
+   int* TotalNumCPs_;                // Keep track of number of critical points
    int StopAtCPCrossingNum_;         // Stop at critical point crossing test flag
    int Direction_;                   // Direction of tangent
    double Omega_;                    // Multiplier to help traverse bifurcation points
@@ -64,8 +66,9 @@ public:
                     int const& CurrentSolution, UpdateType const& Type,
                     int const& ComputeExactTangent, int const& NumSolutions, double const& MaxDS,
                     double const& CurrentDS, double const& MinDS, double const& cont_rate_max,
-                    double const& delta_max, double const& alpha_max, double const& eig_angle_max,
-                    double const& Converge, ConvergeType CnvrgTyp, Vector const& FirstSolution,
+                    double const& delta_max, double const& alpha_max,
+                    double const& eig_angle_max, double const& Converge,
+                    ConvergeType CnvrgTyp, int const& BisectCP, Vector const& FirstSolution,
                     int const& Direction = 1, double const& accel_max = 2.0,
                     int const& BifStartFlag = 0, Vector const& BifTangent = Vector(),
                     int const& ClosedLoopStart = CLOSEDDEFAULT,
@@ -79,7 +82,7 @@ public:
 
    // Functions required by SolutionMethod
    virtual int AllSolutionsFound() const;
-   virtual int FindNextSolution();
+   virtual int FindNextSolution(PerlInput const& Input, int const& Width, ostream& out);
    virtual void FindCriticalPoint(Lattice* const Lat, int* const TotalNumCPCrossings,
                                   PerlInput const& Input, int const& Width, ostream& out);
    virtual char const* const Type() const
@@ -97,6 +100,7 @@ private:
    mutable Vector difference_static;
    mutable Matrix Q_static;
    mutable Matrix R_static;
+   mutable Vector TestValues_static;
 
    // GetQR
    mutable Matrix Stiff_static;

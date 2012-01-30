@@ -4,7 +4,7 @@ SolutionMethod* InitializeSolution(Restriction* const Restrict, PerlInput const&
                                    Lattice* const Lat, ostream& out, int const& Width,
                                    int const& Echo)
 {
-   enum solution {RefineEqbm, Scanning, ArcLen, NewtonPC};
+   enum solution {RefineEqbm, Scanning, ArcLen, NewtonPC, NEB, OD};
    solution solu;
 
    const char* slvmthd = Input.getString("SolutionMethod", "Type");
@@ -24,6 +24,15 @@ SolutionMethod* InitializeSolution(Restriction* const Restrict, PerlInput const&
    {
       solu = NewtonPC;
    }
+   else if (!strcmp("NEBSolution", slvmthd))
+   {
+	   solu = NEB;
+   }
+   else if (!strcmp("ODSolution", slvmthd))
+   {
+	   solu = OD;
+   }
+	
    else
    {
       cerr << "Unknown SolutionMethod : " << slvmthd << "\n";
@@ -31,7 +40,15 @@ SolutionMethod* InitializeSolution(Restriction* const Restrict, PerlInput const&
    }
 
    switch (solu)
-   {
+	{
+	  case OD:
+	  {
+		return new ODSolution(Restrict, Input, 0);
+	  }	   	
+	  case NEB:
+	  {
+		return new NEBSolution(Restrict, Input, 0);
+	  }	   
       case RefineEqbm:
       {
          return new RefineEqbmSolution(Restrict, Input, 0);
@@ -58,7 +75,7 @@ SolutionMethod* InitializeSolution(Restriction* const Restrict, PerlInput const&
             while (!ScanMe.AllSolutionsFound())
             {
                One = Two;
-               good = ScanMe.FindNextSolution();
+               good = ScanMe.FindNextSolution(Input, Width, out);
                if (good)
                {
                   count++;
@@ -119,7 +136,7 @@ SolutionMethod* InitializeSolution(Restriction* const Restrict, PerlInput const&
             // Find first solution point
             while (!slnmthd->AllSolutionsFound())
             {
-               good = slnmthd->FindNextSolution();
+               good = slnmthd->FindNextSolution(Input, Width, out);
                if (good)
                {
                   count++;
@@ -137,3 +154,4 @@ SolutionMethod* InitializeSolution(Restriction* const Restrict, PerlInput const&
 
    return 0;
 }
+

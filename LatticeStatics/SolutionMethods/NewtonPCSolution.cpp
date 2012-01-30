@@ -8,6 +8,9 @@ using namespace std;
 
 NewtonPCSolution::~NewtonPCSolution()
 {
+   // release  CP count tracking memory
+   delete [] TotalNumCPs_;
+   
    cout.width(0);
    cout << "NewtonPCSolution Stats:\n"
         << "\tCumulativeArcLength - " << CumulativeArcLength_ << "\n";
@@ -28,10 +31,10 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,
                                    double const& cont_rate_max, double const& delta_max,
                                    double const& alpha_max, double const& eig_angle_max,
                                    double const& Converge, ConvergeType CnvrgTyp,
-                                   Vector const& FirstSolution, int const& Direction,
-                                   double const& accel_max, int const& BifStartFlag,
-                                   Vector const& BifTangent, int const& ClosedLoopStart,
-                                   int const& ClosedLoopUseAsFirst,
+                                   int const& BisectCP, Vector const& FirstSolution,
+                                   int const& Direction, double const& accel_max,
+                                   int const& BifStartFlag, Vector const& BifTangent,
+                                   int const& ClosedLoopStart, int const& ClosedLoopUseAsFirst,
                                    double const& MaxCumulativeArcLength,
                                    int const& StopAtCPCrossingNum, int const& Echo) :
    Restrict_(Restrict),
@@ -51,6 +54,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,
    eig_angle_max_(eig_angle_max),
    Converge_(Converge),
    ConvergeType_(CnvrgTyp),
+   BisectCP_(BisectCP),
    BifStartFlag_(BifStartFlag),
    BifTangent_(BifTangent),
    ClosedLoopStart_(ClosedLoopStart),
@@ -84,6 +88,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,
    difference_static.Resize(count);
    Q_static.Resize(count, count);
    R_static.Resize(count, count_minus_one);
+   TestValues_static.Resize(Restrict_->NumTestFunctions());
    Stiff_static.Resize(count_minus_one, count);
 
    // QR Decomposition of Stiffness Matrix
@@ -103,6 +108,13 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,
    for (int i = 0; i < count; i++)
    {
       Tangent1_[i] = Tangent2_[i] = Direction_ * tansign * Q[i][count_minus_one];
+   }
+
+   // Initialize CP count tracking
+   TotalNumCPs_ = new int[Restrict_->NumTestFunctions()];
+   for (int i = 0; i < Restrict_->NumTestFunctions(); ++i)
+   {
+      TotalNumCPs_[i] = 0;
    }
 }
 
@@ -227,6 +239,20 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict, PerlInput const&
       Input.useString("Both", Hash, "ConvergeType");  // Default Value
       ConvergeType_ = Both;
    }
+   char const* const bisectcp = Input.getString(Hash, "BisectCP");
+   if (!strcmp("Yes", bisectcp))
+   {
+      BisectCP_ = 1;
+   }
+   else if (!strcmp("No", bisectcp))
+   {
+      BisectCP_ = 0;
+   }
+   else
+   {
+      cerr << "Unknown BisectCP option : " << bisectcp << "\nExiting!\n";
+      exit(-33);
+   }
    if (Input.ParameterOK(Hash, "ClosedLoopStart"))
    {
       ClosedLoopStart_ = Input.getInt(Hash, "ClosedLoopStart");
@@ -332,6 +358,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict, PerlInput const&
    difference_static.Resize(count);
    Q_static.Resize(count, count);
    R_static.Resize(count, count_minus_one);
+   TestValues_static.Resize(Restrict_->NumTestFunctions());
    Stiff_static.Resize(count_minus_one, count);
 
    // QR Decomposition of Stiffness Matrix
@@ -351,6 +378,13 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict, PerlInput const&
    for (int i = 0; i < count; i++)
    {
       Tangent1_[i] = Tangent2_[i] = Direction_ * tansign * Q[i][count_minus_one];
+   }
+
+   // Initialize CP count tracking
+   TotalNumCPs_ = new int[Restrict_->NumTestFunctions()];
+   for (int i = 0; i < Restrict_->NumTestFunctions(); ++i)
+   {
+      TotalNumCPs_[i] = 0;
    }
 }
 
@@ -473,6 +507,20 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict, PerlInput const&
       Input.useString("Both", Hash, "ConvergeType");  // Default Value
       ConvergeType_ = Both;
    }
+   char const* const bisectcp = Input.getString(Hash, "BisectCP");
+   if (!strcmp("Yes", bisectcp))
+   {
+      BisectCP_ = 1;
+   }
+   else if (!strcmp("No", bisectcp))
+   {
+      BisectCP_ = 0;
+   }
+   else
+   {
+      cerr << "Unknown BisectCP option : " << bisectcp << "\nExiting!\n";
+      exit(-33);
+   }
    if (Input.ParameterOK(Hash, "ClosedLoopStart"))
    {
       ClosedLoopStart_ = Input.getInt(Hash, "ClosedLoopStart");
@@ -533,6 +581,13 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict, PerlInput const&
    }
    Input.EndofInputSection();
 
+   // Initialize CP count tracking
+   TotalNumCPs_ = new int[Restrict_->NumTestFunctions()];
+   for (int i = 0; i < Restrict_->NumTestFunctions(); ++i)
+   {
+      TotalNumCPs_[i] = 0;
+   }
+
    int count = (Restrict_->DOF()).Dim();
    int count_minus_one = count - 1;
    // initialize "static" variables
@@ -543,6 +598,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict, PerlInput const&
    difference_static.Resize(count);
    Q_static.Resize(count, count);
    R_static.Resize(count, count_minus_one);
+   TestValues_static.Resize(Restrict_->NumTestFunctions());
    Stiff_static.Resize(count_minus_one, count);
 
    const char* starttype = Input.getString("StartType", "Type");
@@ -745,7 +801,7 @@ int NewtonPCSolution::IsConverged(double const& f, double const& d, int const& c
    return Converged;
 }
 
-int NewtonPCSolution::FindNextSolution()
+int NewtonPCSolution::FindNextSolution(PerlInput const& Input, int const& Width, ostream& out)
 {
    ++counter_[4];
    // Finds the next solution
@@ -1023,7 +1079,32 @@ int NewtonPCSolution::FindNextSolution()
 
    // always have current solution point printed
    good = 1;
+   
+   // Now we check for Critical Point Crossing
+   if (BisectCP_)
+   {
+      int TestValue;
+      TestValue = Restrict_->TestFunctions(TestValues_static);
+      if (!RelativeEigVectsOK())
+      {
+         cout << "NOTE: Relative Eigenvectors are too far apart!  "
+              << "Suggest decreasing step size.\n";
+      }
+      if ((TestValue > 0) && (BisectCP_ == 1) && (CurrentSolution_ > 1))
+      {
+         good = 2; // indicate that a critical point was found
+         FindCriticalPoint(Restrict_->Lat(), TotalNumCPs_, Input, Width, out);
+      }
+   }
 
+   // Send Output
+   if (Echo_)
+   {
+      cout << "Solutions Found = " << CurrentSolution_ << "\n";
+      cout << "Restric DOF's:\n" << setw(Width) << Restrict_->DOF() << "\n";
+   }
+   out << setw(Width) << *(Restrict_->Lat()) << "Success = 1" << "\n";
+      
    return good;
 }
 
@@ -1056,7 +1137,7 @@ void NewtonPCSolution::FindCriticalPoint(Lattice* const Lat, int* const TotalNum
          CT = ArcLengthSolution::Displacement;
          break;
    }
-   ArcLengthSolution S1(Restrict_, Restrict_->DOF(), MaxIter, Converge_, CT, tmp_ds, tmp_ds,
+   ArcLengthSolution S1(Restrict_, Restrict_->DOF(), MaxIter, Converge_, CT, 1, tmp_ds, tmp_ds,
                         tmp_ds, 1.0, 0.5, 1.0, eig_angle_max_, 1, 0, PreviousSolution_,
                         Restrict_->DOF() - PreviousSolution_, 0, Vector(), 10, 0, -1.0, -1, Echo_);
    S1.FindCriticalPoint(Lat, TotalNumCPCrossings, Input, Width, out);

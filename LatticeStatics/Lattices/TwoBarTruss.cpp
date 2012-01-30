@@ -52,6 +52,15 @@ TwoBarTruss::TwoBarTruss(PerlInput const& Input, int const& Echo, int const& Wid
 
    Gamma_ = Input.getDouble(Hash, "Gamma");
 
+   if (Input.ParameterOK(Hash, "NumExtraTFs"))
+   {
+      NumExtraTFs_ = Input.getPosInt(Hash, "NumExtraTFs");
+   }
+   else
+   {
+      NumExtraTFs_ = 0;
+      Input.usePosInt(0, Hash, "NumExtraTFs"); // Default Value
+   }
    if (NumExtraTFs_ > 0)
    {
       if (Input.ParameterOK(Hash, "ExtraTFs"))

@@ -12,6 +12,9 @@ extern "C" void qcbfb_output_(int& nfree, double* u, double& prop, int& nint, in
 
 ArcLengthSolution::~ArcLengthSolution()
 {
+   // release  CP count tracking memory
+   delete [] TotalNumCPs_;
+
    cout.width(0);
    cout << "ArcLengthSolution Stats:\n"
         << "\tCumulativeArcLength - " << CumulativeArcLength_ << "\n";
@@ -31,14 +34,15 @@ ArcLengthSolution::~ArcLengthSolution()
 
 ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict, Vector const& dofs,
                                      int const& MaxIter, double const& Tolerance,
-                                     ConvergeType CnvrgTyp, double const& DSMax,
-                                     double const& DSMin, double const& CurrentDS,
-                                     double const& AngleCutoff, double const& AngleIncrease,
-                                     double const& Aspect, double const& eig_angle_max,
-                                     int const& NumSolutions, int const& CurrentSolution,
-                                     Vector const& FirstSolution, Vector const& Difference,
-                                     int const& BifStartFlag, Vector const& BifTangent,
-                                     int const& ClosedLoopStart, int const& ClosedLoopUseAsFirst,
+                                     ConvergeType CnvrgTyp, int const& BisectCP,
+                                     double const& DSMax, double const& DSMin,
+                                     double const& CurrentDS, double const& AngleCutoff,
+                                     double const& AngleIncrease, double const& Aspect,
+                                     double const& eig_angle_max, int const& NumSolutions,
+                                     int const& CurrentSolution, Vector const& FirstSolution,
+                                     Vector const& Difference, int const& BifStartFlag,
+                                     Vector const& BifTangent, int const& ClosedLoopStart,
+                                     int const& ClosedLoopUseAsFirst,
                                      double const& MaxCumulativeArcLength,
                                      int const& StopAtCPCrossingNum, int const& Echo) :
    Echo_(Echo),
@@ -46,6 +50,7 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict, Vector const& 
    DOFS_(Restrict_->DOF().Dim()),
    MaxIter_(MaxIter),
    ConvergeType_(CnvrgTyp),
+   BisectCP_(BisectCP),
    Tolerance_(Tolerance),
    DSMax_(DSMax),
    DSMin_(DSMin),
@@ -75,6 +80,13 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict, Vector const& 
       counter_[i] = 0;
    }
    ArcLenSet(dofs);
+
+   // Initialize CP count tracking
+   TotalNumCPs_ = new int[Restrict_->NumTestFunctions()];
+   for (int i = 0; i < Restrict_->NumTestFunctions(); ++i)
+   {
+      TotalNumCPs_[i] = 0;
+   }
 }
 
 ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict, PerlInput const& Input,
@@ -127,6 +139,20 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict, PerlInput cons
    {
       Input.useString("Both", Hash, "ConvergeType");  // Default Value
       ConvergeType_ = Both;
+   }
+   char const* const bisectcp = Input.getString(Hash, "BisectCP");
+   if (!strcmp("Yes", bisectcp))
+   {
+      BisectCP_ = 1;
+   }
+   else if (!strcmp("No", bisectcp))
+   {
+      BisectCP_ = 0;
+   }
+   else
+   {
+      cerr << "Unknown BisectCP option : " << bisectcp << "\nExiting!\n";
+      exit(-33);
    }
    Tolerance_ = Input.getDouble(Hash, "Tolerance");
    DSMax_ = Input.getDouble(Hash, "DSMax");
@@ -210,6 +236,13 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict, PerlInput cons
 
    // Set Lattice to solution "two"
    ArcLenSet(two);
+
+   // Initialize CP count tracking
+   TotalNumCPs_ = new int[Restrict_->NumTestFunctions()];
+   for (int i = 0; i < Restrict_->NumTestFunctions(); ++i)
+   {
+      TotalNumCPs_[i] = 0;
+   }
 }
 
 ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict, PerlInput const& Input,
@@ -307,6 +340,13 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict, PerlInput cons
       StopAtCPCrossingNum_ = Input.useInt(-1, Hash, "StopAtCPCrossingNum"); // Default Value
    }
    Input.EndofInputSection();
+
+   // Initialize CP count tracking
+   TotalNumCPs_ = new int[Restrict_->NumTestFunctions()];
+   for (int i = 0; i < Restrict_->NumTestFunctions(); ++i)
+   {
+      TotalNumCPs_[i] = 0;
+   }
 
    const char* starttype = Input.getString("StartType", "Type");
 
@@ -516,7 +556,7 @@ int ArcLengthSolution::AllSolutionsFound() const
    return (CurrentSolution_ >= NumSolutions_);
 }
 
-int ArcLengthSolution::FindNextSolution()
+int ArcLengthSolution::FindNextSolution(PerlInput const& Input, int const& Width, ostream& out)
 {
    ++counter_[9];
 
@@ -619,6 +659,31 @@ int ArcLengthSolution::FindNextSolution()
 
    // Always have the current "solution" state printed as a solution point
    good = 1;
+
+   // Now we check for Critical Point Crossing
+   if (BisectCP_)
+   {
+      int TestValue;
+      TestValue = Restrict_->TestFunctions(TestValues_static);
+      if (!RelativeEigVectsOK())
+      {
+         cout << "NOTE: Relative Eigenvectors are too far apart!  "
+              << "Suggest decreasing step size.\n";
+      }
+      
+      if ((TestValue > 0) && (BisectCP_ == 1) && (CurrentSolution_ > 1))
+      {
+         good = 2; // indicate that a critical point was found.
+         FindCriticalPoint(Restrict_->Lat(), TotalNumCPs_, Input, Width, out);
+      }
+   }
+   
+   // Send Output
+   if (Echo_)
+   {
+      cout << "Restric DOF's:\n" << setw(Width) << Restrict_->DOF() << "\n";
+   }
+   out << setw(Width) << *(Restrict_->Lat()) << "Success = 1" << "\n";
 
    return good;
 }
