@@ -119,7 +119,10 @@ $Rtheta1_1_1 = 0.275914376289;
              #ReferenceLambda      => 0.0, # Default value = 0.0
              NTemp               => 1.0,
              Lambda              => 0.0#,
-             #ExtraTFs => [0.1]
+             ExtraTestFunctions  => {Type              => None#, # None, KVectors, LoadingParameters
+                                     #KVectors          => [[1.0, 1.0, 1.0, 2.0, 3.0]]
+                                     #LoadingParameters => [0.1, 0.5, 1.2, 2.0]
+                                    },
             },
             MultiChainTPP  => {InternalAtoms     => 4,
                                LatticeBasis      => 1.00,

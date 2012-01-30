@@ -1,5 +1,6 @@
 #include "MultiLatticeTPP.h"
 #include "UtilityFunctions.h"
+#include <fstream>
 #include <cmath>
 
 using namespace std;
@@ -238,7 +239,7 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput const& Input, int const& Echo, int co
    iter = Input.getPosInt(Hash, "MaxIterations");
    GridSize_ = Input.getPosInt(Hash, "BlochWaveGridSize");
 
-   // values to identifiy REFERNCE CONFIGURATION
+   // values to identifiy REFERENCE CONFIGURATION
    if (Input.ParameterOK(Hash, "ReferenceTemperature"))
    {
       REFTemp_ = Input.getDouble(Hash, "ReferenceTemperature");
@@ -255,36 +256,39 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput const& Input, int const& Echo, int co
    {
       REFLambda_ = Input.useDouble(0.0, Hash, "ReferenceLambda"); // Default Value
    }
-
-   // Read any Extra Test Functions
-   if (NumExtraTFs_ > 0)
+   
+   PerlInput::HashStruct TFHash = Input.getHash(Hash, "ExtraTestFunctions");
+   const char* TFtyp = Input.getString(TFHash, "Type");
+   if ((!strcmp("None", TFtyp)) || (!strcmp("none", TFtyp)))
    {
-      if (Input.ParameterOK(Hash, "ExtraTFs"))
-      {
-         if (Input.getArrayLength(Hash, "ExtraTFs") == NumExtraTFs_)
-         {
-            ExtraTestFunctions_.Resize(NumExtraTFs_);
-            Input.getVector(ExtraTestFunctions_, Hash, "ExtraTFs");
-         }
-         else
-         {
-            cerr << "Error: ArrayLength of " << Hash.Name
-                 << "{ExtraTFs} is not equal to Lattice{NumExtraTFs}.\n";
-            exit(-2);
-         }
-      }
-      else
-      {
-         cerr << "Error: ExtraTFs not defined but Lattice{NumExtraTFs} = "
-              << NumExtraTFs_ << ".\n";
-         exit(-3);
-      }
+      TFType_ = 0;
+      NumExtraTFs_ = 0;
+   }
+   else if((!strcmp("KVectors", TFtyp)) || (!strcmp("kvectors", TFtyp)))
+   {
+      //KVector is input as [h,k,l, c, d] -> (c/d)(h,k,l)
+      DynMatrixDim_ = DIM3*InternalAtoms_;
+      NumKVectors_ = Input.getArrayLength(TFHash,"KVectors");
+      KVectorMatrix_.Resize(NumKVectors_, 5);
+      Input.getMatrix(KVectorMatrix_,TFHash,"KVectors");
+      
+      TFType_ = 1;
+      NumExtraTFs_ = DynMatrixDim_*NumKVectors_;
+   }
+   else if((!strcmp("LoadingParameters", TFtyp)) || (!strcmp("loadingparameters", TFtyp)))
+   {
+      TFType_ = 2;
+      NumExtraTFs_ = Input.getArrayLength(TFHash,"LoadingParameters");
+      
+      TFLoad_.Resize(NumExtraTFs_);
+      Input.getVector(TFLoad_,TFHash,"LoadingParameters");
    }
    else
    {
-      ExtraTestFunctions_.Resize(0);
+      cerr << "Error (MultiLatticeTPP()): Unknown TestFunctions{Type}" << "\n";
+      exit(-3);
    }
-
+       
    // Initialize various data storage space
    ME1_static.Resize(CBK_->DOFS(), 0.0);
    ME2_static.Resize(CBK_->DOFS(), CBK_->DOFS(), 0.0);
@@ -298,6 +302,14 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput const& Input, int const& Echo, int co
    TE_static.Resize(CBK_->DOFS());
    CondModuli_static.Resize(CBK_->Fsize(), CBK_->Fsize());
    TestFunctVals_static.Resize(NumTestFunctions());
+   if(TFType_ == 2) // only print stiffness eigenvalues
+   {
+      TestFunctVals_Print.Resize(CBK_->DOFS());
+   }
+   else // print everything
+   {
+      TestFunctVals_Print.Resize(TestFunctVals_static.Dim());
+   }
    K_static.Resize(DIM3);
 
 
@@ -1425,24 +1437,491 @@ Matrix const& MultiLatticeTPP::E4() const
    return Phi4_static;
 }
 
-void MultiLatticeTPP::ExtraTestFunctions(Vector& TF) const
+int MultiLatticeTPP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex,
+                                       Vector const& DrDt, int const& CPorBif,
+                                       int const& NumZeroEigenVals, double const& Tolerance,
+                                       int const& Width, PerlInput const& Input, ostream& out)
 {
-   for (int i = 0; i < NumExtraTFs_; ++i)
+   int const IndexZeros = 4;
+   int const OccuranceZeros = 3;
+   int Bif;
+
+   // do standard CPInfo stuff and output bfb restart file
+   Bif = Lattice::CriticalPointInfo(CPCrossingNum, TFIndex, DrDt, CPorBif, NumZeroEigenVals,
+                                    Tolerance, Width, Input, out);
+
+   if (CPorBif < 0)
    {
-      if (LoadParameter_ == Temperature)
+      // append to new input file to help restart at an ExtraTestFunction point
+      ostringstream cpfilename;
+      fstream cpfile;
+      ostringstream TFOrderFilename;
+      fstream TFOrderFile;
+      cpfilename << Input.LastInputFileName();
+      if ("" != UseExtension_)
       {
-         TF[i] = (ExtraTestFunctions_[i] - Temp());
+         unsigned pos = (cpfilename.str().rfind(UseExtension_, cpfilename.str().length() - 1));
+         if (string::npos != pos)
+         {
+            string a = cpfilename.str().substr(0, pos);
+            cpfilename.str("");
+            cpfilename << a;
+         }
       }
-      else if (LoadParameter_ == Load)
+      cpfilename << ".E";
+      cpfilename.fill('0');
+      cpfilename << setw(IndexZeros) << TFIndex << "-"
+                 << setw(OccuranceZeros) << CPCrossingNum[TFIndex];
+      cpfilename.fill(' ');
+      int CPcount = 0;
+      for (int i = 0; i < NumTestFunctions(); ++i)
       {
-         TF[i] = (ExtraTestFunctions_[i] - Lambda());
+         CPcount += CPCrossingNum[i];
       }
-      else
+
+      TFOrderFilename << cpfilename.str() << ".TF.order";
+      TFOrderFile.open(TFOrderFilename.str().c_str(), ios::out | ios::app);
+
+      TFOrderFile << setiosflags(ios::fixed) << setprecision(Width / 2);
+      TFOrderFile << setw(Width) << CPcount << "     " << cpfilename.str()
+                  << setw(Width) << ((LoadParameter_ == Temperature) ? Temp() : Lambda())
+                  << "     ";
+      KPrint(TFIndex, Width, TFOrderFile);
+      TFOrderFile << endl;
+      TFOrderFile.close();			   
+
+      cpfile.open(cpfilename.str().c_str(), ios::out | ios::app);
+      cpfile << setprecision(out.precision()) << scientific;
+      cpfile << "\n\n";
+      TFCritPtInfo(TFIndex, Width, cpfile);
+      NewCBCellSingleK(TFIndex,Width, cpfile);
+      cpfile.close();
+   }
+}
+
+void MultiLatticeTPP::ExtraTestFunctions(Vector& TF) const
+{	
+   if(TFType_ == 1) // KVectors
+   {
+      Vector KV1(DIM3,0.0);
+      Vector KV2(DIM3,0.0);
+      CMatrix DynMat(DynMatrixDim_,DynMatrixDim_,0.0);
+      Matrix DynMatEigVal(1,DynMatrixDim_,0.0);
+      int k=0;
+      for (int i=0;i<NumKVectors_;++i)
       {
-         cerr << "Error MultiLatticeTPP::ExtraTestFunctions:  Unknown LoadParameter.\n";
-         exit(-2);
+         for(int j=0;j<DIM3;++j)
+         {
+            KV1[j] = KVectorMatrix_[i][j]*KVectorMatrix_[i][3]/KVectorMatrix_[i][4];
+         }
+         KV2 = InverseLat_static*KV1;
+         DynMat = ReferenceDynamicalStiffness(KV2); 
+         DynMatEigVal = HermiteEigVal(DynMat);
+         
+         for (int l=0; l< DynMatrixDim_;++l)
+         {
+            TF[k] = DynMatEigVal[0][l];
+            ++k;
+         }
       }
    }
+   else if(TFType_ == 2) // LoadingParameters
+   {
+      for(int i = 0; i < NumExtraTFs_; ++i)
+      {
+         if (LoadParameter_ == Temperature)
+         {
+            TF[i] = (TFLoad_[i] - Temp());
+         }
+         else if (LoadParameter_ == Load)
+         {	
+            TF[i] = (TFLoad_[i] - Lambda());
+         }
+         
+         else
+         {
+            cerr << "Error MultiLatticeTPP::ExtraTestFunctions:  Unknown LoadParameter.\n";
+            exit(-2);
+         }
+      }
+   }
+}
+
+void MultiLatticeTPP::KPrint(int TFIndex, int Width, ostream& out) const
+{
+   int counter;
+   int whichTF;
+   int whichKV;
+   Vector KTest(DIM3,0.0);
+   Vector KVectorPrint(5,0.0);
+   whichTF = TFIndex - (CBK_->DOFS());
+   
+   for(int i=0;i<NumKVectors_;++i)
+   {
+      counter = i*DynMatrixDim_;
+      for (int j = counter; j<(counter + DynMatrixDim_);++j)
+      {
+         if (whichTF == j)
+         {
+            whichKV = i;
+            break;
+         }			
+      }
+   }
+   for (int i=0; i<5;i++)
+   {
+      KVectorPrint[i] = KVectorMatrix_[whichKV][i];
+   }
+   out << setw(Width) << KVectorPrint << endl;
+}
+
+void MultiLatticeTPP::TFCritPtInfo(int TFIndex, int Width, ostream& out) const
+{
+   Vector KVec1(DIM3,0.0);
+   Vector KVec2(DIM3,0.0);
+   Vector KVectorPrint(5,0.0);
+   CMatrix DynMat(DynMatrixDim_,DynMatrixDim_,0.0);
+   Matrix DynMatEigVal(1,DynMatrixDim_,0.0);
+   Vector DynMatEigValPrint(DynMatrixDim_, 0.0);
+   
+   int counter;
+   int whichTF;
+   int whichKV;
+   whichTF = TFIndex - (CBK_->DOFS());
+   
+   for(int i=0;i<NumKVectors_;++i)
+   {
+      counter = i*DynMatrixDim_;
+      for (int j = counter; j<(counter + DynMatrixDim_);++j)
+      {
+         if (whichTF == j)
+         {
+            whichKV = i;
+            break;
+         }			
+      }
+   }
+   
+   for(int j=0;j<DIM3;++j)
+   {
+      KVec1[j] = KVectorMatrix_[whichKV][j]*KVectorMatrix_[whichKV][3]/KVectorMatrix_[whichKV][4];
+   }
+   KVec2 = InverseLat_static*KVec1;
+   DynMat = ReferenceDynamicalStiffness(KVec2); 
+   DynMatEigVal = HermiteEigVal(DynMat);
+   
+   for (int i=0; i<5;i++)
+   {
+      KVectorPrint[i] = KVectorMatrix_[whichKV][i];
+   }
+   
+   // Print out info
+   out << "\n";
+   out <<  "$TestFunctions{KVector} = [" << KVectorPrint[0] << ", " << KVectorPrint[1]
+       << ", " << KVectorPrint[2] << ", " << KVectorPrint[3] << ", " << KVectorPrint[4]
+       <<  "];" << "\n";
+   for (int i = 0; i < DynMatrixDim_;i++)
+   {
+      DynMatEigValPrint[i] = DynMatEigVal[0][i];
+   }
+   out << "$ExtraTF{DynMatEigVal} = " << setw(Width) << DynMatEigValPrint << "\n"; 
+   out <<  "$ExtraTF{DynMat} = " << setw(Width) << DynMat << "\n";
+}
+
+// The following is the Pairwise lattice reduction routine as per Tadmor, Sorkin & Arndt [2009]
+// It takes in a bx3 matrix of b rows of Lattice vectors to be reduced
+// It returns a bx3 matrix consisting of b row vectors (in R^3) for use with NewCBCellSingleK
+Matrix const MultiLatticeTPP::PairwiseReduction(Matrix const& RowLatVects) const
+{
+   int b, terminate, l, s, m;
+   double Norm1, Norm2, DotLS, NormS_squared, value;
+   
+   b = RowLatVects.Rows();
+   Matrix ReduceLatticeVectorsMatrix(b,3);
+   for(int i = 0;i < b;i++)
+   {
+      for(int j = 0; j< DIM3;j++)
+      {
+         ReduceLatticeVectorsMatrix[i][j] = RowLatVects[i][j];
+      }
+   }
+   terminate = 0;
+   while (terminate == 0)
+   {
+      terminate = 1;
+      for (int i = 0; i < (b-1); i++)
+      {
+         for (int j = (i+1); j < b; j++)
+         {
+            Norm1 = sqrt(ReduceLatticeVectorsMatrix[i][0]*ReduceLatticeVectorsMatrix[i][0]+
+                         ReduceLatticeVectorsMatrix[i][1]*ReduceLatticeVectorsMatrix[i][1]+
+                         ReduceLatticeVectorsMatrix[i][2]*ReduceLatticeVectorsMatrix[i][2]);
+            Norm2 = sqrt(ReduceLatticeVectorsMatrix[j][0]*ReduceLatticeVectorsMatrix[j][0]+
+                         ReduceLatticeVectorsMatrix[j][1]*ReduceLatticeVectorsMatrix[j][1]+
+                         ReduceLatticeVectorsMatrix[j][2]*ReduceLatticeVectorsMatrix[j][2]);
+            if (Norm1 >= Norm2)
+            {
+               l = i;
+               s = j;
+            }
+            else
+            {
+               l = j;
+               s = i;
+            }
+            DotLS = ReduceLatticeVectorsMatrix[l][0]*ReduceLatticeVectorsMatrix[s][0]+
+               ReduceLatticeVectorsMatrix[l][1]*ReduceLatticeVectorsMatrix[s][1]+
+               ReduceLatticeVectorsMatrix[l][2]*ReduceLatticeVectorsMatrix[s][2];
+            NormS_squared= ReduceLatticeVectorsMatrix[s][0]*ReduceLatticeVectorsMatrix[s][0]+
+               ReduceLatticeVectorsMatrix[s][1]*ReduceLatticeVectorsMatrix[s][1]+
+               ReduceLatticeVectorsMatrix[s][2]*ReduceLatticeVectorsMatrix[s][2];
+            value = DotLS / NormS_squared;
+            m = floor( value + 0.5 );
+            if (m != 0)
+            {
+               ReduceLatticeVectorsMatrix[l][0] = ReduceLatticeVectorsMatrix[l][0] - m*ReduceLatticeVectorsMatrix[s][0];
+               ReduceLatticeVectorsMatrix[l][1] = ReduceLatticeVectorsMatrix[l][1] - m*ReduceLatticeVectorsMatrix[s][1];
+               ReduceLatticeVectorsMatrix[l][2] = ReduceLatticeVectorsMatrix[l][2] - m*ReduceLatticeVectorsMatrix[s][2];
+               terminate = 0;
+            }
+         }
+      }
+   }
+   return ReduceLatticeVectorsMatrix;
+}
+
+void MultiLatticeTPP::NewCBCellSingleK(int TFIndex, int Width, ostream& out) const
+{
+   //Note that MillerIndexCD is a vector in R^5 of the form [h,k,l,c,d]
+   int counter;
+   
+   Matrix InitLatVects(2,DIM3);
+   Matrix ReducedLatVects(2,DIM3);
+   Matrix RefLat(DIM3,DIM3);
+   Matrix RefLatTemp(DIM3,DIM3);
+   Vector G1(DIM3, 0.0);
+   Vector G2(DIM3, 0.0);
+   Vector G3(DIM3, 0.0);
+   Vector G1Star(DIM3, 0.0);
+   Vector G2Star(DIM3, 0.0);
+   Vector G3Star(DIM3, 0.0);
+   Vector G1Plus(DIM3, 0.0);
+   Vector G2Plus(DIM3, 0.0);
+   Vector G3Plus(DIM3, 0.0);
+   Vector GVector(DIM3,0.0);
+   Vector K(5, 0.0);
+   Vector MinValueVector(DIM3,0.0);
+   
+   RefLatTemp = CBK_->RefLattice();
+   
+   counter = 0;
+   double MinValue;
+   
+   int num;
+   for(int i = 0;i < DIM3; i++)
+   {
+      num = 0;
+      for (int j = 0;j< DIM3;j++)
+      {
+         if (abs(RefLatTemp[i][j]) != 0)
+         {
+            MinValueVector[num] = abs(RefLatTemp[i][j]);
+            num++;		
+         }
+      }
+      MinValue = MinValueVector[0];
+      for (int j = 0;j< num;j++)
+      {
+         if (MinValueVector[j] < MinValue)
+         {
+            MinValue = MinValueVector[j];
+         }
+      }
+      for (int j = 0; j<DIM3; j++)
+      {
+         RefLat[i][j] = RefLatTemp[i][j]/MinValue;	
+      }
+   }
+   
+   for (int i = 0; i< DIM3; i++)
+   {
+      G1[i] = RefLat[0][i];
+      G2[i] = RefLat[1][i];
+      G3[i] = RefLat[2][i];
+   }
+   
+   int k1, k2, k3;
+   int CommonDivisor;
+   
+   int whichTF;
+   int whichKV;
+   whichTF = TFIndex - (CBK_->DOFS());
+   
+   for(int i=0;i<NumKVectors_;++i)
+   {
+      counter = i*DynMatrixDim_;
+      for (int j = counter; j<(counter + DynMatrixDim_);++j)
+      {
+         if (whichTF == j)
+         {
+            whichKV = i;
+            break;
+         }			
+      }
+   }
+   
+   for(int j=0;j<5;++j)
+   {
+      K[j] = KVectorMatrix_[whichKV][j];
+   }
+   
+   k1 = floor(K[0]+0.5);
+   k2 = floor(K[1]+0.5);
+   k3 = floor(K[2]+0.5);
+   
+   for(int j = 0; j < DIM3; j++)
+   {
+      InitLatVects[0][j] = 0.0;
+      InitLatVects[1][j] = 0.0;		
+      ReducedLatVects[0][j] = 0.0;
+      ReducedLatVects[1][j] = 0.0;		
+   }
+   
+   if (K[2] != 0)
+   {
+      CommonDivisor = GCD(k2, k3);
+      G1Star = (-k3*G2 + k2*G3)/CommonDivisor;
+      CommonDivisor = GCD(k1, k3);
+      G2Star = (-k3*G1 + k1*G3)/CommonDivisor;
+   }
+   else if (K[1] != 0)
+   {
+      CommonDivisor = GCD(k1, k2);
+      G1Star = (-k2*G1 + k1*G2)/CommonDivisor;
+      G2Star = G3;
+   }
+   else
+   {
+      G1Star = G2;
+      G2Star = G3;
+   }
+   
+   for (int j = 0; j < 3; j++)
+   {
+      InitLatVects[0][j] = G1Star[j];
+      InitLatVects[1][j] = G2Star[j];
+   }
+   
+   ReducedLatVects = PairwiseReduction(InitLatVects);
+   
+   for (int j = 0; j < 3; j++)
+   {
+      G1Plus[j] = ReducedLatVects[0][j];
+      G2Plus[j] = ReducedLatVects[1][j];
+   }
+   
+   
+   //MINIMIZATION ROUTINE
+   counter = 0;
+   int dValue = 0;
+   MinValue = 0;
+   for (int i = -K[4]; i <= K[4]; i++)
+   {
+      for (int j = -K[4]; j <= K[4]; j++)
+      {
+         for (int k = -K[4]; k <= K[4]; k++)
+         {
+            dValue = i*K[0] + j*K[1] + k*K[2];
+            GVector = i*G1 + j*G2 + k*G3;
+            if(dValue == K[4])
+            {
+               if(counter == 1)
+               {
+                  if(MinValue > (GVector.Norm()))
+                  {
+                     MinValue = GVector.Norm();
+                     G3Plus = GVector;
+                  }
+               }
+               if(counter == 0)
+               {
+                  MinValue = GVector.Norm();
+                  counter = 1;
+                  G3Plus = GVector;
+               }
+            }
+         }
+      }
+   }
+   int MU[DIM3][DIM3];
+   for(int j=0;j < DIM3; j++)
+   {
+      MU[0][j] = floor(G1Plus[j]);
+      MU[1][j] = floor(G2Plus[j]);
+      MU[2][j] = floor(G3Plus[j]);		
+   }
+   
+   
+   Matrix SuperCellRefLattice(DIM3, DIM3);
+   Vector* SuperCellIntPOS = NULL;
+   int SuperCellIntAtoms;
+   int SuperCellAtomSpecies[CBK_MAX_ATOMS];
+   
+   
+   CBK_->SuperCellInfo(MU, SuperCellRefLattice, SuperCellIntAtoms, SuperCellIntPOS,
+                       SuperCellAtomSpecies);
+   
+   out << "$Lattice{MultiLatticeTPP}{CBKinematics}{LatticeBasis} = [["
+       << SuperCellRefLattice[0][0] << ",  " << SuperCellRefLattice[0][1] << ", "
+       << SuperCellRefLattice[0][2] << "]," << "\n"
+       << "                                                      ["
+       << SuperCellRefLattice[1][0] << ",  " << SuperCellRefLattice[1][1] << ", "
+       << SuperCellRefLattice[1][2] << "]," << "\n"
+       << "                                                      ["
+       << SuperCellRefLattice[2][0] << ",  " << SuperCellRefLattice[2][1] << ", "
+       << SuperCellRefLattice[2][2] << "]];" << "\n";
+   
+   out << "$Lattice{MultiLatticeTPP}{CBKinematics}{InternalAtoms} = "
+       << SuperCellIntAtoms << ";" << "\n";
+   
+   for (int i = 0; i < SuperCellIntAtoms; i++)
+   {
+      
+      out << "$Lattice{MultiLatticeTPP}{CBKinematics}{AtomPositions}[" << i << "] = ["
+          << SuperCellIntPOS[i][0] << ", " << SuperCellIntPOS[i][1] << ", "
+          << SuperCellIntPOS[i][2] << "];" << "\n";
+   }
+   
+   
+   out << "$Lattice{MultiLatticeTPP}{CBKinematics}{AtomSpecies} = [";
+   for (int i = 0; i < SuperCellIntAtoms; i++)
+   {
+      if (i <(SuperCellIntAtoms - 1))
+      {
+         out << SuperCellAtomSpecies[i] << ", ";
+      }
+      else
+      {	
+         out << SuperCellAtomSpecies[i] << "];" << "\n";
+      }
+   }
+   
+   delete[] SuperCellIntPOS;
+   
+}						
+
+//The following is a function to find the greatest common divisor of two integeres x and y
+//If none exists, it might be best to move this to a math object
+int MultiLatticeTPP::GCD(int x, int y) const
+{
+   int t;       
+   while (y!=0)
+   {
+      t=y;
+      y=x%y;
+      x=t;
+   }
+   return x;
 }
 
 Matrix const& MultiLatticeTPP::CondensedModuli() const
@@ -2053,15 +2532,35 @@ void MultiLatticeTPP::Print(ostream& out, PrintDetail const& flag,
    TestFunctions(TestFunctVals_static, LHS);
 
    mintestfunct = TestFunctVals_static[0];
-   for (int i = 0; i < TestFunctVals_static.Dim(); ++i)
+
+   if(TFType_ == 2) // LoadingParameters
    {
-      if (TestFunctVals_static[i] < 0.0)
+      for(int i = 0; i < CBK_->DOFS(); ++i)
       {
-         ++NoNegTestFunctions;
+         TestFunctVals_Print[i] = TestFunctVals_static[i];
+         if (TestFunctVals_static[i] < 0.0)
+         {
+            ++NoNegTestFunctions;
+         }
+         if (mintestfunct > TestFunctVals_static[i])
+         {
+            mintestfunct = TestFunctVals_static[i];
+         }
       }
-      if (mintestfunct > TestFunctVals_static[i])
+   }
+   else // KVectors or None
+   {
+      for (int i = 0; i < TestFunctVals_static.Dim(); ++i)
       {
-         mintestfunct = TestFunctVals_static[i];
+         TestFunctVals_Print[i] = TestFunctVals_static[i];
+         if (TestFunctVals_static[i] < 0.0)
+         {
+            ++NoNegTestFunctions;
+         }
+         if (mintestfunct > TestFunctVals_static[i])
+         {
+            mintestfunct = TestFunctVals_static[i];
+         }
       }
    }
 
@@ -2177,7 +2676,7 @@ void MultiLatticeTPP::Print(ostream& out, PrintDetail const& flag,
          out << "Stress (Normalized):" << "\n" << setw(W) << str_static << "\n\n"
              << "Stiffness (Normalized):" << setw(W) << stiff_static
              << "Eigenvalue Info (Rots->1,2,3; Trans->4,5,6):" << "\n" << setw(W)
-             << TestFunctVals_static << "\n"
+             << TestFunctVals_Print << "\n"
              << "Bifurcation Info:" << setw(W) << mintestfunct
              << setw(W) << NoNegTestFunctions << "\n"
              << "Condensed Moduli (Normalized):" << setw(W) << CondModuli_static
