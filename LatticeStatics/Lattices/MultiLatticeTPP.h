@@ -62,7 +62,7 @@ private:
    int DynMatrixDim_;
    int NumKVectors_;
    Vector TFLoad_;
-	
+   int NewCBCellFlag_;
 
    // Pair Potential data
    PairPotentials*** SpeciesPotential_;

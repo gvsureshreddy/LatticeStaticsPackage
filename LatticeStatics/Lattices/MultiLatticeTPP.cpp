@@ -274,7 +274,8 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput const& Input, int const& Echo, int co
    {
       REFLambda_ = Input.useDouble(0.0, Hash, "ReferenceLambda"); // Default Value
    }
-   
+
+   NewCBCellFlag_ = 0; // make sure initialized
    PerlInput::HashStruct TFHash = Input.getHash(Hash, "ExtraTestFunctions");
    const char* TFtyp = Input.getString(TFHash, "Type");
    if ((!strcmp("None", TFtyp)) || (!strcmp("none", TFtyp)))
@@ -292,6 +293,16 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput const& Input, int const& Echo, int co
       
       TFType_ = 1;
       NumExtraTFs_ = DynMatrixDim_*NumKVectors_;
+
+      NewCBCellFlag_ = 1;  // default value
+      if (Input.ParameterOK(TFHash, "PrintNewCBCell"))
+      {
+         const char* NewCell = Input.getString(TFHash, "PrintNewCBCell");
+         if ((!strcmp("No", NewCell)) || (!strcmp("no", NewCell)))
+         {
+            NewCBCellFlag_ = 0;
+         }
+      }
    }
    else if((!strcmp("LoadingParameters", TFtyp)) || (!strcmp("loadingparameters", TFtyp)))
    {
@@ -1670,7 +1681,7 @@ int MultiLatticeTPP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIn
       cpfile << setprecision(out.precision()) << scientific;
       cpfile << "\n\n";
       TFCritPtInfo(TFIndex, Width, cpfile);
-      NewCBCellSingleK(TFIndex,Width, cpfile);
+      if (NewCBCellFlag_) NewCBCellSingleK(TFIndex,Width, cpfile);
       cpfile.close();
    }
 }

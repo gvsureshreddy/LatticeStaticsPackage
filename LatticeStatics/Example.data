@@ -122,7 +122,8 @@ $Rtheta1_1_1 = 0.275914376289;
              NTemp               => 1.0,
              Lambda              => 0.0#,
              ExtraTestFunctions  => {Type              => None#, # None, KVectors, LoadingParameters
-                                     #KVectors          => [[1.0, 1.0, 1.0, 2.0, 3.0]]
+                                     #KVectors          => [[1.0, 1.0, 1.0, 2.0, 3.0]],
+                                     #PrintNewCBCell    => Yes, # Default Value = Yes, No
                                      #LoadingParameters => [0.1, 0.5, 1.2, 2.0]
                                     },
             },
