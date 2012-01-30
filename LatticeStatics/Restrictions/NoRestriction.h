@@ -35,10 +35,10 @@ private:
 
 public:
    NoRestriction(Lattice* const M, PerlInput const& Input) :
-      Restriction(Input), dof_static(Lattice_->DOF().Dim() + 1),
-      ddt_static(Lattice_->DOF().Dim()),
-      Stiff_static(Lattice_->DOF().Dim(), Lattice_->DOF().Dim()),
-      stressdt_static(Lattice_->DOF().Dim())
+      Restriction(Input), dof_static(M->DOF().Dim() + 1),
+      ddt_static(M->DOF().Dim()),
+      Stiff_static(M->DOF().Dim(), M->DOF().Dim()),
+      stressdt_static(M->DOF().Dim())
    {
       Lattice_ = M;
       
