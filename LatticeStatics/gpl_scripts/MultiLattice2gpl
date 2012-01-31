@@ -86,8 +86,9 @@ sub loaddata {
      @potential,@entropy,@heatcapacity,@noneg,@blochwave,
      $stableflag,$stable_nodata,$unstable_nodata,$bifpoints,$turnpoints,
      $reconstturnpts,$gridsize,$loadparam,$loadgrad,$oldloadgrad,$recalc,$BWrecalc,
-     $outputfl);
+     $outputfl,$FastPrint);
   $outputfl = $_[2];
+  $FastPrint = 0;
   $bifheader = "";
   $bif = "";
   $biftmp = "";
@@ -155,6 +156,12 @@ sub loaddata {
         $fields[1] =~ s/[,;].*//g;
         $gridsize = $fields[1];
       }
+
+      if (/^Input File:.*FastPrint.*Yes/)
+      {
+        $FastPrint = 1;
+      }
+
       $_ = <DATA>;
     }
     
@@ -218,6 +225,15 @@ sub loaddata {
           $_ = $temp;
         }
         push(@DOF,[ @fields ]);
+
+        if ($FastPrint == 1)
+        {
+          push(@entropy, 0.0);
+          push(@heatcapacity, 0.0);
+          push(@noneg, 0);
+          push(@Convex, 0);
+          push(@blochwave,0);
+        }
       }
       
       if (/^Potential/)
