@@ -462,6 +462,14 @@ int ScanningSolution::FindNextSolution(PerlInput const& Input, int const& Width,
       CurrentScanLine_ += ScanStep_;
    }
 
+   // Send Output
+   if (Echo_)
+   {
+      cout << "Restric DOF's:\n" << setw(Width) << Restrict_->DOF() << "\n";
+   }
+   out << setw(Width) << *(Restrict_->Lat()) << "Success = 1" << "\n";
+
+
    return good;
 }
 

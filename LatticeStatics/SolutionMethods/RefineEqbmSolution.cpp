@@ -205,5 +205,14 @@ int RefineEqbmSolution::FindNextSolution(PerlInput const& Input, int const& Widt
 
    ++SolutionFound_;
 
+   // Send Output
+   if (Echo_)
+   {
+      cout << "Solutions Found = " << SolutionFound_ << "\n";
+      cout << "Restric DOF's:\n" << setw(Width) << Restrict_->DOF() << "\n";
+   }
+   out << setw(Width) << *(Restrict_->Lat()) << "Success = 1" << "\n";
+
+
    return 1;
 }
