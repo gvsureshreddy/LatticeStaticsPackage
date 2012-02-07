@@ -84,6 +84,7 @@ $(LIB_LOC)/libMyMath.a: $(OBJECTS)
 uninstall:
 	/bin/rm -f $(LIB_LOC)/libMyMath.a
 	/bin/rm -f $(INCL_LOC)/MyMath.h
+	/bin/rm -f $(INCL_LOC)/MyComplexDouble.h
 
 
 # Removes the current systems set of object files and executable file
