@@ -1090,14 +1090,23 @@ int NewtonPCSolution::FindNextSolution(PerlInput const& Input, int const& Width,
    // Now we check for Critical Point Crossing
    if (BisectCP_)
    {
+      int RelEigError = 0;
       int TestValue;
       TestValue = Restrict_->TestFunctions(TestValues_static,Lattice::INTERMED);
       if ((CurrentSolution_ > 0) && (eig_angle_max_ > 0.0) && !RelativeEigVectsOK())
       {
+         RelEigError = 1;
          cout << "NOTE: Relative Eigenvectors are too far apart!  "
               << "Suggest decreasing step size.\n";
       }
-      if ((TestValue > 0) && (BisectCP_ == 1) && (CurrentSolution_ > 1))
+      if ((RelEigError) && (TestValue > 0) && (BisectCP_ == 1) && (CurrentSolution_ > 1))
+      {
+         cout << "Relative Eigenvectors are too far apart and "
+              << "a critical point has been identified." << "\n";
+         good = 0;
+         
+      }
+      else if ((TestValue > 0) && (BisectCP_ == 1) && (CurrentSolution_ > 1))
       {
          good = 2; // indicate that a critical point was found
          FindCriticalPoint(Restrict_->Lat(), TotalNumCPs_, Input, Width, out);
