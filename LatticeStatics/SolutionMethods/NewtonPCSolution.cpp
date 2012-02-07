@@ -981,13 +981,19 @@ int NewtonPCSolution::FindNextSolution(PerlInput const& Input, int const& Width,
          f = accel_max_;
          CurrentDS_ *= f;
       }
-      if (Converged && (!RelativeEigVectsOK()))
+      if (Converged && (CurrentSolution_ > 0) && (eig_angle_max_ > 0.0)) // check enabled
       {
-         cout << "Eigen-vector rotations were too big (based on MaxEigVectAngle) "
-              << "during this step.  Decreasing DS and trying again.\n";
-         Converged = 0;
-         f = accel_max_;
-         CurrentDS_ /= f;
+         int TestValue;
+         // Make sure RelativeEigVects are up to date
+         TestValue = Restrict_->TestFunctions(TestValues_static,Lattice::INTERMED);
+         if (!RelativeEigVectsOK())
+         {
+            cout << "Eigen-vector rotations were too big (based on MaxEigVectAngle) "
+                 << "during this step.  Decreasing DS and trying again.\n";
+            Converged = 0;
+            f = accel_max_;
+            CurrentDS_ /= f;
+         }
       }
 
       cout << "Prediction " << predictions << " Corrector Iterations: " << corrections << "\n";
@@ -1084,8 +1090,8 @@ int NewtonPCSolution::FindNextSolution(PerlInput const& Input, int const& Width,
    if (BisectCP_)
    {
       int TestValue;
-      TestValue = Restrict_->TestFunctions(TestValues_static);
-      if (!RelativeEigVectsOK())
+      TestValue = Restrict_->TestFunctions(TestValues_static,Lattice::INTERMED);
+      if ((CurrentSolution_ > 0) && (eig_angle_max_ > 0.0) && !RelativeEigVectsOK())
       {
          cout << "NOTE: Relative Eigenvectors are too far apart!  "
               << "Suggest decreasing step size.\n";
@@ -1355,30 +1361,26 @@ void NewtonPCSolution::UpdateQR(Vector const& Force, Vector const& difference, M
 int NewtonPCSolution::RelativeEigVectsOK() const
 {
    int retval = 1;
-
-   if ((CurrentSolution_ > 0) && (eig_angle_max_ > 0.0)) // check enabled
+   double proj = cos(eig_angle_max_);
+   Matrix RelEigVects = Restrict_->RelativeEigVects();
+   int size = RelEigVects.Rows();
+   
+   for (int i = 0; i < size; ++i)
    {
-      double proj = cos(eig_angle_max_);
-      Matrix RelEigVects = Restrict_->RelativeEigVects();
-      int size = RelEigVects.Rows();
-      
-      for (int i = 0; i < size; ++i)
+      double maxval = fabs(RelEigVects[0][i]);
+      int row = 0;
+      for (int j = 0; j < size; ++j)
       {
-         double maxval = fabs(RelEigVects[0][i]);
-         int row = 0;
-         for (int j = 0; j < size; ++j)
+         if (fabs(RelEigVects[j][i]) > maxval)
          {
-            if (fabs(RelEigVects[j][i]) > maxval)
-            {
-               maxval = fabs(RelEigVects[j][i]);
-               row = j;
-            }
+            maxval = fabs(RelEigVects[j][i]);
+            row = j;
          }
-         if ((row != i) || (maxval < proj))
-         {
-            retval = 0;
-            break;
-         }
+      }
+      if ((row != i) || (maxval < proj))
+      {
+         retval = 0;
+         break;
       }
    }
 

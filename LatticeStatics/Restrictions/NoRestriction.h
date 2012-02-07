@@ -112,13 +112,6 @@ public:
       return dof_static;
    }
 
-   virtual Matrix const& RelativeEigVects() const
-   {
-      Vector TF(Lattice_->NumTestFunctions());
-      Lattice_->TestFunctions(TF,Lattice::INTERMED);
-      return Lattice_->RelativeEigVects();
-   }
-
    virtual Vector RestrictDOF(Vector const& dof)
    {
       return dof;

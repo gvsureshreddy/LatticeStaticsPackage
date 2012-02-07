@@ -581,8 +581,12 @@ int ArcLengthSolution::FindNextSolution(PerlInput const& Input, int const& Width
 
       cout << "AngleTest = " << AngleTest << "  Cutoff = " << AngleCutoff_ << "\n";
 
-      if (eig_angle_max_ >= 0.0)
+      if ((CurrentSolution_ > 0) && (eig_angle_max_ > 0.0)) // check enabled
       {
+         int TestValue;
+         // make sure RelativeEigVects are up to date
+         TestValue = Restrict_->TestFunctions(TestValues_static,Lattice::INTERMED);
+
          cout << "Eigen-vector rotations (1=PASS, 0=FAIL) = "
               << (rotations = RelativeEigVectsOK())
               << "\n";
@@ -664,8 +668,8 @@ int ArcLengthSolution::FindNextSolution(PerlInput const& Input, int const& Width
    if (BisectCP_)
    {
       int TestValue;
-      TestValue = Restrict_->TestFunctions(TestValues_static);
-      if (!RelativeEigVectsOK())
+      TestValue = Restrict_->TestFunctions(TestValues_static,Lattice::INTERMED);
+      if ((CurrentSolution_ > 0) && (eig_angle_max_ > 0.0) && !RelativeEigVectsOK())
       {
          cout << "NOTE: Relative Eigenvectors are too far apart!  "
               << "Suggest decreasing step size.\n";
@@ -1232,30 +1236,26 @@ int ArcLengthSolution::ZBrent(Lattice* const Lat, int const& track, Vector const
 int ArcLengthSolution::RelativeEigVectsOK() const
 {
    int retval = 1;
-
-   if ((CurrentSolution_ > 0) && (eig_angle_max_ > 0.0)) // check enabled
+   double proj = cos(eig_angle_max_);
+   Matrix RelEigVects = Restrict_->RelativeEigVects();
+   int size = RelEigVects.Rows();
+   
+   for (int i = 0; i < size; ++i)
    {
-      double proj = cos(eig_angle_max_);
-      Matrix RelEigVects = Restrict_->RelativeEigVects();
-      int size = RelEigVects.Rows();
-      
-      for (int i = 0; i < size; ++i)
+      double maxval = fabs(RelEigVects[0][i]);
+      int row = 0;
+      for (int j = 0; j < size; ++j)
       {
-         double maxval = fabs(RelEigVects[0][i]);
-         int row = 0;
-         for (int j = 0; j < size; ++j)
+         if (fabs(RelEigVects[j][i]) > maxval)
          {
-            if (fabs(RelEigVects[j][i]) > maxval)
-            {
-               maxval = fabs(RelEigVects[j][i]);
-               row = j;
-            }
+            maxval = fabs(RelEigVects[j][i]);
+            row = j;
          }
-         if ((row != i) || (maxval < proj))
-         {
-            retval = 0;
-            break;
-         }
+      }
+      if ((row != i) || (maxval < proj))
+      {
+         retval = 0;
+         break;
       }
    }
    
