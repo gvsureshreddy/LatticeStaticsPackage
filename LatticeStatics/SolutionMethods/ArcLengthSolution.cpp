@@ -560,7 +560,7 @@ int ArcLengthSolution::FindNextSolution(PerlInput const& Input, int const& Width
 {
    ++counter_[9];
 
-   int good = 0;
+   int good = 1;
    double AngleTest;
    // Assume that first solution should not be strictly restricted to the
    // adaptive steping angle constraint
@@ -576,6 +576,7 @@ int ArcLengthSolution::FindNextSolution(PerlInput const& Input, int const& Width
    do
    {
       ArcLengthNewton(good, itr, forcenorm, dxnorm);
+      if (!good) break;
 
       AngleTest = ArcLenAngle(OldDiff, Difference_, Aspect_);
 
@@ -596,7 +597,7 @@ int ArcLengthSolution::FindNextSolution(PerlInput const& Input, int const& Width
 
       ++Prediction;
    }
-   while (((AngleTest >= AngleFactor * AngleCutoff_) || (rotations == 0) || !good)
+   while (((AngleTest >= AngleFactor * AngleCutoff_) || (rotations == 0))
           && (CurrentDS_ >= DSMin_)
           && (ArcLenUpdate(-Difference_), // back to previous solution
               Difference_ = OldDiff,
@@ -661,11 +662,8 @@ int ArcLengthSolution::FindNextSolution(PerlInput const& Input, int const& Width
       FirstSolution_ = ArcLenDef();
    }
 
-   // Always have the current "solution" state printed as a solution point
-   good = 1;
-
    // Now we check for Critical Point Crossing
-   if (BisectCP_)
+   if ((BisectCP_) && (good))
    {
       int TestValue;
       TestValue = Restrict_->TestFunctions(TestValues_static,Lattice::INTERMED);
@@ -707,6 +705,9 @@ void ArcLengthSolution::ArcLengthNewton(int& good, int& itr, double& forcenorm, 
    Vector Dx(Dim),
    RHS(Dim);
    Matrix stif(Dim, Dim);
+
+   // Assume good
+   good = 1;
 
    // Predictor step
    cout << "Taking Predictor Step. CurrentDS = " << CurrentDS_ << "\n";
@@ -791,8 +792,6 @@ void ArcLengthSolution::ArcLengthNewton(int& good, int& itr, double& forcenorm, 
 
    forcenorm = RHS.Norm();
    dxnorm = Dx.Norm();
-
-   good = 1;
 }
 
 void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat, int* const TotalNumCPCrossings,

@@ -167,7 +167,7 @@ int NEBSolution::FindNextSolution(PerlInput const& Input, int const& Width, ostr
    else
    {
       cerr << "NEBSolution::FindNextSolution() called too many times.\n";
-      exit(-31);
+      return 0;
    }
 
    // Obtains Energies of InitStates and FinalStates

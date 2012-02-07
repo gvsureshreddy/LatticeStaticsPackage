@@ -288,13 +288,14 @@ int ScanningSolution::AllSolutionsFound() const
 
 int ScanningSolution::FindNextSolution(PerlInput const& Input, int const& Width, ostream& out)
 {
-   int good = 0;
+   int good = 1;
    int iteration = 0;
    if (OnSolution_ == Yes)
    {
       if (ScanFullField_ == No)
       {
          InitializeLine();
+         cout << "Starting new scan line." << "\n";
       }
       else
       {
@@ -310,7 +311,11 @@ int ScanningSolution::FindNextSolution(PerlInput const& Input, int const& Width,
    }
 
    ScanningNewton(good);
-
+   if (!good)
+   {
+      return 0;
+   }
+   
    double stepsize;
    double val = ScanningStressParameter(),
           oldval = val,
@@ -336,8 +341,7 @@ int ScanningSolution::FindNextSolution(PerlInput const& Input, int const& Width,
             CurrentScanLine_ += ScanStep_;
             OnSolution_ = No;
             InitializeLine();
-            good = 0;
-            return good;
+            cout << "Starting new scan line." << "\n";
          }
 
          if (Echo_)
@@ -353,8 +357,7 @@ int ScanningSolution::FindNextSolution(PerlInput const& Input, int const& Width,
             CurrentScanLine_ += ScanStep_;
             OnSolution_ = No;
             InitializeLine();
-            good = 0;
-            return good;
+            cout << "Starting new scan line." << "\n";
          }
 
          if (Echo_)
@@ -377,6 +380,10 @@ int ScanningSolution::FindNextSolution(PerlInput const& Input, int const& Width,
       }
 
       ScanningNewton(good);
+      if (!good)
+      {
+         return 0;
+      }
 
       oldval = val;
       val = ScanningStressParameter();
@@ -426,6 +433,10 @@ int ScanningSolution::FindNextSolution(PerlInput const& Input, int const& Width,
       }
 
       ScanningNewton(good);
+      if (!good)
+      {
+         return 0;
+      }
 
       oldval = val;
       val = ScanningStressParameter();

@@ -97,9 +97,13 @@ int main(int argc, char* argv[])
 
    int success = 1;
 
-   while (!SolveMe->AllSolutionsFound())
+   while ((success) && (!SolveMe->AllSolutionsFound()))
    {
       success = SolveMe->FindNextSolution(Input, Width, out);
+   }
+   if (!success)
+   {
+      cout << "Error encountered. Exiting." << endl;
    }
 
    out.close();

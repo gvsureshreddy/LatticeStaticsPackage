@@ -113,8 +113,12 @@ extern "C" void bfb_wrapper_(int& bfbstable, int& bfbreturncode)
       bfbreturncode = 0;
    }
 
-   if (SolveMe->AllSolutionsFound())
+   if ((!success) || (SolveMe->AllSolutionsFound()))
    {
+      if (!success)
+      {
+         cout << "Error encountered. Exiting." << "\n";
+      }
       bfbreturncode = 1;
    }
 }

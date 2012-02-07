@@ -835,8 +835,9 @@ int NewtonPCSolution::FindNextSolution(PerlInput const& Input, int const& Width,
 
       if (CurrentDS_ < MinDS_)
       {
-         cout << "Minimum StepSize (MinDS) violated. Exit Solver.\n";
-         exit(-53);
+         cout << "Minimum StepSize (MinDS) violated.\n";
+         good = 0;
+         return good;
       }
 
       // setup acceleration factor to as small as possible
@@ -1083,7 +1084,7 @@ int NewtonPCSolution::FindNextSolution(PerlInput const& Input, int const& Width,
       FirstSolution_ = Restrict_->DOF();
    }
 
-   // always have current solution point printed
+   // Converged, so assume solution is good
    good = 1;
    
    // Now we check for Critical Point Crossing

@@ -128,7 +128,7 @@ int RefineEqbmSolution::FindNextSolution(PerlInput const& Input, int const& Widt
    else
    {
       cerr << "RefineEqbmSolution::FindNextSolution() called too many times.\n";
-      exit(-31);
+      return 0;
    }
    Vector DOF = Restrict_->DOF();
    Vector dx(Restrict_->Force().Dim(), 0.0);
