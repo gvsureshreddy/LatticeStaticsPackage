@@ -43,8 +43,9 @@ DATE_DEF   = -DBUILD_DATE="$(BUILD_DATE)"
 CC_PERL     = `perl -MExtUtils::Embed -e ccopts | sed -e 's/-arch[^-]*//g' | sed -e 's/-Wdeclaration-after-statement//g'`
 CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS) $(SOLVE) $(TERMINAL) $(CC_PERL)
 LIBS_PERL   = `perl -MExtUtils::Embed -e ldopts | sed -e 's/-arch[^-]*//g' | sed -e 's/-Wdeclaration-after-statement//g'`
+LIBS_FEAP  = $(FEAPHOME8_3)/Feap8_3.a -lgfortran -L/usr/X11R6/lib -lX11
 LIBS       = -lLinearAlgebra -lMyMath -lm
-LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(LIBS_PERL)
+LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(LIBS_PERL) $(LIBS_FEAP)
 
 
 # File Locations ##########################################################

@@ -58,6 +58,10 @@ Lattice* const InitializeLattice(PerlInput& Input, int const& Echo, int const& W
    {
       return new QC(Input, Echo, Width);
    }
+   else if (!strcmp("feap",Lat))
+   {
+      return new feap(Input, Echo, Width);
+   }
    else
    {
       cerr << "Unknown Lattice Type " << "\n";

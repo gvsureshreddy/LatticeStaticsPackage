@@ -78,3 +78,4 @@ TwoBarTruss.o
 TwoBarTrussExternal.o
 NEBSolution.o
 ODSolution.o
+feap.o
