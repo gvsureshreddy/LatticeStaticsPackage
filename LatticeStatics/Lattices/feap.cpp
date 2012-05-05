@@ -3,13 +3,19 @@
 
 using namespace std;
 
-extern "C" void bfbfeap_main_(char const* const, int* const numDOFperNode,
+extern "C" void bfbfeap_main_(char const* const ffin, int* ffinlen,
+                              int* const numDOFperNode, int* const numSpcDIM,
                               int* const numNodeInMesh, int* const numEqns);
-extern "C" void bfbfeap_get_id_(int* id);
-extern "C" void bfbfeap_get_u_(double* U);
-extern "C" void bfbfeap_get_f_(double* F);
-extern "C" void bfbfeap_get_d_(double* D);
-extern "C" void bfbfeap_get_tang_(double* t);
+extern "C" void bfbfeap_get_eqn_id_(int* bfb_id);
+extern "C" void bfbfeap_get_eqn_bc_(int* bfb_bc);
+extern "C" void bfbfeap_get_nodal_solution_(double* bfb_u);
+extern "C" void bfbfeap_set_nodal_solution_(double* bfb_u);
+extern "C" void bfbfeap_get_nodal_coords_(double* bfb_x);
+extern "C" void bfbfeap_get_reduced_residual_(double* bfb_rd);
+extern "C" void bfbfeap_get_reduced_tang_(double* bfb_tang);
+extern "C" void bfbfeap_call_form_();
+extern "C" void bfbfeap_call_tang_();
+
 extern "C" void plstop_();
 #define FORTRANSTRINGLEN 129
 
@@ -33,59 +39,102 @@ feap::feap(PerlInput const& Input, int const& Echo, int const& Width) :
    Lambda_(0.0),
    Width_(Width)
 {
+   PerlInput::HashStruct Hash = Input.getHash("Lattice");
+   Hash = Input.getHash(Hash, "feap");
+
+   if (Input.ParameterOK(Hash, "Tolerance"))
+   {
+      Tolerance_ = Input.getDouble(Hash, "Tolerance");
+   }
+   else
+   {
+      Tolerance_ = Input.useDouble(1.0e-6, Hash, "Tolerance");  // Default Value
+   }
+
    char const* ffin = "Ipatch_4el";
 
    int ndf;
+   int ndm;
    int numnp;
    int neq;
-   bfbfeap_main_(ffin, &ndf, &numnp, &neq);
+   int ffinlen = strlen(ffin);
+   bfbfeap_main_(ffin, &ffinlen, &ndf, &ndm, &numnp, &neq);
 
-   int* id = new int[ndf*numnp*2];
-   bfbfeap_get_id_(id);
-   for (int k = 0; k < 2; ++k)
+   int* id = new int[ndf*numnp];
+   bfbfeap_get_eqn_id_(id);
+   for (int i = 0; i < ndf*numnp; ++i)
    {
-      for (int i = 0; i < ndf*numnp; ++i)
-      {
-         cout << setw(Width) << id[k*(ndf*numnp) + i];
-      }
-      cout << endl;
+      cout << setw(Width) << id[i];
    }
+   cout << endl;
+   delete [] id;
+
+   int* bc = new int[ndf*numnp];
+   bfbfeap_get_eqn_bc_(bc);
+   for (int i = 0; i < ndf*numnp; ++i)
+   {
+      cout << setw(Width) << bc[i];
+   }
+   cout << endl;
+   delete [] bc;
    
    DOFS_ = ndf*numnp;
    cout << "DOFS_ is " << DOFS_ <<endl;
 
-//   PerlInput::HashStruct Hash = Input.getHash("Lattice");
-//   Hash = Input.getHash(Hash, "feap");
-//
-//   if (Input.ParameterOK(Hash, "Tolerance"))
-//   {
-//      Tolerance_ = Input.getDouble(Hash, "Tolerance");
-//   }
-//   else
-//   {
-//      Tolerance_ = Input.useDouble(1.0e-6, Hash, "Tolerance");  // Default Value
-//   }
-//
    DOF_.Resize(DOFS_, 1.0);
    cout << "DOF is " << setw(Width) << DOF_ << endl;
-   bfbfeap_get_u_(&(DOF_[0]));
+   bfbfeap_get_nodal_solution_(&(DOF_[0]));
    cout << "DOF is " << setw(Width) << DOF_ << endl;
 
-   Vector F(DOFS_, 1.0);
-   cout << "F is   " << setw(Width) << F << endl;
-   bfbfeap_get_f_(&(F[0]));
-   cout << "F is   " << setw(Width) << F << endl;
-
-   Vector D(DOFS_, 1.0);
-   cout << "D is   " << setw(Width) << D << endl;
-   bfbfeap_get_d_(&(D[0]));
-   cout << "D is   " << setw(Width) << D << endl;
-
-   cout << "neq is " << neq << endl;
-   Matrix TANG(neq,neq,0.0);
-   bfbfeap_get_tang_(&(TANG[0][0]));
-   cout << "TANG is" << endl << setw(Width) << TANG;
+   Vector feap_residual(neq, 1.0);
+   cout << "feap_residual is   " << setw(Width) << feap_residual << endl;
+   bfbfeap_get_reduced_residual_(&(feap_residual[0]));
+   cout << "feap_residual is   " << setw(Width) << feap_residual << endl;
+   bfbfeap_call_form_();
+   cout << "called form\n";
+   bfbfeap_get_reduced_residual_(&(feap_residual[0]));
+   cout << "feap_residual is   " << setw(Width) << feap_residual << endl;
    
+   Matrix TANG(neq,neq,0.0);
+   bfbfeap_get_reduced_tang_(&(TANG[0][0]));
+   cout << "TANG is" << endl << setw(Width) << TANG;
+   bfbfeap_call_tang_();
+   cout << "called tang\n";
+   bfbfeap_get_reduced_tang_(&(TANG[0][0]));
+   cout << "TANG is" << endl << setw(Width) << TANG;
+
+   Vector X(DOFS_);
+   bfbfeap_get_nodal_coords_(&(X[0]));
+   cout << "X is " << setw(Width) << X << endl;
+   for (int i=0;i<numnp;++i)
+   {
+      cout << setw(5) << i;
+      for (int j=0;j<ndm;++j)
+         cout << setw(Width) << X[ndm*i + j];
+      cout << endl;
+   }
+
+   DOF_[2*0] = -1.0;
+   DOF_[2*3] = -1.0;
+   DOF_[2*6] = -1.0;
+   DOF_[2*2] =  1.0;
+   DOF_[2*5] =  1.0;
+   DOF_[2*8] =  1.0;
+
+   bfbfeap_set_nodal_solution_(&(DOF_[0]));
+
+   Vector Chk(ndf*numnp,-1.0);
+   bfbfeap_get_nodal_solution_(&(Chk[0]));
+   cout << "DOF is " << setw(Width) << DOF_ << endl;
+   cout << "Chk is " << setw(Width) << Chk << endl;
+
+   bfbfeap_call_form_();
+   cout << "called form\n";
+   bfbfeap_get_reduced_residual_(&(feap_residual[0]));
+   cout << "feap_residual is   " << setw(Width) << feap_residual << endl;
+
+   cout << "check this value   " << setw(Width) << -TANG*DOF_ << endl;
+
 //   E1CachedValue_.Resize(DOFS_);
 //   E1DLoadCachedValue_.Resize(DOFS_);
 //   E2CachedValue_.Resize(DOFS_, DOFS_);
