@@ -11,20 +11,19 @@ extern "C" void bfbfeap_get_eqn_bc_(int* bfb_bc);
 extern "C" void bfbfeap_get_nodal_solution_(double* bfb_u);
 extern "C" void bfbfeap_set_nodal_solution_(double* bfb_u);
 extern "C" void bfbfeap_get_nodal_coords_(double* bfb_x);
+extern "C" void bfbfeap_get_potential_energy_(double* bfb_epl);
 extern "C" void bfbfeap_get_reduced_residual_(double* bfb_rd);
 extern "C" void bfbfeap_get_reduced_tang_(double* bfb_tang);
+extern "C" void bfbfeap_call_ener_();
 extern "C" void bfbfeap_call_form_();
 extern "C" void bfbfeap_call_tang_();
-
 extern "C" void plstop_();
 #define FORTRANSTRINGLEN 129
 
 feap::~feap()
 {
-   char ret[10];
-   cout << "calling plstop: press enter";
-   cin >> ret;
-   plstop_();
+   plstop_(); // Shut down FEAP
+
    cout << "feap Function Calls:\n"
         << "\tEvaluation - w/o stiffness - " << EvaluationCount_[0] << "\n"
         << "\tEvaluation - w   stiffness - " << EvaluationCount_[1] << "\n"
@@ -32,6 +31,9 @@ feap::~feap()
         << "\tE1 calls - " << CallCount_[1] << "\n"
         << "\tE1DLoad calls - " << CallCount_[2] << "\n"
         << "\tE2 calls - " << CallCount_[3] << "\n";
+
+   delete [] eqnID_;
+   delete [] bcID_;
 }
 
 feap::feap(PerlInput const& Input, int const& Echo, int const& Width) :
@@ -42,6 +44,7 @@ feap::feap(PerlInput const& Input, int const& Echo, int const& Width) :
    PerlInput::HashStruct Hash = Input.getHash("Lattice");
    Hash = Input.getHash(Hash, "feap");
 
+   ffin_ = Input.getString(Hash, "FEAPInputFileName");
    if (Input.ParameterOK(Hash, "Tolerance"))
    {
       Tolerance_ = Input.getDouble(Hash, "Tolerance");
@@ -51,113 +54,74 @@ feap::feap(PerlInput const& Input, int const& Echo, int const& Width) :
       Tolerance_ = Input.useDouble(1.0e-6, Hash, "Tolerance");  // Default Value
    }
 
-   char const* ffin = "Ipatch_4el";
+   // Initialize FEAP, send input file name and get ndf, ndm, etc. back.
+   int ffinlen = strlen(ffin_);
+   bfbfeap_main_(ffin_, &ffinlen, &ndf_, &ndm_, &numnp_, &neq_);
 
-   int ndf;
-   int ndm;
-   int numnp;
-   int neq;
-   int ffinlen = strlen(ffin);
-   bfbfeap_main_(ffin, &ffinlen, &ndf, &ndm, &numnp, &neq);
+   // get and store equation id's from FEAP
+   eqnID_ = new int[ndf_*numnp_];
+   bfbfeap_get_eqn_id_(eqnID_);
 
-   int* id = new int[ndf*numnp];
-   bfbfeap_get_eqn_id_(id);
-   for (int i = 0; i < ndf*numnp; ++i)
+   // get and store boundary condition id's from FEAP
+   bcID_ = new int[ndf_*numnp_];
+   bfbfeap_get_eqn_bc_(bcID_);
+   for (int i = 0; i < ndf_*numnp_; ++i)
    {
-      cout << setw(Width) << id[i];
+      if (bcID_[i] != 0)
+      {
+         cerr << "*WARNING* feap::feap() -- Found displacement BC, but expecting none...\n";
+      }
    }
-   cout << endl;
-   delete [] id;
 
-   int* bc = new int[ndf*numnp];
-   bfbfeap_get_eqn_bc_(bc);
-   for (int i = 0; i < ndf*numnp; ++i)
-   {
-      cout << setw(Width) << bc[i];
-   }
-   cout << endl;
-   delete [] bc;
-   
-   DOFS_ = ndf*numnp;
-   cout << "DOFS_ is " << DOFS_ <<endl;
-
+   // set DOFS_
+   DOFS_ = ndf_*numnp_;
+   // set DOF_ to initial value
    DOF_.Resize(DOFS_, 1.0);
-   cout << "DOF is " << setw(Width) << DOF_ << endl;
    bfbfeap_get_nodal_solution_(&(DOF_[0]));
-   cout << "DOF is " << setw(Width) << DOF_ << endl;
 
-   Vector feap_residual(neq, 1.0);
-   cout << "feap_residual is   " << setw(Width) << feap_residual << endl;
-   bfbfeap_get_reduced_residual_(&(feap_residual[0]));
-   cout << "feap_residual is   " << setw(Width) << feap_residual << endl;
-   bfbfeap_call_form_();
-   cout << "called form\n";
-   bfbfeap_get_reduced_residual_(&(feap_residual[0]));
-   cout << "feap_residual is   " << setw(Width) << feap_residual << endl;
-   
-   Matrix TANG(neq,neq,0.0);
-   bfbfeap_get_reduced_tang_(&(TANG[0][0]));
-   cout << "TANG is" << endl << setw(Width) << TANG;
-   bfbfeap_call_tang_();
-   cout << "called tang\n";
-   bfbfeap_get_reduced_tang_(&(TANG[0][0]));
-   cout << "TANG is" << endl << setw(Width) << TANG;
+   // get and store reference coordinates
+   X_.Resize(DOFS_);
+   bfbfeap_get_nodal_coords_(&(X_[0]));
 
-   Vector X(DOFS_);
-   bfbfeap_get_nodal_coords_(&(X[0]));
-   cout << "X is " << setw(Width) << X << endl;
-   for (int i=0;i<numnp;++i)
+   // setup remaining variables
+   E1CachedValue_.Resize(DOFS_);
+   E1DLoadCachedValue_.Resize(DOFS_);
+   E2CachedValue_.Resize(DOFS_, DOFS_);
+   stiffdl_static.Resize(DOFS_, DOFS_);
+   EmptyV_.Resize(DOFS_, 0.0);
+   EmptyM_.Resize(DOFS_, DOFS_, 0.0);
+
+   // set loadparameter to load (not temperature)
+   LoadParameter_ = Load;
+
+   for (int i = 0; i < cachesize; ++i)
    {
-      cout << setw(5) << i;
-      for (int j=0;j<ndm;++j)
-         cout << setw(Width) << X[ndm*i + j];
-      cout << endl;
+      // indicate that none of the current values are valid
+      Cached_[i] = 0;
+      // initialize call count (number of times member function is called) to zero
+      CallCount_[i] = 0;
    }
 
-   DOF_[2*0] = -1.0;
-   DOF_[2*3] = -1.0;
-   DOF_[2*6] = -1.0;
-   DOF_[2*2] =  1.0;
-   DOF_[2*5] =  1.0;
-   DOF_[2*8] =  1.0;
-
-   bfbfeap_set_nodal_solution_(&(DOF_[0]));
-
-   Vector Chk(ndf*numnp,-1.0);
-   bfbfeap_get_nodal_solution_(&(Chk[0]));
-   cout << "DOF is " << setw(Width) << DOF_ << endl;
-   cout << "Chk is " << setw(Width) << Chk << endl;
-
-   bfbfeap_call_form_();
-   cout << "called form\n";
-   bfbfeap_get_reduced_residual_(&(feap_residual[0]));
-   cout << "feap_residual is   " << setw(Width) << feap_residual << endl;
-
-   cout << "check this value   " << setw(Width) << -TANG*DOF_ << endl;
-
-//   E1CachedValue_.Resize(DOFS_);
-//   E1DLoadCachedValue_.Resize(DOFS_);
-//   E2CachedValue_.Resize(DOFS_, DOFS_);
-//   stiffdl_static.Resize(DOFS_, DOFS_);
-//   EmptyV_.Resize(DOFS_, 0.0);
-//   EmptyM_.Resize(DOFS_, DOFS_, 0.0);
-//
-//   LoadParameter_ = Load;
-//   for (int i = 0; i < cachesize; ++i)
-//   {
-//      Cached_[i] = 0;
-//      CallCount_[i] = 0;
-//   }
-//   EvaluationCount_[0] = 0;
-//   EvaluationCount_[1] = 0;
+   // initialize evaluation count (number of times UpdateValues is called) to zero
+   EvaluationCount_[0] = 0;
+   EvaluationCount_[1] = 0;
 }
 
 void feap::UpdateValues(UpdateFlag flag) const
 {
+
+   // Update FEAP solution vector
+   bfbfeap_set_nodal_solution_(&(DOF_[0]));
+
    if (NoStiffness == flag)
    {
       int mode = 0;
-      //qcbfb_energy_(mode, DOFS_, &(DOF_[0]), Lambda_, E0CachedValue_, &(E1CachedValue_[0]), 0, 0);
+      bfbfeap_call_ener_();
+      bfbfeap_get_potential_energy_(&(E0CachedValue_));
+      bfbfeap_call_form_();
+      bfbfeap_get_reduced_residual_(&(E1CachedValue_[0]));
+      // feap returns -E1, so fix it.
+      for (int i=0;i<E1CachedValue_.Dim();++i) E1CachedValue_[i]=-E1CachedValue_[i];
       Cached_[0] = 1;
       Cached_[1] = 1;
       EvaluationCount_[0]++;
@@ -165,8 +129,15 @@ void feap::UpdateValues(UpdateFlag flag) const
    else if (NeedStiffness == flag)
    {
       int mode = 1;
-      //qcbfb_energy_(mode, DOFS_, &(DOF_[0]), Lambda_, E0CachedValue_, &(E1CachedValue_[0]),
-      //              &(E2CachedValue_[0][0]), &(E1DLoadCachedValue_[0]));
+      bfbfeap_call_ener_();
+      bfbfeap_get_potential_energy_(&(E0CachedValue_));
+      bfbfeap_call_form_();
+      bfbfeap_get_reduced_residual_(&(E1CachedValue_[0]));
+      // feap returns -E1, so fix it.
+      for (int i=0;i<E1CachedValue_.Dim();++i) E1CachedValue_[i]=-E1CachedValue_[i];
+      bfbfeap_call_tang_();
+      bfbfeap_get_reduced_tang_(&(E2CachedValue_[0][0]));
+      // Need an E1DLoad
       Cached_[0] = 1;
       Cached_[1] = 1;
       Cached_[2] = 1;

@@ -16,6 +16,15 @@ private:
    mutable Vector DOF_;
    mutable double Lambda_;
 
+   char const* ffin_; // FEAP input file name
+   int ndf_; // number of DOFs per node
+   int ndm_; // number of spatial dimensions
+   int numnp_; // number of nodes in mesh
+   int neq_; // number of reduced equations
+   int* eqnID_; // equation number ID array
+   int* bcID_; // displacement boundary condition ID array
+   Vector X_; // Reference coordinates of nodes
+
    int Width_;
    double Tolerance_;
 
