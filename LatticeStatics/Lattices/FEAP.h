@@ -1,5 +1,5 @@
-#ifndef RSE__feap
-#define RSE__feap
+#ifndef RSE__FEAP
+#define RSE__FEAP
 
 #include <string>
 #include <sstream>
@@ -8,7 +8,7 @@
 
 using namespace std;
 
-class feap : public Lattice
+class FEAP : public Lattice
 {
 private:
    mutable int DOFS_;
@@ -41,9 +41,9 @@ private:
    mutable int CallCount_[cachesize];
 
 public:
-   // Functions provided by feap
-   feap(PerlInput const& Input, int const& Echo = 1, int const& Width = 20);
-   ~feap();
+   // Functions provided by FEAP
+   FEAP(PerlInput const& Input, int const& Echo = 1, int const& Width = 20);
+   ~FEAP();
 
    // Virtual Functions required by Lattice
    Vector const& DOF() const
@@ -86,13 +86,13 @@ public:
    virtual Matrix const& StiffnessDL() const;
    virtual char const* const Type() const
    {
-      return "feap";
+      return "FEAP";
    }
 
    virtual void Print(ostream& out, PrintDetail const& flag,
                       PrintPathSolutionType const& SolType = RegularPt);
 
-   friend ostream& operator<<(ostream& out, feap& A);
+   friend ostream& operator<<(ostream& out, FEAP& A);
 
    // ignore these
    double Entropy() const
@@ -126,12 +126,12 @@ public:
 
    virtual Matrix const& E3() const
    {
-      cerr << "feap::E3() Not Programmed\n"; exit(-1); return EmptyM_;
+      cerr << "FEAP::E3() Not Programmed\n"; exit(-1); return EmptyM_;
    }
 
    virtual Matrix const& E4() const
    {
-      cerr << "feap::E4() Not Programmed\n"; exit(-1); return EmptyM_;
+      cerr << "FEAP::E4() Not Programmed\n"; exit(-1); return EmptyM_;
    }
 
    virtual void SetParameters(double const* const Vals, int const& ResetRef = 1)

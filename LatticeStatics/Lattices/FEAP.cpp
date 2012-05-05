@@ -1,5 +1,5 @@
 #include <fstream>
-#include "feap.h"
+#include "FEAP.h"
 
 using namespace std;
 
@@ -20,11 +20,11 @@ extern "C" void bfbfeap_call_tang_();
 extern "C" void plstop_();
 #define FORTRANSTRINGLEN 129
 
-feap::~feap()
+FEAP::~FEAP()
 {
    plstop_(); // Shut down FEAP
 
-   cout << "feap Function Calls:\n"
+   cout << "FEAP Function Calls:\n"
         << "\tEvaluation - w/o stiffness - " << EvaluationCount_[0] << "\n"
         << "\tEvaluation - w   stiffness - " << EvaluationCount_[1] << "\n"
         << "\tE0 calls - " << CallCount_[0] << "\n"
@@ -36,13 +36,13 @@ feap::~feap()
    delete [] bcID_;
 }
 
-feap::feap(PerlInput const& Input, int const& Echo, int const& Width) :
+FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
    Lattice(Input, Echo),
    Lambda_(0.0),
    Width_(Width)
 {
    PerlInput::HashStruct Hash = Input.getHash("Lattice");
-   Hash = Input.getHash(Hash, "feap");
+   Hash = Input.getHash(Hash, "FEAP");
 
    ffin_ = Input.getString(Hash, "FEAPInputFileName");
    if (Input.ParameterOK(Hash, "Tolerance"))
@@ -69,7 +69,7 @@ feap::feap(PerlInput const& Input, int const& Echo, int const& Width) :
    {
       if (bcID_[i] != 0)
       {
-         cerr << "*WARNING* feap::feap() -- Found displacement BC, but expecting none...\n";
+         cerr << "*WARNING* FEAP::FEAP() -- Found displacement BC, but expecting none...\n";
       }
    }
 
@@ -107,20 +107,19 @@ feap::feap(PerlInput const& Input, int const& Echo, int const& Width) :
    EvaluationCount_[1] = 0;
 }
 
-void feap::UpdateValues(UpdateFlag flag) const
+void FEAP::UpdateValues(UpdateFlag flag) const
 {
-
    // Update FEAP solution vector
    bfbfeap_set_nodal_solution_(&(DOF_[0]));
 
    if (NoStiffness == flag)
    {
       int mode = 0;
-      bfbfeap_call_ener_();
+      bfbfeap_call_ener_(); // needs a "TPLOt" and "ENER" command in FEAP input file to work
       bfbfeap_get_potential_energy_(&(E0CachedValue_));
       bfbfeap_call_form_();
       bfbfeap_get_reduced_residual_(&(E1CachedValue_[0]));
-      // feap returns -E1, so fix it.
+      // FEAP returns -E1, so fix it.
       for (int i=0;i<E1CachedValue_.Dim();++i) E1CachedValue_[i]=-E1CachedValue_[i];
       Cached_[0] = 1;
       Cached_[1] = 1;
@@ -133,7 +132,7 @@ void feap::UpdateValues(UpdateFlag flag) const
       bfbfeap_get_potential_energy_(&(E0CachedValue_));
       bfbfeap_call_form_();
       bfbfeap_get_reduced_residual_(&(E1CachedValue_[0]));
-      // feap returns -E1, so fix it.
+      // FEAP returns -E1, so fix it.
       for (int i=0;i<E1CachedValue_.Dim();++i) E1CachedValue_[i]=-E1CachedValue_[i];
       bfbfeap_call_tang_();
       bfbfeap_get_reduced_tang_(&(E2CachedValue_[0][0]));
@@ -146,12 +145,12 @@ void feap::UpdateValues(UpdateFlag flag) const
    }
    else
    {
-      cerr << "Error in feap::UpdateValues(), unknown UpdateFlag.\n";
+      cerr << "Error in FEAP::UpdateValues(), unknown UpdateFlag.\n";
       exit(-45);
    }
 }
 
-double feap::E0() const
+double FEAP::E0() const
 {
    if (!Cached_[0])
    {
@@ -162,7 +161,7 @@ double feap::E0() const
    return E0CachedValue_;
 }
 
-Vector const& feap::E1() const
+Vector const& FEAP::E1() const
 {
    if (!Cached_[1])
    {
@@ -173,7 +172,7 @@ Vector const& feap::E1() const
    return E1CachedValue_;
 }
 
-Vector const& feap::E1DLoad() const
+Vector const& FEAP::E1DLoad() const
 {
    if (!Cached_[2])
    {
@@ -184,7 +183,7 @@ Vector const& feap::E1DLoad() const
    return E1DLoadCachedValue_;
 }
 
-Matrix const& feap::E2() const
+Matrix const& FEAP::E2() const
 {
    if (!Cached_[3])
    {
@@ -195,7 +194,7 @@ Matrix const& feap::E2() const
    return E2CachedValue_;
 }
 
-Matrix const& feap::StiffnessDL() const
+Matrix const& FEAP::StiffnessDL() const
 {
    double load = Lambda_;
 
@@ -218,7 +217,7 @@ Matrix const& feap::StiffnessDL() const
    return stiffdl_static;
 }
 
-void feap::Print(ostream& out, PrintDetail const& flag,
+void FEAP::Print(ostream& out, PrintDetail const& flag,
                PrintPathSolutionType const& SolType)
 {
    int W;
@@ -257,11 +256,11 @@ void feap::Print(ostream& out, PrintDetail const& flag,
    switch (flag)
    {
       case PrintLong:
-         out << "feap:" << "\n" << "\n";
+         out << "FEAP:" << "\n" << "\n";
 
          if (Echo_)
          {
-            cout << "feap:" << "\n" << "\n";
+            cout << "FEAP:" << "\n" << "\n";
          }
       // passthrough to short
       case PrintShort:
@@ -287,7 +286,7 @@ void feap::Print(ostream& out, PrintDetail const& flag,
    }
 }
 
-ostream& operator<<(ostream& out, feap& A)
+ostream& operator<<(ostream& out, FEAP& A)
 {
    A.Print(out, Lattice::PrintShort);
    return out;

@@ -40,7 +40,7 @@ $Rtheta1_1_1 = 0.275914376289;
 # TempMorse
 #
 
-%Lattice = (Type            => MultiLatticeTPP, # MultiLatticeTPP, MultiChainTPP, MultiChainTTPP, SCLDQMultiChainTPP, SCLDCMultiChainTPP, TwoBarTruss, TwoBarTrussExternal, DFTExternal, QC
+%Lattice = (Type            => MultiLatticeTPP, # MultiLatticeTPP, MultiChainTPP, MultiChainTTPP, SCLDQMultiChainTPP, SCLDCMultiChainTPP, TwoBarTruss, TwoBarTrussExternal, DFTExternal, QC, FEAP
             #UseEigenValTFs  => Yes, # Default value = Yes, No
             #LSKAnalysis     => SecondOrder, # Default value = SecondOrder, ThirdOrder, None
             #FullPrint       => Yes, # Default value = Yes, No
@@ -120,7 +120,7 @@ $Rtheta1_1_1 = 0.275914376289;
              #ReferenceTemperature => 1.0, # Default value = 1.0
              #ReferenceLambda      => 0.0, # Default value = 0.0
              NTemp               => 1.0,
-             Lambda              => 0.0#,
+             Lambda              => 0.0,
              ExtraTestFunctions  => {Type              => None#, # None, KVectors, LoadingParameters
                                      #KVectors          => [[1.0, 1.0, 1.0, 2.0, 3.0]],
                                      #PrintNewCBCell    => Yes, # Default Value = Yes, No
@@ -263,7 +263,7 @@ $Rtheta1_1_1 = 0.275914376289;
                                     },
              FourBarTruss => {Caching     => Yes, # Yes, No
                               Theta       => 45*$DEG2RAD,
-                              Psi         => 10*$DEG2RAD
+                              Psi         => 10*$DEG2RAD,
                               Gamma       => 1.0#, # imperfection ratio for bar moduli (1.0 = perfect)
                               #NumExtraTFs => 0, # Default value = 0, positive number
                               #ExtraTFs    => [0.1]
@@ -276,7 +276,10 @@ $Rtheta1_1_1 = 0.275914376289;
                     Tolerance         => 1.0e-6#, # for numerical derivatives
                     #NumExtraTFs       => 0, # Default value = 0, positive number
                     #ExtraTFs          => [1.1]
-                   }
+                   },
+             FEAP => {FEAPInputFileName => Ipatch_4el,
+                      Tolerance         => 1.0e-6#, # for numerical derivatives
+                     }
             );
   
 #  Restriction Parameters
@@ -310,7 +313,7 @@ $ArcLenDSMax = 0.01;
                                           Distance               => 0.01,
                                           Angle                  => 60*$DEG2RAD,
                                           #MaxEigVectAngle        => -1.0, # Default value = -1.0 --- negative means disable check
-                                          ConvergeCriteria       => 1e-13#,
+                                          ConvergeCriteria       => 1e-13,
                                           #ConvergeType           => Both, # Default value = Both, Force, Displacement
                                           BisectCP               => Yes
                                           #ClosedLoopStart        => 30, # Default value = 30

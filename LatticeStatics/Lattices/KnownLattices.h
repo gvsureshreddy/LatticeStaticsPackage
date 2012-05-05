@@ -15,7 +15,7 @@
 #include "DFTExternal.h"
 #include "DFTExternalOld.h"
 #include "QC.h"
-#include "feap.h"
+#include "FEAP.h"
 
 Lattice* const InitializeLattice(PerlInput& Input, int const& Echo, int const& Width = 20,
                                  int const& Debug = 0);

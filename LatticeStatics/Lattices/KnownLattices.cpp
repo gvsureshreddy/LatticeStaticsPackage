@@ -58,9 +58,9 @@ Lattice* const InitializeLattice(PerlInput& Input, int const& Echo, int const& W
    {
       return new QC(Input, Echo, Width);
    }
-   else if (!strcmp("feap",Lat))
+   else if (!strcmp("FEAP",Lat))
    {
-      return new feap(Input, Echo, Width);
+      return new FEAP(Input, Echo, Width);
    }
    else
    {
