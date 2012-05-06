@@ -44,7 +44,12 @@ DATE_DEF   = -DBUILD_DATE="$(BUILD_DATE)"
 CC_PERL     = `perl -MExtUtils::Embed -e ccopts | sed -e 's/-arch[^-]*//g' | sed -e 's/-Wdeclaration-after-statement//g'`
 CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS) $(SOLVE) $(TERMINAL) $(CC_PERL)
 LIBS_PERL   = `perl -MExtUtils::Embed -e ldopts | sed -e 's/-arch[^-]*//g' | sed -e 's/-Wdeclaration-after-statement//g'`
-LIBS_FEAP  = $(FEAPHOME8_3)/Feap8_3.a -lgfortran -L/usr/X11R6/lib -lX11
+FEAP_OK := $(shell if test -e $(FEAPHOME8_3)/Feap8_3.a; then echo YES; else echo NO; fi)
+ifeq (YES,$(strip $(FEAP_OK)))
+  LIBS_FEAP = $(FEAPHOME8_3)/Feap8_3.a -lgfortran -L/usr/X11R6/lib -lX11
+else
+  LIBS_FEAP = 
+endif
 LIBS       = -lLinearAlgebra -lMyMath -lm
 LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(DATE_DEF) $(LIBS_PERL) $(LIBS_FEAP)
 
@@ -57,6 +62,9 @@ SUBDIRS    = Lattices Restrictions SolutionMethods Potentials Utility gpl_script
 
 # Defines the source files needed #########################################
 include $(addsuffix /Makefile, $(SUBDIRS))
+ifeq (YES,$(strip $(FEAP_OK)))
+  LATTICES := $(filter-out FEAP-stub.cpp,$(LATTICES))
+endif
 SOURCES  = ./LatticeStatics.cpp\
 	   $(addprefix Lattices/,$(LATTICES))\
 	   $(addprefix Restrictions/,$(RESTRICTIONS))\
