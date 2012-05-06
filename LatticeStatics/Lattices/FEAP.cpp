@@ -32,8 +32,8 @@ FEAP::~FEAP()
         << "\tE1DLoad calls - " << CallCount_[2] << "\n"
         << "\tE2 calls - " << CallCount_[3] << "\n";
 
-   delete [] eqnID_;
-   delete [] bcID_;
+   delete[] eqnID_;
+   delete[] bcID_;
 }
 
 FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
@@ -59,13 +59,13 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
    bfbfeap_main_(ffin_, &ffinlen, &ndf_, &ndm_, &numnp_, &neq_);
 
    // get and store equation id's from FEAP
-   eqnID_ = new int[ndf_*numnp_];
+   eqnID_ = new int[ndf_ * numnp_];
    bfbfeap_get_eqn_id_(eqnID_);
 
    // get and store boundary condition id's from FEAP
-   bcID_ = new int[ndf_*numnp_];
+   bcID_ = new int[ndf_ * numnp_];
    bfbfeap_get_eqn_bc_(bcID_);
-   for (int i = 0; i < ndf_*numnp_; ++i)
+   for (int i = 0; i < ndf_ * numnp_; ++i)
    {
       if (bcID_[i] != 0)
       {
@@ -74,7 +74,7 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
    }
 
    // set DOFS_
-   DOFS_ = ndf_*numnp_;
+   DOFS_ = ndf_ * numnp_;
    // set DOF_ to initial value
    DOF_.Resize(DOFS_, 1.0);
    bfbfeap_get_nodal_solution_(&(DOF_[0]));
@@ -120,7 +120,10 @@ void FEAP::UpdateValues(UpdateFlag flag) const
       bfbfeap_call_form_();
       bfbfeap_get_reduced_residual_(&(E1CachedValue_[0]));
       // FEAP returns -E1, so fix it.
-      for (int i=0;i<E1CachedValue_.Dim();++i) E1CachedValue_[i]=-E1CachedValue_[i];
+      for (int i = 0; i < E1CachedValue_.Dim(); ++i)
+      {
+         E1CachedValue_[i] = -E1CachedValue_[i];
+      }
       Cached_[0] = 1;
       Cached_[1] = 1;
       EvaluationCount_[0]++;
@@ -133,7 +136,10 @@ void FEAP::UpdateValues(UpdateFlag flag) const
       bfbfeap_call_form_();
       bfbfeap_get_reduced_residual_(&(E1CachedValue_[0]));
       // FEAP returns -E1, so fix it.
-      for (int i=0;i<E1CachedValue_.Dim();++i) E1CachedValue_[i]=-E1CachedValue_[i];
+      for (int i = 0; i < E1CachedValue_.Dim(); ++i)
+      {
+         E1CachedValue_[i] = -E1CachedValue_[i];
+      }
       bfbfeap_call_tang_();
       bfbfeap_get_reduced_tang_(&(E2CachedValue_[0][0]));
       // Need an E1DLoad
@@ -218,7 +224,7 @@ Matrix const& FEAP::StiffnessDL() const
 }
 
 void FEAP::Print(ostream& out, PrintDetail const& flag,
-               PrintPathSolutionType const& SolType)
+                 PrintPathSolutionType const& SolType)
 {
    int W;
    int NoNegTestFunctions = 0;
