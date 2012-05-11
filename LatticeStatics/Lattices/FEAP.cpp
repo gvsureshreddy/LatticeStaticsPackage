@@ -74,7 +74,8 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
    }
 
    // set DOFS_
-   DOFS_ = ndf_ * numnp_;
+   DOFS_ = ndf_ * ( numnp_ - nbn_ ) + ndm_ * ndm_ + nbn_ / 2 ;
+   DOFS_V_ = ndf_ * numnp_ ;
    // set DOF_ to initial value
    DOF_.Resize(DOFS_, 1.0);
    bfbfeap_get_nodal_solution_(&(DOF_[0]));
@@ -111,18 +112,41 @@ void FEAP::UpdateValues(UpdateFlag flag) const
 {
    // Update FEAP solution vector
    bfbfeap_set_nodal_solution_(&(DOF_[0]));
+   double eps = 2.0;
+   double DispSum [ndm_];
+   for (int i = 0; i < ndm_; ++i)
+   {
+      DispSum[i]=0.0;
+      for (int j=0; j < numnp_; ++j)
+      {
+	 DispSum[i] += DOF_[j*ndf_+i];     
+      }
+    }	
 
    if (NoStiffness == flag)
    {
       int mode = 0;
       bfbfeap_call_ener_(); // needs a "TPLOt" and "ENER" command in FEAP input file to work
       bfbfeap_get_potential_energy_(&(E0CachedValue_));
+      // Phantom energy term for E0
+      for (int i=0; i < ndm_; ++i)
+      {
+         E0CachedValue_ += 1.0/eps*DispSum[i]*DispSum[i];
+      }
       bfbfeap_call_form_();
       bfbfeap_get_reduced_residual_(&(E1CachedValue_[0]));
       // FEAP returns -E1, so fix it.
       for (int i = 0; i < E1CachedValue_.Dim(); ++i)
       {
          E1CachedValue_[i] = -E1CachedValue_[i];
+      }
+      // Phantom energy term for E1
+      for (int i = 0; i < ndm_; ++i)
+      {
+         for (int j = 0; j < numnp_; ++j)
+         {
+           E1CachedValue_[j* ndf_ + i] += 2.0/eps*DispSum[i];
+         }
       }
       Cached_[0] = 1;
       Cached_[1] = 1;
@@ -133,6 +157,12 @@ void FEAP::UpdateValues(UpdateFlag flag) const
       int mode = 1;
       bfbfeap_call_ener_();
       bfbfeap_get_potential_energy_(&(E0CachedValue_));
+      // Phantom energy term for E0
+      for (int i=0; i < ndm_; ++i)
+      {
+         E0CachedValue_ += 1.0/eps*DispSum[i]*DispSum[i];
+      }
+
       bfbfeap_call_form_();
       bfbfeap_get_reduced_residual_(&(E1CachedValue_[0]));
       // FEAP returns -E1, so fix it.
@@ -140,8 +170,27 @@ void FEAP::UpdateValues(UpdateFlag flag) const
       {
          E1CachedValue_[i] = -E1CachedValue_[i];
       }
+      // Phantom energy term for E1
+      for (int i = 0; i < ndm_; ++i)
+      {
+         for (int j = 0; j < numnp_; ++j)
+         {
+             E1CachedValue_[j * ndf_ + i] += 2.0/eps*DispSum[i];
+         }
+      }
+
       bfbfeap_call_tang_();
       bfbfeap_get_reduced_tang_(&(E2CachedValue_[0][0]));
+      
+      // Phantom energy term for E2
+      for (int i=0; i < DOFS_; ++i)
+      {
+         for (int j=0; j<numnp_; ++j)
+         {
+            if (!((i%ndf_)>(ndm_ - 1)))
+            E2CachedValue_[i][ndf_*j+(i%ndf_)] += 2.0/eps;
+         }
+      }
       // Need an E1DLoad
       Cached_[0] = 1;
       Cached_[1] = 1;
@@ -271,6 +320,7 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
       // passthrough to short
       case PrintShort:
          out << "Lambda (t): " << setw(W) << Lambda_ << "\n"
+             << "DOF: " << setw(W) << DOF_ << "\n"
              << "DOF Norm: " << setw(W) << DOF_.Norm() << "\n"
              << "Potential Value: " << setw(W) << engy << "\n"
              << "Force Norm: " << setw(W) << E1norm << "\n";
@@ -281,6 +331,7 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
          if (Echo_)
          {
             cout << "Lambda (t): " << setw(W) << Lambda_ << "\n"
+             << "DOF: " << setw(W) << DOF_ << "\n"
                  << "DOF Norm: " << setw(W) << DOF_.Norm() << "\n"
                  << "Potential Value: " << setw(W) << engy << "\n"
                  << "Force Norm: " << setw(W) << E1norm << "\n";
