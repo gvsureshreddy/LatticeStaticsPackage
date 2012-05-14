@@ -50,8 +50,8 @@ ifeq (YES,$(strip $(FEAP_OK)))
 else
   LIBS_FEAP = 
 endif
-LIBS       = -lLinearAlgebra -lMyMath -lm
-LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(DATE_DEF) $(LIBS_PERL) $(LIBS_FEAP)
+LIBS       = -lLinearAlgebra -lMyMath -lm $(LIBS_FEAP)
+LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(DATE_DEF) $(LIBS_PERL)
 
 
 # File Locations ##########################################################
