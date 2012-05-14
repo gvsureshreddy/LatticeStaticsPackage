@@ -141,6 +141,7 @@ public:
    Matrix& SetIdentity(int const& Size = 0);
    Matrix Transpose() const;
    Matrix Inverse() const;
+   double Trace() const;
    int IsSquare() const
    {
       return Rows_ == Cols_;

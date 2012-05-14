@@ -11,10 +11,17 @@ using namespace std;
 class FEAP : public Lattice
 {
 private:
-   mutable int DOFS_;
+   mutable int DOFS_; // BFB number of degrees of freedom
+   mutable int DOFS_F_; // FEAP number of degrees of freedom 
 
-   mutable Vector DOF_;
+   mutable Vector DOF_; // BFB degrees of freedom
+   mutable Vector DOF_F_; // FEAP degrees of freedom
+ 
+   mutable Matrix Map_;
+   
    mutable double Lambda_;
+   mutable Matrix Load_;
+   mutable Matrix U_; //Disp gradient 
 
    char const* ffin_; // FEAP input file name
    int ndf_; // number of DOFs per node
@@ -24,6 +31,7 @@ private:
    int* eqnID_; // equation number ID array
    int* bcID_; // displacement boundary condition ID array
    Vector X_; // Reference coordinates of nodes
+   int nbn_; // number of boundary nodes
 
    int Width_;
    double Tolerance_;
@@ -35,8 +43,10 @@ private:
    mutable int Cached_[cachesize];
    mutable double E0CachedValue_;
    mutable Vector E1CachedValue_;
+   mutable Vector E1CachedValue_F_; //E1 Cached value for FEAP
    mutable Vector E1DLoadCachedValue_;
    mutable Matrix E2CachedValue_;
+   mutable Matrix E2CachedValue_F_;
    mutable int EvaluationCount_[2];
    mutable int CallCount_[cachesize];
 

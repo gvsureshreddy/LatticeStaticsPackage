@@ -379,6 +379,21 @@ Matrix Matrix::Transpose() const
    return A;
 }
 
+double Matrix::Trace() const
+{
+   double trace = 0.0;
+   if (!IsSquare())
+   {
+      cerr << "Error in Matrix::Trace() : Non-Square Matrix" << "\n";
+      exit(-1);
+   }
+   for (int i=0; i<Rows_; ++i)
+   {
+      trace += (*this)[i][i];
+   }
+   return trace;
+}
+
 Matrix Matrix::Inverse() const
 {
    if (!IsSquare() || IsNull())
