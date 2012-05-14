@@ -4,6 +4,7 @@
 
 Lattice::Lattice(PerlInput const& Input, int const& Echo) :
    Echo_(Echo),
+   NumExtraTFs_(0),
    test_flag_static(0)
 {
    if (Input.ParameterOK("Lattice", "UseEigenValTFs"))
