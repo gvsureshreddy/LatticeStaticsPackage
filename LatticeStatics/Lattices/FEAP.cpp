@@ -230,10 +230,10 @@ void FEAP::UpdateValues(UpdateFlag flag) const
 
       //E1DLoad 
 
-      E1DLoadCachedValue_[0] -= Load_[0][0];
-      E1DLoadCachedValue_[1] -= Load_[1][0];
-      E1DLoadCachedValue_[2] -= Load_[0][1];
-      E1DLoadCachedValue_[3] -= Load_[1][1];
+      E1DLoadCachedValue_[0] = -Load_[0][0];
+      E1DLoadCachedValue_[1] = -Load_[1][0];
+      E1DLoadCachedValue_[2] = -Load_[0][1];
+      E1DLoadCachedValue_[3] = -Load_[1][1];
 
       //E2
 
