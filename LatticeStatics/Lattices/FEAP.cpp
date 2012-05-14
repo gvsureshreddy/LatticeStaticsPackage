@@ -177,7 +177,7 @@ void FEAP::UpdateValues(UpdateFlag flag) const
 
 
    double eps = 2.0;
-   double DispSum [ndm_];
+   Vector DispSum(ndm_);
    for (int i = 0; i < ndm_; ++i)
    {
       DispSum[i]=0.0;
