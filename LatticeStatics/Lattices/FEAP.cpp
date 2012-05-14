@@ -174,18 +174,6 @@ void FEAP::UpdateValues(UpdateFlag flag) const
    // Update FEAP solution vector
    DOF_F_ = Map_ * DOF_;
    bfbfeap_set_nodal_solution_(&(DOF_F_[0]));
-
-
-   double eps = 2.0;
-   Vector DispSum(ndm_);
-   for (int i = 0; i < ndm_; ++i)
-   {
-      DispSum[i]=0.0;
-      for (int j=0; j < numnp_; ++j)
-      {
-	 DispSum[i] += DOF_F_[j*ndf_+i];     
-      }
-    }	
    
    // Set disp gradient for energy
    U_.Resize(2,2,0.0);
@@ -197,15 +185,8 @@ void FEAP::UpdateValues(UpdateFlag flag) const
 
    if (NoStiffness == flag)
    {
-      int mode = 0;
       bfbfeap_call_ener_(); // needs a "TPLOt" and "ENER" command in FEAP input file to work
       bfbfeap_get_potential_energy_(&(E0CachedValue_));
-      // Phantom energy term for E0
-      for (int i=0; i < ndm_; ++i)
-      {
-         E0CachedValue_ += 1.0/eps*DispSum[i]*DispSum[i];
-      }
-
       E0CachedValue_ -= Lambda_ * (Load_ * U_).Trace();
 
       bfbfeap_call_form_();
@@ -215,14 +196,6 @@ void FEAP::UpdateValues(UpdateFlag flag) const
       for (int i = 0; i < E1CachedValue_F_.Dim(); ++i)
       {
          E1CachedValue_F_[i] = -E1CachedValue_F_[i];
-      }
-      // Phantom energy term for E1
-      for (int i = 0; i < ndm_; ++i)
-      {
-         for (int j = 0; j < numnp_; ++j)
-         {
-           E1CachedValue_F_[j* ndf_ + i] += 2.0/eps*DispSum[i];
-         }
       }
       E1CachedValue_ = Map_.Transpose() * E1CachedValue_F_;
 
@@ -237,15 +210,8 @@ void FEAP::UpdateValues(UpdateFlag flag) const
    }
    else if (NeedStiffness == flag)
    {
-      int mode = 1;
       bfbfeap_call_ener_();
       bfbfeap_get_potential_energy_(&(E0CachedValue_));
-      // Phantom energy term for E0
-      for (int i=0; i < ndm_; ++i)
-      {
-         E0CachedValue_ += 1.0/eps*DispSum[i]*DispSum[i];
-      }
-
       E0CachedValue_ -= Lambda_ * (Load_ * U_).Trace();
 
       bfbfeap_call_form_();
@@ -254,14 +220,6 @@ void FEAP::UpdateValues(UpdateFlag flag) const
       for (int i = 0; i < E1CachedValue_F_.Dim(); ++i)
       {
          E1CachedValue_F_[i] = -E1CachedValue_F_[i];
-      }
-      // Phantom energy term for E1
-      for (int i = 0; i < ndm_; ++i)
-      {
-         for (int j = 0; j < numnp_; ++j)
-         {
-             E1CachedValue_F_[j * ndf_ + i] += 2.0/eps*DispSum[i];
-         }
       }
       E1CachedValue_ = Map_.Transpose() * E1CachedValue_F_;
 
@@ -282,15 +240,6 @@ void FEAP::UpdateValues(UpdateFlag flag) const
       bfbfeap_call_tang_();
       bfbfeap_get_reduced_tang_(&(E2CachedValue_F_[0][0]));
       
-      // Phantom energy term for E2
-      for (int i=0; i < DOFS_F_; ++i)
-      {
-         for (int j=0; j<numnp_; ++j)
-         {
-            if (!((i%ndf_)>(ndm_ - 1)))
-            E2CachedValue_F_[i][ndf_*j+(i%ndf_)] += 2.0/eps;
-         }
-      }
       E2CachedValue_ = Map_.Transpose() * E2CachedValue_F_ * Map_;
 
       
