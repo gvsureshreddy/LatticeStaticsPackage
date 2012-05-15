@@ -371,7 +371,7 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
    int NoNegTestFunctions = 0;
    double engy;
    double E1norm;
-   double mintestfunct;
+   double mintestfunct[3];
    Vector TestFunctVals(NumTestFunctions());
 
    W = out.width();
@@ -386,7 +386,7 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
    E1norm = E1().Norm();
 
    TestFunctions(TestFunctVals, LHS);
-   mintestfunct = TestFunctVals[0];
+   for (int i=0;i<3;++i) mintestfunct[i] = TestFunctVals[0];
    // check only the EigenValTFs
    for (int i = 0; i < DOFS_; ++i)
    {
@@ -394,9 +394,11 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
       {
          ++NoNegTestFunctions;
       }
-      if (mintestfunct > TestFunctVals[i])
+      if (mintestfunct[0] > TestFunctVals[i])
       {
-         mintestfunct = TestFunctVals[i];
+         mintestfunct[2] = mintestfunct[1];
+         mintestfunct[1] = mintestfunct[0];
+         mintestfunct[0] = TestFunctVals[i];
       }
    }
 
@@ -406,12 +408,10 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
    {
       case PrintLong:
          out << "FEAP:" << "\n" << "\n";
-         out << "Ref X:" << setw(W) << X_ << "\n";
 
          if (Echo_)
          {
             cout << "FEAP:" << "\n" << "\n";
-            cout << "Ref X:" << setw(W) << X_ << "\n";
          }
       // passthrough to short
       case PrintShort:
@@ -423,7 +423,9 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
 
 
 
-         out << "Bifurcation Info: " << setw(W) << mintestfunct
+         out << "Bifurcation Info: " << setw(W) << mintestfunct[0]
+             << setw(W) << mintestfunct[1]
+             << setw(W) << mintestfunct[2]
              << setw(W) << NoNegTestFunctions << "\n";
          // send to cout also
          if (Echo_)
@@ -436,7 +438,9 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
 
 
 
-            cout << "Bifurcation Info: " << setw(W) << mintestfunct
+            cout << "Bifurcation Info: " << setw(W) << mintestfunct[0]
+                 << setw(W) << mintestfunct[1]
+                 << setw(W) << mintestfunct[2]
                  << setw(W) << NoNegTestFunctions << "\n";
          }
          break;
