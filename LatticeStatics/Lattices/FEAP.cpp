@@ -5,8 +5,10 @@ using namespace std;
 
 extern "C" void bfbfeap_main_(char const* const ffin, int* ffinlen,
                               int* const numDOFperNode, int* const numSpcDIM,
-                              int* const numNodeInMesh, int* const numEqns);
+                              int* const numNodeInMesh, int* const numElemInMesh,
+                              int* const numNodesPerEl, int* const numEqns);
 extern "C" void bfbfeap_get_eqn_id_(int* bfb_id);
+extern "C" void bfbfeap_get_elem_conn_(int* bfb_ix);
 extern "C" void bfbfeap_get_eqn_bc_(int* bfb_bc);
 extern "C" void bfbfeap_get_nodal_solution_(double* bfb_u);
 extern "C" void bfbfeap_set_nodal_solution_(double* bfb_u);
@@ -33,7 +35,10 @@ FEAP::~FEAP()
         << "\tE2 calls - " << CallCount_[3] << "\n";
 
    delete[] eqnID_;
+   delete[] elmConn_;
    delete[] bcID_;
+
+   config_out_.close();
 }
 
 FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
@@ -66,7 +71,7 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
 
    // Initialize FEAP, send input file name and get ndf, ndm, etc. back.
    int ffinlen = strlen(ffin_);
-   bfbfeap_main_(ffin_, &ffinlen, &ndf_, &ndm_, &numnp_, &neq_);
+   bfbfeap_main_(ffin_, &ffinlen, &ndf_, &ndm_, &numnp_, &nel_, &nen1_, &neq_);
 
    // get and store equation id's from FEAP
    eqnID_ = new int[ndf_ * numnp_];
@@ -82,6 +87,10 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
          cerr << "*WARNING* FEAP::FEAP() -- Found displacement BC, but expecting none...\n";
       }
    }
+
+   // get and store element connectivity
+   elmConn_ = new int[nen1_*nel_];
+   bfbfeap_get_elem_conn_(elmConn_);
 
    // set DOFS_
 
@@ -166,6 +175,17 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
    // initialize evaluation count (number of times UpdateValues is called) to zero
    EvaluationCount_[0] = 0;
    EvaluationCount_[1] = 0;
+
+   // open config_out file
+   string flnm(Input.LastInputFileName());
+   int pos = flnm.find(".bfb");
+   if (string::npos != pos)
+   {
+      flnm.erase(pos,flnm.length());
+   }
+   flnm.append(".gpl");
+
+   config_out_.open(flnm.c_str() ,ios::out);
 
 }
 
@@ -323,6 +343,23 @@ Matrix const& FEAP::StiffnessDL() const
    return stiffdl_static;
 }
 
+void FEAP::print_gpl_config(fstream& out) const
+{
+   for (int i=0;i<nel_;++i)
+   {
+      // node numbers for element i (-1 for zero-based values)
+      int n1 = elmConn_[i*nen1_+0] - 1;
+      int n2 = elmConn_[i*nen1_+1] - 1;
+      out << setw(Width_) << X_[n1*ndm_+0] + DOF_F_[n1*ndf_+0]
+          << setw(Width_) << X_[n1*ndm_+1] + DOF_F_[n1*ndf_+1]
+          << endl;
+      out << setw(Width_) << X_[n2*ndm_+0] + DOF_F_[n2*ndf_+0]
+          << setw(Width_) << X_[n2*ndm_+1] + DOF_F_[n2*ndf_+1]
+          << endl << endl;
+   }
+   out << endl;
+}
+
 void FEAP::Print(ostream& out, PrintDetail const& flag,
                  PrintPathSolutionType const& SolType)
 {
@@ -358,6 +395,8 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
          mintestfunct = TestFunctVals[i];
       }
    }
+
+   print_gpl_config(config_out_);
 
    switch (flag)
    {

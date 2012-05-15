@@ -27,8 +27,11 @@ private:
    int ndf_; // number of DOFs per node
    int ndm_; // number of spatial dimensions
    int numnp_; // number of nodes in mesh
+   int nel_; // number of elements in mesh
+   int nen1_; // number of nodes per element
    int neq_; // number of reduced equations
    int* eqnID_; // equation number ID array
+   int* elmConn_; // element connectivity array
    int* bcID_; // displacement boundary condition ID array
    Vector X_; // Reference coordinates of nodes
    int nbn_; // number of boundary nodes
@@ -153,6 +156,9 @@ public:
    }
 
 private:
+
+   void print_gpl_config(fstream& out) const;
+   fstream config_out_;
    // statice for StiffnessDL
    mutable Matrix stiffdl_static;
 
