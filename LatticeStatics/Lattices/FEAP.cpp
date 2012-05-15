@@ -184,9 +184,8 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
       flnm.erase(pos,flnm.length());
    }
    flnm.append(".gpl");
-
    config_out_.open(flnm.c_str() ,ios::out);
-
+   config_count_ = 0;
 }
 
 void FEAP::UpdateValues(UpdateFlag flag) const
@@ -345,6 +344,9 @@ Matrix const& FEAP::StiffnessDL() const
 
 void FEAP::print_gpl_config(fstream& out) const
 {
+   out << "# Index num: " << config_count_ << endl;
+   out << "########## configuration for Lambda = " << Lambda_
+       << " ##########" << endl;
    for (int i=0;i<nel_;++i)
    {
       // node numbers for element i (-1 for zero-based values)
@@ -358,6 +360,8 @@ void FEAP::print_gpl_config(fstream& out) const
           << endl << endl;
    }
    out << endl;
+
+   ++config_count_;
 }
 
 void FEAP::Print(ostream& out, PrintDetail const& flag,

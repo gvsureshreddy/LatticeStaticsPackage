@@ -42,6 +42,10 @@ private:
    enum UpdateFlag {NoStiffness = 0, NeedStiffness = 1};
    void UpdateValues(UpdateFlag flag) const;
 
+   void print_gpl_config(fstream& out) const;
+   fstream config_out_;
+   mutable int config_count_;
+
    static const int cachesize = 4;
    mutable int Cached_[cachesize];
    mutable double E0CachedValue_;
@@ -156,9 +160,6 @@ public:
    }
 
 private:
-
-   void print_gpl_config(fstream& out) const;
-   fstream config_out_;
    // statice for StiffnessDL
    mutable Matrix stiffdl_static;
 
