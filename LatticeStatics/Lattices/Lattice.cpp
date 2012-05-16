@@ -165,8 +165,10 @@ int Lattice::TestFunctions(Vector& TF1, StateType const& State, Vector* const TF
       EigVectLHS_static.SetIdentity(size);
       EV1_static.Resize(1, size);
       EV2_static.Resize(1, size);
+      EV3_static.Resize(1, size);
       ExTF1_static.Resize(NumExtraTFs_, 0.0);
       ExTF2_static.Resize(NumExtraTFs_, 0.0);
+      ExTF3_static.Resize(NumExtraTFs_, 0.0);
 
       test_flag_static = test_flag_static + 1;
    }
@@ -309,30 +311,29 @@ int Lattice::TestFunctions(Vector& TF1, StateType const& State, Vector* const TF
             }
          }
 
-         EV1_static = SymEigVal(Stiffness_diagonalized_static, &EigVect_static);
-         // EV1 = SymEigVal(Stiffness_diagonalized,&EigVectLHS);
+         EV3_static = SymEigVal(Stiffness_diagonalized_static);
 
          for (int i = 0; i < size; i++)
          {
-            if ((EV1_static[0][i] * EV2_static[0][i]) < 0.0)
+            if ((EV3_static[0][i] * EV2_static[0][i]) < 0.0)
             {
                ++NumSwitchTFs;
             }
-            TF1[i] = EV1_static[0][i];
+            TF1[i] = EV3_static[0][i];
          }
       }
 
       if(NumExtraTFs_>0)
       {
-         ExtraTestFunctions(ExTF1_static);
+         ExtraTestFunctions(ExTF3_static);
       }
       for (int i=0;i<NumExtraTFs_;++i)
       {
-         if ((ExTF1_static[i] * ExTF2_static[i]) < 0.0)
+         if ((ExTF3_static[i] * ExTF2_static[i]) < 0.0)
          {
             ++NumSwitchTFs;
          }
-         TF1[size + i] = ExTF1_static[i];
+         TF1[size + i] = ExTF3_static[i];
       }
    }
 

@@ -135,8 +135,10 @@ protected:
    mutable Matrix EigVectLHS_static;
    mutable Matrix EV1_static;
    mutable Matrix EV2_static;
+   mutable Matrix EV3_static;
    mutable Vector ExTF1_static;
    mutable Vector ExTF2_static;
+   mutable Vector ExTF3_static;
 };
 
 #endif
