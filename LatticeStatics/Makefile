@@ -137,7 +137,7 @@ clean:
 	 -/bin/rm -f $(addprefix lib/,$(OBJECTS)) \
 		  $(addsuffix /*~,$(SUBDIRS))\
 		  $(addprefix lib/,$(OBJECTS:$(OBJ_EXT)=.ti))\
-                  lib/$(EXE).* bin/$(EXE) core *~ \
+                  lib/$(EXE).* bin/$(EXE) lib/FEAP-stub.o core *~ \
 		  depend/*.d
 	$(MAKE) -e -C ./Utility -f MakeUtilityProgs clean
 
