@@ -744,7 +744,7 @@ NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict, PerlInput const&
 
       fstream::fmtflags oldflags = cout.flags();
       cout << scientific;
-      Restrict_->ConsistencyCheck(Solution, ConsistencyEpsilon, Width, cout);
+      Restrict_->ConsistencyCheckRidders(Solution, ConsistencyEpsilon, Width, cout);
       cout.flags(oldflags);
       // We're done
       CurrentSolution_ = NumSolutions_;

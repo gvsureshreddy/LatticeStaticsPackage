@@ -55,6 +55,9 @@ public:
    void ConsistencyCheck(Vector const& dof, double const& ConsistencyEpsilon, int const& Width,
                          ostream& out);
 
+   void ConsistencyCheckRidders(Vector const& dof, double const& ConsistencyEpsilon, int const& Width,
+                         ostream& out);
+
    virtual char const* const Name() const
    {
       return "Restriction";

@@ -144,6 +144,34 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
       cout << "*Error: FEAP::FirstPKstress not found in input file.\n";
       exit(-1);
    }
+   // Setup Vectors A_ and B_ for "Phantom energy term"
+
+   if (Input.ParameterOK(Hash,"A_"))
+   {
+      A_.Resize(2,0.0);
+      Input.getVector(A_,Hash,"A_");
+   }
+   else
+   {
+      cout << "*Error: FEAP::A_ not found in input file.\n";
+      exit(-1);
+   }
+
+  if (Input.ParameterOK(Hash,"B_"))
+   {
+      B_.Resize(2,0.0);
+      Input.getVector(B_,Hash,"B_");
+   }
+   else
+   {
+      cout << "*Error: FEAP::B_ not found in input file.\n";
+      exit(-1);
+   }
+  AB_.Resize(2,2,0.0);
+  AB_[0][0]=A_[0] * B_[0];
+  AB_[0][1]=A_[0] * B_[1];
+  AB_[1][0]=A_[1] * B_[0];
+  AB_[1][1]=A_[1] * B_[1];
 
 
    // setup remaining variables
@@ -158,6 +186,9 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
    stiffdl_static.Resize(DOFS_, DOFS_);
    EmptyV_.Resize(DOFS_, 0.0);
    EmptyM_.Resize(DOFS_, DOFS_, 0.0);
+
+   U_.Resize(2,2,0.0);
+
 
 
 
@@ -195,18 +226,20 @@ void FEAP::UpdateValues(UpdateFlag flag) const
    bfbfeap_set_nodal_solution_(&(DOF_F_[0]));
    
    // Set disp gradient for energy
-   U_.Resize(2,2,0.0);
    U_[0][0] = DOF_[0];
    U_[0][1] = DOF_[1];
    U_[1][0] = DOF_[2];
    U_[1][1] = DOF_[3];
+
+   double eps = 1.0e-1;
+   double bUa = B_ * (U_ * A_);
 
 
    if (NoStiffness == flag)
    {
       bfbfeap_call_ener_(); // needs a "TPLOt" and "ENER" command in FEAP input file to work
       bfbfeap_get_potential_energy_(&(E0CachedValue_));
-      E0CachedValue_ -= Lambda_ * (Load_ * U_).Trace();
+      E0CachedValue_ += -Lambda_ * (Load_ * U_).Trace() + 1.0/eps *bUa*bUa;
 
       bfbfeap_call_form_();
       bfbfeap_get_reduced_residual_(&(E1CachedValue_F_[0]));
@@ -218,10 +251,10 @@ void FEAP::UpdateValues(UpdateFlag flag) const
       }
       E1CachedValue_ = Map_.Transpose() * E1CachedValue_F_;
 
-      E1CachedValue_[0] -= Lambda_ * Load_[0][0];
-      E1CachedValue_[1] -= Lambda_ * Load_[1][0];
-      E1CachedValue_[2] -= Lambda_ * Load_[0][1];
-      E1CachedValue_[3] -= Lambda_ * Load_[1][1];   
+      E1CachedValue_[0] += -Lambda_ * Load_[0][0] + 2.0/eps * AB_[0][0] * bUa;
+      E1CachedValue_[1] += -Lambda_ * Load_[1][0] + 2.0/eps * AB_[1][0] * bUa;
+      E1CachedValue_[2] += -Lambda_ * Load_[0][1] + 2.0/eps * AB_[0][1] * bUa;
+      E1CachedValue_[3] += -Lambda_ * Load_[1][1] + 2.0/eps * AB_[1][1] * bUa;   
 
       Cached_[0] = 1;
       Cached_[1] = 1;
@@ -231,7 +264,7 @@ void FEAP::UpdateValues(UpdateFlag flag) const
    {
       bfbfeap_call_ener_();
       bfbfeap_get_potential_energy_(&(E0CachedValue_));
-      E0CachedValue_ -= Lambda_ * (Load_ * U_).Trace();
+      E0CachedValue_ += -Lambda_ * (Load_ * U_).Trace() + 1.0/eps*bUa*bUa;
 
       bfbfeap_call_form_();
       bfbfeap_get_reduced_residual_(&(E1CachedValue_F_[0]));
@@ -242,10 +275,10 @@ void FEAP::UpdateValues(UpdateFlag flag) const
       }
       E1CachedValue_ = Map_.Transpose() * E1CachedValue_F_;
 
-      E1CachedValue_[0] -= Lambda_ * Load_[0][0];
-      E1CachedValue_[1] -= Lambda_ * Load_[1][0];
-      E1CachedValue_[2] -= Lambda_ * Load_[0][1];
-      E1CachedValue_[3] -= Lambda_ * Load_[1][1];
+      E1CachedValue_[0] += -Lambda_ * Load_[0][0] + 2.0/eps * AB_[0][0] * bUa;
+      E1CachedValue_[1] += -Lambda_ * Load_[1][0] + 2.0/eps * AB_[1][0] * bUa;
+      E1CachedValue_[2] += -Lambda_ * Load_[0][1] + 2.0/eps * AB_[0][1] * bUa;
+      E1CachedValue_[3] += -Lambda_ * Load_[1][1] + 2.0/eps * AB_[1][1] * bUa; 
 
       //E1DLoad 
 
@@ -260,6 +293,23 @@ void FEAP::UpdateValues(UpdateFlag flag) const
       bfbfeap_get_reduced_tang_(&(E2CachedValue_F_[0][0]));
       
       E2CachedValue_ = Map_.Transpose() * E2CachedValue_F_ * Map_;
+
+      E2CachedValue_[0][0] += 2.0/eps * AB_[0][0] * AB_[0][0];
+      E2CachedValue_[0][1] += 2.0/eps * AB_[0][0] * AB_[1][0];
+      E2CachedValue_[0][2] += 2.0/eps * AB_[0][0] * AB_[0][1];
+      E2CachedValue_[0][3] += 2.0/eps * AB_[0][0] * AB_[1][1];
+      E2CachedValue_[1][0] += 2.0/eps * AB_[1][0] * AB_[0][0];
+      E2CachedValue_[1][1] += 2.0/eps * AB_[1][0] * AB_[1][0];
+      E2CachedValue_[1][2] += 2.0/eps * AB_[1][0] * AB_[0][1];
+      E2CachedValue_[1][3] += 2.0/eps * AB_[1][0] * AB_[1][1];
+      E2CachedValue_[2][0] += 2.0/eps * AB_[0][1] * AB_[0][0];
+      E2CachedValue_[2][1] += 2.0/eps * AB_[0][1] * AB_[1][0];
+      E2CachedValue_[2][2] += 2.0/eps * AB_[0][1] * AB_[0][1];
+      E2CachedValue_[2][3] += 2.0/eps * AB_[0][1] * AB_[1][1];
+      E2CachedValue_[3][0] += 2.0/eps * AB_[1][1] * AB_[0][0];
+      E2CachedValue_[3][1] += 2.0/eps * AB_[1][1] * AB_[1][0];
+      E2CachedValue_[3][2] += 2.0/eps * AB_[1][1] * AB_[0][1];
+      E2CachedValue_[3][3] += 2.0/eps * AB_[1][1] * AB_[1][1];
 
       
       Cached_[0] = 1;

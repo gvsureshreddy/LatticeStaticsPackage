@@ -22,6 +22,9 @@ private:
    mutable double Lambda_;
    mutable Matrix Load_;
    mutable Matrix U_; //Disp gradient 
+   mutable Vector A_;
+   mutable Vector B_;
+   mutable Matrix AB_;
 
    char const* ffin_; // FEAP input file name
    int ndf_; // number of DOFs per node
