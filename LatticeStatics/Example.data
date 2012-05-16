@@ -40,12 +40,13 @@ $Rtheta1_1_1 = 0.275914376289;
 # TempMorse
 #
 
-%Lattice = (Type            => MultiLatticeTPP, # MultiLatticeTPP, MultiChainTPP, MultiChainTTPP, SCLDQMultiChainTPP, SCLDCMultiChainTPP, TwoBarTruss, TwoBarTrussExternal, DFTExternal, QC, FEAP
-            #UseEigenValTFs  => Yes, # Default value = Yes, No
-            #LSKAnalysis     => SecondOrder, # Default value = SecondOrder, ThirdOrder, None
-            #FullPrint       => Yes, # Default value = Yes, No
-            #GuessModes      => No, # Default value = No, Yes
-            #UseExtension    => "", # Default value = ""
+%Lattice = (Type                 => MultiLatticeTPP, # MultiLatticeTPP, MultiChainTPP, MultiChainTTPP, SCLDQMultiChainTPP, SCLDCMultiChainTPP, TwoBarTruss, TwoBarTrussExternal, DFTExternal, QC, FEAP
+            #UseEigenValTFs       => Yes, # Default value = Yes, No
+            #LSKAnalysis          => SecondOrder, # Default value = SecondOrder, ThirdOrder, None
+            #FullPrint            => Yes, # Default value = Yes, No
+            #TurningPointRestarts => No, # Default value = No, Yes
+            #GuessModes           => No, # Default value = No, Yes
+            #UseExtension         => "", # Default value = ""
             MultiLatticeTPP => 
             {FastPrint           => No, # Default value = No, Yes
              CBKinematics        => {Type => LagrangeCB, # SymLagrangeCB, SymLagrangeWTransCB, LagrangeCB, MixedCB, EulerCB

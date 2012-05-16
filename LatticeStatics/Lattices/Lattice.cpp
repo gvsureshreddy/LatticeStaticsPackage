@@ -103,6 +103,30 @@ Lattice::Lattice(PerlInput const& Input, int const& Echo) :
       Input.useString("No", "Lattice", "GuessModes"); // Default Value
    }
 
+   if (Input.ParameterOK("Lattice", "TurningPointRestarts"))
+   {
+      char const* const TPRestart = Input.getString("Lattice", "TurningPointRestarts");
+      if (!strcmp("Yes", TPRestart))
+      {
+         TurnPtRestarts_ = 1;
+      }
+      else if (!strcmp("No", TPRestart))
+      {
+         TurnPtRestarts_ = 0;
+      }
+      else
+      {
+         cerr << "Error: Unknown value for Lattice{TurningPointRestarts}.\n";
+         exit(-1);
+      }
+   }
+   else
+   {
+      TurnPtRestarts_ = 0;
+      Input.useString("No", "Lattice", "TurningPointRestarts"); // Default Value
+   }
+
+         
    if (Input.ParameterOK("Lattice", "UseExtension"))
    {
       UseExtension_ = Input.getString("Lattice", "UseExtension");
@@ -1215,24 +1239,25 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
    }
    else if (Bif == 0) // cover turning points
    {
-      // Do nothing
+      if (TurnPtRestarts_ == 1)
+      {
+         cpfile.open(cpfilename.str().c_str(),ios::out);
+         cpfile << Input.ReconstructedInput();
+         cpfile << "\n\n";
 
-      // cpfile.open(cpfilename.str().c_str(),ios::out);
-      // cpfile << Input.ReconstructedInput();
-      // cpfile << "\n\n";
-      //
-      // Input.writeString(cpfile,"Continuation","StartType","Type");
-      // for (int i=0;i<count;++i) // be safe, cover a miss-identified point
-      // {
-      //    for (int j=0;j<dofs;++j)
-      //    {
-      //       M[j] = Mode[i][j];
-      //    }
-      //    M[dofs] = 0.0;
-      //    Input.writeVector(cpfile,M,"StartType","Tangent");
-      // }
-      // Input.writeVector(cpfile,T,"StartType","Solution");
-      // cpfile.close();
+         Input.writeString(cpfile,"Continuation","StartType","Type");
+         for (int i=0;i<count;++i) // be safe, cover a miss-identified point
+         {
+            for (int j=0;j<dofs;++j)
+            {
+               M[j] = Mode[i][j];
+            }
+            M[dofs] = 0.0;
+            Input.writeVector(cpfile,M,"StartType","Tangent");
+         }
+         Input.writeVector(cpfile,T,"StartType","Solution");
+         cpfile.close();
+      }
    }
    else // cover ExtraTFs
    {
