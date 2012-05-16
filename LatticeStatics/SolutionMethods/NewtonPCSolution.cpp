@@ -1090,7 +1090,8 @@ int NewtonPCSolution::FindNextSolution(PerlInput const& Input, int const& Width,
    if (BisectCP_)
    {
       int TestValue;
-      TestValue = Restrict_->TestFunctions(TestValues_static,Lattice::INTERMED);
+      // call with Lattice::LHS to compute eigvals of new point and store
+      TestValue = Restrict_->TestFunctions(TestValues_static,Lattice::LHS);
       if ((CurrentSolution_ > 0) && (eig_angle_max_ > 0.0) && !RelativeEigVectsOK())
       {
          cout << "NOTE: Relative Eigenvectors are too far apart!  "
