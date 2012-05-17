@@ -404,9 +404,12 @@ void FEAP::print_gpl_config(fstream& out) const
       int n2 = elmConn_[i*nen1_+1] - 1;
       out << setw(Width_) << X_[n1*ndm_+0] + DOF_F_[n1*ndf_+0]
           << setw(Width_) << X_[n1*ndm_+1] + DOF_F_[n1*ndf_+1]
-          << endl;
+          << setw(Width_) << DOF_F_[n1*ndf_+2]
+          << "\t" << "# Element " << i+1 << ": Node " << n1+1 << endl;
       out << setw(Width_) << X_[n2*ndm_+0] + DOF_F_[n2*ndf_+0]
           << setw(Width_) << X_[n2*ndm_+1] + DOF_F_[n2*ndf_+1]
+          << setw(Width_) << DOF_F_[n2*ndf_+2]
+          << "\t" << "# Element " << i+1 << ": Node " << n2+1
           << endl << endl;
    }
    out << endl;
