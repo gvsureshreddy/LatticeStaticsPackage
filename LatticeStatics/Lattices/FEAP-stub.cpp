@@ -19,6 +19,10 @@ extern "C" void bfbfeap_get_eqn_id_(int* bfb_id)
 {
    error_and_exit();
 }
+extern "C" void bfbfeap_get_elem_conn_(int* bfb_ix)
+{
+   error_and_exit();
+}
 extern "C" void bfbfeap_get_eqn_bc_(int* bfb_bc)
 {
    error_and_exit();
