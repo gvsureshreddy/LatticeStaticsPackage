@@ -559,18 +559,18 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
             cout << "StressDT*Mode[" << i << "] = " << setw(Width) << z << "\n";
          }
       }
-      if (Bif != CPorBif) // information conflicts. use Bif
+      if (Bif != CPorBif) // information conflicts.
       {
          out << "NOTE: Conflict between critical point identification methods in Lattice.\n"
              << "      Using characterization determined by FindCriticalPoint()." << "\n"
-             << "Bif = " << Bif << " and CPorBif = " << CPorBif << "\n"
-             << "Key: -1--ExtraTF, 0--TurningPt, 1--BifPt.\n";
+             << "      (CPTinfo) Bif = " << Bif << " and (FindCP) CPorBif = " << CPorBif << "\n"
+             << "      Key: -1--ExtraTF, 0--TurningPt, 1--BifPt.\n";
          if (Echo_)
          {
             cout << "NOTE: Conflict between critical point identification methods in Lattice.\n"
                  << "      Using characterization determined by FindCriticalPoint()." << "\n"
-                 << "Bif = " << Bif << " and CPorBif = " << CPorBif << "\n"
-                 << "Key: -1--ExtraTF, 0--TurningPt, 1--BifPt.\n";
+                 << "      (CPTinfo) Bif = " << Bif << " and (FindCP) CPorBif = " << CPorBif << "\n"
+                 << "      Key: -1--ExtraTF, 0--TurningPt, 1--BifPt.\n";
          }
          Bif = CPorBif;
       }
