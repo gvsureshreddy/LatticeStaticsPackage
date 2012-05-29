@@ -998,11 +998,15 @@ void ArcLengthSolution::FindCriticalPoint(Lattice* const Lat, int* const TotalNu
          if (CPType[i] != CPorBif)
          {
             out << "NOTE: Conflict between critical point identification methods in ArcLengthSolution.\n"
-                << "      Using characterization determined by Group Theory." << "\n";
+                << "      Using characterization determined by Group Theory." << "\n"
+                << " CPType[" << i << "] = " << CPType[i] << " and CPorBif = " << CPorBif << "\n"
+                << "Key: -1--ExtraTF, 0--TurningPt, 1--BifPt.\n";
             if (Echo_)
             {
                cout << "NOTE: Conflict between critical point identification methods in ArcLengthSolution.\n"
-                    << "      Using characterization determined by Group Theory." << "\n";
+                    << "      Using characterization determined by Group Theory." << "\n"
+                    << " CPType[" << i << "] = " << CPType[i] << " and CPorBif = " << CPorBif << "\n"
+                    << "Key: -1--ExtraTF, 0--TurningPt, 1--BifPt.\n";
             }
             CPorBif = CPType[i];
          }
