@@ -1,4 +1,5 @@
 #include <fstream>
+#include <stdlib.h>
 #include "FEAP.h"
 
 using namespace std;
@@ -417,6 +418,17 @@ void FEAP::print_gpl_config(fstream& out) const
    ++config_count_;
 }
 
+int sortFunction(const void *a, const void *b)
+{
+   double doubleOne = *((double*)a);
+   double doubleTwo = *((double*)b);
+   if (doubleOne < doubleTwo)
+      return -1;
+   if (doubleOne == doubleTwo)
+      return 0;
+   return 1;
+}
+
 void FEAP::Print(ostream& out, PrintDetail const& flag,
                  PrintPathSolutionType const& SolType)
 {
@@ -424,7 +436,7 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
    int NoNegTestFunctions = 0;
    double engy;
    double E1norm;
-   double mintestfunct[3];
+   Vector mintestfunct(NumTestFunctions());
    Vector TestFunctVals(NumTestFunctions());
 
    W = out.width();
@@ -439,7 +451,7 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
    E1norm = E1().Norm();
 
    TestFunctions(TestFunctVals, LHS);
-   for (int i=0;i<3;++i) mintestfunct[i] = TestFunctVals[0];
+   mintestfunct = TestFunctVals;
    // check only the EigenValTFs
    for (int i = 0; i < DOFS_; ++i)
    {
@@ -447,13 +459,11 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
       {
          ++NoNegTestFunctions;
       }
-      if (mintestfunct[0] > TestFunctVals[i])
-      {
-         mintestfunct[2] = mintestfunct[1];
-         mintestfunct[1] = mintestfunct[0];
-         mintestfunct[0] = TestFunctVals[i];
-      }
    }
+   // sort eigenvalues
+   qsort(&(mintestfunct[0]), mintestfunct.Dim(), sizeof(double), sortFunction);
+   int minprint = (NoNegTestFunctions+2 < mintestfunct.Dim()) ?
+      NoNegTestFunctions+2 : mintestfunct.Dim();
 
    print_gpl_config(config_out_);
 
@@ -476,10 +486,9 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
 
 
 
-         out << "Bifurcation Info: " << setw(W) << mintestfunct[0]
-             << setw(W) << mintestfunct[1]
-             << setw(W) << mintestfunct[2]
-             << setw(W) << NoNegTestFunctions << "\n";
+         out << "Bifurcation Info: ";
+         for (int i=0;i<minprint; ++i) out << setw(W) << mintestfunct[i];
+         out << setw(W) << NoNegTestFunctions << "\n";
          // send to cout also
          if (Echo_)
          {
@@ -491,10 +500,9 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
 
 
 
-            cout << "Bifurcation Info: " << setw(W) << mintestfunct[0]
-                 << setw(W) << mintestfunct[1]
-                 << setw(W) << mintestfunct[2]
-                 << setw(W) << NoNegTestFunctions << "\n";
+            cout << "Bifurcation Info: ";
+            for (int i=0;i<minprint; ++i) cout << setw(W) << mintestfunct[i];
+            cout << setw(W) << NoNegTestFunctions << "\n";
          }
          break;
    }
