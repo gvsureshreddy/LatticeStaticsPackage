@@ -18,6 +18,7 @@ private:
    mutable Vector DOF_F_; // FEAP degrees of freedom
  
    mutable Matrix Map_;
+   mutable Vector MVect_;
    
    mutable double Lambda_;
    mutable Matrix Load_;

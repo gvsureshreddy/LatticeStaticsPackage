@@ -68,7 +68,6 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
        nbn_ = Input.useInt(0, Hash, "Nbn");  // Default Value
      }
 
-   cout << "nbn_ = " << nbn_ << endl;
 
    // Initialize FEAP, send input file name and get ndf, ndm, etc. back.
    int ffinlen = strlen(ffin_);
@@ -95,20 +94,27 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
 
    // set DOFS_
 
-   DOFS_ = ndf_ * ( numnp_ - nbn_ ) + ndm_ * ndm_ + nbn_ / 2 ;
+   DOFS_ = ndf_ * ( numnp_ - nbn_ ) + ndm_ * ndm_ + nbn_ / 2 - 1;
    DOFS_F_ = ndf_ * numnp_;
 
 
    // set DOF_ to initial value
    DOF_.Resize(DOFS_, 0.0);
+   DOF_[0] = 1.0;
+   DOF_[1] = 1.0;
    DOF_F_.Resize(DOFS_F_, 0.0);
 
 
    // get and store reference coordinates
    X_.Resize(ndm_ * numnp_);
    bfbfeap_get_nodal_coords_(&(X_[0]));
+   for (int i = 0; i < ndm_ * numnp_; ++i)
+   {
+      cout << X_[i] << "  ";
+   }
+   cout << "\n";
 
-   // setup mapping matrix between FEAP and BFB
+   // setup mapping matrix and constant vector between FEAP and BFB
 
    if (ndm_ == 3)
      cout << "*WARNING* 3D mesh not taken care of for mapping" << endl;
@@ -119,19 +125,26 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
        if (ndm_ == 2)
 	 {
 	   Map_[k * ndf_][0]=X_[k * ndm_];
-	   Map_[k * ndf_][1]=X_[k * ndm_+1];
-	   Map_[k * ndf_+1][2]=X_[k * ndm_];
-	   Map_[k * ndf_+1][3]=X_[k * ndm_+1];	
+	   Map_[k * ndf_][2]=1.0/sqrt(2)*X_[k * ndm_+1];
+	   Map_[k * ndf_+1][1]=X_[k * ndm_+1];	
+	   Map_[k * ndf_+1][2]=1.0/sqrt(2)*X_[k * ndm_];
 	   
 	   if (ndf_ > ndm_) //1 extra dof assumed
-	       Map_[k * ndf_ +2][ndm_ * ndm_ + k%(nbn_ / 2)]=1.0;
+	       Map_[k * ndf_ +2][ndm_ * ndm_ -1 + k%(nbn_ / 2)]=1.0;
 	 }
        }
 
    for (int i = 0 ; i < (numnp_ - nbn_)*ndf_; ++i)
      {
-       Map_[nbn_ * ndf_ + i][ndm_ * ndm_ + nbn_ / 2 + i]=1.0;
+       Map_[nbn_ * ndf_ + i][ndm_ * ndm_ -1 + nbn_ / 2 + i]=1.0;
      }
+ 
+   MVect_.Resize(DOFS_F_,0.0);
+   for (int i = 0; i < nbn_; ++i)
+   { 
+      MVect_[ndf_*i] = -X_[ndm_*i];
+      MVect_[ndf_*i+1] = -X_[ndm_*i+1];
+   }
 
    // Setup 1st PiolaKirchoff load tensor
 
@@ -222,25 +235,25 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
 
 void FEAP::UpdateValues(UpdateFlag flag) const
 {
+
    // Update FEAP solution vector
-   DOF_F_ = Map_ * DOF_;
+   DOF_F_ = Map_ * DOF_ + MVect_;
    bfbfeap_set_nodal_solution_(&(DOF_F_[0]));
    
    // Set disp gradient for energy
-   U_[0][0] = DOF_[0];
-   U_[0][1] = DOF_[1];
-   U_[1][0] = DOF_[2];
-   U_[1][1] = DOF_[3];
+   U_[0][0] = DOF_[0] - 1.0;
+   U_[0][1] = 1.0/sqrt(2)*DOF_[2];
+   U_[1][0] = 1.0/sqrt(2)*DOF_[2];
+   U_[1][1] = DOF_[1] - 1.0;
 
-   double eps = 1.0e-1;
+   double eps = 1.0;
    double bUa = B_ * (U_ * A_);
-
 
    if (NoStiffness == flag)
    {
       bfbfeap_call_ener_(); // needs a "TPLOt" and "ENER" command in FEAP input file to work
       bfbfeap_get_potential_energy_(&(E0CachedValue_));
-      E0CachedValue_ += -Lambda_ * (Load_ * U_).Trace() + 1.0/eps *bUa*bUa;
+      E0CachedValue_ += -Lambda_ * (Load_ * U_).Trace();// + 1.0/eps *bUa*bUa;
 
       bfbfeap_call_form_();
       bfbfeap_get_reduced_residual_(&(E1CachedValue_F_[0]));
@@ -252,10 +265,10 @@ void FEAP::UpdateValues(UpdateFlag flag) const
       }
       E1CachedValue_ = Map_.Transpose() * E1CachedValue_F_;
 
-      E1CachedValue_[0] += -Lambda_ * Load_[0][0] + 2.0/eps * AB_[0][0] * bUa;
-      E1CachedValue_[1] += -Lambda_ * Load_[1][0] + 2.0/eps * AB_[1][0] * bUa;
-      E1CachedValue_[2] += -Lambda_ * Load_[0][1] + 2.0/eps * AB_[0][1] * bUa;
-      E1CachedValue_[3] += -Lambda_ * Load_[1][1] + 2.0/eps * AB_[1][1] * bUa;   
+      E1CachedValue_[0] += -Lambda_ * Load_[0][0];// + 2.0/eps * AB_[0][0] * bUa;
+      E1CachedValue_[1] += -Lambda_ * Load_[1][1];// + 2.0/eps * AB_[1][0] * bUa;
+//    E1CachedValue_[2] += -Lambda_ * Load_[0][1];// + 2.0/eps * AB_[0][1] * bUa;
+      E1CachedValue_[2] += -Lambda_ * Load_[1][0];// + 2.0/eps * AB_[1][1] * bUa;   
 
       Cached_[0] = 1;
       Cached_[1] = 1;
@@ -265,7 +278,7 @@ void FEAP::UpdateValues(UpdateFlag flag) const
    {
       bfbfeap_call_ener_();
       bfbfeap_get_potential_energy_(&(E0CachedValue_));
-      E0CachedValue_ += -Lambda_ * (Load_ * U_).Trace() + 1.0/eps*bUa*bUa;
+      E0CachedValue_ += -Lambda_ * (Load_ * U_).Trace();// + 1.0/eps*bUa*bUa;
 
       bfbfeap_call_form_();
       bfbfeap_get_reduced_residual_(&(E1CachedValue_F_[0]));
@@ -276,17 +289,17 @@ void FEAP::UpdateValues(UpdateFlag flag) const
       }
       E1CachedValue_ = Map_.Transpose() * E1CachedValue_F_;
 
-      E1CachedValue_[0] += -Lambda_ * Load_[0][0] + 2.0/eps * AB_[0][0] * bUa;
-      E1CachedValue_[1] += -Lambda_ * Load_[1][0] + 2.0/eps * AB_[1][0] * bUa;
-      E1CachedValue_[2] += -Lambda_ * Load_[0][1] + 2.0/eps * AB_[0][1] * bUa;
-      E1CachedValue_[3] += -Lambda_ * Load_[1][1] + 2.0/eps * AB_[1][1] * bUa; 
+      E1CachedValue_[0] += -Lambda_ * Load_[0][0];// + 2.0/eps * AB_[0][0] * bUa;
+      E1CachedValue_[1] += -Lambda_ * Load_[1][1];// + 2.0/eps * AB_[1][0] * bUa;
+//    E1CachedValue_[2] += -Lambda_ * Load_[0][1];// + 2.0/eps * AB_[0][1] * bUa;
+      E1CachedValue_[2] += -Lambda_ * Load_[1][0];// + 2.0/eps * AB_[1][1] * bUa; 
 
       //E1DLoad 
 
       E1DLoadCachedValue_[0] = -Load_[0][0];
-      E1DLoadCachedValue_[1] = -Load_[1][0];
-      E1DLoadCachedValue_[2] = -Load_[0][1];
-      E1DLoadCachedValue_[3] = -Load_[1][1];
+      E1DLoadCachedValue_[1] = -Load_[1][1];
+//    E1DLoadCachedValue_[2] = -Load_[0][1];
+      E1DLoadCachedValue_[2] = -Load_[1][0];
 
       //E2
 
@@ -295,7 +308,7 @@ void FEAP::UpdateValues(UpdateFlag flag) const
       
       E2CachedValue_ = Map_.Transpose() * E2CachedValue_F_ * Map_;
 
-      E2CachedValue_[0][0] += 2.0/eps * AB_[0][0] * AB_[0][0];
+/*      E2CachedValue_[0][0] += 2.0/eps * AB_[0][0] * AB_[0][0];
       E2CachedValue_[0][1] += 2.0/eps * AB_[0][0] * AB_[1][0];
       E2CachedValue_[0][2] += 2.0/eps * AB_[0][0] * AB_[0][1];
       E2CachedValue_[0][3] += 2.0/eps * AB_[0][0] * AB_[1][1];
@@ -310,7 +323,7 @@ void FEAP::UpdateValues(UpdateFlag flag) const
       E2CachedValue_[3][0] += 2.0/eps * AB_[1][1] * AB_[0][0];
       E2CachedValue_[3][1] += 2.0/eps * AB_[1][1] * AB_[1][0];
       E2CachedValue_[3][2] += 2.0/eps * AB_[1][1] * AB_[0][1];
-      E2CachedValue_[3][3] += 2.0/eps * AB_[1][1] * AB_[1][1];
+      E2CachedValue_[3][3] += 2.0/eps * AB_[1][1] * AB_[1][1];  */
 
       
       Cached_[0] = 1;
@@ -447,6 +460,7 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
       cout.width(0);
    }
 
+
    engy = E0();
    E1norm = E1().Norm();
 
@@ -496,6 +510,7 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
              << "DOF: " << setw(W) << DOF_ << "\n"
                  << "DOF Norm: " << setw(W) << DOF_.Norm() << "\n"
                  << "Potential Value: " << setw(W) << engy << "\n"
+                 << "Force :" << setw(W) << E1() << "\n"
                  << "Force Norm: " << setw(W) << E1norm << "\n";
 
 
