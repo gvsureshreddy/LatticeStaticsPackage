@@ -68,6 +68,10 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput const& Input, int const& Echo, int co
       CBK_ = new SymLagrangeCB(Input, &Hash);
       KillTranslations_ = 0;
       needKillRotations = 0;
+      for (int i=0 ; i<3; i++)
+      {
+         Tsq_static[i]=0.0;
+      }
    }
    else if (!strcmp("SymLagrangeWTransCB", CBKin))
    {
@@ -127,11 +131,22 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput const& Input, int const& Echo, int co
       else if (!strcmp("NoRotationConstraint", KillRot))
       {
          KillRotations_ = 0;
+         for (int i=0 ; i<3; i++)
+         {
+            Rsq_static[i]=0.0;
+         }
       }
       else
       {
          cerr << "Error (MultiLatticeTPP()): Unknown RotationConstraint type" << "\n";
          exit(-2);
+      }
+   }
+   else
+   {
+      for (int i=0 ; i<3; i++)
+      {
+         Rsq_static[i]=0.0;
       }
    }
 
