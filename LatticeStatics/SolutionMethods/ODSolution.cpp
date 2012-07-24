@@ -92,7 +92,7 @@ int ODSolution::FindNextSolution(PerlInput const& Input, int const& Width, ostre
    {
       K1_[i] = -Force[i];
    }
-   K1_[DimDOFS_] = X0_[DimDOFS_];
+   K1_[DimDOFS_-1] = 0.0; //X0_[DimDOFS_-1];
 
    // Calculate K2_;
    yTemp = yn + (0.5 * K1_);
@@ -102,7 +102,7 @@ int ODSolution::FindNextSolution(PerlInput const& Input, int const& Width, ostre
    {
       K2_[i] = -Force[i];
    }
-   K2_[DimDOFS_] = X0_[DimDOFS_];
+   K2_[DimDOFS_-1] = 0.0; //X0_[DimDOFS_-1];
 
    // Calculate K3_;
    yTemp = yn + (0.5 * K2_);
@@ -112,7 +112,7 @@ int ODSolution::FindNextSolution(PerlInput const& Input, int const& Width, ostre
    {
       K3_[i] = -Force[i];
    }
-   K3_[DimDOFS_] = X0_[DimDOFS_];
+   K3_[DimDOFS_-1] = 0.0; //X0_[DimDOFS_-1];
 
    // Calculate K4_;
    yTemp = yn + K3_;
@@ -122,9 +122,9 @@ int ODSolution::FindNextSolution(PerlInput const& Input, int const& Width, ostre
    {
       K4_[i] = -Force[i];
    }
-   K4_[DimDOFS_] = X0_[DimDOFS_];
+   K4_[DimDOFS_-1] = 0.0; //X0_[DimDOFS_-1];
 
-   Delta_ = (1.0 / 6.0) * (K1_ + 2 * K2_ + 2 * K3_ + K4_);
+   Delta_ = (1.0 / 6.0) * (K1_ + 2.0 * K2_ + 2.0 * K3_ + K4_);
 
    CurrentSolution_ = yn + Delta_;
    t_ = t_ + dt_;
