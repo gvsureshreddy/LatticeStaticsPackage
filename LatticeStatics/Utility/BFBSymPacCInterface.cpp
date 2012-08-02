@@ -30,6 +30,19 @@ int StableValue = -1;
 Vector EigenValues;
 int Width, Precision, Echo;
 
+extern "C" void bfb_gettang_(double* tang)
+{
+   Vector tan1tmp(Input.getArrayLength("StartType","Tangent"));
+   Input.getVector(tan1tmp,"StartType","Tangent");
+
+   for (int i=0;i<tan1tmp.Dim()-1;++i)
+   {
+      tang[i] = tan1tmp[i];
+   }
+
+   return;
+}
+
 extern "C" void bfb_init_wrapper_(int& nfree, double* ufree_init, double& t, char* bfbfile)
 {
    Vector utmp(nfree);
