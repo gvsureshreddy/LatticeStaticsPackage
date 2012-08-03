@@ -402,6 +402,7 @@ Matrix Matrix::Inverse() const
       exit(-1);
    }
 
+
    Matrix B(Rows_, 1, 0), X(Rows_, 1), C(Rows_, Cols_);
 
    B[0][0] = 1.0;
@@ -499,6 +500,90 @@ void Matrix::Resize(int const& Rows, int const& Cols, Matrix::Elm const& InitVal
    }
 
    return;
+}
+
+
+Matrix Matrix::Extract(int const& ii, int const& jj, int const& n) const
+{
+   if ((ii+n)>Rows_ || (jj+n)>Cols_)
+   {
+      cerr << "Error in Matrix::Extract() : Out of bounds error" << "\n";
+      exit(-1);
+   }
+   Matrix B;
+   B.Resize(n,n,0.0);
+
+   for (int i = 0; i < n; ++i)
+   {
+      for (int j = 0; j < n; ++j)
+      {
+         B[i][j] = Elements_[ii+i][jj+j];
+      }
+   }
+   return B;
+}
+
+
+
+void Matrix::AddInsert(Matrix const& B, int const& ii, int const& jj)
+{
+   if ((ii+B.Rows())>Rows_ || (jj+B.Cols())>Cols_)
+   {
+      cerr << "Error in Matrix::AddInsert() : Out of bounds error" << "\n";
+      exit(-1);
+   }
+   for (int i = 0; i < B.Rows(); ++i)
+   {
+      for (int j = 0; j < B.Cols(); ++j)
+      {
+         Elements_[i+ii][j+jj] += B[i][j];
+      }
+   }
+   return;
+}
+void Matrix::MultiplyBlock(double const& a, int const& ii, int const& jj, int const& n)
+{
+   if ((ii+n)>Rows_ || (jj+n)>Cols_)
+   {
+      cerr << "Error in Matrix::MultiplyBlock() : Out of bounds error" << "\n";
+      exit(-1);
+   }
+   for (int i = 0; i < n; ++i)
+   {
+      for (int j = 0; j < n; ++j)
+      {
+         Elements_[i+ii][j+jj] *= a;
+      }
+   }
+   return;
+}
+
+
+double Matrix::MaxElement() const
+{
+   double max = Elements_[0][0];
+   for (int i = 0; i < Rows_; ++i)
+   {
+      for (int j = 0; j < Cols_; ++j)
+      {
+         if (Elements_[i][j] > max)
+            max = Elements_[i][j];
+      }
+   }
+   return max;
+}
+double Matrix::MinElement() const
+{
+   double min = Elements_[0][0];
+   for (int i = 0; i < Rows_; ++i)
+   {
+      for (int j = 0; j < Cols_; ++j)
+      {
+         if (Elements_[i][j] < min)
+            min = Elements_[i][j];
+      }
+   }
+   return min;
 }
 
 // Recursivly calculate determinent

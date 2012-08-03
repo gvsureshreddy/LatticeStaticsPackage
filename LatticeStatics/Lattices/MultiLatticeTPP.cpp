@@ -1703,7 +1703,7 @@ int MultiLatticeTPP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIn
 
 void MultiLatticeTPP::ExtraTestFunctions(Vector& TF) const
 {	
-   if(TFType_ == 1) // KVectors
+   if(TFType_ == 1) // Bloch Wave Analysis
    {
       Vector KV1(DIM3,0.0);
       Vector KV2(DIM3,0.0);

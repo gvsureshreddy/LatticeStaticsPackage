@@ -424,6 +424,48 @@ CMatrix CMatrix::Conjugate() const
    return A;
 }
 
+Matrix CMatrix::RealPart() const
+{
+   Matrix A(Rows_,Cols_);
+   for (int i = 0; i < Rows_; ++i)
+   {
+      for (int j = 0; j < Cols_; ++j)
+      {
+         A[i][j] = Elements_[i][j].real();
+      }
+   }
+   return A;
+}
+
+Matrix CMatrix::ImaginaryPart() const
+{
+   Matrix A(Rows_,Cols_);
+   for (int i = 0; i < Rows_; ++i)
+   {
+      for (int j = 0; j < Cols_; ++j)
+      {
+         A[i][j] = Elements_[i][j].imag();
+      }
+   }
+   return A;
+}
+
+
+int CMatrix::IsHermitian() const
+{
+   if (!IsSquare())
+      return 0;
+   int result = 1;
+   for (int i = 0; i < Rows_; ++i)
+   {
+      for (int j = 0; j < Cols_; ++j)
+      {
+         result = result && (Elements_[i][j] == Elements_[j][i].conj());
+      }
+   }
+   return result;
+}
+
 CMatrix CMatrix::Inverse() const
 {
    if (!IsSquare() || IsNull())
@@ -452,6 +494,78 @@ CMatrix CMatrix::Inverse() const
    }
 
    return C;
+}
+
+CMatrix CMatrix::Extract(int const& ii, int const& jj, int const& n) const
+{
+   if ((ii+n)>Rows_ || (jj+n)>Cols_)
+   {
+      cerr << "Error in Matrix::Extract() : Out of bounds error" << "\n";
+      exit(-1);
+   }
+   CMatrix B;
+   B.Resize(n,n);
+
+   for (int i = 0; i < n; ++i)
+   {
+      for (int j = 0; j < n; ++j)
+      {
+         B[i][j] = Elements_[ii+i][jj+j];
+      }
+   }
+   return B;
+}
+
+
+
+void CMatrix::AddInsert(CMatrix const& B, int const& ii, int const& jj)
+{
+   if ((ii+B.Rows())>Rows_ || (jj+B.Cols())>Cols_)
+   {
+      cerr << "Error in Matrix::AddInsert() : Out of bounds error" << "\n";
+      exit(-1);
+   }
+   for (int i = 0; i < B.Rows(); ++i)
+   {
+      for (int j = 0; j < B.Cols(); ++j)
+      {
+         Elements_[i+ii][j+jj] += B[i][j];
+      }
+   }
+   return;
+}
+
+void CMatrix::MultiplyBlock(double const& a, int const& ii, int const& jj, int const& n)
+{
+   if ((ii+n)>Rows_ || (jj+n)>Cols_)
+   {
+      cerr << "Error in Matrix::MultiplyBlock() : Out of bounds error" << "\n";
+      exit(-1);
+   }
+   for (int i = 0; i < n; ++i)
+   {
+      for (int j = 0; j < n; ++j)
+      {
+         Elements_[i+ii][j+jj] *= a;
+      }
+   }
+   return;
+}
+void CMatrix::MultiplyBlock(MyComplexDouble const& a, int const& ii, int const& jj, int const& n)
+{
+   if ((ii+n)>Rows_ || (jj+n)>Cols_)
+   {
+      cerr << "Error in Matrix::MultiplyBlock() : Out of bounds error" << "\n";
+      exit(-1);
+   }
+   for (int i = 0; i < n; ++i)
+   {
+      for (int j = 0; j < n; ++j)
+      {
+         Elements_[i+ii][j+jj] *= a;
+      }
+   }
+   return;
 }
 
 void CMatrix::Resize(int const& Rows, int const& Cols)

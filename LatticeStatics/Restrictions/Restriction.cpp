@@ -230,7 +230,6 @@ void Restriction::ConsistencyCheckRidders(Vector const& dof,double const& Consis
       SetDOF(dof - eps * pert);
       b = Energy();
 
-      out << "a = " << a << ", b = " << b << "\n";
 
       Aa[0][0] = (a-b)/(2.0* eps);
       

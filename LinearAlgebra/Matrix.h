@@ -151,6 +151,13 @@ public:
    {
       return (Rows_ == 0 || Cols_ == 0);
    }
+   Matrix Extract(int const& ii, int const& jj, int const& n) const;
+
+   void AddInsert(Matrix const& B, int const& ii, int const& jj);
+   void MultiplyBlock(double const& a, int const& ii, int const& jj, int const& n);
+
+   double MaxElement() const;
+   double MinElement() const;
 
    // Destructively Resize Matrix
    // No change if size does not change

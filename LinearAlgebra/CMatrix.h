@@ -137,6 +137,9 @@ public:
    {
       return (this->Transpose()).Conjugate();
    }
+   Matrix RealPart() const;
+   Matrix ImaginaryPart() const;
+   int IsHermitian() const;
 
    CMatrix Inverse() const;
    int IsSquare() const
@@ -148,6 +151,12 @@ public:
    {
       return (Rows_ == 0 || Cols_ == 0);
    }
+   CMatrix Extract(int const& ii, int const& jj, int const& n) const;
+   void AddInsert(CMatrix const& B, int const& ii, int const& jj);
+   void MultiplyBlock(double const& a, int const& ii, int const& jj, int const& n);   
+   void MultiplyBlock(MyComplexDouble const& a, int const& ii, int const& jj, int const& n);
+
+
 
    // Destructively Resize CMatrix
    // No change if size does not change
