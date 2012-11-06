@@ -163,7 +163,7 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
           if (!strcmp("Full", AnalysisType))
           {
              TFType_ = 1;
-             NumExtraTFs_ = ndf_*(numnp_-nbn_/2) * pow(KSpaceResolution_+1,2);
+             NumExtraTFs_ = ndf_*(numnp_-nbn_/2) * pow(KSpaceResolution_+1.0,2);
              if (!(Input.ParameterOK(TFHash, "KSpaceResolution")))
              {
                 cout << "*WARNING* KSpaceResolution not specified. Using default value: 6 \n";
