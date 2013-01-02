@@ -10,6 +10,10 @@ Lattice* const InitializeLattice(PerlInput& Input, int const& Echo, int const& W
    {
       return new MultiLatticeTPP(Input, Echo, Width, Debug);
    }
+   else if (!strcmp("MultiLatticeKIM", Lat))
+   {
+      return new MultiLatticeKIM(Input, Echo, Width, Debug);
+   }
    else if (!strcmp("MultiChainTPP", Lat))
    {
       return new MultiChainTPP(Input, Echo, Width, Debug);

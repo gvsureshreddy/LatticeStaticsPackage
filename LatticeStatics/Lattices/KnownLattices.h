@@ -2,6 +2,7 @@
 #define RSE__KnownLattices
 
 #include "PerlInput.h"
+#include "MultiLatticeKIM.h"
 #include "MultiLatticeTPP.h"
 #include "MultiChainTPP.h"
 #include "MultiChainTTPP.h"

@@ -42,7 +42,8 @@ TERMINAL   = -DUNIX_TERMINAL
 DATE_DEF   = -DBUILD_DATE="$(BUILD_DATE)"
 #SOLVE      = -DSOLVE_SVD
 CC_PERL     = `perl -MExtUtils::Embed -e ccopts | sed -e 's/-arch[^-]*//g' | sed -e 's/-Wdeclaration-after-statement//g'`
-CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS) $(SOLVE) $(TERMINAL) $(CC_PERL)
+CC_KIM     = -IPotentials/openkim-api-latest/KIM_API
+CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS) $(SOLVE) $(TERMINAL) $(CC_PERL) $(CC_KIM)
 LIBS_PERL   = `perl -MExtUtils::Embed -e ldopts | sed -e 's/-arch[^-]*//g' | sed -e 's/-Wdeclaration-after-statement//g'`
 FEAP_OK := $(shell if test -e $(FEAPHOME8_3)/Feap8_3.a; then echo YES; else echo NO; fi)
 ifeq (YES,$(strip $(FEAP_OK)))
@@ -50,8 +51,9 @@ ifeq (YES,$(strip $(FEAP_OK)))
 else
   LIBS_FEAP = 
 endif
-LIBS       = -lLinearAlgebra -lMyMath -lm $(LIBS_FEAP)
-LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(DATE_DEF) $(LIBS_PERL)
+LIBS_KIM   = -LPotentials/openkim-api-latest/KIM_API
+LIBS       = -lLinearAlgebra -lMyMath -lm $(LIBS_FEAP) -lkim -lgfortran
+LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(DATE_DEF) $(LIBS_PERL) $(LIBS_KIM)
 
 
 # File Locations ##########################################################

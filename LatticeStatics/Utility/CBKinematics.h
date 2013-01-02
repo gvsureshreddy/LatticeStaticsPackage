@@ -54,6 +54,16 @@ public:
       return AtomSpecies_[i];
    }
 
+    Matrix const& F() const
+    {
+        return F_;
+    }
+
+    Matrix const& S() const
+    {
+        return S_;
+    }
+
    Matrix const& RefLattice() const
    {
       return RefLattice_;
@@ -99,6 +109,7 @@ public:
    virtual int INDFS(int const& i, int const& j, int const& m, int const& n) const = 0;
    virtual int INDSF(int const& m, int const& n, int const& i, int const& j) const = 0;
 
+   virtual Vector CBKtoCoords() const;
    virtual Vector CurrentLatticeVec(int const& p) const;
    virtual Vector FractionalPosVec(int const& p) const
    {

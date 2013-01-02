@@ -9,5 +9,6 @@ UTILITY  = UtilityFunctions.cpp\
 	 UnitCellIterator.cpp\
 	 ChainIterator.cpp\
 	 PPSum.cpp\
+	 PPSumKIM.cpp\
 	 ChainSum.cpp\
 	 SCLDChainSum.cpp

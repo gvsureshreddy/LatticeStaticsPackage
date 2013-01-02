@@ -1,6 +1,7 @@
 LATTICES = KnownLattices.cpp\
 	   Lattice.cpp\
 	   MultiLatticeTPP.cpp\
+	   MultiLatticeKIM.cpp\
 	   MultiChainTPP.cpp\
 	   MultiChainTTPP.cpp\
 	   SCLDQMultiChainTPP.cpp\
