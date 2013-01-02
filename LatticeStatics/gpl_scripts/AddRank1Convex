@@ -4,7 +4,7 @@
 use IPC::Open2;
 
 
-open(DATA,"<$ARGV[0]") 
+open(DATA,"<$ARGV[0]")
     || die "Unable to open $ARGV[0] for read: $!";
 if (scalar(@ARGV) == 2)
 {
@@ -38,7 +38,7 @@ while (<DATA>)
     # Read blank line
     $_ = <DATA>;
     print OUTPUT $_;
-   
+
     # Check for Bifurcation info
     $_ = <DATA>;
     print OUTPUT $_;
@@ -48,7 +48,7 @@ while (<DATA>)
 
       for ($i = 1; $i <= 6; $i = $i +1)
       {
-	print PIPin $rw[$i];
+        print PIPin $rw[$i];
       }
       $_ = <PIPout>;
       close(PIPin);

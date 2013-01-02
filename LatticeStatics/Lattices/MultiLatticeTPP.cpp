@@ -60,7 +60,7 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput const& Input, int const& Echo, int co
       FastPrint_ = 0;
       Input.useString("No", Hash, "FastPrint");
    }
-   
+
    PerlInput::HashStruct CBKHash = Input.getHash(Hash, "CBKinematics");
    const char* CBKin = Input.getString(CBKHash, "Type");
    if (!strcmp("SymLagrangeCB", CBKin))
@@ -305,7 +305,7 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput const& Input, int const& Echo, int co
       NumKVectors_ = Input.getArrayLength(TFHash,"KVectors");
       KVectorMatrix_.Resize(NumKVectors_, 5);
       Input.getMatrix(KVectorMatrix_,TFHash,"KVectors");
-      
+
       TFType_ = 1;
       NumExtraTFs_ = DynMatrixDim_*NumKVectors_;
 
@@ -323,7 +323,7 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput const& Input, int const& Echo, int co
    {
       TFType_ = 2;
       NumExtraTFs_ = Input.getArrayLength(TFHash,"LoadingParameters");
-      
+
       TFLoad_.Resize(NumExtraTFs_);
       Input.getVector(TFLoad_,TFHash,"LoadingParameters");
    }
@@ -332,7 +332,7 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput const& Input, int const& Echo, int co
       cerr << "Error (MultiLatticeTPP()): Unknown TestFunctions{Type}" << "\n";
       exit(-3);
    }
-       
+
    // Initialize various data storage space
    ME1_static.Resize(CBK_->DOFS(), 0.0);
    ME2_static.Resize(CBK_->DOFS(), CBK_->DOFS(), 0.0);
@@ -385,7 +385,7 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput const& Input, int const& Echo, int co
          exit(-1);
       }
    }
-   
+
    // Setup initial status for parameters
    NTemp_ = Input.getDouble(Hash, "NTemp");
    Lambda_ = Input.getDouble(Hash, "Lambda");
@@ -417,7 +417,7 @@ MultiLatticeTPP::MultiLatticeTPP(PerlInput const& Input, int const& Echo, int co
 int MultiLatticeTPP::FindLatticeSpacing(int const& iter)
 {
    const double Tol = DOF().Dim()*1.0e-13;
-   
+
    Lambda_ = REFLambda_;
    NTemp_ = REFTemp_;
 
@@ -666,7 +666,7 @@ Vector const& MultiLatticeTPP::stress(PairPotentials::TDeriv const& dt, LDeriv c
    int INDS[CBK_MAX_ATOMS][DIM3];
    int NoTrans = CBK_->NoTrans();
    double increment;
-   
+
    // initialize INDF and INDS
    for (i = 0; i < DIM3; ++i)
    {
@@ -706,7 +706,7 @@ Vector const& MultiLatticeTPP::stress(PairPotentials::TDeriv const& dt, LDeriv c
             DX[i] = LatSum_.DX(i);
             Dx[i] = LatSum_.Dx(i);
          }
-         
+
          // Calculate bodyforce
          // NOTE: phi1 = d(phi)/d(r2)
          // We need d(phi)/dr = 2*r*d(phi)/d(r2)
@@ -757,7 +757,7 @@ Vector const& MultiLatticeTPP::stress(PairPotentials::TDeriv const& dt, LDeriv c
             {
                increment = phi * CBK_->DyDS(Dx, Atom0, Atom1, Atom0, j);
                S_static[INDS[Atom0][j]] += increment;
-               
+
                if (Atom1 >= NoTrans)
                {
                   // S_static[INDS[Atom1][j]] += phi * CBK_->DyDS(Dx, Atom0, Atom1, Atom1, j);
@@ -880,7 +880,7 @@ Matrix const& MultiLatticeTPP::stiffness(PairPotentials::TDeriv const& dt, LDeri
    double DyDS[2][DIM3];
    double D2yDSS[2][DIM3][2][DIM3];
    double D2yDFS[DIM3][DIM3][2][DIM3];
-   
+
    // initialize INDF and INDS
    for (i = 0; i < DIM3; ++i)
    {
@@ -927,11 +927,11 @@ Matrix const& MultiLatticeTPP::stiffness(PairPotentials::TDeriv const& dt, LDeri
                {
                   D2yDFS[i][j][0][k] = CBK_->D2yDFS(Dx, DX, Atom0, Atom1, i, j, Atom0, k);
                   D2yDFS[i][j][1][k] = CBK_->D2yDFS(Dx, DX, Atom0, Atom1, i, j, Atom1, k);
-               }            
+               }
             }
          }
-         
-         
+
+
          if (dt == PairPotentials::T0)
          {
             phi = LatSum_.phi2();
@@ -990,7 +990,7 @@ Matrix const& MultiLatticeTPP::stiffness(PairPotentials::TDeriv const& dt, LDeri
                {
                   Phi2_static[INDS[Atom0][j]][INDS[Atom0][l]] +=
                      phi * (DyDS[0][j] * DyDS[0][l]) + phi1* D2yDSS[0][j][0][l];
-                  
+
                   Phi2_static[INDS[Atom0][j]][INDS[Atom1][l]] +=
                      phi * (DyDS[0][j] * DyDS[1][l]) + phi1* D2yDSS[0][j][1][l];
                   Phi2_static[INDS[Atom1][j]][INDS[Atom0][l]] +=
@@ -1001,7 +1001,7 @@ Matrix const& MultiLatticeTPP::stiffness(PairPotentials::TDeriv const& dt, LDeri
                }
             }
          }
-         
+
          // Off Diag Blocks
          // for (i = 0; i < DIM3; i++)
          // {
@@ -1682,7 +1682,7 @@ int MultiLatticeTPP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIn
                   << "     ";
       KPrint(TFIndex, Width, TFOrderFile);
       TFOrderFile << endl;
-      TFOrderFile.close();			   
+      TFOrderFile.close();
 
       cpfilename << ".E";
       cpfilename.fill('0');
@@ -1702,7 +1702,7 @@ int MultiLatticeTPP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIn
 }
 
 void MultiLatticeTPP::ExtraTestFunctions(Vector& TF) const
-{	
+{
    if(TFType_ == 1) // Bloch Wave Analysis
    {
       Vector KV1(DIM3,0.0);
@@ -1717,9 +1717,9 @@ void MultiLatticeTPP::ExtraTestFunctions(Vector& TF) const
             KV1[j] = KVectorMatrix_[i][j]*KVectorMatrix_[i][3]/KVectorMatrix_[i][4];
          }
          KV2 = InverseLat_static*KV1;
-         DynMat = ReferenceDynamicalStiffness(KV2); 
+         DynMat = ReferenceDynamicalStiffness(KV2);
          DynMatEigVal = HermiteEigVal(DynMat);
-         
+
          for (int l=0; l< DynMatrixDim_;++l)
          {
             TF[k] = DynMatEigVal[0][l];
@@ -1736,10 +1736,10 @@ void MultiLatticeTPP::ExtraTestFunctions(Vector& TF) const
             TF[i] = (TFLoad_[i] - Temp());
          }
          else if (LoadParameter_ == Load)
-         {	
+         {
             TF[i] = (TFLoad_[i] - Lambda());
          }
-         
+
          else
          {
             cerr << "Error MultiLatticeTPP::ExtraTestFunctions:  Unknown LoadParameter.\n";
@@ -1757,7 +1757,7 @@ void MultiLatticeTPP::KPrint(int TFIndex, int Width, ostream& out) const
    Vector KTest(DIM3,0.0);
    Vector KVectorPrint(5,0.0);
    whichTF = TFIndex - (CBK_->DOFS());
-   
+
    for(int i=0;i<NumKVectors_;++i)
    {
       counter = i*DynMatrixDim_;
@@ -1767,7 +1767,7 @@ void MultiLatticeTPP::KPrint(int TFIndex, int Width, ostream& out) const
          {
             whichKV = i;
             break;
-         }			
+         }
       }
    }
    for (int i=0; i<5;i++)
@@ -1785,12 +1785,12 @@ void MultiLatticeTPP::TFCritPtInfo(int TFIndex, int Width, ostream& out) const
    CMatrix DynMat(DynMatrixDim_,DynMatrixDim_,0.0);
    Matrix DynMatEigVal(1,DynMatrixDim_,0.0);
    Vector DynMatEigValPrint(DynMatrixDim_, 0.0);
-   
+
    int counter;
    int whichTF;
    int whichKV;
    whichTF = TFIndex - (CBK_->DOFS());
-   
+
    for(int i=0;i<NumKVectors_;++i)
    {
       counter = i*DynMatrixDim_;
@@ -1800,23 +1800,23 @@ void MultiLatticeTPP::TFCritPtInfo(int TFIndex, int Width, ostream& out) const
          {
             whichKV = i;
             break;
-         }			
+         }
       }
    }
-   
+
    for(int j=0;j<DIM3;++j)
    {
       KVec1[j] = KVectorMatrix_[whichKV][j]*KVectorMatrix_[whichKV][3]/KVectorMatrix_[whichKV][4];
    }
    KVec2 = InverseLat_static*KVec1;
-   DynMat = ReferenceDynamicalStiffness(KVec2); 
+   DynMat = ReferenceDynamicalStiffness(KVec2);
    DynMatEigVal = HermiteEigVal(DynMat);
-   
+
    for (int i=0; i<5;i++)
    {
       KVectorPrint[i] = KVectorMatrix_[whichKV][i];
    }
-   
+
    // Print out info
    out << "\n";
    out <<  "$TestFunctions{KVector} = [" << KVectorPrint[0] << ", " << KVectorPrint[1]
@@ -1826,7 +1826,7 @@ void MultiLatticeTPP::TFCritPtInfo(int TFIndex, int Width, ostream& out) const
    {
       DynMatEigValPrint[i] = DynMatEigVal[0][i];
    }
-   out << "$ExtraTF{DynMatEigVal} = " << setw(Width) << DynMatEigValPrint << "\n"; 
+   out << "$ExtraTF{DynMatEigVal} = " << setw(Width) << DynMatEigValPrint << "\n";
    out <<  "$ExtraTF{DynMat} = " << setw(Width) << DynMat << "\n";
 }
 
@@ -1837,7 +1837,7 @@ Matrix const MultiLatticeTPP::PairwiseReduction(Matrix const& RowLatVects) const
 {
    int b, terminate, l, s, m;
    double Norm1, Norm2, DotLS, NormS_squared, value;
-   
+
    b = RowLatVects.Rows();
    Matrix ReduceLatticeVectorsMatrix(b,3);
    for(int i = 0;i < b;i++)
@@ -1896,7 +1896,7 @@ void MultiLatticeTPP::NewCBCellSingleK(int TFIndex, int Width, ostream& out) con
 {
    //Note that MillerIndexCD is a vector in R^5 of the form [h,k,l,c,d]
    int counter;
-   
+
    Matrix InitLatVects(2,DIM3);
    Matrix ReducedLatVects(2,DIM3);
    Matrix RefLat(DIM3,DIM3);
@@ -1913,12 +1913,12 @@ void MultiLatticeTPP::NewCBCellSingleK(int TFIndex, int Width, ostream& out) con
    Vector GVector(DIM3,0.0);
    Vector K(5, 0.0);
    Vector MinValueVector(DIM3,0.0);
-   
+
    RefLatTemp = CBK_->RefLattice();
-   
+
    counter = 0;
    double MinValue;
-   
+
    int num;
    for(int i = 0;i < DIM3; i++)
    {
@@ -1928,7 +1928,7 @@ void MultiLatticeTPP::NewCBCellSingleK(int TFIndex, int Width, ostream& out) con
          if (abs(RefLatTemp[i][j]) != 0)
          {
             MinValueVector[num] = abs(RefLatTemp[i][j]);
-            num++;		
+            num++;
          }
       }
       MinValue = MinValueVector[0];
@@ -1941,24 +1941,24 @@ void MultiLatticeTPP::NewCBCellSingleK(int TFIndex, int Width, ostream& out) con
       }
       for (int j = 0; j<DIM3; j++)
       {
-         RefLat[i][j] = RefLatTemp[i][j]/MinValue;	
+         RefLat[i][j] = RefLatTemp[i][j]/MinValue;
       }
    }
-   
+
    for (int i = 0; i< DIM3; i++)
    {
       G1[i] = RefLat[0][i];
       G2[i] = RefLat[1][i];
       G3[i] = RefLat[2][i];
    }
-   
+
    int k1, k2, k3;
    int CommonDivisor;
-   
+
    int whichTF;
    int whichKV;
    whichTF = TFIndex - (CBK_->DOFS());
-   
+
    for(int i=0;i<NumKVectors_;++i)
    {
       counter = i*DynMatrixDim_;
@@ -1968,27 +1968,27 @@ void MultiLatticeTPP::NewCBCellSingleK(int TFIndex, int Width, ostream& out) con
          {
             whichKV = i;
             break;
-         }			
+         }
       }
    }
-   
+
    for(int j=0;j<5;++j)
    {
       K[j] = KVectorMatrix_[whichKV][j];
    }
-   
+
    k1 = floor(K[0]+0.5);
    k2 = floor(K[1]+0.5);
    k3 = floor(K[2]+0.5);
-   
+
    for(int j = 0; j < DIM3; j++)
    {
       InitLatVects[0][j] = 0.0;
-      InitLatVects[1][j] = 0.0;		
+      InitLatVects[1][j] = 0.0;
       ReducedLatVects[0][j] = 0.0;
-      ReducedLatVects[1][j] = 0.0;		
+      ReducedLatVects[1][j] = 0.0;
    }
-   
+
    if (K[2] != 0)
    {
       CommonDivisor = GCD(k2, k3);
@@ -2007,22 +2007,22 @@ void MultiLatticeTPP::NewCBCellSingleK(int TFIndex, int Width, ostream& out) con
       G1Star = G2;
       G2Star = G3;
    }
-   
+
    for (int j = 0; j < 3; j++)
    {
       InitLatVects[0][j] = G1Star[j];
       InitLatVects[1][j] = G2Star[j];
    }
-   
+
    ReducedLatVects = PairwiseReduction(InitLatVects);
-   
+
    for (int j = 0; j < 3; j++)
    {
       G1Plus[j] = ReducedLatVects[0][j];
       G2Plus[j] = ReducedLatVects[1][j];
    }
-   
-   
+
+
    //MINIMIZATION ROUTINE
    counter = 0;
    int dValue = 0;
@@ -2060,19 +2060,19 @@ void MultiLatticeTPP::NewCBCellSingleK(int TFIndex, int Width, ostream& out) con
    {
       MU[0][j] = floor(G1Plus[j]);
       MU[1][j] = floor(G2Plus[j]);
-      MU[2][j] = floor(G3Plus[j]);		
+      MU[2][j] = floor(G3Plus[j]);
    }
-   
-   
+
+
    Matrix SuperCellRefLattice(DIM3, DIM3);
    Vector* SuperCellIntPOS = NULL;
    int SuperCellIntAtoms;
    int SuperCellAtomSpecies[CBK_MAX_ATOMS];
-   
-   
+
+
    CBK_->SuperCellInfo(MU, SuperCellRefLattice, SuperCellIntAtoms, SuperCellIntPOS,
                        SuperCellAtomSpecies);
-   
+
    out << "$Lattice{MultiLatticeTPP}{CBKinematics}{LatticeBasis} = [["
        << SuperCellRefLattice[0][0] << ",  " << SuperCellRefLattice[0][1] << ", "
        << SuperCellRefLattice[0][2] << "]," << "\n"
@@ -2082,19 +2082,19 @@ void MultiLatticeTPP::NewCBCellSingleK(int TFIndex, int Width, ostream& out) con
        << "                                                      ["
        << SuperCellRefLattice[2][0] << ",  " << SuperCellRefLattice[2][1] << ", "
        << SuperCellRefLattice[2][2] << "]];" << "\n";
-   
+
    out << "$Lattice{MultiLatticeTPP}{CBKinematics}{InternalAtoms} = "
        << SuperCellIntAtoms << ";" << "\n";
-   
+
    for (int i = 0; i < SuperCellIntAtoms; i++)
    {
-      
+
       out << "$Lattice{MultiLatticeTPP}{CBKinematics}{AtomPositions}[" << i << "] = ["
           << SuperCellIntPOS[i][0] << ", " << SuperCellIntPOS[i][1] << ", "
           << SuperCellIntPOS[i][2] << "];" << "\n";
    }
-   
-   
+
+
    out << "$Lattice{MultiLatticeTPP}{CBKinematics}{AtomSpecies} = [";
    for (int i = 0; i < SuperCellIntAtoms; i++)
    {
@@ -2103,19 +2103,19 @@ void MultiLatticeTPP::NewCBCellSingleK(int TFIndex, int Width, ostream& out) con
          out << SuperCellAtomSpecies[i] << ", ";
       }
       else
-      {	
+      {
          out << SuperCellAtomSpecies[i] << "];" << "\n";
       }
    }
-   
+
    delete[] SuperCellIntPOS;
-}						
+}
 
 //The following is a function to find the greatest common divisor of two integeres x and y
 //If none exists, it might be best to move this to a math object
 int MultiLatticeTPP::GCD(int x, int y) const
 {
-   int t;       
+   int t;
    while (y!=0)
    {
       t=y;
@@ -2735,7 +2735,7 @@ void MultiLatticeTPP::Print(ostream& out, PrintDetail const& flag,
 
       TestFunctions(TestFunctVals_static, LHS);
       mintestfunct = TestFunctVals_static[0];
-      
+
       if(TFType_ == 2) // LoadingParameters
       {
          for(int i = 0; i < CBK_->DOFS(); ++i)
@@ -2770,7 +2770,7 @@ void MultiLatticeTPP::Print(ostream& out, PrintDetail const& flag,
       CondModuli_static = CondensedModuli();
       CondEV_static = SymEigVal(CondModuli_static);
       RankOneConvex = FullScanRank1Convex3D(CBK_, CondModuli_static, ConvexityDX_);
-      
+
       K_static.Resize(DIM3, 0.0);
       if (RankOneConvex)
       {
@@ -2781,7 +2781,7 @@ void MultiLatticeTPP::Print(ostream& out, PrintDetail const& flag,
          BlochWaveStable = -1;
       }
    }
-   
+
    switch (flag)
    {
       case PrintLong:

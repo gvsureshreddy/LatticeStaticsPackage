@@ -20,7 +20,7 @@ for ($i=1;$i<scalar(@ARGV);$i+=1)
   push(@dataset,$ARGV[$i]);
 }
 
-open(GNUPLOT,">$ARGV[0]") 
+open(GNUPLOT,">$ARGV[0]")
     || die "Unable to open $ARGV[0] for write: $!";
 
 print GNUPLOT "# gnuplot data file for TwoBarTruss\n#\n";
@@ -48,269 +48,242 @@ close(GNUPLOT);
 # $_[3] -- reference to output file
 #
 sub loaddata {
-    my(@fields,@bifpt,@stress,@DOF,
-       @potential,@noneg,
-       $stableflag,$stable_nodata,$unstable_nodata,$bifpoints,$turnpoints,
-       $reconstturnpts,$loadgrad,$oldloadgrad,$recalc,
-       $outputfl);
-    $outputfl = $_[3];
-    $bifheader = "";
-    $bif = "";
-    $biftmp = "";
-    $turnheader = "";
-    $turn = "";
-    $turntmp = "";
-    $reconstturnheader = "";
-    $reconstturn = "";
-    $reconstturntmp = "";
-    $stableheader = "";
-    $stable = "";
-    $stabletmp = "";
-    $unstableheader = "";
-    $unstable = "";
-    $unstabletmp = "";
+  my(@fields,@bifpt,@stress,@DOF,
+     @potential,@noneg,
+     $stableflag,$stable_nodata,$unstable_nodata,$bifpoints,$turnpoints,
+     $reconstturnpts,$loadgrad,$oldloadgrad,$recalc,
+     $outputfl);
+  $outputfl = $_[3];
+  $bifheader = "";
+  $bif = "";
+  $biftmp = "";
+  $turnheader = "";
+  $turn = "";
+  $turntmp = "";
+  $reconstturnheader = "";
+  $reconstturn = "";
+  $reconstturntmp = "";
+  $stableheader = "";
+  $stable = "";
+  $stabletmp = "";
+  $unstableheader = "";
+  $unstable = "";
+  $unstabletmp = "";
 
-    my($firststable,$firstunstable);
+  my($firststable,$firstunstable);
 
-    # flag to make sure there is data in the index
-    $stable_nodata = 1;
-    $unstable_nodata = 1;
-    $bifpoints = 0;
-    $turnpoints = 0;
-    $reconstturnpts = 0;
+  # flag to make sure there is data in the index
+  $stable_nodata = 1;
+  $unstable_nodata = 1;
+  $bifpoints = 0;
+  $turnpoints = 0;
+  $reconstturnpts = 0;
 
-    if (-e $_[1])
+  if (-e $_[1])
+  {
+    open(DATA,"gzcat -f $_[1]|") || die "No file, $_[1], $!";
+
+    $_ = <DATA>;
+    while (! m/^Restriction:/)
     {
-	open(DATA,"gzcat -f $_[1]|") || die "No file, $_[1], $!";
-
-	$_ = <DATA>;
-	while (! m/^Restriction:/)
-	{
-          $_ = <DATA>;
-	}
-
-	while (<DATA>)
-	{
-	    if ( /^===========/)
-	    {
-	      $_=<DATA>;
-	      if ( /^Lambda/)
-	      {
-		@fields=split(/:/,$_);
-		push(@stress,$fields[1]);
-
-		push(@bifpt,1);
-	      }
-
-	      $_=<DATA>;
-	      if (!defined($_))
-	      {
-		last;
-	      }
-	    }
-
-	    if ( /^Lambda/)
-	    {
-              push(@bifpt,0);
-              @fields=split(/:/,$_);
-              push(@stress,$fields[1]);
-	    }
-
-	    if ( /^DOF/)
-	    {
-              $_ = <DATA>;
-              @fields = split;
-              push(@DOF,[ @fields ]);
-	    }
-	    
-	    if (/^Potential/)
-	    {
-              @fields = split(/:/,$_);
-              push(@potential,$fields[1]);
-	    }
-            
-	    if (/^Bifurcation/)
-	    {
-              @fields = split(/:/,$_);
-              $_=$fields[1];
-              @fields = split;
-              push(@noneg,$fields[1]);
-	    }
-	}
-	
-	close(DATA);
-    }
-    else
-    {
-	print "No file, $_[1]!\n";
+      $_ = <DATA>;
     }
 
-    $bifheader .= sprintf "# Index $_[2]\n";
-    $bifheader .= sprintf "# $_[1] --- Bifurcation Points\n";
-    $bifheader .= sprintf "#" . $StrSPEC . $StrSPEC, "Stress","Potential";
-    for (my $i=0;$i<$DOFSize;$i+=1)
+    while (<DATA>)
     {
-	$bifheader .= sprintf $StrSPEC,"DOF $i";
-    }
-    $bifheader .= sprintf $StrSPEC . "\n", "NumNeg TFs";
-
-    $turnheader .= sprintf "# Index " . ($_[2]+1) . "\n";
-    $turnheader .= sprintf "# $_[1] --- Turning Points\n";
-    $turnheader .= sprintf "#" . $StrSPEC . $StrSPEC,"Stress","Potential";
-    for (my $i=0;$i<$DOFSize;$i+=1)
-    {
-	$turnheader .= sprintf $StrSPEC,"DOF $i";
-    }
-    $turnheader .= sprintf $StrSPEC . "\n","NumNeg TFs";
-
-    $reconstturnheader .= sprintf "# Index " . ($_[2]+2) . "\n";
-    $reconstturnheader .= sprintf "# $_[1] --- Reconstructive Turning Points\n";
-    $reconstturnheader .= sprintf "#" . $StrSPEC . $StrSPEC,"Stress","Potential";
-    for (my $i=0;$i<$DOFSize;$i+=1)
-    {
-	$reconstturnheader .= sprintf $StrSPEC,"DOF $i";
-    }
-    $reconstturnheader .= sprintf $StrSPEC . "\n","NumNeg TFs";
-    
-    $stableheader .= sprintf "# Index " . ($_[2]+3) . "\n";
-    $stableheader .= sprintf "# $_[1] --- Stable\n";
-    $stableheader .= sprintf "#" . $StrSPEC . $StrSPEC,"Stress","Potential";
-    for (my $i=0;$i<$DOFSize;$i+=1)
-    {
-	$stableheader .= sprintf $StrSPEC,"DOF $i";
-    }
-    $stableheader .= sprintf $StrSPEC . "\n","NumNeg TFs";
-
-    $unstableheader .= sprintf "# Index " . ($_[2]+4) . "\n";
-    $unstableheader .= sprintf "# $_[1] --- Unstable\n";
-    $unstableheader .= sprintf "#" . $StrSPEC . $StrSPEC,"Stress","Potential";
-    for (my $i=0;$i<$DOFSize;$i+=1)
-    {
-	$unstableheader .= sprintf $StrSPEC,"DOF $i";
-    }
-    $unstableheader .= sprintf $StrSPEC . "\n","NumNeg TFs";
-    
-    $firststable=1;
-    $firstunstable=1;
-    $nostable = 0;
-    $nounstable = 0;
-    $substable = 0;
-    $subunstable = 0;
-
-    $loadgrad = ($stress[1]-$stress[0])/abs($stress[1]-$stress[0]);
-
-    while(defined($stress[0]))
-    {
-      $stableflag = $noneg[0];
-      if (defined($noneg[1])){ $NxtStableflag = $noneg[1];}
-
-      $oldloadgrad = $loadgrad;
-      if ($#stress > 0)
+      if ( /^===========/)
       {
-        if ($stress[1] != $stress[0])
+        $_=<DATA>;
+        if ( /^Lambda/)
         {
-          $loadgrad = ($stress[1]-$stress[0])/abs($stress[1]-$stress[0]);
+          @fields=split(/:/,$_);
+          push(@stress,$fields[1]);
+
+          push(@bifpt,1);
+        }
+
+        $_=<DATA>;
+        if (!defined($_))
+        {
+          last;
         }
       }
 
-      # Bifurcation Point
-      if ($bifpt[0] == 1)
+      if ( /^Lambda/)
       {
-	if ($loadgrad == $oldloadgrad)
-	{
-	  $bifpoints += 1;
-	  $biftmp .= sprintf $FSPEC . $FSPEC,$stress[0],$potential[0];
-	  for (my $i=0;$i<$DOFSize;$i+=1)
-	  {
-	    $biftmp .= sprintf $FSPEC,$DOF[0][$i];
-	  }
-	  $biftmp .= sprintf $FSPEC . "\n",$noneg[0];
-	}
-	else
-	{
-	  $turnpoints += 1;
-	  $turntmp .= sprintf $FSPEC . $FSPEC,$stress[0],$potential[0];
-	  for (my $i=0;$i<$DOFSize;$i+=1)
-	  {
-	    $turntmp .= sprintf $FSPEC,$DOF[0][$i];
-	  }
-	  $turntmp .= sprintf $FSPEC . "\n",$noneg[0];
-	}
+        push(@bifpt,0);
+        @fields=split(/:/,$_);
+        push(@stress,$fields[1]);
+      }
+
+      if ( /^DOF/)
+      {
+        $_ = <DATA>;
+        @fields = split;
+        push(@DOF,[ @fields ]);
+      }
+
+      if (/^Potential/)
+      {
+        @fields = split(/:/,$_);
+        push(@potential,$fields[1]);
+      }
+
+      if (/^Bifurcation/)
+      {
+        @fields = split(/:/,$_);
+        $_=$fields[1];
+        @fields = split;
+        push(@noneg,$fields[1]);
+      }
+    }
+
+    close(DATA);
+  }
+  else
+  {
+    print "No file, $_[1]!\n";
+  }
+
+  $bifheader .= sprintf "# Index $_[2]\n";
+  $bifheader .= sprintf "# $_[1] --- Bifurcation Points\n";
+  $bifheader .= sprintf "#" . $StrSPEC . $StrSPEC, "Stress","Potential";
+  for (my $i=0;$i<$DOFSize;$i+=1)
+  {
+    $bifheader .= sprintf $StrSPEC,"DOF $i";
+  }
+  $bifheader .= sprintf $StrSPEC . "\n", "NumNeg TFs";
+
+  $turnheader .= sprintf "# Index " . ($_[2]+1) . "\n";
+  $turnheader .= sprintf "# $_[1] --- Turning Points\n";
+  $turnheader .= sprintf "#" . $StrSPEC . $StrSPEC,"Stress","Potential";
+  for (my $i=0;$i<$DOFSize;$i+=1)
+  {
+    $turnheader .= sprintf $StrSPEC,"DOF $i";
+  }
+  $turnheader .= sprintf $StrSPEC . "\n","NumNeg TFs";
+
+  $reconstturnheader .= sprintf "# Index " . ($_[2]+2) . "\n";
+  $reconstturnheader .= sprintf "# $_[1] --- Reconstructive Turning Points\n";
+  $reconstturnheader .= sprintf "#" . $StrSPEC . $StrSPEC,"Stress","Potential";
+  for (my $i=0;$i<$DOFSize;$i+=1)
+  {
+    $reconstturnheader .= sprintf $StrSPEC,"DOF $i";
+  }
+  $reconstturnheader .= sprintf $StrSPEC . "\n","NumNeg TFs";
+
+  $stableheader .= sprintf "# Index " . ($_[2]+3) . "\n";
+  $stableheader .= sprintf "# $_[1] --- Stable\n";
+  $stableheader .= sprintf "#" . $StrSPEC . $StrSPEC,"Stress","Potential";
+  for (my $i=0;$i<$DOFSize;$i+=1)
+  {
+    $stableheader .= sprintf $StrSPEC,"DOF $i";
+  }
+  $stableheader .= sprintf $StrSPEC . "\n","NumNeg TFs";
+
+  $unstableheader .= sprintf "# Index " . ($_[2]+4) . "\n";
+  $unstableheader .= sprintf "# $_[1] --- Unstable\n";
+  $unstableheader .= sprintf "#" . $StrSPEC . $StrSPEC,"Stress","Potential";
+  for (my $i=0;$i<$DOFSize;$i+=1)
+  {
+    $unstableheader .= sprintf $StrSPEC,"DOF $i";
+  }
+  $unstableheader .= sprintf $StrSPEC . "\n","NumNeg TFs";
+
+  $firststable=1;
+  $firstunstable=1;
+  $nostable = 0;
+  $nounstable = 0;
+  $substable = 0;
+  $subunstable = 0;
+
+  $loadgrad = ($stress[1]-$stress[0])/abs($stress[1]-$stress[0]);
+
+  while(defined($stress[0]))
+  {
+    $stableflag = $noneg[0];
+    if (defined($noneg[1])){ $NxtStableflag = $noneg[1];}
+
+    $oldloadgrad = $loadgrad;
+    if ($#stress > 0)
+    {
+      if ($stress[1] != $stress[0])
+      {
+        $loadgrad = ($stress[1]-$stress[0])/abs($stress[1]-$stress[0]);
+      }
+    }
+
+    # Bifurcation Point
+    if ($bifpt[0] == 1)
+    {
+      if ($loadgrad == $oldloadgrad)
+      {
+        $bifpoints += 1;
+        $biftmp .= sprintf $FSPEC . $FSPEC,$stress[0],$potential[0];
+        for (my $i=0;$i<$DOFSize;$i+=1)
+        {
+          $biftmp .= sprintf $FSPEC,$DOF[0][$i];
+        }
+        $biftmp .= sprintf $FSPEC . "\n",$noneg[0];
       }
       else
       {
-	if ($loadgrad != $oldloadgrad)
-	{
-	  $reconstturnpts += 1;
-	  $reconstturntmp .= sprintf $FSPEC . $FSPEC,$stress[0],$potential[0];
-	  for (my $i=0;$i<$DOFSize;$i+=1)
-	  {
-	    $reconstturntmp .= sprintf $FSPEC,$DOF[0][$i];
-	  }
-	  $reconstturntmp .= sprintf $FSPEC . "\n",$noneg[0];
-	}
-      }
-      
-      if ($stableflag != $NxtStableflag)
-      {
-	# Add blank line in corresponding file to seperate segments
-	# and connecting line of data
-        if ($bifpt[0] == 1)
+        $turnpoints += 1;
+        $turntmp .= sprintf $FSPEC . $FSPEC,$stress[0],$potential[0];
+        for (my $i=0;$i<$DOFSize;$i+=1)
         {
-          if ($NxtStableflag == 0)
-          {
-            if (!$firststable)
-            {
-              $stable .= sprintf "# name: Index_" . ($_[2]+3) . "_$substable\n";
-              $stable .= sprintf "# type: matrix\n";
-              $stable .= sprintf "# rows: $nostable\n";
-              $stable .= sprintf "# columns: %i\n",$StateSize;
-              $stable .= $stabletmp;
-              $stable .= sprintf "\n";
-              $substable += 1;
-              $stabletmp = "";
-              $nostable = 0;
-            }
-            else
-            {
-              $firststable=0;
-            }
-            $nostable +=1;
-            $stabletmp .= sprintf $FSPEC . $FSPEC,$stress[0],$potential[0];
-            for (my $i=0;$i<$DOFSize;$i+=1)
-            {
-              $stabletmp .= sprintf $FSPEC,$DOF[0][$i];
-            }
-            $stabletmp .= sprintf $FSPEC . "\n",$noneg[0];
-          }
-          elsif ($stableflag == 0)
-          {
-            if (!$firstunstable)
-            {
-              $unstable .= sprintf "# name: Index_" . ($_[2]+4). "_$subunstable\n";
-              $unstable .= sprintf "# type: matrix\n";
-              $unstable .= sprintf "# rows: $nounstable\n";
-              $unstable .= sprintf "# columns: %i\n",$StateSize;
-              $unstable .= $unstabletmp;
-              $unstable .= sprintf "\n";
-              $subunstable += 1;
-              $unstabletmp = "";
-              $nounstable = 0;
-            }
-            else
-            {
-              $firstunstable=0;
-            }
-            $nounstable += 1;
-            $unstabletmp .= sprintf $FSPEC . $FSPEC,$stress[0],$potential[0];
-            for (my $i=0;$i<$DOFSize;$i+=1)
-            {
-              $unstabletmp .= sprintf $FSPEC,$DOF[0][$i];
-            }
-            $unstabletmp .= sprintf $FSPEC . "\n",$noneg[0];
-          }
+          $turntmp .= sprintf $FSPEC,$DOF[0][$i];
         }
-       elsif (($stableflag == 0) && ($bifpt[1] != 1))
+        $turntmp .= sprintf $FSPEC . "\n",$noneg[0];
+      }
+    }
+    else
+    {
+      if ($loadgrad != $oldloadgrad)
+      {
+        $reconstturnpts += 1;
+        $reconstturntmp .= sprintf $FSPEC . $FSPEC,$stress[0],$potential[0];
+        for (my $i=0;$i<$DOFSize;$i+=1)
+        {
+          $reconstturntmp .= sprintf $FSPEC,$DOF[0][$i];
+        }
+        $reconstturntmp .= sprintf $FSPEC . "\n",$noneg[0];
+      }
+    }
+
+    if ($stableflag != $NxtStableflag)
+    {
+      # Add blank line in corresponding file to seperate segments
+      # and connecting line of data
+      if ($bifpt[0] == 1)
+      {
+        if ($NxtStableflag == 0)
+        {
+          if (!$firststable)
+          {
+            $stable .= sprintf "# name: Index_" . ($_[2]+3) . "_$substable\n";
+            $stable .= sprintf "# type: matrix\n";
+            $stable .= sprintf "# rows: $nostable\n";
+            $stable .= sprintf "# columns: %i\n",$StateSize;
+            $stable .= $stabletmp;
+            $stable .= sprintf "\n";
+            $substable += 1;
+            $stabletmp = "";
+            $nostable = 0;
+          }
+          else
+          {
+            $firststable=0;
+          }
+          $nostable +=1;
+          $stabletmp .= sprintf $FSPEC . $FSPEC,$stress[0],$potential[0];
+          for (my $i=0;$i<$DOFSize;$i+=1)
+          {
+            $stabletmp .= sprintf $FSPEC,$DOF[0][$i];
+          }
+          $stabletmp .= sprintf $FSPEC . "\n",$noneg[0];
+        }
+        elsif ($stableflag == 0)
         {
           if (!$firstunstable)
           {
@@ -337,95 +310,67 @@ sub loaddata {
           $unstabletmp .= sprintf $FSPEC . "\n",$noneg[0];
         }
       }
-
-      # Print data line into correct file and continue
-      if ($stableflag == 0)
+      elsif (($stableflag == 0) && ($bifpt[1] != 1))
       {
-	$stable_nodata = 0;
-	$firststable = 0;
-	$nostable += 1;
-	$stabletmp .= sprintf $FSPEC . $FSPEC,$stress[0],$potential[0];
-	for (my $i=0;$i<$DOFSize;$i+=1)
-	{
-	  $stabletmp .= sprintf $FSPEC,$DOF[0][$i];
-	}
-	$stabletmp .= sprintf $FSPEC . "\n",$noneg[0];
-      }
-      else
-      {
-	$unstable_nodata = 0;
-	$firstunstable = 0;
-	$nounstable += 1;
-	$unstabletmp .= sprintf $FSPEC . $FSPEC,$stress[0],$potential[0];
-	for (my $i=0;$i<$DOFSize;$i+=1)
-	{
-	  $unstabletmp .= sprintf $FSPEC,$DOF[0][$i];
-	}
-	$unstabletmp .= sprintf $FSPEC . "\n",$noneg[0];
-      }
-      
-      if ($stableflag != $NxtStableflag)
-      {
-        # Add blank line in corresponding file to seperate segments
-	# and connecting line of data
-        if ($bifpt[1] == 1)
+        if (!$firstunstable)
         {
-          if ($NxtStableflag == 0)
-          {
-            $nounstable += 1;
-            $unstabletmp .= sprintf $FSPEC . $FSPEC,$stress[1],$potential[1];
-            for (my $i=0;$i<$DOFSize;$i+=1)
-            {
-              $unstabletmp .= sprintf $FSPEC,$DOF[1][$i];
-            }
-            $unstabletmp .= sprintf $FSPEC . "\n",$noneg[1];
-
-            if (!$firststable)
-            {
-              $stable .= sprintf "# name: Index_" . ($_[2]+3) . "_$substable\n";
-              $stable .= sprintf "# type: matrix\n";
-              $stable .= sprintf "# rows: $nostable\n";
-              $stable .= sprintf "# columns: %i\n",$StateSize;
-              $stable .= $stabletmp;
-              $stable .= sprintf "\n";
-              $substable += 1;
-              $stabletmp = "";
-              $nostable = 0;
-            }
-            else
-            {
-              $firststable=0;
-            }
-          }
-          elsif ($stableflag == 0)
-          {
-            $nostable +=1;
-            $stabletmp .= sprintf $FSPEC . $FSPEC,$stress[1],$potential[1];
-            for (my $i=0;$i<$DOFSize;$i+=1)
-            {
-              $stabletmp .= sprintf $FSPEC,$DOF[1][$i];
-            }
-            $stabletmp .= sprintf $FSPEC . "\n",$noneg[1];
-
-            if (!$firstunstable)
-            {
-              $unstable .= sprintf "# name: Index_" . ($_[2]+4). "_$subunstable\n";
-              $unstable .= sprintf "# type: matrix\n";
-              $unstable .= sprintf "# rows: $nounstable\n";
-              $unstable .= sprintf "# columns: %i\n",$StateSize;
-              $unstable .= $unstabletmp;
-              $unstable .= sprintf "\n";
-              $subunstable += 1;
-              $unstabletmp = "";
-              $nounstable = 0;
-            }
-            else
-            {
-              $firstunstable=0;
-            }
-          }
+          $unstable .= sprintf "# name: Index_" . ($_[2]+4). "_$subunstable\n";
+          $unstable .= sprintf "# type: matrix\n";
+          $unstable .= sprintf "# rows: $nounstable\n";
+          $unstable .= sprintf "# columns: %i\n",$StateSize;
+          $unstable .= $unstabletmp;
+          $unstable .= sprintf "\n";
+          $subunstable += 1;
+          $unstabletmp = "";
+          $nounstable = 0;
         }
-        elsif (($NxtStableflag == 0) && ($bifpt[0] != 1))
+        else
+        {
+          $firstunstable=0;
+        }
+        $nounstable += 1;
+        $unstabletmp .= sprintf $FSPEC . $FSPEC,$stress[0],$potential[0];
+        for (my $i=0;$i<$DOFSize;$i+=1)
+        {
+          $unstabletmp .= sprintf $FSPEC,$DOF[0][$i];
+        }
+        $unstabletmp .= sprintf $FSPEC . "\n",$noneg[0];
+      }
+    }
+
+    # Print data line into correct file and continue
+    if ($stableflag == 0)
+    {
+      $stable_nodata = 0;
+      $firststable = 0;
+      $nostable += 1;
+      $stabletmp .= sprintf $FSPEC . $FSPEC,$stress[0],$potential[0];
+      for (my $i=0;$i<$DOFSize;$i+=1)
+      {
+        $stabletmp .= sprintf $FSPEC,$DOF[0][$i];
+      }
+      $stabletmp .= sprintf $FSPEC . "\n",$noneg[0];
+    }
+    else
+    {
+      $unstable_nodata = 0;
+      $firstunstable = 0;
+      $nounstable += 1;
+      $unstabletmp .= sprintf $FSPEC . $FSPEC,$stress[0],$potential[0];
+      for (my $i=0;$i<$DOFSize;$i+=1)
+      {
+        $unstabletmp .= sprintf $FSPEC,$DOF[0][$i];
+      }
+      $unstabletmp .= sprintf $FSPEC . "\n",$noneg[0];
+    }
+
+    if ($stableflag != $NxtStableflag)
+    {
+      # Add blank line in corresponding file to seperate segments
+      # and connecting line of data
+      if ($bifpt[1] == 1)
+      {
+        if ($NxtStableflag == 0)
         {
           $nounstable += 1;
           $unstabletmp .= sprintf $FSPEC . $FSPEC,$stress[1],$potential[1];
@@ -434,7 +379,7 @@ sub loaddata {
             $unstabletmp .= sprintf $FSPEC,$DOF[1][$i];
           }
           $unstabletmp .= sprintf $FSPEC . "\n",$noneg[1];
-          
+
           if (!$firststable)
           {
             $stable .= sprintf "# name: Index_" . ($_[2]+3) . "_$substable\n";
@@ -452,135 +397,190 @@ sub loaddata {
             $firststable=0;
           }
         }
-      }
+        elsif ($stableflag == 0)
+        {
+          $nostable +=1;
+          $stabletmp .= sprintf $FSPEC . $FSPEC,$stress[1],$potential[1];
+          for (my $i=0;$i<$DOFSize;$i+=1)
+          {
+            $stabletmp .= sprintf $FSPEC,$DOF[1][$i];
+          }
+          $stabletmp .= sprintf $FSPEC . "\n",$noneg[1];
 
-      shift(@bifpt);
-      shift(@stress);
-      shift(@potential);
-      shift(@DOF);
-      shift(@noneg);
+          if (!$firstunstable)
+          {
+            $unstable .= sprintf "# name: Index_" . ($_[2]+4). "_$subunstable\n";
+            $unstable .= sprintf "# type: matrix\n";
+            $unstable .= sprintf "# rows: $nounstable\n";
+            $unstable .= sprintf "# columns: %i\n",$StateSize;
+            $unstable .= $unstabletmp;
+            $unstable .= sprintf "\n";
+            $subunstable += 1;
+            $unstabletmp = "";
+            $nounstable = 0;
+          }
+          else
+          {
+            $firstunstable=0;
+          }
+        }
+      }
+      elsif (($NxtStableflag == 0) && ($bifpt[0] != 1))
+      {
+        $nounstable += 1;
+        $unstabletmp .= sprintf $FSPEC . $FSPEC,$stress[1],$potential[1];
+        for (my $i=0;$i<$DOFSize;$i+=1)
+        {
+          $unstabletmp .= sprintf $FSPEC,$DOF[1][$i];
+        }
+        $unstabletmp .= sprintf $FSPEC . "\n",$noneg[1];
+
+        if (!$firststable)
+        {
+          $stable .= sprintf "# name: Index_" . ($_[2]+3) . "_$substable\n";
+          $stable .= sprintf "# type: matrix\n";
+          $stable .= sprintf "# rows: $nostable\n";
+          $stable .= sprintf "# columns: %i\n",$StateSize;
+          $stable .= $stabletmp;
+          $stable .= sprintf "\n";
+          $substable += 1;
+          $stabletmp = "";
+          $nostable = 0;
+        }
+        else
+        {
+          $firststable=0;
+        }
+      }
     }
-    
-    # Make sure there is at least one data point in each index
-    if ($bifpoints == 0)
+
+    shift(@bifpt);
+    shift(@stress);
+    shift(@potential);
+    shift(@DOF);
+    shift(@noneg);
+  }
+
+  # Make sure there is at least one data point in each index
+  if ($bifpoints == 0)
+  {
+    $bif .= sprintf "# name: Index_$_[2]_0\n";
+    $bif .= sprintf "# type: matrix\n";
+    $bif .= sprintf "# rows: 1\n";
+    $bif .= sprintf "# columns: %i\n",$StateSize;
+    for (my $i=0;$i<$StateSize;$i+=1)
+    {
+      $bif .= sprintf $FSPEC,0.0;
+    }
+    $bif .= sprintf "\n";
+  }
+  else
+  {
+    if ($bifpoints > 0)
     {
       $bif .= sprintf "# name: Index_$_[2]_0\n";
       $bif .= sprintf "# type: matrix\n";
-      $bif .= sprintf "# rows: 1\n";
+      $bif .= sprintf "# rows: $bifpoints\n";
       $bif .= sprintf "# columns: %i\n",$StateSize;
-      for (my $i=0;$i<$StateSize;$i+=1)
-      {
-	$bif .= sprintf $FSPEC,0.0;
-      }
-      $bif .= sprintf "\n";
+      $bif .= $biftmp;
     }
-    else
-    {
-      if ($bifpoints > 0)
-      {
-	$bif .= sprintf "# name: Index_$_[2]_0\n";
-	$bif .= sprintf "# type: matrix\n";
-	$bif .= sprintf "# rows: $bifpoints\n";
-	$bif .= sprintf "# columns: %i\n",$StateSize;
-	$bif .= $biftmp;
-      }
-    }
+  }
 
-    if ($turnpoints == 0)
+  if ($turnpoints == 0)
+  {
+    $turn .= sprintf "# name: Index_" . ($_[2]+1) ,"_0\n";
+    $turn .= sprintf "# type: matrix\n";
+    $turn .= sprintf "# rows: 1\n";
+    $turn .= sprintf "# columns: %i\n",$StateSize;
+    for (my $i=0;$i<$StateSize;$i+=1)
     {
-      $turn .= sprintf "# name: Index_" . ($_[2]+1) ,"_0\n";
+      $turn .= sprintf $FSPEC,0.0;
+    }
+    $turn .= sprintf "\n";
+  }
+  else
+  {
+    if ($turnpoints > 0)
+    {
+      $turn .= sprintf "# name: Index_" . ($_[2]+1) . "_0\n";
       $turn .= sprintf "# type: matrix\n";
-      $turn .= sprintf "# rows: 1\n";
+      $turn .= sprintf "# rows: $turnpoints\n";
       $turn .= sprintf "# columns: %i\n",$StateSize;
-      for (my $i=0;$i<$StateSize;$i+=1)
-      {
-	$turn .= sprintf $FSPEC,0.0;
-      }
-      $turn .= sprintf "\n";
+      $turn .= $turntmp;
     }
-    else
-    {
-      if ($turnpoints > 0)
-      {
-	$turn .= sprintf "# name: Index_" . ($_[2]+1) . "_0\n";
-	$turn .= sprintf "# type: matrix\n";
-	$turn .= sprintf "# rows: $turnpoints\n";
-	$turn .= sprintf "# columns: %i\n",$StateSize;
-	$turn .= $turntmp;
-      }
-    }
+  }
 
-    if ($reconstturnpts == 0)
+  if ($reconstturnpts == 0)
+  {
+    $reconstturn .= sprintf "# name: Index_" . ($_[2]+2) . "_0\n";
+    $reconstturn .= sprintf "# type: matrix\n";
+    $reconstturn .= sprintf "# rows: 1\n";
+    $reconstturn .= sprintf "# columns: %i\n",$StateSize;
+    for (my $i=0;$i<$StateSize;$i+=1)
+    {
+      $reconstturn .= sprintf $FSPEC,0.0;
+    }
+    $reconstturn .= sprintf "\n";
+  }
+  else
+  {
+    if ($reconstturnpts > 0)
     {
       $reconstturn .= sprintf "# name: Index_" . ($_[2]+2) . "_0\n";
       $reconstturn .= sprintf "# type: matrix\n";
-      $reconstturn .= sprintf "# rows: 1\n";
+      $reconstturn .= sprintf "# rows: $reconstturnpts\n";
       $reconstturn .= sprintf "# columns: %i\n",$StateSize;
-      for (my $i=0;$i<$StateSize;$i+=1)
-      {
-	$reconstturn .= sprintf $FSPEC,0.0;
-      }
-      $reconstturn .= sprintf "\n";
+      $reconstturn .= $reconstturntmp;
     }
-    else
-    {
-      if ($reconstturnpts > 0)
-      {
-	$reconstturn .= sprintf "# name: Index_" . ($_[2]+2) . "_0\n";
-	$reconstturn .= sprintf "# type: matrix\n";
-	$reconstturn .= sprintf "# rows: $reconstturnpts\n";
-	$reconstturn .= sprintf "# columns: %i\n",$StateSize;
-	$reconstturn .= $reconstturntmp;
-      }
-    }
+  }
 
-    if ($stable_nodata)
+  if ($stable_nodata)
+  {
+    $stable .= sprintf "# name: Index_" . ($_[2]+3) . "_$substable\n";
+    $stable .= sprintf "# type: matrix\n";
+    $stable .= sprintf "# rows: 1\n";
+    $stable .= sprintf "# columns: %i\n",$StateSize;
+    for (my $i=0;$i<$StateSize;$i+=1)
+    {
+      $stable .= sprintf $FSPEC,0.0;
+    }
+    $stable .= sprintf "\n";
+  }
+  else
+  {
+    if ($nostable > 0)
     {
       $stable .= sprintf "# name: Index_" . ($_[2]+3) . "_$substable\n";
       $stable .= sprintf "# type: matrix\n";
-      $stable .= sprintf "# rows: 1\n";
+      $stable .= sprintf "# rows: $nostable\n";
       $stable .= sprintf "# columns: %i\n",$StateSize;
-      for (my $i=0;$i<$StateSize;$i+=1)
-      {
-	$stable .= sprintf $FSPEC,0.0;
-      }
-      $stable .= sprintf "\n";
+      $stable .= $stabletmp;
     }
-    else
-    {
-      if ($nostable > 0)
-      {
-	$stable .= sprintf "# name: Index_" . ($_[2]+3) . "_$substable\n";
-	$stable .= sprintf "# type: matrix\n";
-	$stable .= sprintf "# rows: $nostable\n";
-	$stable .= sprintf "# columns: %i\n",$StateSize;
-	$stable .= $stabletmp;
-      }
-    }
+  }
 
-    if ($unstable_nodata)
+  if ($unstable_nodata)
+  {
+    $unstable .= sprintf "# name: Index_" . ($_[2]+4) . "_$subunstable\n";
+    $unstable .= sprintf "# type: matrix\n";
+    $unstable .= sprintf "# rows: 1\n";
+    $unstable .= sprintf "# columns: %i\n",$StateSize;
+    for (my $i=0;$i<$StateSize;$i+=1)
+    {
+      $unstable .= sprintf $FSPEC,0.0;
+    }
+    $unstable .= sprintf "\n";
+  }
+  else
+  {
+    if ($nounstable > 0)
     {
       $unstable .= sprintf "# name: Index_" . ($_[2]+4) . "_$subunstable\n";
       $unstable .= sprintf "# type: matrix\n";
-      $unstable .= sprintf "# rows: 1\n";
+      $unstable .= sprintf "# rows: $nounstable\n";
       $unstable .= sprintf "# columns: %i\n",$StateSize;
-      for (my $i=0;$i<$StateSize;$i+=1)
-      {
-	$unstable .= sprintf $FSPEC,0.0;
-      }
-      $unstable .= sprintf "\n";
+      $unstable .= $unstabletmp;
     }
-    else
-    {
-      if ($nounstable > 0)
-      {
-	$unstable .= sprintf "# name: Index_" . ($_[2]+4) . "_$subunstable\n";
-	$unstable .= sprintf "# type: matrix\n";
-	$unstable .= sprintf "# rows: $nounstable\n";
-	$unstable .= sprintf "# columns: %i\n",$StateSize;
-	$unstable .= $unstabletmp;
-      }
-    }
+  }
 
-    printf $outputfl $bifheader . $bif . "\n\n" . $turnheader . $turn . "\n\n" . $reconstturnheader . $reconstturn . "\n\n" . $stableheader . $stable . "\n\n" . $unstableheader . $unstable . "\n\n";
+  printf $outputfl $bifheader . $bif . "\n\n" . $turnheader . $turn . "\n\n" . $reconstturnheader . $reconstturn . "\n\n" . $stableheader . $stable . "\n\n" . $unstableheader . $unstable . "\n\n";
 }

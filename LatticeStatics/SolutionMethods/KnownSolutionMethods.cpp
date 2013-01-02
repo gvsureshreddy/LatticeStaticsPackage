@@ -26,13 +26,13 @@ SolutionMethod* InitializeSolution(Restriction* const Restrict, PerlInput const&
    }
    else if (!strcmp("NEBSolution", slvmthd))
    {
-	   solu = NEB;
+      solu = NEB;
    }
    else if (!strcmp("ODSolution", slvmthd))
    {
-	   solu = OD;
+      solu = OD;
    }
-	
+
    else
    {
       cerr << "Unknown SolutionMethod : " << slvmthd << "\n";
@@ -40,15 +40,15 @@ SolutionMethod* InitializeSolution(Restriction* const Restrict, PerlInput const&
    }
 
    switch (solu)
-	{
-	  case OD:
-	  {
-		return new ODSolution(Restrict, Input, 0);
-	  }	   	
-	  case NEB:
-	  {
-		return new NEBSolution(Restrict, Input, 0);
-	  }	   
+   {
+      case OD:
+      {
+         return new ODSolution(Restrict, Input, 0);
+      }
+      case NEB:
+      {
+         return new NEBSolution(Restrict, Input, 0);
+      }
       case RefineEqbm:
       {
          return new RefineEqbmSolution(Restrict, Input, 0);
@@ -62,7 +62,7 @@ SolutionMethod* InitializeSolution(Restriction* const Restrict, PerlInput const&
          int good = 1;
          int count = 0;
          Vector One = Restrict->DOF(),
-                Two = Restrict->DOF();
+            Two = Restrict->DOF();
 
          if (Input.HashOK("StartType"))
          {

@@ -126,7 +126,7 @@ Lattice::Lattice(PerlInput const& Input, int const& Echo) :
       Input.useString("No", "Lattice", "TurningPointRestarts"); // Default Value
    }
 
-         
+
    if (Input.ParameterOK("Lattice", "UseExtension"))
    {
       UseExtension_ = Input.getString("Lattice", "UseExtension");
@@ -263,13 +263,13 @@ int Lattice::TestFunctions(Vector& TF1, StateType const& State, Vector* const TF
             TF1[i] = EV2_static[0][i];
          }
       }
-	   
+
       if(NumExtraTFs_>0)
       {
          ExTF1_static = ExTF2_static;
          ExtraTestFunctions(ExTF2_static);
       }
-      
+
       for (int i=0;i<NumExtraTFs_;++i)
       {
          if ((ExTF1_static[i] * ExTF2_static[i]) < 0.0)

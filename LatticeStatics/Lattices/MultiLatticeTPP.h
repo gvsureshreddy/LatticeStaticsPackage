@@ -82,9 +82,9 @@ private:
                                   ostream& out) const;
    int ReferenceBlochWave(Vector& K) const;
    CMatrix const& ReferenceDynamicalStiffness(Vector const& K) const;
-   
+
    int GCD(int x, int y) const;
-   Matrix const PairwiseReduction(Matrix const& RowLatVects) const;	
+   Matrix const PairwiseReduction(Matrix const& RowLatVects) const;
    void NewCBCellSingleK(int TFIndex,int Width, ostream& out) const;
 
    // Needed for DispersionCurves()
@@ -107,7 +107,7 @@ public:
 
    void KPrint(int TFIndex, int Width, ostream& out) const;
    void TFCritPtInfo(int TFIndex, int Width, ostream& out) const;
-   
+
    // Virtual Functions required by Lattice
    Vector const& DOF() const
    {

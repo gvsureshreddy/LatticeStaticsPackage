@@ -13,7 +13,7 @@ if (scalar(@ARGV) < 3)
 $pid = open2(PIPout,PIPin,"BlochWave $ARGV[0] $ARGV[1]");
 autoflush PIPin 1;
 
-open(DATA,"<$ARGV[0]") 
+open(DATA,"<$ARGV[0]")
     || die "Unable to open $ARGV[0] for read: $!";
 if (scalar(@ARGV) == 4)
 {
@@ -46,7 +46,7 @@ while (<DATA>)
     {
       if ($skip != 0)
       {
-	$count = 1;
+        $count = 1;
       }
     }
     else
@@ -66,7 +66,7 @@ while (<DATA>)
     @fields=split(/:/,$_);
     $Lambda = $fields[1];
   }
-  
+
   if (/^DOF/)
   {
     print OUTPUT $_;
@@ -89,26 +89,26 @@ while (<DATA>)
     {
       if ($count == 0)
       {
-	print PIPin $Temp;
-	print PIPin $Lambda;
-	for ($i=0;$i<scalar(@DOF);$i+=1)
-	{
-	  printf PIPin "%25.12f",$DOF[$i];
-	}
-	print PIPin "\n";
+        print PIPin $Temp;
+        print PIPin $Lambda;
+        for ($i=0;$i<scalar(@DOF);$i+=1)
+        {
+          printf PIPin "%25.12f",$DOF[$i];
+        }
+        print PIPin "\n";
 
-	$newline = <PIPout>;
-	print OUTPUT $newline;
-	if ($skip != 0)
-	{
-	  $count += 1;
-	}
+        $newline = <PIPout>;
+        print OUTPUT $newline;
+        if ($skip != 0)
+        {
+          $count += 1;
+        }
       }
       else
       {
-	print OUTPUT $_;
-	$count += 1;
-	$count %= $skip;
+        print OUTPUT $_;
+        $count += 1;
+        $count %= $skip;
       }
     }
     else

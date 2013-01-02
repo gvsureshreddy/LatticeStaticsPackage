@@ -358,18 +358,18 @@ int NEBSolution::FindNextSolution(PerlInput const& Input, int const& Width, ostr
 
    out << "\n \n ==========================NEB OUTPUT========================= \n";
    out << "State Matrix" << setw(Width) << StateMatrix_ << "\n";
-   
+
    Vector Temp(2);
    Temp[0] = EnergyBarrier_[0];
-   Temp[1] = EnergyBarrier_[1];		   
+   Temp[1] = EnergyBarrier_[1];
    long double MinValue = Temp.MinElement();
-   
+
    if (Echo_)
    {
       cout << "StateMatrix" << setw(Width) << StateMatrix_ << "\n";
       cout << "Energy Vector: \n" << setw(Width) << EnergyBarrier_ << "\n";
    }
-   
+
    out << "Energy Vector: \n" << setw(Width) << EnergyBarrier_ << "\n";
 
    Vector EBrel = EnergyBarrier_;
@@ -379,11 +379,11 @@ int NEBSolution::FindNextSolution(PerlInput const& Input, int const& Width, ostr
    }
    out << "Normalized Energy Vector: \n" << setw(Width) << EBrel << "\n";
    out << "Energy Values offset by " << MinValue << "\n";
-   
+
    if (Echo_)
    {
       cout << "Normalized Energy Vector: \n" << setw(Width) << EBrel << "\n";
-      cout << "Energy Values offset by " << MinValue << "\n";			      
+      cout << "Energy Values offset by " << MinValue << "\n";
    }
 
    return 1;

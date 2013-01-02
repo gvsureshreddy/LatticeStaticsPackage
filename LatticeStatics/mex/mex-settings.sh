@@ -1,5 +1,5 @@
 #
-# gccopts.sh	Shell script for configuring MEX-file creation script,
+# gccopts.sh    Shell script for configuring MEX-file creation script,
 #               mex.  These options were tested with gcc 3.2.3.
 #
 # usage:        Do not call this file directly; it is sourced by the
@@ -32,7 +32,7 @@
     MFLAGS=''
     if [ "$ENTRYPOINT" = "mexLibrary" ]; then
         MLIBS="-L$TMW_ROOT/bin/$Arch -lmx -lmex -lmat -lmwservices -lut -lm"
-    else  
+    else
         MLIBS="-L$TMW_ROOT/bin/$Arch -lmx -lmex -lmat -lm"
     fi
     case "$Arch" in
@@ -48,7 +48,7 @@
 #
 # Determine the location of the GCC libraries
 #
-	    GCC_LIBDIR=`gcc -v 2>&1 | awk '/.*Reading specs.*/ {print substr($4,0,length($4)-6)}'`
+            GCC_LIBDIR=`gcc -v 2>&1 | awk '/.*Reading specs.*/ {print substr($4,0,length($4)-6)}'`
             ;;
         glnx86)
 #----------------------------------------------------------------------------
@@ -62,7 +62,7 @@
             CLIBS="$RPATH $MLIBS -lm -lstdc++"
             COPTIMFLAGS='-O -DNDEBUG'
             CDEBUGFLAGS='-g'
-#           
+#
             CXX='g++'
 #            CXXFLAGS='-fPIC -ansi -D_GNU_SOURCE -pthread  -DSOLVE_SVD -DUNIX_TERMINAL `perl -MExtUtils::Embed -e ccopts` -I. -I ../Utility -I ../Lattices -I ../Modes -I ../Potentials -I ../../include'
             CXXFLAGS='-fPIC -ansi -D_GNU_SOURCE -pthread  -DSOLVE_SVD -DUNIX_TERMINAL `perl -MExtUtils::Embed -e ccopts` -I. -I ../Utility -I ../Lattices -I ../Modes -I ../Potentials -I ~/include'
@@ -95,7 +95,7 @@
             CLIBS="$RPATH $MLIBS -lm -lstdc++"
             COPTIMFLAGS='-O -DNDEBUG'
             CDEBUGFLAGS='-g'
-#           
+#
             CXX='g++'
             CXXFLAGS='-fPIC -fno-omit-frame-pointer -ansi -D_GNU_SOURCE -pthread '
             CXXLIBS="$RPATH $MLIBS -lm"
@@ -125,7 +125,7 @@
             CFLAGS='-fPIC -fexceptions'
             CLIBS="$MLIBS -lm"
             COPTIMFLAGS='-O -DNDEBUG'
-            CDEBUGFLAGS='-g'  
+            CDEBUGFLAGS='-g'
             CXXDEBUGFLAGS='-g'
 #
             CXX='g++'
@@ -137,7 +137,7 @@
             LDEXTENSION='.mexsol'
             LDFLAGS="-shared -Wl,-M,$TMW_ROOT/extern/lib/$Arch/$MAPFILE,-R,$GCC_LIBDIR"
             LDOPTIMFLAGS='-O'
-            LDDEBUGFLAGS='-g'  
+            LDDEBUGFLAGS='-g'
 #
             POSTLINK_CMDS=':'
 #----------------------------------------------------------------------------

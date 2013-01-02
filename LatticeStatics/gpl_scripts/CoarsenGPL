@@ -10,7 +10,7 @@ if (scalar(@ARGV) < 2)
   die "Usage: CoarsenGPL gpl_file skip <outputfile>";
 }
 
-open(DATA,"<$ARGV[0]") 
+open(DATA,"<$ARGV[0]")
     || die "Unable to open $ARGV[0] for read: $!";
 if (scalar(@ARGV) == 3)
 {
@@ -43,13 +43,13 @@ while (<DATA>)
       print $1, "     ", $1%5,  "\n";
       if ($1%5 <= 2)
       {
-	print OUTPUT $_;
-	$_ = <DATA>;
-	while (! m/^$/)
-	{
-	  print OUTPUT $_;
-	  $_ = <DATA>;
-	}
+        print OUTPUT $_;
+        $_ = <DATA>;
+        while (! m/^$/)
+        {
+          print OUTPUT $_;
+          $_ = <DATA>;
+        }
       }
     }
 

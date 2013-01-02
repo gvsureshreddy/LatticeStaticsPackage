@@ -104,20 +104,20 @@ sub loaddata {
   $unstableheader = "";
   $unstable = "";
   $unstabletmp = "";
-  
+
   my($firststable,$firstunstable);
-  
+
   # flag to make sure there is data in the index
   $stable_nodata = 1;
   $unstable_nodata = 1;
   $bifpoints = 0;
   $turnpoints = 0;
   $reconstturnpts = 0;
-  
+
   if (-e $_[0])
   {
     open(DATA,"gzcat -f $_[0]|") || die "No file: $_[0], $!";
-    
+
     $_ = <DATA>;
     while (! m/^Restriction:/)
     {
@@ -142,7 +142,7 @@ sub loaddata {
           $loadparam=2;
         }
       }
-      
+
       if (/^Input File:.*BlochWaveGridSize/)
       {
         if (/=>/)
@@ -164,7 +164,7 @@ sub loaddata {
 
       $_ = <DATA>;
     }
-    
+
     while (<DATA>)
     {
       if ( /^===========/)
@@ -179,31 +179,31 @@ sub loaddata {
         }
         $_=<DATA>;
         if (!defined($_))
-	{
-	  last;
-	}
+        {
+          last;
+        }
       }
-      
+
       if ( /^Temperature/)
       {
         push(@bifpt,0);
-        
+
         @fields=split(/:/,$_);
         push(@temp,$fields[1]);
       }
-      
+
       if ( /^Lambda/)
       {
         @fields=split(/:/,$_);
         push(@stress,$fields[1]);
       }
-      
+
       if ( /^ConjugateToLambda/)
       {
         @fields=split(/:/,$_);
         push(@conjtostress,$fields[1]);
       }
-      
+
       if ( /^DOF/)
       {
         $_ = <DATA>;
@@ -235,25 +235,25 @@ sub loaddata {
           push(@blochwave,0);
         }
       }
-      
+
       if (/^Potential/)
       {
         @fields = split(/:/,$_);
         push(@potential,$fields[1]);
       }
-      
+
       if ( /^Entropy/)
       {
         @fields=split(/:/,$_);
         push(@entropy,$fields[1]);
       }
-      
+
       if ( /^HeatCapacity/)
       {
         @fields=split(/:/,$_);
         push(@heatcapacity,$fields[1]);
       }
-      
+
       if (/^Bifurcation/)
       {
         @fields = split(/:/,$_);
@@ -261,13 +261,13 @@ sub loaddata {
         @fields = split;
         push(@noneg,$fields[1]);
       }
-      
+
       if (/^Condensed Moduli Rank1Convex/)
       {
         @fields = split(/:/,$_);
         push(@Convex,$fields[1]);
       }
-      
+
       if (/^BlochWave/)
       {
         @fields = split(/:/,$_);
@@ -306,14 +306,14 @@ sub loaddata {
         }
       }
     }
-    
+
     close(DATA);
   }
   else
   {
     print "No file: $_[0]!\n";
   }
-  
+
   $bifheader .= sprintf "# Index $_[1]\n";
   $bifheader .= sprintf "# $_[0] --- Bifurcation Points\n";
   $bifheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
@@ -324,7 +324,7 @@ sub loaddata {
   }
   $bifheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . "\n",
   "NumNeg TFs","Rk 1 Convex","Blochwave";
-  
+
   $turnheader .= sprintf "# Index " . ($_[1]+1) . "\n";
   $turnheader .= sprintf "# $_[0] --- Turning Points\n";
   $turnheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
@@ -335,7 +335,7 @@ sub loaddata {
   }
   $turnheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . "\n",
   "NumNeg TFs","Rk 1 Convex","Blochwave";
-  
+
   $reconstturnheader .= sprintf "# Index " . ($_[1]+2) . "\n";
   $reconstturnheader .= sprintf "# $_[0] --- Reconstructive Turning Points\n";
   $reconstturnheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
@@ -346,7 +346,7 @@ sub loaddata {
   }
   $reconstturnheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . "\n",
   "NumNeg TFs","Rk 1 Convex","Blochwave";
-  
+
   $stableheader .= sprintf "# Index " . ($_[1]+3) . "\n";
   $stableheader .= sprintf "# $_[0] --- Stable\n";
   $stableheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
@@ -357,7 +357,7 @@ sub loaddata {
   }
   $stableheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . "\n",
   "NumNeg TFs","Rk 1 Convex","Blochwave";
-  
+
   $unstableheader .= sprintf "# Index " . ($_[1]+4) . "\n";
   $unstableheader .= sprintf "# $_[0] --- Unstable\n";
   $unstableheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC . $StrSPEC,
@@ -368,7 +368,7 @@ sub loaddata {
   }
   $unstableheader .= sprintf $StrSPEC . $StrSPEC . $StrSPEC . "\n",
   "NumNeg TFs","Rk 1 Convex","Blochwave";
-  
+
   $firststable=1;
   $firstunstable=1;
   $nostable = 0;
@@ -383,7 +383,7 @@ sub loaddata {
   {
     $loadgrad = ($stress[1]-$stress[0])/abs($stress[1]-$stress[0]);
   }
-  
+
   while(defined($temp[0]))
   {
     if ($StabType eq "CB")
@@ -401,8 +401,8 @@ sub loaddata {
       $stableflag = (($blochwave[0] != 1) || ($noneg[0]));
       if (defined($blochwave[1])){ $NxtStableflag = (($blochwave[1] != 1) || ($noneg[1]));}
     }
-    
-    
+
+
     $oldloadgrad = $loadgrad;
     if ($#temp > 0)
     {
@@ -421,7 +421,7 @@ sub loaddata {
         }
       }
     }
-    
+
     # Bifurcation Point
     if ($bifpt[0] == 1)
     {
@@ -465,7 +465,7 @@ sub loaddata {
         $noneg[0],$Convex[0],$blochwave[0];
       }
     }
-    
+
     if ($stableflag != $NxtStableflag)
     {
       # Add blank line in corresponding file to seperate segments
@@ -558,7 +558,7 @@ sub loaddata {
         $noneg[0],$Convex[0],$blochwave[0];
       }
     }
-    
+
     # Print data line into correct file and continue
     if ($stableflag == 0)
     {
@@ -588,7 +588,7 @@ sub loaddata {
       $unstabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . "\n",
       $noneg[0],$Convex[0],$blochwave[0];
     }
-    
+
     if ($stableflag != $NxtStableflag)
     {
       # Add blank line in corresponding file to seperate segments
@@ -606,7 +606,7 @@ sub loaddata {
           }
           $unstabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . "\n",
           $noneg[1],$Convex[1],$blochwave[1];
-          
+
           if (!$firststable)
           {
             $stable .= sprintf "# name: Index_" . ($_[1]+3) . "_$substable\n";
@@ -635,7 +635,7 @@ sub loaddata {
           }
           $stabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . "\n",
           $noneg[1],$Convex[1],$blochwave[1];
-          
+
           if (!$firstunstable)
           {
             $unstable .= sprintf "# name: Index_" . ($_[1]+4). "_$subunstable\n";
@@ -665,7 +665,7 @@ sub loaddata {
         }
         $unstabletmp .= sprintf $FSPEC . $FSPEC . $FSPEC . "\n",
         $noneg[1],$Convex[1],$blochwave[1];
-        
+
         if (!$firststable)
         {
           $stable .= sprintf "# name: Index_" . ($_[1]+3) . "_$substable\n";
@@ -684,7 +684,7 @@ sub loaddata {
         }
       }
     }
-    
+
     shift(@bifpt);
     shift(@temp);
     shift(@stress);
@@ -697,7 +697,7 @@ sub loaddata {
     shift(@Convex);
     shift(@blochwave);
   }
-  
+
   # Make sure there is at least one data point in each index
   if ($bifpoints == 0)
   {
@@ -722,7 +722,7 @@ sub loaddata {
       $bif .= $biftmp;
     }
   }
-  
+
   if ($turnpoints == 0)
   {
     $turn .= sprintf "# name: Index_" . ($_[1]+1) ,"_0\n";
@@ -746,7 +746,7 @@ sub loaddata {
       $turn .= $turntmp;
     }
   }
-  
+
   if ($reconstturnpts == 0)
   {
     $reconstturn .= sprintf "# name: Index_" . ($_[1]+2) . "_0\n";
@@ -770,7 +770,7 @@ sub loaddata {
       $reconstturn .= $reconstturntmp;
     }
   }
-  
+
   if ($stable_nodata)
   {
     $stable .= sprintf "# name: Index_" . ($_[1]+3) . "_$substable\n";
@@ -794,7 +794,7 @@ sub loaddata {
       $stable .= $stabletmp;
     }
   }
-  
+
   if ($unstable_nodata)
   {
     $unstable .= sprintf "# name: Index_" . ($_[1]+4) . "_$subunstable\n";
@@ -818,6 +818,6 @@ sub loaddata {
       $unstable .= $unstabletmp;
     }
   }
-  
+
   printf $outputfl $bifheader . $bif . "\n\n" . $turnheader . $turn . "\n\n" . $reconstturnheader . $reconstturn . "\n\n" . $stableheader . $stable . "\n\n" . $unstableheader . $unstable . "\n\n";
 }

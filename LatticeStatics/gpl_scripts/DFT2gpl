@@ -85,20 +85,20 @@ sub loaddata {
   $unstableheader = "";
   $unstable = "";
   $unstabletmp = "";
-  
+
   my($firststable,$firstunstable);
-  
+
   # flag to make sure there is data in the index
   $stable_nodata = 1;
   $unstable_nodata = 1;
   $bifpoints = 0;
   $turnpoints = 0;
   $reconstturnpts = 0;
-  
+
   if (-e $_[0])
   {
     open(DATA,$_[0]) || die "Error: $_[0], $!";
-    
+
     $_ = <DATA>;
     while (! m/^Restriction:/)
     {
@@ -114,38 +114,38 @@ sub loaddata {
         {
           @fields=split(/:/,$_);
           push(@stress,$fields[1]);
-        
-	  push(@bifpt,1);
-	}
-      
+
+          push(@bifpt,1);
+        }
+
         $_=<DATA>;
-	if (!defined($_))
-	{
-	  last;
-	}
+        if (!defined($_))
+        {
+          last;
+        }
       }
-      
+
       if ( /^Lambda/)
       {
-	push(@bifpt,0);
+        push(@bifpt,0);
 
         @fields=split(/:/,$_);
         push(@stress,$fields[1]);
       }
-      
+
       if ( /^DOF/)
       {
         $_ = <DATA>;
         @fields = split;
         push(@DOF,[ @fields ]);
       }
-      
+
       if (/^Potential/)
       {
         @fields = split(/:/,$_);
         push(@potential,$fields[1]);
       }
-      
+
       if (/^Bifurcation/)
       {
         @fields = split(/:/,$_);
@@ -154,14 +154,14 @@ sub loaddata {
         push(@stable,$fields[1]);
       }
     }
-    
+
     close(DATA);
   }
   else
   {
     print "No file, $_[0]!\n";
   }
-  
+
   $bifheader .= sprintf "# Index $_[1]\n";
   $bifheader .= sprintf "# $_[0] --- Bifurcation Points\n";
   $bifheader .= sprintf $StrSPEC . $StrSPEC,
@@ -172,7 +172,7 @@ sub loaddata {
   }
   $bifheader .= sprintf $StrSPEC . "\n",
   "Stable";
-  
+
   $turnheader .= sprintf "# Index " . ($_[1]+1) . "\n";
   $turnheader .= sprintf "# $_[0] --- Turning Points\n";
   $turnheader .= sprintf $StrSPEC . $StrSPEC,
@@ -183,7 +183,7 @@ sub loaddata {
   }
   $turnheader .= sprintf $StrSPEC . "\n",
   "Stable";
-  
+
   $reconstturnheader .= sprintf "# Index " . ($_[1]+2) . "\n";
   $reconstturnheader .= sprintf "# $_[0] --- Reconstructive Turning Points\n";
   $reconstturnheader .= sprintf $StrSPEC . $StrSPEC,
@@ -194,7 +194,7 @@ sub loaddata {
   }
   $reconstturnheader .= sprintf $StrSPEC . "\n",
   "Stable";
-  
+
   $stableheader .= sprintf "# Index " . ($_[1]+3) . "\n";
   $stableheader .= sprintf "# $_[0] --- Stable\n";
   $stableheader .= sprintf $StrSPEC . $StrSPEC,
@@ -205,7 +205,7 @@ sub loaddata {
   }
   $stableheader .= sprintf $StrSPEC . "\n",
   "Stable";
-  
+
   $unstableheader .= sprintf "# Index " . ($_[1]+4) . "\n";
   $unstableheader .= sprintf "# $_[0] --- Unstable\n";
   $unstableheader .= sprintf $StrSPEC . $StrSPEC,
@@ -216,7 +216,7 @@ sub loaddata {
   }
   $unstableheader .= sprintf $StrSPEC . "\n",
   "Stable";
-  
+
   $firststable=1;
   $firstunstable=1;
   $nostable = 0;
@@ -225,21 +225,21 @@ sub loaddata {
   $subunstable = 0;
 
   $loadgrad = ($stress[1]-$stress[0])/abs($stress[1]-$stress[0]);
-  
+
   while(defined($stress[0]))
   {
     $stableflag = $stable[0];
     if (defined($stable[1])){ $NxtStableflag = $stable[1];}
-    
+
     $oldloadgrad = $loadgrad;
     if ($#stress > 0)
     {
       if ($stress[1] != $stress[0])
-        {
-          $loadgrad = ($stress[1]-$stress[0])/abs($stress[1]-$stress[0]);
-        }
+      {
+        $loadgrad = ($stress[1]-$stress[0])/abs($stress[1]-$stress[0]);
+      }
     }
-    
+
     # Bifurcation Point
     if ($bifpt[0] == 1)
     {
@@ -283,7 +283,7 @@ sub loaddata {
         $stable[0];
       }
     }
-    
+
     if ($stableflag != $NxtStableflag)
     {
       # Add blank line in corresponding file to seperate segments
@@ -376,7 +376,7 @@ sub loaddata {
         $stable[0];
       }
     }
-    
+
     # Print data line into correct file and continue
     if ($stableflag == 0)
     {
@@ -406,7 +406,7 @@ sub loaddata {
       $unstabletmp .= sprintf $FSPEC . "\n",
       $stable[0];
     }
-    
+
     if ($stableflag != $NxtStableflag)
     {
       # Add blank line in corresponding file to seperate segments
@@ -424,7 +424,7 @@ sub loaddata {
           }
           $unstabletmp .= sprintf $FSPEC . "\n",
           $stable[1];
-          
+
           if (!$firststable)
           {
             $stable .= sprintf "# name: Index_" . ($_[1]+3) . "_$substable\n";
@@ -453,7 +453,7 @@ sub loaddata {
           }
           $stabletmp .= sprintf $FSPEC . "\n",
           $stable[1];
-          
+
           if (!$firstunstable)
           {
             $unstable .= sprintf "# name: Index_" . ($_[1]+4). "_$subunstable\n";
@@ -483,7 +483,7 @@ sub loaddata {
         }
         $unstabletmp .= sprintf $FSPEC . "\n",
         $stable[1];
-        
+
         if (!$firststable)
         {
           $stable .= sprintf "# name: Index_" . ($_[1]+3) . "_$substable\n";
@@ -502,14 +502,14 @@ sub loaddata {
         }
       }
     }
-    
+
     shift(@bifpt);
     shift(@stress);
     shift(@potential);
     shift(@DOF);
     shift(@stable);
   }
-  
+
   # Make sure there is at least one data point in each index
   if ($bifpoints == 0)
   {
@@ -534,7 +534,7 @@ sub loaddata {
       $bif .= $biftmp;
     }
   }
-  
+
   if ($turnpoints == 0)
   {
     $turn .= sprintf "# name: Index_" . ($_[1]+1) ,"_0\n";
@@ -558,7 +558,7 @@ sub loaddata {
       $turn .= $turntmp;
     }
   }
-  
+
   if ($reconstturnpts == 0)
   {
     $reconstturn .= sprintf "# name: Index_" . ($_[1]+2) . "_0\n";
@@ -582,7 +582,7 @@ sub loaddata {
       $reconstturn .= $reconstturntmp;
     }
   }
-  
+
   if ($stable_nodata)
   {
     $stable .= sprintf "# name: Index_" . ($_[1]+3) . "_$substable\n";
@@ -606,7 +606,7 @@ sub loaddata {
       $stable .= $stabletmp;
     }
   }
-  
+
   if ($unstable_nodata)
   {
     $unstable .= sprintf "# name: Index_" . ($_[1]+4) . "_$subunstable\n";
@@ -630,6 +630,6 @@ sub loaddata {
       $unstable .= $unstabletmp;
     }
   }
-  
+
   printf $outputfl $bifheader . $bif . "\n\n" . $turnheader . $turn . "\n\n" . $reconstturnheader . $reconstturn . "\n\n" . $stableheader . $stable . "\n\n" . $unstableheader . $unstable . "\n\n";
 }

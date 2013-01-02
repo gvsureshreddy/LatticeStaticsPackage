@@ -149,12 +149,12 @@ int ODSolution::FindNextSolution(PerlInput const& Input, int const& Width, ostre
       }
       out << "t = " << 0.0 << "\n";
       out << "Potential = " << Potential0_ << "\n";
-      out << "DOF = " << setw(Width) << X0_ << "\n";  
+      out << "DOF = " << setw(Width) << X0_ << "\n";
       out << "t = " << dt_ << "\n";
       out << "Potential = " << Potential1_ << "\n";
       out << "DOF = " << setw(Width) << X_ << "\n";
    }
-   
+
    if (Echo_)
    {
       cout << "t = " << t_ << "\n";
@@ -162,9 +162,9 @@ int ODSolution::FindNextSolution(PerlInput const& Input, int const& Width, ostre
       //cout << "DOF = " << setw(Width) << CurrentSolution_ << "\n";
    }
    out << "t = " << t_ << "\n";
-   out << "Potential = " << Potential_ << "\n";		   
+   out << "Potential = " << Potential_ << "\n";
    out << "DOF = " << setw(Width) << CurrentSolution_ << "\n";
-   
+
    return 1;
 }
 
