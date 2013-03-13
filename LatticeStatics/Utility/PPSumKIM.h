@@ -31,8 +31,6 @@ private:
    void Initialize();
 
 public:
-
-
    PPSumKIM()
    {
    }
@@ -41,9 +39,9 @@ public:
             double* const InfluDist);
    ~PPSumKIM()
    {
-	   delete [] numNeigh_;
-	   delete [] nListAtom_;
-	   delete [] nListRVec_;
+      delete[] numNeigh_;
+      delete[] nListAtom_;
+      delete[] nListRVec_;
    }
 
    void operator()(CBKinematics* const CBK, int const& InternalAtoms,
@@ -61,7 +59,7 @@ public:
    }
    int CurrentPOS() const
    {
-	   return CurrentPOS_;
+      return CurrentPOS_;
    }
 
    void operator++()
@@ -71,34 +69,34 @@ public:
 
    int& numNeigh()
    {
-	  return numNeigh_[CurrentPOS_];
+      return numNeigh_[CurrentPOS_];
    }
 
    int* nListAtom()
    {
-	   int temp = 0;
-	   if (CurrentPOS_ != 0)
-	   {
-		   for (int i = 1; i <= (CurrentPOS_);i++)
-		   {
-			   temp += numNeigh_[i-1];
-		   }
-	   }
-	   return &(nListAtom_[temp]);
+      int temp = 0;
+      if (CurrentPOS_ != 0)
+      {
+         for (int i = 1; i <= (CurrentPOS_); i++)
+         {
+            temp += numNeigh_[i - 1];
+         }
+      }
+      return &(nListAtom_[temp]);
    }
 
    double* nListRVec()
    {
-	  int temp = 0;
-	   if (CurrentPOS_ != 0)
-	   {
-		   for (int i = 1; i <= (CurrentPOS_);i++)
-		   {
-			   temp += numNeigh_[i-1];
-		   }
-		   temp = temp*3;
-	   }
-	  return &(nListRVec_[temp]);
+      int temp = 0;
+      if (CurrentPOS_ != 0)
+      {
+         for (int i = 1; i <= (CurrentPOS_); i++)
+         {
+            temp += numNeigh_[i - 1];
+         }
+         temp = temp * 3;
+      }
+      return &(nListRVec_[temp]);
    }
 };
 

@@ -13,9 +13,9 @@ void PPSumKIM::operator()(CBKinematics* const CBK, int const& InternalAtoms,
    Recalc_ = 0;
    CurrentPOS_ = 0;
 
-	numNeigh_ = NULL;
-	nListAtom_= NULL;
-	nListRVec_= NULL;
+   numNeigh_ = NULL;
+   nListAtom_ = NULL;
+   nListRVec_ = NULL;
    Initialize();
 }
 
@@ -23,10 +23,9 @@ void PPSumKIM::Reset()
 {
    if (Recalc_)
    {
-
-	  delete [] numNeigh_;
-	  delete [] nListAtom_;
-	  delete [] nListRVec_;
+      delete[] numNeigh_;
+      delete[] nListAtom_;
+      delete[] nListRVec_;
 
       Initialize();
    }
@@ -73,7 +72,7 @@ void PPSumKIM::Initialize()
 
    numNeigh_ = new int[InternalAtoms_];
    nListAtom_ = new int[InternalAtoms_ * int(tmp)];
-   nListRVec_ = new double[InternalAtoms_ * 3* int(tmp)];
+   nListRVec_ = new double[InternalAtoms_ * 3 * int(tmp)];
 
    int numTemp0, numTemp1, numTemp2;
    double r2;
@@ -81,7 +80,7 @@ void PPSumKIM::Initialize()
    numTemp2 = 0;
    for (p = 0; p < InternalAtoms_; p++)
    {
-	   numTemp1 = 0;
+      numTemp1 = 0;
       for (q = 0; q < InternalAtoms_; q++)
       {
          for (X[0] = Bottom[0]; X[0] <= Top[0]; X[0]++)
@@ -90,28 +89,28 @@ void PPSumKIM::Initialize()
             {
                for (X[2] = Bottom[2]; X[2] <= Top[2]; X[2]++)
                {
-				  r2 = 0.0;
+                  r2 = 0.0;
                   for (i = 0; i < 3; i++)
                   {
-					  r2 += (CBK_->Dx(X, p, q, i)) * (CBK_->Dx(X, p, q, i));
+                     r2 += (CBK_->Dx(X, p, q, i)) * (CBK_->Dx(X, p, q, i));
                   }
-				   if ((r2 != 0) && (r2 <= (*InfluenceDist_) * (*InfluenceDist_)))
-				   {
-					 for(int component = 0;component < 3;component++)
-					 {
-						 nListRVec_[numTemp2] = CBK_->Dx(X, p, q, component);
-						++numTemp2;
-					 }
+                  if ((r2 != 0) && (r2 <= (*InfluenceDist_) * (*InfluenceDist_)))
+                  {
+                     for (int component = 0; component < 3; component++)
+                     {
+                        nListRVec_[numTemp2] = CBK_->Dx(X, p, q, component);
+                        ++numTemp2;
+                     }
 
-					 nListAtom_[numTemp0]=q;
-					 ++numTemp0;
-					 ++numTemp1;
+                     nListAtom_[numTemp0] = q;
+                     ++numTemp0;
+                     ++numTemp1;
                   }
                }
             }
          }
       }
-	  numNeigh_[p] = numTemp1;
+      numNeigh_[p] = numTemp1;
    }
 
    Recalc_ = 0;
