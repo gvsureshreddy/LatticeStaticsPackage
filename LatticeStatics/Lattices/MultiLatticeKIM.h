@@ -28,7 +28,6 @@ private:
    static const int cachesize = 1;
    mutable int Cached_[cachesize];
    double InfluenceDist_;
-   double NTemp_;
 
    // DOF[i] = [F00 F01 F02 F10 F11 F12 F20 F21 F22 S00 S01 S02 S11 S12 S13 S21... ...]
    // if using a FwithTransMapping CBkinematics
@@ -58,13 +57,9 @@ private:
    int KillTranslations_;
    Vector KillOneRotation_;
    int Density_;
-   double REFTemp_;
    double REFLambda_;
    double NormModulus_;
-   double Tref_;
    double PhiRef_;
-   double EntropyRef_;
-   double HeatCapacityRef_;
    enum LDeriv {L0, DL};
    double Lambda_;
    Vector LoadingProportions_;
@@ -84,7 +79,6 @@ private:
    int DynMatrixDim_;
    int NumKVectors_;
    Vector TFLoad_;
-   int NewCBCellFlag_;
 
    // Misc
    int FastPrint_;
@@ -137,38 +131,48 @@ public:
 
    void SetDOF(Vector const& dof)
    {
+      // @@ update Cached_?
       CBK_->SetDOF(dof); // LatSum_.Recalc();
    }
 
+   // @@ remove?
    // Entropy is NEGATIVE dE/dT
    double Entropy() const
    {
+      // @@ fix
       return -energy();
    }
-
+   // @@ remove?
    double HeatCapacity() const
    {
-      return -(NTemp_) * energy();
+      // @@ fix
+      return energy();
    }
 
    Vector const& StressDT() const
    {
+      // @@ fix
       return stress();
    }
 
    Matrix const& StiffnessDT() const
    {
+      // @@ fix
       return stiffness();
    }
 
+   // @@ remove?
    double Temp() const
    {
-      return NTemp_;
+      // @@ fix
+      return 0.0;
    }
 
+   // @@ remove?
    void SetTemp(double const& Ntemp)
    {
-      NTemp_ = Ntemp; LatSum_.Recalc();
+      // @@ fix
+      // NTemp_ = Ntemp; LatSum_.Recalc();
    }
 
    Vector const& StressDL() const
@@ -178,6 +182,7 @@ public:
 
    Matrix const& StiffnessDL() const
    {
+      // @@ fix
       return stiffness();
    }
 
@@ -194,6 +199,7 @@ public:
    double ConjugateToLambda() const;
    void SetLambda(double const& lambda)
    {
+      // @@ update Cached_?
       Lambda_ = lambda;
    }
 

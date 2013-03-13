@@ -24,6 +24,11 @@ MultiLatticeKIM::~MultiLatticeKIM()
    // KIM_API_model_destroy(pkim_, &status);
    status = KIM_API_model_destroy(pkim_);
    KIM_API_free(&pkim_, &status);
+   // delete memory
+   delete[] particleTypes_;
+   delete[] coords_;
+   delete[] forces_;
+   
 }
 
 MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo,
@@ -136,12 +141,6 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo,
       BodyForce_[i].Resize(DIM3, 0.0);
    }
 
-   // Get Thermo parameters
-   Tref_ = Input.getDouble(Hash, "Tref");
-   // PhiRef_ = Input.getDouble(Hash,"PhiRef");
-   // EntropyRef_ = Input.getDouble(Hash,"EntropyRef");
-   // HeatCapacityRef_ = Input.getDouble(Hash,"HeatCapacityRef");
-
    // START OF KIM COMPLIANT ALTERATIONS
    int status;
    char* modelname = new char[100];
@@ -223,9 +222,8 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo,
                            (char*) "KIM_API_model_init", status);
    }
 
-   NTemp_ = 1.0;
    InfluenceDist_ = cutoff_;
-   LatSum_(CBK_, InternalAtoms_, &InfluenceDist_, &NTemp_);
+   LatSum_(CBK_, InternalAtoms_, &InfluenceDist_);
 
    KIM_API_setm_data(pkim_, &status, 1 * 4,
                      "neighObject", 1, &LatSum_, 1);
@@ -270,21 +268,9 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo,
    }
    NormModulus_ = Input.getDouble(Hash, "NormModulus");
    ConvexityDX_ = Input.getDouble(Hash, "ConvexityDX");
-   // Get Loading parameters
-   const char* loadparam = Input.getString(Hash, "LoadingParameter");
-   if (!strcmp("Temperature", loadparam))
-   {
-      LoadParameter_ = Temperature;
-   }
-   else if (!strcmp("Load", loadparam))
-   {
-      LoadParameter_ = Load;
-   }
-   else
-   {
-      cerr << "Unknown Loading Parameter" << "\n";
-      exit(-1);
-   }
+   // Set Loading parameter
+   LoadParameter_ = Load;
+
    Lambda_ = 0.0;
    EulerAng_ = new double[DIM3];
    EulerAng_[0] = Input.getDouble(Hash, "EulerAngle_X");
@@ -331,15 +317,6 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo,
    GridSize_ = Input.getPosInt(Hash, "BlochWaveGridSize");
 
    // values to identifiy REFERENCE CONFIGURATION
-   if (Input.ParameterOK(Hash, "ReferenceTemperature"))
-   {
-      REFTemp_ = Input.getDouble(Hash, "ReferenceTemperature");
-   }
-   else
-   {
-      // Default Value
-      REFTemp_ = Input.useDouble(1.0, Hash, "ReferenceTemperature");
-   }
    if (Input.ParameterOK(Hash, "ReferenceLambda"))
    {
       REFLambda_ = Input.getDouble(Hash, "ReferenceLambda");
@@ -350,7 +327,6 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo,
       REFLambda_ = Input.useDouble(0.0, Hash, "ReferenceLambda");
    }
 
-   NewCBCellFlag_ = 0; // make sure initialized
    PerlInput::HashStruct TFHash = Input.getHash(Hash, "ExtraTestFunctions");
    const char* TFtyp = Input.getString(TFHash, "Type");
    if ((!strcmp("None", TFtyp)) || (!strcmp("none", TFtyp)))
@@ -368,16 +344,6 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo,
 
       TFType_ = 1;
       NumExtraTFs_ = DynMatrixDim_ * NumKVectors_;
-
-      NewCBCellFlag_ = 1;  // default value
-      if (Input.ParameterOK(TFHash, "PrintNewCBCell"))
-      {
-         const char* NewCell = Input.getString(TFHash, "PrintNewCBCell");
-         if ((!strcmp("No", NewCell)) || (!strcmp("no", NewCell)))
-         {
-            NewCBCellFlag_ = 0;
-         }
-      }
    }
    else if ((!strcmp("LoadingParameters", TFtyp))
             || (!strcmp("loadingparameters", TFtyp)))
@@ -445,7 +411,6 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo,
    }
 
    // Setup initial status for parameters
-   NTemp_ = Input.getDouble(Hash, "NTemp");
    Lambda_ = Input.getDouble(Hash, "Lambda");
 
    // Initiate the Unit Cell Iterator for Bloch wave calculations.
@@ -462,7 +427,6 @@ int MultiLatticeKIM::FindLatticeSpacing(int const& iter)
    const double Tol = DOF().Dim() * 1.0e-13;
 
    Lambda_ = REFLambda_;
-   NTemp_ = REFTemp_;
 
    CBK_->SetReferenceDOFs();
    LatSum_.Recalc();
@@ -563,6 +527,8 @@ double MultiLatticeKIM::E0() const
                                * Tsq_static[1] + TrEig_[2] * Tsq_static[2])
          + 0.5 * (RoEig_[0] * Rsq_static[0] + RoEig_[1] * Rsq_static[1]
                   + RoEig_[2] * Rsq_static[2]);
+
+      // @@ updated Cached_ value
    }
 
    return E0CachedValue_;
@@ -576,6 +542,7 @@ double MultiLatticeKIM::energy(LDeriv const& dl) const
 
    if (dl == L0)
    {
+      // @@ set StiffnessYes_?
       UpdateKIMValues();
       phi = energy_ / (Vr * NormModulus_);
       for (int i = 0; i < 3; ++i)
@@ -598,6 +565,7 @@ double MultiLatticeKIM::energy(LDeriv const& dl) const
 
 double MultiLatticeKIM::ConjugateToLambda() const
 {
+   // @@ provide definition
    cerr << "Error in MultiLatticeKIM::ConjugateToLambda() empty function \n ";
    exit(-45);
 }
@@ -626,13 +594,13 @@ Vector const& MultiLatticeKIM::E1() const
             }
          }
       }
+
+      // @@ update Cached_ value
    }
    //    cout << "E1()::ME1_static = " << setw(15) << ME1_static << endl;
    return ME1_static;
 }
 
-// Vector const& MultiLatticeKIM::stress(TDeriv const& dt, LDeriv const& dl)
-// const
 Vector const& MultiLatticeKIM::stress(LDeriv const& dl) const
 {
    double Vr = Density_ ? CBK_->RefVolume() : 1.0;
@@ -642,6 +610,7 @@ Vector const& MultiLatticeKIM::stress(LDeriv const& dl) const
    }
    if (dl == L0)
    {
+      // @@ set StiffnessYes_?
       UpdateKIMValues();
 
       ME1_static *= 1.0 / ((Vr * NormModulus_));
@@ -699,7 +668,6 @@ Matrix const& MultiLatticeKIM::E2() const
 
 Matrix const& MultiLatticeKIM::stiffness(LDeriv const& dl) const
 {
-   StiffnessYes_ = 1;
    double Vr = Density_ ? CBK_->RefVolume() : 1.0;
    for (int i = 0; i < CBK_->DOFS(); i++)
    {
@@ -711,6 +679,7 @@ Matrix const& MultiLatticeKIM::stiffness(LDeriv const& dl) const
 
    if (dl == L0)
    {
+      StiffnessYes_ = 1;
       UpdateKIMValues();
       ME2_static *= 1.0 / ((Vr * NormModulus_));
    }
@@ -723,6 +692,7 @@ Matrix const& MultiLatticeKIM::stiffness(LDeriv const& dl) const
       cerr << "Unknown LDeriv dl in MultiLatticeTpp::stiffness()" << "\n";
       exit(-1);
    }
+   // @@ remove?
    StiffnessYes_ = 0;
    return ME2_static;
 }
@@ -747,6 +717,7 @@ int MultiLatticeKIM::CriticalPointInfo(int* const CPCrossingNum,
                                        int const& Width,
                                        PerlInput const& Input, ostream& out)
 {
+   // @@ provide definition
    cerr << "Error in MultiLatticeKIM::CriticalPointInfo() empty function \n ";
    exit(-45);
 }
@@ -778,24 +749,11 @@ void MultiLatticeKIM::ExtraTestFunctions(Vector& TF) const
          }
       }
    }
-   else if (TFType_ == 2) // LoadingParameters
+   else if (TFType_ == 2) // LoadingParameter
    {
       for (int i = 0; i < NumExtraTFs_; ++i)
       {
-         if (LoadParameter_ == Temperature)
-         {
-            TF[i] = (TFLoad_[i] - Temp());
-         }
-         else if (LoadParameter_ == Load)
-         {
-            TF[i] = (TFLoad_[i] - Lambda());
-         }
-         else
-         {
-            cerr << "Error MultiLatticeKIM::ExtraTestFunctions: "
-               "Unknown LoadParameter.\n";
-            exit(-2);
-         }
+         TF[i] = (TFLoad_[i] - Lambda());
       }
    }
 }
@@ -883,325 +841,6 @@ void MultiLatticeKIM::TFCritPtInfo(int TFIndex, int Width, ostream& out) const
    out << "$ExtraTF{DynMatEigVal} = " << setw(Width) << DynMatEigValPrint
        << "\n";
    out << "$ExtraTF{DynMat} = " << setw(Width) << DynMat << "\n";
-}
-
-// The following is the Pairwise lattice reduction routine as per Tadmor,
-// Sorkin & Arndt [2009].  It takes in a bx3 matrix of b rows of Lattice
-// vectors to be reduced It returns a bx3 matrix consisting of b row vectors
-// (in R^3) for use with NewCBCellSingleK
-Matrix const MultiLatticeKIM::PairwiseReduction(Matrix const& RowLatVects) const
-{
-   int b, terminate, l, s, m;
-   double Norm1, Norm2, DotLS, NormS_squared, value;
-
-   b = RowLatVects.Rows();
-   Matrix ReduceLatticeVectorsMatrix(b, 3);
-   for (int i = 0; i < b; i++)
-   {
-      for (int j = 0; j < DIM3; j++)
-      {
-         ReduceLatticeVectorsMatrix[i][j] = RowLatVects[i][j];
-      }
-   }
-   terminate = 0;
-   while (terminate == 0)
-   {
-      terminate = 1;
-      for (int i = 0; i < (b - 1); i++)
-      {
-         for (int j = (i + 1); j < b; j++)
-         {
-            Norm1 = sqrt(ReduceLatticeVectorsMatrix[i][0]
-                         * ReduceLatticeVectorsMatrix[i][0] +
-                         ReduceLatticeVectorsMatrix[i][1]
-                         * ReduceLatticeVectorsMatrix[i][1] +
-                         ReduceLatticeVectorsMatrix[i][2]
-                         * ReduceLatticeVectorsMatrix[i][2]);
-            Norm2 = sqrt(ReduceLatticeVectorsMatrix[j][0]
-                         * ReduceLatticeVectorsMatrix[j][0] +
-                         ReduceLatticeVectorsMatrix[j][1]
-                         * ReduceLatticeVectorsMatrix[j][1] +
-                         ReduceLatticeVectorsMatrix[j][2]
-                         * ReduceLatticeVectorsMatrix[j][2]);
-            if (Norm1 >= Norm2)
-            {
-               l = i;
-               s = j;
-            }
-            else
-            {
-               l = j;
-               s = i;
-            }
-            DotLS = ReduceLatticeVectorsMatrix[l][0]
-               * ReduceLatticeVectorsMatrix[s][0] +
-                    ReduceLatticeVectorsMatrix[l][1]
-               * ReduceLatticeVectorsMatrix[s][1] +
-                    ReduceLatticeVectorsMatrix[l][2]
-               * ReduceLatticeVectorsMatrix[s][2];
-            NormS_squared = ReduceLatticeVectorsMatrix[s][0]
-               * ReduceLatticeVectorsMatrix[s][0] +
-                            ReduceLatticeVectorsMatrix[s][1]
-               * ReduceLatticeVectorsMatrix[s][1] +
-                            ReduceLatticeVectorsMatrix[s][2]
-               * ReduceLatticeVectorsMatrix[s][2];
-            value = DotLS / NormS_squared;
-            m = floor(value + 0.5);
-            if (m != 0)
-            {
-               ReduceLatticeVectorsMatrix[l][0]
-                  = ReduceLatticeVectorsMatrix[l][0]
-                  - m * ReduceLatticeVectorsMatrix[s][0];
-               ReduceLatticeVectorsMatrix[l][1]
-                  = ReduceLatticeVectorsMatrix[l][1]
-                  - m * ReduceLatticeVectorsMatrix[s][1];
-               ReduceLatticeVectorsMatrix[l][2]
-                  = ReduceLatticeVectorsMatrix[l][2]
-                  - m * ReduceLatticeVectorsMatrix[s][2];
-               terminate = 0;
-            }
-         }
-      }
-   }
-   return ReduceLatticeVectorsMatrix;
-}
-
-void MultiLatticeKIM::NewCBCellSingleK(int TFIndex, int Width, ostream& out)
-   const
-{
-   // Note that MillerIndexCD is a vector in R^5 of the form [h,k,l,c,d]
-   int counter;
-
-   Matrix InitLatVects(2, DIM3);
-   Matrix ReducedLatVects(2, DIM3);
-   Matrix RefLat(DIM3, DIM3);
-   Matrix RefLatTemp(DIM3, DIM3);
-   Vector G1(DIM3, 0.0);
-   Vector G2(DIM3, 0.0);
-   Vector G3(DIM3, 0.0);
-   Vector G1Star(DIM3, 0.0);
-   Vector G2Star(DIM3, 0.0);
-   Vector G3Star(DIM3, 0.0);
-   Vector G1Plus(DIM3, 0.0);
-   Vector G2Plus(DIM3, 0.0);
-   Vector G3Plus(DIM3, 0.0);
-   Vector GVector(DIM3, 0.0);
-   Vector K(5, 0.0);
-   Vector MinValueVector(DIM3, 0.0);
-
-   RefLatTemp = CBK_->RefLattice();
-
-   counter = 0;
-   double MinValue;
-
-   int num;
-   for (int i = 0; i < DIM3; i++)
-   {
-      num = 0;
-      for (int j = 0; j < DIM3; j++)
-      {
-         if (abs(RefLatTemp[i][j]) != 0)
-         {
-            MinValueVector[num] = abs(RefLatTemp[i][j]);
-            num++;
-         }
-      }
-      MinValue = MinValueVector[0];
-      for (int j = 0; j < num; j++)
-      {
-         if (MinValueVector[j] < MinValue)
-         {
-            MinValue = MinValueVector[j];
-         }
-      }
-      for (int j = 0; j < DIM3; j++)
-      {
-         RefLat[i][j] = RefLatTemp[i][j] / MinValue;
-      }
-   }
-
-   for (int i = 0; i < DIM3; i++)
-   {
-      G1[i] = RefLat[0][i];
-      G2[i] = RefLat[1][i];
-      G3[i] = RefLat[2][i];
-   }
-
-   int k1, k2, k3;
-   int CommonDivisor;
-
-   int whichTF;
-   int whichKV;
-   whichTF = TFIndex - (CBK_->DOFS());
-
-   for (int i = 0; i < NumKVectors_; ++i)
-   {
-      counter = i * DynMatrixDim_;
-      for (int j = counter; j < (counter + DynMatrixDim_); ++j)
-      {
-         if (whichTF == j)
-         {
-            whichKV = i;
-            break;
-         }
-      }
-   }
-
-   for (int j = 0; j < 5; ++j)
-   {
-      K[j] = KVectorMatrix_[whichKV][j];
-   }
-
-   k1 = floor(K[0] + 0.5);
-   k2 = floor(K[1] + 0.5);
-   k3 = floor(K[2] + 0.5);
-
-   for (int j = 0; j < DIM3; j++)
-   {
-      InitLatVects[0][j] = 0.0;
-      InitLatVects[1][j] = 0.0;
-      ReducedLatVects[0][j] = 0.0;
-      ReducedLatVects[1][j] = 0.0;
-   }
-
-   if (K[2] != 0)
-   {
-      CommonDivisor = GCD(k2, k3);
-      G1Star = (-k3 * G2 + k2 * G3) / CommonDivisor;
-      CommonDivisor = GCD(k1, k3);
-      G2Star = (-k3 * G1 + k1 * G3) / CommonDivisor;
-   }
-   else if (K[1] != 0)
-   {
-      CommonDivisor = GCD(k1, k2);
-      G1Star = (-k2 * G1 + k1 * G2) / CommonDivisor;
-      G2Star = G3;
-   }
-   else
-   {
-      G1Star = G2;
-      G2Star = G3;
-   }
-
-   for (int j = 0; j < 3; j++)
-   {
-      InitLatVects[0][j] = G1Star[j];
-      InitLatVects[1][j] = G2Star[j];
-   }
-
-   ReducedLatVects = PairwiseReduction(InitLatVects);
-
-   for (int j = 0; j < 3; j++)
-   {
-      G1Plus[j] = ReducedLatVects[0][j];
-      G2Plus[j] = ReducedLatVects[1][j];
-   }
-
-
-   // MINIMIZATION ROUTINE
-   counter = 0;
-   int dValue = 0;
-   MinValue = 0;
-   for (int i = -K[4]; i <= K[4]; i++)
-   {
-      for (int j = -K[4]; j <= K[4]; j++)
-      {
-         for (int k = -K[4]; k <= K[4]; k++)
-         {
-            dValue = i * K[0] + j * K[1] + k * K[2];
-            GVector = i * G1 + j * G2 + k * G3;
-            if (dValue == K[4])
-            {
-               if (counter == 1)
-               {
-                  if (MinValue > (GVector.Norm()))
-                  {
-                     MinValue = GVector.Norm();
-                     G3Plus = GVector;
-                  }
-               }
-               if (counter == 0)
-               {
-                  MinValue = GVector.Norm();
-                  counter = 1;
-                  G3Plus = GVector;
-               }
-            }
-         }
-      }
-   }
-   int MU[DIM3][DIM3];
-   for (int j = 0; j < DIM3; j++)
-   {
-      MU[0][j] = floor(G1Plus[j]);
-      MU[1][j] = floor(G2Plus[j]);
-      MU[2][j] = floor(G3Plus[j]);
-   }
-
-
-   Matrix SuperCellRefLattice(DIM3, DIM3);
-   Vector* SuperCellIntPOS = NULL;
-   int SuperCellIntAtoms;
-   int SuperCellAtomSpecies[CBK_MAX_ATOMS];
-
-
-   CBK_->SuperCellInfo(MU, SuperCellRefLattice, SuperCellIntAtoms,
-                       SuperCellIntPOS, SuperCellAtomSpecies);
-
-   out << "$Lattice{MultiLatticeKIM}{CBKinematics}{LatticeBasis} = [["
-       << SuperCellRefLattice[0][0] << ",  " << SuperCellRefLattice[0][1]
-       << ", "
-       << SuperCellRefLattice[0][2] << "]," << "\n"
-       << "                                                      ["
-       << SuperCellRefLattice[1][0] << ",  " << SuperCellRefLattice[1][1]
-       << ", "
-       << SuperCellRefLattice[1][2] << "]," << "\n"
-       << "                                                      ["
-       << SuperCellRefLattice[2][0] << ",  " << SuperCellRefLattice[2][1]
-       << ", "
-       << SuperCellRefLattice[2][2] << "]];" << "\n";
-
-   out << "$Lattice{MultiLatticeKIM}{CBKinematics}{InternalAtoms} = "
-       << SuperCellIntAtoms << ";" << "\n";
-
-   for (int i = 0; i < SuperCellIntAtoms; i++)
-   {
-      out << "$Lattice{MultiLatticeKIM}{CBKinematics}{AtomPositions}[" << i
-          << "] = ["
-          << SuperCellIntPOS[i][0] << ", " << SuperCellIntPOS[i][1] << ", "
-          << SuperCellIntPOS[i][2] << "];" << "\n";
-   }
-
-
-   out << "$Lattice{MultiLatticeKIM}{CBKinematics}{AtomSpecies} = [";
-   for (int i = 0; i < SuperCellIntAtoms; i++)
-   {
-      if (i < (SuperCellIntAtoms - 1))
-      {
-         out << SuperCellAtomSpecies[i] << ", ";
-      }
-      else
-      {
-         out << SuperCellAtomSpecies[i] << "];" << "\n";
-      }
-   }
-
-   delete[] SuperCellIntPOS;
-}
-
-// The following is a function to find the greatest common divisor of two
-// integeres x and y
-// If none exists, it might be best to move this to a math object
-int MultiLatticeKIM::GCD(int x, int y) const
-{
-   int t;
-   while (y != 0)
-   {
-      t = y;
-      y = x % y;
-      x = t;
-   }
-   return x;
 }
 
 Matrix const& MultiLatticeKIM::CondensedModuli() const
@@ -1299,21 +938,6 @@ int MultiLatticeKIM::comp(void const* const a, void const* const b)
    }
 }
 
-int MultiLatticeKIM::abscomp(void const* const a, void const* const b)
-{
-   double t;
-   if (fabs(*((double*) a)) == fabs(*((double*) b)))
-   {
-      return 0;
-   }
-   else
-   {
-      t = fabs(*((double*) a)) - fabs(*((double*) b));
-      t /= fabs(t);
-      return int(t);
-   }
-}
-
 void MultiLatticeKIM::interpolate(Matrix* const EigVals, int const& zero,
                                   int const& one, int const& two)
 {
@@ -1343,6 +967,7 @@ void MultiLatticeKIM::interpolate(Matrix* const EigVals, int const& zero,
    }
 }
 
+// @@ this looks wrong?
 CMatrix const& MultiLatticeKIM::ReferenceDynamicalStiffness(Vector const& K)
    const
 {
@@ -1474,7 +1099,7 @@ int MultiLatticeKIM::ReferenceBlochWave(Vector& K) const
    return 1;
 }
 
-// ---- needs to be updated---- //
+// @@ provide definition
 void MultiLatticeKIM::LongWavelengthModuli(double const& dk,
                                            int const& gridsize,
                                            char const* const prefix,
@@ -1484,6 +1109,7 @@ void MultiLatticeKIM::LongWavelengthModuli(double const& dk,
    exit(1);
 }
 
+// @@ provide definition
 void MultiLatticeKIM::NeighborDistances(int const& cutoff, ostream& out) const
 {
    cout << "ERROR IN MultiLatticeKIM::NeighborDistances. Exiting" << endl;
@@ -1522,9 +1148,6 @@ void MultiLatticeKIM::Print(ostream& out, PrintDetail const& flag,
    if (NoFP)
    {
       stiff_static = stiffness();
-      //      TE_static = ThermalExpansion();
-      //      entropy = Entropy();
-      //      heatcapacity = HeatCapacity();
 
       TestFunctions(TestFunctVals_static, LHS);
       mintestfunct = TestFunctVals_static[0];
@@ -1589,10 +1212,8 @@ void MultiLatticeKIM::Print(ostream& out, PrintDetail const& flag,
                 << "          Position : " << setw(W) << CBK_->AtomPositions(i)
                 << "\n";
          }
-         out << "REFTemp_ : " << setw(W) << REFTemp_ << "\n";
          out << "REFLambda_ : " << setw(W) << REFLambda_ << "\n";
          out << "Influence Distance   : " << setw(W) << InfluenceDist_ << "\n";
-         out << "Tref = " << setw(W) << Tref_ << "\n";
          out << "Normalization Modulus : " << setw(W) << NormModulus_ << "\n";
          out << "EulerAngles : " << setw(W) << EulerAng_[0]
              << setw(W) << EulerAng_[1] << setw(W) << EulerAng_[2] << "\n";
@@ -1612,11 +1233,9 @@ void MultiLatticeKIM::Print(ostream& out, PrintDetail const& flag,
                     << "          Position : " << setw(W)
                     << CBK_->AtomPositions(i) << "\n";
             }
-            cout << "REFTemp_ : " << setw(W) << REFTemp_ << "\n";
             cout << "REFLambda_ : " << setw(W) << REFLambda_ << "\n";
             cout << "Influence Distance   : " << setw(W) << InfluenceDist_
                  << "\n";
-            cout << "Tref = " << setw(W) << Tref_ << "\n";
             cout << "Normalization Modulus : " << setw(W) << NormModulus_
                  << "\n";
             cout << "EulerAngles : " << setw(W) << EulerAng_[0]
@@ -1627,8 +1246,7 @@ void MultiLatticeKIM::Print(ostream& out, PrintDetail const& flag,
       // passthrough to short
 
       case PrintShort:
-         out << "Temperature (Ref Normalized): " << setw(W) << NTemp_ << "\n"
-             << "Lambda (Normalized): " << setw(W) << Lambda_ << "\n"
+         out << "Lambda (Normalized): " << setw(W) << Lambda_ << "\n"
              << "DOF's :" << "\n" << setw(W) << CBK_->DOF() << "\n"
              << "Potential Value (Normalized):" << setw(W) << engy << "\n";
          for (int i = 0; i < InternalAtoms_; ++i)
@@ -1654,9 +1272,7 @@ void MultiLatticeKIM::Print(ostream& out, PrintDetail const& flag,
 
          if (Echo_)
          {
-            cout << "Temperature (Ref Normalized): " << setw(W) << NTemp_
-                 << "\n"
-                 << "Lambda (Normalized): " << setw(W) << Lambda_ << "\n"
+            cout << "Lambda (Normalized): " << setw(W) << Lambda_ << "\n"
                  << "ConjugateToLambda: " << setw(W) << conj << "\n"
                  << "DOF's :" << "\n" << setw(W) << CBK_->DOF() << "\n"
                  << "Potential Value (Normalized):" << setw(W) << engy << "\n";
@@ -1711,7 +1327,6 @@ void MultiLatticeKIM::DebugMode()
       "InternalAtoms_",
       "DOFS",
       "InfluenceDist_",
-      "NTemp_",
       "DOF_",
       "RefLattice_",
       "Density_",
@@ -1720,7 +1335,6 @@ void MultiLatticeKIM::DebugMode()
       "BodyForce_",
       "AtomicMass_",
       "GridSize_",
-      //      "Potential_",
       "ConvexityDX_",
       "ConjugateToLambda",
       "stress",
@@ -1732,7 +1346,6 @@ void MultiLatticeKIM::DebugMode()
       "SetDOF",
       "StressDT",
       "StiffnessDT",
-      "SetTemp",
       "SetInfluenceDist",
       "energy",
       "E0",
@@ -1755,13 +1368,10 @@ void MultiLatticeKIM::DebugMode()
       "Rotation_",
       "Loading_",
       "PrintCrystal",
-      "ThermalExpansion",
-      "Entropy",
-      "HeatCapacity",
       "TranslationProjection1D",
       "TranslationProjection3D",
    };
-   int NOcommands = 53;
+   int NOcommands = 46;
 
    string response;
    char prompt[] = "Debug > ";
@@ -1786,10 +1396,6 @@ void MultiLatticeKIM::DebugMode()
       else if (response == Commands[indx++])
       {
          cout << "InfluenceDist_ = " << InfluenceDist_ << "\n";
-      }
-      else if (response == Commands[indx++])
-      {
-         cout << "NTemp_ = " << NTemp_ << "\n";
       }
       else if (response == Commands[indx++])
       {
@@ -1833,18 +1439,6 @@ void MultiLatticeKIM::DebugMode()
       else if (response == Commands[indx++])
       {
          cout << "GridSize_= " << GridSize_ << "\n";
-      }
-      else if (response == Commands[indx++])
-      {
-         for (int i = 0; i < InternalAtoms_; ++i)
-         {
-            for (int j = i; j < InternalAtoms_; ++j)
-            {
-               //               cout << "Potential_[" << i << "][" << j << "]= "
-               //                  << setw(W) << Potential_[i][j] << "\n";
-               cout << "ERROR. NO POTENTIAL NECESSARY" << endl;
-            }
-         }
       }
       else if (response == Commands[indx++])
       {
@@ -1911,13 +1505,6 @@ void MultiLatticeKIM::DebugMode()
       else if (response == Commands[indx++])
       {
          cout << "StiffnessDT= " << setw(W) << StiffnessDT();
-      }
-      else if (response == Commands[indx++])
-      {
-         double Temp;
-         cout << "\tTemp > ";
-         cin >> Temp;
-         SetTemp(Temp);
       }
       else if (response == Commands[indx++])
       {
@@ -2056,18 +1643,6 @@ void MultiLatticeKIM::DebugMode()
       }
       else if (response == Commands[indx++])
       {
-         cout << "ThermalExpansion = " << setw(W) << ThermalExpansion() << "\n";
-      }
-      else if (response == Commands[indx++])
-      {
-         cout << "Entropy = " << setw(W) << Entropy() << "\n";
-      }
-      else if (response == Commands[indx++])
-      {
-         cout << "HeatCapacity = " << setw(W) << HeatCapacity() << "\n";
-      }
-      else if (response == Commands[indx++])
-      {
          int n;
          cout << "\tNoAtoms > ";
          cin >> n;
@@ -2083,23 +1658,6 @@ void MultiLatticeKIM::DebugMode()
          cin >> n;
          cout << "P.Transpose()\n"
               << setw(20) << TranslationProjection3D(f, n).Transpose() << "\n";
-      }
-      else if (response == Commands[indx++])
-      {
-         /*
-            int no = SpeciesPotential_[0][0]->GetNoParameters();
-            double* vals;
-            int sze = no * ((CBK_->NumberofSpecies() + 1)
-            * (CBK_->NumberofSpecies()) / 2);
-            vals = new double[sze];
-            cout << "\tEnter new Parameter values > ";
-            for (int i = 0; i < sze; ++i)
-            {
-            cin >> vals[i];
-            }
-            SetParameters(vals);
-          */
-         cout << "ERROR.  POTENTIAL NOT APPLICABLE IN KIM" << endl;
       }
       else if ((response == "?") || (response == "help"))
       {
@@ -2229,7 +1787,6 @@ void MultiLatticeKIM::PrintCurrentCrystalParamaters(ostream& out) const
    out << "EOF" << "\n";
 
    out << "\n"
-       << "Temperature : " << setw(W) << NTemp_ << "\n"
        << "Lambda : " << setw(W) << Lambda_ << "\n"
        << "DOFs : " << setw(W) << CBK_->DOF() << "\n"
        << "Lattice Vectors : " << "\n"
@@ -2405,6 +1962,7 @@ int MultiLatticeKIM::process_dEdr(void* kimmdl, double* dEdr, double* r,
    obj = (MultiLatticeKIM*) KIM_API_get_test_buffer(pkim, &status);
    double DX[3];
 
+   // @@ need to find a more efficient way to do this...
    Matrix InverseF = (obj->CBK_->F()).Inverse();
 
    double temp1, temp2;
@@ -2524,6 +2082,7 @@ int MultiLatticeKIM::process_d2Edr2(void* kimmdl, double* d2Edr2, double** r,
    double DX[2][3];
    double Dx[2][3];
 
+   // @@ need to find a more efficient way to do this...
    Matrix InverseF = (obj->CBK_->F()).Inverse();
 
    for (int k = 0; k < 3; k++)
@@ -2566,6 +2125,7 @@ int MultiLatticeKIM::process_d2Edr2(void* kimmdl, double* d2Edr2, double** r,
    // Lower Diagonal blocks
    for (int atom0 = 0; atom0 < (obj->CBK_->InternalAtoms()); atom0++)
    {
+      // @@ This can be made more efficient
       if (((atom0 == (*i)[0]) || (atom0 == (*j)[0])))
       {
          for (int atom1 = 0; atom1 < (obj->CBK_->InternalAtoms()); atom1++)
@@ -2593,6 +2153,7 @@ int MultiLatticeKIM::process_d2Edr2(void* kimmdl, double* d2Edr2, double** r,
    {
       for (int k = 0; k < 2; k++)
       {
+         // @@ this can be made more efficient
          if (((atom0 == (*i)[k]) || (atom0 == (*j)[k])))
          {
             RowIndex = k;
