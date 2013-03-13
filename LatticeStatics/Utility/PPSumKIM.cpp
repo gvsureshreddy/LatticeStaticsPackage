@@ -5,15 +5,13 @@
 using namespace std;
 
 void PPSumKIM::operator()(CBKinematics* const CBK, int const& InternalAtoms,
-				       double* const InfluDist, double* const Ntemp)
+                          double* const InfluDist)
 {
    CBK_ = CBK;
    InternalAtoms_ = InternalAtoms;
    InfluenceDist_ = InfluDist;
    Recalc_ = 0;
    CurrentPOS_ = 0;
-   Ntemp_ = Ntemp;
-
 
 	numNeigh_ = NULL;
 	nListAtom_= NULL;

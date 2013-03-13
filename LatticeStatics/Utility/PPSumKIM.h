@@ -20,7 +20,6 @@ private:
    int Recalc_;
    double* InfluenceDist_;
    int InternalAtoms_;
-   double* Ntemp_;
    CBKinematics* CBK_;
 
    int CurrentPOS_;
@@ -39,7 +38,7 @@ public:
    }
 
    PPSumKIM(CBKinematics* const CBK, int const& InternalAtoms,
-         double* const InfluDist, double* const Ntemp);
+            double* const InfluDist);
    ~PPSumKIM()
    {
 	   delete [] numNeigh_;
@@ -47,8 +46,8 @@ public:
 	   delete [] nListRVec_;
    }
 
-   void operator()(CBKinematics* const CBK, int const& InternalAtoms, double* const InfluDist,
-                   double* const Ntemp);
+   void operator()(CBKinematics* const CBK, int const& InternalAtoms,
+                   double* const InfluDist);
 
    void Reset();
    void Recalc()
@@ -101,8 +100,6 @@ public:
 	   }
 	  return &(nListRVec_[temp]);
    }
-
-
 };
 
 #endif
