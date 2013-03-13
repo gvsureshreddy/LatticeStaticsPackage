@@ -102,7 +102,7 @@ private:
    int GCD(int x, int y) const;
    Matrix const PairwiseReduction(Matrix const& RowLatVects) const;
    void NewCBCellSingleK(int TFIndex,int Width, ostream& out) const;
-   void UpdateValues() const;
+   void UpdateKIMValues() const;
    void Write_KIM_descriptor_file(const char** SpeciesList, int numberParticleTypes_);
    static int get_neigh(void* kimmdl, int *mode, int *request, int* atom,
                         int* numnei, int** nei1atom, double** Rij);

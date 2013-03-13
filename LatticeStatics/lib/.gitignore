@@ -15,10 +15,12 @@
 /LatticeStatics.ti
 /MultiLatticeTPP.o
 /MultiLatticeTPP.ti
+/MultiLatticeKIM.o
 /RestrictToSubSpaceOld.o
 /RestrictToSubSpaceOld.ti
 /PPSum.o
 /PPSum.ti
+/PPSumKIM.o
 /RadiiMorse.o
 /RadiiMorse.ti
 /ScanningSolution.o
