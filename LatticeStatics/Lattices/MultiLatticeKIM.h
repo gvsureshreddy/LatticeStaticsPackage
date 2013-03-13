@@ -49,11 +49,11 @@ private:
    int numNei_;
    int* neiList_;
    double* rVecList_;
-   //double* E1CachedValue_;
+   // double* E1CachedValue_;
 
    mutable int StiffnessYes_;
    mutable double E0CachedValue_;
-//   mutable Vector Force_;
+   //   mutable Vector Force_;
    ostringstream descriptor_file_;
    int KillTranslations_;
    Vector KillOneRotation_;
@@ -101,14 +101,14 @@ private:
 
    int GCD(int x, int y) const;
    Matrix const PairwiseReduction(Matrix const& RowLatVects) const;
-   void NewCBCellSingleK(int TFIndex,int Width, ostream& out) const;
+   void NewCBCellSingleK(int TFIndex, int Width, ostream& out) const;
    void UpdateKIMValues() const;
    void Write_KIM_descriptor_file(const char** SpeciesList, int numberParticleTypes_);
-   static int get_neigh(void* kimmdl, int *mode, int *request, int* atom,
+   static int get_neigh(void* kimmdl, int* mode, int* request, int* atom,
                         int* numnei, int** nei1atom, double** Rij);
 
-   static int process_dEdr(void *kimmdl, double *dEdr, double *r, double **dx, int *i, int *j);
-   static int process_d2Edr2(void *kimmdl, double *d2Edr2, double **r, double **dx, int **i, int **j);
+   static int process_dEdr(void* kimmdl, double* dEdr, double* r, double** dx, int* i, int* j);
+   static int process_d2Edr2(void* kimmdl, double* d2Edr2, double** r, double** dx, int** i, int** j);
    // Needed for DispersionCurves()
    //
    // find next eigval in position two based on previous two values
@@ -137,7 +137,7 @@ public:
 
    void SetDOF(Vector const& dof)
    {
-      CBK_->SetDOF(dof); //LatSum_.Recalc();
+      CBK_->SetDOF(dof); // LatSum_.Recalc();
    }
 
    // Entropy is NEGATIVE dE/dT
