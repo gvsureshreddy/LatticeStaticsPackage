@@ -165,6 +165,7 @@ void CBKinematics::SetReferenceToCurrent()
 
 Vector CBKinematics::CBKtoCoords() const
 {
+   // @@ this needs to be made more general.
 	//THIS IS USED TO OBTAIN ABSOLUTE COORDINATES (FOR USE IN MultiLatticeKIM). RIGHT NOW IT ONLY WORKS WITH SymLagrangeWTransCB
 	Vector Coords(3);
 	Vector coords(3*InternalAtoms_);
