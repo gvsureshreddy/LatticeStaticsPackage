@@ -1064,6 +1064,9 @@ Matrix const& FEAP::StiffnessDL() const
       Cached_[i] = 0;
    }
    return stiffdl_static;
+      // ajout ///////////////////////////////////////////////////////////////////
+   cout << "StiffnessDL= " << StiffnessDL();
+      // ajout ///////////////////////////////////////////////////////////////////
 }
 
 void FEAP::print_gpl_config(fstream& out) const
