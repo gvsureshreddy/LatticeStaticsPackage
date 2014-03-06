@@ -136,11 +136,10 @@ int RefineEqbmSolution::FindNextSolution(PerlInput const& Input, int const& Widt
    Matrix Stiff(dx.Dim(), dx.Dim(), 0.0);
    Matrix tmpStiff(dx.Dim(), dx.Dim() + 1, 0.0);
    int itr = 0;
-   int Converged = 0;
    double Tol = DOF.Dim()*Converge_;
-   // dxnorm initial value: should indicate a problem if this value is ever printed out...
-   double dxnorm = -1.0;
+   double dxnorm = 0.0;
    double forcenorm = Stress.Norm();
+   int Converged = forcenorm <= Tol;
 
 
    const int MaxItr = 20;

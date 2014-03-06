@@ -188,7 +188,7 @@ RestrictToTranslatedSubSpace::RestrictToTranslatedSubSpace(Lattice* const M, Per
    Vector unRtt = UnRestrictDOF(Rtt);
 
    double zz = (tt - unRtt).Norm();
-   if (zz > 1.0e-15)
+   if (zz > 1.0e-14)
    {
       cerr << "WARNING: " << Name()
            << ": Lattice DOFs are not consistent with Restriction! (Norm of difference is: "
