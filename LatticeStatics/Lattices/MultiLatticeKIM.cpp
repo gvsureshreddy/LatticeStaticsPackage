@@ -28,7 +28,7 @@ MultiLatticeKIM::~MultiLatticeKIM()
    delete[] particleTypes_;
    delete[] coords_;
    delete[] forces_;
-   
+
 }
 
 MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo,
@@ -185,8 +185,6 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo,
    //      cout << Test_Descriptor_file << endl;
 
    status = KIM_API_string_init(&pkim_, Test_Descriptor_file, modelname);
-   KIM_API_set_test_buffer(pkim_, this, &status);
-
    if (KIM_STATUS_OK > status)
    {
       KIM_API_report_error(__LINE__, (char*) __FILE__,
@@ -194,6 +192,16 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo,
                            "(see kim.log file for details).", status);
       exit(1);
    }
+
+   KIM_API_set_test_buffer(pkim_, this, &status);
+   if (KIM_STATUS_OK > status)
+   {
+      KIM_API_report_error(__LINE__, (char*) __FILE__,
+                           (char*) "Test-Model coupling failure "
+                           "(see kim.log file for details).", status);
+      exit(1);
+   }
+
    particleTypes_ = new int[InternalAtoms_];
 
    coords_ = new double[InternalAtoms_ * 3];
@@ -390,6 +398,7 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo,
    }
    K_static.Resize(DIM3);
 
+   Cached_[0] = 0;
    if (Input.ParameterOK(Hash, "InitialEqbm"))
    {
       const char* init_equil = Input.getString(Hash, "InitialEqbm");
@@ -425,8 +434,6 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo,
 
    Input.EndofInputSection();
 
-   Cached_[0] = 0;
-   Cached_[1] = 0;
 }
 
 int MultiLatticeKIM::FindLatticeSpacing(int const& iter)
