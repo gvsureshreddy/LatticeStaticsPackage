@@ -2205,36 +2205,26 @@ int MultiLatticeKIM::process_d2Edr2(void* kimmdl, double* d2Edr2, double** r,
    int RowIndex;
    for (int atom0 = 0; atom0 < (obj->CBK_->InternalAtoms()); atom0++)
    {
-      for (int k = 0; k < 2; k++)
-      {
-         // @@ this can be made more efficient
-         if (((atom0 == (*i)[k]) || (atom0 == (*j)[k])))
+     for (i1 = 0; i1 < 3; i1++)
+     {
+       for (j1 = 0; j1 < 3; j1++)
+       {
+         for (k1 = 0; k1 < 3; k1++)
          {
-            RowIndex = k;
-            k = 2;
+           obj->ME2_static[obj->CBK_->INDF(i1, j1)][obj->CBK_->INDS(atom0, k1)]
+               += (0.5 / ((*r)[0])) * (0.5 / ((*r)[1]))
+               * (*d2Edr2)
+               * (obj->CBK_->DyDF(Dx[0], DX[0], i1, j1)
+                  * obj->CBK_->DyDS(Dx[1], (*i)[1], (*j)[1], atom0, k1));
 
-            for (i1 = 0; i1 < 3; i1++)
-            {
-               for (j1 = 0; j1 < 3; j1++)
-               {
-                  for (k1 = 0; k1 < 3; k1++)
-                  {
-                     obj->ME2_static[obj->CBK_->INDF(i1, j1)][obj->CBK_->INDS(atom0, k1)]
-                        += (0.5 / ((*r)[RowIndex])) * (0.5 / ((*r)[RowIndex]))
-                        * (*d2Edr2)
-                        * obj->CBK_->DyDF(Dx[RowIndex], DX[RowIndex], i1, j1)
-                        * obj->CBK_->DyDS(Dx[RowIndex], (*i)[RowIndex], (*j)[RowIndex], atom0, k1);
-
-                     obj->ME2_static[obj->CBK_->INDS(atom0, k1)][obj->CBK_->INDF(i1, j1)]
-                        += (0.5 / ((*r)[RowIndex])) * (0.5 / ((*r)[RowIndex]))
-                        * (*d2Edr2)
-                        * obj->CBK_->DyDF(Dx[RowIndex], DX[RowIndex], i1, j1)
-                        * obj->CBK_->DyDS(Dx[RowIndex], (*i)[RowIndex], (*j)[RowIndex], atom0, k1);
-                  }
-               }
-            }
+           obj->ME2_static[obj->CBK_->INDS(atom0, k1)][obj->CBK_->INDF(i1, j1)]
+               += (0.5 / ((*r)[0])) * (0.5 / ((*r)[1]))
+               * (*d2Edr2)
+               * (obj->CBK_->DyDF(Dx[1], DX[1], i1, j1)
+                  * obj->CBK_->DyDS(Dx[0], (*i)[0], (*j)[0], atom0, k1));
          }
-      }
+       }
+     }
    }
 
    return KIM_STATUS_OK;
