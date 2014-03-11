@@ -92,6 +92,7 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo,
       exit(-9);
    }
    InternalAtoms_ = CBK_->InternalAtoms();
+
    // Update KillRotations_ if needed
    if (needKillRotations)
    {
@@ -125,6 +126,10 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo,
       else if (!strcmp("NoRotationConstraint", KillRot))
       {
          KillRotations_ = 0;
+         for (int i=0 ; i<3; i++)
+         {
+           Rsq_static[i] = 0.0;
+         }
       }
       else
       {
@@ -133,6 +138,14 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo,
          exit(-2);
       }
    }
+   else
+   {
+     for (int i=0 ; i<3; i++)
+     {
+       Rsq_static[i] = 0.0;
+     }
+   }
+
    // Setup Bodyforce_
    BodyForce_ = new Vector[InternalAtoms_];
 
@@ -537,10 +550,40 @@ double MultiLatticeKIM::E0() const
          }
       }
 
+      switch (KillRotations_)
+      {
+        case 2:
+          // Kill three rotations
+          Rsq_static[0] = (CBK_->DOF()[CBK_->INDF(0, 1)]
+                           - CBK_->DOF()[CBK_->INDF(1, 0)]);
+          Rsq_static[1] = (CBK_->DOF()[CBK_->INDF(1, 2)]
+                           - CBK_->DOF()[CBK_->INDF(2, 1)]);
+          Rsq_static[2] = (CBK_->DOF()[CBK_->INDF(2, 0)]
+                           - CBK_->DOF()[CBK_->INDF(0, 2)]);
+          for (int i = 0; i < DIM3; ++i)
+          {
+            Rsq_static[i] *= 0.5 * Rsq_static[i];
+          }
+          break;
+        case 1:
+          // Kill one rotation
+          for (int i = 0; i < DIM3; ++i)
+          {
+            Rsq_static[i] = 0.0;
+            for (int j = 0; j < DIM3; ++j)
+            {
+              Rsq_static[0] += KillOneRotation_[CBK_->INDF(i, j)]
+                  * CBK_->DOF()[CBK_->INDF(i, j)];
+            }
+          }
+          Rsq_static[0] *= Rsq_static[0];
+          break;
+      }
+
       E0CachedValue_ += 0.5 * (TrEig_[0] * Tsq_static[0] + TrEig_[1]
                                * Tsq_static[1] + TrEig_[2] * Tsq_static[2])
-         + 0.5 * (RoEig_[0] * Rsq_static[0] + RoEig_[1] * Rsq_static[1]
-                  + RoEig_[2] * Rsq_static[2]);
+          + 0.5 * (RoEig_[0] * Rsq_static[0] + RoEig_[1] * Rsq_static[1]
+                   + RoEig_[2] * Rsq_static[2]);
 
       // @@ updated Cached_ value
    }
