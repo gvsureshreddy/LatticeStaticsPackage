@@ -2202,7 +2202,7 @@ int MultiLatticeKIM::process_d2Edr2(void* kimmdl, double* d2Edr2, double** r,
    }
 
    // Off Diagonal
-   int RowIndex;
+   //int RowIndex;
    for (int atom0 = 0; atom0 < (obj->CBK_->InternalAtoms()); atom0++)
    {
      for (i1 = 0; i1 < 3; i1++)
@@ -2214,14 +2214,18 @@ int MultiLatticeKIM::process_d2Edr2(void* kimmdl, double* d2Edr2, double** r,
            obj->ME2_static[obj->CBK_->INDF(i1, j1)][obj->CBK_->INDS(atom0, k1)]
                += (0.5 / ((*r)[0])) * (0.5 / ((*r)[1]))
                * (*d2Edr2)
-               * (obj->CBK_->DyDF(Dx[0], DX[0], i1, j1)
-                  * obj->CBK_->DyDS(Dx[1], (*i)[1], (*j)[1], atom0, k1));
+               * 0.5 * (obj->CBK_->DyDF(Dx[0], DX[0], i1, j1)
+                      * obj->CBK_->DyDS(Dx[1], (*i)[1], (*j)[1], atom0, k1)
+                      + obj->CBK_->DyDF(Dx[1], DX[1], i1, j1)
+                      * obj->CBK_->DyDS(Dx[0], (*i)[0], (*j)[0], atom0, k1));
 
            obj->ME2_static[obj->CBK_->INDS(atom0, k1)][obj->CBK_->INDF(i1, j1)]
                += (0.5 / ((*r)[0])) * (0.5 / ((*r)[1]))
                * (*d2Edr2)
-               * (obj->CBK_->DyDF(Dx[1], DX[1], i1, j1)
-                  * obj->CBK_->DyDS(Dx[0], (*i)[0], (*j)[0], atom0, k1));
+               * 0.5 * (obj->CBK_->DyDF(Dx[0], DX[0], i1, j1)
+                      * obj->CBK_->DyDS(Dx[1], (*i)[1], (*j)[1], atom0, k1)
+                      + obj->CBK_->DyDF(Dx[1], DX[1], i1, j1)
+                      * obj->CBK_->DyDS(Dx[0], (*i)[0], (*j)[0], atom0, k1));
          }
        }
      }
