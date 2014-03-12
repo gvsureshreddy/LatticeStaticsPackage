@@ -233,7 +233,7 @@ public:
    }
 
    void RefineEqbm(double const& Tol, int const& MaxItr, ostream* const out);
-   virtual void NeighborDistances(int const& cutoff, ostream& out) const;
+   //virtual void NeighborDistances(int const& cutoff, ostream& out) const;
    virtual char const* const Type() const
    {
       return "MultiLatticeKIM";
@@ -280,7 +280,7 @@ public:
    }
 
    Matrix const& CondensedModuli() const;
-   Vector const& ThermalExpansion() const;
+   //Vector const& ThermalExpansion() const;
    friend ostream& operator<<(ostream& out, MultiLatticeKIM& A);
 
 private:

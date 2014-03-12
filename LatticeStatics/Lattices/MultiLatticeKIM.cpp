@@ -194,9 +194,6 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo,
    char* Test_Descriptor_file = new char[10000];
    strcpy(Test_Descriptor_file, descriptor_file_.str().c_str());
 
-   //      cout << "Test_Descriptor_file = " << endl;
-   //      cout << Test_Descriptor_file << endl;
-
    status = KIM_API_string_init(&pkim_, Test_Descriptor_file, modelname);
    if (KIM_STATUS_OK > status)
    {
@@ -260,8 +257,6 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo,
       KIM_API_report_error(__LINE__, (char*) __FILE__,
                            (char*) "KIM_API_setm_data", status);
    }
-
-   int partcl_type_code;
    // figures out which atoms corresponds to each element in the species list
    for (int i = 0; i < InternalAtoms_; i++)
    {
@@ -270,7 +265,7 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo,
       {
          if (!strcmp(AtomSpeciesList[i], SpeciesList[j]))
          {
-            partcl_type_code = KIM_API_get_partcl_type_code(
+           particleTypes_[i] = KIM_API_get_partcl_type_code(
                pkim_, (char*) SpeciesList[j], &status);
             if (KIM_STATUS_OK > status)
             {
@@ -279,12 +274,10 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo,
                                     status);
                exit(1);
             }
-            particleTypes_[i] = partcl_type_code;
             j = numberParticleTypes_ + 1;
          }
       }
    }
-
    // Get Lattice parameters
    if (Input.ParameterOK(Hash, "Density"))
    {
@@ -294,7 +287,6 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo,
    {
       Density_ = Input.useInt(1, Hash, "Density"); // Default Value
    }
-   NormModulus_ = Input.getDouble(Hash, "NormModulus");
    ConvexityDX_ = Input.getDouble(Hash, "ConvexityDX");
    // Set Loading parameter
    LoadParameter_ = Load;
@@ -501,10 +493,22 @@ void MultiLatticeKIM::SetParameters(double const* const Vals,
 
 void MultiLatticeKIM::UpdateKIMValues() const
 {
-   //      cout << "CHECKPOINT MultiLatticeKIM::UpdateValues() " << endl;
    int status;
+   
+   // initialization
+   for (int i = 0; i < CBK_->DOFS(); i++)
+   {
+      ME1_static[i] = 0.0;
+      if (StiffnessYes_==1)
+      {
+	for (int j = 0; j < CBK_->DOFS(); j++)
+	{
+	  ME2_static[i][j] = 0.0;
+	}
+      }
+   }
+   
    Vector coordsTemp = CBK_->CBKtoCoords();
-
    for (int i = 0; i < (3 * InternalAtoms_); i++)
    {
       coords_[i] = coordsTemp[i];
@@ -515,10 +519,6 @@ void MultiLatticeKIM::UpdateKIMValues() const
    KIM_API_set_compute(pkim_, "process_d2Edr2", StiffnessYes_, &status);
 
    status = KIM_API_model_compute(pkim_);
-   //    KIM_API_print(pkim_, &status);
-
-   // Reset StiffnessYes_ in case we don't need to compute Stiffness
-   //   StiffnessYes_ = 0;
 
    for (int i = 0; i < (InternalAtoms_); i++)
    {
@@ -532,7 +532,6 @@ void MultiLatticeKIM::UpdateKIMValues() const
 // Lattice Routines
 double MultiLatticeKIM::E0() const
 {
-   // cout <<"CHECKPOINT MultiLatticeKIM::E0()" << endl;
    if (!Cached_[0])
    {
       E0CachedValue_ = energy();
@@ -601,7 +600,8 @@ double MultiLatticeKIM::energy(LDeriv const& dl) const
    {
       // @@ set StiffnessYes_?
       UpdateKIMValues();
-      phi = energy_ / (Vr * NormModulus_);
+      //compute energy per volume
+      phi = energy_ / Vr;
       for (int i = 0; i < 3; ++i)
       {
          for (int j = 0; j < 3; ++j)
@@ -613,7 +613,7 @@ double MultiLatticeKIM::energy(LDeriv const& dl) const
    }
    else
    {
-      cerr << "Unknown LDeriv dl in MultiLatticeTpp::energy()" << "\n";
+      cerr << "Unknown LDeriv dl in MultiLatticeKIM::energy()" << "\n";
       exit(-1);
    }
 
@@ -622,9 +622,17 @@ double MultiLatticeKIM::energy(LDeriv const& dl) const
 
 double MultiLatticeKIM::ConjugateToLambda() const
 {
-   // @@ provide definition
-   cerr << "Error in MultiLatticeKIM::ConjugateToLambda() empty function \n ";
-   exit(-45);
+   double conj = 0.0;
+
+   for (int i = 0; i < DIM3; ++i)
+   {
+      for (int j = 0; j < DIM3; ++j)
+      {
+         conj += Loading_[i][j] * ((CBK_->DOF())[CBK_->INDF(j, i)] - Del(j, i));
+      }
+   }
+
+   return conj;
 }
 
 Vector const& MultiLatticeKIM::E1() const
@@ -654,23 +662,19 @@ Vector const& MultiLatticeKIM::E1() const
 
       // @@ update Cached_ value
    }
-   //    cout << "E1()::ME1_static = " << setw(15) << ME1_static << endl;
    return ME1_static;
 }
 
 Vector const& MultiLatticeKIM::stress(LDeriv const& dl) const
 {
    double Vr = Density_ ? CBK_->RefVolume() : 1.0;
-   for (int i = 0; i < CBK_->DOFS(); i++)
-   {
-      ME1_static[i] = 0.0;
-   }
+   
    if (dl == L0)
    {
       // @@ set StiffnessYes_?
       UpdateKIMValues();
 
-      ME1_static *= 1.0 / ((Vr * NormModulus_));
+      ME1_static *= 1.0 / Vr;
 
       for (int i = 0; i < 3; ++i)
       {
@@ -692,7 +696,7 @@ Vector const& MultiLatticeKIM::stress(LDeriv const& dl) const
    }
    else
    {
-      cerr << "Unknown LDeriv dl in MultiLatticeTpp::stress()" << "\n";
+      cerr << "Unknown LDeriv dl in MultiLatticeKIM::stress()" << "\n";
       exit(-1);
    }
    return ME1_static;
@@ -700,7 +704,6 @@ Vector const& MultiLatticeKIM::stress(LDeriv const& dl) const
 
 Matrix const& MultiLatticeKIM::E2() const
 {
-   //   cout << "E2()" << endl;
    if (!Cached_[0])
    {
       stiffness();
@@ -726,19 +729,12 @@ Matrix const& MultiLatticeKIM::E2() const
 Matrix const& MultiLatticeKIM::stiffness(LDeriv const& dl) const
 {
    double Vr = Density_ ? CBK_->RefVolume() : 1.0;
-   for (int i = 0; i < CBK_->DOFS(); i++)
-   {
-      for (int j = 0; j < CBK_->DOFS(); j++)
-      {
-         ME2_static[i][j] = 0.0;
-      }
-   }
 
    if (dl == L0)
    {
       StiffnessYes_ = 1;
       UpdateKIMValues();
-      ME2_static *= 1.0 / ((Vr * NormModulus_));
+      ME2_static *= 1.0 / Vr;
    }
    else if (dl == DL)
    {
@@ -746,7 +742,7 @@ Matrix const& MultiLatticeKIM::stiffness(LDeriv const& dl) const
    }
    else
    {
-      cerr << "Unknown LDeriv dl in MultiLatticeTpp::stiffness()" << "\n";
+      cerr << "Unknown LDeriv dl in MultiLatticeTKIM::stiffness()" << "\n";
       exit(-1);
    }
    // @@ remove?
@@ -974,11 +970,11 @@ Matrix const& MultiLatticeKIM::CondensedModuli() const
    return CM_static;
 }
 
-Vector const& MultiLatticeKIM::ThermalExpansion() const
-{
-   cerr << "Error in MultiLatticeKIM::ThermalExpansion() empty function \n ";
-   exit(-45);
-}
+// Vector const& MultiLatticeKIM::ThermalExpansion() const
+// {
+//    cerr << "Error in MultiLatticeKIM::ThermalExpansion() empty function \n ";
+//    exit(-45);
+// }
 
 int MultiLatticeKIM::comp(void const* const a, void const* const b)
 {
@@ -1167,11 +1163,11 @@ void MultiLatticeKIM::LongWavelengthModuli(double const& dk,
 }
 
 // @@ provide definition
-void MultiLatticeKIM::NeighborDistances(int const& cutoff, ostream& out) const
-{
-   cout << "ERROR IN MultiLatticeKIM::NeighborDistances. Exiting" << endl;
-   exit(1);
-}
+// void MultiLatticeKIM::NeighborDistances(int const& cutoff, ostream& out) const
+// {
+//    cout << "ERROR IN MultiLatticeKIM::NeighborDistances. Exiting" << endl;
+//    exit(1);
+// }
 
 void MultiLatticeKIM::Print(ostream& out, PrintDetail const& flag,
                             PrintPathSolutionType const& SolType)
@@ -1271,7 +1267,6 @@ void MultiLatticeKIM::Print(ostream& out, PrintDetail const& flag,
          }
          out << "REFLambda_ : " << setw(W) << REFLambda_ << "\n";
          out << "Influence Distance   : " << setw(W) << InfluenceDist_ << "\n";
-         out << "Normalization Modulus : " << setw(W) << NormModulus_ << "\n";
          out << "EulerAngles : " << setw(W) << EulerAng_[0]
              << setw(W) << EulerAng_[1] << setw(W) << EulerAng_[2] << "\n";
          out << "Loading Proportions : " << setw(W) << LoadingProportions_
@@ -1293,8 +1288,6 @@ void MultiLatticeKIM::Print(ostream& out, PrintDetail const& flag,
             cout << "REFLambda_ : " << setw(W) << REFLambda_ << "\n";
             cout << "Influence Distance   : " << setw(W) << InfluenceDist_
                  << "\n";
-            cout << "Normalization Modulus : " << setw(W) << NormModulus_
-                 << "\n";
             cout << "EulerAngles : " << setw(W) << EulerAng_[0]
                  << setw(W) << EulerAng_[1] << setw(W) << EulerAng_[2] << "\n";
             cout << "Loading Proportions : " << setw(W) << LoadingProportions_
@@ -1303,22 +1296,22 @@ void MultiLatticeKIM::Print(ostream& out, PrintDetail const& flag,
       // passthrough to short
 
       case PrintShort:
-         out << "Lambda (Normalized): " << setw(W) << Lambda_ << "\n"
+         out << "Lambda : " << setw(W) << Lambda_ << "\n"
              << "DOF's :" << "\n" << setw(W) << CBK_->DOF() << "\n"
-             << "Potential Value (Normalized):" << setw(W) << engy << "\n";
+             << "Potential Value (eV) :" << setw(W) << engy << "\n";
          for (int i = 0; i < InternalAtoms_; ++i)
          {
             out << "BodyForce Value (KIM Output) " << i << setw(W)
                 << BodyForce_[i] << "\n";
          }
-         out << "Stress (Normalized):" << "\n" << setw(W) << str_static << "\n";
-         out << "\nStiffness (Normalized):" << setw(W) << stiff_static
+         out << "Stress (eV/A^3):" << "\n" << setw(W) << str_static << "\n";
+         out << "\nStiffness (eV/A^3):" << setw(W) << stiff_static
              << "Eigenvalue Info (Rots->1,2,3; Trans->4,5,6):" << "\n"
              << setw(W)
              << TestFunctVals_Print << "\n"
              << "Bifurcation Info:" << setw(W) << mintestfunct
              << setw(W) << NoNegTestFunctions << "\n"
-             << "Condensed Moduli (Normalized):" << setw(W) << CondModuli_static
+             << "Condensed Moduli (eV/A^3):" << setw(W) << CondModuli_static
              << "CondEV Info:" << setw(W) << CondEV_static
              << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex
              << "\n"
@@ -1329,24 +1322,24 @@ void MultiLatticeKIM::Print(ostream& out, PrintDetail const& flag,
 
          if (Echo_)
          {
-            cout << "Lambda (Normalized): " << setw(W) << Lambda_ << "\n"
+            cout << "Lambda : " << setw(W) << Lambda_ << "\n"
                  << "ConjugateToLambda: " << setw(W) << conj << "\n"
                  << "DOF's :" << "\n" << setw(W) << CBK_->DOF() << "\n"
-                 << "Potential Value (Normalized):" << setw(W) << engy << "\n";
+                 << "Potential Value (eV):" << setw(W) << engy << "\n";
             for (int i = 0; i < InternalAtoms_; ++i)
             {
                cout << "BodyForce Value (KIM Output) " << i << setw(W)
                     << BodyForce_[i] << "\n";
             }
-            cout << "Stress (Normalized):" << "\n" << setw(W) << str_static
+            cout << "Stress (eV/A^3):" << "\n" << setw(W) << str_static
                  << "\n";
-            cout << "\nStiffness (Normalized):" << setw(W) << stiff_static
+            cout << "\nStiffness (eV/A^3):" << setw(W) << stiff_static
                  << "Eigenvalue Info (Rots->1,2,3; Trans->4,5,6):" << "\n"
                  << setw(W)
                  << TestFunctVals_static << "\n"
                  << "Bifurcation Info:" << setw(W) << mintestfunct
                  << setw(W) << NoNegTestFunctions << "\n"
-                 << "Condensed Moduli (Normalized):" << setw(W)
+                 << "Condensed Moduli (eV/A^3):" << setw(W)
                  << CondModuli_static
                  << "CondEV Info:" << setw(W) << CondEV_static
                  << "Condensed Moduli Rank1Convex:" << setw(W)
@@ -1387,7 +1380,6 @@ void MultiLatticeKIM::DebugMode()
       "DOF_",
       "RefLattice_",
       "Density_",
-      "NormModulus_",
       "Lambda_",
       "BodyForce_",
       "AtomicMass_",
@@ -1411,7 +1403,7 @@ void MultiLatticeKIM::DebugMode()
       "E3",
       "E4",
       "SetGridSize",
-      "NeighborDistances",
+      //"NeighborDistances",
       "Print-short",
       "Print-long",
       "SetLambda",
@@ -1428,7 +1420,7 @@ void MultiLatticeKIM::DebugMode()
       "TranslationProjection1D",
       "TranslationProjection3D",
    };
-   int NOcommands = 46;
+   int NOcommands = 45;
 
    string response;
    char prompt[] = "Debug > ";
@@ -1468,10 +1460,6 @@ void MultiLatticeKIM::DebugMode()
       else if (response == Commands[indx++])
       {
          cout << "Density_= " << Density_ << "\n";
-      }
-      else if (response == Commands[indx++])
-      {
-         cout << "NormModulus_= " << NormModulus_ << "\n";
       }
       else if (response == Commands[indx++])
       {
@@ -1601,17 +1589,17 @@ void MultiLatticeKIM::DebugMode()
          cin >> GridSize;
          SetGridSize(GridSize);
       }
-      else if (response == Commands[indx++])
-      {
-         int oldEcho_ = Echo_;
-         int cutoff;
-         cout << "\tcutoff > ";
-         cin >> cutoff;
-         Echo_ = 0;
-         cout << setw(W);
-         NeighborDistances(cutoff, cout);
-         Echo_ = oldEcho_;
-      }
+//       else if (response == Commands[indx++])
+//       {
+//          int oldEcho_ = Echo_;
+//          int cutoff;
+//          cout << "\tcutoff > ";
+//          cin >> cutoff;
+//          Echo_ = 0;
+//          cout << setw(W);
+//          NeighborDistances(cutoff, cout);
+//          Echo_ = oldEcho_;
+//       }
       else if (response == Commands[indx++])
       {
          int oldEcho_ = Echo_;
@@ -1767,9 +1755,7 @@ void MultiLatticeKIM::RefineEqbm(double const& Tol, int const& MaxItr,
    while ((itr < MaxItr) && Stress.Norm() > Tol)
    {
       ++itr;
-      //      cout << "Stress.Norm() = " << Stress.Norm() << endl;
-      //      cout << "dx = " << setw(15) << dx << endl;
-
+      
 #ifdef SOLVE_SVD
       dx = SolveSVD(E2(), Stress, MAXCONDITION, Echo_);
 #else
@@ -2103,19 +2089,17 @@ int MultiLatticeKIM::process_dEdr(void* kimmdl, double* dEdr, double* r,
             {
                for (k1 = 0; k1 < 3; k1++)
                {
-                  obj->ME2_static[obj->CBK_->INDF(i1, j1)][obj->CBK_->INDS(atom0, k1)]
-                     += (*dEdr) * ((0.5 / (*r))
+		 double temp=(*dEdr) * ((0.5 / (*r))
                                    * obj->CBK_->D2yDFS(*dx, DX, *i, *j, i1, j1, atom0, k1)
                                    - (0.25 / ((*r) * (*r) * (*r)))
                                    * (obj->CBK_->DyDS(*dx, *i, *j, atom0, k1))
                                    * (obj->CBK_->DyDF((*dx), DX, i1, j1)));
 
+                  obj->ME2_static[obj->CBK_->INDF(i1, j1)][obj->CBK_->INDS(atom0, k1)]
+                     += temp;
+
                   obj->ME2_static[obj->CBK_->INDS(atom0, k1)][obj->CBK_->INDF(i1, j1)]
-                     += (*dEdr) * ((0.5 / (*r))
-                                   * obj->CBK_->D2yDFS(*dx, DX, *i, *j, i1, j1, atom0, k1)
-                                   - (0.25 / ((*r) * (*r) * (*r)))
-                                   * (obj->CBK_->DyDS(*dx, *i, *j, atom0, k1))
-                                   * (obj->CBK_->DyDF((*dx), DX, i1, j1)));
+                     += temp;
                }
             }
          }
@@ -2202,7 +2186,6 @@ int MultiLatticeKIM::process_d2Edr2(void* kimmdl, double* d2Edr2, double** r,
    }
 
    // Off Diagonal
-   //int RowIndex;
    for (int atom0 = 0; atom0 < (obj->CBK_->InternalAtoms()); atom0++)
    {
      for (i1 = 0; i1 < 3; i1++)
@@ -2214,17 +2197,13 @@ int MultiLatticeKIM::process_d2Edr2(void* kimmdl, double* d2Edr2, double** r,
            obj->ME2_static[obj->CBK_->INDF(i1, j1)][obj->CBK_->INDS(atom0, k1)]
                += (0.5 / ((*r)[0])) * (0.5 / ((*r)[1]))
                * (*d2Edr2)
-               * 0.5 * (obj->CBK_->DyDF(Dx[0], DX[0], i1, j1)
-                      * obj->CBK_->DyDS(Dx[1], (*i)[1], (*j)[1], atom0, k1)
-                      + obj->CBK_->DyDF(Dx[1], DX[1], i1, j1)
-                      * obj->CBK_->DyDS(Dx[0], (*i)[0], (*j)[0], atom0, k1));
+               * (obj->CBK_->DyDF(Dx[0], DX[0], i1, j1)
+                      * obj->CBK_->DyDS(Dx[1], (*i)[1], (*j)[1], atom0, k1));
 
            obj->ME2_static[obj->CBK_->INDS(atom0, k1)][obj->CBK_->INDF(i1, j1)]
                += (0.5 / ((*r)[0])) * (0.5 / ((*r)[1]))
                * (*d2Edr2)
-               * 0.5 * (obj->CBK_->DyDF(Dx[0], DX[0], i1, j1)
-                      * obj->CBK_->DyDS(Dx[1], (*i)[1], (*j)[1], atom0, k1)
-                      + obj->CBK_->DyDF(Dx[1], DX[1], i1, j1)
+               * (obj->CBK_->DyDF(Dx[1], DX[1], i1, j1)
                       * obj->CBK_->DyDS(Dx[0], (*i)[0], (*j)[0], atom0, k1));
          }
        }
