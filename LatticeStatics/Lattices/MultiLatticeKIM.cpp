@@ -1022,16 +1022,48 @@ void MultiLatticeKIM::interpolate(Matrix* const EigVals, int const& zero,
 
 // @@ this looks wrong?
 CMatrix const& MultiLatticeKIM::ReferenceDynamicalStiffness(Vector const& K)
-   const
+const
 {
-   double pi = 4.0 * atan(1.0);
-   MyComplexDouble Ic(0, 1);
-   MyComplexDouble A = 2.0 * pi * Ic;
-   int i, j;
-
-   Dk_static.Resize(InternalAtoms_ * DIM3, InternalAtoms_ * DIM3, 0.0);
-
-   return Dk_static;
+  double pi = 4.0 * atan(1.0);
+  MyComplexDouble Ic(0, 1);
+  MyComplexDouble A = 2.0 * pi * Ic;
+  
+//   double** d2wdu2;
+  double** DX;
+  Dk_static.Resize(InternalAtoms_ * DIM3, InternalAtoms_ * DIM3, 0.0);
+  
+  ///// call kim function where we should initialize d2wdu2
+  //UpdateKIM2();
+  
+  
+  for (int k=0; k<InternalAtoms_; ++k)
+  {
+    for (int l=0; l<InternalAtoms_; ++l)
+    {
+      for (int m=0; m<DIM3; ++m)
+      {
+	for (int n=0; n<DIM3; ++n)
+	{
+	  Dk_static[DIM3 * k + m][DIM3 * l + n] = d2wdu2[DIM3*k+m][DIM3*l+n]*exp(-A*(K[0]*(DX[l][0]-DX[k][0])+K[1]*(DX[l][1]-DX[k][1])+K[2]*(DX[l][2]-DX[k][2])));
+	}
+      }
+    }
+  }
+  // Normalize through the Mass Matrix
+  for (int k = 0; k < InternalAtoms_; ++k)
+  {
+    for (int l = 0; l < InternalAtoms_; ++l)
+    {
+      for (int m = 0; m < DIM3; ++m)
+      {
+	for (int n = 0; n < DIM3; ++n)
+	{
+	  Dk_static[DIM3 * k + m][DIM3 * l + n] /= sqrt(AtomicMass_[k] * AtomicMass_[l]);
+	}
+      }
+    }
+  }
+  return Dk_static;
 }
 
 void MultiLatticeKIM::ReferenceDispersionCurves(Vector const& K,
@@ -2175,7 +2207,7 @@ int MultiLatticeKIM::process_d2Edr2(void* kimmdl, double* d2Edr2, double** r,
                   for (l1 = 0; l1 < 3; l1++)
                   {
                      obj->ME2_static[obj->CBK_->INDS(atom0, k1)][obj->CBK_->INDS(atom1, l1)]
-                        += (0.5 / ((*r)[0])) * (0.5 / ((*r)[1])) * (*d2Edr2)
+                        += (0.5 / (*r)[0]) * (0.5 / (*r)[1]) * (*d2Edr2)
                         * (obj->CBK_->DyDS(Dx[0], (*i)[0], (*j)[0], atom0, k1))
                         * (obj->CBK_->DyDS(Dx[1], (*i)[1], (*j)[1], atom1, l1));
                   }
@@ -2211,4 +2243,96 @@ int MultiLatticeKIM::process_d2Edr2(void* kimmdl, double* d2Edr2, double** r,
    }
 
    return KIM_STATUS_OK;
+}
+
+////////////////////////////////// additional process functions ////////////////////////////////
+
+int MultiLatticeKIM::process2_dEdr(void* kimmdl, double* dEdr, double* r,
+				   double** dx, int* i, int* j)
+{
+  double DX[3];
+  MultiLatticeKIM* obj;
+  
+  // @@ need to find a more efficient way to do this...
+  Matrix InverseF = (obj->CBK_->F()).Inverse();
+  
+  double temp1, temp2;
+  for (int rows = 0; rows < 3; rows++)
+  {
+    DX[rows] = 0.0;
+    for (int cols = 0; cols < 3; cols++)
+    {
+      DX[rows] += InverseF[rows][cols] * (*dx)[cols];
+    }
+  }
+  
+  for (int k=0; k<obj->CBK_->InternalAtoms_; k++)
+  {
+    if ((k==(*j))||(k==(*i)))
+    {
+      for (int l=0; l<obj->CBK_->InternalAtoms_; l++)
+      {
+	if ((l==(*j))||(l==(*i)))
+	{
+	  for (int m=0; m<DIM3; m++)
+	  {
+	    obj->d2wdu2[DIM3*k+m][DIM3*l+m]+=((k==(*j))-(k==(*i)))*((l==(*j))-(l==(*i)))*(*dEdr)/(*r);
+	    for (int n=0; n<DIM3; n++)
+	    {
+	      obj->d2wdu2[DIM3*k+m][DIM3*l+n]-=((k==(*j))-(k==(*i)))*((l==(*j))-(l==(*i)))*(*dEdr)*DX[m]*DX[n]/((*r) * (*r) * (*r));
+	    }
+	  }
+	}
+      }
+    }
+  }
+}
+
+int MultiLatticeKIM::process2_d2Edr2(void* kimmdl, double* d2Edr2, double** r,
+				     double** dx, int** i, int** j)
+{
+  MultiLatticeKIM* obj;
+  double DX[2][3];
+  double Dx[2][3];
+  
+  // @@ need to find a more efficient way to do this...
+  Matrix InverseF = (obj->CBK_->F()).Inverse();
+  
+  for (int k = 0; k < 3; k++)
+  {
+    Dx[0][k] = (*dx)[k];
+    Dx[1][k] = (*dx)[k + 3];
+  }
+  
+  for (int atoms = 0; atoms < 2; atoms++)
+  {
+    for (int rows = 0; rows < 3; rows++)
+    {
+      DX[atoms][rows] = 0.0;
+      for (int cols = 0; cols < 3; cols++)
+      {
+	DX[atoms][rows] += InverseF[rows][cols] * Dx[atoms][cols];
+      }
+    }
+  }
+  
+  for (int k=0; k<obj->CBK_->InternalAtoms_; k++)
+  {
+    if ((k==(*j)[0])||(k==(*i)[0]))
+    {
+      for (int l=0; l<obj->CBK_->InternalAtoms_; l++)
+      {
+	if ((l==(*j)[1])||(l==(*i)[1]))
+	{
+	  for (int m=0; m<DIM3; m++)
+	  {
+	    for (int n=0; n<DIM3; n++)
+	    {
+	      obj->d2wdu2[DIM3*k+m][DIM3*l+n]+=((k==(*j)[0])-(k==(*i)[0]))*((l==(*j)[1])-(l==(*i)[1]))*(*d2Edr2)*DX[0][m]*DX[1][n]/((*r)[0]*(*r)[1]);
+	    }
+	  }
+	}
+      }
+    }
+  }
 }

@@ -103,6 +103,10 @@ private:
 
    static int process_dEdr(void* kimmdl, double* dEdr, double* r, double** dx, int* i, int* j);
    static int process_d2Edr2(void* kimmdl, double* d2Edr2, double** r, double** dx, int** i, int** j);
+
+   //////////////////////////// additional process functions for dynamical stiffness matrix /////////////////
+   static int process2_dEdr(void* kimmdl, double* dEdr, double* r, double** dx, int* i, int* j);
+   static int process2_d2Edr2(void* kimmdl, double* d2Edr2, double** r, double** dx, int** i, int** j);
    // Needed for DispersionCurves()
    //
    // find next eigval in position two based on previous two values
@@ -322,6 +326,7 @@ private:
 
    // ReferenceDynamicalStiffness
    mutable CMatrix Dk_static;
+   mutable Matrix d2wdu2;
 
    // ReferenceBlochWave
    mutable CMatrix A_static;
