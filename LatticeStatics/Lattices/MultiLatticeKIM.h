@@ -51,6 +51,7 @@ private:
    // double* E1CachedValue_;
 
    mutable int StiffnessYes_;
+   mutable int BlochwaveProcess_;
    mutable double E0CachedValue_;
    //   mutable Vector Force_;
    ostringstream descriptor_file_;
@@ -230,7 +231,7 @@ public:
 
    virtual void LongWavelengthModuli(double const& dk, int const& gridsize,
                                      char const* const prefix, ostream& out) const;
-   virtual void SetParameters(double const* const Vals, int const& ResetRef = 1);
+   virtual void SetParameters(double const* const Vals, int const& ResetRef);
    virtual void SetGridSize(int const& Grid)
    {
       GridSize_ = Grid; UCIter_(GridSize_);
@@ -245,13 +246,13 @@ public:
 
    virtual void DebugMode();
    virtual void Print(ostream& out, PrintDetail const& flag,
-                      PrintPathSolutionType const& SolType = RegularPt);
+                      PrintPathSolutionType const& SolType);
 
    void PrintCurrentCrystalParamaters(ostream& out) const;
 
    // Functions provided by MultiLatticeKIM
-   MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1, int const& Width = 20,
-                   int const& Debug = 0);
+   MultiLatticeKIM(PerlInput const& Input, int const& Echo, int const& Width,
+                   int const& Debug);
    ~MultiLatticeKIM();
    double InfluenceDist() const
    {
@@ -326,8 +327,8 @@ private:
 
    // ReferenceDynamicalStiffness
    mutable CMatrix Dk_static;
-   mutable Matrix d2wdu2;
-
+   mutable Vector K_static;
+ 
    // ReferenceBlochWave
    mutable CMatrix A_static;
    mutable Matrix EigVals_static;
@@ -342,7 +343,6 @@ private:
    mutable Matrix CondModuli_static;
    mutable Vector TestFunctVals_static;
    mutable Vector TestFunctVals_Print;
-   mutable Vector K_static;
 };
 
 #endif

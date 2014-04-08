@@ -31,8 +31,8 @@ MultiLatticeKIM::~MultiLatticeKIM()
 
 }
 
-MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo,
-                                 int const& Width, int const& Debug) :
+MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
+                                 int const& Width = 20, int const& Debug = 0) :
    Lattice(Input, Echo)
 {
    dbg_ = Debug;
@@ -41,6 +41,7 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo,
    // Set default values
    KillTranslations_ = 1; // 1-true, 0-false
    StiffnessYes_ = 0;
+   BlochwaveProcess_ = 0;
    int needKillRotations = 1;
    KillRotations_ = 0; // 0-do nothing, 1-kill one rotation, 2-kill 3 rotations
    if (Input.ParameterOK(Hash, "FastPrint"))
@@ -230,14 +231,11 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo,
       KIM_API_report_error(__LINE__, (char*) __FILE__,
                            (char*) "KIM_API_setm_data", status);
    }
-   KIM_API_setm_method(pkim_, &status, 3 * 4,
-                       "get_neigh", 1, &MultiLatticeKIM::get_neigh, 1,
-                       "process_dEdr", 1, &MultiLatticeKIM::process_dEdr, 1,
-                       "process_d2Edr2", 1, &MultiLatticeKIM::process_d2Edr2, 1);
+   status = KIM_API_set_method(pkim_, "get_neigh", 1, (func_ptr) &MultiLatticeKIM::get_neigh);
    if (KIM_STATUS_OK > status)
    {
       KIM_API_report_error(__LINE__, (char*) __FILE__,
-                           (char*) "KIM_API_setm_method", status);
+                           (char*) "KIM_API_set_method", status);
    }
 
    status = KIM_API_model_init(pkim_);
@@ -484,7 +482,7 @@ int MultiLatticeKIM::FindLatticeSpacing(int const& iter)
 }
 
 void MultiLatticeKIM::SetParameters(double const* const Vals,
-                                    int const& ResetRef)
+                                    int const& ResetRef = 1)
 {
    cout << "ERROR IN MultiLatticeKIM::SetParameters. Exiting" << endl;
    exit(1);
@@ -496,16 +494,25 @@ void MultiLatticeKIM::UpdateKIMValues() const
    int status;
    
    // initialization
-   for (int i = 0; i < CBK_->DOFS(); i++)
+   if (BlochwaveProcess_ == 0)
    {
-      ME1_static[i] = 0.0;
-      if (StiffnessYes_==1)
-      {
-	for (int j = 0; j < CBK_->DOFS(); j++)
-	{
-	  ME2_static[i][j] = 0.0;
-	}
-      }
+     // Initialize for E1 and E2
+     for (int i = 0; i < CBK_->DOFS(); i++)
+     {
+       ME1_static[i] = 0.0;
+       if (StiffnessYes_==1)
+       {
+         for (int j = 0; j < CBK_->DOFS(); j++)
+         {
+           ME2_static[i][j] = 0.0;
+         }
+       }
+     }
+   }
+   else
+   {
+     // Initialize for Dk_static
+     Dk_static.Resize(InternalAtoms_ * DIM3, InternalAtoms_ * DIM3, 0.0);
    }
    
    Vector coordsTemp = CBK_->CBKtoCoords();
@@ -516,7 +523,41 @@ void MultiLatticeKIM::UpdateKIMValues() const
 
    LatSum_.Recalc();
 
-   KIM_API_set_compute(pkim_, "process_d2Edr2", StiffnessYes_, &status);
+   // Make sure the correct process functions are setup
+   if (BlochwaveProcess_ == 0)
+   {
+     KIM_API_setm_method(pkim_, &status, 2 * 4,
+                         "process_dEdr", 1, &MultiLatticeKIM::process_dEdr, 1,
+                         "process_d2Edr2", 1, &MultiLatticeKIM::process_d2Edr2, 1);
+     if (KIM_STATUS_OK > status)
+     {
+       KIM_API_report_error(__LINE__, (char*) __FILE__,
+                            (char*) "KIM_API_setm_method", status);
+     }
+     KIM_API_set_compute(pkim_, "process_d2Edr2", StiffnessYes_, &status);
+     if (KIM_STATUS_OK > status)
+     {
+       KIM_API_report_error(__LINE__, (char*) __FILE__,
+                            (char*) "KIM_API_set_compute", status);
+     }
+   }
+   else
+   {
+     KIM_API_setm_method(pkim_, &status, 2 * 4,
+                         "process_dEdr", 1, &MultiLatticeKIM::process2_dEdr, 1,
+                         "process_d2Edr2", 1, &MultiLatticeKIM::process2_d2Edr2, 1);
+     if (KIM_STATUS_OK > status)
+     {
+       KIM_API_report_error(__LINE__, (char*) __FILE__,
+                            (char*) "KIM_API_setm_method", status);
+     }
+     KIM_API_set_compute(pkim_, "process_d2Edr2", 1, &status);
+     if (KIM_STATUS_OK > status)
+     {
+       KIM_API_report_error(__LINE__, (char*) __FILE__,
+                            (char*) "KIM_API_set_compute", status);
+     }
+   }
 
    status = KIM_API_model_compute(pkim_);
 
@@ -1024,31 +1065,14 @@ void MultiLatticeKIM::interpolate(Matrix* const EigVals, int const& zero,
 CMatrix const& MultiLatticeKIM::ReferenceDynamicalStiffness(Vector const& K)
 const
 {
-  double pi = 4.0 * atan(1.0);
-  MyComplexDouble Ic(0, 1);
-  MyComplexDouble A = 2.0 * pi * Ic;
-  
-//   double** d2wdu2;
-  double** DX;
-  Dk_static.Resize(InternalAtoms_ * DIM3, InternalAtoms_ * DIM3, 0.0);
   
   ///// call kim function where we should initialize d2wdu2
-  //UpdateKIM2();
+  K_static.Resize(DIM3);
+  K_static = K;
+  BlochwaveProcess_ = 1;
+  UpdateKIMValues();
+  BlochwaveProcess_ = 0;
   
-  
-  for (int k=0; k<InternalAtoms_; ++k)
-  {
-    for (int l=0; l<InternalAtoms_; ++l)
-    {
-      for (int m=0; m<DIM3; ++m)
-      {
-	for (int n=0; n<DIM3; ++n)
-	{
-	  Dk_static[DIM3 * k + m][DIM3 * l + n] = d2wdu2[DIM3*k+m][DIM3*l+n]*exp(-A*(K[0]*(DX[l][0]-DX[k][0])+K[1]*(DX[l][1]-DX[k][1])+K[2]*(DX[l][2]-DX[k][2])));
-	}
-      }
-    }
-  }
   // Normalize through the Mass Matrix
   for (int k = 0; k < InternalAtoms_; ++k)
   {
@@ -1202,7 +1226,7 @@ void MultiLatticeKIM::LongWavelengthModuli(double const& dk,
 // }
 
 void MultiLatticeKIM::Print(ostream& out, PrintDetail const& flag,
-                            PrintPathSolutionType const& SolType)
+                            PrintPathSolutionType const& SolType = RegularPt)
 {
    int W;
    int NoNegTestFunctions = 0;
@@ -1212,6 +1236,7 @@ void MultiLatticeKIM::Print(ostream& out, PrintDetail const& flag,
    double mintestfunct;
    double conj;
    int NoFP = !FastPrint_;
+   Vector K(DIM3);
 
 
    W = out.width();
@@ -1273,15 +1298,15 @@ void MultiLatticeKIM::Print(ostream& out, PrintDetail const& flag,
       RankOneConvex = FullScanRank1Convex3D(CBK_, CondModuli_static,
                                             ConvexityDX_);
 
-      K_static.Resize(DIM3, 0.0);
-      if (RankOneConvex)
-      {
-         BlochWaveStable = BlochWave(K_static);
-      }
-      else
-      {
+      K.Resize(DIM3, 0.0);
+//      if (RankOneConvex)
+//      {
+//         BlochWaveStable = BlochWave(K);
+//      }
+//      else
+//      {
          BlochWaveStable = -1;
-      }
+//      }
    }
 
    switch (flag)
@@ -1349,7 +1374,7 @@ void MultiLatticeKIM::Print(ostream& out, PrintDetail const& flag,
              << "\n"
              << "BlochWave Stability (GridSize=" << GridSize_ << "):"
              << setw(W) << BlochWaveStable << ", "
-             << setw(W) << K_static << endl;
+             << setw(W) << K << endl;
 
 
          if (Echo_)
@@ -1378,7 +1403,7 @@ void MultiLatticeKIM::Print(ostream& out, PrintDetail const& flag,
                  << RankOneConvex << "\n"
                  << "BlochWave Stability (GridSize=" << GridSize_ << "):"
                  << setw(W) << BlochWaveStable << ", "
-                 << setw(W) << K_static << endl;
+                 << setw(W) << K << endl;
          }
          break;
    }
@@ -2250,8 +2275,12 @@ int MultiLatticeKIM::process_d2Edr2(void* kimmdl, double* d2Edr2, double** r,
 int MultiLatticeKIM::process2_dEdr(void* kimmdl, double* dEdr, double* r,
 				   double** dx, int* i, int* j)
 {
-  double DX[3];
+  double pi = 4.0 * atan(1.0);
+  MyComplexDouble Ic(0, 1);
+  MyComplexDouble A = 2.0 * pi * Ic;
+
   MultiLatticeKIM* obj;
+  double DX[3];
   
   // @@ need to find a more efficient way to do this...
   Matrix InverseF = (obj->CBK_->F()).Inverse();
@@ -2265,7 +2294,8 @@ int MultiLatticeKIM::process2_dEdr(void* kimmdl, double* dEdr, double* r,
       DX[rows] += InverseF[rows][cols] * (*dx)[cols];
     }
   }
-  
+
+  // @@ use obj->K_static and dEdr, etc., to add in terms to obj->Dk_static
   for (int k=0; k<obj->CBK_->InternalAtoms_; k++)
   {
     if ((k==(*j))||(k==(*i)))
@@ -2276,10 +2306,10 @@ int MultiLatticeKIM::process2_dEdr(void* kimmdl, double* dEdr, double* r,
 	{
 	  for (int m=0; m<DIM3; m++)
 	  {
-	    obj->d2wdu2[DIM3*k+m][DIM3*l+m]+=((k==(*j))-(k==(*i)))*((l==(*j))-(l==(*i)))*(*dEdr)/(*r);
+	    //obj->d2wdu2[DIM3*k+m][DIM3*l+m]+=((k==(*j))-(k==(*i)))*((l==(*j))-(l==(*i)))*(*dEdr)/(*r);
 	    for (int n=0; n<DIM3; n++)
 	    {
-	      obj->d2wdu2[DIM3*k+m][DIM3*l+n]-=((k==(*j))-(k==(*i)))*((l==(*j))-(l==(*i)))*(*dEdr)*DX[m]*DX[n]/((*r) * (*r) * (*r));
+	      //obj->d2wdu2[DIM3*k+m][DIM3*l+n]-=((k==(*j))-(k==(*i)))*((l==(*j))-(l==(*i)))*(*dEdr)*DX[m]*DX[n]/((*r) * (*r) * (*r));
 	    }
 	  }
 	}
@@ -2291,6 +2321,10 @@ int MultiLatticeKIM::process2_dEdr(void* kimmdl, double* dEdr, double* r,
 int MultiLatticeKIM::process2_d2Edr2(void* kimmdl, double* d2Edr2, double** r,
 				     double** dx, int** i, int** j)
 {
+  double pi = 4.0 * atan(1.0);
+  MyComplexDouble Ic(0, 1);
+  MyComplexDouble A = 2.0 * pi * Ic;
+
   MultiLatticeKIM* obj;
   double DX[2][3];
   double Dx[2][3];
@@ -2315,7 +2349,9 @@ int MultiLatticeKIM::process2_d2Edr2(void* kimmdl, double* d2Edr2, double** r,
       }
     }
   }
-  
+
+
+  // use obj->K_static and d2Edr2, etc., to add in terms to obj->Dk_static
   for (int k=0; k<obj->CBK_->InternalAtoms_; k++)
   {
     if ((k==(*j)[0])||(k==(*i)[0]))
@@ -2328,7 +2364,7 @@ int MultiLatticeKIM::process2_d2Edr2(void* kimmdl, double* d2Edr2, double** r,
 	  {
 	    for (int n=0; n<DIM3; n++)
 	    {
-	      obj->d2wdu2[DIM3*k+m][DIM3*l+n]+=((k==(*j)[0])-(k==(*i)[0]))*((l==(*j)[1])-(l==(*i)[1]))*(*d2Edr2)*DX[0][m]*DX[1][n]/((*r)[0]*(*r)[1]);
+              //obj->d2wdu2[DIM3*k+m][DIM3*l+n]+=((k==(*j)[0])-(k==(*i)[0]))*((l==(*j)[1])-(l==(*i)[1]))*(*d2Edr2)*DX[0][m]*DX[1][n]/((*r)[0]*(*r)[1]);
 	    }
 	  }
 	}
