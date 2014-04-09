@@ -776,7 +776,8 @@ void PLU(CMatrix const& A, CMatrix& P, CMatrix& L, CMatrix& U)
    return;
 }
 
-Matrix HermiteEigVal(CMatrix A, CMatrix* const B, int const& MaxItr, double const& Tol)
+Matrix CMatrix::HermiteEigValPrivate(CMatrix A, CMatrix* const B,
+                                     int const& MaxItr, double const& Tol)
 {
    int count = 0,
        converged = 0;
@@ -916,7 +917,8 @@ Matrix HermiteEigVal(CMatrix A, CMatrix* const B, int const& MaxItr, double cons
 }
 
 // find QR factorization of A or A.Transpose()
-void QR(CMatrix const& A, CMatrix& Q, CMatrix& R, int const& CalcTranspose)
+void CMatrix::QRPrivate(CMatrix const& A, CMatrix& Q, CMatrix& R,
+                        int const& CalcTranspose)
 {
    int i, j, k, m, n;
    CMatrix::Elm c, s, r, A1, A2, tau;
@@ -1001,7 +1003,8 @@ void QR(CMatrix const& A, CMatrix& Q, CMatrix& R, int const& CalcTranspose)
    }
 }
 
-CMatrix RightEigVals(CMatrix const& A, int const& MaxItr, double const& Tol)
+CMatrix CMatrix::RightEigValsPrivate(CMatrix const& A, int const& MaxItr,
+                                     double const& Tol)
 {
    if (!A.IsSquare())
    {

@@ -437,8 +437,8 @@ Vector SolvePLU(Matrix const& A, Vector const& B)
    return SolvePLU(A, C);
 }
 
-Vector SolveSVD(Matrix const& A, Vector const& B, Vector::Elm const& MaxCond,
-                int const& PrintFlag)
+Vector Vector::SolveSVDPrivate(Matrix const& A, Vector const& B,
+                               Vector::Elm const& MaxCond, int const& PrintFlag)
 {
    Matrix C(B.Cols_, 1);
 

@@ -134,7 +134,10 @@ public:
 
    // Uses SVD decomposition.
    friend Vector SolveSVD(Matrix const& A, Vector const& B, Elm const& MaxCond = MAXCONDITION,
-                          int const& PrintFlag = 0);
+                          int const& PrintFlag = 0)
+  {
+    return SolveSVDPrivate(A, B, MaxCond, PrintFlag);
+  }
 
    // Perform Broyden update on QR factorization of A
    // it is expected that x.Norm() == 0
@@ -145,6 +148,10 @@ public:
    friend istream& operator>>(istream& in, Vector& A);
 
    static char const* const Revision();
+
+ private:
+  static Vector SolveSVDPrivate(Matrix const& A, Vector const& B,
+                                Elm const& MaxCond, int const& PrintFlag);
 };
 
 #endif

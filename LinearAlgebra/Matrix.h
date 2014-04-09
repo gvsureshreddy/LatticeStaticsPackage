@@ -195,7 +195,10 @@ public:
    // -- the value of MaxCond with the returned condition number.
    //
    friend Elm SVD(Matrix const& A, Matrix& U, Matrix& W, Matrix& V,
-                  Elm const& MaxCond = MAXCONDITION, int const& PrintFlag = 0);
+                  Elm const& MaxCond = MAXCONDITION, int const& PrintFlag = 0)
+  {
+    return SVDPrivate(A, U, W, V, MaxCond, PrintFlag);
+  }
 
    // SymEigVal -- determine the eigenvalues of A
    // Diag(eigen values) = B.Transpose()*A*B
@@ -209,7 +212,10 @@ public:
    //
    // Note: Assumes A is SYMMETRIC
    friend Matrix SymEigVal(Matrix A, Matrix* const B = 0, int const& MaxItr = 100,
-                           double const& Tol = 1.0e-13);
+                           double const& Tol = 1.0e-13)
+  {
+    return SymEigValPrivate(A, B, MaxItr, Tol);
+  }
 
    // Cholesky Decomposition of Matrix
    // A=U.Transpose()*D*U
@@ -224,7 +230,10 @@ public:
    //
    // A   = Q*R  -- CalcTranspose = 0
    // A^T = Q*R  -- CalcTranspose = 1
-   friend void QR(Matrix const& A, Matrix& Q, Matrix& R, int const& CalcTranspose = 0);
+   friend void QR(Matrix const& A, Matrix& Q, Matrix& R, int const& CalcTranspose = 0)
+  {
+    QRPrivate(A, Q, R, CalcTranspose);
+  }
 
    // Return the solution x for the linear system A*x = B
    // using A=Q*R if A.Rows()==A.Cols()
@@ -249,13 +258,26 @@ public:
    // -- W[i][i] == 0.0 has inverse component 0.0
    friend Matrix SolveSVD(Matrix const& A, Matrix const& B,
                           Elm const& MaxCond = MAXCONDITION,
-                          int const& PrintFlag = 0);
+                          int const& PrintFlag = 0)
+  {
+    return SolveSVDPrivate(A, B, MaxCond, PrintFlag);
+  }
 
    // Output/Input Functions
    friend ostream& operator<<(ostream& out, Matrix const& A);
    friend istream& operator>>(istream& in, Matrix& A);
 
    static char const* const Revision();
+
+ private:
+  static Elm SVDPrivate(Matrix const& A, Matrix& U, Matrix& W, Matrix& V,
+                        Elm const& MaxCond, int const& PrintFlag);
+  static Matrix SymEigValPrivate(Matrix A, Matrix* const B, int const& MaxItr,
+                                 double const& Tol);
+  static void QRPrivate(Matrix const& A, Matrix& Q, Matrix& R,
+                        int const& CalcTranspose);
+  static Matrix SolveSVDPrivate(Matrix const& A, Matrix const& B,
+                                Elm const& MaxCond, int const& PrintFlag);
 };
 
 #endif

@@ -3,8 +3,8 @@ char* MyMathBuildDate();
 char* MyMathBuildDate()
 {
 #ifdef BUILD_DATE
-   return BUILD_DATE;
+  return (char*) BUILD_DATE;
 #else
-   return "Unknown";
+  return (char*) "Unknown";
 #endif
 }

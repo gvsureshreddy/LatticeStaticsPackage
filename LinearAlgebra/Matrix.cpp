@@ -727,7 +727,8 @@ void PLU(Matrix const& A, Matrix& P, Matrix& L, Matrix& U)
 //
 // A   = Q*R  -- CalcTranspose = 0
 // A^T = Q*R  -- CalcTranspose = 1
-void QR(Matrix const& A, Matrix& Q, Matrix& R, int const& CalcTranspose)
+void Matrix::QRPrivate(Matrix const& A, Matrix& Q, Matrix& R,
+                       int const& CalcTranspose)
 {
    int i, j, k, m, n;
    Matrix::Elm c, s, tau, A1, A2;
@@ -1095,8 +1096,8 @@ void BroydenQRUpdate(Matrix& Q, Matrix& R, Matrix const& y, Matrix const& x)
 //
 // A = U*W*V.Transpose();
 //
-Matrix::Elm SVD(Matrix const& A, Matrix& U, Matrix& W, Matrix& V,
-                Matrix::Elm const& MaxCond, int const& PrintFlag)
+Matrix::Elm Matrix::SVDPrivate(Matrix const& A, Matrix& U, Matrix& W, Matrix& V,
+                               Matrix::Elm const& MaxCond, int const& PrintFlag)
 {
    // Initialize U = A
    U.Resize(A.Rows_, A.Cols_);
@@ -1461,7 +1462,8 @@ Matrix::Elm SVD(Matrix const& A, Matrix& U, Matrix& W, Matrix& V,
    return ConditionNumber;
 }
 
-Matrix SymEigVal(Matrix A, Matrix* const B, int const& MaxItr, double const& Tol)
+Matrix Matrix::SymEigValPrivate(Matrix A, Matrix* const B, int const& MaxItr,
+                                double const& Tol)
 {
    int count = 0,
        converged = 0;
@@ -1685,8 +1687,8 @@ Matrix SolvePLU(Matrix const& P, Matrix const& L, Matrix const& U, Matrix const&
    return X;
 }
 
-Matrix SolveSVD(Matrix const& A, Matrix const& B,
-                Matrix::Elm const& MaxCond, int const& PrintFlag)
+Matrix Matrix::SolveSVDPrivate(Matrix const& A, Matrix const& B,
+                               Matrix::Elm const& MaxCond, int const& PrintFlag)
 {
    // SVD resizes U,W,V so don't bother now
    Matrix

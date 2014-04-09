@@ -153,7 +153,7 @@ public:
    }
    CMatrix Extract(int const& ii, int const& jj, int const& n) const;
    void AddInsert(CMatrix const& B, int const& ii, int const& jj);
-   void MultiplyBlock(double const& a, int const& ii, int const& jj, int const& n);   
+   void MultiplyBlock(double const& a, int const& ii, int const& jj, int const& n);
    void MultiplyBlock(MyComplexDouble const& a, int const& ii, int const& jj, int const& n);
 
 
@@ -186,19 +186,28 @@ public:
 
    // Note: Assumes A is HERMITIAN
    friend Matrix HermiteEigVal(CMatrix A, CMatrix* const B = 0,
-                               int const& MaxItr = 100, double const& Tol = 1.0e-13);
+                               int const& MaxItr = 100, double const& Tol = 1.0e-13)
+  {
+    return HermiteEigValPrivate(A, B, MaxItr, Tol);
+  }
 
    // QR decomposition
    //
    // A   = Q*R  -- CalcTranspose = 0
    // A^T = Q*R  -- CalcTranspose = 1
-   friend void QR(CMatrix const& A, CMatrix& Q, CMatrix& R, int const& CalcTranspose = 0);
+  friend void QR(CMatrix const& A, CMatrix& Q, CMatrix& R, int const& CalcTranspose = 0)
+  {
+    QRPrivate(A, Q, R, CalcTranspose);
+  }
 
    // Right Eigenvalues
    //
    // Find the right eigenvalues of a complex matrix using the QR algorithm
    friend CMatrix RightEigVals(CMatrix const& A, int const& MaxItr = 5000,
-                               double const& Tol = 1.0e-13);
+                               double const& Tol = 1.0e-13)
+  {
+    return RightEigValsPrivate(A, MaxItr, Tol);
+  }
 
    // Cholesky Decomposition of CMatrix
    // A=U.ConjTrans()*D*U
@@ -220,6 +229,15 @@ public:
    friend istream& operator>>(istream& in, CMatrix& A);
 
    static char* Revision();
+
+ private:
+  static Matrix HermiteEigValPrivate(CMatrix A, CMatrix* B, int const& MaxItr,
+                                     double const& Tol);
+  static void QRPrivate(CMatrix const& A, CMatrix& Q, CMatrix& R,
+                        int const& CalcTranspose);
+  static CMatrix RightEigValsPrivate(CMatrix const& A, int const& MaxItr,
+                                     double const& Tol);
+
 };
 
 #endif
