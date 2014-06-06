@@ -18,7 +18,9 @@ private:
    mutable Vector DOF_; // BFB degrees of freedom
    mutable Vector DOF_F_; // FEAP degrees of freedom
 
-
+   int * BoundNodes_;
+   int * PeriodicNodes_;
+   int * InnerNodes_;
  
    mutable Matrix Jacobian_; // d(DOF_F)/d(DOF_)
    int** Map_ ; // Represents the sparse 3D array d2(DOF_F)/d(DOF_)2

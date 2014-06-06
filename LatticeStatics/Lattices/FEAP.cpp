@@ -98,15 +98,44 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
    else
      {
        eps_ = Input.useDouble(1.0, Hash, "PhantomEnergyEpsilon");  // Default Value
+     }   
+     
+   if (Input.ParameterOK(Hash, "BoundNodes"))
+   {
+     BoundNodes_=new int[nbn_/2];
+     Input.getIntVector(BoundNodes_,nbn_/2,Hash,"BoundNodes");
+     for (int i = 0; i < nbn_/2; ++i)
+     {
+       BoundNodes_[i]=BoundNodes_[i]-1;
+//        cout << "BoundNodes_[" << i << "]=" <<BoundNodes_[i] << "\n";
      }
-
-
-
+   }
+   else
+   {
+      cout << "*Error: FEAP::lists of boundary nodes not found in input file.\n";
+      exit(-1);
+   }
+   
+   if (Input.ParameterOK(Hash, "PeriodicNodes"))
+   {
+     PeriodicNodes_=new int[nbn_/2];
+     Input.getIntVector(PeriodicNodes_,nbn_/2,Hash,"PeriodicNodes");
+     for (int i = 0; i < nbn_/2; ++i)
+     {
+       PeriodicNodes_[i]=PeriodicNodes_[i]-1;
+//        cout << "PeriodicNodes_[" << i << "]=" <<PeriodicNodes_[i] << "\n";
+     }
+   }
+   else
+   {
+      cout << "*Error: FEAP::lists of periodic nodes not found in input file.\n";
+      exit(-1);
+   }
 
    // Initialize FEAP, send input file name and get ndf, ndm, etc. back.
    int ffinlen = strlen(ffin_);
    bfbfeap_main_(ffin_, &ffinlen, &ndf_, &ndm_, &numnp_, &nel_, &nen1_, &neq_);
-
+   
    KDirection_.Resize(2,0.0);
    PerlInput::HashStruct TFHash = Input.getHash(Hash, "ExtraTestFunctions");
    const char* TFtyp = Input.getString(TFHash, "Type");
@@ -175,6 +204,7 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
              TFType_ = 2;
              NumExtraTFs_ = ndf_*(numnp_-nbn_/2)*(KSpaceResolution_ + 1);
              KDirection_.Resize(2,0.0);
+             KRange_.Resize(2,0.0);
 
              if (!(Input.ParameterOK(TFHash, "KSpaceResolution")))
              {
@@ -199,12 +229,10 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
 
              if (Input.ParameterOK(TFHash, "KRange"))
              {
-                KRange_.Resize(2,0.0);
                 Input.getVector(KRange_,TFHash,"KRange");
              }
              else
              {
-                KRange_.Resize(2,0.0);
                 KRange_[0]=0.0;
                 KRange_[1]=0.5;
                 cout << "*WARNING* KRange not specified. Using default value: KRange = [0.0,0.5] \n";
@@ -264,10 +292,13 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
 
    // set DOFS_
 
-   DOFS_ = ndf_ * ( numnp_ - nbn_ ) + ndm_ * (ndm_ + 1) / 2 + (nbn_ / 2) * ndf_;
+   DOFS_ = ndf_ * ( numnp_ - nbn_ / 2) + ndm_ * (ndm_ + 1) / 2;
    DOFS_F_ = ndf_ * numnp_;
-
-   CellArea_ = HexSize_ * sqrt(3.0) / 4.0;
+   
+   // new CellArea_
+   CellArea_ = HexSize_ * HexSize_ * 3.0 * sqrt(3.0) / 8.0;
+   // old CellArea_
+//    CellArea_ = HexSize_ * sqrt(3.0) / 4.0;
 
    cout << "ndf = " << ndf_ << " numnp = " << numnp_ << " ndm = " << ndm_ << " nbn = " << nbn_ << "\n";
    cout << "DOFS = " << DOFS_ << " DOFS_F = " << DOFS_F_ << "\n";
@@ -327,55 +358,103 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
 
    // Setup Map_ matrix (2D representation of 3D array d2(V)/d(U)2
    // The first pair (i,j) correspond to d2(Vk)/d(Ui)d(Uj) = 1.0, the second to 1/sqrt(2)
+   // the % symbol in a%b stands for the rest of the euclidian division of a by b
+   // mapping from FEAP dof to Lattice ones
+
+   
    Map_ = new int*[DOFS_F_];
    for (int i = 0; i < DOFS_F_; ++i)
    {
       Map_[i] = new int[4];
    }
-   for (int i = 0; i < nbn_; ++i)
+   
+   for (int i = 0; i < nbn_/2; ++i)
    {
-      Map_[i*ndf_][0] = 0;
-      Map_[i*ndf_][1] = 3+(i%(nbn_/2))*ndf_;
-      Map_[i*ndf_][2] = 2;
-      Map_[i*ndf_][3] = 4+(i%(nbn_/2))*ndf_;
-
-      Map_[i*ndf_+1][0] = 1;
-      Map_[i*ndf_+1][1] = 4+(i%(nbn_/2))*ndf_;
-      Map_[i*ndf_+1][2] = 2;
-      Map_[i*ndf_+1][3] = 3+(i%(nbn_/2))*ndf_;
-      if (ndf_>ndm_)
-      {
-      Map_[i*ndf_+2][0] = -1;
-      Map_[i*ndf_+2][1] = -1;
-      Map_[i*ndf_+2][2] = -1;
-      Map_[i*ndf_+2][3] = -1;
-      }
+     Map_[BoundNodes_[i]*ndf_][0] = 0;
+     Map_[BoundNodes_[i]*ndf_][1] = 3+(i%(nbn_/2))*ndf_;
+     Map_[BoundNodes_[i]*ndf_][2] = 2;
+     Map_[BoundNodes_[i]*ndf_][3] = 4+(i%(nbn_/2))*ndf_;
+     
+     Map_[BoundNodes_[i]*ndf_+1][0] = 1;
+     Map_[BoundNodes_[i]*ndf_+1][1] = 4+(i%(nbn_/2))*ndf_;
+     Map_[BoundNodes_[i]*ndf_+1][2] = 2;
+     Map_[BoundNodes_[i]*ndf_+1][3] = 3+(i%(nbn_/2))*ndf_;
+     if (ndf_>ndm_)
+     {
+       Map_[BoundNodes_[i]*ndf_+2][0] = -1;
+       Map_[BoundNodes_[i]*ndf_+2][1] = -1;
+       Map_[BoundNodes_[i]*ndf_+2][2] = -1;
+       Map_[BoundNodes_[i]*ndf_+2][3] = -1;
+     }
+   }
+   
+   for (int i = 0; i < nbn_/2; ++i)
+   {
+     Map_[PeriodicNodes_[i]*ndf_][0] = 0;
+     Map_[PeriodicNodes_[i]*ndf_][1] = 3+(i%(nbn_/2))*ndf_;
+     Map_[PeriodicNodes_[i]*ndf_][2] = 2;
+     Map_[PeriodicNodes_[i]*ndf_][3] = 4+(i%(nbn_/2))*ndf_;
+     
+     Map_[PeriodicNodes_[i]*ndf_+1][0] = 1;
+     Map_[PeriodicNodes_[i]*ndf_+1][1] = 4+(i%(nbn_/2))*ndf_;
+     Map_[PeriodicNodes_[i]*ndf_+1][2] = 2;
+     Map_[PeriodicNodes_[i]*ndf_+1][3] = 3+(i%(nbn_/2))*ndf_;
+     if (ndf_>ndm_)
+     {
+       Map_[PeriodicNodes_[i]*ndf_+2][0] = -1;
+       Map_[PeriodicNodes_[i]*ndf_+2][1] = -1;
+       Map_[PeriodicNodes_[i]*ndf_+2][2] = -1;
+       Map_[PeriodicNodes_[i]*ndf_+2][3] = -1;
+     }
+   }
+   
+   int l=-1;
+   InnerNodes_ = new int[numnp_-nbn_];
+   for (int i=0; i < numnp_; ++i)
+   {
+     l=l+1;
+     InnerNodes_[l]=i;
+//      cout << "InnerNodes_[" << l << "]=" <<InnerNodes_[l] << "\n";
+     for (int j=0; j < nbn_/2; ++j)
+     {
+       if ((i==BoundNodes_[j])||(i==PeriodicNodes_[j]))
+       {
+	 l=l-1;
+       }
+     }
    }
 
    int offst = ndm_ * (ndm_ +1) / 2 + nbn_ / 2 * ndf_;
    for (int i = nbn_; i < numnp_; ++i)
    {
-      Map_[i*ndf_][0]=0; 
-      Map_[i*ndf_][1]=offst + (i-nbn_)*ndf_; 
-      Map_[i*ndf_][2]=2; 
-      Map_[i*ndf_][3]=offst + (i-nbn_)*ndf_ +1;
+      Map_[InnerNodes_[i-nbn_]*ndf_][0]=0; 
+      Map_[InnerNodes_[i-nbn_]*ndf_][1]=offst + (i-nbn_)*ndf_; 
+      Map_[InnerNodes_[i-nbn_]*ndf_][2]=2; 
+      Map_[InnerNodes_[i-nbn_]*ndf_][3]=offst + (i-nbn_)*ndf_ +1;
  
-      Map_[i*ndf_+1][0]=1; 
-      Map_[i*ndf_+1][1]= offst + (i-nbn_)*ndf_ +1;
-      Map_[i*ndf_+1][2]=2; 
-      Map_[i*ndf_+1][3]=  offst + (i-nbn_)*ndf_;
+      Map_[InnerNodes_[i-nbn_]*ndf_+1][0]=1; 
+      Map_[InnerNodes_[i-nbn_]*ndf_+1][1]= offst + (i-nbn_)*ndf_ +1;
+      Map_[InnerNodes_[i-nbn_]*ndf_+1][2]=2; 
+      Map_[InnerNodes_[i-nbn_]*ndf_+1][3]=  offst + (i-nbn_)*ndf_;
 
       if (ndf_>ndm_)
       {
-      Map_[i*ndf_+2][0] = -1;
-      Map_[i*ndf_+2][1] = -1;
-      Map_[i*ndf_+2][2] = -1;
-      Map_[i*ndf_+2][3] = -1;
+      Map_[InnerNodes_[i-nbn_]*ndf_+2][0] = -1;
+      Map_[InnerNodes_[i-nbn_]*ndf_+2][1] = -1;
+      Map_[InnerNodes_[i-nbn_]*ndf_+2][2] = -1;
+      Map_[InnerNodes_[i-nbn_]*ndf_+2][3] = -1;
       }
-
    }
-
-
+   
+//    for (int i=0; i< numnp_*ndf_; ++i)
+//    {
+//      for (int j=0; j<4; ++j)
+//      {
+//        cout << "Map_[" << i << "][" << j << "]=" << Map_[i][j] << " "; 
+//      }
+//      cout << "\n";
+//    }
+//    cout << "\n";
 
    // set loadparameter to load (not temperature)
    LoadParameter_ = Load;
@@ -459,16 +538,16 @@ void FEAP::UpdateValues(UpdateFlag flag) const
    //Sum of S term for phantom energy term
    double S1 = 0.0;
    double S2 = 0.0;
-   for (int i = 0; i < nbn_/2; ++i)
+   for (int i = 0; i < (numnp_-nbn_/2); ++i)
    {
       S1 += DOF_[3+i*ndf_];
       S2 += DOF_[4+i*ndf_];
    }
-   for (int i = nbn_; i < numnp_; ++i)
-   {
-      S1 += DOF_[3+(nbn_/2)*ndf_+(i-nbn_)*ndf_];
-      S2 += DOF_[4+(nbn_/2)*ndf_+(i-nbn_)*ndf_];
-   }
+//    for (int i = nbn_; i < numnp_; ++i)
+//    {
+//       S1 += DOF_[3+(nbn_/2)*ndf_+(i-nbn_)*ndf_];
+//       S2 += DOF_[4+(nbn_/2)*ndf_+(i-nbn_)*ndf_];
+//    }
 
    if (NoStiffness == flag)
    {
@@ -584,9 +663,18 @@ void FEAP::UpdateValues(UpdateFlag flag) const
 void FEAP::UpdateDOF_F() const
 {
    int ii,jj;
-   for (int i=0; i< nbn_; ++i)
+   for (int i=0; i< nbn_/2; ++i)
    {
-      ii = i* ndf_;
+      ii = BoundNodes_[i]* ndf_;
+      jj = (i%(nbn_/2))*ndf_;
+      DOF_F_[ii]=DOF_[0]*(X_F_[ii] + DOF_[3+jj]) + DOF_[2]/sqrt(2.0)*(X_F_[ii+1] + DOF_[4+jj]);
+      DOF_F_[ii+1]=DOF_[1]*(X_F_[ii+1] + DOF_[4+jj]) + DOF_[2]/sqrt(2.0)*(X_F_[ii] + DOF_[3+jj]);
+      if (ndf_>ndm_)  //1 Extra dof : theta
+         DOF_F_[ii+2]=DOF_[5+jj];
+   }
+   for (int i=nbn_/2; i< nbn_; ++i)
+   {
+      ii = PeriodicNodes_[i-nbn_/2]* ndf_;
       jj = (i%(nbn_/2))*ndf_;
       DOF_F_[ii]=DOF_[0]*(X_F_[ii] + DOF_[3+jj]) + DOF_[2]/sqrt(2.0)*(X_F_[ii+1] + DOF_[4+jj]);
       DOF_F_[ii+1]=DOF_[1]*(X_F_[ii+1] + DOF_[4+jj]) + DOF_[2]/sqrt(2.0)*(X_F_[ii] + DOF_[3+jj]);
@@ -596,7 +684,7 @@ void FEAP::UpdateDOF_F() const
    int offst = ndm_ * (ndm_ +1) / 2 + nbn_ / 2 * ndf_;
    for (int i = nbn_; i < numnp_; ++i)
    {
-      ii = i* ndf_;
+      ii = InnerNodes_[i-nbn_]* ndf_;
       jj = offst+(i-nbn_)*ndf_;
       DOF_F_[ii]=DOF_[0]*(X_F_[ii]+DOF_[jj]) + DOF_[2]/sqrt(2.0)*(X_F_[ii+1]+DOF_[jj+1]);
       DOF_F_[ii+1]=DOF_[2]/sqrt(2.0)*(X_F_[ii]+DOF_[jj]) + DOF_[1]*(X_F_[ii+1]+DOF_[jj+1]);
@@ -610,9 +698,27 @@ void FEAP::UpdateDOF_F() const
 void FEAP::UpdateJacobian() const
 {
    int ii, jj;
-   for (int i = 0; i < nbn_; ++i)
+   for (int i = 0; i < nbn_/2; ++i)
    {
-      ii = i*ndf_;
+      ii = BoundNodes_[i]*ndf_;
+      jj = (i%(nbn_/2))*ndf_;
+      Jacobian_[ii][0] = X_F_[ii] + DOF_[3+jj];
+      Jacobian_[ii][2] = 1.0/sqrt(2.0)*(X_F_[ii+1] + DOF_[4+jj]);
+      Jacobian_[ii][3+jj]=DOF_[0];
+      Jacobian_[ii][4+jj]=DOF_[2]/sqrt(2.0);
+      
+      Jacobian_[ii+1][1] = X_F_[ii+1] + DOF_[4+jj];
+      Jacobian_[ii+1][2] = 1.0/sqrt(2.0)*(X_F_[ii] + DOF_[3+jj]);
+      Jacobian_[ii+1][3+jj]=DOF_[2]/sqrt(2.0);
+      Jacobian_[ii+1][4+jj]=DOF_[1];
+
+      if (ndf_>ndm_)
+         Jacobian_[ii+2][5+jj]=1.0;
+   }
+   
+   for (int i = nbn_/2; i < nbn_; ++i)
+   {
+      ii = PeriodicNodes_[i-nbn_/2]*ndf_;
       jj = (i%(nbn_/2))*ndf_;
       Jacobian_[ii][0] = X_F_[ii] + DOF_[3+jj];
       Jacobian_[ii][2] = 1.0/sqrt(2.0)*(X_F_[ii+1] + DOF_[4+jj]);
@@ -631,7 +737,7 @@ void FEAP::UpdateJacobian() const
    int offst = ndm_ * (ndm_ +1) / 2 + nbn_ / 2 * ndf_;
    for (int i = nbn_; i < numnp_; ++i)
    {
-      ii = i*ndf_;
+      ii = InnerNodes_[i-nbn_]*ndf_;
       jj = offst+(i-nbn_)*ndf_;
       Jacobian_[ii][0] = X_F_[ii]+DOF_[jj];
       Jacobian_[ii][2] = 1.0/sqrt(2.0)*(X_F_[ii+1]+DOF_[jj+1]);
@@ -750,7 +856,7 @@ int FEAP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vector
                      cout << "Tangent => [";
                      for (int l = 0; l < ndf_*(numnp_-nbn_/2); ++l)
                 
-     {
+		    {
                          if ((fabs(sin(K_[0])) < 1.0e-5) && (fabs(sin(K_[1])) < 1.0e-5))
                          {
                             cout << EigVec[l][Ind[k]].real() << ", ";
@@ -905,13 +1011,13 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
       {
          K_[0] = 2*pi*(KRange_[0] + (KRange_[1] - KRange_[0])*(((double) i)/((double) KSpaceResolution_)))* KDirection_[0];
          K_[1] = 2*pi*(KRange_[0] + (KRange_[1] - KRange_[0])*(((double) i)/((double) KSpaceResolution_)))* KDirection_[1];
-        
+              
          DynamicalMatrixBis(K_);
          Matrix DkEigVal = HermiteEigVal(Dk_);
          double min = DkEigVal.MinElement();
          int foundmin=0;
 
-         for (int  l=0; l < ndf_*(numnp_-nbn_/2); ++i)
+         for (int  l=0; l < ndf_*(numnp_-nbn_/2); ++l)
          {
             int NumZeroEig = 0;
             if ((K_[0]==0.0) && (K_[1]==0.0) && NumZeroEig < 2 && (fabs(DkEigVal[0][l] < 1.0e-10)))
@@ -939,6 +1045,8 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
                          << setw(Width_) << DkEigVal.MinElement() << "\n";
 
       }
+      bloch_wave_out_ << "\n" << "\n";
+      bloch_count_++;
    }
    else if (TFType_ == 3)
    {
@@ -1065,7 +1173,7 @@ Matrix const& FEAP::StiffnessDL() const
    }
    return stiffdl_static;
       // ajout ///////////////////////////////////////////////////////////////////
-   cout << "StiffnessDL= " << StiffnessDL();
+   //cout << "StiffnessDL= " << setw(W) << StiffnessDL();
       // ajout ///////////////////////////////////////////////////////////////////
 }
 
@@ -1076,9 +1184,12 @@ void FEAP::print_gpl_config(fstream& out) const
        << " ##########" << endl;
    for (int i=0;i<nel_;++i)
    {
+     if (ndf_>ndm_)
+     {
       // node numbers for element i (-1 for zero-based values)
       int n1 = elmConn_[i*nen1_+0] - 1;
       int n2 = elmConn_[i*nen1_+1] - 1;
+
       out << setw(Width_) << X_[n1*ndm_+0] + DOF_F_[n1*ndf_+0]
           << setw(Width_) << X_[n1*ndm_+1] + DOF_F_[n1*ndf_+1]
           << setw(Width_) << DOF_F_[n1*ndf_+2]
@@ -1088,12 +1199,42 @@ void FEAP::print_gpl_config(fstream& out) const
           << setw(Width_) << DOF_F_[n2*ndf_+2]
           << "\t" << "# Element " << i+1 << ": Node " << n2+1
           << endl << endl;
+    }
+    else
+    {
+      // node numbers for element i (-1 for zero-based values)
+      int n1 = elmConn_[i*nen1_+0] - 1;
+      int n2 = elmConn_[i*nen1_+1] - 1;
+      int n3 = elmConn_[i*nen1_+2] - 1;
+      int n4 = elmConn_[i*nen1_+3] - 1;
+      out << setw(Width_) << X_[n1*ndm_+0] + DOF_F_[n1*ndf_+0]
+          << setw(Width_) << X_[n1*ndm_+1] + DOF_F_[n1*ndf_+1]
+          << setw(Width_) << DOF_F_[n1*ndf_+2]
+          << "\t" << "# Element " << i+1 << ": Node " << n1+1 << endl;
+      out << setw(Width_) << X_[n2*ndm_+0] + DOF_F_[n2*ndf_+0]
+          << setw(Width_) << X_[n2*ndm_+1] + DOF_F_[n2*ndf_+1]
+          << setw(Width_) << DOF_F_[n2*ndf_+2]
+          << "\t" << "# Element " << i+1 << ": Node " << n2+1 << endl;
+      out << setw(Width_) << X_[n3*ndm_+0] + DOF_F_[n3*ndf_+0]
+          << setw(Width_) << X_[n3*ndm_+1] + DOF_F_[n3*ndf_+1]
+          << setw(Width_) << DOF_F_[n3*ndf_+2]
+          << "\t" << "# Element " << i+1 << ": Node " << n3+1 << endl;
+      out << setw(Width_) << X_[n4*ndm_+0] + DOF_F_[n4*ndf_+0]
+          << setw(Width_) << X_[n4*ndm_+1] + DOF_F_[n4*ndf_+1]
+          << setw(Width_) << DOF_F_[n4*ndf_+2]
+          << "\t" << "# Element " << i+1 << ": Node " << n4+1 << endl;
+      out << setw(Width_) << X_[n1*ndm_+0] + DOF_F_[n1*ndf_+0]
+          << setw(Width_) << X_[n1*ndm_+1] + DOF_F_[n1*ndf_+1]
+          << setw(Width_) << DOF_F_[n1*ndf_+2]
+          << "\t" << "# Element " << i+1 << ": Node " << n1+1
+          << endl << endl;
+    }
    }
    out << endl;
 
    ++config_count_;
 }
-
+/*
 void FEAP::DynamicalMatrix(Vector const& K) const
 {
 
@@ -1190,7 +1331,7 @@ void FEAP::DynamicalMatrix(Vector const& K) const
    }
 
    return;
-}
+}*/
 
 void FEAP::DynamicalMatrixBis(Vector const& K) const
 {
@@ -1238,20 +1379,19 @@ void FEAP::DynamicalMatrixBis(Vector const& K) const
       {
           if (N_[i][2+2*j]>0)
           {
-             Dk_.MultiplyBlock(exp( (K*R) * Ic ) , ndf_*(N_[i][2+2*j]-1-nbn_/2), ndf_*(N_[i][3+2*j]-1),ndf_);
-             Dk_.MultiplyBlock(exp(-(K*R) * Ic ), ndf_*(N_[i][3+2*j]-1), ndf_*(N_[i][2+2*j]-1-nbn_/2),ndf_);
+             Dk_.MultiplyBlock(exp( (K*R) * Ic ) , Map_[ndf_*(N_[i][2+2*j]-1)][1]-3, Map_[ndf_*(N_[i][3+2*j]-1)][1]-3,ndf_);
+             Dk_.MultiplyBlock(exp(-(K*R) * Ic ) , Map_[ndf_*(N_[i][3+2*j]-1)][1]-3, Map_[ndf_*(N_[i][2+2*j]-1)][1]-3,ndf_);
           }
           if (j<N_cols_/2-2 && (N_cols_/2-1>1) && ndf_==2)
           {
-             Dk_.MultiplyBlock(exp( (K*R) * Ic ) , ndf_*(N_[i][2+2*(j+1)]-1-nbn_/2), ndf_*(N_[i][3+2*j]-1),ndf_);
-             Dk_.MultiplyBlock(exp(-(K*R) * Ic ), ndf_*(N_[i][3+2*j]-1), ndf_*(N_[i][2+2*(j+1)]-1-nbn_/2),ndf_);
+             Dk_.MultiplyBlock(exp( (K*R) * Ic ) , Map_[ndf_*(N_[i][2+2*(j+1)]-1)][1]-3, Map_[ndf_*(N_[i][3+2*j]-1)][1]-3,ndf_);
+             Dk_.MultiplyBlock(exp(-(K*R) * Ic ) , Map_[ndf_*(N_[i][3+2*j]-1)][1]-3, Map_[ndf_*(N_[i][2+2*(j+1)]-1)][1]-3,ndf_);
           }
           if (j>0 && (N_cols_/2-1>1) && N_[i][2+2*j]>0 && ndf_==2)
           {
-             Dk_.MultiplyBlock(exp( (K*R) * Ic ) , ndf_*(N_[i][2+2*(j-1)]-1-nbn_/2), ndf_*(N_[i][3+2*j]-1),ndf_);
-             Dk_.MultiplyBlock(exp(-(K*R) * Ic ), ndf_*(N_[i][3+2*j]-1), ndf_*(N_[i][2+2*(j-1)]-1-nbn_/2),ndf_);
+             Dk_.MultiplyBlock(exp( (K*R) * Ic ) , Map_[ndf_*(N_[i][2+2*(j-1)]-1)][1]-3, Map_[ndf_*(N_[i][3+2*j]-1)][1]-3,ndf_);
+             Dk_.MultiplyBlock(exp(-(K*R) * Ic ) , Map_[ndf_*(N_[i][3+2*j]-1)][1]-3, Map_[ndf_*(N_[i][2+2*(j-1)]-1)][1]-3,ndf_);
           }
-
 
        }
    }
@@ -1336,12 +1476,14 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
              << "DOF Norm: " << setw(W) << DOF_.Norm() << "\n"
              << "Potential Value: " << setw(W) << engy << "\n"
              << "Force Norm: " << setw(W) << E1norm << "\n";
-
-
+      // ajout ///////////////////////////////////////////////////////////////////
+      //  out << "StiffnessDL= " << setw(W) << StiffnessDL() << "\n";
+      // ajout ///////////////////////////////////////////////////////////////////
 
          out << "Bifurcation Info: ";
          for (int i=0;i<minprint; ++i) out << setw(W) << mintestfunct[i];
          out << setw(W) << NoNegTestFunctions << "\n";
+	 
          // send to cout also
          if (Echo_)
          {
@@ -1350,7 +1492,11 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
                  << "DOF Norm: " << setw(W) << DOF_.Norm() << "\n"
                  << "Potential Value: " << setw(W) << engy << "\n"
                  << "Force Norm: " << setw(W) << E1norm << "\n";
-              
+/*       //ajout ///////////////////////////////////////////////////////////////////
+          cout << "StiffnessDL= " << setw(W) << E2() << "\n";
+          cout << "nodal_coord= " << setw(W) << X_ << "\n";
+       //ajout ///////////////////////////////////////////////////////////////////
+       // */       
             cout << "Bifurcation Info: ";
             for (int i=0;i<minprint; ++i) cout << setw(W) << mintestfunct[i];
             cout << setw(W) << NoNegTestFunctions << "\n";
