@@ -26,6 +26,7 @@ private:
    int** Map_ ; // Represents the sparse 3D array d2(DOF_F)/d(DOF_)2
    
    mutable double Lambda_;
+   mutable bool PressureLoading_; // true if using pressure loading
    mutable Matrix Load_; //First Piola-Kirchoff stress tensor
    mutable Matrix U_; //Right stretch tensor
 

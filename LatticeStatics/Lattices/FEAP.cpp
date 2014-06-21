@@ -326,13 +326,14 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
 
    if (Input.ParameterOK(Hash,"FirstPKstress"))
    {
+      PressureLoading_ = false;
       Load_.Resize(2,2,0.0);
       Input.getMatrix(Load_,Hash,"FirstPKstress");
    }
    else
    {
-      cout << "*Error: FEAP::FirstPKstress not found in input file.\n";
-      exit(-1);
+      // using pressure loading
+      PressureLoading_ = true;
    }
 
    // setup remaining variables
@@ -549,114 +550,116 @@ void FEAP::UpdateValues(UpdateFlag flag) const
 //       S2 += DOF_[4+(nbn_/2)*ndf_+(i-nbn_)*ndf_];
 //    }
 
-   if (NoStiffness == flag)
+   switch (flag)
    {
-      bfbfeap_call_ener_(); // needs a "TPLOt" and "ENER" command in FEAP input file to work
-      bfbfeap_get_potential_energy_(&(E0CachedValue_));
-      E0CachedValue_ += -Lambda_ * (Load_ * U_).Trace() * nuc_ * CellArea_ + 1.0/eps_*(S1*S1 + S2*S2);
+     case NeedStiffness:
+       //E1DLoad
+       if (PressureLoading_)
+       {
+         E1DLoadCachedValue_[0] = -DOF_[1] * nuc_ * CellArea_;
+         E1DLoadCachedValue_[1] = -DOF_[0] * nuc_ * CellArea_;
+         E1DLoadCachedValue_[2] = -DOF_[2] * nuc_ * CellArea_;
+       }
+       else
+       {
+         E1DLoadCachedValue_[0] = -Load_[0][0]* nuc_ * CellArea_;
+         E1DLoadCachedValue_[1] = -Load_[1][1]* nuc_ * CellArea_;
+         E1DLoadCachedValue_[2] = -sqrt(2.0)/2.0*(Load_[1][0]+Load_[0][1])* nuc_ * CellArea_;
+       }
 
-      bfbfeap_call_form_();
-      bfbfeap_get_reduced_residual_(&(E1CachedValue_F_[0]));
+       //E2
+       bfbfeap_call_tang_();
+       bfbfeap_get_reduced_tang_(&(E2CachedValue_F_[0][0]));
 
-      // FEAP returns -E1, so fix it.
-      for (int i = 0; i < E1CachedValue_F_.Dim(); ++i)
-      {
-         E1CachedValue_F_[i] = -E1CachedValue_F_[i];
-      }
-      E1CachedValue_ = Jacobian_.Transpose() * E1CachedValue_F_;
+       E2CachedValue_ = Jacobian_.Transpose() * E2CachedValue_F_ * Jacobian_;
 
-      E1CachedValue_[0] += -Lambda_ * Load_[0][0] * nuc_ * CellArea_;
-      E1CachedValue_[1] += -Lambda_ * Load_[1][1] * nuc_ * CellArea_;
-      E1CachedValue_[2] += -sqrt(2.0)/2.0*Lambda_ * (Load_[1][0]+Load_[0][1]) * nuc_ * CellArea_; 
-  
-      for (int i = 0; i < (numnp_-nbn_/2); ++i)
-      {
-         E1CachedValue_[3+i*ndf_] += 2.0/eps_*S1;
-         E1CachedValue_[4+i*ndf_] += 2.0/eps_*S2;
-      }
-
-
-      Cached_[0] = 1;
-      Cached_[1] = 1;
-      EvaluationCount_[0]++;
-   }
-   else if (NeedStiffness == flag)
-   {
-
-      bfbfeap_call_ener_();
-      bfbfeap_get_potential_energy_(&(E0CachedValue_));
-
-      E0CachedValue_ += -Lambda_ * (Load_ * U_).Trace() * nuc_ * CellArea_ + 1.0/eps_*(S1*S1 + S2*S2);
-
-      bfbfeap_call_form_();
-      bfbfeap_get_reduced_residual_(&(E1CachedValue_F_[0]));
-
-
-      // FEAP returns -E1, so fix it.
-      for (int i = 0; i < E1CachedValue_F_.Dim(); ++i)
-      {
-         E1CachedValue_F_[i] = -E1CachedValue_F_[i];
-      }
-      E1CachedValue_ = Jacobian_.Transpose() * E1CachedValue_F_;
-
-      E1CachedValue_[0] += -Lambda_ * Load_[0][0] * nuc_ * CellArea_;
-      E1CachedValue_[1] += -Lambda_ * Load_[1][1] * nuc_ * CellArea_;
-      E1CachedValue_[2] += -sqrt(2.0)/2.0*Lambda_ * (Load_[1][0]+Load_[0][1]) * nuc_ * CellArea_; 
-
-      for (int i = 0; i < (numnp_-nbn_/2); ++i)
-      {
-         E1CachedValue_[3+i*ndf_] += 2.0/eps_*S1;
-         E1CachedValue_[4+i*ndf_] += 2.0/eps_*S2;
-      }
-
-      //E1DLoad 
-
-      E1DLoadCachedValue_[0] = -Load_[0][0]* nuc_ * CellArea_;
-      E1DLoadCachedValue_[1] = -Load_[1][1]* nuc_ * CellArea_;
-      E1DLoadCachedValue_[2] = -sqrt(2.0)/2.0*(Load_[1][0]+Load_[0][1])* nuc_ * CellArea_;
-
-
-      //E2
-
-      bfbfeap_call_tang_();
-      bfbfeap_get_reduced_tang_(&(E2CachedValue_F_[0][0]));
-      
-
-      E2CachedValue_ = Jacobian_.Transpose() * E2CachedValue_F_ * Jacobian_;
-
-      for (int i = 0; i < DOFS_; ++i)
-      {
+       for (int i = 0; i < DOFS_; ++i)
+       {
          for (int j = 0; j < DOFS_; ++j)
          {
-            for (int k = 0; k < DOFS_F_; ++k)
-            {
-               if ((Map_[k][0]==i && Map_[k][1]==j)) //||(Map_[k][0]==j && Map_[k][1]==i))
-                  E2CachedValue_[i][j] += E1CachedValue_F_[k];
-               if ((Map_[k][2]==i && Map_[k][3]==j)) //||(Map_[k][2]==j && Map_[k][3]==i))
-                  E2CachedValue_[i][j] += E1CachedValue_F_[k] / sqrt(2.0);
-            }
+           for (int k = 0; k < DOFS_F_; ++k)
+           {
+             if ((Map_[k][0]==i && Map_[k][1]==j)) //||(Map_[k][0]==j && Map_[k][1]==i))
+               E2CachedValue_[i][j] += E1CachedValue_F_[k];
+             if ((Map_[k][2]==i && Map_[k][3]==j)) //||(Map_[k][2]==j && Map_[k][3]==i))
+               E2CachedValue_[i][j] += E1CachedValue_F_[k] / sqrt(2.0);
+           }
          }
-      }
-      // Phantom Energy Term for E2
-      for (int i = 0; i < (numnp_-nbn_/2); ++i)
-      {
+       }
+       // Phantom Energy Term for E2
+       for (int i = 0; i < (numnp_-nbn_/2); ++i)
+       {
          for (int j = 0; j < (numnp_-nbn_/2); ++j)
          {
-               E2CachedValue_[3+i*ndf_][3+j*ndf_] += 2.0/eps_;
-               E2CachedValue_[4+i*ndf_][4+j*ndf_] += 2.0/eps_;
+           E2CachedValue_[3+i*ndf_][3+j*ndf_] += 2.0/eps_;
+           E2CachedValue_[4+i*ndf_][4+j*ndf_] += 2.0/eps_;
          }
-      }
+       }
+       // Loading term for E2
+       if (PressureLoading_)
+       {
+         E2CachedValue_[0][1] -= Lambda_ * nuc_ * CellArea_;
+         E2CachedValue_[1][0] -= Lambda_ * nuc_ * CellArea_;
+         E2CachedValue_[2][2] -= Lambda_ * nuc_ * CellArea_;
+       }
 
-      Cached_[0] = 1;
-      Cached_[1] = 1;
-      Cached_[2] = 1;
-      Cached_[3] = 1;
-      EvaluationCount_[1]++;
-   }
-   else
-   {
-      cerr << "Error in FEAP::UpdateValues(), unknown UpdateFlag.\n";
-      exit(-45);
+       Cached_[2] = 1;
+       Cached_[3] = 1;
+       EvaluationCount_[1]++;
+
+       // Drop through to compute forces and energy too.
+
+     case NoStiffness:
+       bfbfeap_call_ener_(); // needs a "TPLOt" and "ENER" command in FEAP input file to work
+       bfbfeap_get_potential_energy_(&(E0CachedValue_));
+       if (PressureLoading_)
+       {
+         E0CachedValue_ += -Lambda_ * ((DOF_[0]*DOF_[1] - 0.5*DOF_[2]*DOF_[2]) - 1.0) * nuc_ * CellArea_;
+       }
+       else
+       {
+         E0CachedValue_ += -Lambda_ * (Load_ * U_).Trace() * nuc_ * CellArea_;
+       }
+
+       E0CachedValue_ += 1.0/eps_*(S1*S1 + S2*S2);
+
+       bfbfeap_call_form_();
+       bfbfeap_get_reduced_residual_(&(E1CachedValue_F_[0]));
+
+       // FEAP returns -E1, so fix it.
+       for (int i = 0; i < E1CachedValue_F_.Dim(); ++i)
+       {
+         E1CachedValue_F_[i] = -E1CachedValue_F_[i];
+       }
+       E1CachedValue_ = Jacobian_.Transpose() * E1CachedValue_F_;
+
+       if (PressureLoading_)
+       {
+         E1CachedValue_[0] += -Lambda_ * DOF_[1] * nuc_ * CellArea_;
+         E1CachedValue_[1] += -Lambda_ * DOF_[0] * nuc_ * CellArea_;
+         E1CachedValue_[2] += -Lambda_ * DOF_[2] * nuc_ * CellArea_;
+       }
+       else
+       {
+         E1CachedValue_[0] += -Lambda_ * Load_[0][0] * nuc_ * CellArea_;
+         E1CachedValue_[1] += -Lambda_ * Load_[1][1] * nuc_ * CellArea_;
+         E1CachedValue_[2] += -sqrt(2.0)/2.0*Lambda_ * (Load_[1][0]+Load_[0][1]) * nuc_ * CellArea_;
+       }
+
+       for (int i = 0; i < (numnp_-nbn_/2); ++i)
+       {
+         E1CachedValue_[3+i*ndf_] += 2.0/eps_*S1;
+         E1CachedValue_[4+i*ndf_] += 2.0/eps_*S2;
+       }
+
+       Cached_[0] = 1;
+       Cached_[1] = 1;
+       EvaluationCount_[0]++;
+
+       break;
+     default:
+       cerr << "Error in FEAP::UpdateValues(), unknown UpdateFlag.\n";
+       exit(-45);
    }
 }
 
@@ -1464,10 +1467,26 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
    {
       case PrintLong:
          out << "FEAP:" << "\n" << "\n";
+         if (PressureLoading_)
+         {
+           out << "Using: In-plane Pressure loading.\n";
+         }
+         else
+         {
+           out << "Using: In-plane Dead loading.\n";
+         }
 
          if (Echo_)
          {
             cout << "FEAP:" << "\n" << "\n";
+            if (PressureLoading_)
+            {
+              out << "Using: In-plane Pressure loading.\n";
+            }
+            else
+            {
+              out << "Using: In-plane Dead loading.\n";
+            }
          }
       // passthrough to short
       case PrintShort:
