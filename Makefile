@@ -29,6 +29,14 @@ export ANSI
 export SOLVE
 export TERMINAL
 
+#USE_KIM  = -DUSE_KIM
+#USE_FEAP = -DUSE_FEAP
+#USE_QC   = -DUSE_QC
+
+export USE_KIM
+export USE_FEAP
+export USE_QC
+
 .PHONY: all install clean
 
 all: 

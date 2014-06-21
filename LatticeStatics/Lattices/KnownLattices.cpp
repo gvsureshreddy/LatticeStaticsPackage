@@ -10,10 +10,12 @@ Lattice* const InitializeLattice(PerlInput& Input, int const& Echo, int const& W
    {
       return new MultiLatticeTPP(Input, Echo, Width, Debug);
    }
+#ifdef USE_KIM
    else if (!strcmp("MultiLatticeKIM", Lat))
    {
       return new MultiLatticeKIM(Input, Echo, Width, Debug);
    }
+#endif
    else if (!strcmp("MultiChainTPP", Lat))
    {
       return new MultiChainTPP(Input, Echo, Width, Debug);
@@ -58,14 +60,18 @@ Lattice* const InitializeLattice(PerlInput& Input, int const& Echo, int const& W
    {
       return new DFTExternalOld(Input, Echo, Width);
    }
+#ifdef USE_QC
    else if (!strcmp("QC", Lat))
    {
       return new QC(Input, Echo, Width);
    }
+#endif
+#ifdef USE_FEAP
    else if (!strcmp("FEAP", Lat))
    {
       return new FEAP(Input, Echo, Width);
    }
+#endif
    else
    {
       cerr << "Unknown Lattice Type " << "\n";
