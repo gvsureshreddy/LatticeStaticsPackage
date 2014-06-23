@@ -13,7 +13,7 @@ class FEAP : public Lattice
 {
 private:
    mutable int DOFS_; // BFB number of degrees of freedom
-   mutable int DOFS_F_; // FEAP number of degrees of freedom 
+   mutable int DOFS_F_; // FEAP number of degrees of freedom
 
    mutable Vector DOF_; // BFB degrees of freedom
    mutable Vector DOF_F_; // FEAP degrees of freedom
@@ -21,11 +21,12 @@ private:
    int * BoundNodes_;
    int * PeriodicNodes_;
    int * InnerNodes_;
- 
+
    mutable Matrix Jacobian_; // d(DOF_F)/d(DOF_)
    int** Map_ ; // Represents the sparse 3D array d2(DOF_F)/d(DOF_)2
-   
+
    mutable double Lambda_;
+   mutable bool PressureLoading_; // true if using pressure loading
    mutable Matrix Load_; //First Piola-Kirchoff stress tensor
    mutable Matrix U_; //Right stretch tensor
 
@@ -35,18 +36,18 @@ private:
    int N_rows_;
    int N_cols_;
    mutable Vector K_; // Bloch wave vector
-   mutable Vector KDirection_; //Direction for 
+   mutable Vector KDirection_; //Direction for
 
    mutable CMatrix Dk_; //Dynamical matrix (Bloch-wave stiffness matrix)
 
-   int KSpaceResolution_; //Used in Bloch wave analysis, when AnalysisType => Full or KDirection 
+   int KSpaceResolution_; //Used in Bloch wave analysis, when AnalysisType => Full or KDirection
    Vector KRange_; //Range of KVectors when AnalysisType => KDirection
    int NumKVectors_;
    Matrix KVectorMatrix_;//KVectors when AnalysisType => KVectors
    double TFLoad_;//Load when ExtraTestFunctions => LoadingParameter
    int TFType_;
    void DynamicalMatrix(Vector const& K) const; //Dynamical Matrix, uses the FEAP stiffness matrix
-   void DynamicalMatrixBis(Vector const& K) const; //Dynamical Matrix, uses the BFB stiffness matrix 
+   void DynamicalMatrixBis(Vector const& K) const; //Dynamical Matrix, uses the BFB stiffness matrix
 
 
    char const* ffin_; // FEAP input file name

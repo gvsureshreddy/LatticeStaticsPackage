@@ -14,6 +14,4 @@ LATTICES = KnownLattices.cpp\
 	   DFTExternal.cpp\
 	   DFTExternalOld.cpp\
 	   QC.cpp\
-	   QC-stub.cpp\
-	   FEAP.cpp\
-	   FEAP-stub.cpp
+	   FEAP.cpp

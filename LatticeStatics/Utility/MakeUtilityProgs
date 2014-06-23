@@ -40,19 +40,36 @@ endif
 TERMINAL   = -DUNIX_TERMINAL
 DATE_DEF   = -DBUILD_DATE="$(BUILD_DATE)"
 #SOLVE      = -DSOLVE_SVD
+
+# Lattice include options (comment out to exclude the Lattice type)
+#USE_KIM  = -DUSE_KIM
+#USE_FEAP = -DUSE_FEAP
+#USE_QC   = -DUSE_QC
+
+# various compile options
 CC_PERL     = `perl -MExtUtils::Embed -e ccopts | sed -e 's/-arch[^-]*//g' | sed -e 's/-Wdeclaration-after-statement//g'`
 CC_KIM     = -I../Potentials/openkim-api-latest/KIM_API
 CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS) $(SOLVE) $(TERMINAL) $(CC_PERL) $(CC_KIM)
 LIBS_PERL   = `perl -MExtUtils::Embed -e ldopts | sed -e 's/-arch[^-]*//g' | sed -e 's/-Wdeclaration-after-statement//g'`
-FEAP_OK := $(shell if test -e $(FEAPHOME8_3)/Feap8_3.a; then echo YES; else echo NO; fi)
-ifeq (YES,$(strip $(FEAP_OK)))
+ifneq (,$(strip $(USE_FEAP)))
+  ifeq (NO,$(strip $(FEAP_OK)))
+    $(error You must set the environment variable FEAPHOME8_3 and compile the library)
+  endif
   LIBS_FEAP = $(FEAPHOME8_3)/Feap8_3.a -lgfortran -L/usr/X11R6/lib -lX11
 else
   LIBS_FEAP = 
 endif
-LIBS_KIM   = -L../Potentials/openkim-api-latest/KIM_API
-LIBS       = -lLinearAlgebra -lMyMath -lm $(LIBS_FEAP) -lkim -lgfortran
-LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(DATE_DEF) $(LIBS_PERL) $(LIBS_KIM)
+KIM_OK := $(shell if test -e ../Potentials/openkim-api-latest/KIM_API/libkim.so; then echo YES; else echo NO; fi)
+ifneq (,$(strip $(USE_KIM)))
+  ifeq (NO,$(strip $(KIM_OK)))
+    $(error You must compile the openkim-api library)
+  endif
+  LIBS_KIM = -L../Potentials/openkim-api-latest/KIM_API -lkim
+else
+  LIBS_KIM =
+endif
+LIBS       = -lLinearAlgebra -lMyMath -lm $(LIBS_FEAP) $(LIBS_KIM) -lgfortran
+LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(DATE_DEF) $(LIBS_PERL)
 
 
 # File Locations ##########################################################
@@ -64,8 +81,14 @@ SUBDIRS = ../Lattices ../Restrictions ../Potentials
 # Defines the source files needed #########################################
 include Makefile
 include ../Lattices/Makefile
-ifeq (YES,$(FEAP_OK))
-  LATTICES := $(filter-out FEAP-stub.cpp,$(LATTICES))
+ifeq (,$(strip $(USE_FEAP)))
+  LATTICES := $(filter-out FEAP.cpp,$(LATTICES))
+endif
+ifeq (,$(strip $(USE_KIM)))
+  LATTICES := $(filter-out MultiLatticeKIM.cpp,$(LATTICES))
+endif
+ifeq (,$(strip $(USE_QC)))
+  LATTICES := $(filter-out QC.cpp,$(LATTICES))
 endif
 include ../Restrictions/Makefile
 include ../Potentials/Makefile
@@ -229,6 +252,7 @@ include $(addprefix depend/,$(TWOBARTRUSSOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 
 $(filter-out PerlInput.o, $(ALLOBJECTS)): Makefile MakeUtilityProgs
 	$(CC) $(CCFLAGS) -I. $(addprefix -I ,$(SUBDIRS)) -I $(INCL_LOC)/ \
+        $(USE_FEAP) $(USE_KIM) $(USE_QC) \
         -o ./lib/$(notdir $@) \
         -c $(filter %/$(*),$(basename $(ALLSOURCES)))$(SRC_EXT)
 

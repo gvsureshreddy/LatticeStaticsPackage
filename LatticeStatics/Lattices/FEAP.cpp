@@ -98,8 +98,8 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
    else
      {
        eps_ = Input.useDouble(1.0, Hash, "PhantomEnergyEpsilon");  // Default Value
-     }   
-     
+     }
+
    if (Input.ParameterOK(Hash, "BoundNodes"))
    {
      BoundNodes_=new int[nbn_/2];
@@ -115,7 +115,7 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
       cout << "*Error: FEAP::lists of boundary nodes not found in input file.\n";
       exit(-1);
    }
-   
+
    if (Input.ParameterOK(Hash, "PeriodicNodes"))
    {
      PeriodicNodes_=new int[nbn_/2];
@@ -135,7 +135,7 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
    // Initialize FEAP, send input file name and get ndf, ndm, etc. back.
    int ffinlen = strlen(ffin_);
    bfbfeap_main_(ffin_, &ffinlen, &ndf_, &ndm_, &numnp_, &nel_, &nen1_, &neq_);
-   
+
    KDirection_.Resize(2,0.0);
    PerlInput::HashStruct TFHash = Input.getHash(Hash, "ExtraTestFunctions");
    const char* TFtyp = Input.getString(TFHash, "Type");
@@ -209,7 +209,7 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
              if (!(Input.ParameterOK(TFHash, "KSpaceResolution")))
              {
                 cout << "*WARNING* KSpaceResolution not specified. Using default value: KSpaceResolution = 6 \n";
-             } 
+             }
 
              if (Input.ParameterOK(TFHash, "KDirection"))
              {
@@ -253,7 +253,7 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
    {
       TFType_ = 4;
       NumExtraTFs_ = 1;
-      
+
       TFLoad_=  Input.getDouble(TFHash,"LoadingParameter");
    }
    else
@@ -288,7 +288,7 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
 
    DOFS_ = ndf_ * ( numnp_ - nbn_ / 2) + ndm_ * (ndm_ + 1) / 2;
    DOFS_F_ = ndf_ * numnp_;
-   
+
    // new CellArea_
    CellArea_ = HexSize_ * HexSize_ * 3.0 * sqrt(3.0) / 8.0;
    // old CellArea_
@@ -320,13 +320,14 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
 
    if (Input.ParameterOK(Hash,"FirstPKstress"))
    {
+      PressureLoading_ = false;
       Load_.Resize(2,2,0.0);
       Input.getMatrix(Load_,Hash,"FirstPKstress");
    }
    else
    {
-      cout << "*Error: FEAP::FirstPKstress not found in input file.\n";
-      exit(-1);
+      // using pressure loading
+      PressureLoading_ = true;
    }
 
    // setup remaining variables
@@ -347,7 +348,7 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
 
    int dim = ndf_*(numnp_ - nbn_/2);
    Dk_.Resize(dim,dim,0.0);
-   
+
 
 
    // Setup Map_ matrix (2D representation of 3D array d2(V)/d(U)2
@@ -355,20 +356,20 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
    // the % symbol in a%b stands for the rest of the euclidian division of a by b
    // mapping from FEAP dof to Lattice ones
 
-   
+
    Map_ = new int*[DOFS_F_];
    for (int i = 0; i < DOFS_F_; ++i)
    {
       Map_[i] = new int[4];
    }
-   
+
    for (int i = 0; i < nbn_/2; ++i)
    {
      Map_[BoundNodes_[i]*ndf_][0] = 0;
      Map_[BoundNodes_[i]*ndf_][1] = 3+(i%(nbn_/2))*ndf_;
      Map_[BoundNodes_[i]*ndf_][2] = 2;
      Map_[BoundNodes_[i]*ndf_][3] = 4+(i%(nbn_/2))*ndf_;
-     
+
      Map_[BoundNodes_[i]*ndf_+1][0] = 1;
      Map_[BoundNodes_[i]*ndf_+1][1] = 4+(i%(nbn_/2))*ndf_;
      Map_[BoundNodes_[i]*ndf_+1][2] = 2;
@@ -381,14 +382,14 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
        Map_[BoundNodes_[i]*ndf_+2][3] = -1;
      }
    }
-   
+
    for (int i = 0; i < nbn_/2; ++i)
    {
      Map_[PeriodicNodes_[i]*ndf_][0] = 0;
      Map_[PeriodicNodes_[i]*ndf_][1] = 3+(i%(nbn_/2))*ndf_;
      Map_[PeriodicNodes_[i]*ndf_][2] = 2;
      Map_[PeriodicNodes_[i]*ndf_][3] = 4+(i%(nbn_/2))*ndf_;
-     
+
      Map_[PeriodicNodes_[i]*ndf_+1][0] = 1;
      Map_[PeriodicNodes_[i]*ndf_+1][1] = 4+(i%(nbn_/2))*ndf_;
      Map_[PeriodicNodes_[i]*ndf_+1][2] = 2;
@@ -401,7 +402,7 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
        Map_[PeriodicNodes_[i]*ndf_+2][3] = -1;
      }
    }
-   
+
    int l=-1;
    InnerNodes_ = new int[numnp_-nbn_];
    for (int i=0; i < numnp_; ++i)
@@ -421,14 +422,14 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
    int offst = ndm_ * (ndm_ +1) / 2 + nbn_ / 2 * ndf_;
    for (int i = nbn_; i < numnp_; ++i)
    {
-      Map_[InnerNodes_[i-nbn_]*ndf_][0]=0; 
-      Map_[InnerNodes_[i-nbn_]*ndf_][1]=offst + (i-nbn_)*ndf_; 
-      Map_[InnerNodes_[i-nbn_]*ndf_][2]=2; 
+      Map_[InnerNodes_[i-nbn_]*ndf_][0]=0;
+      Map_[InnerNodes_[i-nbn_]*ndf_][1]=offst + (i-nbn_)*ndf_;
+      Map_[InnerNodes_[i-nbn_]*ndf_][2]=2;
       Map_[InnerNodes_[i-nbn_]*ndf_][3]=offst + (i-nbn_)*ndf_ +1;
- 
-      Map_[InnerNodes_[i-nbn_]*ndf_+1][0]=1; 
+
+      Map_[InnerNodes_[i-nbn_]*ndf_+1][0]=1;
       Map_[InnerNodes_[i-nbn_]*ndf_+1][1]= offst + (i-nbn_)*ndf_ +1;
-      Map_[InnerNodes_[i-nbn_]*ndf_+1][2]=2; 
+      Map_[InnerNodes_[i-nbn_]*ndf_+1][2]=2;
       Map_[InnerNodes_[i-nbn_]*ndf_+1][3]=  offst + (i-nbn_)*ndf_;
 
       if (ndf_>ndm_)
@@ -439,12 +440,12 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
       Map_[InnerNodes_[i-nbn_]*ndf_+2][3] = -1;
       }
    }
-   
+
 //    for (int i=0; i< numnp_*ndf_; ++i)
 //    {
 //      for (int j=0; j<4; ++j)
 //      {
-//        cout << "Map_[" << i << "][" << j << "]=" << Map_[i][j] << " "; 
+//        cout << "Map_[" << i << "][" << j << "]=" << Map_[i][j] << " ";
 //      }
 //      cout << "\n";
 //    }
@@ -516,13 +517,12 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
 
 void FEAP::UpdateValues(UpdateFlag flag) const
 {
-
    // Update FEAP solution vector
    UpdateDOF_F();
    bfbfeap_set_nodal_solution_(&(DOF_F_[0]));
-   
+
    UpdateJacobian();
-  
+
    // Set disp gradient for energy
    U_[0][0] = DOF_[0] - 1.0;
    U_[0][1] = 1.0/sqrt(2.0)*DOF_[2];
@@ -543,114 +543,116 @@ void FEAP::UpdateValues(UpdateFlag flag) const
 //       S2 += DOF_[4+(nbn_/2)*ndf_+(i-nbn_)*ndf_];
 //    }
 
-   if (NoStiffness == flag)
+   switch (flag)
    {
-      bfbfeap_call_ener_(); // needs a "TPLOt" and "ENER" command in FEAP input file to work
-      bfbfeap_get_potential_energy_(&(E0CachedValue_));
-      E0CachedValue_ += -Lambda_ * (Load_ * U_).Trace() * nuc_ * CellArea_ + 1.0/eps_*(S1*S1 + S2*S2);
+     case NeedStiffness:
+       //E1DLoad
+       if (PressureLoading_)
+       {
+         E1DLoadCachedValue_[0] = -DOF_[1] * nuc_ * CellArea_;
+         E1DLoadCachedValue_[1] = -DOF_[0] * nuc_ * CellArea_;
+         E1DLoadCachedValue_[2] = -DOF_[2] * nuc_ * CellArea_;
+       }
+       else
+       {
+         E1DLoadCachedValue_[0] = -Load_[0][0]* nuc_ * CellArea_;
+         E1DLoadCachedValue_[1] = -Load_[1][1]* nuc_ * CellArea_;
+         E1DLoadCachedValue_[2] = -sqrt(2.0)/2.0*(Load_[1][0]+Load_[0][1])* nuc_ * CellArea_;
+       }
 
-      bfbfeap_call_form_();
-      bfbfeap_get_reduced_residual_(&(E1CachedValue_F_[0]));
+       //E2
+       bfbfeap_call_tang_();
+       bfbfeap_get_reduced_tang_(&(E2CachedValue_F_[0][0]));
 
-      // FEAP returns -E1, so fix it.
-      for (int i = 0; i < E1CachedValue_F_.Dim(); ++i)
-      {
-         E1CachedValue_F_[i] = -E1CachedValue_F_[i];
-      }
-      E1CachedValue_ = Jacobian_.Transpose() * E1CachedValue_F_;
+       E2CachedValue_ = Jacobian_.Transpose() * E2CachedValue_F_ * Jacobian_;
 
-      E1CachedValue_[0] += -Lambda_ * Load_[0][0] * nuc_ * CellArea_;
-      E1CachedValue_[1] += -Lambda_ * Load_[1][1] * nuc_ * CellArea_;
-      E1CachedValue_[2] += -sqrt(2.0)/2.0*Lambda_ * (Load_[1][0]+Load_[0][1]) * nuc_ * CellArea_; 
-  
-      for (int i = 0; i < (numnp_-nbn_/2); ++i)
-      {
-         E1CachedValue_[3+i*ndf_] += 2.0/eps_*S1;
-         E1CachedValue_[4+i*ndf_] += 2.0/eps_*S2;
-      }
-
-
-      Cached_[0] = 1;
-      Cached_[1] = 1;
-      EvaluationCount_[0]++;
-   }
-   else if (NeedStiffness == flag)
-   {
-
-      bfbfeap_call_ener_();
-      bfbfeap_get_potential_energy_(&(E0CachedValue_));
-
-      E0CachedValue_ += -Lambda_ * (Load_ * U_).Trace() * nuc_ * CellArea_ + 1.0/eps_*(S1*S1 + S2*S2);
-
-      bfbfeap_call_form_();
-      bfbfeap_get_reduced_residual_(&(E1CachedValue_F_[0]));
-
-
-      // FEAP returns -E1, so fix it.
-      for (int i = 0; i < E1CachedValue_F_.Dim(); ++i)
-      {
-         E1CachedValue_F_[i] = -E1CachedValue_F_[i];
-      }
-      E1CachedValue_ = Jacobian_.Transpose() * E1CachedValue_F_;
-
-      E1CachedValue_[0] += -Lambda_ * Load_[0][0] * nuc_ * CellArea_;
-      E1CachedValue_[1] += -Lambda_ * Load_[1][1] * nuc_ * CellArea_;
-      E1CachedValue_[2] += -sqrt(2.0)/2.0*Lambda_ * (Load_[1][0]+Load_[0][1]) * nuc_ * CellArea_; 
-
-      for (int i = 0; i < (numnp_-nbn_/2); ++i)
-      {
-         E1CachedValue_[3+i*ndf_] += 2.0/eps_*S1;
-         E1CachedValue_[4+i*ndf_] += 2.0/eps_*S2;
-      }
-
-      //E1DLoad 
-
-      E1DLoadCachedValue_[0] = -Load_[0][0]* nuc_ * CellArea_;
-      E1DLoadCachedValue_[1] = -Load_[1][1]* nuc_ * CellArea_;
-      E1DLoadCachedValue_[2] = -sqrt(2.0)/2.0*(Load_[1][0]+Load_[0][1])* nuc_ * CellArea_;
-
-
-      //E2
-
-      bfbfeap_call_tang_();
-      bfbfeap_get_reduced_tang_(&(E2CachedValue_F_[0][0]));
-      
-
-      E2CachedValue_ = Jacobian_.Transpose() * E2CachedValue_F_ * Jacobian_;
-
-      for (int i = 0; i < DOFS_; ++i)
-      {
+       for (int i = 0; i < DOFS_; ++i)
+       {
          for (int j = 0; j < DOFS_; ++j)
          {
-            for (int k = 0; k < DOFS_F_; ++k)
-            {
-               if ((Map_[k][0]==i && Map_[k][1]==j)) //||(Map_[k][0]==j && Map_[k][1]==i))
-                  E2CachedValue_[i][j] += E1CachedValue_F_[k];
-               if ((Map_[k][2]==i && Map_[k][3]==j)) //||(Map_[k][2]==j && Map_[k][3]==i))
-                  E2CachedValue_[i][j] += E1CachedValue_F_[k] / sqrt(2.0);
-            }
+           for (int k = 0; k < DOFS_F_; ++k)
+           {
+             if ((Map_[k][0]==i && Map_[k][1]==j)) //||(Map_[k][0]==j && Map_[k][1]==i))
+               E2CachedValue_[i][j] += E1CachedValue_F_[k];
+             if ((Map_[k][2]==i && Map_[k][3]==j)) //||(Map_[k][2]==j && Map_[k][3]==i))
+               E2CachedValue_[i][j] += E1CachedValue_F_[k] / sqrt(2.0);
+           }
          }
-      }
-      // Phantom Energy Term for E2
-      for (int i = 0; i < (numnp_-nbn_/2); ++i)
-      {
+       }
+       // Phantom Energy Term for E2
+       for (int i = 0; i < (numnp_-nbn_/2); ++i)
+       {
          for (int j = 0; j < (numnp_-nbn_/2); ++j)
          {
-               E2CachedValue_[3+i*ndf_][3+j*ndf_] += 2.0/eps_;
-               E2CachedValue_[4+i*ndf_][4+j*ndf_] += 2.0/eps_;
+           E2CachedValue_[3+i*ndf_][3+j*ndf_] += 2.0/eps_;
+           E2CachedValue_[4+i*ndf_][4+j*ndf_] += 2.0/eps_;
          }
-      }
+       }
+       // Loading term for E2
+       if (PressureLoading_)
+       {
+         E2CachedValue_[0][1] -= Lambda_ * nuc_ * CellArea_;
+         E2CachedValue_[1][0] -= Lambda_ * nuc_ * CellArea_;
+         E2CachedValue_[2][2] -= Lambda_ * nuc_ * CellArea_;
+       }
 
-      Cached_[0] = 1;
-      Cached_[1] = 1;
-      Cached_[2] = 1;
-      Cached_[3] = 1;
-      EvaluationCount_[1]++;
-   }
-   else
-   {
-      cerr << "Error in FEAP::UpdateValues(), unknown UpdateFlag.\n";
-      exit(-45);
+       Cached_[2] = 1;
+       Cached_[3] = 1;
+       EvaluationCount_[1]++;
+
+       // Drop through to compute forces and energy too.
+
+     case NoStiffness:
+       bfbfeap_call_ener_(); // needs a "TPLOt" and "ENER" command in FEAP input file to work
+       bfbfeap_get_potential_energy_(&(E0CachedValue_));
+       if (PressureLoading_)
+       {
+         E0CachedValue_ += -Lambda_ * ((DOF_[0]*DOF_[1] - 0.5*DOF_[2]*DOF_[2]) - 1.0) * nuc_ * CellArea_;
+       }
+       else
+       {
+         E0CachedValue_ += -Lambda_ * (Load_ * U_).Trace() * nuc_ * CellArea_;
+       }
+
+       E0CachedValue_ += 1.0/eps_*(S1*S1 + S2*S2);
+
+       bfbfeap_call_form_();
+       bfbfeap_get_reduced_residual_(&(E1CachedValue_F_[0]));
+
+       // FEAP returns -E1, so fix it.
+       for (int i = 0; i < E1CachedValue_F_.Dim(); ++i)
+       {
+         E1CachedValue_F_[i] = -E1CachedValue_F_[i];
+       }
+       E1CachedValue_ = Jacobian_.Transpose() * E1CachedValue_F_;
+
+       if (PressureLoading_)
+       {
+         E1CachedValue_[0] += -Lambda_ * DOF_[1] * nuc_ * CellArea_;
+         E1CachedValue_[1] += -Lambda_ * DOF_[0] * nuc_ * CellArea_;
+         E1CachedValue_[2] += -Lambda_ * DOF_[2] * nuc_ * CellArea_;
+       }
+       else
+       {
+         E1CachedValue_[0] += -Lambda_ * Load_[0][0] * nuc_ * CellArea_;
+         E1CachedValue_[1] += -Lambda_ * Load_[1][1] * nuc_ * CellArea_;
+         E1CachedValue_[2] += -sqrt(2.0)/2.0*Lambda_ * (Load_[1][0]+Load_[0][1]) * nuc_ * CellArea_;
+       }
+
+       for (int i = 0; i < (numnp_-nbn_/2); ++i)
+       {
+         E1CachedValue_[3+i*ndf_] += 2.0/eps_*S1;
+         E1CachedValue_[4+i*ndf_] += 2.0/eps_*S2;
+       }
+
+       Cached_[0] = 1;
+       Cached_[1] = 1;
+       EvaluationCount_[0]++;
+
+       break;
+     default:
+       cerr << "Error in FEAP::UpdateValues(), unknown UpdateFlag.\n";
+       exit(-45);
    }
 }
 
@@ -700,7 +702,7 @@ void FEAP::UpdateJacobian() const
       Jacobian_[ii][2] = 1.0/sqrt(2.0)*(X_F_[ii+1] + DOF_[4+jj]);
       Jacobian_[ii][3+jj]=DOF_[0];
       Jacobian_[ii][4+jj]=DOF_[2]/sqrt(2.0);
-      
+
       Jacobian_[ii+1][1] = X_F_[ii+1] + DOF_[4+jj];
       Jacobian_[ii+1][2] = 1.0/sqrt(2.0)*(X_F_[ii] + DOF_[3+jj]);
       Jacobian_[ii+1][3+jj]=DOF_[2]/sqrt(2.0);
@@ -709,7 +711,7 @@ void FEAP::UpdateJacobian() const
       if (ndf_>ndm_)
          Jacobian_[ii+2][5+jj]=1.0;
    }
-   
+
    for (int i = nbn_/2; i < nbn_; ++i)
    {
       ii = PeriodicNodes_[i-nbn_/2]*ndf_;
@@ -718,7 +720,7 @@ void FEAP::UpdateJacobian() const
       Jacobian_[ii][2] = 1.0/sqrt(2.0)*(X_F_[ii+1] + DOF_[4+jj]);
       Jacobian_[ii][3+jj]=DOF_[0];
       Jacobian_[ii][4+jj]=DOF_[2]/sqrt(2.0);
-      
+
       Jacobian_[ii+1][1] = X_F_[ii+1] + DOF_[4+jj];
       Jacobian_[ii+1][2] = 1.0/sqrt(2.0)*(X_F_[ii] + DOF_[3+jj]);
       Jacobian_[ii+1][3+jj]=DOF_[2]/sqrt(2.0);
@@ -777,12 +779,12 @@ int FEAP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vector
             Ind[count++] = i;
          }
       }
- 
+
       critical_eig_out_ << "# Critical Point Crossing Number: " << TFIndex << endl;
 
       for (int i = 0; i < count; ++i)
       {
-         critical_eig_out_ << "####  Index = " << eig_count_ << "\n" <<" # Mode[" << i << "] = " << Ind[i] << endl;       
+         critical_eig_out_ << "####  Index = " << eig_count_ << "\n" <<" # Mode[" << i << "] = " << Ind[i] << endl;
          for (int k = 0; k < DOFS_; ++k)
          {
             DOF_[k] = EigVec[k][Ind[i]];
@@ -798,7 +800,7 @@ int FEAP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vector
                               << setw(Width_) << X_[i*ndm_+1] + 0.1*DOF_F_[i*ndf_+1]
                               << endl << endl;
          }
-                           
+
          critical_eig_out_ << endl;
          ++eig_count_;
       }
@@ -809,7 +811,7 @@ int FEAP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vector
       for (int i = 0; i < KSpaceResolution_+1; ++i)
       {
          for (int j = 0; j < KSpaceResolution_+1; ++j)
-         { 
+         {
             K_[0] = pi*(((double) i)/((double) KSpaceResolution_));
             K_[1] = pi*(((double) j)/((double) KSpaceResolution_));
 
@@ -821,16 +823,16 @@ int FEAP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vector
 
                //Dk has 2 zero eigen values when k = [0,0], so special treatment
                if ((i==0) && (j==0))
-               {               
+               {
                   double max = DkEigVal.MaxElement();
 
                   for (int l = 0; l < ndf_*(numnp_-nbn_/2); ++l)
                   {
                      if (fabs(DkEigVal[0][l]<Tolerance) && (NumZeroEig < 2))
                      {
-                        DkEigVal[0][l] = max;               
+                        DkEigVal[0][l] = max;
                         ++NumZeroEig;
-                     }              
+                     }
                   }
                }
                int count = 0;
@@ -849,7 +851,7 @@ int FEAP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vector
                   {
                      cout << "Tangent => [";
                      for (int l = 0; l < ndf_*(numnp_-nbn_/2); ++l)
-                
+
 		    {
                          if ((fabs(sin(K_[0])) < 1.0e-5) && (fabs(sin(K_[1])) < 1.0e-5))
                          {
@@ -870,26 +872,26 @@ int FEAP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vector
                         {
                             cout << pow(-1,l/(ndf_*(numnp_-nbn_/2))) * EigVec[l%(ndf_*(numnp_-nbn_/2))][Ind[k]].real() << ", ";
                         }
-                        cout << "] \n"; 
+                        cout << "] \n";
                      } */
 
                   }
 
 
-                       
+
                   out << "============================================="
                       << "Found zero eigen value in Bloch wave analysis at k = [ " << K_[0] << ", " << K_[1] << " ] \n"
                       << " Eigenvalue : " << min << "\n";
 
                }
-              
-            
+
+
          }
       }
-    
-      
+
+
    NumExtraTFs_ = 0;
-   }   
+   }
    else if ((CPorBif < 0 ) && (TFType_ == 3))
    {
       for (int i = 0; i < KVectorMatrix_.Rows(); ++i)
@@ -942,16 +944,16 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
    if(TFType_ == 1) // Bloch Wave Analysis
    {
       bloch_wave_out_ << "## Index Number : " << bloch_count_ << "\n"
-                      << "#### Lambda = " << Lambda_ 
-                      << "  U11 = " << DOF_[0] 
-                      << "  U22 = " << DOF_[1] 
+                      << "#### Lambda = " << Lambda_
+                      << "  U11 = " << DOF_[0]
+                      << "  U22 = " << DOF_[1]
                       << "  U12 = " << DOF_[2] / sqrt(2.0) << endl;
 
       int k = 0;
       for (int i = 0; i < KSpaceResolution_+1; ++i)
       {
          for (int j = 0; j < KSpaceResolution_+1; ++j)
-         { 
+         {
             K_[0] = pi*(((double) i)/((double) KSpaceResolution_));
             K_[1] = pi*(((double) j)/((double) KSpaceResolution_));
 
@@ -966,23 +968,23 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
                   if ((i==0) && (j==0) && NumZeroEig < 2 && (fabs(DkEigVal[0][l] < 1.0e-10)))
                   {
                      double max = DkEigVal.MaxElement();
-                     DkEigVal[0][l] = max;               
+                     DkEigVal[0][l] = max;
                      TF[k] = max;
                      ++NumZeroEig;
                   }
                   else
-                  {               
+                  {
                      TF[k] = DkEigVal[0][l];
                   }
                   ++k;
 
                }
 
-            bloch_wave_out_ << setw(Width_) << K_[0]/(2*pi) 
+            bloch_wave_out_ << setw(Width_) << K_[0]/(2*pi)
                             << setw(Width_) << K_[1]/(2*pi)
                             << setw(Width_) << DkEigVal.MinElement() << "\n";
 
-            
+
          }
          bloch_wave_out_ << endl;
       }
@@ -995,9 +997,9 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
 
       KDirection_ /= KDirection_.MaxElement();
       bloch_wave_out_ << "## Index Number : " << bloch_count_ << "\n"
-                      << "#### Lambda = " << Lambda_ 
-                      << "  U11 = " << DOF_[0] 
-                      << "  U22 = " << DOF_[1] 
+                      << "#### Lambda = " << Lambda_
+                      << "  U11 = " << DOF_[0]
+                      << "  U22 = " << DOF_[1]
                       << "  U12 = " << DOF_[2] / sqrt(2.0) << endl;
       int k = 0;
 
@@ -1005,7 +1007,7 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
       {
          K_[0] = 2*pi*(KRange_[0] + (KRange_[1] - KRange_[0])*(((double) i)/((double) KSpaceResolution_)))* KDirection_[0];
          K_[1] = 2*pi*(KRange_[0] + (KRange_[1] - KRange_[0])*(((double) i)/((double) KSpaceResolution_)))* KDirection_[1];
-              
+
          DynamicalMatrixBis(K_);
          Matrix DkEigVal = HermiteEigVal(Dk_);
          double min = DkEigVal.MinElement();
@@ -1017,7 +1019,7 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
             if ((K_[0]==0.0) && (K_[1]==0.0) && NumZeroEig < 2 && (fabs(DkEigVal[0][l] < 1.0e-10)))
             {
                double max = DkEigVal.MaxElement();
-               DkEigVal[0][l] = max;               
+               DkEigVal[0][l] = max;
                TF[k] = max;
                ++NumZeroEig;
             }
@@ -1033,7 +1035,7 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
                foundmin = 1;
             }
          }
-         bloch_wave_out_ << setw(Width_) << K_[0]/(2*pi) 
+         bloch_wave_out_ << setw(Width_) << K_[0]/(2*pi)
                          << setw(Width_) << K_[1]/(2*pi)
                          << setw(Width_) << min
                          << setw(Width_) << DkEigVal.MinElement() << "\n";
@@ -1046,9 +1048,9 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
    {
 
       bloch_wave_out_ << "## Index Number : " << bloch_count_ << "\n"
-                      << "#### Lambda = " << Lambda_ 
-                      << "  U11 = " << DOF_[0] 
-                      << "  U22 = " << DOF_[1] 
+                      << "#### Lambda = " << Lambda_
+                      << "  U11 = " << DOF_[0]
+                      << "  U22 = " << DOF_[1]
                       << "  U12 = " << DOF_[2] / sqrt(2.0) << endl;
       int k = 0;
       for (int i = 0; i < KVectorMatrix_.Rows(); ++i)
@@ -1067,7 +1069,7 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
             if ((K_[0]==0.0) && (K_[1]==0.0) && NumZeroEig < 2 && (fabs(DkEigVal[0][l] < 1.0e-10)))
             {
                double max = DkEigVal.MaxElement();
-               DkEigVal[0][l] = max;               
+               DkEigVal[0][l] = max;
                TF[k] = max;
                ++NumZeroEig;
             }
@@ -1083,7 +1085,7 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
                foundmin = 1;
             }
          }
-         bloch_wave_out_ << setw(Width_) << K_[0]/(2*pi) 
+         bloch_wave_out_ << setw(Width_) << K_[0]/(2*pi)
                          << setw(Width_) << K_[1]/(2*pi)
                          << setw(Width_) << min
                          << setw(Width_) << DkEigVal.MinElement() << "\n";
@@ -1343,7 +1345,7 @@ void FEAP::DynamicalMatrixBis(Vector const& K) const
    Matrix A(dim,dim,0.0);
    CMatrix B(ndf_,ndf_,0.0);
    Dk_.Resize(dim,dim,0.0);
-   MyComplexDouble Ic(0.0,1.0);   
+   MyComplexDouble Ic(0.0,1.0);
 
 
    A = E2CachedValue_.Extract(3,3,dim);
@@ -1363,7 +1365,7 @@ void FEAP::DynamicalMatrixBis(Vector const& K) const
          Dk_[i][j] = MyComplexDouble(A[i][j],0.0);
       }
    }
-   
+
    for (int i = 0; i < N_rows_; ++i)
    {
           R[0] = N_[i][0];
@@ -1458,10 +1460,26 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
    {
       case PrintLong:
          out << "FEAP:" << "\n" << "\n";
+         if (PressureLoading_)
+         {
+           out << "Using: In-plane Pressure loading.\n";
+         }
+         else
+         {
+           out << "Using: In-plane Dead loading.\n";
+         }
 
          if (Echo_)
          {
             cout << "FEAP:" << "\n" << "\n";
+            if (PressureLoading_)
+            {
+              out << "Using: In-plane Pressure loading.\n";
+            }
+            else
+            {
+              out << "Using: In-plane Dead loading.\n";
+            }
          }
       // passthrough to short
       case PrintShort:
@@ -1477,7 +1495,7 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
          out << "Bifurcation Info: ";
          for (int i=0;i<minprint; ++i) out << setw(W) << mintestfunct[i];
          out << setw(W) << NoNegTestFunctions << "\n";
-	 
+
          // send to cout also
          if (Echo_)
          {
@@ -1490,7 +1508,7 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
           cout << "StiffnessDL= " << setw(W) << E2() << "\n";
           cout << "nodal_coord= " << setw(W) << X_ << "\n";
        //ajout ///////////////////////////////////////////////////////////////////
-       // */       
+       // */
             cout << "Bifurcation Info: ";
             for (int i=0;i<minprint; ++i) cout << setw(W) << mintestfunct[i];
             cout << setw(W) << NoNegTestFunctions << "\n";
