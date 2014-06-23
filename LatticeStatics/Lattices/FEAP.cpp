@@ -549,9 +549,9 @@ void FEAP::UpdateValues(UpdateFlag flag) const
        //E1DLoad
        if (PressureLoading_)
        {
-         E1DLoadCachedValue_[0] = -DOF_[1] * nuc_ * CellArea_;
-         E1DLoadCachedValue_[1] = -DOF_[0] * nuc_ * CellArea_;
-         E1DLoadCachedValue_[2] = -DOF_[2] * nuc_ * CellArea_;
+         E1DLoadCachedValue_[0] = DOF_[1] * nuc_ * CellArea_;
+         E1DLoadCachedValue_[1] = DOF_[0] * nuc_ * CellArea_;
+         E1DLoadCachedValue_[2] = DOF_[2] * nuc_ * CellArea_;
        }
        else
        {
@@ -591,9 +591,9 @@ void FEAP::UpdateValues(UpdateFlag flag) const
        // Loading term for E2
        if (PressureLoading_)
        {
-         E2CachedValue_[0][1] -= Lambda_ * nuc_ * CellArea_;
-         E2CachedValue_[1][0] -= Lambda_ * nuc_ * CellArea_;
-         E2CachedValue_[2][2] -= Lambda_ * nuc_ * CellArea_;
+         E2CachedValue_[0][1] += Lambda_ * nuc_ * CellArea_;
+         E2CachedValue_[1][0] += Lambda_ * nuc_ * CellArea_;
+         E2CachedValue_[2][2] += Lambda_ * nuc_ * CellArea_;
        }
 
        Cached_[2] = 1;
@@ -607,7 +607,7 @@ void FEAP::UpdateValues(UpdateFlag flag) const
        bfbfeap_get_potential_energy_(&(E0CachedValue_));
        if (PressureLoading_)
        {
-         E0CachedValue_ += -Lambda_ * ((DOF_[0]*DOF_[1] - 0.5*DOF_[2]*DOF_[2]) - 1.0) * nuc_ * CellArea_;
+         E0CachedValue_ += Lambda_ * ((DOF_[0]*DOF_[1] - 0.5*DOF_[2]*DOF_[2]) - 1.0) * nuc_ * CellArea_;
        }
        else
        {
@@ -628,9 +628,9 @@ void FEAP::UpdateValues(UpdateFlag flag) const
 
        if (PressureLoading_)
        {
-         E1CachedValue_[0] += -Lambda_ * DOF_[1] * nuc_ * CellArea_;
-         E1CachedValue_[1] += -Lambda_ * DOF_[0] * nuc_ * CellArea_;
-         E1CachedValue_[2] += -Lambda_ * DOF_[2] * nuc_ * CellArea_;
+         E1CachedValue_[0] += Lambda_ * DOF_[1] * nuc_ * CellArea_;
+         E1CachedValue_[1] += Lambda_ * DOF_[0] * nuc_ * CellArea_;
+         E1CachedValue_[2] += Lambda_ * DOF_[2] * nuc_ * CellArea_;
        }
        else
        {
