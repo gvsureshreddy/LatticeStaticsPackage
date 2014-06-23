@@ -216,12 +216,6 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
                 Input.getVector(KDirection_,TFHash, "KDirection");
              }
              else
-
-             if (Input.ParameterOK(TFHash, "KDirection"))
-             {
-                Input.getVector(KDirection_,TFHash, "KDirection");
-             }
-             else
              {
                 cerr << "*ERROR* KDirection not specified. \n";
                 exit(-3);
