@@ -551,7 +551,7 @@ void FEAP::UpdateValues(UpdateFlag flag) const
        {
          E1DLoadCachedValue_[0] = DOF_[1] * nuc_ * CellArea_;
          E1DLoadCachedValue_[1] = DOF_[0] * nuc_ * CellArea_;
-         E1DLoadCachedValue_[2] = DOF_[2] * nuc_ * CellArea_;
+         E1DLoadCachedValue_[2] = -DOF_[2] * nuc_ * CellArea_;
        }
        else
        {
@@ -593,7 +593,7 @@ void FEAP::UpdateValues(UpdateFlag flag) const
        {
          E2CachedValue_[0][1] += Lambda_ * nuc_ * CellArea_;
          E2CachedValue_[1][0] += Lambda_ * nuc_ * CellArea_;
-         E2CachedValue_[2][2] += Lambda_ * nuc_ * CellArea_;
+         E2CachedValue_[2][2] -= Lambda_ * nuc_ * CellArea_;
        }
 
        Cached_[2] = 1;
@@ -630,7 +630,7 @@ void FEAP::UpdateValues(UpdateFlag flag) const
        {
          E1CachedValue_[0] += Lambda_ * DOF_[1] * nuc_ * CellArea_;
          E1CachedValue_[1] += Lambda_ * DOF_[0] * nuc_ * CellArea_;
-         E1CachedValue_[2] += Lambda_ * DOF_[2] * nuc_ * CellArea_;
+         E1CachedValue_[2] -= Lambda_ * DOF_[2] * nuc_ * CellArea_;
        }
        else
        {
