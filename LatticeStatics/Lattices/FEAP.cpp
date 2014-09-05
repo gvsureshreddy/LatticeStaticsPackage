@@ -132,6 +132,45 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
       exit(-1);
    }
 
+   // Setup loading
+   if (Input.ParameterOK(Hash,"Loading"))
+   {
+     PerlInput::HashStruct LoadHash = Input.getHash(Hash,"Loading");
+     if (Input.ParameterOK(LoadHash,"Type"))
+     {
+       const char* LoadT = Input.getString(LoadHash,"Type");
+       if (!strcmp("DeadLoad",LoadT))
+       {
+         LoadingType_ = DEAD_LOAD;
+         Load_.Resize(2,2,0.0);
+         Input.getMatrix(Load_,LoadHash,"BioStress");
+       }
+       else if (!strcmp("PressureLoad",LoadT))
+       {
+         LoadingType_ = PRESSURE_LOAD;
+       }
+       else if (!strcmp("DisplacementControl",LoadT))
+       {
+         LoadingType_ = DISPLACEMENT_CONTROL;
+         StretchRatio_ = Input.getDouble(LoadHash,"StretchRatio");
+       }
+       else
+       {
+         cerr << "Error (FEAP()): Unknown value for Loading:Type" << "\n";
+         exit(-3);
+       }
+     }
+     else
+     {
+       cerr << "Error (FEAP()): Missing Loading{Type}" << "\n";
+       exit(-3);
+     }
+   }
+   else
+   {
+     cerr << "Error (FEAP()): Missing Loading" << "\n";
+   }
+
    // Initialize FEAP, send input file name and get ndf, ndm, etc. back.
    int ffinlen = strlen(ffin_);
    bfbfeap_main_(ffin_, &ffinlen, &ndf_, &ndm_, &numnp_, &nel_, &nen1_, &neq_);
@@ -285,8 +324,17 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
 
 
    // set DOFS_
-
-   DOFS_ = ndf_ * ( numnp_ - nbn_ / 2) + ndm_ * (ndm_ + 1) / 2;
+   DOFS_ = ndf_ * ( numnp_ - nbn_ / 2); // just the internal dofs
+   switch (LoadingType_) // add any uniform deformation dofs
+   {
+     case DEAD_LOAD:
+     case PRESSURE_LOAD:
+       DOFS_ += ndm_ * (ndm_ + 1) / 2;
+       break;
+     case DISPLACEMENT_CONTROL:
+       // nothing to add
+       break;
+   }
    DOFS_F_ = ndf_ * numnp_;
 
    // new CellArea_
@@ -299,8 +347,11 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
 
    // set DOF_ to initial value
    DOF_.Resize(DOFS_, 0.0);
-   DOF_[0] = 1.0;
-   DOF_[1] = 1.0;
+   if (LoadingType_ != DISPLACEMENT_CONTROL)
+   {
+     DOF_[0] = 1.0;
+     DOF_[1] = 1.0;
+   }
    DOF_F_.Resize(DOFS_F_, 0.0);
 
 
@@ -314,20 +365,6 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
    {
       X_F_[ndf_ * i] = X_[ndm_ * i];
       X_F_[ndf_ * i + 1] = X_[ndm_ * i + 1];
-   }
-
-   // Setup 1st PiolaKirchoff load tensor
-
-   if (Input.ParameterOK(Hash,"FirstPKstress"))
-   {
-      PressureLoading_ = false;
-      Load_.Resize(2,2,0.0);
-      Input.getMatrix(Load_,Hash,"FirstPKstress");
-   }
-   else
-   {
-      // using pressure loading
-      PressureLoading_ = true;
    }
 
    // setup remaining variables
@@ -344,6 +381,10 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
    EmptyM_.Resize(DOFS_, DOFS_, 0.0);
 
    Jacobian_.Resize(DOFS_F_, DOFS_,0.0);
+   if (LoadingType_ == DISPLACEMENT_CONTROL)
+   {
+     DispJacobian_.Resize(DOFS_F_, 3,0.0);
+   }
    U_.Resize(2,2,0.0);
 
    int dim = ndf_*(numnp_ - nbn_/2);
@@ -356,7 +397,7 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
    // the % symbol in a%b stands for the rest of the euclidian division of a by b
    // mapping from FEAP dof to Lattice ones
 
-
+   // This term doesn't contribute anything for displacement control, so just leave it be
    Map_ = new int*[DOFS_F_];
    for (int i = 0; i < DOFS_F_; ++i)
    {
@@ -452,6 +493,7 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
 //    cout << "\n";
 
    // set loadparameter to load (not temperature)
+   // load also includes disp. control here...
    LoadParameter_ = Load;
 
    for (int i = 0; i < cachesize; ++i)
@@ -517,25 +559,33 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
 
 void FEAP::UpdateValues(UpdateFlag flag) const
 {
+   // disp gradient U is set with lambda and DOF
+   //
    // Update FEAP solution vector
    UpdateDOF_F();
    bfbfeap_set_nodal_solution_(&(DOF_F_[0]));
 
    UpdateJacobian();
 
-   // Set disp gradient for energy
-   U_[0][0] = DOF_[0] - 1.0;
-   U_[0][1] = 1.0/sqrt(2.0)*DOF_[2];
-   U_[1][0] = 1.0/sqrt(2.0)*DOF_[2];
-   U_[1][1] = DOF_[1] - 1.0;
-
    //Sum of S term for phantom energy term
    double S1 = 0.0;
    double S2 = 0.0;
+   int shift;
+   switch (LoadingType_)
+   {
+     case DEAD_LOAD:
+     case PRESSURE_LOAD:
+       shift = ndm_ * (ndm_ + 1) / 2;
+       break;
+     case DISPLACEMENT_CONTROL:
+       shift = 0;
+       break;
+   }
+
    for (int i = 0; i < (numnp_-nbn_/2); ++i)
    {
-      S1 += DOF_[3+i*ndf_];
-      S2 += DOF_[4+i*ndf_];
+      S1 += DOF_[shift+i*ndf_];
+      S2 += DOF_[shift+1+i*ndf_];
    }
 //    for (int i = nbn_; i < numnp_; ++i)
 //    {
@@ -543,29 +593,73 @@ void FEAP::UpdateValues(UpdateFlag flag) const
 //       S2 += DOF_[4+(nbn_/2)*ndf_+(i-nbn_)*ndf_];
 //    }
 
-   switch (flag)
+
+   bfbfeap_call_ener_(); // needs a "TPLOt" and "ENER" command in FEAP input file to work
+   bfbfeap_get_potential_energy_(&(E0CachedValue_));
+   switch (LoadingType_)
    {
-     case NeedStiffness:
-       //E1DLoad
-       if (PressureLoading_)
-       {
-         E1DLoadCachedValue_[0] = DOF_[1] * nuc_ * CellArea_;
-         E1DLoadCachedValue_[1] = DOF_[0] * nuc_ * CellArea_;
-         E1DLoadCachedValue_[2] = -DOF_[2] * nuc_ * CellArea_;
-       }
-       else
-       {
-         E1DLoadCachedValue_[0] = -Load_[0][0]* nuc_ * CellArea_;
-         E1DLoadCachedValue_[1] = -Load_[1][1]* nuc_ * CellArea_;
-         E1DLoadCachedValue_[2] = -sqrt(2.0)/2.0*(Load_[1][0]+Load_[0][1])* nuc_ * CellArea_;
-       }
+     case PRESSURE_LOAD:
+       E0CachedValue_ += Lambda_ * ((U_[0][0]*U_[1][1] - U_[0][1]*U_[1][0]) - 1.0) * nuc_ * CellArea_;
+       break;
+     case DEAD_LOAD:
+       E0CachedValue_ += -Lambda_ * (Load_ * U_).Trace() * nuc_ * CellArea_;
+       break;
+     case DISPLACEMENT_CONTROL:
+       // nothing to do for disp. control loading energy
+       break;
+   }
 
-       //E2
-       bfbfeap_call_tang_();
-       bfbfeap_get_reduced_tang_(&(E2CachedValue_F_[0][0]));
+   E0CachedValue_ += 1.0/eps_*(S1*S1 + S2*S2);
 
-       E2CachedValue_ = Jacobian_.Transpose() * E2CachedValue_F_ * Jacobian_;
+   bfbfeap_call_form_();
+   bfbfeap_get_reduced_residual_(&(E1CachedValue_F_[0]));
 
+   // FEAP returns -E1, so fix it.
+   for (int i = 0; i < E1CachedValue_F_.Dim(); ++i)
+   {
+         E1CachedValue_F_[i] = -E1CachedValue_F_[i];
+   }
+   E1CachedValue_ = Jacobian_.Transpose() * E1CachedValue_F_;
+
+   switch (LoadingType_)
+   {
+     case PRESSURE_LOAD:
+       E1CachedValue_[0] += Lambda_ * U_[1][1] * nuc_ * CellArea_;
+       E1CachedValue_[1] += Lambda_ * U_[0][0] * nuc_ * CellArea_;
+       E1CachedValue_[2] -= Lambda_ * (U_[0][1]*sqrt(2.0)) * nuc_ * CellArea_;
+       break;
+     case DEAD_LOAD:
+       E1CachedValue_[0] += -Lambda_ * Load_[0][0] * nuc_ * CellArea_;
+       E1CachedValue_[1] += -Lambda_ * Load_[1][1] * nuc_ * CellArea_;
+       E1CachedValue_[2] += -sqrt(2.0)/2.0*Lambda_ * (Load_[1][0]+Load_[0][1]) * nuc_ * CellArea_;
+       break;
+     case DISPLACEMENT_CONTROL:
+       // nothing to do for disp. control loading term
+       break;
+   }
+
+   for (int i = 0; i < (numnp_-nbn_/2); ++i)
+   {
+     E1CachedValue_[shift+i*ndf_] += 2.0/eps_*S1;
+     E1CachedValue_[shift+1+i*ndf_] += 2.0/eps_*S2;
+   }
+
+   Cached_[0] = 1;
+   Cached_[1] = 1;
+   EvaluationCount_[0]++;
+
+
+   if (flag == NeedStiffness)
+   {
+     //E2
+     bfbfeap_call_tang_();
+     bfbfeap_get_reduced_tang_(&(E2CachedValue_F_[0][0]));
+
+     E2CachedValue_ = Jacobian_.Transpose() * E2CachedValue_F_ * Jacobian_;
+
+     // This term doesn't contribute for displacement control
+     if (LoadingType_ != DISPLACEMENT_CONTROL)
+     {
        for (int i = 0; i < DOFS_; ++i)
        {
          for (int j = 0; j < DOFS_; ++j)
@@ -579,111 +673,99 @@ void FEAP::UpdateValues(UpdateFlag flag) const
            }
          }
        }
-       // Phantom Energy Term for E2
-       for (int i = 0; i < (numnp_-nbn_/2); ++i)
+     }
+     // Phantom Energy Term for E2
+     for (int i = 0; i < (numnp_-nbn_/2); ++i)
+     {
+       for (int j = 0; j < (numnp_-nbn_/2); ++j)
        {
-         for (int j = 0; j < (numnp_-nbn_/2); ++j)
+         E2CachedValue_[shift+i*ndf_][shift+j*ndf_] += 2.0/eps_;
+         E2CachedValue_[shift+1+i*ndf_][shift+1+j*ndf_] += 2.0/eps_;
+       }
+     }
+     // Loading term for E2
+     if (LoadingType_ == PRESSURE_LOAD)
+     {
+       E2CachedValue_[0][1] += Lambda_ * nuc_ * CellArea_;
+       E2CachedValue_[1][0] += Lambda_ * nuc_ * CellArea_;
+       E2CachedValue_[2][2] -= Lambda_ * nuc_ * CellArea_;
+     }
+
+     //E1DLoad
+     switch (LoadingType_)
+     {
+       case PRESSURE_LOAD:
+         E1DLoadCachedValue_[0] = U_[1][1] * nuc_ * CellArea_;
+         E1DLoadCachedValue_[1] = U_[0][0] * nuc_ * CellArea_;
+         E1DLoadCachedValue_[2] = -U_[0][1] * nuc_ * CellArea_;
+         break;
+       case DEAD_LOAD:
+         E1DLoadCachedValue_[0] = -Load_[0][0]* nuc_ * CellArea_;
+         E1DLoadCachedValue_[1] = -Load_[1][1]* nuc_ * CellArea_;
+         E1DLoadCachedValue_[2] = -sqrt(2.0)/2.0*(Load_[1][0]+Load_[0][1])* nuc_ * CellArea_;
+         break;
+       case DISPLACEMENT_CONTROL:
+         int ii;
+         for (int i = 0; i < DOFS_; ++i)
          {
-           E2CachedValue_[3+i*ndf_][3+j*ndf_] += 2.0/eps_;
-           E2CachedValue_[4+i*ndf_][4+j*ndf_] += 2.0/eps_;
+           E1DLoadCachedValue_[i] = 0.0;
+           for (int p = 0; p < DOFS_F_; ++p)
+           {
+             for (int q = 0; q < DOFS_F_; ++q)
+             {
+               E1DLoadCachedValue_[i] += Jacobian_[p][i] * E2CachedValue_F_[p][q] *
+                   (DispJacobian_[q][0] + StretchRatio_ *DispJacobian_[q][1]);
+             }
+           }
          }
-       }
-       // Loading term for E2
-       if (PressureLoading_)
-       {
-         E2CachedValue_[0][1] += Lambda_ * nuc_ * CellArea_;
-         E2CachedValue_[1][0] += Lambda_ * nuc_ * CellArea_;
-         E2CachedValue_[2][2] -= Lambda_ * nuc_ * CellArea_;
-       }
+         break;
+     }
 
-       Cached_[2] = 1;
-       Cached_[3] = 1;
-       EvaluationCount_[1]++;
-
-       // Drop through to compute forces and energy too.
-
-     case NoStiffness:
-       bfbfeap_call_ener_(); // needs a "TPLOt" and "ENER" command in FEAP input file to work
-       bfbfeap_get_potential_energy_(&(E0CachedValue_));
-       if (PressureLoading_)
-       {
-         E0CachedValue_ += Lambda_ * ((DOF_[0]*DOF_[1] - 0.5*DOF_[2]*DOF_[2]) - 1.0) * nuc_ * CellArea_;
-       }
-       else
-       {
-         E0CachedValue_ += -Lambda_ * (Load_ * U_).Trace() * nuc_ * CellArea_;
-       }
-
-       E0CachedValue_ += 1.0/eps_*(S1*S1 + S2*S2);
-
-       bfbfeap_call_form_();
-       bfbfeap_get_reduced_residual_(&(E1CachedValue_F_[0]));
-
-       // FEAP returns -E1, so fix it.
-       for (int i = 0; i < E1CachedValue_F_.Dim(); ++i)
-       {
-         E1CachedValue_F_[i] = -E1CachedValue_F_[i];
-       }
-       E1CachedValue_ = Jacobian_.Transpose() * E1CachedValue_F_;
-
-       if (PressureLoading_)
-       {
-         E1CachedValue_[0] += Lambda_ * DOF_[1] * nuc_ * CellArea_;
-         E1CachedValue_[1] += Lambda_ * DOF_[0] * nuc_ * CellArea_;
-         E1CachedValue_[2] -= Lambda_ * DOF_[2] * nuc_ * CellArea_;
-       }
-       else
-       {
-         E1CachedValue_[0] += -Lambda_ * Load_[0][0] * nuc_ * CellArea_;
-         E1CachedValue_[1] += -Lambda_ * Load_[1][1] * nuc_ * CellArea_;
-         E1CachedValue_[2] += -sqrt(2.0)/2.0*Lambda_ * (Load_[1][0]+Load_[0][1]) * nuc_ * CellArea_;
-       }
-
-       for (int i = 0; i < (numnp_-nbn_/2); ++i)
-       {
-         E1CachedValue_[3+i*ndf_] += 2.0/eps_*S1;
-         E1CachedValue_[4+i*ndf_] += 2.0/eps_*S2;
-       }
-
-       Cached_[0] = 1;
-       Cached_[1] = 1;
-       EvaluationCount_[0]++;
-
-       break;
-     default:
-       cerr << "Error in FEAP::UpdateValues(), unknown UpdateFlag.\n";
-       exit(-45);
+     Cached_[2] = 1;
+     Cached_[3] = 1;
+     EvaluationCount_[1]++;
    }
 }
 
 void FEAP::UpdateDOF_F() const
 {
+  int shift;
+  switch (LoadingType_)
+  {
+    case DEAD_LOAD:
+    case PRESSURE_LOAD:
+      shift = ndm_ * (ndm_ + 1) / 2;
+      break;
+    case DISPLACEMENT_CONTROL:
+      shift = 0;
+      break;
+  }
    int ii,jj;
    for (int i=0; i< nbn_/2; ++i)
    {
       ii = BoundNodes_[i]* ndf_;
       jj = (i%(nbn_/2))*ndf_;
-      DOF_F_[ii]=DOF_[0]*(X_F_[ii] + DOF_[3+jj]) + DOF_[2]/sqrt(2.0)*(X_F_[ii+1] + DOF_[4+jj]);
-      DOF_F_[ii+1]=DOF_[1]*(X_F_[ii+1] + DOF_[4+jj]) + DOF_[2]/sqrt(2.0)*(X_F_[ii] + DOF_[3+jj]);
+      DOF_F_[ii]=U_[0][0]*(X_F_[ii] + DOF_[shift+jj]) + U_[0][1]*(X_F_[ii+1] + DOF_[shift+1+jj]);
+      DOF_F_[ii+1]=U_[1][1]*(X_F_[ii+1] + DOF_[shift+1+jj]) + U_[1][0]*(X_F_[ii] + DOF_[shift+jj]);
       if (ndf_>ndm_)  //1 Extra dof : theta
-         DOF_F_[ii+2]=DOF_[5+jj];
+         DOF_F_[ii+2]=DOF_[shift+2+jj];
    }
    for (int i=nbn_/2; i< nbn_; ++i)
    {
       ii = PeriodicNodes_[i-nbn_/2]* ndf_;
       jj = (i%(nbn_/2))*ndf_;
-      DOF_F_[ii]=DOF_[0]*(X_F_[ii] + DOF_[3+jj]) + DOF_[2]/sqrt(2.0)*(X_F_[ii+1] + DOF_[4+jj]);
-      DOF_F_[ii+1]=DOF_[1]*(X_F_[ii+1] + DOF_[4+jj]) + DOF_[2]/sqrt(2.0)*(X_F_[ii] + DOF_[3+jj]);
+      DOF_F_[ii]=U_[0][0]*(X_F_[ii] + DOF_[shift+jj]) + U_[0][1]*(X_F_[ii+1] + DOF_[shift+1+jj]);
+      DOF_F_[ii+1]=U_[1][1]*(X_F_[ii+1] + DOF_[shift+1+jj]) + U_[1][0]*(X_F_[ii] + DOF_[shift+jj]);
       if (ndf_>ndm_)  //1 Extra dof : theta
-         DOF_F_[ii+2]=DOF_[5+jj];
+         DOF_F_[ii+2]=DOF_[shift+2+jj];
    }
-   int offst = ndm_ * (ndm_ +1) / 2 + nbn_ / 2 * ndf_;
+   int offst = shift + nbn_ / 2 * ndf_;
    for (int i = nbn_; i < numnp_; ++i)
    {
       ii = InnerNodes_[i-nbn_]* ndf_;
       jj = offst+(i-nbn_)*ndf_;
-      DOF_F_[ii]=DOF_[0]*(X_F_[ii]+DOF_[jj]) + DOF_[2]/sqrt(2.0)*(X_F_[ii+1]+DOF_[jj+1]);
-      DOF_F_[ii+1]=DOF_[2]/sqrt(2.0)*(X_F_[ii]+DOF_[jj]) + DOF_[1]*(X_F_[ii+1]+DOF_[jj+1]);
+      DOF_F_[ii]=U_[0][0]*(X_F_[ii]+DOF_[jj]) + U_[0][1]*(X_F_[ii+1]+DOF_[jj+1]);
+      DOF_F_[ii+1]=U_[1][0]*(X_F_[ii]+DOF_[jj]) + U_[1][1]*(X_F_[ii+1]+DOF_[jj+1]);
       if (ndf_>ndm_)
          DOF_F_[ii+2]=DOF_[jj+2];
    }
@@ -693,57 +775,104 @@ void FEAP::UpdateDOF_F() const
 
 void FEAP::UpdateJacobian() const
 {
+  int shift;
+  switch (LoadingType_)
+  {
+    case DEAD_LOAD:
+    case PRESSURE_LOAD:
+      shift = ndm_ * (ndm_ + 1) / 2;
+      break;
+    case DISPLACEMENT_CONTROL:
+      shift = 0;
+      break;
+  }
    int ii, jj;
    for (int i = 0; i < nbn_/2; ++i)
    {
       ii = BoundNodes_[i]*ndf_;
       jj = (i%(nbn_/2))*ndf_;
-      Jacobian_[ii][0] = X_F_[ii] + DOF_[3+jj];
-      Jacobian_[ii][2] = 1.0/sqrt(2.0)*(X_F_[ii+1] + DOF_[4+jj]);
-      Jacobian_[ii][3+jj]=DOF_[0];
-      Jacobian_[ii][4+jj]=DOF_[2]/sqrt(2.0);
+      if (LoadingType_ != DISPLACEMENT_CONTROL)
+      {
+        Jacobian_[ii][0] = X_F_[ii] + DOF_[shift+jj];
+        Jacobian_[ii][2] = 1.0/sqrt(2.0)*(X_F_[ii+1] + DOF_[shift+1+jj]);
 
-      Jacobian_[ii+1][1] = X_F_[ii+1] + DOF_[4+jj];
-      Jacobian_[ii+1][2] = 1.0/sqrt(2.0)*(X_F_[ii] + DOF_[3+jj]);
-      Jacobian_[ii+1][3+jj]=DOF_[2]/sqrt(2.0);
-      Jacobian_[ii+1][4+jj]=DOF_[1];
+        Jacobian_[ii+1][1] = X_F_[ii+1] + DOF_[shift+1+jj];
+        Jacobian_[ii+1][2] = 1.0/sqrt(2.0)*(X_F_[ii] + DOF_[shift+jj]);
+      }
+      else
+      {
+        DispJacobian_[ii][0] = X_F_[ii] + DOF_[shift+jj];
+        DispJacobian_[ii][2] = 1.0/sqrt(2.0)*(X_F_[ii+1] + DOF_[shift+1+jj]);
+
+        DispJacobian_[ii+1][1] = X_F_[ii+1] + DOF_[shift+1+jj];
+        DispJacobian_[ii+1][2] = 1.0/sqrt(2.0)*(X_F_[ii] + DOF_[shift+jj]);
+      }
+      Jacobian_[ii][shift+jj]=U_[0][0];
+      Jacobian_[ii][shift+1+jj]=U_[0][1];
+
+      Jacobian_[ii+1][shift+jj]=U_[0][1];
+      Jacobian_[ii+1][shift+1+jj]=U_[1][1];
 
       if (ndf_>ndm_)
-         Jacobian_[ii+2][5+jj]=1.0;
+         Jacobian_[ii+2][shift+2+jj]=1.0;
    }
 
    for (int i = nbn_/2; i < nbn_; ++i)
    {
       ii = PeriodicNodes_[i-nbn_/2]*ndf_;
       jj = (i%(nbn_/2))*ndf_;
-      Jacobian_[ii][0] = X_F_[ii] + DOF_[3+jj];
-      Jacobian_[ii][2] = 1.0/sqrt(2.0)*(X_F_[ii+1] + DOF_[4+jj]);
-      Jacobian_[ii][3+jj]=DOF_[0];
-      Jacobian_[ii][4+jj]=DOF_[2]/sqrt(2.0);
+      if (LoadingType_ != DISPLACEMENT_CONTROL)
+      {
+        Jacobian_[ii][0] = X_F_[ii] + DOF_[shift+jj];
+        Jacobian_[ii][2] = 1.0/sqrt(2.0)*(X_F_[ii+1] + DOF_[shift+1+jj]);
 
-      Jacobian_[ii+1][1] = X_F_[ii+1] + DOF_[4+jj];
-      Jacobian_[ii+1][2] = 1.0/sqrt(2.0)*(X_F_[ii] + DOF_[3+jj]);
-      Jacobian_[ii+1][3+jj]=DOF_[2]/sqrt(2.0);
-      Jacobian_[ii+1][4+jj]=DOF_[1];
+        Jacobian_[ii+1][1] = X_F_[ii+1] + DOF_[shift+1+jj];
+        Jacobian_[ii+1][2] = 1.0/sqrt(2.0)*(X_F_[ii] + DOF_[shift+jj]);
+      }
+      else
+      {
+        DispJacobian_[ii][0] = X_F_[ii] + DOF_[shift+jj];
+        DispJacobian_[ii][2] = 1.0/sqrt(2.0)*(X_F_[ii+1] + DOF_[shift+1+jj]);
+
+        DispJacobian_[ii+1][1] = X_F_[ii+1] + DOF_[shift+1+jj];
+        DispJacobian_[ii+1][2] = 1.0/sqrt(2.0)*(X_F_[ii] + DOF_[shift+jj]);
+      }
+      Jacobian_[ii][shift+jj]=U_[0][0];
+      Jacobian_[ii][shift+1+jj]=U_[0][1];
+
+      Jacobian_[ii+1][shift+jj]=U_[0][1];
+      Jacobian_[ii+1][shift+1+jj]=U_[1][1];
 
       if (ndf_>ndm_)
-         Jacobian_[ii+2][5+jj]=1.0;
+         Jacobian_[ii+2][shift+2+jj]=1.0;
    }
 
-   int offst = ndm_ * (ndm_ +1) / 2 + nbn_ / 2 * ndf_;
+   int offst = shift + nbn_ / 2 * ndf_;
    for (int i = nbn_; i < numnp_; ++i)
    {
       ii = InnerNodes_[i-nbn_]*ndf_;
       jj = offst+(i-nbn_)*ndf_;
-      Jacobian_[ii][0] = X_F_[ii]+DOF_[jj];
-      Jacobian_[ii][2] = 1.0/sqrt(2.0)*(X_F_[ii+1]+DOF_[jj+1]);
-      Jacobian_[ii][jj] = DOF_[0];
-      Jacobian_[ii][jj+1] = DOF_[2]/sqrt(2.0);
+      if (LoadingType_ != DISPLACEMENT_CONTROL)
+      {
+        Jacobian_[ii][0] = X_F_[ii]+DOF_[jj];
+        Jacobian_[ii][2] = 1.0/sqrt(2.0)*(X_F_[ii+1]+DOF_[jj+1]);
 
-      Jacobian_[ii+1][1] = X_F_[ii+1]+DOF_[jj+1];
-      Jacobian_[ii+1][2] = 1.0/sqrt(2.0)*(X_F_[ii]+DOF_[jj]);
-      Jacobian_[ii+1][jj] = DOF_[2]/sqrt(2.0);
-      Jacobian_[ii+1][jj+1] = DOF_[1];
+        Jacobian_[ii+1][1] = X_F_[ii+1]+DOF_[jj+1];
+        Jacobian_[ii+1][2] = 1.0/sqrt(2.0)*(X_F_[ii]+DOF_[jj]);
+      }
+      else
+      {
+        DispJacobian_[ii][0] = X_F_[ii]+DOF_[jj];
+        DispJacobian_[ii][2] = 1.0/sqrt(2.0)*(X_F_[ii+1]+DOF_[jj+1]);
+
+        DispJacobian_[ii+1][1] = X_F_[ii+1]+DOF_[jj+1];
+        DispJacobian_[ii+1][2] = 1.0/sqrt(2.0)*(X_F_[ii]+DOF_[jj]);
+      }
+      Jacobian_[ii][jj] = U_[0][0];
+      Jacobian_[ii][jj+1] = U_[0][1];
+
+      Jacobian_[ii+1][jj] = U_[1][0];
+      Jacobian_[ii+1][jj+1] = U_[1][1];
 
       if (ndf_>ndm_)
          Jacobian_[ii+2][jj+2] = 1.0;
@@ -941,14 +1070,28 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
 {
 
    double pi = 4.0*atan(1.0);
+   if (TFType_ != 4)
+   {
+     bloch_wave_out_ << "## Index Number : " << bloch_count_ << "\n"
+                     << "#### Lambda = " << Lambda_;
+     switch (LoadingType_)
+     {
+       case DEAD_LOAD:
+       case PRESSURE_LOAD:
+         bloch_wave_out_ << "  U11 = " << DOF_[0]
+                         << "  U22 = " << DOF_[1]
+                         << "  U12 = " << DOF_[2] / sqrt(2.0) << endl;
+         break;
+       case DISPLACEMENT_CONTROL:
+         bloch_wave_out_ << "  U11 = " << Lambda_
+                         << "  U22 = " << StretchRatio_ * Lambda_
+                         << "  U12 = " << 0.0 << endl;
+         break;
+     }
+   }
+
    if(TFType_ == 1) // Bloch Wave Analysis
    {
-      bloch_wave_out_ << "## Index Number : " << bloch_count_ << "\n"
-                      << "#### Lambda = " << Lambda_
-                      << "  U11 = " << DOF_[0]
-                      << "  U22 = " << DOF_[1]
-                      << "  U12 = " << DOF_[2] / sqrt(2.0) << endl;
-
       int k = 0;
       for (int i = 0; i < KSpaceResolution_+1; ++i)
       {
@@ -996,11 +1139,6 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
    {
 
       KDirection_ /= KDirection_.MaxElement();
-      bloch_wave_out_ << "## Index Number : " << bloch_count_ << "\n"
-                      << "#### Lambda = " << Lambda_
-                      << "  U11 = " << DOF_[0]
-                      << "  U22 = " << DOF_[1]
-                      << "  U12 = " << DOF_[2] / sqrt(2.0) << endl;
       int k = 0;
 
       for (int i = 0; i < KSpaceResolution_+1; ++i)
@@ -1046,12 +1184,6 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
    }
    else if (TFType_ == 3)
    {
-
-      bloch_wave_out_ << "## Index Number : " << bloch_count_ << "\n"
-                      << "#### Lambda = " << Lambda_
-                      << "  U11 = " << DOF_[0]
-                      << "  U22 = " << DOF_[1]
-                      << "  U12 = " << DOF_[2] / sqrt(2.0) << endl;
       int k = 0;
       for (int i = 0; i < KVectorMatrix_.Rows(); ++i)
       {
@@ -1093,7 +1225,6 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
 
       }
    }
-
    else if(TFType_ == 4) // LoadingParameter
    {
       TF[0] = TFLoad_ - Lambda_;
@@ -1151,19 +1282,22 @@ Matrix const& FEAP::StiffnessDL() const
 {
    double load = Lambda_;
 
-   Lambda_ = load + 10.0 * Tolerance_; for (int i = 0; i < cachesize; ++i)
+   Lambda_ = load + 10.0 * Tolerance_;
+   for (int i = 0; i < cachesize; ++i)
    {
       Cached_[i] = 0;
    }
    stiffdl_static = E2();
-   Lambda_ = load - 10.0 * Tolerance_; for (int i = 0; i < cachesize; ++i)
+   Lambda_ = load - 10.0 * Tolerance_;
+   for (int i = 0; i < cachesize; ++i)
    {
       Cached_[i] = 0;
    }
    stiffdl_static -= E2();
    stiffdl_static /= 2.0 * Tolerance_;
 
-   Lambda_ = load; for (int i = 0; i < cachesize; ++i)
+   Lambda_ = load;
+   for (int i = 0; i < cachesize; ++i)
    {
       Cached_[i] = 0;
    }
@@ -1450,35 +1584,55 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
       NoNegTestFunctions+2 : mintestfunct.Dim();
 
    print_gpl_config(config_out_);
-   plot_out_ << setw(Width_) << Lambda_
-             << setw(Width_) << DOF_[0]
-             << setw(Width_) << DOF_[1]
-             << setw(Width_) << DOF_[2]/sqrt(2.0)
-             << setw(Width_) << E0CachedValue_ << endl;
-
+   switch (LoadingType_)
+   {
+     case DEAD_LOAD:
+     case PRESSURE_LOAD:
+       plot_out_ << setw(Width_) << Lambda_
+                 << setw(Width_) << DOF_[0]
+                 << setw(Width_) << DOF_[1]
+                 << setw(Width_) << DOF_[2]/sqrt(2.0)
+                 << setw(Width_) << E0CachedValue_ << endl;
+      break;
+     case DISPLACEMENT_CONTROL:
+       plot_out_ << setw(Width_) << Lambda_
+                 << setw(Width_) << Lambda_
+                 << setw(Width_) << StretchRatio_ * Lambda_
+                 << setw(Width_) << 0.0
+                 << setw(Width_) << E0CachedValue_ << endl;
+       break;
+   }
    switch (flag)
    {
       case PrintLong:
          out << "FEAP:" << "\n" << "\n";
-         if (PressureLoading_)
+         switch (LoadingType_)
          {
-           out << "Using: In-plane Pressure loading.\n";
-         }
-         else
-         {
-           out << "Using: In-plane Dead loading.\n";
+           case PRESSURE_LOAD:
+             out << "Using: In-plane Pressure loading.\n";
+             break;
+           case DEAD_LOAD:
+             out << "Using: In-plane Dead loading.\n";
+             break;
+           case DISPLACEMENT_CONTROL:
+             out << "Using: In-plane Displacement Control.\n";
+             break;
          }
 
          if (Echo_)
          {
             cout << "FEAP:" << "\n" << "\n";
-            if (PressureLoading_)
+            switch (LoadingType_)
             {
-              out << "Using: In-plane Pressure loading.\n";
-            }
-            else
-            {
-              out << "Using: In-plane Dead loading.\n";
+              case PRESSURE_LOAD:
+                out << "Using: In-plane Pressure loading.\n";
+                break;
+              case DEAD_LOAD:
+                out << "Using: In-plane Dead loading.\n";
+                break;
+              case DISPLACEMENT_CONTROL:
+                out << "Using: In-plane Displacement Control.\n";
+                break;
             }
          }
       // passthrough to short

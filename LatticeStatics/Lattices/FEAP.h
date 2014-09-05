@@ -23,12 +23,15 @@ private:
    int * InnerNodes_;
 
    mutable Matrix Jacobian_; // d(DOF_F)/d(DOF_)
+   mutable Matrix DispJacobian_; // d(DOF_F)/d(U)
    int** Map_ ; // Represents the sparse 3D array d2(DOF_F)/d(DOF_)2
 
    mutable double Lambda_;
-   mutable bool PressureLoading_; // true if using pressure loading
-   mutable Matrix Load_; //First Piola-Kirchoff stress tensor
+   enum LoadingType {DEAD_LOAD, PRESSURE_LOAD, DISPLACEMENT_CONTROL};
+   mutable LoadingType LoadingType_; // 0 - dead-load; 1 - pressure-load; 2 - displacement control
+   mutable Matrix Load_; //Bio stress tensor
    mutable Matrix U_; //Right stretch tensor
+   mutable double StretchRatio_; //Stretch ratio giving U_{22} = StretchRatio_*U_{11}
 
    int** N_; // Contains info for Dynamical Stiffness matrix. Only half the neighbouring cells is needed
               // Each row i contains : N_[i][0] & N_[i][1] : LV coordinates of neighbour cell
@@ -112,6 +115,22 @@ public:
    void SetDOF(Vector const& dof)
    {
       DOF_ = dof;
+      switch (LoadingType_)
+      {
+        case DEAD_LOAD:
+        case PRESSURE_LOAD:
+          U_[0][0] = DOF_[0];
+          U_[1][1] = DOF_[1];
+          U_[0][1] = DOF_[2]/sqrt(2.0);
+          U_[1][0] = U_[0][1];
+          break;
+        case DISPLACEMENT_CONTROL:
+          U_[0][0] = Lambda_;
+          U_[1][1] = StretchRatio_ * Lambda_;
+          U_[0][1] = 0.0;
+          U_[1][0] = 0.0;
+          break;
+      }
       for (int i = 0; i < cachesize; ++i)
       {
          Cached_[i] = 0;
@@ -126,6 +145,13 @@ public:
    void SetLambda(double const& lambda)
    {
       Lambda_ = lambda;
+      if (LoadingType_ == DISPLACEMENT_CONTROL)
+      {
+        U_[0][0] = Lambda_;
+        U_[1][1] = StretchRatio_ * Lambda_;
+        U_[0][1] = 0.0;
+        U_[1][0] = 0.0;
+      }
       for (int i = 0; i < cachesize; ++i)
       {
          Cached_[i] = 0;
