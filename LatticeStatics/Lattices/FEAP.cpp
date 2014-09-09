@@ -346,14 +346,20 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
    cout << "DOFS = " << DOFS_ << " DOFS_F = " << DOFS_F_ << "\n";
 
    // set DOF_ to initial value
+   U_.Resize(2,2,0.0);
+   U_[0][0] = 1.0;
+   U_[1][1] = 1.0;
    DOF_.Resize(DOFS_, 0.0);
    if (LoadingType_ != DISPLACEMENT_CONTROL)
    {
      DOF_[0] = 1.0;
      DOF_[1] = 1.0;
    }
+   else
+   {
+     SetLambda(1.0);
+   }
    DOF_F_.Resize(DOFS_F_, 0.0);
-
 
    // get and store reference coordinates
    X_.Resize(ndm_ * numnp_);
@@ -367,8 +373,10 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
       X_F_[ndf_ * i + 1] = X_[ndm_ * i + 1];
    }
 
+
    // setup remaining variables
    E1CachedValue_.Resize(DOFS_,0.0);
+   DispE1CachedValue_.Resize(3,0.0);
    E1CachedValue_F_.Resize(DOFS_F_,0.0);
 
    E1DLoadCachedValue_.Resize(DOFS_,0.0);
@@ -385,11 +393,9 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
    {
      DispJacobian_.Resize(DOFS_F_, 3,0.0);
    }
-   U_.Resize(2,2,0.0);
 
    int dim = ndf_*(numnp_ - nbn_/2);
    Dk_.Resize(dim,dim,0.0);
-
 
 
    // Setup Map_ matrix (2D representation of 3D array d2(V)/d(U)2
@@ -620,6 +626,10 @@ void FEAP::UpdateValues(UpdateFlag flag) const
          E1CachedValue_F_[i] = -E1CachedValue_F_[i];
    }
    E1CachedValue_ = Jacobian_.Transpose() * E1CachedValue_F_;
+   if (LoadingType_ == DISPLACEMENT_CONTROL)
+   {
+     DispE1CachedValue_ = DispJacobian_.Transpose() * E1CachedValue_F_;
+   }
 
    switch (LoadingType_)
    {
@@ -1283,12 +1293,26 @@ Matrix const& FEAP::StiffnessDL() const
    double load = Lambda_;
 
    Lambda_ = load + 10.0 * Tolerance_;
+   if (LoadingType_ == DISPLACEMENT_CONTROL)
+   {
+     U_[0][0] = Lambda_;
+     U_[1][1] = StretchRatio_ * Lambda_;
+     U_[0][1] = 0.0;
+     U_[1][0] = 0.0;
+   }
    for (int i = 0; i < cachesize; ++i)
    {
       Cached_[i] = 0;
    }
    stiffdl_static = E2();
    Lambda_ = load - 10.0 * Tolerance_;
+   if (LoadingType_ == DISPLACEMENT_CONTROL)
+   {
+     U_[0][0] = Lambda_;
+     U_[1][1] = StretchRatio_ * Lambda_;
+     U_[0][1] = 0.0;
+     U_[1][0] = 0.0;
+   }
    for (int i = 0; i < cachesize; ++i)
    {
       Cached_[i] = 0;
@@ -1297,6 +1321,13 @@ Matrix const& FEAP::StiffnessDL() const
    stiffdl_static /= 2.0 * Tolerance_;
 
    Lambda_ = load;
+   if (LoadingType_ == DISPLACEMENT_CONTROL)
+   {
+     U_[0][0] = Lambda_;
+     U_[1][1] = StretchRatio_ * Lambda_;
+     U_[0][1] = 0.0;
+     U_[1][0] = 0.0;
+   }
    for (int i = 0; i < cachesize; ++i)
    {
       Cached_[i] = 0;
@@ -1551,6 +1582,8 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
    int NoNegTestFunctions = 0;
    double engy;
    double E1norm;
+   double ConjToLambdaScal;
+   Vector ConjToLambda(3);
    Vector mintestfunct(NumTestFunctions());
    Vector TestFunctVals(NumTestFunctions());
 
@@ -1565,6 +1598,25 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
 
    engy = E0();
    E1norm = E1().Norm();
+   switch (LoadingType_)
+   {
+     case DEAD_LOAD:
+       ConjToLambdaScal = (Load_*U_).Trace() * nuc_ * CellArea_;
+       ConjToLambda[0] = DOF_[0];
+       ConjToLambda[1] = DOF_[1];
+       ConjToLambda[2] = DOF_[2];
+       break;
+     case PRESSURE_LOAD:
+       ConjToLambdaScal = (U_[0][0]*U_[1][1] - U_[0][1]*U_[1][0] - 1.0)*nuc_*CellArea_;
+       ConjToLambda[0] = DOF_[0];
+       ConjToLambda[1] = DOF_[1];
+       ConjToLambda[2] = DOF_[2];
+       break;
+     case DISPLACEMENT_CONTROL:
+       ConjToLambda = DispE1CachedValue_;
+       ConjToLambdaScal = ConjToLambda[0] + StretchRatio_ * ConjToLambda[1];
+       break;
+   }
 
    TestFunctions(TestFunctVals, LHS);
    mintestfunct = TestFunctVals;
@@ -1618,6 +1670,7 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
              out << "Using: In-plane Displacement Control.\n";
              break;
          }
+         out << "nuc_*CellArea: " << setw(W) << nuc_*CellArea_ << "\n";
 
          if (Echo_)
          {
@@ -1625,19 +1678,23 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
             switch (LoadingType_)
             {
               case PRESSURE_LOAD:
-                out << "Using: In-plane Pressure loading.\n";
+                cout << "Using: In-plane Pressure loading.\n";
                 break;
               case DEAD_LOAD:
-                out << "Using: In-plane Dead loading.\n";
+                cout << "Using: In-plane Dead loading.\n";
                 break;
               case DISPLACEMENT_CONTROL:
-                out << "Using: In-plane Displacement Control.\n";
+                cout << "Using: In-plane Displacement Control.\n";
                 break;
             }
          }
-      // passthrough to short
+         cout << "nuc_*CellArea: " << setw(W) << nuc_*CellArea_ << "\n";
+
+         // passthrough to short
       case PrintShort:
          out << "Lambda (t): " << setw(W) << Lambda_ << "\n"
+             << "ConjToLambdaScal: " << setw(W) << ConjToLambdaScal << "\n"
+             << "ConjToLambda: " << setw(W) << ConjToLambda << "\n"
              << "DOF: " << setw(W) << DOF_ << "\n"
              << "DOF Norm: " << setw(W) << DOF_.Norm() << "\n"
              << "Potential Value: " << setw(W) << engy << "\n"
@@ -1654,6 +1711,8 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
          if (Echo_)
          {
             cout << "Lambda (t): " << setw(W) << Lambda_ << "\n"
+                 << "ConjToLambdaScal: " << setw(W) << ConjToLambdaScal << "\n"
+                 << "ConjToLambda: " << setw(W) << ConjToLambda << "\n"
                  << "DOF: " << setw(W) << DOF_ << "\n"
                  << "DOF Norm: " << setw(W) << DOF_.Norm() << "\n"
                  << "Potential Value: " << setw(W) << engy << "\n"

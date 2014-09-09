@@ -94,6 +94,7 @@ private:
    mutable int Cached_[cachesize];
    mutable double E0CachedValue_;
    mutable Vector E1CachedValue_;
+   mutable Vector DispE1CachedValue_; // store conjugate to disp. control
    mutable Vector E1CachedValue_F_; //E1 Cached value for FEAP
    mutable Vector E1DLoadCachedValue_;
    mutable Matrix E2CachedValue_;
