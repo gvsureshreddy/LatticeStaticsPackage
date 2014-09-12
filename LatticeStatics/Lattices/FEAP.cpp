@@ -1513,7 +1513,16 @@ void FEAP::DynamicalMatrixBis(Vector const& K) const
    MyComplexDouble Ic(0.0,1.0);
 
 
-   A = E2CachedValue_.Extract(3,3,dim);
+   switch (LoadingType_)
+   {
+     case DEAD_LOAD:
+     case PRESSURE_LOAD:
+       A = E2CachedValue_.Extract(3,3,dim);
+       break;
+     case DISPLACEMENT_CONTROL:
+       A = E2CachedValue_;
+       break;
+   }
    for (int i = 0; i < numnp_-nbn_/2; ++i)
    {
       for (int j = 0; j < numnp_ - nbn_ / 2; ++j)
