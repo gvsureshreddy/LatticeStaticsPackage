@@ -565,6 +565,8 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
 
 void FEAP::UpdateValues(UpdateFlag flag) const
 {
+  Matrix Eye(2,2,0.0);
+  Eye.SetIdentity();
    // disp gradient U is set with lambda and DOF
    //
    // Update FEAP solution vector
@@ -608,7 +610,7 @@ void FEAP::UpdateValues(UpdateFlag flag) const
        E0CachedValue_ += Lambda_ * ((U_[0][0]*U_[1][1] - U_[0][1]*U_[1][0]) - 1.0) * nuc_ * CellArea_;
        break;
      case DEAD_LOAD:
-       E0CachedValue_ += -Lambda_ * (Load_ * U_).Trace() * nuc_ * CellArea_;
+       E0CachedValue_ += -Lambda_ * (Load_ * (U_ - Eye)).Trace() * nuc_ * CellArea_;
        break;
      case DISPLACEMENT_CONTROL:
        // nothing to do for disp. control loading energy
@@ -1595,6 +1597,8 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
    Vector ConjToLambda(3);
    Vector mintestfunct(NumTestFunctions());
    Vector TestFunctVals(NumTestFunctions());
+   Matrix Eye(2,2,0.0);
+   Eye.SetIdentity();
 
    W = out.width();
 
@@ -1610,7 +1614,7 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
    switch (LoadingType_)
    {
      case DEAD_LOAD:
-       ConjToLambdaScal = (Load_*U_).Trace() * nuc_ * CellArea_;
+       ConjToLambdaScal = (Load_*(U_-Eye)).Trace() * nuc_ * CellArea_;
        ConjToLambda[0] = DOF_[0];
        ConjToLambda[1] = DOF_[1];
        ConjToLambda[2] = DOF_[2];
