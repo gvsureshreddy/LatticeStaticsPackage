@@ -566,7 +566,7 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
 void FEAP::UpdateValues(UpdateFlag flag) const
 {
   Matrix Eye(2,2,0.0);
-  Eye.SetIdentity();
+  Eye.SetIdentity(2);
    // disp gradient U is set with lambda and DOF
    //
    // Update FEAP solution vector
@@ -1598,7 +1598,7 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
    Vector mintestfunct(NumTestFunctions());
    Vector TestFunctVals(NumTestFunctions());
    Matrix Eye(2,2,0.0);
-   Eye.SetIdentity();
+   Eye.SetIdentity(2);
 
    W = out.width();
 
