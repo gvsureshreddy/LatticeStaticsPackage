@@ -49,7 +49,8 @@ DATE_DEF   = -DBUILD_DATE="$(BUILD_DATE)"
 
 # various compile options
 CC_PERL     = `perl -MExtUtils::Embed -e ccopts | sed -e 's/-arch[^-]*//g' | sed -e 's/-Wdeclaration-after-statement//g'`
-CC_KIM     = -IPotentials/openkim-api-latest/KIM_API
+KIM_CONFIG_HELPER = kim-api-build-config
+CC_KIM     = $(shell $(KIM_CONFIG_HELPER) --includes)
 CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS) $(SOLVE) $(TERMINAL) $(CC_PERL) $(CC_KIM)
 LIBS_PERL   = `perl -MExtUtils::Embed -e ldopts | sed -e 's/-arch[^-]*//g' | sed -e 's/-Wdeclaration-after-statement//g'`
 FEAP_OK := $(shell if test -e $(FEAPHOME8_3)/Feap8_3.a; then echo YES; else echo NO; fi)
@@ -61,16 +62,12 @@ ifneq (,$(strip $(USE_FEAP)))
 else
   LIBS_FEAP = 
 endif
-KIM_OK := $(shell if test -e Potentials/openkim-api-latest/KIM_API/libkim.so; then echo YES; else echo NO; fi)
 ifneq (,$(strip $(USE_KIM)))
-  ifeq (NO,$(strip $(KIM_OK)))
-    $(error You must compile the openkim-api library)
-  endif
-  LIBS_KIM = -LPotentials/openkim-api-latest/KIM_API -lkim
+  LIBS_KIM = $(shell $(KIM_CONFIG_HELPER) --ldflags) $(shell $(KIM_CONFIG_HELPER) --ldlibs)
 else
   LIBS_KIM =
 endif
-LIBS       = -lLinearAlgebra -lMyMath -lm $(LIBS_FEAP) $(LIBS_KIM) -lgfortran
+LIBS       = -lLinearAlgebra -lMyMath -lm $(LIBS_PERL) $(LIBS_FEAP) $(LIBS_KIM) -lgfortran
 LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(DATE_DEF) $(LIBS_PERL)
 
 

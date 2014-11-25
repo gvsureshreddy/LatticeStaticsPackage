@@ -204,7 +204,7 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
       exit(1);
    }
 
-   KIM_API_set_test_buffer(pkim_, this, &status);
+   KIM_API_set_sim_buffer(pkim_, this, &status);
    if (KIM_STATUS_OK > status)
    {
       KIM_API_report_error(__LINE__, (char*) __FILE__,
@@ -263,7 +263,7 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
       {
          if (!strcmp(AtomSpeciesList[i], SpeciesList[j]))
          {
-           particleTypes_[i] = KIM_API_get_partcl_type_code(
+           particleTypes_[i] = KIM_API_get_species_code(
                pkim_, (char*) SpeciesList[j], &status);
             if (KIM_STATUS_OK > status)
             {
@@ -2056,7 +2056,7 @@ int MultiLatticeKIM::process_dEdr(void* kimmdl, double* dEdr, double* r,
    int status;
    intptr_t* pkim = *((intptr_t**) kimmdl);
    MultiLatticeKIM* obj;
-   obj = (MultiLatticeKIM*) KIM_API_get_test_buffer(pkim, &status);
+   obj = (MultiLatticeKIM*) KIM_API_get_sim_buffer(pkim, &status);
    double DX[3];
 
    // @@ need to find a more efficient way to do this...
@@ -2172,7 +2172,7 @@ int MultiLatticeKIM::process_d2Edr2(void* kimmdl, double* d2Edr2, double** r,
    int status;
    intptr_t* pkim = *((intptr_t**) kimmdl);
    MultiLatticeKIM* obj;
-   obj = (MultiLatticeKIM*) KIM_API_get_test_buffer(pkim, &status);
+   obj = (MultiLatticeKIM*) KIM_API_get_sim_buffer(pkim, &status);
 
    double DX[2][3];
    double Dx[2][3];
