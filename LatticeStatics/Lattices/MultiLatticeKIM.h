@@ -38,8 +38,8 @@ private:
    int KillRotations_;
    void* pkim_;
    int numberOfParticles_;
-   int numberParticleTypes_;
-   int* particleTypes_;
+   int numberOfSpecies_;
+   int* particleSpecies_;
    double cutoff_;
    double* coords_;
    double* forces_;

@@ -25,7 +25,7 @@ MultiLatticeKIM::~MultiLatticeKIM()
    status = KIM_API_model_destroy(pkim_);
    KIM_API_free(&pkim_, &status);
    // delete memory
-   delete[] particleTypes_;
+   delete[] particleSpecies_;
    delete[] coords_;
    delete[] forces_;
 
@@ -63,33 +63,34 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
    }
    PerlInput::HashStruct CBKHash = Input.getHash(Hash, "CBKinematics");
    const char* CBKin = Input.getString(CBKHash, "Type");
-   if (!strcmp("SymLagrangeCB", CBKin))
-   {
-      CBK_ = new SymLagrangeCB(Input, &Hash);
-      KillTranslations_ = 0;
-      needKillRotations = 0;
-   }
-   else if (!strcmp("SymLagrangeWTransCB", CBKin))
+   // if (!strcmp("SymLagrangeCB", CBKin))
+   // {
+   //    CBK_ = new SymLagrangeCB(Input, &Hash);
+   //    KillTranslations_ = 0;
+   //    needKillRotations = 0;
+   // }
+   // else
+     if (!strcmp("SymLagrangeWTransCB", CBKin))
    {
       CBK_ = new SymLagrangeWTransCB(Input, &Hash);
       needKillRotations = 0;
    }
-   else if (!strcmp("LagrangeCB", CBKin))
-   {
-      CBK_ = new LagrangeCB(Input, &Hash);
-   }
-   else if (!strcmp("MixedCB", CBKin))
-   {
-      CBK_ = new MixedCB(Input, &Hash);
-   }
-   else if (!strcmp("EulerCB", CBKin))
-   {
-      CBK_ = new EulerCB(Input, &Hash);
-   }
+   // else if (!strcmp("LagrangeCB", CBKin))
+   // {
+   //    CBK_ = new LagrangeCB(Input, &Hash);
+   // }
+   // else if (!strcmp("MixedCB", CBKin))
+   // {
+   //    CBK_ = new MixedCB(Input, &Hash);
+   // }
+   // else if (!strcmp("EulerCB", CBKin))
+   // {
+   //    CBK_ = new EulerCB(Input, &Hash);
+   // }
    else
    {
-      cerr << "Error Unknown MultiLattice{CBKinematics}{Type} specified"
-           << "\n";
+      cerr << "Error Unknown/unsupported MultiLattice{CBKinematics}{Type} "
+           << "specified\n";
       exit(-9);
    }
    InternalAtoms_ = CBK_->InternalAtoms();
@@ -173,12 +174,12 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
 
    // @@@@ NumberOfSpecies and SpeciesList need to be moved to CBKinematics object
    // Gets total number of species. From CBKHash
-   numberParticleTypes_ = Input.getInt(CBKHash, "NumberOfSpecies");
+   numberOfSpecies_ = Input.getInt(CBKHash, "NumberOfSpecies");
 
-   const char** SpeciesList = new const char*[numberParticleTypes_];
+   const char** SpeciesList = new const char*[numberOfSpecies_];
    const char** AtomSpeciesList = new const char*[InternalAtoms_];
 
-   for (int i = 0; i < numberParticleTypes_; i++)
+   for (int i = 0; i < numberOfSpecies_; i++)
    {
       // Gets list of Species. From CBKHash
       SpeciesList[i] = Input.getString(CBKHash, "SpeciesList", i);
@@ -187,7 +188,7 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
 
    // Create empty KIM object conforming to fields in the KIM descriptor files
    // of the Test and Model
-   Write_KIM_descriptor_file(SpeciesList, numberParticleTypes_);
+   Write_KIM_descriptor_file(SpeciesList, numberOfSpecies_);
    // Calls function to create a compatible descriptor file. Will need to
    // augment so that it can read in info from a model and automatically
    // decides the appropriate tests.
@@ -213,15 +214,15 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
       exit(1);
    }
 
-   particleTypes_ = new int[InternalAtoms_];
+   particleSpecies_ = new int[InternalAtoms_];
 
    coords_ = new double[InternalAtoms_ * 3];
    forces_ = new double[InternalAtoms_ * 3];
    // Force_.Resize(InternalAtoms_*3);
    KIM_API_setm_data(pkim_, &status, 7 * 4,
                      "numberOfParticles", 1, &numberOfParticles_, 1,
-                     "numberParticleTypes", 1, &numberParticleTypes_, 1,
-                     "particleTypes", InternalAtoms_, &(particleTypes_[0]), 1,
+                     "numberOfSpecies", 1, &numberOfSpecies_, 1,
+                     "particleSpecies", InternalAtoms_, &(particleSpecies_[0]), 1,
                      "coordinates", 3 * InternalAtoms_, &(coords_[0]), 1,
                      "forces", 3 * InternalAtoms_, &(forces_[0]), 1,
                      "cutoff", 1, &cutoff_, 1,
@@ -259,11 +260,11 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
    for (int i = 0; i < InternalAtoms_; i++)
    {
       AtomSpeciesList[i] = Input.getString(CBKHash, "AtomSpeciesKIM", i);
-      for (int j = 0; j < numberParticleTypes_; j++)
+      for (int j = 0; j < numberOfSpecies_; j++)
       {
          if (!strcmp(AtomSpeciesList[i], SpeciesList[j]))
          {
-           particleTypes_[i] = KIM_API_get_species_code(
+           particleSpecies_[i] = KIM_API_get_species_code(
                pkim_, (char*) SpeciesList[j], &status);
             if (KIM_STATUS_OK > status)
             {
@@ -272,7 +273,7 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
                                     status);
                exit(1);
             }
-            j = numberParticleTypes_ + 1;
+            j = numberOfSpecies_ + 1;
          }
       }
    }
@@ -1898,7 +1899,7 @@ void MultiLatticeKIM::PrintCurrentCrystalParamaters(ostream& out) const
 // CHECK OUT SSTREAM STRING INCLUDES IN QC. Line 527 in QC.cpp, Line 598 to
 // return pointer to a char of string object
 void MultiLatticeKIM::Write_KIM_descriptor_file(const char** SpeciesList,
-                                                int numberParticleTypes_)
+                                                int numberOfSpecies_)
 {
    descriptor_file_ << "######################################################"
       "##################################################" << endl;
@@ -1912,6 +1913,7 @@ void MultiLatticeKIM::Write_KIM_descriptor_file(const char** SpeciesList,
    descriptor_file_ << "#" << endl;
    descriptor_file_ << "######################################################"
       "#################################################" << endl;
+   descriptor_file_ << "KIM_API_Version := 1.6.0" << endl << endl;
    descriptor_file_ << "Unit_length      := A" << endl;
    descriptor_file_ << "Unit_energy      := eV" << endl;
    descriptor_file_ << "Unit_charge      := e" << endl;
@@ -1920,7 +1922,7 @@ void MultiLatticeKIM::Write_KIM_descriptor_file(const char** SpeciesList,
    descriptor_file_ << "######################################################"
       "#################################################" << endl;
    descriptor_file_ << "SUPPORTED_ATOM/PARTICLES_TYPES:" << endl;
-   for (int i = 0; i < numberParticleTypes_; i++)
+   for (int i = 0; i < numberOfSpecies_; i++)
    {
       descriptor_file_ << SpeciesList[i] << "                          spec   "
          "                 1" << endl;
@@ -1941,9 +1943,9 @@ void MultiLatticeKIM::Write_KIM_descriptor_file(const char** SpeciesList,
       "                Shape              Requirements" << endl;
    descriptor_file_ << "numberOfParticles           integer      none"
       "                []" << endl;
-   descriptor_file_ << "numberParticleTypes         integer      none"
+   descriptor_file_ << "numberOfSpecies             integer      none"
       "                []" << endl;
-   descriptor_file_ << "particleTypes               integer      none"
+   descriptor_file_ << "particleSpecies             integer      none"
       "                [numberOfParticles]" << endl;
    descriptor_file_ << "coordinates                 double       length"
       "              [numberOfParticles,3]" << endl;
