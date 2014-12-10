@@ -784,9 +784,9 @@ Matrix const& MultiLatticeKIM::stiffness(LDeriv const& dl) const
    }
    else if (dl == DL)
    {
-     for (int i = ME2_static.Rows(); ++i)
+     for (int i = 0; i < ME2_static.Rows(); ++i)
      {
-       for (int j = ME2_static.Cols(); ++i)
+       for (int j = 0; j < ME2_static.Cols(); ++i)
        {
          ME2_static[i][j] = 0.0;
        }
@@ -822,9 +822,16 @@ int MultiLatticeKIM::CriticalPointInfo(int* const CPCrossingNum,
                                        int const& Width,
                                        PerlInput const& Input, ostream& out)
 {
-   // @@ provide definition
-   cerr << "Error in MultiLatticeKIM::CriticalPointInfo() empty function \n ";
-   exit(-45);
+  int Bif;
+
+  // do standard CPInfo stuff and output bfb restart file
+  Bif = Lattice::CriticalPointInfo(
+      CPCrossingNum, TFIndex, DrDt, CPorBif, NumZeroEigenVals, Tolerance,
+      Width, Input, out);
+
+  // @@ provide additional stuff?
+
+  return Bif;
 }
 
 void MultiLatticeKIM::ExtraTestFunctions(Vector& TF) const
