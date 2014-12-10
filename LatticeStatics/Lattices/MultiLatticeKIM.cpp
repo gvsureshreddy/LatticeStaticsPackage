@@ -1251,7 +1251,7 @@ void MultiLatticeKIM::Print(ostream& out, PrintDetail const& flag,
    LatSum_.Reset();
 
    engy = E0();
-   // conj = ConjugateToLambda();
+   conj = ConjugateToLambda();
    str_static = stress();
    //   cout << "::Print::str_static = " << setw(15) << str_static << endl;
    //   cout << "::Print::E1() = " << setw(15) << E1() << endl;
@@ -1355,6 +1355,7 @@ void MultiLatticeKIM::Print(ostream& out, PrintDetail const& flag,
 
       case PrintShort:
          out << "Lambda : " << setw(W) << Lambda_ << "\n"
+             << "ConjugateToLambda : " << setw(W) << conj << "\n"
              << "DOF's :" << "\n" << setw(W) << CBK_->DOF() << "\n"
              << "Potential Value (eV) :" << setw(W) << engy << "\n";
          for (int i = 0; i < InternalAtoms_; ++i)
