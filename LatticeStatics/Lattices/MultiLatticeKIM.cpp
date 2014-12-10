@@ -713,10 +713,9 @@ Vector const& MultiLatticeKIM::stress(LDeriv const& dl) const
    
    if (dl == L0)
    {
-      // @@ set StiffnessYes_?
-      UpdateKIMValues();
-
-      ME1_static *= 1.0 / Vr;
+     // @@ set StiffnessYes_?
+     UpdateKIMValues();
+     ME1_static *= 1.0 / Vr;
 
       for (int i = 0; i < 3; ++i)
       {
@@ -728,6 +727,11 @@ Vector const& MultiLatticeKIM::stress(LDeriv const& dl) const
    }
    else if (dl == DL)
    {
+     for (int i = 0; i<ME1_static.Dim(); ++i)
+     {
+       ME1_static[i] = 0.0;
+     }
+     
       for (int i = 0; i < 3; ++i)
       {
          for (int j = 0; j < 3; ++j)
@@ -780,7 +784,13 @@ Matrix const& MultiLatticeKIM::stiffness(LDeriv const& dl) const
    }
    else if (dl == DL)
    {
-      // Nothing to do: Phi2_static is zero
+     for (int i = ME2_static.Rows(); ++i)
+     {
+       for (int j = ME2_static.Cols(); ++i)
+       {
+         ME2_static[i][j] = 0.0;
+       }
+     }
    }
    else
    {
