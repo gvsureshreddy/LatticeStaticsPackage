@@ -63,30 +63,29 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
    }
    PerlInput::HashStruct CBKHash = Input.getHash(Hash, "CBKinematics");
    const char* CBKin = Input.getString(CBKHash, "Type");
-   // if (!strcmp("SymLagrangeCB", CBKin))
-   // {
-   //    CBK_ = new SymLagrangeCB(Input, &Hash);
-   //    KillTranslations_ = 0;
-   //    needKillRotations = 0;
-   // }
-   // else
-     if (!strcmp("SymLagrangeWTransCB", CBKin))
+   if (!strcmp("SymLagrangeCB", CBKin))
+   {
+      CBK_ = new SymLagrangeCB(Input, &Hash);
+      KillTranslations_ = 0;
+      needKillRotations = 0;
+   }
+   else if (!strcmp("SymLagrangeWTransCB", CBKin))
    {
       CBK_ = new SymLagrangeWTransCB(Input, &Hash);
       needKillRotations = 0;
    }
-   // else if (!strcmp("LagrangeCB", CBKin))
-   // {
-   //    CBK_ = new LagrangeCB(Input, &Hash);
-   // }
-   // else if (!strcmp("MixedCB", CBKin))
-   // {
-   //    CBK_ = new MixedCB(Input, &Hash);
-   // }
-   // else if (!strcmp("EulerCB", CBKin))
-   // {
-   //    CBK_ = new EulerCB(Input, &Hash);
-   // }
+   else if (!strcmp("LagrangeCB", CBKin))
+   {
+      CBK_ = new LagrangeCB(Input, &Hash);
+   }
+   else if (!strcmp("MixedCB", CBKin))
+   {
+      CBK_ = new MixedCB(Input, &Hash);
+   }
+   else if (!strcmp("EulerCB", CBKin))
+   {
+      CBK_ = new EulerCB(Input, &Hash);
+   }
    else
    {
       cerr << "Error Unknown/unsupported MultiLattice{CBKinematics}{Type} "
@@ -244,6 +243,79 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
    {
       KIM_API_report_error(__LINE__, (char*) __FILE__,
                            (char*) "KIM_API_model_init", status);
+   }
+
+   // reset any KIM Model Published parameters as requested
+   char const KIMparams[] = "KIMModelPublishedParameters";
+   if (Input.ParameterOK(Hash, KIMparams))
+   {
+     int const params = Input.getArrayLength(Hash, KIMparams);
+
+     for (int i = 0; i < params; ++i)
+     {
+       char const* const paramName = Input.getString(Hash, KIMparams, i, 0);
+       char const* const paramType = Input.getString(Hash, KIMparams, i, 1);
+       cout << "paramName is: " << paramName << "\n"
+            << "paramType is: " << paramType << "\n";
+       if (!strcmp("integer", paramType))
+       {
+         int const val = Input.getInt(Hash, KIMparams, i, 2);
+
+         int * const paramVal = (int*)
+             KIM_API_get_data(pkim_, paramName, &status);
+         if (KIM_STATUS_OK > status)
+         {
+           KIM_API_report_error(__LINE__, (char*) __FILE__,
+                                (char*) "KIM_API_get_data",
+                                status);
+         }
+         else
+         {
+           *paramVal = val;
+
+           status = KIM_API_model_reinit(pkim_);
+           if (KIM_STATUS_OK > status)
+           {
+             KIM_API_report_error(__LINE__, (char*) __FILE__,
+                                  (char*) "KIM_API_model_reinit",
+                                  status);
+             exit(-1);
+           }
+         }
+       }
+       else if (!strcmp("double", paramType))
+       {
+         double const val = Input.getDouble(Hash, KIMparams, i, 2);
+         double * const paramVal = (double*)
+             KIM_API_get_data(pkim_, paramName, &status);
+         if (KIM_STATUS_OK > status)
+         {
+           KIM_API_report_error(__LINE__, (char*) __FILE__,
+                                (char*) "KIM_API_get_data",
+                                status);
+         }
+         else
+         {
+           *paramVal = val;
+
+           status = KIM_API_model_reinit(pkim_);
+           if (KIM_STATUS_OK > status)
+           {
+             KIM_API_report_error(__LINE__, (char*) __FILE__,
+                                  (char*) "KIM_API_model_reinit",
+                                  status);
+             exit(-1);
+           }
+         }
+       }
+       else
+       {
+         cerr << "Error (MultiLatticeKIM()): "
+              << "Unknown KIM published parameter type"
+              << "\n";
+         exit(-2);
+       }
+     }
    }
 
    InfluenceDist_ = cutoff_;
@@ -408,7 +480,6 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
       const char* init_equil = Input.getString(Hash, "InitialEqbm");
       if (!strcmp("Yes", init_equil) || !strcmp("yes", init_equil))
       {
-         cout << "Constructor: HERE " << endl;
          int err = 0;
          err = FindLatticeSpacing(iter);
          if (err)
@@ -476,8 +547,6 @@ int MultiLatticeKIM::FindLatticeSpacing(int const& iter)
    CBK_->SetReferenceToCurrent();
 
    LatSum_.Recalc();
-
-   cout << "MultiLatticeKIM(). End of Constructor" << endl;
 
    return 0;
 }
@@ -561,6 +630,11 @@ void MultiLatticeKIM::UpdateKIMValues() const
    }
 
    status = KIM_API_model_compute(pkim_);
+   if (KIM_STATUS_OK > status)
+   {
+     KIM_API_report_error(__LINE__, (char*) __FILE__,
+                          (char*) "KIM_API_compute", status);
+   }
 
    for (int i = 0; i < (InternalAtoms_); i++)
    {
