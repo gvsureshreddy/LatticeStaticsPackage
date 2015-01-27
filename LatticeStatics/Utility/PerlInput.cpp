@@ -4,6 +4,7 @@
 #include "PerlInput.h"
 
 static PerlInterpreter* my_perl = 0;
+static bool PerlInitialized = false;
 
 void PerlInput::Initialize()
 {
@@ -18,7 +19,20 @@ void PerlInput::Initialize()
       exit(-3);
    }
 
-   PERL_SYS_INIT3(&four, &pargs, nu);
+   if (!PerlInitialized)
+   {
+     PERL_SYS_INIT3(&four, &pargs, nu);
+     atexit(&PerlInput::AtExit);
+     PerlInitialized = true;
+   }
+
+   if (my_perl)
+   {
+     PL_perl_destruct_level = 1;
+     perl_destruct(my_perl);
+     perl_free(my_perl);
+   }
+
    my_perl = perl_alloc();
    perl_construct(my_perl);
    PL_exit_flags |= PERL_EXIT_DESTRUCT_END;
@@ -97,11 +111,15 @@ PerlInput::PerlInput(char const* const datafile)
 
 PerlInput::~PerlInput()
 {
+   PL_perl_destruct_level = 1;
    perl_destruct(my_perl);
    perl_free(my_perl);
-   PERL_SYS_TERM();
-
    my_perl = 0;
+}
+
+void PerlInput::AtExit()
+{
+  PERL_SYS_TERM();
 }
 
 PerlInput::HashStruct PerlInput::getHash(char const* const HashName) const

@@ -20,7 +20,7 @@ void GetMainSettings(int& Width, int& Precision, int& Echo, PerlInput const& Inp
 void InitializeOutputFile(char const* const datafile, char const* const startfile,
                           int const& Precision, int const& Width, int const& Echo);
 
-PerlInput Input;
+PerlInput* Input;
 Lattice* Lat;
 Restriction* Restrict;
 SolutionMethod* SolveMe;
@@ -32,8 +32,8 @@ int Width, Precision, Echo;
 
 extern "C" void bfb_gettang_(double* tang)
 {
-   Vector tan1tmp(Input.getArrayLength("StartType","Tangent"));
-   Input.getVector(tan1tmp,"StartType","Tangent");
+   Vector tan1tmp(Input->getArrayLength("StartType","Tangent"));
+   Input->getVector(tan1tmp,"StartType","Tangent");
 
    for (int i=0;i<tan1tmp.Dim()-1;++i)
    {
@@ -45,6 +45,8 @@ extern "C" void bfb_gettang_(double* tang)
 
 extern "C" void bfb_init_wrapper_(int& nfree, double* ufree_init, double& t, char* bfbfile)
 {
+   Input = new PerlInput();
+
    Vector utmp(nfree);
    // Vector sol(nfree+1);
    for (int i = 0; i < nfree; ++i)
@@ -54,25 +56,25 @@ extern "C" void bfb_init_wrapper_(int& nfree, double* ufree_init, double& t, cha
    }
    // sol[nfree] = t;
 
-   Input.Readfile(bfbfile);
+   Input->Readfile(bfbfile);
    ostringstream tmp;
    tmp << "$Main{Echo} = 0;";
-   Input.EvaluateString(tmp.str().c_str());
+   Input->EvaluateString(tmp.str().c_str());
    tmp.str("");
    tmp << "$Lattice{QC}{DOFS} = " << nfree << ";";
-   Input.EvaluateString(tmp.str().c_str());
+   Input->EvaluateString(tmp.str().c_str());
    tmp.str("");
    tmp << "$Lattice{NewtonPCSolution}{NumSolutions} = 100000;";
-   Input.EvaluateString(tmp.str().c_str());
-   GetMainSettings(Width, Precision, Echo, Input);
+   Input->EvaluateString(tmp.str().c_str());
+   GetMainSettings(Width, Precision, Echo, *Input);
 
    InitializeOutputFile(bfbfile, 0, Precision, Width, Echo);
 
-   Lat = InitializeLattice(Input, Echo, Width, 0);
+   Lat = InitializeLattice(*Input, Echo, Width, 0);
    Lat->SetDOF(utmp);
    Lat->SetLambda(t);
 
-   Restrict = InitializeRestriction(Lat, Input);
+   Restrict = InitializeRestriction(Lat, *Input);
 
    cout << "Restriction: " << Restrict->Name() << "\n";
 
@@ -84,9 +86,9 @@ extern "C" void bfb_init_wrapper_(int& nfree, double* ufree_init, double& t, cha
    // for (int i=1;i<sol.Dim();++i)
    //   tmp << "," << setw(Width) << sol[i];
    // tmp << "];";
-   // Input.EvaluateString(tmp.str().c_str());
+   // Input->EvaluateString(tmp.str().c_str());
 
-   SolveMe = InitializeSolution(Restrict, Input, Lat, cout, Width, Echo);
+   SolveMe = InitializeSolution(Restrict, *Input, Lat, cout, Width, Echo);
    EigenValues.Resize(Lat->NumTestFunctions());
 
    cout << setw(Width);
@@ -96,7 +98,7 @@ extern "C" void bfb_init_wrapper_(int& nfree, double* ufree_init, double& t, cha
 // bfbreturncode: 0-regular point, 1-terminate, 2-critical point
 extern "C" void bfb_wrapper_(int& bfbstable, int& bfbreturncode)
 {
-   success = SolveMe->FindNextSolution(Input, Width, cout);
+   success = SolveMe->FindNextSolution(*Input, Width, cout);
    // always returns 1
 
    TestValue = Lat->TestFunctions(EigenValues);
@@ -141,6 +143,7 @@ extern "C" void bfb_term_wrapper_()
    delete SolveMe;
    delete Restrict;
    delete Lat;
+   delete Input;
 }
 
 void GetMainSettings(int& Width, int& Precision, int& Echo, PerlInput const& Input)

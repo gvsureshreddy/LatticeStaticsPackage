@@ -18,6 +18,7 @@ private:
    mutable ostringstream ReconstructedInput_;
 
    void Initialize();
+   static void AtExit();
 
 public:
    struct HashStruct
