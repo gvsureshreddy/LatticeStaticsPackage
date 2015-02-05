@@ -20,6 +20,7 @@ ANSI       = -pedantic
 SOLVE      =
 TERMINAL = 
 #TERMINAL = -DUNIX_TERMINAL
+PERL = perl
 
 export CC
 export OPTIMIZE
@@ -28,6 +29,7 @@ export PROFILE
 export ANSI
 export SOLVE
 export TERMINAL
+export PERL
 
 #USE_KIM  = -DUSE_KIM
 #USE_FEAP = -DUSE_FEAP

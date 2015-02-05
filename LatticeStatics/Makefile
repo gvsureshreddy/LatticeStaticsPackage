@@ -48,11 +48,11 @@ DATE_DEF   = -DBUILD_DATE="$(BUILD_DATE)"
 #USE_QC   = -DUSE_QC
 
 # various compile options
-CC_PERL     = `perl -MExtUtils::Embed -e ccopts | sed -e 's/-arch[^-]*//g' | sed -e 's/-Wdeclaration-after-statement//g'`
+CC_PERL     = `$(PERL) -MExtUtils::Embed -e ccopts | sed -e 's/-arch[^-]*//g' | sed -e 's/-Wdeclaration-after-statement//g'`
 KIM_CONFIG_HELPER = kim-api-build-config
 CC_KIM     = $(shell $(KIM_CONFIG_HELPER) --includes)
 CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS) $(SOLVE) $(TERMINAL) $(CC_PERL) $(CC_KIM)
-LIBS_PERL   = `perl -MExtUtils::Embed -e ldopts | sed -e 's/-arch[^-]*//g' | sed -e 's/-Wdeclaration-after-statement//g'`
+LIBS_PERL   = `$(PERL) -MExtUtils::Embed -e ldopts | sed -e 's/-arch[^-]*//g' | sed -e 's/-Wdeclaration-after-statement//g'`
 FEAP_OK := $(shell if test -e $(FEAPHOME8_3)/Feap8_3.a; then echo YES; else echo NO; fi)
 ifneq (,$(strip $(USE_FEAP)))
   ifeq (NO,$(strip $(FEAP_OK)))
