@@ -427,6 +427,13 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
        Map_[BoundNodes_[i]*ndf_+2][1] = -1;
        Map_[BoundNodes_[i]*ndf_+2][2] = -1;
        Map_[BoundNodes_[i]*ndf_+2][3] = -1;
+       if (ndf_>(ndm_+1))
+       {
+         Map_[BoundNodes_[i]*ndf_+3][0] = -1;
+         Map_[BoundNodes_[i]*ndf_+3][1] = -1;
+         Map_[BoundNodes_[i]*ndf_+3][2] = -1;
+         Map_[BoundNodes_[i]*ndf_+3][3] = -1;
+       }
      }
    }
 
@@ -447,6 +454,13 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
        Map_[PeriodicNodes_[i]*ndf_+2][1] = -1;
        Map_[PeriodicNodes_[i]*ndf_+2][2] = -1;
        Map_[PeriodicNodes_[i]*ndf_+2][3] = -1;
+       if (ndf_>(ndm_+1))
+       {
+         Map_[PeriodicNodes_[i]*ndf_+3][0] = -1;
+         Map_[PeriodicNodes_[i]*ndf_+3][1] = -1;
+         Map_[PeriodicNodes_[i]*ndf_+3][2] = -1;
+         Map_[PeriodicNodes_[i]*ndf_+3][3] = -1;
+       }
      }
    }
 
@@ -461,7 +475,7 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
      {
        if ((i==BoundNodes_[j])||(i==PeriodicNodes_[j]))
        {
-	 l=l-1;
+	 	l=l-1;
        }
      }
    }
@@ -481,10 +495,17 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
 
       if (ndf_>ndm_)
       {
-      Map_[InnerNodes_[i-nbn_]*ndf_+2][0] = -1;
-      Map_[InnerNodes_[i-nbn_]*ndf_+2][1] = -1;
-      Map_[InnerNodes_[i-nbn_]*ndf_+2][2] = -1;
-      Map_[InnerNodes_[i-nbn_]*ndf_+2][3] = -1;
+        Map_[InnerNodes_[i-nbn_]*ndf_+2][0] = -1;
+        Map_[InnerNodes_[i-nbn_]*ndf_+2][1] = -1;
+        Map_[InnerNodes_[i-nbn_]*ndf_+2][2] = -1;
+        Map_[InnerNodes_[i-nbn_]*ndf_+2][3] = -1;
+        if (ndf_>(ndm_+1))
+        {
+          Map_[InnerNodes_[i-nbn_]*ndf_+3][0] = -1;
+          Map_[InnerNodes_[i-nbn_]*ndf_+3][1] = -1;
+          Map_[InnerNodes_[i-nbn_]*ndf_+3][2] = -1;
+          Map_[InnerNodes_[i-nbn_]*ndf_+3][3] = -1;
+        }
       }
    }
 
@@ -571,6 +592,7 @@ void FEAP::UpdateValues(UpdateFlag flag) const
    //
    // Update FEAP solution vector
    UpdateDOF_F();
+//    cout << "\n DOF_F_=" << setw(20) << DOF_F_ <<"\n";
    bfbfeap_set_nodal_solution_(&(DOF_F_[0]));
 
    UpdateJacobian();
@@ -578,6 +600,7 @@ void FEAP::UpdateValues(UpdateFlag flag) const
    //Sum of S term for phantom energy term
    double S1 = 0.0;
    double S2 = 0.0;
+   double S3 = 0.0;
    int shift;
    switch (LoadingType_)
    {
@@ -594,6 +617,8 @@ void FEAP::UpdateValues(UpdateFlag flag) const
    {
       S1 += DOF_[shift+i*ndf_];
       S2 += DOF_[shift+1+i*ndf_];
+      if(ndf_>(ndm_+1))
+      S3 += DOF_[shift+2+i*ndf_];
    }
 //    for (int i = nbn_; i < numnp_; ++i)
 //    {
@@ -604,6 +629,7 @@ void FEAP::UpdateValues(UpdateFlag flag) const
 
    bfbfeap_call_ener_(); // needs a "TPLOt" and "ENER" command in FEAP input file to work
    bfbfeap_get_potential_energy_(&(E0CachedValue_));
+//    cout << "\n E0_=" << E0CachedValue_ <<"\n";
    switch (LoadingType_)
    {
      case PRESSURE_LOAD:
@@ -617,10 +643,12 @@ void FEAP::UpdateValues(UpdateFlag flag) const
        break;
    }
 
-   E0CachedValue_ += 1.0/eps_*(S1*S1 + S2*S2);
+   E0CachedValue_ += 1.0/eps_*(S1*S1 + S2*S2 + S3*S3);
 
    bfbfeap_call_form_();
    bfbfeap_get_reduced_residual_(&(E1CachedValue_F_[0]));
+
+//      cout << "\n E1CachedValue_F_=" << setw(20) << E1CachedValue_F_ << "\n";
 
    // FEAP returns -E1, so fix it.
    for (int i = 0; i < E1CachedValue_F_.Dim(); ++i)
@@ -654,12 +682,13 @@ void FEAP::UpdateValues(UpdateFlag flag) const
    {
      E1CachedValue_[shift+i*ndf_] += 2.0/eps_*S1;
      E1CachedValue_[shift+1+i*ndf_] += 2.0/eps_*S2;
+     if(ndf_>(ndm_+1))
+     E1CachedValue_[shift+2+i*ndf_] += 2.0/eps_*S3;
    }
 
    Cached_[0] = 1;
    Cached_[1] = 1;
    EvaluationCount_[0]++;
-
 
    if (flag == NeedStiffness)
    {
@@ -667,7 +696,12 @@ void FEAP::UpdateValues(UpdateFlag flag) const
      bfbfeap_call_tang_();
      bfbfeap_get_reduced_tang_(&(E2CachedValue_F_[0][0]));
 
+//      cout << "\n E2CachedValue_F_=" << setw(20) << E2CachedValue_F_ << "\n";
+
      E2CachedValue_ = Jacobian_.Transpose() * E2CachedValue_F_ * Jacobian_;
+//
+//      cout << "\n jacobian=" << setw(20) << Jacobian_ << "\n";
+//      cout << "\n E2CachedValue_=" << setw(20) << E2CachedValue_ << "\n";
 
      // This term doesn't contribute for displacement control
      if (LoadingType_ != DISPLACEMENT_CONTROL)
@@ -693,9 +727,11 @@ void FEAP::UpdateValues(UpdateFlag flag) const
        {
          E2CachedValue_[shift+i*ndf_][shift+j*ndf_] += 2.0/eps_;
          E2CachedValue_[shift+1+i*ndf_][shift+1+j*ndf_] += 2.0/eps_;
+         if(ndf_>(ndm_+1))
+         E2CachedValue_[shift+2+i*ndf_][shift+2+j*ndf_] += 2.0/eps_;
        }
      }
-     // Loading term for E2
+     // Loading term for E2 //
      if (LoadingType_ == PRESSURE_LOAD)
      {
        E2CachedValue_[0][1] += Lambda_ * nuc_ * CellArea_;
@@ -736,6 +772,24 @@ void FEAP::UpdateValues(UpdateFlag flag) const
      Cached_[2] = 1;
      Cached_[3] = 1;
      EvaluationCount_[1]++;
+
+     Vector E1DLoad_F = Jacobian_ * E1DLoadCachedValue_;
+//      Matrix A(DOFS_F_, DOFS_F_+1);
+//      for (int i = 0; i < DOFS_F_; ++i)
+//       {
+//          for (int j = 0; j < DOFS_F_+1; ++j)
+//          {
+//             A[i][j] = E2CachedValue_F_[i][j];
+//          }
+//          A[i][DOFS_F_] = E1DLoad_F[i];
+//       }
+//      Matrix Q(DOFS_F_+1, DOFS_F_+1);
+//   	 Matrix R(DOFS_F_+1, DOFS_F_);
+//      QR(A, Q, R, 1);
+     cout << "\n E1DLoad_F=" << setw(20) << E1DLoad_F << "\n";
+//   	 cout << "\n Q=" << setw(20) << Q;
+
+//      cout << "E1DLoadCachedValue_=" << setw(20) << E1DLoadCachedValue_ << "\n";
    }
 }
 
@@ -760,7 +814,13 @@ void FEAP::UpdateDOF_F() const
       DOF_F_[ii]=U_[0][0]*(X_F_[ii] + DOF_[shift+jj]) + U_[0][1]*(X_F_[ii+1] + DOF_[shift+1+jj]);
       DOF_F_[ii+1]=U_[1][1]*(X_F_[ii+1] + DOF_[shift+1+jj]) + U_[1][0]*(X_F_[ii] + DOF_[shift+jj]);
       if (ndf_>ndm_)  //1 Extra dof : theta
-         DOF_F_[ii+2]=DOF_[shift+2+jj];
+      {
+        DOF_F_[ii+2]=DOF_[shift+2+jj];
+        if (ndf_>(ndm_+1))  //1 Extra dof : u',v'
+        {
+          DOF_F_[ii+3]=DOF_[shift+3+jj];
+        }
+      }
    }
    for (int i=nbn_/2; i< nbn_; ++i)
    {
@@ -769,7 +829,13 @@ void FEAP::UpdateDOF_F() const
       DOF_F_[ii]=U_[0][0]*(X_F_[ii] + DOF_[shift+jj]) + U_[0][1]*(X_F_[ii+1] + DOF_[shift+1+jj]);
       DOF_F_[ii+1]=U_[1][1]*(X_F_[ii+1] + DOF_[shift+1+jj]) + U_[1][0]*(X_F_[ii] + DOF_[shift+jj]);
       if (ndf_>ndm_)  //1 Extra dof : theta
-         DOF_F_[ii+2]=DOF_[shift+2+jj];
+      {
+        DOF_F_[ii+2]=DOF_[shift+2+jj];
+        if (ndf_>(ndm_+1))  //1 Extra dof : u', v'
+        {
+          DOF_F_[ii+3]=DOF_[shift+3+jj];
+        }
+      }
    }
    int offst = shift + nbn_ / 2 * ndf_;
    for (int i = nbn_; i < numnp_; ++i)
@@ -778,8 +844,14 @@ void FEAP::UpdateDOF_F() const
       jj = offst+(i-nbn_)*ndf_;
       DOF_F_[ii]=U_[0][0]*(X_F_[ii]+DOF_[jj]) + U_[0][1]*(X_F_[ii+1]+DOF_[jj+1]);
       DOF_F_[ii+1]=U_[1][0]*(X_F_[ii]+DOF_[jj]) + U_[1][1]*(X_F_[ii+1]+DOF_[jj+1]);
-      if (ndf_>ndm_)
-         DOF_F_[ii+2]=DOF_[jj+2];
+      if (ndf_>ndm_)  //1 Extra dof : theta
+      {
+        DOF_F_[ii+2]=DOF_[jj+2];
+        if (ndf_>(ndm_+1))  //1 Extra dof : u', v'
+        {
+          DOF_F_[ii+3]=DOF_[jj+3];
+        }
+      }
    }
    DOF_F_ -= X_F_;
 
@@ -826,7 +898,13 @@ void FEAP::UpdateJacobian() const
       Jacobian_[ii+1][shift+1+jj]=U_[1][1];
 
       if (ndf_>ndm_)
+      {
          Jacobian_[ii+2][shift+2+jj]=1.0;
+         if (ndf_>(ndm_+1))
+         {
+           Jacobian_[ii+3][shift+3+jj]=1.0;
+         }
+      }
    }
 
    for (int i = nbn_/2; i < nbn_; ++i)
@@ -856,7 +934,13 @@ void FEAP::UpdateJacobian() const
       Jacobian_[ii+1][shift+1+jj]=U_[1][1];
 
       if (ndf_>ndm_)
+      {
          Jacobian_[ii+2][shift+2+jj]=1.0;
+         if (ndf_>(ndm_+1))
+         {
+           Jacobian_[ii+3][shift+3+jj]=1.0;
+         }
+      }
    }
 
    int offst = shift + nbn_ / 2 * ndf_;
@@ -887,7 +971,13 @@ void FEAP::UpdateJacobian() const
       Jacobian_[ii+1][jj+1] = U_[1][1];
 
       if (ndf_>ndm_)
+      {
          Jacobian_[ii+2][jj+2] = 1.0;
+         if (ndf_>(ndm_+1))
+         {
+           Jacobian_[ii+3][jj+3] = 1.0;
+         }
+      }
    }
 
 }
@@ -1600,6 +1690,9 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
    Matrix Eye(2,2,0.0);
    Eye.SetIdentity(2);
 
+   Matrix Q(DOFS_, DOFS_);
+   Matrix R(DOFS_, DOFS_-1);
+
    W = out.width();
 
    out.width(0);
@@ -1660,11 +1753,13 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
                  << setw(Width_) << E0CachedValue_ << endl;
       break;
      case DISPLACEMENT_CONTROL:
-       plot_out_ << setw(Width_) << Lambda_
+       plot_out_ << setw(Width_) << -ConjToLambda[0]/(nuc_*CellArea_)
+                 << setw(Width_) << -ConjToLambda[1]/(nuc_*CellArea_)
+                 << setw(Width_) << -ConjToLambdaScal/(2.0*nuc_*CellArea_)
                  << setw(Width_) << Lambda_
                  << setw(Width_) << StretchRatio_ * Lambda_
                  << setw(Width_) << 0.0
-                 << setw(Width_) << E0CachedValue_ << endl;
+                 << setw(Width_) << -E0CachedValue_ << endl;
        break;
    }
    switch (flag)
@@ -1726,15 +1821,20 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
             cout << "Lambda (t): " << setw(W) << Lambda_ << "\n"
                  << "ConjToLambdaScal: " << setw(W) << ConjToLambdaScal << "\n"
                  << "ConjToLambda: " << setw(W) << ConjToLambda << "\n"
+              //   << "DOF_F_: " << setw(W) << DOF_F_ << "\n"
                  << "DOF: " << setw(W) << DOF_ << "\n"
                  << "DOF Norm: " << setw(W) << DOF_.Norm() << "\n"
                  << "Potential Value: " << setw(W) << engy << "\n"
                  << "Force Norm: " << setw(W) << E1norm << "\n";
-/*       //ajout ///////////////////////////////////////////////////////////////////
-          cout << "StiffnessDL= " << setw(W) << E2() << "\n";
-          cout << "nodal_coord= " << setw(W) << X_ << "\n";
        //ajout ///////////////////////////////////////////////////////////////////
-       // */
+//   cout << "StiffnessDL= " << setw(W) << E2() << "\n";
+//   cout << "X_F_= " << setw(W) << X_F_ << "\n";
+//      QR(E2(), Q, R, 1);
+//   cout << "QR= " << setw(W) << Q << "\n";
+
+       //   cout << "nodal_coord= " << setw(W) << X_ << "\n";
+       //ajout ///////////////////////////////////////////////////////////////////
+       //
             cout << "Bifurcation Info: ";
             for (int i=0;i<minprint; ++i) cout << setw(W) << mintestfunct[i];
             cout << setw(W) << NoNegTestFunctions << "\n";
