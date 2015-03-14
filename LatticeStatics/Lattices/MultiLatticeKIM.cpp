@@ -203,8 +203,9 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
                            "(see kim.log file for details).", status);
       exit(1);
    }
+   delete [] Test_Descriptor_file;
 
-   KIM_API_set_sim_buffer(pkim_, this, &status);
+   KIM_API_set_sim_buffer(pkim_, (void*) this, &status);
    if (KIM_STATUS_OK > status)
    {
       KIM_API_report_error(__LINE__, (char*) __FILE__,

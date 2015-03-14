@@ -41,6 +41,7 @@ void PPSumKIM::Initialize()
    double Influencedist[3], tmp;
    int p, q, i;
    int Top[3], Bottom[3], CurrentInfluenceDist;
+   int ListMax, ListVecMax;
    double AtomicDensity;
    double SphereVol;
 
@@ -66,13 +67,14 @@ void PPSumKIM::Initialize()
    // set tmp to the number of pairs in the sphere to be scanned
    AtomicDensity = InternalAtoms_ / ((CBK_->DeltaVolume()) * (CBK_->RefVolume()));
    SphereVol = (4.0 * 3.15 / 3.0) * (*InfluenceDist_) * (*InfluenceDist_) * (*InfluenceDist_);
-   tmp = ceil(1.05 * InternalAtoms_ * AtomicDensity * SphereVol);
+   tmp = ceil(1.15 * InternalAtoms_ * AtomicDensity * SphereVol);
 
    // make sure there is enough memory to store the pairs.
-
+   ListMax = InternalAtoms_ * int(tmp);
+   ListVecMax = InternalAtoms_ * 3 * int(tmp);
    numNeigh_ = new int[InternalAtoms_];
-   nListAtom_ = new int[InternalAtoms_ * int(tmp)];
-   nListRVec_ = new double[InternalAtoms_ * 3 * int(tmp)];
+   nListAtom_ = new int[ListMax];
+   nListRVec_ = new double[ListVecMax];
 
    int numTemp0, numTemp1, numTemp2;
    double r2;
@@ -111,6 +113,13 @@ void PPSumKIM::Initialize()
          }
       }
       numNeigh_[p] = numTemp1;
+   }
+   if ((numTemp0 > ListMax) ||
+       (numTemp1 > ListMax) ||
+       (numTemp2 > ListVecMax))
+   {
+     cerr << "Error: PPSumKIM::Initialize() - Memory overrun and corrupted." << endl;
+     exit(-2);
    }
 
    Recalc_ = 0;
