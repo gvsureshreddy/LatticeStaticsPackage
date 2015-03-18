@@ -204,7 +204,7 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
       exit(1);
    }
    delete [] Test_Descriptor_file;
-   delete [] modelname
+   delete [] modelname;
 
    KIM_API_set_sim_buffer(pkim_, (void*) this, &status);
    if (KIM_STATUS_OK > status)
