@@ -157,7 +157,7 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
 
    // START OF KIM COMPLIANT ALTERATIONS
    int status;
-   char* modelname = new char[100];
+   char* modelname;
    if (Input.ParameterOK(Hash, "KIMModel"))
    {
       // Reads in the name of the model from Input file
@@ -204,7 +204,6 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
       exit(1);
    }
    delete [] Test_Descriptor_file;
-   delete [] modelname;
 
    KIM_API_set_sim_buffer(pkim_, (void*) this, &status);
    if (KIM_STATUS_OK > status)
