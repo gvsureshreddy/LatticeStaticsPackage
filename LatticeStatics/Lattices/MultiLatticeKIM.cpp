@@ -61,35 +61,29 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
       Input.useString("No", Hash, "FastPrint");
    }
 
-   bool CBK_Requires_symmetric_loading;
    PerlInput::HashStruct CBKHash = Input.getHash(Hash, "CBKinematics");
    const char* CBKin = Input.getString(CBKHash, "Type");
    if (!strcmp("SymLagrangeCB", CBKin))
    {
-      CBK_Requires_symmetric_loading = true;
       CBK_ = new SymLagrangeCB(Input, &Hash);
       KillTranslations_ = 0;
       needKillRotations = 0;
    }
    else if (!strcmp("SymLagrangeWTransCB", CBKin))
    {
-      CBK_Requires_symmetric_loading = true;
       CBK_ = new SymLagrangeWTransCB(Input, &Hash);
       needKillRotations = 0;
    }
    else if (!strcmp("LagrangeCB", CBKin))
    {
-      CBK_Requires_symmetric_loading = false;
       CBK_ = new LagrangeCB(Input, &Hash);
    }
    else if (!strcmp("MixedCB", CBKin))
    {
-      CBK_Requires_symmetric_loading = false;
       CBK_ = new MixedCB(Input, &Hash);
    }
    else if (!strcmp("EulerCB", CBKin))
    {
-      CBK_Requires_symmetric_loading = false;
       CBK_ = new EulerCB(Input, &Hash);
    }
    else
@@ -383,17 +377,14 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
    Loading_.Resize(DIM3, DIM3, 0.0);
    Loading_ = Tractions*(Normals.Inverse());
 
-   //@@@@ check that Loading_ is symmetric when it should be...
-   if (CBK_Requires_symmetric_loading)
+   // Check that Loading_ is symmetric
+   Matrix Dev = (Loading_ - Loading_.Transpose());
+   if ((abs(Dev.MaxElement()) > 1.0e-12) ||
+       (abs(Dev.MinElement()) > 1.0e-12))
    {
-     Matrix Dev = (Loading_ - Loading_.Transpose());
-     if ((abs(Dev.MaxElement()) < 1.0e-12) &&
-         (abs(Dev.MinElement()) < 1.0e-12))
-     {
-       cerr << "Error (MultiLatticeKIM()): Unsymmetric Loading_ found; "
-            "Symmetric Loading_ required!" << "\n";
-       exit(-9);
-     }
+     cerr << "Error (MultiLatticeKIM()): Unsymmetric Loading_ found; "
+         "Symmetric Loading_ required!" << "\n";
+     exit(-9);
    }
 
    // needed to initialize reference length
