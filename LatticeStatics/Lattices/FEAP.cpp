@@ -1615,12 +1615,18 @@ void FEAP::DynamicalMatrixBis(Vector const& K) const
        A = E2CachedValue_;
        break;
    }
+   // Remove the Phantom Energy Term from E2
+   // Note: pressure_load terms don't impact the part of E2 used here.
    for (int i = 0; i < numnp_-nbn_/2; ++i)
    {
       for (int j = 0; j < numnp_ - nbn_ / 2; ++j)
       {
-          A[ndf_*i][ndf_*j] -= 2.0;
-          A[1+ndf_*i][1+ndf_*j] -= 2.0;
+          A[ndf_*i][ndf_*j] -= 2.0/eps_;
+          A[1+ndf_*i][1+ndf_*j] -= 2.0/eps_;
+          if (ndf_ > (ndm_+1))
+          {
+            A[2+ndf_*i][2+ndf_*j] -= 2.0/eps_;
+          }
       }
    }
 
