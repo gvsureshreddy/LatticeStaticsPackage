@@ -18,6 +18,7 @@ extern "C" void bfbfeap_get_nodal_solution_(double* bfb_u);
 extern "C" void bfbfeap_set_nodal_solution_(double* bfb_u);
 extern "C" void bfbfeap_get_nodal_coords_(double* bfb_x);
 extern "C" void bfbfeap_get_potential_energy_(double* bfb_epl);
+extern "C" void bfbfeap_get_indicatrix_(double* bfb_indic);
 extern "C" void bfbfeap_get_reduced_residual_(double* bfb_rd);
 extern "C" void bfbfeap_get_reduced_tang_(double* bfb_tang);
 extern "C" void bfbfeap_call_ener_();
@@ -579,7 +580,7 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
    plot_out_.open(flnm.c_str() ,ios::out);
    plot_count_ = 0;
 
-   cout << "End of cnstructor \n";
+   cout << "End of constructor \n";
 
 
 }
@@ -773,23 +774,6 @@ void FEAP::UpdateValues(UpdateFlag flag) const
      Cached_[3] = 1;
      EvaluationCount_[1]++;
 
-     Vector E1DLoad_F = Jacobian_ * E1DLoadCachedValue_;
-//      Matrix A(DOFS_F_, DOFS_F_+1);
-//      for (int i = 0; i < DOFS_F_; ++i)
-//       {
-//          for (int j = 0; j < DOFS_F_+1; ++j)
-//          {
-//             A[i][j] = E2CachedValue_F_[i][j];
-//          }
-//          A[i][DOFS_F_] = E1DLoad_F[i];
-//       }
-//      Matrix Q(DOFS_F_+1, DOFS_F_+1);
-//   	 Matrix R(DOFS_F_+1, DOFS_F_);
-//      QR(A, Q, R, 1);
-     cout << "\n E1DLoad_F=" << setw(20) << E1DLoad_F << "\n";
-//   	 cout << "\n Q=" << setw(20) << Q;
-
-//      cout << "E1DLoadCachedValue_=" << setw(20) << E1DLoadCachedValue_ << "\n";
    }
 }
 
@@ -815,10 +799,10 @@ void FEAP::UpdateDOF_F() const
       DOF_F_[ii+1]=U_[1][1]*(X_F_[ii+1] + DOF_[shift+1+jj]) + U_[1][0]*(X_F_[ii] + DOF_[shift+jj]);
       if (ndf_>ndm_)  //1 Extra dof : theta
       {
-        DOF_F_[ii+2]=DOF_[shift+2+jj];
+        DOF_F_[ii+2] = DOF_[shift+2+jj];
         if (ndf_>(ndm_+1))  //1 Extra dof : u',v'
         {
-          DOF_F_[ii+3]=DOF_[shift+3+jj];
+          DOF_F_[ii+3] = DOF_[shift+3+jj];
         }
       }
    }
@@ -830,10 +814,10 @@ void FEAP::UpdateDOF_F() const
       DOF_F_[ii+1]=U_[1][1]*(X_F_[ii+1] + DOF_[shift+1+jj]) + U_[1][0]*(X_F_[ii] + DOF_[shift+jj]);
       if (ndf_>ndm_)  //1 Extra dof : theta
       {
-        DOF_F_[ii+2]=DOF_[shift+2+jj];
+        DOF_F_[ii+2] = DOF_[shift+2+jj];
         if (ndf_>(ndm_+1))  //1 Extra dof : u', v'
         {
-          DOF_F_[ii+3]=DOF_[shift+3+jj];
+          DOF_F_[ii+3] = DOF_[shift+3+jj];
         }
       }
    }
@@ -846,10 +830,10 @@ void FEAP::UpdateDOF_F() const
       DOF_F_[ii+1]=U_[1][0]*(X_F_[ii]+DOF_[jj]) + U_[1][1]*(X_F_[ii+1]+DOF_[jj+1]);
       if (ndf_>ndm_)  //1 Extra dof : theta
       {
-        DOF_F_[ii+2]=DOF_[jj+2];
+        DOF_F_[ii+2] = DOF_[jj+2];
         if (ndf_>(ndm_+1))  //1 Extra dof : u', v'
         {
-          DOF_F_[ii+3]=DOF_[jj+3];
+          DOF_F_[ii+3] = DOF_[jj+3];
         }
       }
    }
@@ -899,10 +883,10 @@ void FEAP::UpdateJacobian() const
 
       if (ndf_>ndm_)
       {
-         Jacobian_[ii+2][shift+2+jj]=1.0;
+         Jacobian_[ii+2][shift+2+jj] = 1.0;
          if (ndf_>(ndm_+1))
          {
-           Jacobian_[ii+3][shift+3+jj]=1.0;
+           Jacobian_[ii+3][shift+3+jj] = 1.0;
          }
       }
    }
@@ -935,10 +919,10 @@ void FEAP::UpdateJacobian() const
 
       if (ndf_>ndm_)
       {
-         Jacobian_[ii+2][shift+2+jj]=1.0;
+         Jacobian_[ii+2][shift+2+jj] = 1.0;
          if (ndf_>(ndm_+1))
          {
-           Jacobian_[ii+3][shift+3+jj]=1.0;
+           Jacobian_[ii+3][shift+3+jj] = 1.0;
          }
       }
    }
@@ -1210,7 +1194,7 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
                for (int l = 0; l < ndf_*(numnp_-nbn_/2); ++l)
                {
                   //Dk has 2 zero eigen values when k = [0,0], so special treatment
-                  if ((i==0) && (j==0) && NumZeroEig < 2 && (fabs(DkEigVal[0][l] < 1.0e-10)))
+                  if ((i==0) && (j==0) && NumZeroEig < 2 && (fabs(DkEigVal[0][l] < Tolerance_)))
                   {
                      double max = DkEigVal.MaxElement();
                      DkEigVal[0][l] = max;
@@ -1256,7 +1240,7 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
          for (int  l=0; l < ndf_*(numnp_-nbn_/2); ++l)
          {
             int NumZeroEig = 0;
-            if ((K_[0]==0.0) && (K_[1]==0.0) && NumZeroEig < 2 && (fabs(DkEigVal[0][l] < 1.0e-10)))
+            if ((K_[0]==0.0) && (K_[1]==0.0) && NumZeroEig < 2 && (fabs(DkEigVal[0][l] < Tolerance_)))
             {
                double max = DkEigVal.MaxElement();
                DkEigVal[0][l] = max;
@@ -1300,7 +1284,7 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
          {
 
             int NumZeroEig = 0;
-            if ((K_[0]==0.0) && (K_[1]==0.0) && NumZeroEig < 2 && (fabs(DkEigVal[0][l] < 1.0e-10)))
+            if ((K_[0]==0.0) && (K_[1]==0.0) && NumZeroEig < 2 && (fabs(DkEigVal[0][l] < Tolerance_)))
             {
                double max = DkEigVal.MaxElement();
                DkEigVal[0][l] = max;
@@ -1742,11 +1726,13 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
       NoNegTestFunctions+2 : mintestfunct.Dim();
 
    print_gpl_config(config_out_);
+   bfbfeap_get_indicatrix_(&(Indicatrix_));
    switch (LoadingType_)
    {
      case DEAD_LOAD:
      case PRESSURE_LOAD:
-       plot_out_ << setw(Width_) << Lambda_
+       plot_out_ << setw(Width_) << Indicatrix_
+                 << setw(Width_) << Lambda_
                  << setw(Width_) << DOF_[0]
                  << setw(Width_) << DOF_[1]
                  << setw(Width_) << DOF_[2]/sqrt(2.0)

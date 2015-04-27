@@ -101,6 +101,8 @@ private:
    mutable Matrix E2CachedValue_F_;
    mutable int EvaluationCount_[2];
    mutable int CallCount_[cachesize];
+   
+   mutable double Indicatrix_;
 
 public:
    // Functions provided by FEAP

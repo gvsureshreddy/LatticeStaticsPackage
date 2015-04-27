@@ -58,7 +58,7 @@ ifneq (,$(strip $(USE_FEAP)))
   ifeq (NO,$(strip $(FEAP_OK)))
     $(error You must set the environment variable FEAPHOME8_3 and compile the library)
   endif
-  LIBS_FEAP = $(FEAPHOME8_3)/Feap8_3.a -lgfortran -L/usr/X11R6/lib -lX11
+  LIBS_FEAP = $(FEAPHOME8_3)/Feap8_3.a -lgfortran -L/opt/X11/lib   -lX11
 else
   LIBS_FEAP = 
 endif

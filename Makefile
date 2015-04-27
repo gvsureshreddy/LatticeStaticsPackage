@@ -10,7 +10,7 @@ export BIN_LOC
 export INCL_LOC
 export LIB_LOC
 
-CC = g++
+CC = g++-4.8 -m64
 #CC = g++ -fopenmp
 OPTIMIZE   = -O
 #DEBUG      = -g -m32
@@ -32,7 +32,7 @@ export TERMINAL
 export PERL
 
 #USE_KIM  = -DUSE_KIM
-#USE_FEAP = -DUSE_FEAP
+USE_FEAP = -DUSE_FEAP
 #USE_QC   = -DUSE_QC
 
 export USE_KIM
