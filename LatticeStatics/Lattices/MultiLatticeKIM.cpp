@@ -16,7 +16,6 @@ double const TrEig_[3] = {4.0, 5.0, 6.0};
 
 MultiLatticeKIM::~MultiLatticeKIM()
 {
-   delete[] EulerAng_;
    delete[] BodyForce_;
    delete CBK_;
    int status;
@@ -61,6 +60,7 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
       FastPrint_ = 0;
       Input.useString("No", Hash, "FastPrint");
    }
+
    PerlInput::HashStruct CBKHash = Input.getHash(Hash, "CBKinematics");
    const char* CBKin = Input.getString(CBKHash, "Type");
    if (!strcmp("SymLagrangeCB", CBKin))
@@ -88,7 +88,7 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
    }
    else
    {
-      cerr << "Error Unknown/unsupported MultiLattice{CBKinematics}{Type} "
+      cerr << "Error Unknown/unsupported MultiLatticeKIM{CBKinematics}{Type} "
            << "specified\n";
       exit(-9);
    }
@@ -157,7 +157,7 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
 
    // START OF KIM COMPLIANT ALTERATIONS
    int status;
-   char* modelname = new char[100];
+   char* modelname;
    if (Input.ParameterOK(Hash, "KIMModel"))
    {
       // Reads in the name of the model from Input file
@@ -204,7 +204,6 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
       exit(1);
    }
    delete [] Test_Descriptor_file;
-   delete [] modelname
 
    KIM_API_set_sim_buffer(pkim_, (void*) this, &status);
    if (KIM_STATUS_OK > status)
@@ -354,7 +353,7 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
    // Done with SpeciesList and AtomSpeciesList
    delete [] SpeciesList;
    delete [] AtomSpeciesList;
-   
+
    // Get Lattice parameters
    if (Input.ParameterOK(Hash, "Density"))
    {
@@ -369,43 +368,23 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
    LoadParameter_ = Load;
 
    Lambda_ = 0.0;
-   EulerAng_ = new double[DIM3];
-   EulerAng_[0] = Input.getDouble(Hash, "EulerAngle_X");
-   EulerAng_[1] = Input.getDouble(Hash, "EulerAngle_Y");
-   EulerAng_[2] = Input.getDouble(Hash, "EulerAngle_Z");
-   LoadingProportions_.Resize(DIM3);
-   Input.getVector(LoadingProportions_, Hash, "LoadProportions");
-   // Calculate Rotation and Loading
-   // Euler angles transformation Rotation_ = Z*Y*X
-   Rotation_.Resize(DIM3, DIM3, 0.0);
-   Rotation_[0][0] = cos(EulerAng_[1]) * cos(EulerAng_[2]);
-   Rotation_[0][1] = cos(EulerAng_[2]) * sin(EulerAng_[0]) * sin(EulerAng_[1])
-                     - cos(EulerAng_[0]) * sin(EulerAng_[2]);
-   Rotation_[0][2] = cos(EulerAng_[0]) * cos(EulerAng_[2]) * sin(EulerAng_[1])
-                     + sin(EulerAng_[0]) * sin(EulerAng_[2]);
-   Rotation_[1][0] = cos(EulerAng_[1]) * sin(EulerAng_[2]);
-   Rotation_[1][1] = cos(EulerAng_[0]) * cos(EulerAng_[2]) + sin(EulerAng_[0])
-                     * sin(EulerAng_[1]) * sin(EulerAng_[2]);
-   Rotation_[1][2] = -cos(EulerAng_[2]) * sin(EulerAng_[0])
-                     + cos(EulerAng_[0]) * sin(EulerAng_[1])
-      * sin(EulerAng_[2]);
-   Rotation_[2][0] = -sin(EulerAng_[1]);
-   Rotation_[2][1] = cos(EulerAng_[1]) * sin(EulerAng_[0]);
-   Rotation_[2][2] = cos(EulerAng_[0]) * cos(EulerAng_[1]);
-   //
-   //    cout << "Rotations = " << setw(15) << Rotation_ << endl;
-   // Loading_ = R*Lambda*R^T
+   Matrix Tractions(DIM3,DIM3);
+   Matrix Normals(DIM3,DIM3);
+   // Tractions = [ t^(1) | t^(2) | t^(3) ]
+   Input.getMatrix(Tractions, Hash, "LoadTractions");
+   // Normals = [ N^(1) | N^(2) | N^(3) ]
+   Input.getMatrix(Normals, Hash, "LoadNormals");
    Loading_.Resize(DIM3, DIM3, 0.0);
-   for (int i = 0; i < DIM3; ++i)
+   Loading_ = Tractions*(Normals.Inverse());
+
+   // Check that Loading_ is symmetric
+   Matrix Dev = (Loading_ - Loading_.Transpose());
+   if ((abs(Dev.MaxElement()) > 1.0e-12) ||
+       (abs(Dev.MinElement()) > 1.0e-12))
    {
-      for (int j = 0; j < DIM3; ++j)
-      {
-         for (int k = 0; k < DIM3; ++k)
-         {
-            Loading_[i][j] += Rotation_[i][k] * LoadingProportions_[k]
-               * Rotation_[j][k];
-         }
-      }
+     cerr << "Error (MultiLatticeKIM()): Unsymmetric Loading_ found; "
+         "Symmetric Loading_ required!" << "\n";
+     exit(-9);
    }
 
    // needed to initialize reference length
@@ -568,7 +547,7 @@ void MultiLatticeKIM::SetParameters(double const* const Vals,
 void MultiLatticeKIM::UpdateKIMValues() const
 {
    int status;
-   
+
    // initialization
    if (BlochwaveProcess_ == 0)
    {
@@ -590,7 +569,7 @@ void MultiLatticeKIM::UpdateKIMValues() const
      // Initialize for Dk_static
      Dk_static.Resize(InternalAtoms_ * DIM3, InternalAtoms_ * DIM3, 0.0);
    }
-   
+
    Vector coordsTemp = CBK_->CBKtoCoords();
    for (int i = 0; i < (3 * InternalAtoms_); i++)
    {
@@ -782,15 +761,51 @@ Vector const& MultiLatticeKIM::E1() const
          }
       }
 
+      switch (KillRotations_)
+      {
+        case 2:
+          // Kill three rotations
+          R_static[0] = (CBK_->DOF()[CBK_->INDF(0, 1)]
+                         - CBK_->DOF()[CBK_->INDF(1, 0)]) / 2.0;
+          ME1_static[CBK_->INDF(0, 1)] += RoEig_[0] * R_static[0];
+          ME1_static[CBK_->INDF(1, 0)] -= RoEig_[0] * R_static[0];
+          R_static[1] = (CBK_->DOF()[CBK_->INDF(1, 2)]
+                         - CBK_->DOF()[CBK_->INDF(2, 1)]) / 2.0;
+          ME1_static[CBK_->INDF(1, 2)] += RoEig_[1] * R_static[1];
+          ME1_static[CBK_->INDF(2, 1)] -= RoEig_[1] * R_static[1];
+          R_static[2] = (CBK_->DOF()[CBK_->INDF(2, 0)]
+                         - CBK_->DOF()[CBK_->INDF(0, 2)]) / 2.0;
+          ME1_static[CBK_->INDF(2, 0)] += RoEig_[2] * R_static[2];
+          ME1_static[CBK_->INDF(0, 2)] -= RoEig_[2] * R_static[2];
+          break;
+        case 1:
+          // Kill one rotation
+          for (int i = 0; i < DIM3; ++i)
+          {
+            R_static[i] = 0.0;
+            for (int j = 0; j < DIM3; ++j)
+            {
+              R_static[0] += KillOneRotation_[CBK_->INDF(i, j)]
+                  * CBK_->DOF()[CBK_->INDF(i, j)];
+            }
+          }
+
+          for (int i = 0; i < ME1_static.Dim(); ++i)
+          {
+            ME1_static[i] += RoEig_[0] * R_static[0] * KillOneRotation_[i];
+          }
+          break;
+      }
       // @@ update Cached_ value
    }
+
    return ME1_static;
 }
 
 Vector const& MultiLatticeKIM::stress(LDeriv const& dl) const
 {
    double Vr = Density_ ? CBK_->RefVolume() : 1.0;
-   
+
    if (dl == L0)
    {
      // @@ set StiffnessYes_?
@@ -811,7 +826,7 @@ Vector const& MultiLatticeKIM::stress(LDeriv const& dl) const
      {
        ME1_static[i] = 0.0;
      }
-     
+
       for (int i = 0; i < 3; ++i)
       {
          for (int j = 0; j < 3; ++j)
@@ -846,6 +861,38 @@ Matrix const& MultiLatticeKIM::E2() const
                }
             }
          }
+      }
+
+      switch (KillRotations_)
+      {
+        case 2:
+          // Kill three rotations
+          ME2_static[CBK_->INDF(0, 1)][CBK_->INDF(0, 1)] += RoEig_[0] / 2.0;
+          ME2_static[CBK_->INDF(0, 1)][CBK_->INDF(1, 0)] -= RoEig_[0] / 2.0;
+          ME2_static[CBK_->INDF(1, 0)][CBK_->INDF(1, 0)] += RoEig_[0] / 2.0;
+          ME2_static[CBK_->INDF(1, 0)][CBK_->INDF(0, 1)] -= RoEig_[0] / 2.0;
+
+          ME2_static[CBK_->INDF(1, 2)][CBK_->INDF(1, 2)] += RoEig_[1] / 2.0;
+          ME2_static[CBK_->INDF(1, 2)][CBK_->INDF(2, 1)] -= RoEig_[1] / 2.0;
+          ME2_static[CBK_->INDF(2, 1)][CBK_->INDF(2, 1)] += RoEig_[1] / 2.0;
+          ME2_static[CBK_->INDF(2, 1)][CBK_->INDF(1, 2)] -= RoEig_[1] / 2.0;
+
+          ME2_static[CBK_->INDF(2, 0)][CBK_->INDF(2, 0)] += RoEig_[2] / 2.0;
+          ME2_static[CBK_->INDF(2, 0)][CBK_->INDF(0, 2)] -= RoEig_[2] / 2.0;
+          ME2_static[CBK_->INDF(0, 2)][CBK_->INDF(0, 2)] += RoEig_[2] / 2.0;
+          ME2_static[CBK_->INDF(0, 2)][CBK_->INDF(2, 0)] -= RoEig_[2] / 2.0;
+          break;
+        case 1:
+          // Kill one rotation
+          for (int i = 0; i < ME2_static.Rows(); ++i)
+          {
+            for (int j = 0; j < ME2_static.Cols(); ++j)
+            {
+              ME2_static[i][j] += RoEig_[0] * KillOneRotation_[i]
+                  * KillOneRotation_[j];
+            }
+          }
+          break;
       }
    }
 
@@ -1163,28 +1210,28 @@ void MultiLatticeKIM::interpolate(Matrix* const EigVals, int const& zero,
 CMatrix const& MultiLatticeKIM::ReferenceDynamicalStiffness(Vector const& K)
 const
 {
-  
+
   ///// call kim function where we should initialize d2wdu2
   K_static.Resize(DIM3);
   K_static = K;
   BlochwaveProcess_ = 1;
   UpdateKIMValues();
   BlochwaveProcess_ = 0;
-  
-  // Normalize through the Mass Matrix
-  for (int k = 0; k < InternalAtoms_; ++k)
-  {
-    for (int l = 0; l < InternalAtoms_; ++l)
-    {
-      for (int m = 0; m < DIM3; ++m)
-      {
-	for (int n = 0; n < DIM3; ++n)
-	{
-	  Dk_static[DIM3 * k + m][DIM3 * l + n] /= sqrt(AtomicMass_[k] * AtomicMass_[l]);
-	}
-      }
-    }
-  }
+
+//  // Normalize through the Mass Matrix
+//  for (int k = 0; k < InternalAtoms_; ++k)
+//  {
+//    for (int l = 0; l < InternalAtoms_; ++l)
+//    {
+//      for (int m = 0; m < DIM3; ++m)
+//      {
+//	for (int n = 0; n < DIM3; ++n)
+//	{
+//	  Dk_static[DIM3 * k + m][DIM3 * l + n] /= sqrt(AtomicMass_[k] * AtomicMass_[l]);
+//	}
+//      }
+//    }
+//  }
   return Dk_static;
 }
 
@@ -1421,11 +1468,8 @@ void MultiLatticeKIM::Print(ostream& out, PrintDetail const& flag,
                 << "\n";
          }
          out << "REFLambda_ : " << setw(W) << REFLambda_ << "\n";
-         out << "Influence Distance   : " << setw(W) << InfluenceDist_ << "\n";
-         out << "EulerAngles : " << setw(W) << EulerAng_[0]
-             << setw(W) << EulerAng_[1] << setw(W) << EulerAng_[2] << "\n";
-         out << "Loading Proportions : " << setw(W) << LoadingProportions_
-             << "\n";
+         out << "Influence Distance : " << setw(W) << InfluenceDist_ << "\n";
+         out << "Loading : " << setw(W) << Loading_;
 
          // also send to cout
          if (Echo_)
@@ -1441,12 +1485,9 @@ void MultiLatticeKIM::Print(ostream& out, PrintDetail const& flag,
                     << CBK_->AtomPositions(i) << "\n";
             }
             cout << "REFLambda_ : " << setw(W) << REFLambda_ << "\n";
-            cout << "Influence Distance   : " << setw(W) << InfluenceDist_
+            cout << "Influence Distance : " << setw(W) << InfluenceDist_
                  << "\n";
-            cout << "EulerAngles : " << setw(W) << EulerAng_[0]
-                 << setw(W) << EulerAng_[1] << setw(W) << EulerAng_[2] << "\n";
-            cout << "Loading Proportions : " << setw(W) << LoadingProportions_
-                 << "\n";
+            cout << "Loading : " << setw(W) << Loading_;
          }
       // passthrough to short
 
@@ -1538,7 +1579,6 @@ void MultiLatticeKIM::DebugMode()
       "Density_",
       "Lambda_",
       "BodyForce_",
-      "AtomicMass_",
       "GridSize_",
       "ConvexityDX_",
       "ConjugateToLambda",
@@ -1569,14 +1609,12 @@ void MultiLatticeKIM::DebugMode()
       "ConsistencyCheck",
       "dbg_",
       "RefineEqbm",
-      "EulerAng_",
-      "Rotation_",
       "Loading_",
       "PrintCrystal",
       "TranslationProjection1D",
       "TranslationProjection3D",
    };
-   int NOcommands = 45;
+   int NOcommands = 42;
 
    string response;
    char prompt[] = "Debug > ";
@@ -1627,14 +1665,6 @@ void MultiLatticeKIM::DebugMode()
          {
             cout << "BodyForce_[" << i << "]= " << setw(W)
                  << BodyForce_[i] << "\n";
-         }
-      }
-      else if (response == Commands[indx++])
-      {
-         for (int i = 0; i < InternalAtoms_; ++i)
-         {
-            cout << "AtomicMass_[" << i << "]= " << setw(W)
-                 << AtomicMass_[i] << "\n";
          }
       }
       else if (response == Commands[indx++])
@@ -1822,18 +1852,6 @@ void MultiLatticeKIM::DebugMode()
       }
       else if (response == Commands[indx++])
       {
-         cout << "EulerAng_ = "
-              << setw(W) << EulerAng_[0]
-              << setw(W) << EulerAng_[1]
-              << setw(W) << EulerAng_[2] << "\n";
-      }
-      else if (response == Commands[indx++])
-      {
-         cout << "Rotation_ = "
-              << setw(W) << Rotation_ << "\n";
-      }
-      else if (response == Commands[indx++])
-      {
          cout << "Loading_ = "
               << setw(W) << Loading_ << "\n";
       }
@@ -1911,7 +1929,7 @@ void MultiLatticeKIM::RefineEqbm(double const& Tol, int const& MaxItr,
    while ((itr < MaxItr) && Stress.Norm() > Tol)
    {
       ++itr;
-      
+
 #ifdef SOLVE_SVD
       dx = SolveSVD(E2(), Stress, MAXCONDITION, Echo_);
 #else
@@ -2381,10 +2399,10 @@ int MultiLatticeKIM::process2_dEdr(void* kimmdl, double* dEdr, double* r,
 
   MultiLatticeKIM* obj;
   double DX[3];
-  
+
   // @@ need to find a more efficient way to do this...
   Matrix InverseF = (obj->CBK_->F()).Inverse();
-  
+
   double temp1, temp2;
   for (int rows = 0; rows < 3; rows++)
   {
@@ -2428,16 +2446,16 @@ int MultiLatticeKIM::process2_d2Edr2(void* kimmdl, double* d2Edr2, double** r,
   MultiLatticeKIM* obj;
   double DX[2][3];
   double Dx[2][3];
-  
+
   // @@ need to find a more efficient way to do this...
   Matrix InverseF = (obj->CBK_->F()).Inverse();
-  
+
   for (int k = 0; k < 3; k++)
   {
     Dx[0][k] = (*dx)[k];
     Dx[1][k] = (*dx)[k + 3];
   }
-  
+
   for (int atoms = 0; atoms < 2; atoms++)
   {
     for (int rows = 0; rows < 3; rows++)

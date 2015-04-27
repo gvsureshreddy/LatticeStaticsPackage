@@ -63,13 +63,8 @@ private:
    double PhiRef_;
    enum LDeriv {L0, DL};
    double Lambda_;
-   Vector LoadingProportions_;
-   double* EulerAng_;
-   Matrix Rotation_;
    Matrix Loading_;
    Vector* BodyForce_;
-   double* SpeciesMass_;
-   double* AtomicMass_;
    mutable PPSumKIM LatSum_;
    mutable UnitCellIterator UCIter_;
    int GridSize_;

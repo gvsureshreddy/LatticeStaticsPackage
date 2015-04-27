@@ -67,8 +67,9 @@ void PPSumKIM::Initialize()
    // set tmp to the number of pairs in the sphere to be scanned
    AtomicDensity = InternalAtoms_ / ((CBK_->DeltaVolume()) * (CBK_->RefVolume()));
    SphereVol = (4.0 * 3.15 / 3.0) * (*InfluenceDist_) * (*InfluenceDist_) * (*InfluenceDist_);
-   tmp = ceil(1.15 * InternalAtoms_ * AtomicDensity * SphereVol);
-
+   tmp = ceil(1.25 * InternalAtoms_ * AtomicDensity * SphereVol);
+   // @@@@ this ^ needs to be done in a better way; the fudge factor is annoying
+   
    // make sure there is enough memory to store the pairs.
    ListMax = InternalAtoms_ * int(tmp);
    ListVecMax = InternalAtoms_ * 3 * int(tmp);

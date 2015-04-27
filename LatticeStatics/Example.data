@@ -47,7 +47,49 @@ $Rtheta1_1_1 = 0.275914376289;
             #TurningPointRestarts => No, # Default value = No, Yes
             #GuessModes           => No, # Default value = No, Yes
             #UseExtension         => "", # Default value = ""
-            MultiLatticeTPP => 
+            MultiLatticeKIM =>
+            {FastPrint           => No, # Default value = No, Yes
+             CBKinematics        => {Type => LagrangeCB, # SymLagrangeCB, SymLagrangeWTransCB, LagrangeCB, MixedCB, EulerCB
+                                     InternalAtoms => 4,
+                                     LatticeBasis  => [[$spacing, $spacing, 0.0],
+                                                       [-$spacing, $spacing, 0.0],
+                                                       [0.0, 0.0, $spacing]],
+                                     AtomPositions => [[0.0, 0.0, 0.0],
+                                                       [0.5, 0.0, 0.5],
+                                                       [0.5, 0.5, 0.0],
+                                                       [0.0, 0.5, 0.5]],
+                                     AtomSpecies   => [0, 1, 0, 1],
+                                     NumberOfSpecies => 2,
+                                     SpeciesList   => ["Ar", "Ne"],
+                                     AtomSpeciesKIM => ["Ar", "Ne", "Ar", "Ne"]
+                                    },
+             RotationConstraint  => [FullRotationConstraint],
+             #RotationConstraint  => [NoRotationConstraint],
+             #RotationConstraint  => [OneRotationConstraint,
+             #                        [1.0,-1.0, 0.0],
+             #                        [0.0, 0.0, 1.0]],
+             KIMModel            => "ex_model_ArNe_P_MLJ_NEIGH_RVEC_F",
+             KIMModelPublishedParameters => [["PARAM_FREE_cutoff", "double", 12.5]],
+             InitialEqbm         => Yes, # Default value = Yes; No
+             Density             => 1, # Default value = 1; 0
+             ConvexityDX         => 1.0*$DEG2RAD,
+             LoadTractions       => [[1.0, 0.0, 0.0],
+                                     [0.0, 1.0, 0.0],
+                                     [0.0, 0.0, 1.0]],
+             LoadNormals         => [[1.0, 0.0, 0.0],
+                                     [0.0, 1.0, 0.0],
+                                     [0.0, 0.0, 1.0]],
+             MaxIterations       => 100,
+             BlochWaveGridSize   => 5,
+             #ReferenceLambda      => 0.0, # Default value = 0.0
+             Lambda              => 0.0,
+             ExtraTestFunctions  => {Type              => None#, # None, KVectors, LoadingParameters
+                                     #KVectors          => [[1.0, 1.0, 1.0, 2.0, 3.0]],
+                                     #PrintNewCBCell    => Yes, # Default Value = Yes, No
+                                     #LoadingParameters => [0.1, 0.5, 1.2, 2.0]
+                                    },
+            },
+            MultiLatticeTPP =>
             {FastPrint           => No, # Default value = No, Yes
              CBKinematics        => {Type => LagrangeCB, # SymLagrangeCB, SymLagrangeWTransCB, LagrangeCB, MixedCB, EulerCB
                                      InternalAtoms => 4,
@@ -136,7 +178,7 @@ $Rtheta1_1_1 = 0.275914376289;
                                AtomPosition_3    => 0.75,
                                Tref              => 300.0,
                                AtomSpecies       => [0, 1, 0, 1],
-                               PotentialType_0_0 => {Type    => LJQuadraticCutoff, 
+                               PotentialType_0_0 => {Type    => LJQuadraticCutoff,
                                                      Cutoff  => 2.0,
                                                      Eps0    => 1.0,
                                                      Eps1    => 0.0,
@@ -167,7 +209,7 @@ $Rtheta1_1_1 = 0.275914376289;
                                CBKinematics      => LagrangeCB, # Default value = LagrangeCB; MixedCB
                                NTemp             => 1.0,
                                Lambda            => 0.0
-                              },              
+                              },
             MultiChainTTPP => {InternalAtoms     => 4,
                                LatticeBasis      => 1.00,
                                AtomPosition_0    => 0.00,
@@ -282,7 +324,7 @@ $Rtheta1_1_1 = 0.275914376289;
                       Tolerance         => 1.0e-6#, # for numerical derivatives
                      }
             );
-  
+
 #  Restriction Parameters
 % Restriction = (Type                            => RestrictToTranslatedSubSpace, # NoRestriction, RestrictToTranslatedSubSpace
                  #SymmetryCheckProjectionMatrices => [[[1.0, 0.0]], [[0.0, 1.0]]],
@@ -297,9 +339,9 @@ $Rtheta1_1_1 = 0.275914376289;
                                                   #                         [1.0, 1.0, 1.0]] # Can Include Loading Parameter as last element
                                                  }
                  );
-  
-  
-  
+
+
+
 # SolutionMethod Parameters
 $ArcLenDSMax = 0.01;
 
@@ -385,7 +427,7 @@ $ArcLenDSMax = 0.01;
 # NewtonPCSolution StartTypes: Bifurcation, Continuation, ConsistencyCheck
 %StartType = (Type     => Continuation,
               Solution => [1.000000000000, 1.000000000000]#,
-              #ClosedLoopUseAsFirst    => 0,  # Default value = 0 
+              #ClosedLoopUseAsFirst    => 0,  # Default value = 0
               #ClosedLoopFirstSolution => [0.990000000000, 0.980000000000]
               # The ClosedLoop parameters can be used with Continuation and Bifurcation start types
               # If ClosedLoopFirstSolution is present it overrides ClosedLoopUseAsFirst
