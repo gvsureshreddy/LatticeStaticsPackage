@@ -63,6 +63,9 @@ else
   LIBS_FEAP = 
 endif
 ifneq (,$(strip $(USE_KIM)))
+  ifeq ($(shell $(KIM_CONFIG_HELPER) --version),)
+    $(error $(KIM_CONFIG_HELPER) utility is not available.  Something is wrong with your KIM API package setup)
+  endif
   LIBS_KIM = $(shell $(KIM_CONFIG_HELPER) --ldflags) $(shell $(KIM_CONFIG_HELPER) --ldlibs)
 else
   LIBS_KIM =
