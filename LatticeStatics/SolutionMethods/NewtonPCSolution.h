@@ -60,7 +60,7 @@ private:
    void UpdateQR(Vector const& Force, Vector const& difference, Matrix& Q, Matrix& R)
    const;
    int RelativeEigVectsOK() const;
-   
+
 public:
    NewtonPCSolution(Restriction* const Restrict, Vector const& one,
                     int const& CurrentSolution, UpdateType const& Type,
@@ -91,6 +91,10 @@ public:
    }
 
 private:
+   void InitializeCountersAndStatics();
+   void ProcessOptions(PerlInput const& Input);
+   void ProcessClosedLoopOptions(PerlInput const& Input, Vector const& one);
+   void InitializeTangents();
    // "static" member variables
    // FindNextSolution
    mutable Vector v_static;
