@@ -378,6 +378,10 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
    Loading_ = Tractions*(Normals.Inverse());
 
    // Check that Loading_ is symmetric
+   //
+   // Make the restriction that for 1st PK loading,
+   // the reference config. is the equilibrium config
+   // obtained in the limit as lambda->0.
    Matrix Dev = (Loading_ - Loading_.Transpose());
    if ((abs(Dev.MaxElement()) > 1.0e-12) ||
        (abs(Dev.MinElement()) > 1.0e-12))
@@ -707,8 +711,8 @@ double MultiLatticeKIM::energy(LDeriv const& dl) const
       {
          for (int j = 0; j < 3; ++j)
          {
-            phi -= Lambda_ * Loading_[i][j] * ((CBK_->DOF())[CBK_->INDF(j, i)]
-                                               - Del(j, i));
+            phi -= Lambda_ * Loading_[i][j] * ((CBK_->DOF())[CBK_->INDF(i,j)]
+                                               - Del(i,j));
          }
       }
    }
@@ -729,7 +733,7 @@ double MultiLatticeKIM::ConjugateToLambda() const
    {
       for (int j = 0; j < DIM3; ++j)
       {
-         conj += Loading_[i][j] * ((CBK_->DOF())[CBK_->INDF(j, i)] - Del(j, i));
+         conj += Loading_[i][j] * ((CBK_->DOF())[CBK_->INDF(i, j)] - Del(i, j));
       }
    }
 
@@ -816,7 +820,7 @@ Vector const& MultiLatticeKIM::stress(LDeriv const& dl) const
       {
          for (int j = 0; j < 3; ++j)
          {
-            ME1_static[(CBK_->INDF(i, j))] -= Lambda_ * Loading_[j][i];
+            ME1_static[(CBK_->INDF(i, j))] -= Lambda_ * Loading_[i][j];
          }
       }
    }
@@ -831,7 +835,7 @@ Vector const& MultiLatticeKIM::stress(LDeriv const& dl) const
       {
          for (int j = 0; j < 3; ++j)
          {
-            ME1_static[(CBK_->INDF(i, j))] -= Loading_[j][i];
+            ME1_static[(CBK_->INDF(i, j))] -= Loading_[i][j];
          }
       }
    }
