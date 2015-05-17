@@ -67,7 +67,8 @@ NewtonPCSolution::NewtonPCSolution(
     Omega_(1.0),
     accel_max_(accel_max),
     FirstSolution_(FirstSolution),
-    PreviousSolution_(FirstSolution_.Dim())
+    PreviousSolution_(FirstSolution_.Dim()),
+    StabilizeSteps(0)
 {
   InitializeCountersAndStatics();
 
@@ -95,7 +96,8 @@ NewtonPCSolution::NewtonPCSolution(
     BifTangent_(),
     Omega_(1.0),
     FirstSolution_(one.Dim()),
-    PreviousSolution_(one.Dim())
+    PreviousSolution_(one.Dim()),
+    StabilizeSteps(0)
 {
   InitializeCountersAndStatics();
   ProcessOptions(Input);
@@ -118,7 +120,8 @@ NewtonPCSolution::NewtonPCSolution(
     CumulativeArcLength_(0.0),
     BifStartFlag_(0),
     BifTangent_(),
-    Omega_(1.0)
+    Omega_(1.0),
+    StabilizeSteps(0)
 {
   InitializeCountersAndStatics();
   ProcessOptions(Input);
@@ -178,6 +181,21 @@ NewtonPCSolution::NewtonPCSolution(
     ProcessClosedLoopOptions(Input, one);
 
     Restrict_->SetDOF(one);
+
+    if (Input.ParameterOK("StartType", "StabilizeModes"))
+    {
+      int const numModes = Input.getArrayLength("StartType","StabilizeModes");
+      StabilizeModes.Resize(numModes,count_minus_one);
+      Input.getMatrix(StabilizeModes, "StartType","StabilizeModes");
+    }
+    if (Input.ParameterOK("StartType", "StabilizeSteps"))
+    {
+      StabilizeSteps = Input.getPosInt("StartType", "StabilizeSteps");
+    }
+    else
+    {
+      StabilizeSteps = 1;
+    }
 
     InitializeTangents();
   }
@@ -462,7 +480,8 @@ void NewtonPCSolution::InitializeTangents()
   Matrix R(count, count_minus_one);
 
   // Performs QR decomposition using A^T = Q*R. Section 4.1 of ISBN 3-540-12760-7
-  QR(Restrict_->Stiffness(), Q, R, 1);
+  Get_Stiff_static();
+  QR(Stiff_static, Q, R, 1);
 
   Tangent1_.Resize(count);
   Tangent2_.Resize(count);
@@ -571,7 +590,7 @@ int NewtonPCSolution::FindNextSolution(PerlInput const& Input, int const& Width,
 
       Restrict_->SetDOF(v_static);
       // get stiffness first for efficiency
-      Stiff_static = Restrict_->Stiffness();
+      Get_Stiff_static();
       Force_static = Restrict_->Force();
       forcenorm = Force_static.Norm();
       cout << " \tForceNorm = " << forcenorm;
@@ -750,7 +769,7 @@ int NewtonPCSolution::FindNextSolution(PerlInput const& Input, int const& Width,
    if (ComputeExactTangent_ == 1)
    {
       // Update to tangent on converged solution
-      Stiff_static = Restrict_->Stiffness();
+      Get_Stiff_static();
       QR(Stiff_static, Q_static, R_static, 1);
 
       double tansign = 1.0;
@@ -928,6 +947,29 @@ void NewtonPCSolution::MoorePenrose(Matrix const& Q, Matrix const& R, Vector con
    }
 }
 
+void NewtonPCSolution::Get_Stiff_static() const
+{
+  const int numModes = StabilizeModes.Rows();
+  const int count_minus_one = Stiff_static.Rows();
+
+  Stiff_static = Restrict_->Stiffness();
+  if (CurrentSolution_ < StabilizeSteps)
+  {
+    // add StabilizeModes
+    for (int i = 0; i < numModes; ++i)
+    {
+      for (int j = 0; j < count_minus_one; ++j)
+      {
+        for (int k = 0; k < count_minus_one; ++k)
+        {
+          Stiff_static[j][k]
+              += double(i+1)*StabilizeModes[i][j]*StabilizeModes[i][k];
+        }
+      }
+    }
+  }
+}
+
 void NewtonPCSolution::GetQR(Vector const& Force, Vector const& diff, Matrix& Q, Matrix& R) const
 {
    ++counter_[0];
@@ -962,9 +1004,10 @@ void NewtonPCSolution::GetQR(Vector const& Force, Vector const& diff, Matrix& Q,
          QR(Stiff_static, Q, R, 1);  // Stiff_static^T = Q*R
          break;
       case Exact:
-         // Stiffness^T = Q*R
-         QR(Restrict_->Stiffness(), Q, R, 1);
-         break;
+        // Stiffness^T = Q*R
+        Get_Stiff_static();
+        QR(Stiff_static, Q, R, 1);
+        break;
       default:
          cerr << "Unknown Update Type in NewtonPCSolution\n";
          exit(-20);
