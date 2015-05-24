@@ -773,7 +773,7 @@ void FEAP::UpdateValues(UpdateFlag flag) const
      Cached_[3] = 1;
      EvaluationCount_[1]++;
 
-     Vector E1DLoad_F = Jacobian_ * E1DLoadCachedValue_;
+//     Vector E1DLoad_F = Jacobian_ * E1DLoadCachedValue_;
 //      Matrix A(DOFS_F_, DOFS_F_+1);
 //      for (int i = 0; i < DOFS_F_; ++i)
 //       {
@@ -786,7 +786,7 @@ void FEAP::UpdateValues(UpdateFlag flag) const
 //      Matrix Q(DOFS_F_+1, DOFS_F_+1);
 //   	 Matrix R(DOFS_F_+1, DOFS_F_);
 //      QR(A, Q, R, 1);
-     cout << "\n E1DLoad_F=" << setw(20) << E1DLoad_F << "\n";
+//       cout << "\n E1DLoad_F=" << setw(20) << E1DLoad_F << "\n";
 //   	 cout << "\n Q=" << setw(20) << Q;
 
 //      cout << "E1DLoadCachedValue_=" << setw(20) << E1DLoadCachedValue_ << "\n";
