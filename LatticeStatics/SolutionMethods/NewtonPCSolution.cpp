@@ -1,5 +1,6 @@
 #include <cmath>
 #include <fstream>
+#include <sstream>
 #include "NewtonPCSolution.h"
 #include "Matrix.h"
 #include "ArcLengthSolution.h"
@@ -165,6 +166,15 @@ NewtonPCSolution::NewtonPCSolution(
     {
       Tangent2_[i] = Tangent1_[i];
     }
+
+    // Send Output
+    int Width;
+    stringstream devnull;
+    Width = Input.getPosInt("Main", "FieldWidth");
+    cout << "Start Bifurcation Point details\n";
+    cout << "Restric DOF's:\n" << setw(Width) << Restrict_->DOF() << "\n";
+    devnull << setw(Width) << *(Restrict_->Lat()); // lat echos to cout
+    cout << "End Bifurcation Point details\n";
   }
   else if (!strcmp("Continuation", starttype))
   {
