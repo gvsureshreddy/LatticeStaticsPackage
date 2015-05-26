@@ -1,5 +1,6 @@
 #include <cmath>
 #include <fstream>
+#include <sstream>
 #include "NewtonPCSolution.h"
 #include "Matrix.h"
 #include "ArcLengthSolution.h"
@@ -10,7 +11,7 @@ NewtonPCSolution::~NewtonPCSolution()
 {
    // release  CP count tracking memory
    delete [] TotalNumCPs_;
-   
+
    cout.width(0);
    cout << "NewtonPCSolution Stats:\n"
         << "\tCumulativeArcLength - " << CumulativeArcLength_ << "\n";
@@ -23,758 +24,506 @@ NewtonPCSolution::~NewtonPCSolution()
         << "\tFindCriticalPoint - " << counter_[5] << "\n";
 }
 
-NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict,
-                                   Vector const& one, int const& CurrentSolution,
-                                   UpdateType const& Type, int const& ComputeExactTangent,
-                                   int const& NumSolutions, double const& MaxDS,
-                                   double const& CurrentDS, double const& MinDS,
-                                   double const& cont_rate_max, double const& delta_max,
-                                   double const& alpha_max, double const& eig_angle_max,
-                                   double const& Converge, ConvergeType CnvrgTyp,
-                                   int const& BisectCP, Vector const& FirstSolution,
-                                   int const& Direction, double const& accel_max,
-                                   int const& BifStartFlag, Vector const& BifTangent,
-                                   int const& ClosedLoopStart, int const& ClosedLoopUseAsFirst,
-                                   double const& MaxCumulativeArcLength,
-                                   int const& StopAtCPCrossingNum, int const& Echo) :
-   Restrict_(Restrict),
-   Echo_(Echo),
-   CurrentSolution_(CurrentSolution),
-   UpdateType_(Type),
-   ComputeExactTangent_(ComputeExactTangent),
-   NumSolutions_(NumSolutions),
-   CumulativeArcLength_(0.0),
-   MaxDS_(MaxDS),
-   PreviousDS_(CurrentDS),
-   CurrentDS_(CurrentDS),
-   MinDS_(MinDS),
-   cont_rate_max_(cont_rate_max),
-   delta_max_(delta_max),
-   alpha_max_(alpha_max),
-   eig_angle_max_(eig_angle_max),
-   Converge_(Converge),
-   ConvergeType_(CnvrgTyp),
-   BisectCP_(BisectCP),
-   BifStartFlag_(BifStartFlag),
-   BifTangent_(BifTangent),
-   ClosedLoopStart_(ClosedLoopStart),
-   ClosedLoopUseAsFirst_(ClosedLoopUseAsFirst),
-   MaxCumulativeArcLength_(MaxCumulativeArcLength),
-   StopAtCPCrossingNum_(StopAtCPCrossingNum),
-   Direction_(Direction),
-   Omega_(1.0),
-   accel_max_(accel_max),
-   FirstSolution_(FirstSolution),
-   PreviousSolution_(FirstSolution_.Dim())
+NewtonPCSolution::NewtonPCSolution(
+    Restriction* const Restrict,
+    Vector const& one, int const& CurrentSolution,
+    UpdateType const& Type, int const& ComputeExactTangent,
+    int const& NumSolutions, double const& MaxDS,
+    double const& CurrentDS, double const& MinDS,
+    double const& cont_rate_max, double const& delta_max,
+    double const& alpha_max, double const& eig_angle_max,
+    double const& Converge, ConvergeType CnvrgTyp,
+    int const& BisectCP, Vector const& FirstSolution,
+    int const& Direction, double const& accel_max,
+    int const& BifStartFlag, Vector const& BifTangent,
+    int const& ClosedLoopStart, int const& ClosedLoopUseAsFirst,
+    double const& MaxCumulativeArcLength,
+    int const& StopAtCPCrossingNum, int const& Echo)
+    :
+    Restrict_(Restrict),
+    Echo_(Echo),
+    CurrentSolution_(CurrentSolution),
+    UpdateType_(Type),
+    ComputeExactTangent_(ComputeExactTangent),
+    NumSolutions_(NumSolutions),
+    CumulativeArcLength_(0.0),
+    MaxDS_(MaxDS),
+    PreviousDS_(CurrentDS),
+    CurrentDS_(CurrentDS),
+    MinDS_(MinDS),
+    cont_rate_max_(cont_rate_max),
+    delta_max_(delta_max),
+    alpha_max_(alpha_max),
+    eig_angle_max_(eig_angle_max),
+    Converge_(Converge),
+    ConvergeType_(CnvrgTyp),
+    BisectCP_(BisectCP),
+    BifStartFlag_(BifStartFlag),
+    BifTangent_(BifTangent),
+    ClosedLoopStart_(ClosedLoopStart),
+    ClosedLoopUseAsFirst_(ClosedLoopUseAsFirst),
+    MaxCumulativeArcLength_(MaxCumulativeArcLength),
+    StopAtCPCrossingNum_(StopAtCPCrossingNum),
+    Direction_(Direction),
+    Omega_(1.0),
+    accel_max_(accel_max),
+    FirstSolution_(FirstSolution),
+    PreviousSolution_(FirstSolution_.Dim()),
+    StabilizeSteps(0)
 {
-   for (int i = 0; i < nocounters_; ++i)
-   {
-      counter_[i] = 0;
-   }
-   if (cos(alpha_max_) <= 0.0)
-   {
-      cerr << "error: NewtonPCSolution::Angle too large!\n";
-      exit(-22);
-   }
+  InitializeCountersAndStatics();
 
-   Restrict_->SetDOF(FirstSolution_);
-   int count = (Restrict_->DOF()).Dim();
-   int count_minus_one = count - 1;
-   // initialize "static" variables
-   v_static.Resize(count);
-   w_static.Resize(count);
-   Force_static.Resize(count_minus_one);
-   Corrector_static.Resize(count);
-   difference_static.Resize(count);
-   Q_static.Resize(count, count);
-   R_static.Resize(count, count_minus_one);
-   TestValues_static.Resize(Restrict_->NumTestFunctions());
-   Stiff_static.Resize(count_minus_one, count);
+  if (cos(alpha_max_) <= 0.0)
+  {
+    cerr << "error: NewtonPCSolution::Angle too large!\n";
+    exit(-22);
+  }
 
-   // QR Decomposition of Stiffness Matrix
-   Matrix Q(count, count);
-   Matrix R(count, count_minus_one);
+  Restrict_->SetDOF(FirstSolution_);
 
-   // Performs QR decomposition using A^T = Q*R. Section 4.1 of ISBN 3-540-12760-7
-   QR(Restrict_->Stiffness(), Q, R, 1);
-
-   Tangent1_.Resize(count);
-   Tangent2_.Resize(count);
-   double tansign = 1.0;
-   for (int i = 0; i < count_minus_one; ++i)
-   {
-      tansign *= R[i][i] / fabs(R[i][i]);
-   }
-   for (int i = 0; i < count; i++)
-   {
-      Tangent1_[i] = Tangent2_[i] = Direction_ * tansign * Q[i][count_minus_one];
-   }
-
-   // Initialize CP count tracking
-   TotalNumCPs_ = new int[Restrict_->NumTestFunctions()];
-   for (int i = 0; i < Restrict_->NumTestFunctions(); ++i)
-   {
-      TotalNumCPs_[i] = 0;
-   }
+  InitializeTangents();
 }
 
-NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict, PerlInput const& Input,
-                                   Vector const& one, int const& Echo) :
-   Restrict_(Restrict),
-   Echo_(Echo),
-   CurrentSolution_(0),
-   CumulativeArcLength_(0.0),
-   BifStartFlag_(0),
-   BifTangent_(),
-   Omega_(1.0),
-   PreviousSolution_(0)
+NewtonPCSolution::NewtonPCSolution(
+    Restriction* const Restrict,
+    PerlInput const& Input,
+    Vector const& one, int const& Echo)
+    :
+    Restrict_(Restrict),
+    Echo_(Echo),
+    CurrentSolution_(0),
+    CumulativeArcLength_(0.0),
+    BifStartFlag_(0),
+    BifTangent_(),
+    Omega_(1.0),
+    FirstSolution_(one.Dim()),
+    PreviousSolution_(one.Dim()),
+    StabilizeSteps(0)
 {
-   for (int i = 0; i < nocounters_; ++i)
-   {
-      counter_[i] = 0;
-   }
+  InitializeCountersAndStatics();
+  ProcessOptions(Input);
+  ProcessClosedLoopOptions(Input, one);
+  Input.EndofInputSection();
 
-   // get needed parameters
-   PerlInput::HashStruct Hash = Input.getHash("SolutionMethod", "NewtonPCSolution");
-   if (Input.ParameterOK(Hash, "UpdateType"))
-   {
-      char const* const updatetype = Input.getString(Hash, "UpdateType");
-      if (!strcmp("NoUpdate", updatetype))
-      {
-         UpdateType_ = NoUpdate;
-      }
-      else if (!strcmp("QRUpdate", updatetype))
-      {
-         UpdateType_ = QRUpdate;
-      }
-      else if (!strcmp("StiffnessUpdate", updatetype))
-      {
-         UpdateType_ = StiffnessUpdate;
-      }
-      else if (!strcmp("Exact", updatetype))
-      {
-         UpdateType_ = Exact;
-      }
-      else
-      {
-         cerr << "Unknown UpdateType: " << updatetype << "\nExiting!\n";
-         exit(-21);
-      }
-   }
-   else
-   {
-      Input.useString("QRUpdate", Hash, "UpdateType"); // Default Value
-      UpdateType_ = QRUpdate;
-   }
+  Restrict_->SetDOF(one);
 
-   if (Input.ParameterOK(Hash, "ComputeExactTangent"))
-   {
-      char const* const tangentchoice = Input.getString(Hash, "ComputeExactTangent");
-      if (!strcmp("Yes", tangentchoice))
-      {
-         ComputeExactTangent_ = 1;
-      }
-      else if (!strcmp("No", tangentchoice))
-      {
-         ComputeExactTangent_ = 0;
-      }
-      else
-      {
-         cerr << "Unknown ComputeExactTangent: " << tangentchoice << "\nExiting!\n";
-         exit(-22);
-      }
-   }
-   else
-   {
-      Input.useString("Yes", Hash, "ComputeExactTangent"); // Default Value
-      ComputeExactTangent_ = 1;
-   }
-
-   NumSolutions_ = Input.getPosInt(Hash, "NumSolutions");
-   MaxDS_ = Input.getDouble(Hash, "MaxDS");
-   CurrentDS_ = Input.getDouble(Hash, "CurrentDS");
-   PreviousDS_ = CurrentDS_;
-   MinDS_ = Input.getDouble(Hash, "MinDS");
-   cont_rate_max_ = Input.getDouble(Hash, "Contraction");
-   delta_max_ = Input.getDouble(Hash, "Distance");
-   alpha_max_ = Input.getDouble(Hash, "Angle");
-   if (cos(alpha_max_) <= 0.0)
-   {
-      cerr << "error: NewtonPCSolution::Angle too large!\n";
-      exit(-22);
-   }
-   if (Input.ParameterOK(Hash, "MaxEigVectAngle"))
-   {
-      eig_angle_max_ = Input.getDouble(Hash, "MaxEigVectAngle");
-   }
-   else
-   {
-      Input.useDouble(-1.0, Hash, "MaxEigVectAngle"); // Default Value
-      eig_angle_max_ = -1.0;
-   }
-   Converge_ = Input.getDouble(Hash, "ConvergeCriteria");
-   if (Input.ParameterOK(Hash, "ConvergeType"))
-   {
-      char const* const cnvrgtyp = Input.getString(Hash, "ConvergeType");
-      if (!strcmp("Both", cnvrgtyp))
-      {
-         ConvergeType_ = Both;
-      }
-      else if (!strcmp("Force", cnvrgtyp))
-      {
-         ConvergeType_ = Force;
-      }
-      else if (!strcmp("Displacement", cnvrgtyp))
-      {
-         ConvergeType_ = Displacement;
-      }
-      else
-      {
-         cerr << "Unknown ConvergeType: " << cnvrgtyp << "\nExiting!\n";
-         exit(-22);
-      }
-   }
-   else
-   {
-      Input.useString("Both", Hash, "ConvergeType");  // Default Value
-      ConvergeType_ = Both;
-   }
-   char const* const bisectcp = Input.getString(Hash, "BisectCP");
-   if (!strcmp("Yes", bisectcp))
-   {
-      BisectCP_ = 1;
-   }
-   else if (!strcmp("No", bisectcp))
-   {
-      BisectCP_ = 0;
-   }
-   else
-   {
-      cerr << "Unknown BisectCP option : " << bisectcp << "\nExiting!\n";
-      exit(-33);
-   }
-   if (Input.ParameterOK(Hash, "ClosedLoopStart"))
-   {
-      ClosedLoopStart_ = Input.getInt(Hash, "ClosedLoopStart");
-   }
-   else
-   {
-      ClosedLoopStart_ = Input.useInt(CLOSEDDEFAULT, Hash, "ClosedLoopStart"); // Default Value
-   }
-
-   if (Input.ParameterOK(Hash, "MaxCumulativeArcLength"))
-   {
-      MaxCumulativeArcLength_ = Input.getDouble(Hash, "MaxCumulativeArcLength");
-      if (MaxCumulativeArcLength_ < 0.0)
-      {
-         MaxCumulativeArcLength_ = -1.0;  // Negative values mean don't check
-      }
-   }
-   else
-   {
-      MaxCumulativeArcLength_ = Input.useDouble(-1.0, Hash, "MaxCumulativeArcLength_"); // Default Value
-   }
-
-   if (Input.ParameterOK(Hash, "StopAtCPCrossingNum"))
-   {
-      StopAtCPCrossingNum_ = Input.getInt(Hash, "StopAtCPCrossingNum");
-   }
-   else
-   {
-      StopAtCPCrossingNum_ = Input.useInt(-1, Hash, "StopAtCPCrossingNum"); // Default Value
-   }
-
-   if (Input.ParameterOK(Hash, "Direction"))
-   {
-      Direction_ = Input.getInt(Hash, "Direction");
-      if ((Direction_ < -1) || (Direction_ > 1))
-      {
-         cerr << "Unknown value for " << Hash.Name << "{Direction}" << "\n";
-         exit(-6);
-      }
-   }
-   else
-   {
-      Direction_ = Input.useInt(1, Hash, "Direction");
-   }
-
-   if (Input.ParameterOK(Hash, "Acceleration"))
-   {
-      accel_max_ = Input.getDouble(Hash, "Acceleration");
-      if (accel_max_ <= 0.0)
-      {
-         cerr << "Invalid value for " << Hash.Name << "{Acceleration}" << "\n";
-         exit(-7);
-      }
-   }
-   else
-   {
-      accel_max_ = Input.useDouble(2.0, Hash, "Acceleration"); // Default Value
-   }
-
-   FirstSolution_.Resize(one.Dim());
-   if (Input.ParameterOK("StartType", "ClosedLoopFirstSolution"))
-   {
-      Vector clfs(Input.getArrayLength("StartType", "ClosedLoopFirstSolution"));
-      Input.getVector(clfs, "StartType", "ClosedLoopFirstSolution");
-      FirstSolution_ = Restrict_->RestrictDOF(clfs);
-   }
-   else
-   {
-      if (Input.ParameterOK("StartType", "ClosedLoopUseAsFirst"))
-      {
-         ClosedLoopUseAsFirst_ = Input.getPosInt("StartType", "ClosedLoopUseAsFirst");
-         if (ClosedLoopUseAsFirst_ == 0)
-         {
-            FirstSolution_ = one;
-         }
-         else if (ClosedLoopUseAsFirst_ >= ClosedLoopStart_)
-         {
-            cerr << "Error: NewtonPCSolution -- ClosedLoopUseAsFirst must be < ClosedLoopStart."
-                 << endl;
-            exit(-33);
-         }
-      }
-      else
-      {
-         // Default Value
-         ClosedLoopUseAsFirst_ = Input.useInt(0, "StartType", "ClosedLoopUseAsFirst");
-         FirstSolution_ = one;
-      }
-   }
-   Input.EndofInputSection();
-
-   Restrict_->SetDOF(one);
-
-   PreviousSolution_.Resize(one.Dim());
-
-   int count = (Restrict_->DOF()).Dim();
-   int count_minus_one = count - 1;
-   // initialize "static" variables
-   v_static.Resize(count);
-   w_static.Resize(count);
-   Force_static.Resize(count_minus_one);
-   Corrector_static.Resize(count);
-   difference_static.Resize(count);
-   Q_static.Resize(count, count);
-   R_static.Resize(count, count_minus_one);
-   TestValues_static.Resize(Restrict_->NumTestFunctions());
-   Stiff_static.Resize(count_minus_one, count);
-
-   // QR Decomposition of Stiffness Matrix
-   Matrix Q(count, count);
-   Matrix R(count, count_minus_one);
-
-   // Performs QR decomposition using A^T = Q*R. Section 4.1 of ISBN 3-540-12760-7
-   QR(Restrict_->Stiffness(), Q, R, 1);
-
-   Tangent1_.Resize(count);
-   Tangent2_.Resize(count);
-   double tansign = 1.0;
-   for (int i = 0; i < count_minus_one; ++i)
-   {
-      tansign *= R[i][i] / fabs(R[i][i]);
-   }
-   for (int i = 0; i < count; i++)
-   {
-      Tangent1_[i] = Tangent2_[i] = Direction_ * tansign * Q[i][count_minus_one];
-   }
-
-   // Initialize CP count tracking
-   TotalNumCPs_ = new int[Restrict_->NumTestFunctions()];
-   for (int i = 0; i < Restrict_->NumTestFunctions(); ++i)
-   {
-      TotalNumCPs_[i] = 0;
-   }
+  InitializeTangents();
 }
 
-NewtonPCSolution::NewtonPCSolution(Restriction* const Restrict, PerlInput const& Input,
-                                   int const& Echo) :
-   Restrict_(Restrict),
-   Echo_(Echo),
-   CurrentSolution_(0),
-   CumulativeArcLength_(0.0),
-   BifStartFlag_(0),
-   BifTangent_(),
-   Omega_(1.0)
+NewtonPCSolution::NewtonPCSolution(
+    Restriction* const Restrict,
+    PerlInput const& Input,
+    int const& Echo)
+    :
+    Restrict_(Restrict),
+    Echo_(Echo),
+    CurrentSolution_(0),
+    CumulativeArcLength_(0.0),
+    BifStartFlag_(0),
+    BifTangent_(),
+    Omega_(1.0),
+    StabilizeSteps(0)
 {
-   for (int i = 0; i < nocounters_; ++i)
-   {
-      counter_[i] = 0;
-   }
+  InitializeCountersAndStatics();
+  ProcessOptions(Input);
 
-   // get needed parameters
-   PerlInput::HashStruct Hash = Input.getHash("SolutionMethod", "NewtonPCSolution");
-   if (Input.ParameterOK(Hash, "UpdateType"))
-   {
-      const char* const updatetype = Input.getString(Hash, "UpdateType");
-      if (!strcmp("NoUpdate", updatetype))
-      {
-         UpdateType_ = NoUpdate;
-      }
-      else if (!strcmp("QRUpdate", updatetype))
-      {
-         UpdateType_ = QRUpdate;
-      }
-      else if (!strcmp("StiffnessUpdate", updatetype))
-      {
-         UpdateType_ = StiffnessUpdate;
-      }
-      else if (!strcmp("Exact", updatetype))
-      {
-         UpdateType_ = Exact;
-      }
-      else
-      {
-         cerr << "Unknown UpdateType: " << updatetype << "\nExiting!\n";
-         exit(-21);
-      }
+  int count = (Restrict_->DOF()).Dim();
+  int count_minus_one = count - 1;
+  FirstSolution_.Resize(count);
+  PreviousSolution_.Resize(count);
+
+  const char* starttype = Input.getString("StartType", "Type");
+  if (!strcmp("Bifurcation", starttype))
+  {
+    // Bifurcation
+    BifStartFlag_ = 1;
+    BifTangent_.Resize(count);
+    // Get solution1
+    int i;
+    Vector one(count);
+    Tangent1_.Resize(count);
+    Tangent2_.Resize(count);
+
+    Vector tan1tmp(Input.getArrayLength("StartType", "Tangent"));
+    Input.getVector(tan1tmp, "StartType", "Tangent");
+    Tangent1_ = Restrict_->TransformVector(tan1tmp);
+    Tangent1_ = Tangent1_ / (double(Direction_) * Tangent1_.Norm());
+    // set up projection vector BifTangent_
+    BifTangent_ = Tangent1_;
+    BifTangent_[count_minus_one] = 0.0;
+    Vector biftmp(Input.getArrayLength("StartType", "BifurcationPoint"));
+    Input.getVector(biftmp, "StartType", "BifurcationPoint");
+    one = Restrict_->RestrictDOF(biftmp);
+
+    ProcessClosedLoopOptions(Input, one);
+
+    cout << "Projection on BifTangent of BifurcationPoint = " << FirstSolution_ * BifTangent_
+         << "\n";
+
+    Restrict_->SetDOF(one);
+
+    for (i = 0; i < count; i++)
+    {
+      Tangent2_[i] = Tangent1_[i];
+    }
+
+    // Send Output
+    int Width;
+    stringstream devnull;
+    Width = Input.getPosInt("Main", "FieldWidth");
+    cout << "Start Bifurcation Point details\n";
+    cout << "Restric DOF's:\n" << setw(Width) << Restrict_->DOF() << "\n";
+    devnull << setw(Width) << *(Restrict_->Lat()); // lat echos to cout
+    cout << "End Bifurcation Point details\n";
+  }
+  else if (!strcmp("Continuation", starttype))
+  {
+    // Continuation
+
+    // Get solution1
+    int i;
+    Vector one(count);
+
+    Vector onetmp(Input.getArrayLength("StartType", "Solution"));
+    Input.getVector(onetmp, "StartType", "Solution");
+    one = Restrict_->RestrictDOF(onetmp);
+
+    ProcessClosedLoopOptions(Input, one);
+
+    Restrict_->SetDOF(one);
+
+    if (Input.ParameterOK("StartType", "StabilizeModes"))
+    {
+      int const numModes = Input.getArrayLength("StartType","StabilizeModes");
+      StabilizeModes.Resize(numModes,count_minus_one);
+      Input.getMatrix(StabilizeModes, "StartType","StabilizeModes");
+    }
+    if (Input.ParameterOK("StartType", "StabilizeSteps"))
+    {
+      StabilizeSteps = Input.getPosInt("StartType", "StabilizeSteps");
+    }
+    else
+    {
+      StabilizeSteps = 1;
+    }
+
+    InitializeTangents();
+  }
+  else if (!strcmp("ConsistencyCheck", starttype))
+  {
+    double ConsistencyEpsilon;
+    int Width;
+    Vector Solution(count);
+
+    Vector onetmp(Input.getArrayLength("StartType", "Solution"));
+    Input.getVector(onetmp, "StartType", "Solution");
+    Solution = Restrict_->RestrictDOF(onetmp);
+    // Get Epsilon and Width
+    ConsistencyEpsilon = Input.getDouble("StartType", "Epsilon");
+    Width = Input.getPosInt("Main", "FieldWidth");
+
+    fstream::fmtflags oldflags = cout.flags();
+    cout << scientific;
+    Restrict_->ConsistencyCheckRidders(Solution, ConsistencyEpsilon, Width, cout);
+    cout.flags(oldflags);
+    // We're done
+    CurrentSolution_ = NumSolutions_;
    }
-   else
-   {
-      Input.useString("QRUpdate", Hash, "UpdateType"); // Default Value
+  else
+  {
+    cerr << "Unknown StartType!" << "\n";
+    exit(-1);
+  }
+  Input.EndofInputSection();
+}
+
+void NewtonPCSolution::InitializeCountersAndStatics()
+{
+  for (int i = 0; i < nocounters_; ++i)
+  {
+    counter_[i] = 0;
+  }
+
+  // Initialize CP count tracking
+  TotalNumCPs_ = new int[Restrict_->NumTestFunctions()];
+  for (int i = 0; i < Restrict_->NumTestFunctions(); ++i)
+  {
+    TotalNumCPs_[i] = 0;
+  }
+
+  int count = (Restrict_->DOF()).Dim();
+  int count_minus_one = count - 1;
+  // initialize "static" variables
+  v_static.Resize(count);
+  w_static.Resize(count);
+  Force_static.Resize(count_minus_one);
+  Corrector_static.Resize(count);
+  difference_static.Resize(count);
+  Q_static.Resize(count, count);
+  R_static.Resize(count, count_minus_one);
+  TestValues_static.Resize(Restrict_->NumTestFunctions());
+  Stiff_static.Resize(count_minus_one, count);
+}
+
+void NewtonPCSolution::ProcessOptions(PerlInput const& Input)
+{
+  // get needed parameters
+  PerlInput::HashStruct Hash = Input.getHash("SolutionMethod", "NewtonPCSolution");
+  if (Input.ParameterOK(Hash, "UpdateType"))
+  {
+    const char* const updatetype = Input.getString(Hash, "UpdateType");
+    if (!strcmp("NoUpdate", updatetype))
+    {
+      UpdateType_ = NoUpdate;
+    }
+    else if (!strcmp("QRUpdate", updatetype))
+    {
       UpdateType_ = QRUpdate;
-   }
+    }
+    else if (!strcmp("StiffnessUpdate", updatetype))
+    {
+      UpdateType_ = StiffnessUpdate;
+    }
+    else if (!strcmp("Exact", updatetype))
+    {
+      UpdateType_ = Exact;
+    }
+    else
+    {
+      cerr << "Unknown UpdateType: " << updatetype << "\nExiting!\n";
+      exit(-21);
+    }
+  }
+  else
+  {
+    Input.useString("QRUpdate", Hash, "UpdateType"); // Default Value
+    UpdateType_ = QRUpdate;
+  }
 
-   if (Input.ParameterOK(Hash, "ComputeExactTangent"))
-   {
-      char const* const tangentchoice = Input.getString(Hash, "ComputeExactTangent");
-      if (!strcmp("Yes", tangentchoice))
-      {
-         ComputeExactTangent_ = 1;
-      }
-      else if (!strcmp("No", tangentchoice))
-      {
-         ComputeExactTangent_ = 0;
-      }
-      else
-      {
-         cerr << "Unknown ComputeExactTangent: " << tangentchoice << "\nExiting!\n";
-         exit(-22);
-      }
-   }
-   else
-   {
-      Input.useString("Yes", Hash, "ComputeExactTangent"); // Default Value
+  if (Input.ParameterOK(Hash, "ComputeExactTangent"))
+  {
+    char const* const tangentchoice = Input.getString(Hash, "ComputeExactTangent");
+    if (!strcmp("Yes", tangentchoice))
+    {
       ComputeExactTangent_ = 1;
-   }
-
-   NumSolutions_ = Input.getPosInt(Hash, "NumSolutions");
-   MaxDS_ = Input.getDouble(Hash, "MaxDS");
-   CurrentDS_ = Input.getDouble(Hash, "CurrentDS");
-   PreviousDS_ = CurrentDS_;
-   MinDS_ = Input.getDouble(Hash, "MinDS");
-   cont_rate_max_ = Input.getDouble(Hash, "Contraction");
-   delta_max_ = Input.getDouble(Hash, "Distance");
-   alpha_max_ = Input.getDouble(Hash, "Angle");
-   if (cos(alpha_max_) <= 0.0)
-   {
-      cerr << "error: NewtonPCSolution::Angle too large!\n";
+    }
+    else if (!strcmp("No", tangentchoice))
+    {
+      ComputeExactTangent_ = 0;
+    }
+    else
+    {
+      cerr << "Unknown ComputeExactTangent: " << tangentchoice << "\nExiting!\n";
       exit(-22);
-   }
-   if (Input.ParameterOK(Hash, "MaxEigVectAngle"))
-   {
-      eig_angle_max_ = Input.getDouble(Hash, "MaxEigVectAngle");
-   }
-   else
-   {
-      Input.useDouble(-1.0, Hash, "MaxEigVectAngle"); // Default Value
-   }
-   Converge_ = Input.getDouble(Hash, "ConvergeCriteria");
-   if (Input.ParameterOK(Hash, "ConvergeType"))
-   {
-      char const* const cnvrgtyp = Input.getString(Hash, "ConvergeType");
-      if (!strcmp("Both", cnvrgtyp))
-      {
-         ConvergeType_ = Both;
-      }
-      else if (!strcmp("Force", cnvrgtyp))
-      {
-         ConvergeType_ = Force;
-      }
-      else if (!strcmp("Displacement", cnvrgtyp))
-      {
-         ConvergeType_ = Displacement;
-      }
-      else
-      {
-         cerr << "Unknown ConvergeType: " << cnvrgtyp << "\nExiting!\n";
-         exit(-22);
-      }
-   }
-   else
-   {
-      Input.useString("Both", Hash, "ConvergeType");  // Default Value
+    }
+  }
+  else
+  {
+    Input.useString("Yes", Hash, "ComputeExactTangent"); // Default Value
+    ComputeExactTangent_ = 1;
+  }
+
+  NumSolutions_ = Input.getPosInt(Hash, "NumSolutions");
+  MaxDS_ = Input.getDouble(Hash, "MaxDS");
+  CurrentDS_ = Input.getDouble(Hash, "CurrentDS");
+  PreviousDS_ = CurrentDS_;
+  MinDS_ = Input.getDouble(Hash, "MinDS");
+  cont_rate_max_ = Input.getDouble(Hash, "Contraction");
+  delta_max_ = Input.getDouble(Hash, "Distance");
+  alpha_max_ = Input.getDouble(Hash, "Angle");
+  if (cos(alpha_max_) <= 0.0)
+  {
+    cerr << "error: NewtonPCSolution::Angle too large!\n";
+    exit(-22);
+  }
+  if (Input.ParameterOK(Hash, "MaxEigVectAngle"))
+  {
+    eig_angle_max_ = Input.getDouble(Hash, "MaxEigVectAngle");
+  }
+  else
+  {
+    Input.useDouble(-1.0, Hash, "MaxEigVectAngle"); // Default Value
+  }
+  Converge_ = Input.getDouble(Hash, "ConvergeCriteria");
+  if (Input.ParameterOK(Hash, "ConvergeType"))
+  {
+    char const* const cnvrgtyp = Input.getString(Hash, "ConvergeType");
+    if (!strcmp("Both", cnvrgtyp))
+    {
       ConvergeType_ = Both;
-   }
-   char const* const bisectcp = Input.getString(Hash, "BisectCP");
-   if (!strcmp("Yes", bisectcp))
-   {
-      BisectCP_ = 1;
-   }
-   else if (!strcmp("No", bisectcp))
-   {
-      BisectCP_ = 0;
-   }
-   else
-   {
-      cerr << "Unknown BisectCP option : " << bisectcp << "\nExiting!\n";
-      exit(-33);
-   }
-   if (Input.ParameterOK(Hash, "ClosedLoopStart"))
-   {
-      ClosedLoopStart_ = Input.getInt(Hash, "ClosedLoopStart");
-   }
-   else
-   {
-      ClosedLoopStart_ = Input.useInt(CLOSEDDEFAULT, Hash, "ClosedLoopStart"); // Default Value
-   }
+    }
+    else if (!strcmp("Force", cnvrgtyp))
+    {
+      ConvergeType_ = Force;
+    }
+    else if (!strcmp("Displacement", cnvrgtyp))
+    {
+      ConvergeType_ = Displacement;
+    }
+    else
+    {
+      cerr << "Unknown ConvergeType: " << cnvrgtyp << "\nExiting!\n";
+      exit(-22);
+    }
+  }
+  else
+  {
+    Input.useString("Both", Hash, "ConvergeType");  // Default Value
+    ConvergeType_ = Both;
+  }
+  char const* const bisectcp = Input.getString(Hash, "BisectCP");
+  if (!strcmp("Yes", bisectcp))
+  {
+    BisectCP_ = 1;
+  }
+  else if (!strcmp("No", bisectcp))
+  {
+    BisectCP_ = 0;
+  }
+  else
+  {
+    cerr << "Unknown BisectCP option : " << bisectcp << "\nExiting!\n";
+    exit(-33);
+  }
+  if (Input.ParameterOK(Hash, "ClosedLoopStart"))
+  {
+    ClosedLoopStart_ = Input.getInt(Hash, "ClosedLoopStart");
+  }
+  else
+  {
+    ClosedLoopStart_ = Input.useInt(CLOSEDDEFAULT, Hash, "ClosedLoopStart"); // Default Value
+  }
 
-   if (Input.ParameterOK(Hash, "MaxCumulativeArcLength"))
-   {
-      MaxCumulativeArcLength_ = Input.getDouble(Hash, "MaxCumulativeArcLength");
-      if (MaxCumulativeArcLength_ < 0.0)
+  if (Input.ParameterOK(Hash, "MaxCumulativeArcLength"))
+  {
+    MaxCumulativeArcLength_ = Input.getDouble(Hash, "MaxCumulativeArcLength");
+    if (MaxCumulativeArcLength_ < 0.0)
+    {
+      MaxCumulativeArcLength_ = -1.0;  // Negative values mean don't check
+    }
+  }
+  else
+  {
+    MaxCumulativeArcLength_ = Input.useDouble(-1.0, Hash, "MaxCumulativeArcLength_"); // Default Value
+  }
+
+  if (Input.ParameterOK(Hash, "StopAtCPCrossingNum"))
+  {
+    StopAtCPCrossingNum_ = Input.getInt(Hash, "StopAtCPCrossingNum");
+  }
+  else
+  {
+    StopAtCPCrossingNum_ = Input.useInt(-1, Hash, "StopAtCPCrossingNum"); // Default Value
+  }
+
+  if (Input.ParameterOK(Hash, "Direction"))
+  {
+    Direction_ = Input.getInt(Hash, "Direction");
+    if ((Direction_ < -1) || (Direction_ > 1))
+    {
+      cerr << "Unknown value for " << Hash.Name << "{Direction}" << "\n";
+      exit(-6);
+    }
+  }
+  else
+  {
+    Direction_ = Input.useInt(1, Hash, "Direction"); // Default Value
+  }
+
+  if (Input.ParameterOK(Hash, "Acceleration"))
+  {
+    accel_max_ = Input.getDouble(Hash, "Acceleration");
+    if (accel_max_ <= 0.0)
+    {
+      cerr << "Invalid value for " << Hash.Name << "{Acceleration}" << "\n";
+      exit(-7);
+    }
+  }
+  else
+  {
+    accel_max_ = Input.useDouble(2.0, Hash, "Acceleration"); // Default Value
+  }
+}
+
+void NewtonPCSolution::ProcessClosedLoopOptions(PerlInput const& Input,
+                                                Vector const& one)
+{
+  FirstSolution_.Resize(one.Dim());
+  if (Input.ParameterOK("StartType", "ClosedLoopFirstSolution"))
+  {
+    Vector clfs(Input.getArrayLength("StartType", "ClosedLoopFirstSolution"));
+    Input.getVector(clfs, "StartType", "ClosedLoopFirstSolution");
+    FirstSolution_ = Restrict_->RestrictDOF(clfs);
+  }
+  else
+  {
+    if (Input.ParameterOK("StartType", "ClosedLoopUseAsFirst"))
+    {
+      ClosedLoopUseAsFirst_ = Input.getPosInt("StartType", "ClosedLoopUseAsFirst");
+      if (ClosedLoopUseAsFirst_ == 0)
       {
-         MaxCumulativeArcLength_ = -1.0;  // Negative values mean don't check
+        FirstSolution_ = one;
       }
-   }
-   else
-   {
-      MaxCumulativeArcLength_ = Input.useDouble(-1.0, Hash, "MaxCumulativeArcLength_"); // Default Value
-   }
-
-   if (Input.ParameterOK(Hash, "StopAtCPCrossingNum"))
-   {
-      StopAtCPCrossingNum_ = Input.getInt(Hash, "StopAtCPCrossingNum");
-   }
-   else
-   {
-      StopAtCPCrossingNum_ = Input.useInt(-1, Hash, "StopAtCPCrossingNum"); // Default Value
-   }
-
-   if (Input.ParameterOK(Hash, "Direction"))
-   {
-      Direction_ = Input.getInt(Hash, "Direction");
-      if ((Direction_ < -1) || (Direction_ > 1))
+      else if (ClosedLoopUseAsFirst_ >= ClosedLoopStart_)
       {
-         cerr << "Unknown value for " << Hash.Name << "{Direction}" << "\n";
-         exit(-6);
+        cerr << "Error: NewtonPCSolution -- ClosedLoopUseAsFirst must be < ClosedLoopStart."
+             << endl;
+        exit(-33);
       }
-   }
-   else
-   {
-      Direction_ = Input.useInt(1, Hash, "Direction"); // Default Value
-   }
+    }
+    else
+    {
+      // Default Value
+      ClosedLoopUseAsFirst_ = Input.useInt(0, "StartType", "ClosedLoopUseAsFirst");
+      FirstSolution_ = one;
+    }
+  }
+}
 
-   if (Input.ParameterOK(Hash, "Acceleration"))
-   {
-      accel_max_ = Input.getDouble(Hash, "Acceleration");
-      if (accel_max_ <= 0.0)
-      {
-         cerr << "Invalid value for " << Hash.Name << "{Acceleration}" << "\n";
-         exit(-7);
-      }
-   }
-   else
-   {
-      accel_max_ = Input.useDouble(2.0, Hash, "Acceleration"); // Default Value
-   }
-   Input.EndofInputSection();
+void NewtonPCSolution::InitializeTangents()
+{
+  int count = (Restrict_->DOF()).Dim();
+  int count_minus_one = count - 1;
 
-   // Initialize CP count tracking
-   TotalNumCPs_ = new int[Restrict_->NumTestFunctions()];
-   for (int i = 0; i < Restrict_->NumTestFunctions(); ++i)
-   {
-      TotalNumCPs_[i] = 0;
-   }
+  // QR Decomposition of Stiffness Matrix
+  Matrix Q(count, count);
+  Matrix R(count, count_minus_one);
 
-   int count = (Restrict_->DOF()).Dim();
-   int count_minus_one = count - 1;
-   // initialize "static" variables
-   v_static.Resize(count);
-   w_static.Resize(count);
-   Force_static.Resize(count_minus_one);
-   Corrector_static.Resize(count);
-   difference_static.Resize(count);
-   Q_static.Resize(count, count);
-   R_static.Resize(count, count_minus_one);
-   TestValues_static.Resize(Restrict_->NumTestFunctions());
-   Stiff_static.Resize(count_minus_one, count);
+  // Performs QR decomposition using A^T = Q*R. Section 4.1 of ISBN 3-540-12760-7
+  Get_Stiff_static();
+  QR(Stiff_static, Q, R, 1);
 
-   const char* starttype = Input.getString("StartType", "Type");
-   if (!strcmp("Bifurcation", starttype))
-   {
-      // Bifurcation
-      BifStartFlag_ = 1;
-      BifTangent_.Resize(count);
-      // Get solution1
-      int i;
-      Vector one(count);
-      PreviousSolution_.Resize(count);
-      Tangent1_.Resize(count);
-      Tangent2_.Resize(count);
-
-      Vector tan1tmp(Input.getArrayLength("StartType", "Tangent"));
-      Input.getVector(tan1tmp, "StartType", "Tangent");
-      Tangent1_ = Restrict_->TransformVector(tan1tmp);
-      Tangent1_ = Tangent1_ / (double(Direction_) * Tangent1_.Norm());
-      // set up projection vector BifTangent_
-      BifTangent_ = Tangent1_;
-      BifTangent_[count - 1] = 0.0;
-      Vector biftmp(Input.getArrayLength("StartType", "BifurcationPoint"));
-      Input.getVector(biftmp, "StartType", "BifurcationPoint");
-      one = Restrict_->RestrictDOF(biftmp);
-
-      FirstSolution_.Resize(one.Dim());
-      if (Input.ParameterOK("StartType", "ClosedLoopFirstSolution"))
-      {
-         Vector clfs(Input.getArrayLength("StartType", "ClosedLoopFirstSolution"));
-         Input.getVector(clfs, "StartType", "ClosedLoopFirstSolution");
-         FirstSolution_ = Restrict_->RestrictDOF(clfs);
-      }
-      else
-      {
-         if (Input.ParameterOK("StartType", "ClosedLoopUseAsFirst"))
-         {
-            ClosedLoopUseAsFirst_ = Input.getPosInt("StartType", "ClosedLoopUseAsFirst");
-            if (ClosedLoopUseAsFirst_ == 0)
-            {
-               FirstSolution_ = one;
-            }
-            else if (ClosedLoopUseAsFirst_ >= ClosedLoopStart_)
-            {
-               cerr << "Error: NewtonPCSolution -- ClosedLoopUseAsFirst must be < ClosedLoopStart."
-                    << endl;
-               exit(-33);
-            }
-         }
-         else
-         {
-            // Default Value
-            ClosedLoopUseAsFirst_ = Input.useInt(0, "StartType", "ClosedLoopUseAsFirst");
-            FirstSolution_ = one;
-         }
-      }
-
-      cout << "Projection on BifTangent of BifurcationPoint = " << FirstSolution_ * BifTangent_
-           << "\n";
-
-      Restrict_->SetDOF(one);
-
-      for (i = 0; i < count; i++)
-      {
-         Tangent2_[i] = Tangent1_[i];
-      }
-   }
-   else if (!strcmp("Continuation", starttype))
-   {
-      // Continuation
-
-      // Get solution1
-      int i;
-      Vector one(count);
-
-      PreviousSolution_.Resize(count);
-      Tangent1_.Resize(count);
-      Tangent2_.Resize(count);
-
-      Vector onetmp(Input.getArrayLength("StartType", "Solution"));
-      Input.getVector(onetmp, "StartType", "Solution");
-      one = Restrict_->RestrictDOF(onetmp);
-
-      FirstSolution_.Resize(one.Dim());
-      if (Input.ParameterOK("StartType", "ClosedLoopFirstSolution"))
-      {
-         Vector clfs(Input.getArrayLength("StartType", "ClosedLoopFirstSolution"));
-         Input.getVector(clfs, "StartType", "ClosedLoopFirstSolution");
-         FirstSolution_ = Restrict_->RestrictDOF(clfs);
-      }
-      else
-      {
-         if (Input.ParameterOK("StartType", "ClosedLoopUseAsFirst"))
-         {
-            ClosedLoopUseAsFirst_ = Input.getPosInt("StartType", "ClosedLoopUseAsFirst");
-            if (ClosedLoopUseAsFirst_ == 0)
-            {
-               FirstSolution_ = one;
-            }
-            else if (ClosedLoopUseAsFirst_ >= ClosedLoopStart_)
-            {
-               cerr << "Error: NewtonPCSolution -- ClosedLoopUseAsFirst must be < ClosedLoopStart."
-                    << endl;
-               exit(-33);
-            }
-         }
-         else
-         {
-            // Default Value
-            ClosedLoopUseAsFirst_ = Input.useInt(0, "StartType", "ClosedLoopUseAsFirst");
-            FirstSolution_ = one;
-         }
-      }
-
-      Restrict_->SetDOF(one);
-
-      Matrix Q(count, count);
-      Matrix R(count, count_minus_one);
-
-      QR(Restrict_->Stiffness(), Q, R, 1);
-      double tansign = 1.0;
-      for (i = 0; i < count_minus_one; ++i)
-      {
-         tansign *= R[i][i] / fabs(R[i][i]);
-      }
-      for (i = 0; i < count; i++)
-      {
-         Tangent1_[i] = Tangent2_[i] = Direction_ * tansign * Q[i][count_minus_one];
-      }
-   }
-   else if (!strcmp("ConsistencyCheck", starttype))
-   {
-      double ConsistencyEpsilon;
-      int Width;
-      Vector Solution(count);
-
-      Vector onetmp(Input.getArrayLength("StartType", "Solution"));
-      Input.getVector(onetmp, "StartType", "Solution");
-      Solution = Restrict_->RestrictDOF(onetmp);
-      // Get Epsilon and Width
-      ConsistencyEpsilon = Input.getDouble("StartType", "Epsilon");
-      Width = Input.getPosInt("Main", "FieldWidth");
-
-      fstream::fmtflags oldflags = cout.flags();
-      cout << scientific;
-      Restrict_->ConsistencyCheckRidders(Solution, ConsistencyEpsilon, Width, cout);
-      cout.flags(oldflags);
-      // We're done
-      CurrentSolution_ = NumSolutions_;
-   }
-   else
-   {
-      cerr << "Unknown StartType!" << "\n";
-      exit(-1);
-   }
-   Input.EndofInputSection();
+  Tangent1_.Resize(count);
+  Tangent2_.Resize(count);
+  double tansign = 1.0;
+  for (int i = 0; i < count_minus_one; ++i)
+  {
+    tansign *= R[i][i] / fabs(R[i][i]);
+  }
+  for (int i = 0; i < count; i++)
+  {
+    Tangent1_[i] = Tangent2_[i] = Direction_ * tansign * Q[i][count_minus_one];
+  }
 }
 
 int NewtonPCSolution::AllSolutionsFound() const
 {
-   ++counter_[3];
+  ++counter_[3];
 
-   if (CurrentSolution_ < NumSolutions_)
-   {
-      return 0;
-   }
-   else
-   {
-      return 1;
-   }
+  if (CurrentSolution_ < NumSolutions_)
+  {
+    return 0;
+  }
+  else
+  {
+    return 1;
+  }
 }
 
 
 int NewtonPCSolution::IsConverged(double const& f, double const& d, int const& count) const
 {
-   double Tol = double(count)*Converge_;
+  double Tol = double(count)*Converge_;
    int Converged = 0;
    switch (ConvergeType_)
    {
@@ -851,7 +600,7 @@ int NewtonPCSolution::FindNextSolution(PerlInput const& Input, int const& Width,
 
       Restrict_->SetDOF(v_static);
       // get stiffness first for efficiency
-      Stiff_static = Restrict_->Stiffness();
+      Get_Stiff_static();
       Force_static = Restrict_->Force();
       forcenorm = Force_static.Norm();
       cout << " \tForceNorm = " << forcenorm;
@@ -1030,7 +779,7 @@ int NewtonPCSolution::FindNextSolution(PerlInput const& Input, int const& Width,
    if (ComputeExactTangent_ == 1)
    {
       // Update to tangent on converged solution
-      Stiff_static = Restrict_->Stiffness();
+      Get_Stiff_static();
       QR(Stiff_static, Q_static, R_static, 1);
 
       double tansign = 1.0;
@@ -1086,7 +835,7 @@ int NewtonPCSolution::FindNextSolution(PerlInput const& Input, int const& Width,
 
    // Converged, so assume solution is good
    good = 1;
-   
+
    // Now we check for Critical Point Crossing
    if (BisectCP_)
    {
@@ -1105,7 +854,7 @@ int NewtonPCSolution::FindNextSolution(PerlInput const& Input, int const& Width,
          cout << "Relative Eigenvectors are too far apart and "
               << "a critical point has been identified." << "\n";
          good = 0;
-         
+
       }
       else if ((TestValue > 0) && (BisectCP_ == 1) && (CurrentSolution_ > 1))
       {
@@ -1121,7 +870,7 @@ int NewtonPCSolution::FindNextSolution(PerlInput const& Input, int const& Width,
       cout << "Restric DOF's:\n" << setw(Width) << Restrict_->DOF() << "\n";
    }
    out << setw(Width) << *(Restrict_->Lat()) << "Success = 1" << "\n";
-      
+
    return good;
 }
 
@@ -1208,6 +957,29 @@ void NewtonPCSolution::MoorePenrose(Matrix const& Q, Matrix const& R, Vector con
    }
 }
 
+void NewtonPCSolution::Get_Stiff_static() const
+{
+  const int numModes = StabilizeModes.Rows();
+  const int count_minus_one = Stiff_static.Rows();
+
+  Stiff_static = Restrict_->Stiffness();
+  if (CurrentSolution_ < StabilizeSteps)
+  {
+    // add StabilizeModes
+    for (int i = 0; i < numModes; ++i)
+    {
+      for (int j = 0; j < count_minus_one; ++j)
+      {
+        for (int k = 0; k < count_minus_one; ++k)
+        {
+          Stiff_static[j][k]
+              += double(i+1)*StabilizeModes[i][j]*StabilizeModes[i][k];
+        }
+      }
+    }
+  }
+}
+
 void NewtonPCSolution::GetQR(Vector const& Force, Vector const& diff, Matrix& Q, Matrix& R) const
 {
    ++counter_[0];
@@ -1242,9 +1014,10 @@ void NewtonPCSolution::GetQR(Vector const& Force, Vector const& diff, Matrix& Q,
          QR(Stiff_static, Q, R, 1);  // Stiff_static^T = Q*R
          break;
       case Exact:
-         // Stiffness^T = Q*R
-         QR(Restrict_->Stiffness(), Q, R, 1);
-         break;
+        // Stiffness^T = Q*R
+        Get_Stiff_static();
+        QR(Stiff_static, Q, R, 1);
+        break;
       default:
          cerr << "Unknown Update Type in NewtonPCSolution\n";
          exit(-20);
@@ -1375,7 +1148,7 @@ int NewtonPCSolution::RelativeEigVectsOK() const
    double proj = cos(eig_angle_max_);
    Matrix RelEigVects = Restrict_->RelativeEigVects();
    int size = RelEigVects.Rows();
-   
+
    for (int i = 0; i < size; ++i)
    {
       double maxval = fabs(RelEigVects[0][i]);

@@ -49,9 +49,6 @@ DATE_DEF   = -DBUILD_DATE="$(BUILD_DATE)"
 
 # various compile options
 CC_PERL     = `$(PERL) -MExtUtils::Embed -e ccopts | sed -e 's/-arch[^-]*//g' | sed -e 's/-Wdeclaration-after-statement//g'`
-KIM_CONFIG_HELPER = kim-api-build-config
-CC_KIM     = $(shell $(KIM_CONFIG_HELPER) --includes)
-CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS) $(SOLVE) $(TERMINAL) $(CC_PERL) $(CC_KIM)
 LIBS_PERL   = `$(PERL) -MExtUtils::Embed -e ldopts | sed -e 's/-arch[^-]*//g' | sed -e 's/-Wdeclaration-after-statement//g'`
 FEAP_OK := $(shell if test -e $(FEAPHOME8_3)/Feap8_3.a; then echo YES; else echo NO; fi)
 ifneq (,$(strip $(USE_FEAP)))
@@ -63,12 +60,19 @@ else
   LIBS_FEAP = 
 endif
 ifneq (,$(strip $(USE_KIM)))
+  KIM_CONFIG_HELPER = kim-api-build-config
+  ifeq ($(shell $(KIM_CONFIG_HELPER) --version),)
+    $(error $(KIM_CONFIG_HELPER) utility is not available.  Something is wrong with your KIM API package setup)
+  endif
+  CC_KIM     = $(shell $(KIM_CONFIG_HELPER) --includes)
   LIBS_KIM = $(shell $(KIM_CONFIG_HELPER) --ldflags) $(shell $(KIM_CONFIG_HELPER) --ldlibs)
 else
+  CC_KIM =
   LIBS_KIM =
 endif
 LIBS       = -lLinearAlgebra -lMyMath -lm $(LIBS_PERL) $(LIBS_FEAP) $(LIBS_KIM) -lgfortran
 LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(DATE_DEF) $(LIBS_PERL)
+CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS) $(SOLVE) $(TERMINAL) $(CC_PERL) $(CC_KIM)
 
 
 # File Locations ##########################################################
