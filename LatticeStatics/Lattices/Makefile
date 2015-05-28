@@ -1,4 +1,5 @@
 LATTICES = KnownLattices.cpp\
+           DisplacementControl.cpp\
            Lattice.cpp\
            MultiLatticeTPP.cpp\
            MultiLatticeKIM.cpp\
