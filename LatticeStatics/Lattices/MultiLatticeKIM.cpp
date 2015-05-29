@@ -463,7 +463,8 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
    }
    K_static.Resize(DIM3);
 
-   Cached_[0] = 0;
+   // Initialize Cached_ values
+   for (int i=0; i<cachesize; ++i) Cached_[i] = 0;
    if (Input.ParameterOK(Hash, "InitialEqbm"))
    {
       const char* init_equil = Input.getString(Hash, "InitialEqbm");
@@ -689,7 +690,8 @@ double MultiLatticeKIM::E0() const
           + 0.5 * (RoEig_[0] * Rsq_static[0] + RoEig_[1] * Rsq_static[1]
                    + RoEig_[2] * Rsq_static[2]);
 
-      // @@ updated Cached_ value
+      // Update Cached_[0] value
+      Cached_[0] = 1;
    }
 
    return E0CachedValue_;
@@ -703,7 +705,7 @@ double MultiLatticeKIM::energy(LDeriv const& dl) const
 
    if (dl == L0)
    {
-      // @@ set StiffnessYes_?
+      StiffnessYes_ = 0;
       UpdateKIMValues();
       //compute energy per volume
       phi = energy_ / Vr;
@@ -742,7 +744,7 @@ double MultiLatticeKIM::ConjugateToLambda() const
 
 Vector const& MultiLatticeKIM::E1() const
 {
-   if (!Cached_[0])
+   if (!Cached_[1])
    {
       stress();
       if (KillTranslations_)
@@ -800,7 +802,8 @@ Vector const& MultiLatticeKIM::E1() const
           }
           break;
       }
-      // @@ update Cached_ value
+      // Update Cached_[1] value
+      Cached_[1] = 1;
    }
 
    return ME1_static;
@@ -812,7 +815,7 @@ Vector const& MultiLatticeKIM::stress(LDeriv const& dl) const
 
    if (dl == L0)
    {
-     // @@ set StiffnessYes_?
+     StiffnessYes_ = 0;
      UpdateKIMValues();
      ME1_static *= 1.0 / Vr;
 
@@ -849,7 +852,7 @@ Vector const& MultiLatticeKIM::stress(LDeriv const& dl) const
 
 Matrix const& MultiLatticeKIM::E2() const
 {
-   if (!Cached_[0])
+   if (!Cached_[2])
    {
       stiffness();
       if (KillTranslations_)
@@ -898,6 +901,9 @@ Matrix const& MultiLatticeKIM::E2() const
           }
           break;
       }
+
+      // Update Cached_[2] value
+      Cached_[2] = 1;
    }
 
    return ME2_static;
@@ -928,8 +934,7 @@ Matrix const& MultiLatticeKIM::stiffness(LDeriv const& dl) const
       cerr << "Unknown LDeriv dl in MultiLatticeTKIM::stiffness()" << "\n";
       exit(-1);
    }
-   // @@ remove?
-   StiffnessYes_ = 0;
+
    return ME2_static;
 }
 
@@ -1219,6 +1224,7 @@ const
   K_static.Resize(DIM3);
   K_static = K;
   BlochwaveProcess_ = 1;
+  //@@ Update StiffnessYes_ ?
   UpdateKIMValues();
   BlochwaveProcess_ = 0;
 

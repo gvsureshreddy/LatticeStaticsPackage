@@ -25,7 +25,7 @@ private:
    const static int DIM3;
    int InternalAtoms_;
 
-   static const int cachesize = 1;
+   static const int cachesize = 3;
    mutable int Cached_[cachesize];
    double InfluenceDist_;
 
@@ -131,8 +131,8 @@ public:
 
    void SetDOF(Vector const& dof)
    {
-      // @@ update Cached_?
-      CBK_->SetDOF(dof); // LatSum_.Recalc();
+     for (int i=0; i<cachesize; ++i) Cached_[i] = 0;
+     CBK_->SetDOF(dof);
    }
 
    // @@ remove?
@@ -199,8 +199,8 @@ public:
    double ConjugateToLambda() const;
    void SetLambda(double const& lambda)
    {
-      // @@ update Cached_?
-      Lambda_ = lambda;
+     for (int i=0; i<cachesize; ++i) Cached_[i] = 0;
+     Lambda_ = lambda;
    }
 
    virtual double E0() const;
