@@ -1059,7 +1059,7 @@ int FEAP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vector
 
                   for (int l = 0; l < ndf_*(numnp_-nbn_/2); ++l)
                   {
-                     if (fabs(DkEigVal[0][l]<Tolerance) && (NumZeroEig < 2))
+                     if ((fabs(DkEigVal[0][l]) < Tolerance) && (NumZeroEig < 2))
                      {
                         DkEigVal[0][l] = max;
                         ++NumZeroEig;
@@ -1210,7 +1210,7 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
                for (int l = 0; l < ndf_*(numnp_-nbn_/2); ++l)
                {
                   //Dk has 2 zero eigen values when k = [0,0], so special treatment
-                  if ((i==0) && (j==0) && NumZeroEig < 2 && (fabs(DkEigVal[0][l] < 1.0e-10)))
+                  if ((i==0) && (j==0) && (NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < 1.0e-10))
                   {
                      double max = DkEigVal.MaxElement();
                      DkEigVal[0][l] = max;
@@ -1256,7 +1256,7 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
          for (int  l=0; l < ndf_*(numnp_-nbn_/2); ++l)
          {
             int NumZeroEig = 0;
-            if ((K_[0]==0.0) && (K_[1]==0.0) && NumZeroEig < 2 && (fabs(DkEigVal[0][l] < 1.0e-10)))
+            if ((K_[0]==0.0) && (K_[1]==0.0) && (NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < 1.0e-10))
             {
                double max = DkEigVal.MaxElement();
                DkEigVal[0][l] = max;
@@ -1300,7 +1300,7 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
          {
 
             int NumZeroEig = 0;
-            if ((K_[0]==0.0) && (K_[1]==0.0) && NumZeroEig < 2 && (fabs(DkEigVal[0][l] < 1.0e-10)))
+            if ((K_[0]==0.0) && (K_[1]==0.0) && (NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < 1.0e-10))
             {
                double max = DkEigVal.MaxElement();
                DkEigVal[0][l] = max;
