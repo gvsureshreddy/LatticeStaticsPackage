@@ -335,7 +335,7 @@ int Lattice::TestFunctions(Vector& TF1, StateType const& State, Vector* const TF
             }
          }
 
-         EV3_static = SymEigVal(Stiffness_diagonalized_static, &EigVect_static));
+         EV3_static = SymEigVal(Stiffness_diagonalized_static, &EigVect_static);
          for (int i = 0; i < size; i++)
          {
             if ((EV3_static[0][i] * EV2_static[0][i]) < 0.0)
