@@ -193,6 +193,13 @@ void DisplacementControl::Print(ostream& out, PrintDetail const& flag,
   int W;
   W = out.width();
 
+  double conjugateForce = 0.0;
+  Vector LatE1 = Lat_->E1();
+  for (int i=0; i<DispDOFS_; ++i)
+  {
+    conjugateForce += Proportion_[i]*LatE1[DispIndex_[i]];
+  }
+
   out.width(0);
   if (Echo_)
   {
@@ -235,12 +242,14 @@ void DisplacementControl::Print(ostream& out, PrintDetail const& flag,
       // passthrough to short
     case PrintShort:
       out << "DispLambda :" << setw(W) << Lambda_ << "\n";
+      out << "DispConjugaeToLambda :" << setw(W) << conjugateForce << "\n";
       out << "DispDOF's  :" << setw(W) << DOF_ << "\n";
       out << "DispE1     :" << setw(W) << E1() << "\n";
       out << "--\n";
       if (Echo_)
       {
         cout << "DispLambda :" << setw(W) << Lambda_ << "\n";
+        cout << "DispConjugaeToLambda :" << setw(W) << conjugateForce << "\n";
         cout << "DispDOF's  :" << setw(W) << DOF_ << "\n";
         cout << "DispE1     :" << setw(W) << E1() << "\n";
         cout << "--\n";
