@@ -1624,7 +1624,8 @@ void MultiLatticeKIM::DebugMode()
       "TranslationProjection1D",
       "TranslationProjection3D",
    };
-   int NOcommands = 42;
+   //int NOcommands = 42;
+   int NOcommands = 41;
 
    string response;
    char prompt[] = "Debug > ";
