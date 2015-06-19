@@ -34,9 +34,6 @@ void PPSumKIM::Initialize()
    double Influencedist[3], tmp;
    int p, q, i;
    int Top[3], Bottom[3], CurrentInfluenceDist;
-   int ListMax, ListVecMax;
-   double AtomicDensity;
-   double SphereVol;
 
    CBK_->InfluenceRegion(Influencedist);
    for (i = 0; i < 3; i++)
@@ -57,18 +54,6 @@ void PPSumKIM::Initialize()
       Bottom[p] = -CurrentInfluenceDist;
    }
 
-   // set tmp to the number of pairs in the sphere to be scanned
-   // this serves as a guess for the amount of memory needed
-   AtomicDensity = InternalAtoms_ / ((CBK_->DeltaVolume()) * (CBK_->RefVolume()));
-   SphereVol = (4.0 * 3.15 / 3.0) * (*InfluenceDist_) * (*InfluenceDist_) * (*InfluenceDist_);
-   tmp = ceil(1.125 * InternalAtoms_ * AtomicDensity * SphereVol);
-
-   ListMax = InternalAtoms_ * int(tmp);
-   ListVecMax = InternalAtoms_ * 3 * int(tmp);
-   // start with a reasonable guess at the amount of memory needed to store the pairs.
-   numNeigh_.reserve(InternalAtoms_);
-   nListAtom_.reserve(ListMax);
-   nListRVec_.reserve(ListVecMax);
    // clear the containers to be sure we start with fresh lists
    numNeigh_.clear();
    nListAtom_.clear();
