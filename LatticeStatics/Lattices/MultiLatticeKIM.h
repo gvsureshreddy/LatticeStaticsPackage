@@ -233,6 +233,7 @@ public:
    }
 
    void RefineEqbm(double const& Tol, int const& MaxItr, ostream* const out);
+   void RefineCubicEqbm(double const& Tol, int const& MaxItr, ostream* const out);
    //virtual void NeighborDistances(int const& cutoff, ostream& out) const;
    virtual char const* const Type() const
    {
@@ -284,7 +285,7 @@ public:
    friend ostream& operator<<(ostream& out, MultiLatticeKIM& A);
 
 private:
-   int FindLatticeSpacing(int const& iter);
+   int FindLatticeSpacing(int const& iter, bool cubicEqbm);
 
    // member variables used to avoid repeated memory allocation/deallocation
    // and thus, improve performance.
@@ -323,7 +324,7 @@ private:
    // ReferenceDynamicalStiffness
    mutable CMatrix Dk_static;
    mutable Vector K_static;
- 
+
    // ReferenceBlochWave
    mutable CMatrix A_static;
    mutable Matrix EigVals_static;

@@ -63,13 +63,7 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
 
    PerlInput::HashStruct CBKHash = Input.getHash(Hash, "CBKinematics");
    const char* CBKin = Input.getString(CBKHash, "Type");
-   if (!strcmp("SymLagrangeCB", CBKin))
-   {
-      CBK_ = new SymLagrangeCB(Input, &Hash);
-      KillTranslations_ = 0;
-      needKillRotations = 0;
-   }
-   else if (!strcmp("SymLagrangeWTransCB", CBKin))
+   if (!strcmp("SymLagrangeWTransCB", CBKin))
    {
       CBK_ = new SymLagrangeWTransCB(Input, &Hash);
       needKillRotations = 0;
@@ -471,7 +465,22 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
       if (!strcmp("Yes", init_equil) || !strcmp("yes", init_equil))
       {
          int err = 0;
-         err = FindLatticeSpacing(iter);
+         if (Input.ParameterOK(Hash, "InitialEqbmCubic"))
+         {
+           const char* cubic_equil = Input.getString(Hash, "InitialEqbmCubic");
+           if (!strcmp("Yes", cubic_equil) || !strcmp("yes", cubic_equil))
+           {
+             err = FindLatticeSpacing(iter, true);
+           }
+           else
+           {
+             err = FindLatticeSpacing(iter, false);
+           }
+         }
+         else
+         {
+           err = FindLatticeSpacing(iter, false);
+         }
          if (err)
          {
             cerr << "unable to find initial lattice spacing!" << "\n";
@@ -483,7 +492,7 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
    {
       Input.useString("Yes", Hash, "InitialEqbm");
       int err = 0;
-      err = FindLatticeSpacing(iter);
+      err = FindLatticeSpacing(iter,false);
       if (err)
       {
          cerr << "unable to find initial lattice spacing!" << "\n";
@@ -501,7 +510,7 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
 
 }
 
-int MultiLatticeKIM::FindLatticeSpacing(int const& iter)
+int MultiLatticeKIM::FindLatticeSpacing(int const& iter, bool cubicEqbm)
 {
    const double Tol = DOF().Dim() * 1.0e-13;
 
@@ -510,13 +519,27 @@ int MultiLatticeKIM::FindLatticeSpacing(int const& iter)
    CBK_->SetReferenceDOFs();
    LatSum_.Recalc();
 
-   if (Echo_)
+   if (cubicEqbm)
    {
-      RefineEqbm(Tol, iter, &cout);
+     if (Echo_)
+     {
+       RefineCubicEqbm(Tol, iter, &cout);
+     }
+     else
+     {
+       RefineCubicEqbm(Tol, iter, 0);
+     }
    }
    else
    {
-      RefineEqbm(Tol, iter, 0);
+     if (Echo_)
+     {
+       RefineEqbm(Tol, iter, &cout);
+     }
+     else
+     {
+       RefineEqbm(Tol, iter, 0);
+     }
    }
 
    // Clean up numerical round off (at least for zero values)
@@ -1832,7 +1855,7 @@ void MultiLatticeKIM::DebugMode()
          int iter;
          cout << "\titer > ";
          cin >> iter;
-         FindLatticeSpacing(iter);
+         FindLatticeSpacing(iter,false);
       }
       else if (response == Commands[indx++])
       {
@@ -1947,7 +1970,6 @@ void MultiLatticeKIM::RefineEqbm(double const& Tol, int const& MaxItr,
       dx = SolvePLU(E2(), Stress);
 #endif
 
-      // /      break;
       SetDOF(CBK_->DOF() - dx);
 
       Stress = E1();
@@ -1956,7 +1978,64 @@ void MultiLatticeKIM::RefineEqbm(double const& Tol, int const& MaxItr,
       {
          *out << setw(20) << Stress;
 
-         *out << itr << "\tdx " << dx.Norm() << "\tstress " << Stress.Norm()
+         *out << "\t" << itr << "\tdx " << dx.Norm() << "\tstress " << Stress.Norm()
+              << "\n";
+      }
+   }
+}
+
+void MultiLatticeKIM::RefineCubicEqbm(double const& Tol, int const& MaxItr,
+                                      ostream* const out)
+{
+   Vector dx(CBK_->DOFS(), 0.0);
+   Vector Stress = E1();
+   Matrix Stiff = E2();
+   double f;
+   double k;
+   double d;
+
+   int itr = 0;
+   f = 0.0;
+   k = 0.0;
+   for (int i=0; i<DIM3; ++i)
+   {
+     f += Stress[CBK_->INDF(i,i)];
+     for (int j=0; j<DIM3; ++j)
+     {
+       k += Stiff[CBK_->INDF(i,i)][CBK_->INDF(j,j)];
+     }
+   }
+   while ((itr < MaxItr) && (fabs(f) > Tol))
+   {
+      ++itr;
+
+      d = f/k;
+
+      for (int i=0; i<DIM3; ++i)
+      {
+        dx[CBK_->INDF(i,i)] = d;
+      }
+
+      SetDOF(CBK_->DOF() - dx);
+
+      Stress = E1();
+      Stiff = E2();
+      f = 0.0;
+      k = 0.0;
+      for (int i=0; i<DIM3; ++i)
+      {
+        f += Stress[CBK_->INDF(i,i)];
+        for (int j=0; j<DIM3; ++j)
+        {
+          k += Stiff[CBK_->INDF(i,i)][CBK_->INDF(j,j)];
+        }
+      }
+
+      if (out != 0)
+      {
+         *out << setw(20) << Stress;
+
+         *out << "\t" << itr << "\tdx " << dx.Norm() << "\tstress " << Stress.Norm()
               << "\n";
       }
    }
