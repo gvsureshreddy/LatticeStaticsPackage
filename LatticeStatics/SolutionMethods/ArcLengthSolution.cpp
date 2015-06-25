@@ -6,7 +6,7 @@
 
 using namespace std;
 
-#define ARCLENEPS 1.0e-13
+#define ARCLENEPS 1.0e-15
 
 extern "C" void qcbfb_output_(int& nfree, double* u, double& prop, int& nint, int* intdata, int& ndouble, double* doubledata);
 

@@ -1,0 +1,285 @@
+# Index num: 0
+########## configuration for Lambda = 0 ##########
+                   0                   0                   0	# Element 1: Node 1
+                   0                   0                   0	# Element 1: Node 9
+
+                   0                   0                   0	# Element 2: Node 9
+                   0                   0                   0	# Element 2: Node 10
+
+                   0                   0                   0	# Element 3: Node 10
+                   0                   0                   0	# Element 3: Node 7
+
+                   0                   0                   0	# Element 4: Node 2
+                   0                   0                   0	# Element 4: Node 11
+
+                   0                   0                   0	# Element 5: Node 11
+                   0                   0                   0	# Element 5: Node 12
+
+                   0                   0                   0	# Element 6: Node 12
+                   0                   0                   0	# Element 6: Node 7
+
+                   0                   0                   0	# Element 7: Node 3
+                   0                   0                   0	# Element 7: Node 13
+
+                   0                   0                   0	# Element 8: Node 13
+                   0                   0                   0	# Element 8: Node 14
+
+                   0                   0                   0	# Element 9: Node 14
+                   0                   0                   0	# Element 9: Node 7
+
+                   0                   0                   0	# Element 10: Node 4
+                   0                   0                   0	# Element 10: Node 15
+
+                   0                   0                   0	# Element 11: Node 15
+                   0                   0                   0	# Element 11: Node 16
+
+                   0                   0                   0	# Element 12: Node 16
+                   0                   0                   0	# Element 12: Node 8
+
+                   0                   0                   0	# Element 13: Node 5
+                   0                   0                   0	# Element 13: Node 17
+
+                   0                   0                   0	# Element 14: Node 17
+                   0                   0                   0	# Element 14: Node 18
+
+                   0                   0                   0	# Element 15: Node 18
+                   0                   0                   0	# Element 15: Node 8
+
+                   0                   0                   0	# Element 16: Node 6
+                   0                   0                   0	# Element 16: Node 19
+
+                   0                   0                   0	# Element 17: Node 19
+                   0                   0                   0	# Element 17: Node 20
+
+                   0                   0                   0	# Element 18: Node 20
+                   0                   0                   0	# Element 18: Node 8
+
+
+# Index num: 1
+########## configuration for Lambda = 0 ##########
+           -0.216506              -0.375                   0	# Element 1: Node 1
+           -0.144338           -0.416667                   0	# Element 1: Node 9
+
+           -0.144338           -0.416667                   0	# Element 2: Node 9
+          -0.0721688           -0.458333                   0	# Element 2: Node 10
+
+          -0.0721688           -0.458333                   0	# Element 3: Node 10
+                   0                -0.5                   0	# Element 3: Node 7
+
+                   0               -0.75                   0	# Element 4: Node 2
+                   0           -0.666667                   0	# Element 4: Node 11
+
+                   0           -0.666667                   0	# Element 5: Node 11
+                   0           -0.583333                   0	# Element 5: Node 12
+
+                   0           -0.583333                   0	# Element 6: Node 12
+                   0                -0.5                   0	# Element 6: Node 7
+
+            0.216506              -0.375                   0	# Element 7: Node 3
+            0.144338           -0.416667                   0	# Element 7: Node 13
+
+            0.144338           -0.416667                   0	# Element 8: Node 13
+           0.0721688           -0.458333                   0	# Element 8: Node 14
+
+           0.0721688           -0.458333                   0	# Element 9: Node 14
+                   0                -0.5                   0	# Element 9: Node 7
+
+            0.216506               0.375                   0	# Element 10: Node 4
+            0.144338            0.416667                   0	# Element 10: Node 15
+
+            0.144338            0.416667                   0	# Element 11: Node 15
+           0.0721688            0.458333                   0	# Element 11: Node 16
+
+           0.0721688            0.458333                   0	# Element 12: Node 16
+                   0                 0.5                   0	# Element 12: Node 8
+
+                   0                0.75                   0	# Element 13: Node 5
+                   0            0.666667                   0	# Element 13: Node 17
+
+                   0            0.666667                   0	# Element 14: Node 17
+                   0            0.583333                   0	# Element 14: Node 18
+
+                   0            0.583333                   0	# Element 15: Node 18
+                   0                 0.5                   0	# Element 15: Node 8
+
+           -0.216506               0.375                   0	# Element 16: Node 6
+           -0.144338            0.416667                   0	# Element 16: Node 19
+
+           -0.144338            0.416667                   0	# Element 17: Node 19
+          -0.0721688            0.458333                   0	# Element 17: Node 20
+
+          -0.0721688            0.458333                   0	# Element 18: Node 20
+                   0                 0.5                   0	# Element 18: Node 8
+
+
+# Index num: 2
+########## configuration for Lambda = 0 ##########
+           -0.216506              -0.375                   0	# Element 1: Node 1
+           -0.144338           -0.416667                   0	# Element 1: Node 9
+
+           -0.144338           -0.416667                   0	# Element 2: Node 9
+          -0.0721688           -0.458333                   0	# Element 2: Node 10
+
+          -0.0721688           -0.458333                   0	# Element 3: Node 10
+                   0                -0.5                   0	# Element 3: Node 7
+
+                   0               -0.75                   0	# Element 4: Node 2
+                   0           -0.666667                   0	# Element 4: Node 11
+
+                   0           -0.666667                   0	# Element 5: Node 11
+                   0           -0.583333                   0	# Element 5: Node 12
+
+                   0           -0.583333                   0	# Element 6: Node 12
+                   0                -0.5                   0	# Element 6: Node 7
+
+            0.216506              -0.375                   0	# Element 7: Node 3
+            0.144338           -0.416667                   0	# Element 7: Node 13
+
+            0.144338           -0.416667                   0	# Element 8: Node 13
+           0.0721688           -0.458333                   0	# Element 8: Node 14
+
+           0.0721688           -0.458333                   0	# Element 9: Node 14
+                   0                -0.5                   0	# Element 9: Node 7
+
+            0.216506               0.375                   0	# Element 10: Node 4
+            0.144338            0.416667                   0	# Element 10: Node 15
+
+            0.144338            0.416667                   0	# Element 11: Node 15
+           0.0721688            0.458333                   0	# Element 11: Node 16
+
+           0.0721688            0.458333                   0	# Element 12: Node 16
+                   0                 0.5                   0	# Element 12: Node 8
+
+                   0                0.75                   0	# Element 13: Node 5
+                   0            0.666667                   0	# Element 13: Node 17
+
+                   0            0.666667                   0	# Element 14: Node 17
+                   0            0.583333                   0	# Element 14: Node 18
+
+                   0            0.583333                   0	# Element 15: Node 18
+                   0                 0.5                   0	# Element 15: Node 8
+
+           -0.216506               0.375                   0	# Element 16: Node 6
+           -0.144338            0.416667                   0	# Element 16: Node 19
+
+           -0.144338            0.416667                   0	# Element 17: Node 19
+          -0.0721688            0.458333                   0	# Element 17: Node 20
+
+          -0.0721688            0.458333                   0	# Element 18: Node 20
+                   0                 0.5                   0	# Element 18: Node 8
+
+
+# Index num: 3
+########## configuration for Lambda = 0.499997 ##########
+           -0.216235            -0.37453         4.29227e-14	# Element 1: Node 1
+           -0.144157           -0.416144         2.82787e-14	# Element 1: Node 9
+
+           -0.144157           -0.416144         2.82787e-14	# Element 2: Node 9
+          -0.0720783           -0.457759         6.49176e-15	# Element 2: Node 10
+
+          -0.0720783           -0.457759         6.49176e-15	# Element 3: Node 10
+         2.30089e-17           -0.499373         4.62256e-18	# Element 3: Node 7
+
+         2.29992e-17            -0.74906        -2.63398e-18	# Element 4: Node 2
+         2.31867e-17           -0.665831        -1.59562e-18	# Element 4: Node 11
+
+         2.31867e-17           -0.665831        -1.59562e-18	# Element 5: Node 11
+         2.32278e-17           -0.582602         8.64755e-19	# Element 5: Node 12
+
+         2.32278e-17           -0.582602         8.64755e-19	# Element 6: Node 12
+         2.30089e-17           -0.499373         4.62256e-18	# Element 6: Node 7
+
+            0.216235            -0.37453        -4.29093e-14	# Element 7: Node 3
+            0.144157           -0.416144        -2.82639e-14	# Element 7: Node 13
+
+            0.144157           -0.416144        -2.82639e-14	# Element 8: Node 13
+           0.0720783           -0.457759        -6.47845e-15	# Element 8: Node 14
+
+           0.0720783           -0.457759        -6.47845e-15	# Element 9: Node 14
+         2.30089e-17           -0.499373         4.62256e-18	# Element 9: Node 7
+
+            0.216235             0.37453         4.29227e-14	# Element 10: Node 4
+            0.144157            0.416144         2.82779e-14	# Element 10: Node 15
+
+            0.144157            0.416144         2.82779e-14	# Element 11: Node 15
+           0.0720783            0.457759         6.49043e-15	# Element 11: Node 16
+
+           0.0720783            0.457759         6.49043e-15	# Element 12: Node 16
+        -2.50285e-17            0.499373         3.12732e-18	# Element 12: Node 8
+
+        -2.48128e-17             0.74906        -2.63398e-18	# Element 13: Node 5
+         -2.5025e-17            0.665831        -2.18495e-18	# Element 13: Node 17
+
+         -2.5025e-17            0.665831        -2.18495e-18	# Element 14: Node 17
+        -2.51377e-17            0.582602        -2.45012e-19	# Element 14: Node 18
+
+        -2.51377e-17            0.582602        -2.45012e-19	# Element 15: Node 18
+        -2.50285e-17            0.499373         3.12732e-18	# Element 15: Node 8
+
+           -0.216235             0.37453        -4.29093e-14	# Element 16: Node 6
+           -0.144157            0.416144        -2.82664e-14	# Element 16: Node 19
+
+           -0.144157            0.416144        -2.82664e-14	# Element 17: Node 19
+          -0.0720783            0.457759          -6.481e-15	# Element 17: Node 20
+
+          -0.0720783            0.457759          -6.481e-15	# Element 18: Node 20
+        -2.50285e-17            0.499373         3.12732e-18	# Element 18: Node 8
+
+
+# Index num: 4
+########## configuration for Lambda = 0.999994 ##########
+           -0.215964           -0.374061         1.08684e-13	# Element 1: Node 1
+           -0.143976           -0.415623         7.62713e-14	# Element 1: Node 9
+
+           -0.143976           -0.415623         7.62713e-14	# Element 2: Node 9
+          -0.0719881           -0.457186         2.43872e-14	# Element 2: Node 10
+
+          -0.0719881           -0.457186         2.43872e-14	# Element 3: Node 10
+        -2.71531e-17           -0.498748        -1.04173e-17	# Element 3: Node 7
+
+        -3.15277e-17           -0.748122        -2.27332e-17	# Element 4: Node 2
+        -2.97396e-17           -0.664997        -1.99746e-17	# Element 4: Node 11
+
+        -2.97396e-17           -0.664997        -1.99746e-17	# Element 5: Node 11
+        -2.82458e-17           -0.581873         -1.5723e-17	# Element 5: Node 12
+
+        -2.82458e-17           -0.581873         -1.5723e-17	# Element 6: Node 12
+        -2.71531e-17           -0.498748        -1.04173e-17	# Element 6: Node 7
+
+            0.215964           -0.374061        -1.08708e-13	# Element 7: Node 3
+            0.143976           -0.415623        -7.62906e-14	# Element 7: Node 13
+
+            0.143976           -0.415623        -7.62906e-14	# Element 8: Node 13
+           0.0719881           -0.457186        -2.44043e-14	# Element 8: Node 14
+
+           0.0719881           -0.457186        -2.44043e-14	# Element 9: Node 14
+        -2.71531e-17           -0.498748        -1.04173e-17	# Element 9: Node 7
+
+            0.215964            0.374061         1.08684e-13	# Element 10: Node 4
+            0.143976            0.415623         7.62685e-14	# Element 10: Node 15
+
+            0.143976            0.415623         7.62685e-14	# Element 11: Node 15
+           0.0719881            0.457186         2.43805e-14	# Element 11: Node 16
+
+           0.0719881            0.457186         2.43805e-14	# Element 12: Node 16
+         2.38506e-17            0.498748         -1.9646e-17	# Element 12: Node 8
+
+         2.95095e-17            0.748122        -2.27332e-17	# Element 13: Node 5
+         2.75654e-17            0.664997        -2.36827e-17	# Element 13: Node 17
+
+         2.75654e-17            0.664997        -2.36827e-17	# Element 14: Node 17
+         2.56238e-17            0.581873        -2.26554e-17	# Element 14: Node 18
+
+         2.56238e-17            0.581873        -2.26554e-17	# Element 15: Node 18
+         2.38506e-17            0.498748         -1.9646e-17	# Element 15: Node 8
+
+           -0.215964            0.374061        -1.08708e-13	# Element 16: Node 6
+           -0.143976            0.415623        -7.62959e-14	# Element 16: Node 19
+
+           -0.143976            0.415623        -7.62959e-14	# Element 17: Node 19
+          -0.0719881            0.457186        -2.44135e-14	# Element 17: Node 20
+
+          -0.0719881            0.457186        -2.44135e-14	# Element 18: Node 20
+         2.38506e-17            0.498748         -1.9646e-17	# Element 18: Node 8
+
+

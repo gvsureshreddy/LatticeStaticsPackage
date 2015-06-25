@@ -1,0 +1,1775 @@
+
+         Message before FEAP banner
+
+ FEAP * * Honeycomb test                                                        
+
+     Solution date: Fri May 29 11:45:09 2015
+
+              Release 8.3.14      
+              01 September 2010   
+
+     Input Data Filename: Ihoney                                                                                                                          
+
+     Number of Nodal Points  - - - - - - :       75
+     Number of Elements  - - - - - - - - :       72
+
+     Spatial Dimension of Mesh - - - - - :        2
+     Degrees-of-Freedom/Node (Maximum) - :        3
+     Equations/Element       (Maximum) - :        0
+     Number Element Nodes    (Maximum) - :        2
+
+     Number of Material Sets - - - - - - :        2
+     Number Parameters/Set   (Program) - :      250
+     Number Parameters/Set   (Users  ) - :      150
+
+  C o n s t a n t    V a l u e s
+
+     Constant t  =  0.20000000E+00
+     Constant h  =  0.10000000E+01
+     Constant a1 =  0.20000000E+00
+     Constant a2 =  0.40000000E+00
+     Constant i1 =  0.66666667E-03
+     Constant i2 =  0.53333333E-02
+     Constant pi =  0.31415927E+01
+
+ FEAP * * Honeycomb test                                                       
+
+   M a t e r i a l    P r o p e r t i e s
+
+     Material  Number   1 for Element Type: FRAMe
+                         
+
+     Degree of Freedom Assignments    Local    Global
+                                     Number    Number
+                                        1         1
+                                        2         2
+                                        3         3
+                                                                          
+     T w o    D i m e n s i o n a l    F r a m e
+
+     M e c h a n i c a l   P r o p e r t i e s
+
+          Truss & Frame Analysis
+
+          Modulus E        6.90000E+03
+          Poisson ratio    0.30000
+
+          Density          0.00000E+00
+
+          1-Gravity Load   0.00000E+00
+          2-Gravity Load   0.00000E+00
+          3-Gravity Load   0.00000E+00
+
+     C r o s s   S e c t i o n   P a r a m e t e r s
+
+          Area          2.00000E-01
+          I_xx          6.66667E-04
+          I_yy          0.00000E+00
+          I_xy          0.00000E+00
+          J_zz          6.66667E-04
+          Kappa_x       8.33333E-01
+          Kappa_y       8.33333E-01
+
+
+     C o n s t i t u t i v e    S t a r t
+
+          Start state  : Elastic
+
+     E l e m e n t    M o d e l
+
+          Formulation  : Finite deformation.
+          Element type : Linear Displacement
+          Plot Output  : On
+          Element type : Includes Shear Deformation
+          Element type : «ªªªªªê?
+
+     W a r n i n g s   &   E r r o r s
+          Material density is zero.
+
+ FEAP * * Honeycomb test                                                       
+
+   M a t e r i a l    P r o p e r t i e s
+
+     Material  Number   2 for Element Type: FRAMe
+                         
+
+     Degree of Freedom Assignments    Local    Global
+                                     Number    Number
+                                        1         1
+                                        2         2
+                                        3         3
+                                                                          
+     T w o    D i m e n s i o n a l    F r a m e
+
+     M e c h a n i c a l   P r o p e r t i e s
+
+          Truss & Frame Analysis
+
+          Modulus E        6.90000E+03
+          Poisson ratio    0.30000
+
+          Density          0.00000E+00
+
+          1-Gravity Load   0.00000E+00
+          2-Gravity Load   0.00000E+00
+          3-Gravity Load   0.00000E+00
+
+     C r o s s   S e c t i o n   P a r a m e t e r s
+
+          Area          4.00000E-01
+          I_xx          5.33333E-03
+          I_yy          0.00000E+00
+          I_xy          0.00000E+00
+          J_zz          5.33333E-03
+          Kappa_x       8.33333E-01
+          Kappa_y       8.33333E-01
+
+
+     C o n s t i t u t i v e    S t a r t
+
+          Start state  : Elastic
+
+     E l e m e n t    M o d e l
+
+          Formulation  : Finite deformation.
+          Element type : Linear Displacement
+          Plot Output  : On
+          Element type : Includes Shear Deformation
+          Element type : «ªªªªªê?
+
+     W a r n i n g s   &   E r r o r s
+          Material density is zero.
+
+ FEAP * * Honeycomb test                                                       
+
+     Nodal Coordinates   
+
+      node    1 Coord    2 Coord
+         1 -2.165E-01 -3.750E-01
+         2  0.000E+00 -7.500E-01
+         3  2.165E-01 -3.750E-01
+         4  2.165E-01  3.750E-01
+         5  0.000E+00  7.500E-01
+         6 -2.165E-01  3.750E-01
+         7  0.000E+00 -5.000E-01
+         8  0.000E+00  5.000E-01
+         9 -1.443E-01 -4.167E-01
+        10 -7.217E-02 -4.583E-01
+        11  0.000E+00 -6.667E-01
+        12  0.000E+00 -5.833E-01
+        13  1.443E-01 -4.167E-01
+        14  7.217E-02 -4.583E-01
+        15  1.443E-01  4.167E-01
+        16  7.217E-02  4.583E-01
+        17  0.000E+00  6.667E-01
+        18  0.000E+00  5.833E-01
+        19 -1.443E-01  4.167E-01
+        20 -7.217E-02  4.583E-01
+        21  2.165E-01 -1.125E+00
+        22  4.330E-01 -1.500E+00
+        23  6.495E-01 -1.125E+00
+        24  6.495E-01 -3.750E-01
+        25  4.330E-01  0.000E+00
+        26  4.330E-01 -1.250E+00
+        27  4.330E-01 -2.500E-01
+        28  2.887E-01 -1.167E+00
+        29  3.608E-01 -1.208E+00
+        30  4.330E-01 -1.417E+00
+        31  4.330E-01 -1.333E+00
+        32  5.774E-01 -1.167E+00
+        33  5.052E-01 -1.208E+00
+        34  5.774E-01 -3.333E-01
+        35  5.052E-01 -2.917E-01
+        36  4.330E-01 -8.333E-02
+        37  4.330E-01 -1.667E-01
+        38  2.887E-01 -3.333E-01
+        39  3.608E-01 -2.917E-01
+        40  6.495E-01  3.750E-01
+        41  6.495E-01  1.125E+00
+        42  4.330E-01  1.500E+00
+        43  2.165E-01  1.125E+00
+        44  4.330E-01  2.500E-01
+        45  4.330E-01  1.250E+00
+        46  2.887E-01  3.333E-01
+        47  3.608E-01  2.917E-01
+        48  4.330E-01  8.333E-02
+        49  4.330E-01  1.667E-01
+        50  5.774E-01  3.333E-01
+
+ FEAP * * Honeycomb test                                                       
+
+     Nodal Coordinates   
+
+      node    1 Coord    2 Coord
+        51  5.052E-01  2.917E-01
+        52  5.774E-01  1.167E+00
+        53  5.052E-01  1.208E+00
+        54  4.330E-01  1.417E+00
+        55  4.330E-01  1.333E+00
+        56  2.887E-01  1.167E+00
+        57  3.608E-01  1.208E+00
+        58  8.660E-01 -7.500E-01
+        59  1.083E+00 -3.750E-01
+        60  1.083E+00  3.750E-01
+        61  8.660E-01  7.500E-01
+        62  8.660E-01 -5.000E-01
+        63  8.660E-01  5.000E-01
+        64  7.217E-01 -4.167E-01
+        65  7.939E-01 -4.583E-01
+        66  8.660E-01 -6.667E-01
+        67  8.660E-01 -5.833E-01
+        68  1.010E+00 -4.167E-01
+        69  9.382E-01 -4.583E-01
+        70  1.010E+00  4.167E-01
+        71  9.382E-01  4.583E-01
+        72  8.660E-01  6.667E-01
+        73  8.660E-01  5.833E-01
+        74  7.217E-01  4.167E-01
+        75  7.939E-01  4.583E-01
+
+ FEAP * * Honeycomb test                                                       
+
+     E l e m e n t   C o n n e c t i o n s 
+
+   Elmt Mat Reg  1 Node  2 Node
+      1   1   0       1       9
+      2   1   0       9      10
+      3   1   0      10       7
+      4   1   0       2      11
+      5   1   0      11      12
+      6   1   0      12       7
+      7   1   0       3      13
+      8   1   0      13      14
+      9   1   0      14       7
+     10   1   0       4      15
+     11   1   0      15      16
+     12   1   0      16       8
+     13   1   0       5      17
+     14   1   0      17      18
+     15   1   0      18       8
+     16   1   0       6      19
+     17   1   0      19      20
+     18   1   0      20       8
+     19   1   0      21      28
+     20   1   0      28      29
+     21   1   0      29      26
+     22   1   0      22      30
+     23   1   0      30      31
+     24   1   0      31      26
+     25   1   0      23      32
+     26   1   0      32      33
+     27   1   0      33      26
+     28   1   0      24      34
+     29   1   0      34      35
+     30   1   0      35      27
+     31   1   0      25      36
+     32   1   0      36      37
+     33   1   0      37      27
+     34   1   0       3      38
+     35   1   0      38      39
+     36   1   0      39      27
+     37   1   0       4      46
+     38   1   0      46      47
+     39   1   0      47      44
+     40   1   0      25      48
+     41   1   0      48      49
+     42   1   0      49      44
+     43   1   0      40      50
+     44   1   0      50      51
+     45   1   0      51      44
+     46   1   0      41      52
+     47   1   0      52      53
+     48   1   0      53      45
+     49   1   0      42      54
+     50   1   0      54      55
+
+ FEAP * * Honeycomb test                                                       
+
+     E l e m e n t   C o n n e c t i o n s 
+
+   Elmt Mat Reg  1 Node  2 Node
+     51   1   0      55      45
+     52   1   0      43      56
+     53   1   0      56      57
+     54   1   0      57      45
+     55   1   0      24      64
+     56   1   0      64      65
+     57   1   0      65      62
+     58   1   0      58      66
+     59   1   0      66      67
+     60   1   0      67      62
+     61   1   0      59      68
+     62   1   0      68      69
+     63   1   0      69      62
+     64   1   0      60      70
+     65   1   0      70      71
+     66   1   0      71      63
+     67   1   0      61      72
+     68   1   0      72      73
+     69   1   0      73      63
+     70   1   0      40      74
+     71   1   0      74      75
+     72   1   0      75      63
+
+     P a r t i t i o n   1
+
+     E q u a t i o n / P r o b l e m   S u m m a r y:
+
+       Mesh dimension  (ndm) =         2 :  Number nodes     =              75
+       Number dof/node (ndf) =         3 :  Number elements  =              72
+       Element eqs.   (nadd) =         0 :  Number materials =               2
+       Number rigid bodies   =         0 :  Number equations =             225
+       Number joints         =         0 :  Number tang terms=            5139
+       Transient integrator  = Static    :  Average col. ht. =              23
+
+
+  ---------------------------- END OF MESH INPUTS ----------------------------
+
+
+ FEAP * * Honeycomb test                                                       
+
+     Solution Commands       Variable 1  Variable 2  Variable 3
+       TPLO                  0.0000E+00  0.0000E+00  0.0000E+00
+ *Command   1 * tplo                v:   0.00       0.00       0.00    
+                                                           t=     0.02     0.03
+
+   Output interval for time history data =   1
+ *End of Solution Execution*                               t=     0.02     0.03
+   Residual norm =     0.0000000E+00    1.0000000E+00
+   Residual norm =     0.0000000E+00    1.0000000E+00
+                                                           t=     0.03     0.03
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     9.9214943E-12    1.0000000E+00
+   Residual norm =     9.9214943E-12    1.0000000E+00
+                                                           t=     0.68     0.03
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     9.9214943E-12    1.0000000E+00
+                                                           t=     0.90     0.04
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     8.1009227E-01    1.0000000E+00
+                                                           t=     0.99     0.04
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     8.1009227E-01    1.0000000E+00
+   Residual norm =     8.1009227E-01    1.0000000E+00
+                                                           t=     1.08     0.04
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.4302768E+00    1.0000000E+00
+                                                           t=     1.31     0.04
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.4302768E+00    1.0000000E+00
+   Residual norm =     2.4302768E+00    1.0000000E+00
+                                                           t=     1.40     0.04
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     4.0504613E+00    1.0000000E+00
+                                                           t=     1.64     0.04
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     4.0504613E+00    1.0000000E+00
+   Residual norm =     4.0504613E+00    1.0000000E+00
+                                                           t=     1.72     0.04
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     5.6706459E+00    1.0000000E+00
+                                                           t=     1.94     0.05
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     5.6706459E+00    1.0000000E+00
+   Residual norm =     5.6706459E+00    1.0000000E+00
+                                                           t=     2.03     0.05
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     7.2908304E+00    1.0000000E+00
+                                                           t=     2.25     0.05
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     7.2908304E+00    1.0000000E+00
+   Residual norm =     7.2908304E+00    1.0000000E+00
+                                                           t=     2.34     0.05
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     8.9110150E+00    1.0000000E+00
+                                                           t=     2.59     0.06
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     8.9110150E+00    1.0000000E+00
+   Residual norm =     8.9110150E+00    1.0000000E+00
+                                                           t=     2.69     0.06
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.0531199E+01    1.0000000E+00
+                                                           t=     2.93     0.06
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.0531199E+01    1.0000000E+00
+   Residual norm =     1.0531199E+01    1.0000000E+00
+                                                           t=     3.01     0.06
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.2151384E+01    1.0000000E+00
+                                                           t=     3.24     0.07
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.2151384E+01    1.0000000E+00
+   Residual norm =     1.2151384E+01    1.0000000E+00
+                                                           t=     3.36     0.07
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.3771569E+01    1.0000000E+00
+                                                           t=     3.60     0.07
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.3771569E+01    1.0000000E+00
+   Residual norm =     1.3771569E+01    1.0000000E+00
+                                                           t=     3.69     0.07
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.5391753E+01    1.0000000E+00
+                                                           t=     3.91     0.08
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.5391753E+01    1.0000000E+00
+   Residual norm =     1.5391753E+01    1.0000000E+00
+                                                           t=     4.00     0.08
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.7011938E+01    1.0000000E+00
+                                                           t=     4.21     0.08
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.7011938E+01    1.0000000E+00
+   Residual norm =     1.7011938E+01    1.0000000E+00
+                                                           t=     4.31     0.08
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.8632122E+01    1.0000000E+00
+                                                           t=     4.54     0.08
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.8632122E+01    1.0000000E+00
+   Residual norm =     1.8632122E+01    1.0000000E+00
+                                                           t=     4.63     0.09
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.0252307E+01    1.0000000E+00
+                                                           t=     4.89     0.09
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.0252307E+01    1.0000000E+00
+   Residual norm =     2.0252307E+01    1.0000000E+00
+                                                           t=     4.98     0.09
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.1872491E+01    1.0000000E+00
+                                                           t=     5.22     0.09
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.1872491E+01    1.0000000E+00
+   Residual norm =     2.1872491E+01    1.0000000E+00
+                                                           t=     5.33     0.09
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.3492676E+01    1.0000000E+00
+                                                           t=     5.58     0.09
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.3492676E+01    1.0000000E+00
+   Residual norm =     2.3492676E+01    1.0000000E+00
+                                                           t=     5.67     0.10
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.5112860E+01    1.0000000E+00
+                                                           t=     5.92     0.10
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.5112860E+01    1.0000000E+00
+   Residual norm =     2.5112860E+01    1.0000000E+00
+                                                           t=     6.02     0.10
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.6733045E+01    1.0000000E+00
+                                                           t=     6.27     0.10
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.6733045E+01    1.0000000E+00
+   Residual norm =     2.6733045E+01    1.0000000E+00
+                                                           t=     6.38     0.10
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.8353229E+01    1.0000000E+00
+                                                           t=     6.65     0.11
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.8353229E+01    1.0000000E+00
+   Residual norm =     2.8353229E+01    1.0000000E+00
+                                                           t=     6.75     0.11
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.9973414E+01    1.0000000E+00
+                                                           t=     6.97     0.11
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.9973414E+01    1.0000000E+00
+   Residual norm =     2.9973414E+01    1.0000000E+00
+                                                           t=     7.06     0.11
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.1593598E+01    1.0000000E+00
+                                                           t=     7.26     0.11
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.1593598E+01    1.0000000E+00
+   Residual norm =     3.1593598E+01    1.0000000E+00
+                                                           t=     7.34     0.11
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.3213783E+01    1.0000000E+00
+                                                           t=     7.56     0.11
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.3213783E+01    1.0000000E+00
+   Residual norm =     3.3213783E+01    1.0000000E+00
+                                                           t=     7.65     0.12
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.4833968E+01    1.0000000E+00
+                                                           t=     7.85     0.12
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.4833968E+01    1.0000000E+00
+   Residual norm =     3.4833968E+01    1.0000000E+00
+                                                           t=     7.94     0.12
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.6454152E+01    1.0000000E+00
+                                                           t=     8.15     0.12
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.6454152E+01    1.0000000E+00
+   Residual norm =     3.6454152E+01    1.0000000E+00
+                                                           t=     8.25     0.12
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.8074337E+01    1.0000000E+00
+                                                           t=     8.48     0.13
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.8074337E+01    1.0000000E+00
+   Residual norm =     3.8074337E+01    1.0000000E+00
+                                                           t=     8.59     0.13
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.9694521E+01    1.0000000E+00
+                                                           t=     8.81     0.13
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.9694521E+01    1.0000000E+00
+   Residual norm =     3.9694521E+01    1.0000000E+00
+                                                           t=     8.89     0.13
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     4.1314706E+01    1.0000000E+00
+                                                           t=     9.12     0.14
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     4.1314706E+01    1.0000000E+00
+   Residual norm =     4.1314706E+01    1.0000000E+00
+                                                           t=     9.21     0.14
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     4.2934890E+01    1.0000000E+00
+                                                           t=     9.44     0.14
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     4.2934890E+01    1.0000000E+00
+   Residual norm =     4.2934890E+01    1.0000000E+00
+                                                           t=     9.52     0.14
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     4.4555075E+01    1.0000000E+00
+                                                           t=     9.73     0.14
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     4.4555075E+01    1.0000000E+00
+   Residual norm =     4.4555075E+01    1.0000000E+00
+                                                           t=     9.82     0.15
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     4.6175259E+01    1.0000000E+00
+                                                           t=    10.09     0.15
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     4.6175259E+01    1.0000000E+00
+   Residual norm =     4.6175259E+01    1.0000000E+00
+                                                           t=    10.17     0.15
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     4.7795444E+01    1.0000000E+00
+                                                           t=    10.40     0.16
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     4.7795444E+01    1.0000000E+00
+   Residual norm =     4.7795444E+01    1.0000000E+00
+                                                           t=    10.49     0.16
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     4.9415628E+01    1.0000000E+00
+                                                           t=    10.72     0.16
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     4.9415628E+01    1.0000000E+00
+   Residual norm =     4.9415628E+01    1.0000000E+00
+                                                           t=    10.81     0.16
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     5.1035813E+01    1.0000000E+00
+                                                           t=    11.07     0.17
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     5.1035813E+01    1.0000000E+00
+   Residual norm =     5.1035813E+01    1.0000000E+00
+                                                           t=    11.17     0.17
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     5.2655997E+01    1.0000000E+00
+                                                           t=    11.41     0.17
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     5.2655997E+01    1.0000000E+00
+   Residual norm =     5.2655997E+01    1.0000000E+00
+                                                           t=    11.50     0.17
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     5.4276182E+01    1.0000000E+00
+                                                           t=    11.77     0.18
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     5.4276182E+01    1.0000000E+00
+   Residual norm =     5.4276182E+01    1.0000000E+00
+                                                           t=    11.87     0.18
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     5.5896367E+01    1.0000000E+00
+                                                           t=    12.15     0.18
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     5.5896367E+01    1.0000000E+00
+   Residual norm =     5.5896367E+01    1.0000000E+00
+                                                           t=    12.25     0.18
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     5.7516551E+01    1.0000000E+00
+                                                           t=    12.48     0.19
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     5.7516551E+01    1.0000000E+00
+   Residual norm =     5.7516551E+01    1.0000000E+00
+                                                           t=    12.58     0.19
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     5.9136736E+01    1.0000000E+00
+                                                           t=    12.82     0.19
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     5.9136736E+01    1.0000000E+00
+   Residual norm =     5.9136736E+01    1.0000000E+00
+                                                           t=    12.93     0.19
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     6.0756920E+01    1.0000000E+00
+                                                           t=    13.18     0.20
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     6.0756920E+01    1.0000000E+00
+   Residual norm =     6.0756920E+01    1.0000000E+00
+                                                           t=    13.26     0.20
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     6.2377105E+01    1.0000000E+00
+                                                           t=    13.49     0.20
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     6.2377105E+01    1.0000000E+00
+   Residual norm =     6.2377105E+01    1.0000000E+00
+                                                           t=    13.58     0.20
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     6.3997289E+01    1.0000000E+00
+                                                           t=    13.81     0.21
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     6.3997289E+01    1.0000000E+00
+   Residual norm =     6.3997289E+01    1.0000000E+00
+                                                           t=    13.91     0.21
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     6.5617474E+01    1.0000000E+00
+                                                           t=    14.13     0.21
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     6.5617474E+01    1.0000000E+00
+   Residual norm =     6.5617474E+01    1.0000000E+00
+                                                           t=    14.22     0.21
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     6.7237658E+01    1.0000000E+00
+                                                           t=    14.44     0.21
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     6.7237658E+01    1.0000000E+00
+   Residual norm =     6.7237658E+01    1.0000000E+00
+                                                           t=    14.52     0.21
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     6.8857843E+01    1.0000000E+00
+                                                           t=    14.74     0.21
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     6.8857843E+01    1.0000000E+00
+   Residual norm =     6.8857843E+01    1.0000000E+00
+                                                           t=    14.84     0.22
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     7.0478027E+01    1.0000000E+00
+                                                           t=    15.05     0.22
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     7.0478027E+01    1.0000000E+00
+   Residual norm =     7.0478027E+01    1.0000000E+00
+                                                           t=    15.15     0.22
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     7.2098212E+01    1.0000000E+00
+                                                           t=    15.37     0.22
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     7.2098212E+01    1.0000000E+00
+   Residual norm =     7.2098212E+01    1.0000000E+00
+                                                           t=    15.45     0.22
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     7.3718396E+01    1.0000000E+00
+                                                           t=    15.65     0.22
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     7.3718396E+01    1.0000000E+00
+   Residual norm =     7.3718396E+01    1.0000000E+00
+                                                           t=    15.74     0.22
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     7.5338581E+01    1.0000000E+00
+                                                           t=    15.97     0.22
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     7.5338581E+01    1.0000000E+00
+   Residual norm =     7.5338581E+01    1.0000000E+00
+                                                           t=    16.06     0.23
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     7.6958765E+01    1.0000000E+00
+                                                           t=    16.28     0.23
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     7.6958765E+01    1.0000000E+00
+   Residual norm =     7.6958765E+01    1.0000000E+00
+                                                           t=    16.37     0.23
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     7.8578950E+01    1.0000000E+00
+                                                           t=    16.57     0.23
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     7.8578950E+01    1.0000000E+00
+   Residual norm =     7.8578950E+01    1.0000000E+00
+                                                           t=    16.65     0.23
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     8.0199135E+01    1.0000000E+00
+                                                           t=    16.87     0.23
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     8.0199135E+01    1.0000000E+00
+   Residual norm =     8.0199135E+01    1.0000000E+00
+                                                           t=    16.97     0.23
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     8.1819319E+01    1.0000000E+00
+                                                           t=    17.23     0.24
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     8.1819319E+01    1.0000000E+00
+   Residual norm =     8.1819319E+01    1.0000000E+00
+                                                           t=    17.33     0.24
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     8.3439504E+01    1.0000000E+00
+                                                           t=    17.54     0.24
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     8.3439504E+01    1.0000000E+00
+   Residual norm =     8.3439504E+01    1.0000000E+00
+                                                           t=    17.63     0.24
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     8.5059688E+01    1.0000000E+00
+                                                           t=    17.83     0.24
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     8.5059688E+01    1.0000000E+00
+   Residual norm =     8.5059688E+01    1.0000000E+00
+                                                           t=    17.91     0.24
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     8.6679873E+01    1.0000000E+00
+                                                           t=    18.11     0.24
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     8.6679873E+01    1.0000000E+00
+   Residual norm =     8.6679873E+01    1.0000000E+00
+                                                           t=    18.20     0.24
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     8.8300057E+01    1.0000000E+00
+                                                           t=    18.42     0.25
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     8.8300057E+01    1.0000000E+00
+   Residual norm =     8.8300057E+01    1.0000000E+00
+                                                           t=    18.50     0.25
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     8.9920242E+01    1.0000000E+00
+                                                           t=    18.73     0.25
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     8.9920242E+01    1.0000000E+00
+   Residual norm =     8.9920242E+01    1.0000000E+00
+                                                           t=    18.82     0.25
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     9.1540426E+01    1.0000000E+00
+                                                           t=    19.03     0.25
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     9.1540426E+01    1.0000000E+00
+   Residual norm =     9.1540426E+01    1.0000000E+00
+                                                           t=    19.11     0.25
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     9.3160611E+01    1.0000000E+00
+                                                           t=    19.32     0.26
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     9.3160611E+01    1.0000000E+00
+   Residual norm =     9.3160611E+01    1.0000000E+00
+                                                           t=    19.41     0.26
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     9.4780795E+01    1.0000000E+00
+                                                           t=    19.62     0.26
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     9.4780795E+01    1.0000000E+00
+   Residual norm =     9.4780795E+01    1.0000000E+00
+                                                           t=    19.71     0.26
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     9.6400980E+01    1.0000000E+00
+                                                           t=    19.95     0.26
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     9.6400980E+01    1.0000000E+00
+   Residual norm =     9.6400980E+01    1.0000000E+00
+                                                           t=    20.05     0.26
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     9.8021164E+01    1.0000000E+00
+                                                           t=    20.29     0.26
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     9.8021164E+01    1.0000000E+00
+   Residual norm =     9.8021164E+01    1.0000000E+00
+                                                           t=    20.38     0.27
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     9.9641349E+01    1.0000000E+00
+                                                           t=    20.63     0.27
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     9.9641349E+01    1.0000000E+00
+   Residual norm =     9.9641349E+01    1.0000000E+00
+                                                           t=    20.71     0.27
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.0126153E+02    1.0000000E+00
+                                                           t=    20.96     0.27
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.0126153E+02    1.0000000E+00
+   Residual norm =     1.0126153E+02    1.0000000E+00
+                                                           t=    21.06     0.27
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.0288172E+02    1.0000000E+00
+                                                           t=    21.31     0.27
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.0288172E+02    1.0000000E+00
+   Residual norm =     1.0288172E+02    1.0000000E+00
+                                                           t=    21.39     0.27
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.0450190E+02    1.0000000E+00
+                                                           t=    21.64     0.27
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.0450190E+02    1.0000000E+00
+   Residual norm =     1.0450190E+02    1.0000000E+00
+                                                           t=    21.72     0.27
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.0612209E+02    1.0000000E+00
+                                                           t=    21.95     0.28
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.0612209E+02    1.0000000E+00
+   Residual norm =     1.0612209E+02    1.0000000E+00
+                                                           t=    22.04     0.28
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.0774227E+02    1.0000000E+00
+                                                           t=    22.30     0.28
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.0774227E+02    1.0000000E+00
+   Residual norm =     1.0774227E+02    1.0000000E+00
+                                                           t=    22.40     0.28
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.0936246E+02    1.0000000E+00
+                                                           t=    22.62     0.28
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.0936246E+02    1.0000000E+00
+   Residual norm =     1.0936246E+02    1.0000000E+00
+                                                           t=    22.71     0.28
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.1098264E+02    1.0000000E+00
+                                                           t=    22.92     0.29
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.1098264E+02    1.0000000E+00
+   Residual norm =     1.1098264E+02    1.0000000E+00
+                                                           t=    23.01     0.29
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.1260283E+02    1.0000000E+00
+                                                           t=    23.24     0.29
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.1260283E+02    1.0000000E+00
+   Residual norm =     1.1260283E+02    1.0000000E+00
+                                                           t=    23.33     0.29
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.1422301E+02    1.0000000E+00
+                                                           t=    23.55     0.29
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.1422301E+02    1.0000000E+00
+   Residual norm =     1.1422301E+02    1.0000000E+00
+                                                           t=    23.64     0.29
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.1584319E+02    1.0000000E+00
+                                                           t=    23.85     0.30
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.1584319E+02    1.0000000E+00
+   Residual norm =     1.1584319E+02    1.0000000E+00
+                                                           t=    23.94     0.30
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.1746338E+02    1.0000000E+00
+                                                           t=    24.17     0.30
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.1746338E+02    1.0000000E+00
+   Residual norm =     1.1746338E+02    1.0000000E+00
+                                                           t=    24.27     0.30
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.1908356E+02    1.0000000E+00
+                                                           t=    24.51     0.30
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.1908356E+02    1.0000000E+00
+   Residual norm =     1.1908356E+02    1.0000000E+00
+                                                           t=    24.60     0.31
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.2070375E+02    1.0000000E+00
+                                                           t=    24.82     0.31
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.2070375E+02    1.0000000E+00
+   Residual norm =     1.2070375E+02    1.0000000E+00
+                                                           t=    24.93     0.31
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.2232393E+02    1.0000000E+00
+                                                           t=    25.14     0.31
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.2232393E+02    1.0000000E+00
+   Residual norm =     1.2232393E+02    1.0000000E+00
+                                                           t=    25.22     0.31
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.2394412E+02    1.0000000E+00
+                                                           t=    25.42     0.31
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.2394412E+02    1.0000000E+00
+   Residual norm =     1.2394412E+02    1.0000000E+00
+                                                           t=    25.51     0.31
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.2556430E+02    1.0000000E+00
+                                                           t=    25.74     0.31
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.2556430E+02    1.0000000E+00
+   Residual norm =     1.2556430E+02    1.0000000E+00
+                                                           t=    25.83     0.32
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.2718449E+02    1.0000000E+00
+                                                           t=    26.04     0.32
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.2718449E+02    1.0000000E+00
+   Residual norm =     1.2718449E+02    1.0000000E+00
+                                                           t=    26.12     0.32
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.2880467E+02    1.0000000E+00
+                                                           t=    26.34     0.32
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.2880467E+02    1.0000000E+00
+   Residual norm =     1.2880467E+02    1.0000000E+00
+                                                           t=    26.43     0.32
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.3042486E+02    1.0000000E+00
+                                                           t=    26.66     0.33
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.3042486E+02    1.0000000E+00
+   Residual norm =     1.3042486E+02    1.0000000E+00
+                                                           t=    26.76     0.33
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.3204504E+02    1.0000000E+00
+                                                           t=    27.00     0.34
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.3204504E+02    1.0000000E+00
+   Residual norm =     1.3204504E+02    1.0000000E+00
+                                                           t=    27.09     0.34
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.3366522E+02    1.0000000E+00
+                                                           t=    27.31     0.34
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.3366522E+02    1.0000000E+00
+   Residual norm =     1.3366522E+02    1.0000000E+00
+                                                           t=    27.41     0.35
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.3528541E+02    1.0000000E+00
+                                                           t=    27.64     0.35
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.3528541E+02    1.0000000E+00
+   Residual norm =     1.3528541E+02    1.0000000E+00
+                                                           t=    27.72     0.35
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.3690559E+02    1.0000000E+00
+                                                           t=    27.96     0.36
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.3690559E+02    1.0000000E+00
+   Residual norm =     1.3690559E+02    1.0000000E+00
+                                                           t=    28.05     0.36
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.3852578E+02    1.0000000E+00
+                                                           t=    28.28     0.36
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.3852578E+02    1.0000000E+00
+   Residual norm =     1.3852578E+02    1.0000000E+00
+                                                           t=    28.38     0.36
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.4014596E+02    1.0000000E+00
+                                                           t=    28.63     0.37
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.4014596E+02    1.0000000E+00
+   Residual norm =     1.4014596E+02    1.0000000E+00
+                                                           t=    28.73     0.37
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.4176615E+02    1.0000000E+00
+                                                           t=    28.97     0.37
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.4176615E+02    1.0000000E+00
+   Residual norm =     1.4176615E+02    1.0000000E+00
+                                                           t=    29.06     0.37
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.4338633E+02    1.0000000E+00
+                                                           t=    29.26     0.37
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.4338633E+02    1.0000000E+00
+   Residual norm =     1.4338633E+02    1.0000000E+00
+                                                           t=    29.36     0.37
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.4500652E+02    1.0000000E+00
+                                                           t=    29.59     0.38
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.4500652E+02    1.0000000E+00
+   Residual norm =     1.4500652E+02    1.0000000E+00
+                                                           t=    29.68     0.38
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.4662670E+02    1.0000000E+00
+                                                           t=    29.91     0.38
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.4662670E+02    1.0000000E+00
+   Residual norm =     1.4662670E+02    1.0000000E+00
+                                                           t=    30.00     0.38
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.4824689E+02    1.0000000E+00
+                                                           t=    30.22     0.38
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.4824689E+02    1.0000000E+00
+   Residual norm =     1.4824689E+02    1.0000000E+00
+                                                           t=    30.29     0.38
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.4986707E+02    1.0000000E+00
+                                                           t=    30.52     0.39
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.4986707E+02    1.0000000E+00
+   Residual norm =     1.4986707E+02    1.0000000E+00
+                                                           t=    30.62     0.39
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.5148725E+02    1.0000000E+00
+                                                           t=    30.83     0.39
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.5148725E+02    1.0000000E+00
+   Residual norm =     1.5148725E+02    1.0000000E+00
+                                                           t=    30.91     0.39
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.5310744E+02    1.0000000E+00
+                                                           t=    31.13     0.39
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.5310744E+02    1.0000000E+00
+   Residual norm =     1.5310744E+02    1.0000000E+00
+                                                           t=    31.23     0.39
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.5472762E+02    1.0000000E+00
+                                                           t=    31.46     0.39
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.5472762E+02    1.0000000E+00
+   Residual norm =     1.5472762E+02    1.0000000E+00
+                                                           t=    31.55     0.40
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.5634781E+02    1.0000000E+00
+                                                           t=    31.76     0.40
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.5634781E+02    1.0000000E+00
+   Residual norm =     1.5634781E+02    1.0000000E+00
+                                                           t=    31.84     0.40
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.5796799E+02    1.0000000E+00
+                                                           t=    32.06     0.40
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.5796799E+02    1.0000000E+00
+   Residual norm =     1.5796799E+02    1.0000000E+00
+                                                           t=    32.16     0.40
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.5958818E+02    1.0000000E+00
+                                                           t=    32.38     0.40
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.5958818E+02    1.0000000E+00
+   Residual norm =     1.5958818E+02    1.0000000E+00
+                                                           t=    32.49     0.41
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.6120836E+02    1.0000000E+00
+                                                           t=    32.73     0.41
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.6120836E+02    1.0000000E+00
+   Residual norm =     1.6120836E+02    1.0000000E+00
+                                                           t=    32.82     0.41
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.6282855E+02    1.0000000E+00
+                                                           t=    33.05     0.41
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.6282855E+02    1.0000000E+00
+   Residual norm =     1.6282855E+02    1.0000000E+00
+                                                           t=    33.15     0.42
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.6444873E+02    1.0000000E+00
+                                                           t=    33.41     0.42
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.6444873E+02    1.0000000E+00
+   Residual norm =     1.6444873E+02    1.0000000E+00
+                                                           t=    33.51     0.42
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.6606891E+02    1.0000000E+00
+                                                           t=    33.75     0.42
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.6606891E+02    1.0000000E+00
+   Residual norm =     1.6606891E+02    1.0000000E+00
+                                                           t=    33.84     0.43
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.6768910E+02    1.0000000E+00
+                                                           t=    34.06     0.43
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.6768910E+02    1.0000000E+00
+   Residual norm =     1.6768910E+02    1.0000000E+00
+                                                           t=    34.16     0.43
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.6930928E+02    1.0000000E+00
+                                                           t=    34.38     0.44
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.6930928E+02    1.0000000E+00
+   Residual norm =     1.6930928E+02    1.0000000E+00
+                                                           t=    34.47     0.44
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.7092947E+02    1.0000000E+00
+                                                           t=    34.70     0.44
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.7092947E+02    1.0000000E+00
+   Residual norm =     1.7092947E+02    1.0000000E+00
+                                                           t=    34.79     0.44
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.7254965E+02    1.0000000E+00
+                                                           t=    35.02     0.44
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.7254965E+02    1.0000000E+00
+   Residual norm =     1.7254965E+02    1.0000000E+00
+                                                           t=    35.12     0.45
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.7416984E+02    1.0000000E+00
+                                                           t=    35.36     0.45
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.7416984E+02    1.0000000E+00
+   Residual norm =     1.7416984E+02    1.0000000E+00
+                                                           t=    35.45     0.45
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.7579002E+02    1.0000000E+00
+                                                           t=    35.68     0.45
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.7579002E+02    1.0000000E+00
+   Residual norm =     1.7579002E+02    1.0000000E+00
+                                                           t=    35.78     0.45
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.7741021E+02    1.0000000E+00
+                                                           t=    36.02     0.45
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.7741021E+02    1.0000000E+00
+   Residual norm =     1.7741021E+02    1.0000000E+00
+                                                           t=    36.12     0.45
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.7903039E+02    1.0000000E+00
+                                                           t=    36.33     0.46
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.7903039E+02    1.0000000E+00
+   Residual norm =     1.7903039E+02    1.0000000E+00
+                                                           t=    36.41     0.46
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.8065058E+02    1.0000000E+00
+                                                           t=    36.65     0.46
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.8065058E+02    1.0000000E+00
+   Residual norm =     1.8065058E+02    1.0000000E+00
+                                                           t=    36.74     0.46
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.8227076E+02    1.0000000E+00
+                                                           t=    36.95     0.46
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.8227076E+02    1.0000000E+00
+   Residual norm =     1.8227076E+02    1.0000000E+00
+                                                           t=    37.04     0.46
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.8389094E+02    1.0000000E+00
+                                                           t=    37.28     0.46
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.8389094E+02    1.0000000E+00
+   Residual norm =     1.8389094E+02    1.0000000E+00
+                                                           t=    37.39     0.46
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.8551113E+02    1.0000000E+00
+                                                           t=    37.61     0.46
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.8551113E+02    1.0000000E+00
+   Residual norm =     1.8551113E+02    1.0000000E+00
+                                                           t=    37.70     0.47
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.8713131E+02    1.0000000E+00
+                                                           t=    37.93     0.47
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.8713131E+02    1.0000000E+00
+   Residual norm =     1.8713131E+02    1.0000000E+00
+                                                           t=    38.03     0.47
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.8875150E+02    1.0000000E+00
+                                                           t=    38.26     0.47
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.8875150E+02    1.0000000E+00
+   Residual norm =     1.8875150E+02    1.0000000E+00
+                                                           t=    38.34     0.47
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.9037168E+02    1.0000000E+00
+                                                           t=    38.57     0.47
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.9037168E+02    1.0000000E+00
+   Residual norm =     1.9037168E+02    1.0000000E+00
+                                                           t=    38.67     0.47
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.9199187E+02    1.0000000E+00
+                                                           t=    38.89     0.47
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.9199187E+02    1.0000000E+00
+   Residual norm =     1.9199187E+02    1.0000000E+00
+                                                           t=    38.98     0.47
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.9361205E+02    1.0000000E+00
+                                                           t=    39.21     0.47
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.9361205E+02    1.0000000E+00
+   Residual norm =     1.9361205E+02    1.0000000E+00
+                                                           t=    39.31     0.48
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.9523224E+02    1.0000000E+00
+                                                           t=    39.53     0.48
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.9523224E+02    1.0000000E+00
+   Residual norm =     1.9523224E+02    1.0000000E+00
+                                                           t=    39.63     0.48
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.9685242E+02    1.0000000E+00
+                                                           t=    39.85     0.48
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.9685242E+02    1.0000000E+00
+   Residual norm =     1.9685242E+02    1.0000000E+00
+                                                           t=    39.95     0.48
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.9847261E+02    1.0000000E+00
+                                                           t=    40.19     0.48
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     1.9847261E+02    1.0000000E+00
+   Residual norm =     1.9847261E+02    1.0000000E+00
+                                                           t=    40.29     0.48
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.0009279E+02    1.0000000E+00
+                                                           t=    40.52     0.48
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.0009279E+02    1.0000000E+00
+   Residual norm =     2.0009279E+02    1.0000000E+00
+                                                           t=    40.60     0.48
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.0171297E+02    1.0000000E+00
+                                                           t=    40.82     0.49
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.0171297E+02    1.0000000E+00
+   Residual norm =     2.0171297E+02    1.0000000E+00
+                                                           t=    40.92     0.49
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.0333316E+02    1.0000000E+00
+                                                           t=    41.15     0.49
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.0333316E+02    1.0000000E+00
+   Residual norm =     2.0333316E+02    1.0000000E+00
+                                                           t=    41.23     0.49
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.0495334E+02    1.0000000E+00
+                                                           t=    41.44     0.49
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.0495334E+02    1.0000000E+00
+   Residual norm =     2.0495334E+02    1.0000000E+00
+                                                           t=    41.53     0.49
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.0657353E+02    1.0000000E+00
+                                                           t=    41.77     0.49
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.0657353E+02    1.0000000E+00
+   Residual norm =     2.0657353E+02    1.0000000E+00
+                                                           t=    41.88     0.49
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.0819371E+02    1.0000000E+00
+                                                           t=    42.11     0.49
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.0819371E+02    1.0000000E+00
+   Residual norm =     2.0819371E+02    1.0000000E+00
+                                                           t=    42.20     0.49
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.0981390E+02    1.0000000E+00
+                                                           t=    42.42     0.50
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.0981390E+02    1.0000000E+00
+   Residual norm =     2.0981390E+02    1.0000000E+00
+                                                           t=    42.52     0.50
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.1143408E+02    1.0000000E+00
+                                                           t=    42.74     0.50
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.1143408E+02    1.0000000E+00
+   Residual norm =     2.1143408E+02    1.0000000E+00
+                                                           t=    42.83     0.50
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.1305427E+02    1.0000000E+00
+                                                           t=    43.06     0.50
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.1305427E+02    1.0000000E+00
+   Residual norm =     2.1305427E+02    1.0000000E+00
+                                                           t=    43.16     0.50
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.1467445E+02    1.0000000E+00
+                                                           t=    43.40     0.50
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.1467445E+02    1.0000000E+00
+   Residual norm =     2.1467445E+02    1.0000000E+00
+                                                           t=    43.50     0.50
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.1629464E+02    1.0000000E+00
+                                                           t=    43.72     0.51
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.1629464E+02    1.0000000E+00
+   Residual norm =     2.1629464E+02    1.0000000E+00
+                                                           t=    43.82     0.51
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.1791482E+02    1.0000000E+00
+                                                           t=    44.06     0.51
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.1791482E+02    1.0000000E+00
+   Residual norm =     2.1791482E+02    1.0000000E+00
+                                                           t=    44.15     0.51
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.1953500E+02    1.0000000E+00
+                                                           t=    44.38     0.51
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.1953500E+02    1.0000000E+00
+   Residual norm =     2.1953500E+02    1.0000000E+00
+                                                           t=    44.47     0.51
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.2115519E+02    1.0000000E+00
+                                                           t=    44.70     0.51
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.2115519E+02    1.0000000E+00
+   Residual norm =     2.2115519E+02    1.0000000E+00
+                                                           t=    44.81     0.51
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.2277537E+02    1.0000000E+00
+                                                           t=    45.05     0.52
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.2277537E+02    1.0000000E+00
+   Residual norm =     2.2277537E+02    1.0000000E+00
+                                                           t=    45.15     0.52
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.2439556E+02    1.0000000E+00
+                                                           t=    45.37     0.52
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.2439556E+02    1.0000000E+00
+   Residual norm =     2.2439556E+02    1.0000000E+00
+                                                           t=    45.46     0.52
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.2601574E+02    1.0000000E+00
+                                                           t=    45.71     0.52
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.2601574E+02    1.0000000E+00
+   Residual norm =     2.2601574E+02    1.0000000E+00
+                                                           t=    45.80     0.52
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.2763593E+02    1.0000000E+00
+                                                           t=    46.04     0.52
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.2763593E+02    1.0000000E+00
+   Residual norm =     2.2763593E+02    1.0000000E+00
+                                                           t=    46.12     0.52
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.2925611E+02    1.0000000E+00
+                                                           t=    46.36     0.53
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.2925611E+02    1.0000000E+00
+   Residual norm =     2.2925611E+02    1.0000000E+00
+                                                           t=    46.44     0.53
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.3087630E+02    1.0000000E+00
+                                                           t=    46.66     0.53
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.3087630E+02    1.0000000E+00
+   Residual norm =     2.3087630E+02    1.0000000E+00
+                                                           t=    46.75     0.53
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.3249648E+02    1.0000000E+00
+                                                           t=    46.98     0.53
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.3249648E+02    1.0000000E+00
+   Residual norm =     2.3249648E+02    1.0000000E+00
+                                                           t=    47.08     0.53
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.3411667E+02    1.0000000E+00
+                                                           t=    47.31     0.53
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.3411667E+02    1.0000000E+00
+   Residual norm =     2.3411667E+02    1.0000000E+00
+                                                           t=    47.39     0.53
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.3328954E+02    1.0000000E+00
+                                                           t=    47.55     0.53
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.3328954E+02    1.0000000E+00
+                                                           t=    47.65     0.53
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.3328967E+02    1.0000000E+00
+                                                           t=    47.79     0.54
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.3328967E+02    1.0000000E+00
+                                                           t=    47.87     0.54
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.3328967E+02    1.0000000E+00
+   Residual norm =     2.3328967E+02    1.0000000E+00
+                                                           t=    48.01     0.54
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.3411667E+02    1.0000000E+00
+   Residual norm =     2.3411667E+02    1.0000000E+00
+                                                           t=    49.23     0.55
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.3573685E+02    1.0000000E+00
+                                                           t=    49.40     0.55
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.3573685E+02    1.0000000E+00
+   Residual norm =     2.3573685E+02    1.0000000E+00
+                                                           t=    49.49     0.55
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.3735703E+02    1.0000000E+00
+                                                           t=    49.73     0.56
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.3735703E+02    1.0000000E+00
+   Residual norm =     2.3735703E+02    1.0000000E+00
+                                                           t=    49.82     0.56
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.3897722E+02    1.0000000E+00
+                                                           t=    50.05     0.56
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.3897722E+02    1.0000000E+00
+   Residual norm =     2.3897722E+02    1.0000000E+00
+                                                           t=    50.14     0.56
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.4059740E+02    1.0000000E+00
+                                                           t=    50.38     0.56
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.4059740E+02    1.0000000E+00
+   Residual norm =     2.4059740E+02    1.0000000E+00
+                                                           t=    50.48     0.56
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.4221759E+02    1.0000000E+00
+                                                           t=    50.70     0.56
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.4221759E+02    1.0000000E+00
+   Residual norm =     2.4221759E+02    1.0000000E+00
+                                                           t=    50.79     0.56
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.4383777E+02    1.0000000E+00
+                                                           t=    51.04     0.57
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.4383777E+02    1.0000000E+00
+   Residual norm =     2.4383777E+02    1.0000000E+00
+                                                           t=    51.12     0.57
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.4545796E+02    1.0000000E+00
+                                                           t=    51.37     0.57
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.4545796E+02    1.0000000E+00
+   Residual norm =     2.4545796E+02    1.0000000E+00
+                                                           t=    51.46     0.57
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.4707814E+02    1.0000000E+00
+                                                           t=    51.67     0.57
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.4707814E+02    1.0000000E+00
+   Residual norm =     2.4707814E+02    1.0000000E+00
+                                                           t=    51.76     0.57
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.4869833E+02    1.0000000E+00
+                                                           t=    51.98     0.57
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.4869833E+02    1.0000000E+00
+   Residual norm =     2.4869833E+02    1.0000000E+00
+                                                           t=    52.07     0.57
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.5031851E+02    1.0000000E+00
+                                                           t=    52.29     0.57
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.5031851E+02    1.0000000E+00
+   Residual norm =     2.5031851E+02    1.0000000E+00
+                                                           t=    52.40     0.57
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.5193870E+02    1.0000000E+00
+                                                           t=    52.64     0.58
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.5193870E+02    1.0000000E+00
+   Residual norm =     2.5193870E+02    1.0000000E+00
+                                                           t=    52.72     0.58
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.5355888E+02    1.0000000E+00
+                                                           t=    52.98     0.58
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.5355888E+02    1.0000000E+00
+   Residual norm =     2.5355888E+02    1.0000000E+00
+                                                           t=    53.08     0.58
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.5517906E+02    1.0000000E+00
+                                                           t=    53.29     0.58
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.5517906E+02    1.0000000E+00
+   Residual norm =     2.5517906E+02    1.0000000E+00
+                                                           t=    53.38     0.58
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.5679925E+02    1.0000000E+00
+                                                           t=    53.60     0.58
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.5679925E+02    1.0000000E+00
+   Residual norm =     2.5679925E+02    1.0000000E+00
+                                                           t=    53.69     0.58
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.5841943E+02    1.0000000E+00
+                                                           t=    53.91     0.58
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.5841943E+02    1.0000000E+00
+   Residual norm =     2.5841943E+02    1.0000000E+00
+                                                           t=    53.99     0.58
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.6003962E+02    1.0000000E+00
+                                                           t=    54.22     0.59
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.6003962E+02    1.0000000E+00
+   Residual norm =     2.6003962E+02    1.0000000E+00
+                                                           t=    54.31     0.59
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.6165980E+02    1.0000000E+00
+                                                           t=    54.55     0.59
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.6165980E+02    1.0000000E+00
+   Residual norm =     2.6165980E+02    1.0000000E+00
+                                                           t=    54.64     0.59
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.6327999E+02    1.0000000E+00
+                                                           t=    54.88     0.59
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.6327999E+02    1.0000000E+00
+   Residual norm =     2.6327999E+02    1.0000000E+00
+                                                           t=    54.97     0.59
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.6490017E+02    1.0000000E+00
+                                                           t=    55.19     0.59
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.6490017E+02    1.0000000E+00
+   Residual norm =     2.6490017E+02    1.0000000E+00
+                                                           t=    55.29     0.59
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.6652036E+02    1.0000000E+00
+                                                           t=    55.56     0.59
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.6652036E+02    1.0000000E+00
+   Residual norm =     2.6652036E+02    1.0000000E+00
+                                                           t=    55.65     0.60
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.6814054E+02    1.0000000E+00
+                                                           t=    55.88     0.60
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.6814054E+02    1.0000000E+00
+   Residual norm =     2.6814054E+02    1.0000000E+00
+                                                           t=    55.96     0.60
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.6976073E+02    1.0000000E+00
+                                                           t=    56.18     0.60
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.6976073E+02    1.0000000E+00
+   Residual norm =     2.6976073E+02    1.0000000E+00
+                                                           t=    56.28     0.60
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.7138091E+02    1.0000000E+00
+                                                           t=    56.51     0.60
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.7138091E+02    1.0000000E+00
+   Residual norm =     2.7138091E+02    1.0000000E+00
+                                                           t=    56.61     0.60
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.7300109E+02    1.0000000E+00
+                                                           t=    56.84     0.60
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.7300109E+02    1.0000000E+00
+   Residual norm =     2.7300109E+02    1.0000000E+00
+                                                           t=    56.94     0.60
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.7462128E+02    1.0000000E+00
+                                                           t=    57.16     0.61
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.7462128E+02    1.0000000E+00
+   Residual norm =     2.7462128E+02    1.0000000E+00
+                                                           t=    57.25     0.61
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.7624146E+02    1.0000000E+00
+                                                           t=    57.49     0.61
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.7624146E+02    1.0000000E+00
+   Residual norm =     2.7624146E+02    1.0000000E+00
+                                                           t=    57.57     0.61
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.7786165E+02    1.0000000E+00
+                                                           t=    57.80     0.61
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.7786165E+02    1.0000000E+00
+   Residual norm =     2.7786165E+02    1.0000000E+00
+                                                           t=    57.89     0.61
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.7948183E+02    1.0000000E+00
+                                                           t=    58.11     0.61
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.7948183E+02    1.0000000E+00
+   Residual norm =     2.7948183E+02    1.0000000E+00
+                                                           t=    58.20     0.61
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.8110202E+02    1.0000000E+00
+                                                           t=    58.42     0.61
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.8110202E+02    1.0000000E+00
+   Residual norm =     2.8110202E+02    1.0000000E+00
+                                                           t=    58.54     0.61
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.8272220E+02    1.0000000E+00
+                                                           t=    58.75     0.61
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.8272220E+02    1.0000000E+00
+   Residual norm =     2.8272220E+02    1.0000000E+00
+                                                           t=    58.86     0.62
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.8434239E+02    1.0000000E+00
+                                                           t=    59.10     0.62
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.8434239E+02    1.0000000E+00
+   Residual norm =     2.8434239E+02    1.0000000E+00
+                                                           t=    59.20     0.62
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.8596257E+02    1.0000000E+00
+                                                           t=    59.42     0.62
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.8596257E+02    1.0000000E+00
+   Residual norm =     2.8596257E+02    1.0000000E+00
+                                                           t=    59.51     0.62
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.8758276E+02    1.0000000E+00
+                                                           t=    59.75     0.62
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.8758276E+02    1.0000000E+00
+   Residual norm =     2.8758276E+02    1.0000000E+00
+                                                           t=    59.84     0.62
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.8920294E+02    1.0000000E+00
+                                                           t=    60.07     0.62
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.8920294E+02    1.0000000E+00
+   Residual norm =     2.8920294E+02    1.0000000E+00
+                                                           t=    60.17     0.62
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.9082312E+02    1.0000000E+00
+                                                           t=    60.41     0.63
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.9082312E+02    1.0000000E+00
+   Residual norm =     2.9082312E+02    1.0000000E+00
+                                                           t=    60.52     0.63
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.9244331E+02    1.0000000E+00
+                                                           t=    60.77     0.63
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.9244331E+02    1.0000000E+00
+   Residual norm =     2.9244331E+02    1.0000000E+00
+                                                           t=    60.86     0.63
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.9406349E+02    1.0000000E+00
+                                                           t=    61.07     0.63
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.9406349E+02    1.0000000E+00
+   Residual norm =     2.9406349E+02    1.0000000E+00
+                                                           t=    61.17     0.63
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.9568368E+02    1.0000000E+00
+                                                           t=    61.42     0.63
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.9568368E+02    1.0000000E+00
+   Residual norm =     2.9568368E+02    1.0000000E+00
+                                                           t=    61.51     0.63
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.9730386E+02    1.0000000E+00
+                                                           t=    61.76     0.64
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.9730386E+02    1.0000000E+00
+   Residual norm =     2.9730386E+02    1.0000000E+00
+                                                           t=    61.85     0.64
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.9892405E+02    1.0000000E+00
+                                                           t=    62.10     0.64
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     2.9892405E+02    1.0000000E+00
+   Residual norm =     2.9892405E+02    1.0000000E+00
+                                                           t=    62.20     0.64
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.0054423E+02    1.0000000E+00
+                                                           t=    62.42     0.64
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.0054423E+02    1.0000000E+00
+   Residual norm =     3.0054423E+02    1.0000000E+00
+                                                           t=    62.52     0.64
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.0216442E+02    1.0000000E+00
+                                                           t=    62.75     0.65
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.0216442E+02    1.0000000E+00
+   Residual norm =     3.0216442E+02    1.0000000E+00
+                                                           t=    62.86     0.65
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.0378460E+02    1.0000000E+00
+                                                           t=    63.08     0.65
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.0378460E+02    1.0000000E+00
+   Residual norm =     3.0378460E+02    1.0000000E+00
+                                                           t=    63.17     0.65
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.0540479E+02    1.0000000E+00
+                                                           t=    63.40     0.65
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.0540479E+02    1.0000000E+00
+   Residual norm =     3.0540479E+02    1.0000000E+00
+                                                           t=    63.50     0.65
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.0702497E+02    1.0000000E+00
+                                                           t=    63.74     0.65
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.0702497E+02    1.0000000E+00
+   Residual norm =     3.0702497E+02    1.0000000E+00
+                                                           t=    63.83     0.65
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.0864515E+02    1.0000000E+00
+                                                           t=    64.07     0.65
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.0864515E+02    1.0000000E+00
+   Residual norm =     3.0864515E+02    1.0000000E+00
+                                                           t=    64.17     0.66
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.1026534E+02    1.0000000E+00
+                                                           t=    64.40     0.66
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.1026534E+02    1.0000000E+00
+   Residual norm =     3.1026534E+02    1.0000000E+00
+                                                           t=    64.49     0.66
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.1188552E+02    1.0000000E+00
+                                                           t=    64.73     0.66
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.1188552E+02    1.0000000E+00
+   Residual norm =     3.1188552E+02    1.0000000E+00
+                                                           t=    64.81     0.66
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.1350571E+02    1.0000000E+00
+                                                           t=    65.06     0.66
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.1350571E+02    1.0000000E+00
+   Residual norm =     3.1350571E+02    1.0000000E+00
+                                                           t=    65.15     0.66
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.1512589E+02    1.0000000E+00
+                                                           t=    65.40     0.67
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.1512589E+02    1.0000000E+00
+   Residual norm =     3.1512589E+02    1.0000000E+00
+                                                           t=    65.50     0.67
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.1674608E+02    1.0000000E+00
+                                                           t=    65.73     0.67
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.1674608E+02    1.0000000E+00
+   Residual norm =     3.1674608E+02    1.0000000E+00
+                                                           t=    65.82     0.67
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.1836626E+02    1.0000000E+00
+                                                           t=    66.04     0.67
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.1836626E+02    1.0000000E+00
+   Residual norm =     3.1836626E+02    1.0000000E+00
+                                                           t=    66.14     0.67
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.1998645E+02    1.0000000E+00
+                                                           t=    66.38     0.67
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.1998645E+02    1.0000000E+00
+   Residual norm =     3.1998645E+02    1.0000000E+00
+                                                           t=    66.47     0.67
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.2160663E+02    1.0000000E+00
+                                                           t=    66.69     0.67
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.2160663E+02    1.0000000E+00
+   Residual norm =     3.2160663E+02    1.0000000E+00
+                                                           t=    66.79     0.68
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.2322682E+02    1.0000000E+00
+                                                           t=    67.02     0.68
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.2322682E+02    1.0000000E+00
+   Residual norm =     3.2322682E+02    1.0000000E+00
+                                                           t=    67.12     0.68
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.2484700E+02    1.0000000E+00
+                                                           t=    67.34     0.68
+ *WARNING* Unfactored tangent produced do not try normal solution.
+   Residual norm =     3.2484700E+02    1.0000000E+00
+   Residual norm =     3.2484700E+02    1.0000000E+00
+                                                           t=    67.42     0.68
+ *WARNING* Unfactored tangent produced do not try normal solution.

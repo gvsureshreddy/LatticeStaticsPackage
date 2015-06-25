@@ -232,7 +232,6 @@ SV* const getScalar(PerlInput::HashStruct const& Hash, char const* const ParamNa
    }
 
    // move into array level 2
-   cout << "0 at level 2\n";
    if ((SvTYPE(ScalarLevel2) != SVt_RV) || (SvTYPE(SvRV(ScalarLevel2)) != SVt_PVAV))
    {
       cerr << "Error: Perl hash variable: " << Hash.Name
@@ -241,10 +240,8 @@ SV* const getScalar(PerlInput::HashStruct const& Hash, char const* const ParamNa
            << c << "] does not contain a perl referece (to an array).\n";
       exit(Errno);
    }
-   cout << "1 at level 2\n";
    AV* ArrayLevel2 = (AV*) SvRV(ScalarLevel2);
    SV** ScalarLevel3Ptr = av_fetch(ArrayLevel2, c, FALSE);
-   cout << "2 at level 2\n";
    if (ScalarLevel3Ptr == 0)
    {
       cerr << "Error: Perl hash variable: " << Hash.Name

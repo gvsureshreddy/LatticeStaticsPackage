@@ -1,0 +1,52 @@
+$Main{FieldWidth} = 20;
+$Main{Precision} = 12;
+$Main{Echo} = 1;                # Default Value
+
+$Lattice{Type} = "FEAP";
+$Lattice{UseEigenValTFs} = "Yes";                # Default Value
+$Lattice{LSKAnalysis} = "None";
+$Lattice{FullPrint} = "Yes";                # Default Value
+$Lattice{GuessModes} = "No";                # Default Value
+$Lattice{TurningPointRestarts} = "Yes";
+
+$Lattice{FEAP}{FEAPInputFileName} = "Ihoney";
+$Lattice{FEAP}{Tolerance} = 1.00000000000000e-10;
+$Lattice{FEAP}{Nbn} = 6;
+$Lattice{FEAP}{Nuc} = 1;
+$Lattice{FEAP}{HexagonDiagonalLength} = 1.00000000000000e+00;                # Default Value
+$Lattice{FEAP}{PhantomEnergyEpsilon} = 1.00000000000000e+00;
+$Lattice{FEAP}{BoundNodes} = [1, 3, 2];
+$Lattice{FEAP}{PeriodicNodes} = [4, 6, 5];
+$Lattice{FEAP}{Loading}{Type} = "DisplacementControl";
+$Lattice{FEAP}{Loading}{StretchRatio} = 1.00000000000000e+00;
+$Lattice{FEAP}{ExtraTestFunctions}{Type} = "None";
+$Restriction{Type} = "NoRestriction";
+$Restriction{SymmetryCheckTolerance} = 1.00000000000000e-14;                # Default Value
+$SolutionMethod{Type} = "NewtonPCSolution";
+$SolutionMethod{RefineEqbmSolution}{ConvergeCriteria} = 1.00000000000000e-13;
+$SolutionMethod{RefineEqbmSolution}{ConvergeType} = "Both";                # Default Value
+$SolutionMethod{NewtonPCSolution}{UpdateType} = "QRUpdate";
+$SolutionMethod{NewtonPCSolution}{ComputeExactTangent} = "Yes";                # Default Value
+$SolutionMethod{NewtonPCSolution}{NumSolutions} = 1000;
+$SolutionMethod{NewtonPCSolution}{MaxDS} = 5.00000000000000e-01;
+$SolutionMethod{NewtonPCSolution}{CurrentDS} = 5.00000000000000e-01;
+$SolutionMethod{NewtonPCSolution}{MinDS} = 1.00000000000000e-12;
+$SolutionMethod{NewtonPCSolution}{Contraction} = 1.00000000000000e-01;
+$SolutionMethod{NewtonPCSolution}{Distance} = 5.00000000000000e-03;
+$SolutionMethod{NewtonPCSolution}{Angle} = 1.74532925199433e-01;
+$SolutionMethod{NewtonPCSolution}{MaxEigVectAngle} = -1.00000000000000e+00;                # Default Value
+$SolutionMethod{NewtonPCSolution}{ConvergeCriteria} = 1.00000000000000e-12;
+$SolutionMethod{NewtonPCSolution}{ConvergeType} = "Both";                # Default Value
+$SolutionMethod{NewtonPCSolution}{BisectCP} = "Yes";
+$SolutionMethod{NewtonPCSolution}{ClosedLoopStart} = 30;                # Default Value
+$SolutionMethod{NewtonPCSolution}{MaxCumulativeArcLength} = 5.00000000000000e+00;
+$SolutionMethod{NewtonPCSolution}{StopAtCPCrossingNum} = -1;                # Default Value
+$SolutionMethod{NewtonPCSolution}{Direction} = 1;                # Default Value
+$SolutionMethod{NewtonPCSolution}{Acceleration} = 2.00000000000000e+00;                # Default Value
+$StartType{ClosedLoopUseAsFirst} = 0;                # Default Value
+
+
+
+$StartType{Type} = "Continuation";
+$StartType{Tangent} = [-1.66968e-16, 5.80696e-17, 0.0490333, -1.56286e-16, 2.41692e-16, -0.4353, -1.36271e-17, 1.60086e-16, 0.386267, 0.000992515, -0.000718511, 1.91812e-13, -0.000992515, 0.000718511, 2.17708e-13, 0.000301831, -0.000289746, -0.0408722, 0.00093645, -3.0861e-06, 0.0255233, 0.000787863, -0.000239507, -0.321977, -0.00366746, -0.000479011, 0.201064, 0.000588361, -0.00068554, 0.362849, -0.00177766, 0.00374606, -0.226587, -0.000301831, 0.000289746, -0.0408722, -0.00093645, 3.0861e-06, 0.0255233, -0.000787863, 0.000239507, -0.321977, 0.00366746, 0.000479011, 0.201064, -0.000588361, 0.00068554, 0.362849, 0.00177766, -0.00374606, -0.226587, 0];
+$StartType{Solution} = [-3.72694e-16, 2.36997e-16, -5.25401e-07, -3.58531e-16, 3.86748e-17, -1.91455e-06, -3.72944e-16, 4.51871e-17, 2.43995e-06, 6.26941e-09, -2.0608e-09, 2.35086e-15, -6.26941e-09, 2.0608e-09, -2.24266e-15, 2.4006e-09, -1.48628e-10, 4.37953e-07, 1.23538e-09, -6.47342e-09, -2.73486e-07, 4.97668e-09, -6.8692e-10, -2.03384e-06, -2.31661e-08, -1.37385e-09, 1.27007e-06, 3.22245e-09, -2.64874e-09, 1.59589e-06, -6.54905e-09, 1.72087e-08, -9.9658e-07, -2.4006e-09, 1.48628e-10, 4.37953e-07, -1.23538e-09, 6.47342e-09, -2.73486e-07, -4.97668e-09, 6.8692e-10, -2.03384e-06, 2.31661e-08, 1.37385e-09, 1.27007e-06, -3.22245e-09, 2.64874e-09, 1.59589e-06, 6.54905e-09, -1.72087e-08, -9.9658e-07, 2.16584];

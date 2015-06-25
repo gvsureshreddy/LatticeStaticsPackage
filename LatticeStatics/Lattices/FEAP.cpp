@@ -774,23 +774,6 @@ void FEAP::UpdateValues(UpdateFlag flag) const
      Cached_[3] = 1;
      EvaluationCount_[1]++;
 
-//     Vector E1DLoad_F = Jacobian_ * E1DLoadCachedValue_;
-//      Matrix A(DOFS_F_, DOFS_F_+1);
-//      for (int i = 0; i < DOFS_F_; ++i)
-//       {
-//          for (int j = 0; j < DOFS_F_+1; ++j)
-//          {
-//             A[i][j] = E2CachedValue_F_[i][j];
-//          }
-//          A[i][DOFS_F_] = E1DLoad_F[i];
-//       }
-//      Matrix Q(DOFS_F_+1, DOFS_F_+1);
-//   	 Matrix R(DOFS_F_+1, DOFS_F_);
-//      QR(A, Q, R, 1);
-//       cout << "\n E1DLoad_F=" << setw(20) << E1DLoad_F << "\n";
-//   	 cout << "\n Q=" << setw(20) << Q;
-
-//      cout << "E1DLoadCachedValue_=" << setw(20) << E1DLoadCachedValue_ << "\n";
    }
 }
 
@@ -1213,6 +1196,7 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
                   //Dk has 2 zero eigen values when k = [0,0], so special treatment
                   if ((i==0) && (j==0) && NumZeroEig < 2 && (fabs(DkEigVal[0][l] < Tolerance_)))
                   {
+                     bloch_wave_out_ << DkEigVal[0][l] << "\n";
                      double max = DkEigVal.MaxElement();
                      DkEigVal[0][l] = max;
                      TF[k] = max;
@@ -1624,10 +1608,10 @@ void FEAP::DynamicalMatrixBis(Vector const& K) const
       {
           A[ndf_*i][ndf_*j] -= 2.0/eps_;
           A[1+ndf_*i][1+ndf_*j] -= 2.0/eps_;
-          if (ndf_ > (ndm_+1))
-          {
-            A[2+ndf_*i][2+ndf_*j] -= 2.0/eps_;
-          }
+//           if (ndf_ > (ndm_+1))
+//           {
+//             A[2+ndf_*i][2+ndf_*j] -= 2.0/eps_;
+//           }
       }
    }
 
@@ -1836,7 +1820,7 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
                  << "Potential Value: " << setw(W) << engy << "\n"
                  << "Force Norm: " << setw(W) << E1norm << "\n";
        //ajout ///////////////////////////////////////////////////////////////////
-//   cout << "StiffnessDL= " << setw(W) << E2() << "\n";
+  cout << "StiffnessDL= " << setw(W) << E2() << "\n";
 //   cout << "X_F_= " << setw(W) << X_F_ << "\n";
 //      QR(E2(), Q, R, 1);
 //   cout << "QR= " << setw(W) << Q << "\n";

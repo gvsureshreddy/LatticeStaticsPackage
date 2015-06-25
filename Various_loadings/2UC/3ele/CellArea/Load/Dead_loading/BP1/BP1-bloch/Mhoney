@@ -1,0 +1,23 @@
+Parameters
+  t=0.05  !Wall width
+  h = 1.0   !Depth
+  a1 = t*h
+  a2 = 2*t*h
+  i1= t^3*h/12
+  i2= (2*t)^3*h/12
+  pi=3.14159265
+ 
+MATErial       1
+FRAMe elmt     0   0   0   0
+    FINITE
+    SHEAr ON
+    ELAStic ISOTropic 69e+02 0.3
+    CROSs SECTion a1 i1
+     
+MATErial       2
+FRAMe elmt     0   0   0   0
+    FINITE
+    SHEAr ON
+    ELAStic ISOTropic 69e+02 0.3
+    CROSs SECTion a2 i2
+     
