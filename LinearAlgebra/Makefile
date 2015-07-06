@@ -9,7 +9,7 @@ SRC_EXT    = .cpp
 OBJ_EXT    = .o
 DEP_EXT    = .d
 HDR_EXT    = .h
-BUILD_DATE = \"`date +%c`\"
+BUILD_DATE = \"`date +%c;` from git commit `git rev-parse HEAD`\"
 
 # Compiling options, etc. #################################################
 #
@@ -32,7 +32,7 @@ ifeq ($(UNAME),Linux)
    ANSI       = -pedantic -Wall
 endif
 
-# general options 
+# general options
 #PURE       = purify
 #PROFILE    = -pg
 #DEBUG      = -g
@@ -67,7 +67,7 @@ matrixtest : $(OBJECTS) matrixtest.cpp
 EigenSys : $(OBJECTS) EigenSys.cpp
 	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o ./lib/$@.o -c ./EigenSys.cpp
 	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ $(LFLAGS) -o ./bin/EigenSys \
-	./lib/EigenSys.o ./lib/Matrix.o 
+	./lib/EigenSys.o ./lib/Matrix.o
 
 HermiteEigenSys : $(OBJECTS) HermiteEigenSys.cpp
 	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o ./lib/$@.o -c ./HermiteEigenSys.cpp
@@ -94,7 +94,7 @@ $(LIB_LOC)/libLinearAlgebra.a: $(OBJECTS)
 	$(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/LinearAlgebraBuildDate.o -c LinearAlgebraBuildDate.cpp
 	ar -r $(LIB_LOC)/libLinearAlgebra.a $(addprefix ./lib/,$(OBJECTS)) ./lib/LinearAlgebraBuildDate.o
 	/bin/rm -f ./lib/LinearAlgebraBuildDate.o
-	ranlib $(LIB_LOC)/libLinearAlgebra.a 
+	ranlib $(LIB_LOC)/libLinearAlgebra.a
 	/bin/cp $(SOURCES:$(SRC_EXT)=$(HDR_EXT)) $(INCL_LOC)
 
 $(addprefix $(BIN_LOC)/,$(PROGRAMS)): $(BIN_LOC)/%: %
@@ -124,4 +124,3 @@ depend/%.d: %$(SRC_EXT)
 	      | sed '\''s/\($*\)\.o[ :]*/\1.o $*.d : /g'\'' > $@; \
 	      [ -s $@ ] || rm -f $@'
 	@echo "Building $@"
-

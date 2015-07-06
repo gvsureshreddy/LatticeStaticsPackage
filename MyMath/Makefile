@@ -8,7 +8,7 @@ UNAME      = $(shell uname)
 SRC_EXT    = .cpp
 OBJ_EXT    = .o
 DEP_EXT    = .d
-BUILD_DATE = \"`date +%c`\"
+BUILD_DATE = \"`date +%c;` from git commit `git rev-parse HEAD`\"
 
 # Compiling options, etc. #################################################
 #
@@ -31,7 +31,7 @@ ifeq ($(UNAME),Linux)
    ANSI       = -pedantic -Wall
 endif
 
-# general options 
+# general options
 #PURE       = purify
 #PROFILE    = -pg
 #DEBUG      = -g
@@ -101,4 +101,3 @@ depend/%.d: %$(SRC_EXT)
 	      | sed '\''s/\($*\)\.o[ :]*/\1.o $*.d : /g'\'' > $@; \
 	      [ -s $@ ] || rm -f $@'
 	@echo "Building $@"
-

@@ -9,7 +9,7 @@ UNAME      = $(shell uname)
 SRC_EXT    = .cpp
 OBJ_EXT    = .o
 DEP_EXT    = .d
-BUILD_DATE = \"`date +%c`\"
+BUILD_DATE = \"`date +%c;` from git commit `git rev-parse HEAD`\"
 
 # Compiling options, etc. #################################################
 #
@@ -55,7 +55,7 @@ ifneq (,$(strip $(USE_FEAP)))
   endif
   LIBS_FEAP = $(FEAPHOME8_3)/Feap8_3.a -lgfortran -L/usr/X11R6/lib -lX11
 else
-  LIBS_FEAP = 
+  LIBS_FEAP =
 endif
 ifneq (,$(strip $(USE_KIM)))
   KIM_CONFIG_HELPER = kim-api-build-config
@@ -308,4 +308,3 @@ depend/%.d: %$(SRC_EXT)
 	      | sed '\''s/\($(notdir $*)\)\.o[ :]*/\1.o $(notdir $*).d : /g'\'' \
 	      > $@; [ -s $@ ] || rm -f $@'
 	@echo "Building $@"
-
