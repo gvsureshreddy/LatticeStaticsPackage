@@ -1116,7 +1116,7 @@ void MultiLatticeKIM::TFCritPtInfo(int TFIndex, int Width, ostream& out) const
 
 Matrix const& MultiLatticeKIM::CondensedModuli() const
 {
-   Matrix const& stiff = stiffness();
+   Matrix const& stiff = E2();
    int intrn = CBK_->Ssize();
    double factor = 1.0 / (intrn / DIM3);
    int fsz = CBK_->Fsize();
@@ -1435,7 +1435,7 @@ void MultiLatticeKIM::Print(ostream& out, PrintDetail const& flag,
 
    if (NoFP)
    {
-      stiff_static = stiffness();
+      stiff_static = E2();
 
       TestFunctions(TestFunctVals_static, LHS);
       mintestfunct = TestFunctVals_static[0];
