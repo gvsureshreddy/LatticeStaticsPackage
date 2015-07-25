@@ -38,9 +38,16 @@ FEAP::~FEAP()
         << "\tE1DLoad calls - " << CallCount_[2] << "\n"
         << "\tE2 calls - " << CallCount_[3] << "\n";
 
+   delete[] BoundNodes_;
+   delete[] PeriodicNodes_;
+   delete[] N_[0];
+   delete[] N_;
    delete[] eqnID_;
-   delete[] elmConn_;
    delete[] bcID_;
+   delete[] elmConn_;
+   delete[] Map_[0];
+   delete[] Map_;
+   delete[] InnerNodes_;
 
    config_out_.close();
    plot_out_.close();
@@ -206,9 +213,10 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
          N = new int[N_rows_*N_cols_];
          Input.getIntMatrix(N,N_rows_,N_cols_, TFHash, "DynamicalStiffnessInfo");
          N_ = new int*[N_rows_];
-         for (int i = 0; i < N_rows_; ++i)
+         N_[0] = new int[N_cols_*N_rows_];
+         for (int i = 1; i < N_rows_; ++i)
          {
-            N_[i] = new int[N_cols_];
+           N_[i] = (N_[i-1] + N_cols_);
          }
          for (int i = 0; i < N_rows_*N_cols_; ++i)
          {
@@ -405,9 +413,10 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
 
    // This term doesn't contribute anything for displacement control, so just leave it be
    Map_ = new int*[DOFS_F_];
-   for (int i = 0; i < DOFS_F_; ++i)
+   Map_[0] = new int[4*DOFS_F_];
+   for (int i = 1; i < DOFS_F_; ++i)
    {
-      Map_[i] = new int[4];
+     Map_[i] = Map_[i-1] + 4;
    }
 
    for (int i = 0; i < nbn_/2; ++i)
@@ -1035,6 +1044,8 @@ int FEAP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vector
          critical_eig_out_ << endl;
          ++eig_count_;
       }
+
+      delete[] Ind;
    }
    else if ((CPorBif < 0 ) && (TFType_ == 1)) //Bloch Wave Analysis
    {
@@ -1116,7 +1127,7 @@ int FEAP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vector
 
                }
 
-
+               delete[] Ind;
          }
       }
 
@@ -1163,6 +1174,8 @@ int FEAP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vector
                cout << "\n";
             }
          }
+
+         delete[] Ind;
       }
    }
    return -1;
