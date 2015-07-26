@@ -40,14 +40,15 @@ FEAP::~FEAP()
 
    delete[] BoundNodes_;
    delete[] PeriodicNodes_;
-   delete[] N_[0];
-   delete[] N_;
-   delete[] eqnID_;
-   delete[] bcID_;
-   delete[] elmConn_;
+   delete[] InnerNodes_;
    delete[] Map_[0];
    delete[] Map_;
-   delete[] InnerNodes_;
+   if (0 != N_) delete[] N_[0];
+   delete[] N_;
+
+   delete[] eqnID_;
+   delete[] elmConn_;
+   delete[] bcID_;
 
    config_out_.close();
    plot_out_.close();
@@ -58,7 +59,12 @@ FEAP::~FEAP()
 FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
    Lattice(Input, Echo),
    Lambda_(0.0),
-   Width_(Width)
+   Width_(Width),
+   BoundNodes_(0),
+   PeriodicNodes_(0),
+   InnerNodes_(0),
+   Map_(0),
+   N_(0)
 {
    PerlInput::HashStruct Hash = Input.getHash("Lattice");
    Hash = Input.getHash(Hash, "FEAP");
@@ -355,17 +361,17 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
 
    // set DOF_ to initial value
    U_.Resize(2,2,0.0);
-   U_[0][0] = 1.0;
-   U_[1][1] = 1.0;
+   Vector initDOF(DOFS_,0.0);
+   initDOF[0] = initDOF[1] = 1.0;
    DOF_.Resize(DOFS_, 0.0);
-   if (LoadingType_ != DISPLACEMENT_CONTROL)
+   SetDOF(initDOF);
+   if (LoadingType_ == DISPLACEMENT_CONTROL)
    {
-     DOF_[0] = 1.0;
-     DOF_[1] = 1.0;
+     SetLambda(1.0);
    }
    else
    {
-     SetLambda(1.0);
+     SetLambda(0.0);
    }
    DOF_F_.Resize(DOFS_F_, 0.0);
 
@@ -489,7 +495,7 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
      }
    }
 
-   int offst = ndm_ * (ndm_ +1) / 2 + nbn_ / 2 * ndf_;
+   int offst = 3 + (nbn_/2)*ndf_;
    for (int i = nbn_; i < numnp_; ++i)
    {
       Map_[InnerNodes_[i-nbn_]*ndf_][0]=0;
@@ -498,9 +504,9 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
       Map_[InnerNodes_[i-nbn_]*ndf_][3]=offst + (i-nbn_)*ndf_ +1;
 
       Map_[InnerNodes_[i-nbn_]*ndf_+1][0]=1;
-      Map_[InnerNodes_[i-nbn_]*ndf_+1][1]= offst + (i-nbn_)*ndf_ +1;
+      Map_[InnerNodes_[i-nbn_]*ndf_+1][1]=offst + (i-nbn_)*ndf_ +1;
       Map_[InnerNodes_[i-nbn_]*ndf_+1][2]=2;
-      Map_[InnerNodes_[i-nbn_]*ndf_+1][3]=  offst + (i-nbn_)*ndf_;
+      Map_[InnerNodes_[i-nbn_]*ndf_+1][3]=offst + (i-nbn_)*ndf_;
 
       if (ndf_>ndm_)
       {
@@ -721,9 +727,9 @@ void FEAP::UpdateValues(UpdateFlag flag) const
          {
            for (int k = 0; k < DOFS_F_; ++k)
            {
-             if ((Map_[k][0]==i && Map_[k][1]==j)) //||(Map_[k][0]==j && Map_[k][1]==i))
+             if ((Map_[k][0]==i && Map_[k][1]==j) || (Map_[k][0]==j && Map_[k][1]==i))
                E2CachedValue_[i][j] += E1CachedValue_F_[k];
-             if ((Map_[k][2]==i && Map_[k][3]==j)) //||(Map_[k][2]==j && Map_[k][3]==i))
+             if ((Map_[k][2]==i && Map_[k][3]==j) || (Map_[k][2]==j && Map_[k][3]==i))
                E2CachedValue_[i][j] += E1CachedValue_F_[k] / sqrt(2.0);
            }
          }
