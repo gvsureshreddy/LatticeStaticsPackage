@@ -533,7 +533,7 @@ int QC::TestFunctions(Vector& TF1, StateType const& State, Vector* const TF2) co
          }
       }
 
-      EV3_static = SymEigVal(Stiffness_diagonalized_static);
+      EV3_static = SymEigVal(Stiffness_diagonalized_static, &EigVect_static);
       ExtraTestFunctions(ExTF3_static);
 
       for (int i = 0; i < size; i++)

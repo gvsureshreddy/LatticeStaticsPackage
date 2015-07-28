@@ -39,6 +39,14 @@ FEAP::~FEAP()
         << "\tE1DLoad calls - " << CallCount_[2] << "\n"
         << "\tE2 calls - " << CallCount_[3] << "\n";
 
+   delete[] BoundNodes_;
+   delete[] PeriodicNodes_;
+   delete[] InnerNodes_;
+   delete[] Map_[0];
+   delete[] Map_;
+   if (0 != N_) delete[] N_[0];
+   delete[] N_;
+
    delete[] eqnID_;
    delete[] elmConn_;
    delete[] bcID_;
@@ -52,7 +60,12 @@ FEAP::~FEAP()
 FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
    Lattice(Input, Echo),
    Lambda_(0.0),
-   Width_(Width)
+   Width_(Width),
+   BoundNodes_(0),
+   PeriodicNodes_(0),
+   InnerNodes_(0),
+   Map_(0),
+   N_(0)
 {
    PerlInput::HashStruct Hash = Input.getHash("Lattice");
    Hash = Input.getHash(Hash, "FEAP");
@@ -207,9 +220,10 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
          N = new int[N_rows_*N_cols_];
          Input.getIntMatrix(N,N_rows_,N_cols_, TFHash, "DynamicalStiffnessInfo");
          N_ = new int*[N_rows_];
-         for (int i = 0; i < N_rows_; ++i)
+         N_[0] = new int[N_cols_*N_rows_];
+         for (int i = 1; i < N_rows_; ++i)
          {
-            N_[i] = new int[N_cols_];
+           N_[i] = (N_[i-1] + N_cols_);
          }
          for (int i = 0; i < N_rows_*N_cols_; ++i)
          {
@@ -348,17 +362,17 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
 
    // set DOF_ to initial value
    U_.Resize(2,2,0.0);
-   U_[0][0] = 1.0;
-   U_[1][1] = 1.0;
+   Vector initDOF(DOFS_,0.0);
+   initDOF[0] = initDOF[1] = 1.0;
    DOF_.Resize(DOFS_, 0.0);
-   if (LoadingType_ != DISPLACEMENT_CONTROL)
+   SetDOF(initDOF);
+   if (LoadingType_ == DISPLACEMENT_CONTROL)
    {
-     DOF_[0] = 1.0;
-     DOF_[1] = 1.0;
+     SetLambda(1.0);
    }
    else
    {
-     SetLambda(1.0);
+     SetLambda(0.0);
    }
    DOF_F_.Resize(DOFS_F_, 0.0);
 
@@ -406,9 +420,10 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
 
    // This term doesn't contribute anything for displacement control, so just leave it be
    Map_ = new int*[DOFS_F_];
-   for (int i = 0; i < DOFS_F_; ++i)
+   Map_[0] = new int[4*DOFS_F_];
+   for (int i = 1; i < DOFS_F_; ++i)
    {
-      Map_[i] = new int[4];
+     Map_[i] = Map_[i-1] + 4;
    }
 
    for (int i = 0; i < nbn_/2; ++i)
@@ -481,7 +496,7 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
      }
    }
 
-   int offst = ndm_ * (ndm_ +1) / 2 + nbn_ / 2 * ndf_;
+   int offst = 3 + (nbn_/2)*ndf_;
    for (int i = nbn_; i < numnp_; ++i)
    {
       Map_[InnerNodes_[i-nbn_]*ndf_][0]=0;
@@ -490,9 +505,9 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
       Map_[InnerNodes_[i-nbn_]*ndf_][3]=offst + (i-nbn_)*ndf_ +1;
 
       Map_[InnerNodes_[i-nbn_]*ndf_+1][0]=1;
-      Map_[InnerNodes_[i-nbn_]*ndf_+1][1]= offst + (i-nbn_)*ndf_ +1;
+      Map_[InnerNodes_[i-nbn_]*ndf_+1][1]=offst + (i-nbn_)*ndf_ +1;
       Map_[InnerNodes_[i-nbn_]*ndf_+1][2]=2;
-      Map_[InnerNodes_[i-nbn_]*ndf_+1][3]=  offst + (i-nbn_)*ndf_;
+      Map_[InnerNodes_[i-nbn_]*ndf_+1][3]=offst + (i-nbn_)*ndf_;
 
       if (ndf_>ndm_)
       {
@@ -713,9 +728,9 @@ void FEAP::UpdateValues(UpdateFlag flag) const
          {
            for (int k = 0; k < DOFS_F_; ++k)
            {
-             if ((Map_[k][0]==i && Map_[k][1]==j)) //||(Map_[k][0]==j && Map_[k][1]==i))
+             if ((Map_[k][0]==i && Map_[k][1]==j) || (Map_[k][0]==j && Map_[k][1]==i))
                E2CachedValue_[i][j] += E1CachedValue_F_[k];
-             if ((Map_[k][2]==i && Map_[k][3]==j)) //||(Map_[k][2]==j && Map_[k][3]==i))
+             if ((Map_[k][2]==i && Map_[k][3]==j) || (Map_[k][2]==j && Map_[k][3]==i))
                E2CachedValue_[i][j] += E1CachedValue_F_[k] / sqrt(2.0);
            }
          }
@@ -1019,6 +1034,8 @@ int FEAP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vector
          critical_eig_out_ << endl;
          ++eig_count_;
       }
+
+      delete[] Ind;
    }
    else if ((CPorBif < 0 ) && (TFType_ == 1)) //Bloch Wave Analysis
    {
@@ -1043,7 +1060,7 @@ int FEAP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vector
 
                   for (int l = 0; l < ndf_*(numnp_-nbn_/2); ++l)
                   {
-                     if (fabs(DkEigVal[0][l]<Tolerance) && (NumZeroEig < 2))
+                     if ((fabs(DkEigVal[0][l]) < Tolerance) && (NumZeroEig < 2))
                      {
                         DkEigVal[0][l] = max;
                         ++NumZeroEig;
@@ -1100,7 +1117,7 @@ int FEAP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vector
 
                }
 
-
+               delete[] Ind;
          }
       }
 
@@ -1147,6 +1164,8 @@ int FEAP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vector
                cout << "\n";
             }
          }
+
+         delete[] Ind;
       }
    }
    return -1;
@@ -1194,7 +1213,7 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
                for (int l = 0; l < ndf_*(numnp_-nbn_/2); ++l)
                {
                   //Dk has 2 zero eigen values when k = [0,0], so special treatment
-                  if ((i==0) && (j==0) && NumZeroEig < 2 && (fabs(DkEigVal[0][l] < Tolerance_)))
+                  if ((i==0) && (j==0) && (NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < 1.0e-10))
                   {
                      bloch_wave_out_ << DkEigVal[0][l] << "\n";
                      double max = DkEigVal.MaxElement();
@@ -1241,7 +1260,7 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
          for (int  l=0; l < ndf_*(numnp_-nbn_/2); ++l)
          {
             int NumZeroEig = 0;
-            if ((K_[0]==0.0) && (K_[1]==0.0) && NumZeroEig < 2 && (fabs(DkEigVal[0][l] < Tolerance_)))
+            if ((K_[0]==0.0) && (K_[1]==0.0) && (NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < 1.0e-10))
             {
                double max = DkEigVal.MaxElement();
                DkEigVal[0][l] = max;
@@ -1285,7 +1304,7 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
          {
 
             int NumZeroEig = 0;
-            if ((K_[0]==0.0) && (K_[1]==0.0) && NumZeroEig < 2 && (fabs(DkEigVal[0][l] < Tolerance_)))
+            if ((K_[0]==0.0) && (K_[1]==0.0) && (NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < 1.0e-10))
             {
                double max = DkEigVal.MaxElement();
                DkEigVal[0][l] = max;

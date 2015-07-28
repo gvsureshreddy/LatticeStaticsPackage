@@ -10,7 +10,7 @@ LIBRARY    = libBFBSymPac.a
 SRC_EXT    = .cpp
 OBJ_EXT    = .o
 DEP_EXT    = .d
-BUILD_DATE = \"`date +%c`\"
+BUILD_DATE = \"`date +%c;` from git commit `git rev-parse HEAD`\"
 
 # Compiling options, etc. #################################################
 #
@@ -57,7 +57,7 @@ ifneq (,$(strip $(USE_FEAP)))
   endif
   LIBS_FEAP = $(FEAPHOME8_3)/Feap8_3.a -lgfortran -L/opt/X11/lib   -lX11
 else
-  LIBS_FEAP = 
+  LIBS_FEAP =
 endif
 ifneq (,$(strip $(USE_KIM)))
   KIM_CONFIG_HELPER = kim-api-build-config
@@ -176,4 +176,3 @@ depend/$(notdir %).d: %$(SRC_EXT)
 	      | sed '\''s/\($*\)\.o[ :]*/\1.o $*.d : /g'\'' \
 	      > $@; [ -s $@ ] || rm -f $@'
 	@echo "Building $@"
-

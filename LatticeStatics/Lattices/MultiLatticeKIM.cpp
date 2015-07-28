@@ -63,13 +63,7 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
 
    PerlInput::HashStruct CBKHash = Input.getHash(Hash, "CBKinematics");
    const char* CBKin = Input.getString(CBKHash, "Type");
-   if (!strcmp("SymLagrangeCB", CBKin))
-   {
-      CBK_ = new SymLagrangeCB(Input, &Hash);
-      KillTranslations_ = 0;
-      needKillRotations = 0;
-   }
-   else if (!strcmp("SymLagrangeWTransCB", CBKin))
+   if (!strcmp("SymLagrangeWTransCB", CBKin))
    {
       CBK_ = new SymLagrangeWTransCB(Input, &Hash);
       needKillRotations = 0;
@@ -463,14 +457,30 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
    }
    K_static.Resize(DIM3);
 
-   Cached_[0] = 0;
+   // Initialize Cached_ values
+   for (int i=0; i<cachesize; ++i) Cached_[i] = 0;
    if (Input.ParameterOK(Hash, "InitialEqbm"))
    {
       const char* init_equil = Input.getString(Hash, "InitialEqbm");
       if (!strcmp("Yes", init_equil) || !strcmp("yes", init_equil))
       {
          int err = 0;
-         err = FindLatticeSpacing(iter);
+         if (Input.ParameterOK(Hash, "InitialEqbmCubic"))
+         {
+           const char* cubic_equil = Input.getString(Hash, "InitialEqbmCubic");
+           if (!strcmp("Yes", cubic_equil) || !strcmp("yes", cubic_equil))
+           {
+             err = FindLatticeSpacing(iter, true);
+           }
+           else
+           {
+             err = FindLatticeSpacing(iter, false);
+           }
+         }
+         else
+         {
+           err = FindLatticeSpacing(iter, false);
+         }
          if (err)
          {
             cerr << "unable to find initial lattice spacing!" << "\n";
@@ -482,7 +492,7 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
    {
       Input.useString("Yes", Hash, "InitialEqbm");
       int err = 0;
-      err = FindLatticeSpacing(iter);
+      err = FindLatticeSpacing(iter,false);
       if (err)
       {
          cerr << "unable to find initial lattice spacing!" << "\n";
@@ -500,7 +510,7 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
 
 }
 
-int MultiLatticeKIM::FindLatticeSpacing(int const& iter)
+int MultiLatticeKIM::FindLatticeSpacing(int const& iter, bool cubicEqbm)
 {
    const double Tol = DOF().Dim() * 1.0e-13;
 
@@ -509,13 +519,27 @@ int MultiLatticeKIM::FindLatticeSpacing(int const& iter)
    CBK_->SetReferenceDOFs();
    LatSum_.Recalc();
 
-   if (Echo_)
+   if (cubicEqbm)
    {
-      RefineEqbm(Tol, iter, &cout);
+     if (Echo_)
+     {
+       RefineCubicEqbm(Tol, iter, &cout);
+     }
+     else
+     {
+       RefineCubicEqbm(Tol, iter, 0);
+     }
    }
    else
    {
-      RefineEqbm(Tol, iter, 0);
+     if (Echo_)
+     {
+       RefineEqbm(Tol, iter, &cout);
+     }
+     else
+     {
+       RefineEqbm(Tol, iter, 0);
+     }
    }
 
    // Clean up numerical round off (at least for zero values)
@@ -689,7 +713,8 @@ double MultiLatticeKIM::E0() const
           + 0.5 * (RoEig_[0] * Rsq_static[0] + RoEig_[1] * Rsq_static[1]
                    + RoEig_[2] * Rsq_static[2]);
 
-      // @@ updated Cached_ value
+      // Update Cached_[0] value
+      Cached_[0] = 1;
    }
 
    return E0CachedValue_;
@@ -703,7 +728,7 @@ double MultiLatticeKIM::energy(LDeriv const& dl) const
 
    if (dl == L0)
    {
-      // @@ set StiffnessYes_?
+      StiffnessYes_ = 0;
       UpdateKIMValues();
       //compute energy per volume
       phi = energy_ / Vr;
@@ -742,7 +767,7 @@ double MultiLatticeKIM::ConjugateToLambda() const
 
 Vector const& MultiLatticeKIM::E1() const
 {
-   if (!Cached_[0])
+   if (!Cached_[1])
    {
       stress();
       if (KillTranslations_)
@@ -800,7 +825,8 @@ Vector const& MultiLatticeKIM::E1() const
           }
           break;
       }
-      // @@ update Cached_ value
+      // Update Cached_[1] value
+      Cached_[1] = 1;
    }
 
    return ME1_static;
@@ -812,7 +838,7 @@ Vector const& MultiLatticeKIM::stress(LDeriv const& dl) const
 
    if (dl == L0)
    {
-     // @@ set StiffnessYes_?
+     StiffnessYes_ = 0;
      UpdateKIMValues();
      ME1_static *= 1.0 / Vr;
 
@@ -849,7 +875,7 @@ Vector const& MultiLatticeKIM::stress(LDeriv const& dl) const
 
 Matrix const& MultiLatticeKIM::E2() const
 {
-   if (!Cached_[0])
+   if (!Cached_[2])
    {
       stiffness();
       if (KillTranslations_)
@@ -898,6 +924,9 @@ Matrix const& MultiLatticeKIM::E2() const
           }
           break;
       }
+
+      // Update Cached_[2] value
+      Cached_[2] = 1;
    }
 
    return ME2_static;
@@ -928,8 +957,7 @@ Matrix const& MultiLatticeKIM::stiffness(LDeriv const& dl) const
       cerr << "Unknown LDeriv dl in MultiLatticeTKIM::stiffness()" << "\n";
       exit(-1);
    }
-   // @@ remove?
-   StiffnessYes_ = 0;
+
    return ME2_static;
 }
 
@@ -1088,7 +1116,7 @@ void MultiLatticeKIM::TFCritPtInfo(int TFIndex, int Width, ostream& out) const
 
 Matrix const& MultiLatticeKIM::CondensedModuli() const
 {
-   Matrix const& stiff = stiffness();
+   Matrix const& stiff = E2();
    int intrn = CBK_->Ssize();
    double factor = 1.0 / (intrn / DIM3);
    int fsz = CBK_->Fsize();
@@ -1219,6 +1247,7 @@ const
   K_static.Resize(DIM3);
   K_static = K;
   BlochwaveProcess_ = 1;
+  //@@ Update StiffnessYes_ ?
   UpdateKIMValues();
   BlochwaveProcess_ = 0;
 
@@ -1406,7 +1435,7 @@ void MultiLatticeKIM::Print(ostream& out, PrintDetail const& flag,
 
    if (NoFP)
    {
-      stiff_static = stiffness();
+      stiff_static = E2();
 
       TestFunctions(TestFunctVals_static, LHS);
       mintestfunct = TestFunctVals_static[0];
@@ -1618,7 +1647,8 @@ void MultiLatticeKIM::DebugMode()
       "TranslationProjection1D",
       "TranslationProjection3D",
    };
-   int NOcommands = 42;
+   //int NOcommands = 42;
+   int NOcommands = 41;
 
    string response;
    char prompt[] = "Debug > ";
@@ -1825,7 +1855,7 @@ void MultiLatticeKIM::DebugMode()
          int iter;
          cout << "\titer > ";
          cin >> iter;
-         FindLatticeSpacing(iter);
+         FindLatticeSpacing(iter,false);
       }
       else if (response == Commands[indx++])
       {
@@ -1940,7 +1970,6 @@ void MultiLatticeKIM::RefineEqbm(double const& Tol, int const& MaxItr,
       dx = SolvePLU(E2(), Stress);
 #endif
 
-      // /      break;
       SetDOF(CBK_->DOF() - dx);
 
       Stress = E1();
@@ -1949,7 +1978,64 @@ void MultiLatticeKIM::RefineEqbm(double const& Tol, int const& MaxItr,
       {
          *out << setw(20) << Stress;
 
-         *out << itr << "\tdx " << dx.Norm() << "\tstress " << Stress.Norm()
+         *out << "\t" << itr << "\tdx " << dx.Norm() << "\tstress " << Stress.Norm()
+              << "\n";
+      }
+   }
+}
+
+void MultiLatticeKIM::RefineCubicEqbm(double const& Tol, int const& MaxItr,
+                                      ostream* const out)
+{
+   Vector dx(CBK_->DOFS(), 0.0);
+   Vector Stress = E1();
+   Matrix Stiff = E2();
+   double f;
+   double k;
+   double d;
+
+   int itr = 0;
+   f = 0.0;
+   k = 0.0;
+   for (int i=0; i<DIM3; ++i)
+   {
+     f += Stress[CBK_->INDF(i,i)];
+     for (int j=0; j<DIM3; ++j)
+     {
+       k += Stiff[CBK_->INDF(i,i)][CBK_->INDF(j,j)];
+     }
+   }
+   while ((itr < MaxItr) && (fabs(f) > Tol))
+   {
+      ++itr;
+
+      d = f/k;
+
+      for (int i=0; i<DIM3; ++i)
+      {
+        dx[CBK_->INDF(i,i)] = d;
+      }
+
+      SetDOF(CBK_->DOF() - dx);
+
+      Stress = E1();
+      Stiff = E2();
+      f = 0.0;
+      k = 0.0;
+      for (int i=0; i<DIM3; ++i)
+      {
+        f += Stress[CBK_->INDF(i,i)];
+        for (int j=0; j<DIM3; ++j)
+        {
+          k += Stiff[CBK_->INDF(i,i)][CBK_->INDF(j,j)];
+        }
+      }
+
+      if (out != 0)
+      {
+         *out << setw(20) << Stress;
+
+         *out << "\t" << itr << "\tdx " << dx.Norm() << "\tstress " << Stress.Norm()
               << "\n";
       }
    }

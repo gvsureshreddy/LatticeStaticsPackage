@@ -3,6 +3,7 @@
 
 #include <Matrix.h>
 #include <Vector.h>
+#include <vector>
 #include "CBKinematics.h"
 
 #define PPSUMKIMdatalen 11
@@ -24,9 +25,9 @@ private:
 
    int CurrentPOS_;
 
-   int* numNeigh_;
-   int* nListAtom_;
-   double* nListRVec_;
+   std::vector<int> numNeigh_;
+   std::vector<int>  nListAtom_;
+   std::vector<double> nListRVec_;
 
    void Initialize();
 
@@ -39,9 +40,6 @@ public:
             double* const InfluDist);
    ~PPSumKIM()
    {
-      delete[] numNeigh_;
-      delete[] nListAtom_;
-      delete[] nListRVec_;
    }
 
    void operator()(CBKinematics* const CBK, int const& InternalAtoms,

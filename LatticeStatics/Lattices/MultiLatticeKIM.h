@@ -25,7 +25,7 @@ private:
    const static int DIM3;
    int InternalAtoms_;
 
-   static const int cachesize = 1;
+   static const int cachesize = 3;
    mutable int Cached_[cachesize];
    double InfluenceDist_;
 
@@ -131,8 +131,8 @@ public:
 
    void SetDOF(Vector const& dof)
    {
-      // @@ update Cached_?
-      CBK_->SetDOF(dof); // LatSum_.Recalc();
+     for (int i=0; i<cachesize; ++i) Cached_[i] = 0;
+     CBK_->SetDOF(dof);
    }
 
    // @@ remove?
@@ -199,8 +199,8 @@ public:
    double ConjugateToLambda() const;
    void SetLambda(double const& lambda)
    {
-      // @@ update Cached_?
-      Lambda_ = lambda;
+     for (int i=0; i<cachesize; ++i) Cached_[i] = 0;
+     Lambda_ = lambda;
    }
 
    virtual double E0() const;
@@ -233,6 +233,7 @@ public:
    }
 
    void RefineEqbm(double const& Tol, int const& MaxItr, ostream* const out);
+   void RefineCubicEqbm(double const& Tol, int const& MaxItr, ostream* const out);
    //virtual void NeighborDistances(int const& cutoff, ostream& out) const;
    virtual char const* const Type() const
    {
@@ -284,7 +285,7 @@ public:
    friend ostream& operator<<(ostream& out, MultiLatticeKIM& A);
 
 private:
-   int FindLatticeSpacing(int const& iter);
+   int FindLatticeSpacing(int const& iter, bool cubicEqbm);
 
    // member variables used to avoid repeated memory allocation/deallocation
    // and thus, improve performance.
@@ -323,7 +324,7 @@ private:
    // ReferenceDynamicalStiffness
    mutable CMatrix Dk_static;
    mutable Vector K_static;
- 
+
    // ReferenceBlochWave
    mutable CMatrix A_static;
    mutable Matrix EigVals_static;

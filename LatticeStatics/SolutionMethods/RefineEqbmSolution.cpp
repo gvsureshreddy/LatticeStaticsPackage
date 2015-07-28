@@ -14,7 +14,8 @@ RefineEqbmSolution::RefineEqbmSolution(Restriction* const Restrict, Vector const
    Converge_(Converge),
    ConvergeType_(CnvrgTyp)
 {
-   Guesses_ = new Vector(one.Dim());
+   Guesses_ = new Vector[1];
+   Guesses_[0].Resize(one.Dim());
    Guesses_[0] = one;
 }
 
@@ -56,7 +57,8 @@ RefineEqbmSolution::RefineEqbmSolution(Restriction* const Restrict, PerlInput co
    }
 
 
-   Guesses_ = new Vector(one.Dim());
+   Guesses_ = new Vector[1];
+   Guesses_[0].Resize(one.Dim());
    Guesses_[0] = one;
 }
 
