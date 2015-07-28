@@ -1820,7 +1820,7 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
                  << "Potential Value: " << setw(W) << engy << "\n"
                  << "Force Norm: " << setw(W) << E1norm << "\n";
        //ajout ///////////////////////////////////////////////////////////////////
-  cout << "StiffnessDL= " << setw(W) << E2() << "\n";
+//   cout << "StiffnessDL= " << setw(W) << E2() << "\n";
 //   cout << "X_F_= " << setw(W) << X_F_ << "\n";
 //      QR(E2(), Q, R, 1);
 //   cout << "QR= " << setw(W) << Q << "\n";
