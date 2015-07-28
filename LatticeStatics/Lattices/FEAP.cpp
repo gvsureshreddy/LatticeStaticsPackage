@@ -77,7 +77,7 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
    }
    else
    {
-      Tolerance_ = Input.useDouble(1.0e-6, Hash, "Tolerance");  // Default Value
+      Tolerance_ = Input.useDouble(1.0e-10, Hash, "Tolerance");  // Default Value
    }
    if (Input.ParameterOK(Hash, "Nbn"))
      {
@@ -1213,7 +1213,7 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
                for (int l = 0; l < ndf_*(numnp_-nbn_/2); ++l)
                {
                   //Dk has 2 zero eigen values when k = [0,0], so special treatment
-                  if ((i==0) && (j==0) && (NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < 1.0e-10))
+                  if ((i==0) && (j==0) && (NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < Tolerance_))
                   {
                      bloch_wave_out_ << DkEigVal[0][l] << "\n";
                      double max = DkEigVal.MaxElement();
@@ -1253,14 +1253,16 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
          K_[1] = 2*pi*(KRange_[0] + (KRange_[1] - KRange_[0])*(((double) i)/((double) KSpaceResolution_)))* KDirection_[1];
 
          DynamicalMatrixBis(K_);
-         Matrix DkEigVal = HermiteEigVal(Dk_);
+         CMatrix DkEigVec(Dk_.Rows(),Dk_.Cols());
+         Matrix DkEigVal = HermiteEigVal(Dk_, &DkEigVec);
          double min = DkEigVal.MinElement();
          int foundmin=0;
+         int minIndex=0;
 
          for (int  l=0; l < ndf_*(numnp_-nbn_/2); ++l)
          {
             int NumZeroEig = 0;
-            if ((K_[0]==0.0) && (K_[1]==0.0) && (NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < 1.0e-10))
+            if ((K_[0]==0.0) && (K_[1]==0.0) && (NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < Tolerance_))
             {
                double max = DkEigVal.MaxElement();
                DkEigVal[0][l] = max;
@@ -1304,7 +1306,7 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
          {
 
             int NumZeroEig = 0;
-            if ((K_[0]==0.0) && (K_[1]==0.0) && (NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < 1.0e-10))
+            if ((K_[0]==0.0) && (K_[1]==0.0) && (NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < Tolerance_))
             {
                double max = DkEigVal.MaxElement();
                DkEigVal[0][l] = max;
