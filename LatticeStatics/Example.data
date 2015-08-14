@@ -74,6 +74,7 @@ $Rtheta1_1_1 = 0.275914376289;
              #                        [1.0,-1.0, 0.0],
              #                        [0.0, 0.0, 1.0]],
              KIMModel            => "ex_model_ArNe_P_MLJ_NEIGH_RVEC_F",
+             #PrintKIM_DescriptorFile => Yes,
              KIMModelPublishedParameters => [["PARAM_FREE_cutoff", "double", 12.5]],
              InitialEqbm         => Yes, # Default value = Yes; No
              #InitialEqbmCubic    => Yes, # Default value = No
