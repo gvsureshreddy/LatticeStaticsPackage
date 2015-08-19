@@ -157,7 +157,7 @@ sub loaddata {
         $gridsize = $fields[1];
       }
 
-      if (/^Input File:.*FastPrint.*Yes/)
+      if (/^Input File:.*FastPrint[^#]*Yes/)
       {
         $FastPrint = 1;
       }
