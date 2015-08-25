@@ -1,3 +1,4 @@
+
 #include <cmath>
 #include <fstream>
 #include <sstream>
@@ -30,6 +31,7 @@ NewtonPCSolution::NewtonPCSolution(
     UpdateType const& Type, int const& ComputeExactTangent,
     int const& NumSolutions, double const& MaxDS,
     double const& CurrentDS, double const& MinDS,
+    Matrix const& DS_LimitOverride,
     double const& cont_rate_max, double const& delta_max,
     double const& alpha_max, double const& eig_angle_max,
     double const& Converge, ConvergeType CnvrgTyp,
@@ -51,6 +53,7 @@ NewtonPCSolution::NewtonPCSolution(
     PreviousDS_(CurrentDS),
     CurrentDS_(CurrentDS),
     MinDS_(MinDS),
+    DS_LimitOverride_(DS_LimitOverride),
     cont_rate_max_(cont_rate_max),
     delta_max_(delta_max),
     alpha_max_(alpha_max),
@@ -328,6 +331,12 @@ void NewtonPCSolution::ProcessOptions(PerlInput const& Input)
   CurrentDS_ = Input.getDouble(Hash, "CurrentDS");
   PreviousDS_ = CurrentDS_;
   MinDS_ = Input.getDouble(Hash, "MinDS");
+  if (Input.ParameterOK(Hash, "DS_LimitOverride"))
+  {
+    // each row of matrix is of the form: min-lambda, max-lambda, min-ds, max-ds
+    DS_LimitOverride_.Resize(Input.getArrayLength(Hash, "DS_LimitOverride"), 4);
+    Input.getMatrix(DS_LimitOverride_, Hash, "DS_LimitOverride");
+  }
   cont_rate_max_ = Input.getDouble(Hash, "Contraction");
   delta_max_ = Input.getDouble(Hash, "Distance");
   alpha_max_ = Input.getDouble(Hash, "Angle");
@@ -571,6 +580,8 @@ int NewtonPCSolution::FindNextSolution(PerlInput const& Input, int const& Width,
    double f;
    double forcenorm;
    double const eta = 0.1;
+   double currentMaxDS = getCurrentMaxDS();
+   double currentMinDS = getCurrentMinDS();
 
    PreviousSolution_ = Restrict_->DOF();
 
@@ -583,7 +594,7 @@ int NewtonPCSolution::FindNextSolution(PerlInput const& Input, int const& Width,
    {
       corrections = 0;
 
-      if (CurrentDS_ < MinDS_)
+      if (CurrentDS_ < currentMinDS)
       {
          cout << "Minimum StepSize (MinDS) violated.\n";
          good = 0;
@@ -772,9 +783,12 @@ int NewtonPCSolution::FindNextSolution(PerlInput const& Input, int const& Width,
 
    // adaptively change DS for next point
    CurrentDS_ = CurrentDS_ / f;  // note the above ensures that  (1/accel_max_) < f < accel_max_
-   if (CurrentDS_ > MaxDS_)
+   // update current DS limits
+   currentMaxDS = getCurrentMaxDS();
+   currentMinDS = getCurrentMinDS();
+   if (CurrentDS_ > currentMaxDS)
    {
-      CurrentDS_ = MaxDS_;
+      CurrentDS_ = currentMaxDS;
    }
 
    if (ComputeExactTangent_ == 1)
@@ -1170,4 +1184,34 @@ int NewtonPCSolution::RelativeEigVectsOK() const
    }
 
    return retval;
+}
+
+double NewtonPCSolution::getCurrentMaxDS() const
+{
+  double result = MaxDS_;
+  double currentLambda = Restrict_->Lat()->Lambda();
+
+  for (int i = 0; i < DS_LimitOverride_.Rows(); ++i)
+  {
+    if ((currentLambda > DS_LimitOverride_[i][0]) &&
+        (currentLambda < DS_LimitOverride_[i][1]))
+      result = DS_LimitOverride_[i][3];
+  }
+
+  return result;
+}
+
+double NewtonPCSolution::getCurrentMinDS() const
+{
+  double result = MinDS_;
+  double currentLambda = Restrict_->Lat()->Lambda();
+
+  for (int i = 0; i < DS_LimitOverride_.Rows(); ++i)
+  {
+    if ((currentLambda > DS_LimitOverride_[i][0]) &&
+        (currentLambda < DS_LimitOverride_[i][1]))
+      result = DS_LimitOverride_[i][2];
+  }
+
+  return result;
 }
