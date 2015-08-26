@@ -1644,10 +1644,8 @@ void FEAP::DynamicalMatrixBis(Vector const& K) const
       {
           A[ndf_*i][ndf_*j] -= 2.0/eps_;
           A[1+ndf_*i][1+ndf_*j] -= 2.0/eps_;
-          if (ndf_ > (ndm_+1))
-          {
-            A[2+ndf_*i][2+ndf_*j] -= 2.0/eps_;
-          }
+          // Don't remove the 4th DOF Phantom Energy term
+          // it is not associated with a rigid-body mode
       }
    }
 
