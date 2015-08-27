@@ -312,6 +312,11 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
 
       TFLoad_=  Input.getDouble(TFHash,"LoadingParameter");
    }
+   else if(!strcmp("RankOneConvex", TFtyp))
+   {
+     TFType_ = 5;
+     NumExtraTFs_ = 1;
+   }
    else
    {
       cerr << "Error (FEAP()): Unknown TestFunctions{Type}" << "\n";
@@ -1160,7 +1165,7 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
 {
 
    double pi = 4.0*atan(1.0);
-   if (TFType_ != 4)
+   if ((TFType_ >0) && (TFType_ <5))
    {
      bloch_wave_out_ << "## Index Number : " << bloch_count_ << "\n"
                      << "#### Lambda = " << Lambda_;
@@ -1320,6 +1325,24 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
    else if(TFType_ == 4) // LoadingParameter
    {
       TF[0] = TFLoad_ - Lambda_;
+   }
+   else if(TFType_ == 5) // Rank-one convexity
+   {
+     // Condense d2W/dFdF
+     Matrix A=W2CachedValue_.Extract(0,0,4);
+     Matrix C=W2CachedValue_.Extract(4,4,W2CachedValue_.Rows()-4);
+     Matrix B(4,C.Cols());
+     for (int i=0; i<4; ++i)
+     {
+       for (int j=0; j<B.Cols(); ++j)
+       {
+         B[i][j] = W2CachedValue_[i][4+j];
+       }
+     }
+     Matrix Cond=A-B*C.Inverse()*B.Transpose();
+     double RankOne = RankOneConvex(Cond);
+
+     TF[0] = RankOneConvex(Cond);
    }
    return;
 }
