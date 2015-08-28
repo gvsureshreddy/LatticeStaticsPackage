@@ -52,6 +52,7 @@ private:
    Matrix KVectorMatrix_;//KVectors when AnalysisType => KVectors
    double TFLoad_;//Load when ExtraTestFunctions => LoadingParameter
    int TFType_;
+   int BWTFType_; // 0-All branches at a k-point; or 1-Lowest branch at a k-point
    void DynamicalMatrix(Vector const& K) const; //Dynamical Matrix, uses the FEAP stiffness matrix
    void DynamicalMatrixBis(Vector const& K) const; //Dynamical Matrix, uses the BFB stiffness matrix
 

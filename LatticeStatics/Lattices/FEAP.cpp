@@ -240,7 +240,28 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
          exit(-3);
       }
 
-
+      if (Input.ParameterOK(TFHash, "Branches"))
+      {
+        const char* Branches = Input.getString(TFHash, "Branches");
+        if (!strcmp("All", Branches))
+        {
+          BWTFType_ = 0;
+        }
+        else if (!strcmp("Lowest", Branches))
+        {
+          BWTFType_ = 1;
+        }
+        else
+        {
+          cerr << "*ERROR* Unknown Branches \n";
+          exit(-4);
+        }
+      }
+      else
+      {
+        BWTFType_ = 0; // All branches
+        Input.useString("All", TFHash, "Branches");
+      }
 
       if (Input.ParameterOK(TFHash, "AnalysisType"))
       {
@@ -248,17 +269,32 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
           if (!strcmp("Full", AnalysisType))
           {
              TFType_ = 1;
-             NumExtraTFs_ = ndf_*(numnp_-nbn_/2) * pow(KSpaceResolution_+1.0,2);
+             if (0 == BWTFType_)
+             {
+               NumExtraTFs_ = ndf_*(numnp_-nbn_/2) * pow(KSpaceResolution_+1.0,2);
+             }
+             else
+             {
+               NumExtraTFs_ = pow(KSpaceResolution_+1,2);
+             }
+
              if (!(Input.ParameterOK(TFHash, "KSpaceResolution")))
              {
                 cout << "*WARNING* KSpaceResolution not specified. Using default value: 6 \n";
              }
-
           }
           else if (!strcmp("KDirection",AnalysisType))
           {
              TFType_ = 2;
-             NumExtraTFs_ = ndf_*(numnp_-nbn_/2)*(KSpaceResolution_ + 1);
+             if (0 == BWTFType_)
+             {
+               NumExtraTFs_ = ndf_*(numnp_-nbn_/2)*(KSpaceResolution_ + 1);
+             }
+             else
+             {
+               NumExtraTFs_ = KSpaceResolution_ + 1;
+             }
+
              KDirection_.Resize(2,0.0);
              KRange_.Resize(2,0.0);
 
@@ -295,8 +331,14 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
             NumKVectors_ = Input.getArrayLength(TFHash,"KVectors");
             KVectorMatrix_.Resize(NumKVectors_,2,0.0);
             Input.getMatrix(KVectorMatrix_, TFHash, "KVectors");
-            NumExtraTFs_ = NumKVectors_*ndf_*(numnp_-nbn_/2);
-
+            if (0 == BWTFType_)
+            {
+              NumExtraTFs_ = NumKVectors_*ndf_*(numnp_-nbn_/2);
+            }
+            else
+            {
+              NumExtraTFs_ = NumKVectors_;
+            }
          }
          else
          {
@@ -1197,32 +1239,55 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
 
             DynamicalMatrixBis(K_);
 
-               Matrix DkEigVal = HermiteEigVal(Dk_);
-               int NumZeroEig = 0; //For treating the k = [0,0] case
+            Matrix DkEigVal = HermiteEigVal(Dk_);
+            int NumZeroEig = 0; //For treating the k = [0,0] case
 
-               for (int l = 0; l < ndf_*(numnp_-nbn_/2); ++l)
-               {
-                  //Dk has 2 zero eigen values when k = [0,0], so special treatment
-                  if ((i==0) && (j==0) && (NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < Tolerance_))
+            if (0==BWTFType_)
+            {
+              for (int l = 0; l < ndf_*(numnp_-nbn_/2); ++l)
+              {
+                //Dk has 2 zero eigen values when k = [0,0], so special treatment
+                if ((i==0) && (j==0) && (NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < Tolerance_))
+                {
+                  double max = DkEigVal.MaxElement();
+                  DkEigVal[0][l] = max;
+                  TF[k] = max;
+                  ++NumZeroEig;
+                }
+                else
+                {
+                  TF[k] = DkEigVal[0][l];
+                }
+                ++k;
+              }
+            }
+            else
+            {
+              //Dk has 2 zero eigen values when k = [0,0], so special treatment
+              if ((i==0) && (j==0))
+              {
+                double max = DkEigVal.MaxElement();
+                for (int l = 0; l < ndf_*(numnp_-nbn_/2); ++l)
+                {
+                  if ((NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < Tolerance_))
                   {
-                     double max = DkEigVal.MaxElement();
-                     DkEigVal[0][l] = max;
-                     TF[k] = max;
-                     ++NumZeroEig;
+                    DkEigVal[0][l] = max;
+                    ++NumZeroEig;
                   }
-                  else
-                  {
-                     TF[k] = DkEigVal[0][l];
-                  }
-                  ++k;
+                }
 
-               }
+                TF[k] = DkEigVal.MinElement();
+              }
+              else
+              {
+                TF[k] = DkEigVal.MinElement();
+              }
+              ++k;
+            }
 
             bloch_wave_out_ << setw(Width_) << K_[0]/(2*pi)
                             << setw(Width_) << K_[1]/(2*pi)
                             << setw(Width_) << DkEigVal.MinElement() << "\n";
-
-
          }
          bloch_wave_out_ << endl;
       }
@@ -1248,33 +1313,40 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
          int foundmin=0;
          int minIndex=0;
 
-         for (int  l=0; l < ndf_*(numnp_-nbn_/2); ++l)
+         if (0==BWTFType_)
          {
-            int NumZeroEig = 0;
-            if ((K_[0]==0.0) && (K_[1]==0.0) && (NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < Tolerance_))
-            {
+           for (int  l=0; l < ndf_*(numnp_-nbn_/2); ++l)
+           {
+             int NumZeroEig = 0;
+             if ((K_[0]==0.0) && (K_[1]==0.0) && (NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < Tolerance_))
+             {
                double max = DkEigVal.MaxElement();
                DkEigVal[0][l] = max;
                TF[k] = max;
                ++NumZeroEig;
-            }
-            else
-            {
+             }
+             else
+             {
                TF[k]=DkEigVal[0][l];
-            }
-            ++k;
+             }
+             ++k;
 
-            if (!foundmin && DkEigVal[0][l] == min)
-            {
+             if (!foundmin && DkEigVal[0][l] == min)
+             {
                DkEigVal[0][l] += DkEigVal.MaxElement();
                foundmin = 1;
-            }
+             }
+           }
+         }
+         else
+         {
+           TF[k] = DkEigVal.MinElement();
+           ++k;
          }
          bloch_wave_out_ << setw(Width_) << K_[0]/(2*pi)
                          << setw(Width_) << K_[1]/(2*pi)
                          << setw(Width_) << min
                          << setw(Width_) << DkEigVal.MinElement() << "\n";
-
       }
       bloch_wave_out_ << "\n" << "\n";
       bloch_count_++;
@@ -1291,28 +1363,36 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
          double min = DkEigVal.MinElement();
          int foundmin=0;
 
-         for (int  l=0; l < ndf_*(numnp_-nbn_/2); ++l)
+         if (0==BWTFType_)
          {
+           for (int  l=0; l < ndf_*(numnp_-nbn_/2); ++l)
+           {
 
-            int NumZeroEig = 0;
-            if ((K_[0]==0.0) && (K_[1]==0.0) && (NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < Tolerance_))
-            {
+             int NumZeroEig = 0;
+             if ((K_[0]==0.0) && (K_[1]==0.0) && (NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < Tolerance_))
+             {
                double max = DkEigVal.MaxElement();
                DkEigVal[0][l] = max;
                TF[k] = max;
                ++NumZeroEig;
-            }
-            else
-            {
+             }
+             else
+             {
                TF[k]=DkEigVal[0][l];
-            }
-            ++k;
+             }
+             ++k;
 
-            if (!foundmin && DkEigVal[0][l] == min)
-            {
+             if (!foundmin && DkEigVal[0][l] == min)
+             {
                DkEigVal[0][l] += DkEigVal.MaxElement();
                foundmin = 1;
-            }
+             }
+           }
+         }
+         else
+         {
+           TF[k] = DkEigVal.MinElement();
+           ++k;
          }
          bloch_wave_out_ << setw(Width_) << K_[0]/(2*pi)
                          << setw(Width_) << K_[1]/(2*pi)
