@@ -18,7 +18,6 @@ extern "C" void bfbfeap_get_nodal_solution_(double* bfb_u);
 extern "C" void bfbfeap_set_nodal_solution_(double* bfb_u);
 extern "C" void bfbfeap_get_nodal_coords_(double* bfb_x);
 extern "C" void bfbfeap_get_potential_energy_(double* bfb_epl);
-extern "C" void bfbfeap_get_indicatrix_(double* bfb_indic);
 extern "C" void bfbfeap_get_reduced_residual_(double* bfb_rd);
 extern "C" void bfbfeap_get_reduced_tang_(double* bfb_tang);
 extern "C" void bfbfeap_call_ener_();
@@ -44,6 +43,8 @@ FEAP::~FEAP()
    delete[] InnerNodes_;
    delete[] Map_[0];
    delete[] Map_;
+   delete[] FMap_[0];
+   delete[] FMap_;
    if (0 != N_) delete[] N_[0];
    delete[] N_;
 
@@ -65,6 +66,7 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
    PeriodicNodes_(0),
    InnerNodes_(0),
    Map_(0),
+   FMap_(0),
    N_(0)
 {
    PerlInput::HashStruct Hash = Input.getHash("Lattice");
@@ -238,7 +240,28 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
          exit(-3);
       }
 
-
+      if (Input.ParameterOK(TFHash, "Branches"))
+      {
+        const char* Branches = Input.getString(TFHash, "Branches");
+        if (!strcmp("All", Branches))
+        {
+          BWTFType_ = 0;
+        }
+        else if (!strcmp("Lowest", Branches))
+        {
+          BWTFType_ = 1;
+        }
+        else
+        {
+          cerr << "*ERROR* Unknown Branches \n";
+          exit(-4);
+        }
+      }
+      else
+      {
+        BWTFType_ = 0; // All branches
+        Input.useString("All", TFHash, "Branches");
+      }
 
       if (Input.ParameterOK(TFHash, "AnalysisType"))
       {
@@ -246,17 +269,32 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
           if (!strcmp("Full", AnalysisType))
           {
              TFType_ = 1;
-             NumExtraTFs_ = ndf_*(numnp_-nbn_/2) * pow(KSpaceResolution_+1.0,2);
+             if (0 == BWTFType_)
+             {
+               NumExtraTFs_ = ndf_*(numnp_-nbn_/2) * pow(KSpaceResolution_+1.0,2);
+             }
+             else
+             {
+               NumExtraTFs_ = pow(KSpaceResolution_+1,2);
+             }
+
              if (!(Input.ParameterOK(TFHash, "KSpaceResolution")))
              {
                 cout << "*WARNING* KSpaceResolution not specified. Using default value: 6 \n";
              }
-
           }
           else if (!strcmp("KDirection",AnalysisType))
           {
              TFType_ = 2;
-             NumExtraTFs_ = ndf_*(numnp_-nbn_/2)*(KSpaceResolution_ + 1);
+             if (0 == BWTFType_)
+             {
+               NumExtraTFs_ = ndf_*(numnp_-nbn_/2)*(KSpaceResolution_ + 1);
+             }
+             else
+             {
+               NumExtraTFs_ = KSpaceResolution_ + 1;
+             }
+
              KDirection_.Resize(2,0.0);
              KRange_.Resize(2,0.0);
 
@@ -293,8 +331,14 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
             NumKVectors_ = Input.getArrayLength(TFHash,"KVectors");
             KVectorMatrix_.Resize(NumKVectors_,2,0.0);
             Input.getMatrix(KVectorMatrix_, TFHash, "KVectors");
-            NumExtraTFs_ = NumKVectors_*ndf_*(numnp_-nbn_/2);
-
+            if (0 == BWTFType_)
+            {
+              NumExtraTFs_ = NumKVectors_*ndf_*(numnp_-nbn_/2);
+            }
+            else
+            {
+              NumExtraTFs_ = NumKVectors_;
+            }
          }
          else
          {
@@ -309,6 +353,11 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
       NumExtraTFs_ = 1;
 
       TFLoad_=  Input.getDouble(TFHash,"LoadingParameter");
+   }
+   else if(!strcmp("RankOneConvex", TFtyp))
+   {
+     TFType_ = 5;
+     NumExtraTFs_ = 1;
    }
    else
    {
@@ -362,6 +411,7 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
 
    // set DOF_ to initial value
    U_.Resize(2,2,0.0);
+   F_.Resize(2,2,0.0);
    Vector initDOF(DOFS_,0.0);
    initDOF[0] = initDOF[1] = 1.0;
    DOF_.Resize(DOFS_, 0.0);
@@ -391,12 +441,14 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
 
    // setup remaining variables
    E1CachedValue_.Resize(DOFS_,0.0);
+   W1CachedValue_.Resize(DOFS_+1,0.0);
    DispE1CachedValue_.Resize(3,0.0);
    E1CachedValue_F_.Resize(DOFS_F_,0.0);
 
    E1DLoadCachedValue_.Resize(DOFS_,0.0);
 
    E2CachedValue_.Resize(DOFS_, DOFS_,0.0);
+   W2CachedValue_.Resize(DOFS_+1, DOFS_+1,0.0);
    E2CachedValue_F_.Resize(DOFS_F_, DOFS_F_,0.0);
 
    stiffdl_static.Resize(DOFS_, DOFS_,0.0);
@@ -404,6 +456,7 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
    EmptyM_.Resize(DOFS_, DOFS_, 0.0);
 
    Jacobian_.Resize(DOFS_F_, DOFS_,0.0);
+   FJacobian_.Resize(DOFS_F_, DOFS_+1,0.0);
    if (LoadingType_ == DISPLACEMENT_CONTROL)
    {
      DispJacobian_.Resize(DOFS_F_, 3,0.0);
@@ -421,63 +474,22 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
    // This term doesn't contribute anything for displacement control, so just leave it be
    Map_ = new int*[DOFS_F_];
    Map_[0] = new int[4*DOFS_F_];
+   FMap_ = new int*[DOFS_F_];
+   FMap_[0] = new int[4*DOFS_F_];
    for (int i = 1; i < DOFS_F_; ++i)
    {
      Map_[i] = Map_[i-1] + 4;
+     FMap_[i] = FMap_[i-1] + 4;
    }
 
    for (int i = 0; i < nbn_/2; ++i)
    {
-     Map_[BoundNodes_[i]*ndf_][0] = 0;
-     Map_[BoundNodes_[i]*ndf_][1] = 3+(i%(nbn_/2))*ndf_;
-     Map_[BoundNodes_[i]*ndf_][2] = 2;
-     Map_[BoundNodes_[i]*ndf_][3] = 4+(i%(nbn_/2))*ndf_;
-
-     Map_[BoundNodes_[i]*ndf_+1][0] = 1;
-     Map_[BoundNodes_[i]*ndf_+1][1] = 4+(i%(nbn_/2))*ndf_;
-     Map_[BoundNodes_[i]*ndf_+1][2] = 2;
-     Map_[BoundNodes_[i]*ndf_+1][3] = 3+(i%(nbn_/2))*ndf_;
-     if (ndf_>ndm_)
-     {
-       Map_[BoundNodes_[i]*ndf_+2][0] = -1;
-       Map_[BoundNodes_[i]*ndf_+2][1] = -1;
-       Map_[BoundNodes_[i]*ndf_+2][2] = -1;
-       Map_[BoundNodes_[i]*ndf_+2][3] = -1;
-       if (ndf_>(ndm_+1))
-       {
-         Map_[BoundNodes_[i]*ndf_+3][0] = -1;
-         Map_[BoundNodes_[i]*ndf_+3][1] = -1;
-         Map_[BoundNodes_[i]*ndf_+3][2] = -1;
-         Map_[BoundNodes_[i]*ndf_+3][3] = -1;
-       }
-     }
+     MapHelper(i, 3+(i%(nbn_/2))*ndf_, BoundNodes_);
    }
 
    for (int i = 0; i < nbn_/2; ++i)
    {
-     Map_[PeriodicNodes_[i]*ndf_][0] = 0;
-     Map_[PeriodicNodes_[i]*ndf_][1] = 3+(i%(nbn_/2))*ndf_;
-     Map_[PeriodicNodes_[i]*ndf_][2] = 2;
-     Map_[PeriodicNodes_[i]*ndf_][3] = 4+(i%(nbn_/2))*ndf_;
-
-     Map_[PeriodicNodes_[i]*ndf_+1][0] = 1;
-     Map_[PeriodicNodes_[i]*ndf_+1][1] = 4+(i%(nbn_/2))*ndf_;
-     Map_[PeriodicNodes_[i]*ndf_+1][2] = 2;
-     Map_[PeriodicNodes_[i]*ndf_+1][3] = 3+(i%(nbn_/2))*ndf_;
-     if (ndf_>ndm_)
-     {
-       Map_[PeriodicNodes_[i]*ndf_+2][0] = -1;
-       Map_[PeriodicNodes_[i]*ndf_+2][1] = -1;
-       Map_[PeriodicNodes_[i]*ndf_+2][2] = -1;
-       Map_[PeriodicNodes_[i]*ndf_+2][3] = -1;
-       if (ndf_>(ndm_+1))
-       {
-         Map_[PeriodicNodes_[i]*ndf_+3][0] = -1;
-         Map_[PeriodicNodes_[i]*ndf_+3][1] = -1;
-         Map_[PeriodicNodes_[i]*ndf_+3][2] = -1;
-         Map_[PeriodicNodes_[i]*ndf_+3][3] = -1;
-       }
-     }
+     MapHelper(i, 3+(i%(nbn_/2))*ndf_, PeriodicNodes_);
    }
 
    int l=-1;
@@ -496,33 +508,9 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
      }
    }
 
-   int offst = 3 + (nbn_/2)*ndf_;
-   for (int i = nbn_; i < numnp_; ++i)
+   for (int i = 0; i < numnp_-nbn_; ++i)
    {
-      Map_[InnerNodes_[i-nbn_]*ndf_][0]=0;
-      Map_[InnerNodes_[i-nbn_]*ndf_][1]=offst + (i-nbn_)*ndf_;
-      Map_[InnerNodes_[i-nbn_]*ndf_][2]=2;
-      Map_[InnerNodes_[i-nbn_]*ndf_][3]=offst + (i-nbn_)*ndf_ +1;
-
-      Map_[InnerNodes_[i-nbn_]*ndf_+1][0]=1;
-      Map_[InnerNodes_[i-nbn_]*ndf_+1][1]=offst + (i-nbn_)*ndf_ +1;
-      Map_[InnerNodes_[i-nbn_]*ndf_+1][2]=2;
-      Map_[InnerNodes_[i-nbn_]*ndf_+1][3]=offst + (i-nbn_)*ndf_;
-
-      if (ndf_>ndm_)
-      {
-        Map_[InnerNodes_[i-nbn_]*ndf_+2][0] = -1;
-        Map_[InnerNodes_[i-nbn_]*ndf_+2][1] = -1;
-        Map_[InnerNodes_[i-nbn_]*ndf_+2][2] = -1;
-        Map_[InnerNodes_[i-nbn_]*ndf_+2][3] = -1;
-        if (ndf_>(ndm_+1))
-        {
-          Map_[InnerNodes_[i-nbn_]*ndf_+3][0] = -1;
-          Map_[InnerNodes_[i-nbn_]*ndf_+3][1] = -1;
-          Map_[InnerNodes_[i-nbn_]*ndf_+3][2] = -1;
-          Map_[InnerNodes_[i-nbn_]*ndf_+3][3] = -1;
-        }
-      }
+     MapHelper(i, 3+(nbn_/2)*ndf_+i*ndf_, InnerNodes_);
    }
 
 //    for (int i=0; i< numnp_*ndf_; ++i)
@@ -600,6 +588,49 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
 
 }
 
+void FEAP::MapHelper(int const i, int const offset, int const* const Nodes)
+{
+  Map_[Nodes[i]*ndf_][0] = 0;
+  Map_[Nodes[i]*ndf_][1] = offset;
+  Map_[Nodes[i]*ndf_][2] = 2;
+  Map_[Nodes[i]*ndf_][3] = offset+1;
+  FMap_[Nodes[i]*ndf_][0] = 0;
+  FMap_[Nodes[i]*ndf_][1] = 1+offset;
+  FMap_[Nodes[i]*ndf_][2] = 1;
+  FMap_[Nodes[i]*ndf_][3] = 1+offset+1;
+
+  Map_[Nodes[i]*ndf_+1][0] = 1;
+  Map_[Nodes[i]*ndf_+1][1] = offset+1;
+  Map_[Nodes[i]*ndf_+1][2] = 2;
+  Map_[Nodes[i]*ndf_+1][3] = offset;
+  FMap_[Nodes[i]*ndf_+1][0] = 3;
+  FMap_[Nodes[i]*ndf_+1][1] = 1+offset+1;
+  FMap_[Nodes[i]*ndf_+1][2] = 2;
+  FMap_[Nodes[i]*ndf_+1][3] = 1+offset;
+  if (ndf_>ndm_)
+  {
+    Map_[Nodes[i]*ndf_+2][0] = -1;
+    Map_[Nodes[i]*ndf_+2][1] = -1;
+    Map_[Nodes[i]*ndf_+2][2] = -1;
+    Map_[Nodes[i]*ndf_+2][3] = -1;
+    FMap_[Nodes[i]*ndf_+2][0] = -1;
+    FMap_[Nodes[i]*ndf_+2][1] = -1;
+    FMap_[Nodes[i]*ndf_+2][2] = -1;
+    FMap_[Nodes[i]*ndf_+2][3] = -1;
+    if (ndf_>(ndm_+1))
+    {
+      Map_[Nodes[i]*ndf_+3][0] = -1;
+      Map_[Nodes[i]*ndf_+3][1] = -1;
+      Map_[Nodes[i]*ndf_+3][2] = -1;
+      Map_[Nodes[i]*ndf_+3][3] = -1;
+      FMap_[Nodes[i]*ndf_+3][0] = -1;
+      FMap_[Nodes[i]*ndf_+3][1] = -1;
+      FMap_[Nodes[i]*ndf_+3][2] = -1;
+      FMap_[Nodes[i]*ndf_+3][3] = -1;
+    }
+  }
+}
+
 void FEAP::UpdateValues(UpdateFlag flag) const
 {
   Matrix Eye(2,2,0.0);
@@ -672,6 +703,7 @@ void FEAP::UpdateValues(UpdateFlag flag) const
          E1CachedValue_F_[i] = -E1CachedValue_F_[i];
    }
    E1CachedValue_ = Jacobian_.Transpose() * E1CachedValue_F_;
+   W1CachedValue_ = FJacobian_.Transpose() * E1CachedValue_F_;
    if (LoadingType_ == DISPLACEMENT_CONTROL)
    {
      DispE1CachedValue_ = DispJacobian_.Transpose() * E1CachedValue_F_;
@@ -697,9 +729,14 @@ void FEAP::UpdateValues(UpdateFlag flag) const
    for (int i = 0; i < (numnp_-nbn_/2); ++i)
    {
      E1CachedValue_[shift+i*ndf_] += 2.0/eps_*S1;
+     W1CachedValue_[4+i*ndf_] += 2.0/eps_*S1;
      E1CachedValue_[shift+1+i*ndf_] += 2.0/eps_*S2;
+     W1CachedValue_[4+1+i*ndf_] += 2.0/eps_*S2;
      if(ndf_>(ndm_+1))
-     E1CachedValue_[shift+2+i*ndf_] += 2.0/eps_*S3;
+     {
+       E1CachedValue_[shift+2+i*ndf_] += 2.0/eps_*S3;
+       W1CachedValue_[4+2+i*ndf_] += 2.0/eps_*S3;
+     }
    }
 
    Cached_[0] = 1;
@@ -715,6 +752,7 @@ void FEAP::UpdateValues(UpdateFlag flag) const
 //      cout << "\n E2CachedValue_F_=" << setw(20) << E2CachedValue_F_ << "\n";
 
      E2CachedValue_ = Jacobian_.Transpose() * E2CachedValue_F_ * Jacobian_;
+     W2CachedValue_ = FJacobian_.Transpose() * E2CachedValue_F_ * FJacobian_;
 //
 //      cout << "\n jacobian=" << setw(20) << Jacobian_ << "\n";
 //      cout << "\n E2CachedValue_=" << setw(20) << E2CachedValue_ << "\n";
@@ -735,6 +773,19 @@ void FEAP::UpdateValues(UpdateFlag flag) const
            }
          }
        }
+       for (int i = 0; i < DOFS_+1; ++i)
+       {
+         for (int j = 0; j < DOFS_+1; ++j)
+         {
+           for (int k = 0; k < DOFS_F_; ++k)
+           {
+             if ((FMap_[k][0]==i && FMap_[k][1]==j) || (FMap_[k][0]==j && FMap_[k][1]==i))
+               W2CachedValue_[i][j] += E1CachedValue_F_[k];
+             if ((FMap_[k][2]==i && FMap_[k][3]==j) || (FMap_[k][2]==j && FMap_[k][3]==i))
+               W2CachedValue_[i][j] += E1CachedValue_F_[k];
+           }
+         }
+       }
      }
      // Phantom Energy Term for E2
      for (int i = 0; i < (numnp_-nbn_/2); ++i)
@@ -742,9 +793,14 @@ void FEAP::UpdateValues(UpdateFlag flag) const
        for (int j = 0; j < (numnp_-nbn_/2); ++j)
        {
          E2CachedValue_[shift+i*ndf_][shift+j*ndf_] += 2.0/eps_;
+         W2CachedValue_[4+i*ndf_][4+j*ndf_] += 2.0/eps_;
          E2CachedValue_[shift+1+i*ndf_][shift+1+j*ndf_] += 2.0/eps_;
+         W2CachedValue_[4+1+i*ndf_][4+1+j*ndf_] += 2.0/eps_;
          if(ndf_>(ndm_+1))
-         E2CachedValue_[shift+2+i*ndf_][shift+2+j*ndf_] += 2.0/eps_;
+         {
+           E2CachedValue_[shift+2+i*ndf_][shift+2+j*ndf_] += 2.0/eps_;
+           W2CachedValue_[4+2+i*ndf_][4+2+j*ndf_] += 2.0/eps_;
+         }
        }
      }
      // Loading term for E2 //
@@ -789,6 +845,23 @@ void FEAP::UpdateValues(UpdateFlag flag) const
      Cached_[3] = 1;
      EvaluationCount_[1]++;
 
+//     Vector E1DLoad_F = Jacobian_ * E1DLoadCachedValue_;
+//      Matrix A(DOFS_F_, DOFS_F_+1);
+//      for (int i = 0; i < DOFS_F_; ++i)
+//       {
+//          for (int j = 0; j < DOFS_F_+1; ++j)
+//          {
+//             A[i][j] = E2CachedValue_F_[i][j];
+//          }
+//          A[i][DOFS_F_] = E1DLoad_F[i];
+//       }
+//      Matrix Q(DOFS_F_+1, DOFS_F_+1);
+//   	 Matrix R(DOFS_F_+1, DOFS_F_);
+//      QR(A, Q, R, 1);
+//       cout << "\n E1DLoad_F=" << setw(20) << E1DLoad_F << "\n";
+//   	 cout << "\n Q=" << setw(20) << Q;
+
+//      cout << "E1DLoadCachedValue_=" << setw(20) << E1DLoadCachedValue_ << "\n";
    }
 }
 
@@ -810,14 +883,15 @@ void FEAP::UpdateDOF_F() const
    {
       ii = BoundNodes_[i]* ndf_;
       jj = (i%(nbn_/2))*ndf_;
-      DOF_F_[ii]=U_[0][0]*(X_F_[ii] + DOF_[shift+jj]) + U_[0][1]*(X_F_[ii+1] + DOF_[shift+1+jj]);
-      DOF_F_[ii+1]=U_[1][1]*(X_F_[ii+1] + DOF_[shift+1+jj]) + U_[1][0]*(X_F_[ii] + DOF_[shift+jj]);
+      // Recall: F_ = U_
+      DOF_F_[ii]=F_[0][0]*(X_F_[ii] + DOF_[shift+jj]) + F_[0][1]*(X_F_[ii+1] + DOF_[shift+1+jj]);
+      DOF_F_[ii+1]=F_[1][1]*(X_F_[ii+1] + DOF_[shift+1+jj]) + F_[1][0]*(X_F_[ii] + DOF_[shift+jj]);
       if (ndf_>ndm_)  //1 Extra dof : theta
       {
-        DOF_F_[ii+2] = DOF_[shift+2+jj];
+        DOF_F_[ii+2]=DOF_[shift+2+jj];
         if (ndf_>(ndm_+1))  //1 Extra dof : u',v'
         {
-          DOF_F_[ii+3] = DOF_[shift+3+jj];
+          DOF_F_[ii+3]=DOF_[shift+3+jj];
         }
       }
    }
@@ -825,14 +899,15 @@ void FEAP::UpdateDOF_F() const
    {
       ii = PeriodicNodes_[i-nbn_/2]* ndf_;
       jj = (i%(nbn_/2))*ndf_;
-      DOF_F_[ii]=U_[0][0]*(X_F_[ii] + DOF_[shift+jj]) + U_[0][1]*(X_F_[ii+1] + DOF_[shift+1+jj]);
-      DOF_F_[ii+1]=U_[1][1]*(X_F_[ii+1] + DOF_[shift+1+jj]) + U_[1][0]*(X_F_[ii] + DOF_[shift+jj]);
+      // Recall: F_ = U_
+      DOF_F_[ii]=F_[0][0]*(X_F_[ii] + DOF_[shift+jj]) + F_[0][1]*(X_F_[ii+1] + DOF_[shift+1+jj]);
+      DOF_F_[ii+1]=F_[1][1]*(X_F_[ii+1] + DOF_[shift+1+jj]) + F_[1][0]*(X_F_[ii] + DOF_[shift+jj]);
       if (ndf_>ndm_)  //1 Extra dof : theta
       {
-        DOF_F_[ii+2] = DOF_[shift+2+jj];
+        DOF_F_[ii+2]=DOF_[shift+2+jj];
         if (ndf_>(ndm_+1))  //1 Extra dof : u', v'
         {
-          DOF_F_[ii+3] = DOF_[shift+3+jj];
+          DOF_F_[ii+3]=DOF_[shift+3+jj];
         }
       }
    }
@@ -841,14 +916,15 @@ void FEAP::UpdateDOF_F() const
    {
       ii = InnerNodes_[i-nbn_]* ndf_;
       jj = offst+(i-nbn_)*ndf_;
-      DOF_F_[ii]=U_[0][0]*(X_F_[ii]+DOF_[jj]) + U_[0][1]*(X_F_[ii+1]+DOF_[jj+1]);
-      DOF_F_[ii+1]=U_[1][0]*(X_F_[ii]+DOF_[jj]) + U_[1][1]*(X_F_[ii+1]+DOF_[jj+1]);
+      // Recall: F_ = U_
+      DOF_F_[ii]=F_[0][0]*(X_F_[ii]+DOF_[jj]) + F_[0][1]*(X_F_[ii+1]+DOF_[jj+1]);
+      DOF_F_[ii+1]=F_[1][0]*(X_F_[ii]+DOF_[jj]) + F_[1][1]*(X_F_[ii+1]+DOF_[jj+1]);
       if (ndf_>ndm_)  //1 Extra dof : theta
       {
-        DOF_F_[ii+2] = DOF_[jj+2];
+        DOF_F_[ii+2]=DOF_[jj+2];
         if (ndf_>(ndm_+1))  //1 Extra dof : u', v'
         {
-          DOF_F_[ii+3] = DOF_[jj+3];
+          DOF_F_[ii+3]=DOF_[jj+3];
         }
       }
    }
@@ -874,111 +950,67 @@ void FEAP::UpdateJacobian() const
    {
       ii = BoundNodes_[i]*ndf_;
       jj = (i%(nbn_/2))*ndf_;
-      if (LoadingType_ != DISPLACEMENT_CONTROL)
-      {
-        Jacobian_[ii][0] = X_F_[ii] + DOF_[shift+jj];
-        Jacobian_[ii][2] = 1.0/sqrt(2.0)*(X_F_[ii+1] + DOF_[shift+1+jj]);
-
-        Jacobian_[ii+1][1] = X_F_[ii+1] + DOF_[shift+1+jj];
-        Jacobian_[ii+1][2] = 1.0/sqrt(2.0)*(X_F_[ii] + DOF_[shift+jj]);
-      }
-      else
-      {
-        DispJacobian_[ii][0] = X_F_[ii] + DOF_[shift+jj];
-        DispJacobian_[ii][2] = 1.0/sqrt(2.0)*(X_F_[ii+1] + DOF_[shift+1+jj]);
-
-        DispJacobian_[ii+1][1] = X_F_[ii+1] + DOF_[shift+1+jj];
-        DispJacobian_[ii+1][2] = 1.0/sqrt(2.0)*(X_F_[ii] + DOF_[shift+jj]);
-      }
-      Jacobian_[ii][shift+jj]=U_[0][0];
-      Jacobian_[ii][shift+1+jj]=U_[0][1];
-
-      Jacobian_[ii+1][shift+jj]=U_[0][1];
-      Jacobian_[ii+1][shift+1+jj]=U_[1][1];
-
-      if (ndf_>ndm_)
-      {
-         Jacobian_[ii+2][shift+2+jj] = 1.0;
-         if (ndf_>(ndm_+1))
-         {
-           Jacobian_[ii+3][shift+3+jj] = 1.0;
-         }
-      }
+      JacobianHelper(ii, jj, shift);
    }
 
    for (int i = nbn_/2; i < nbn_; ++i)
    {
       ii = PeriodicNodes_[i-nbn_/2]*ndf_;
       jj = (i%(nbn_/2))*ndf_;
-      if (LoadingType_ != DISPLACEMENT_CONTROL)
-      {
-        Jacobian_[ii][0] = X_F_[ii] + DOF_[shift+jj];
-        Jacobian_[ii][2] = 1.0/sqrt(2.0)*(X_F_[ii+1] + DOF_[shift+1+jj]);
-
-        Jacobian_[ii+1][1] = X_F_[ii+1] + DOF_[shift+1+jj];
-        Jacobian_[ii+1][2] = 1.0/sqrt(2.0)*(X_F_[ii] + DOF_[shift+jj]);
-      }
-      else
-      {
-        DispJacobian_[ii][0] = X_F_[ii] + DOF_[shift+jj];
-        DispJacobian_[ii][2] = 1.0/sqrt(2.0)*(X_F_[ii+1] + DOF_[shift+1+jj]);
-
-        DispJacobian_[ii+1][1] = X_F_[ii+1] + DOF_[shift+1+jj];
-        DispJacobian_[ii+1][2] = 1.0/sqrt(2.0)*(X_F_[ii] + DOF_[shift+jj]);
-      }
-      Jacobian_[ii][shift+jj]=U_[0][0];
-      Jacobian_[ii][shift+1+jj]=U_[0][1];
-
-      Jacobian_[ii+1][shift+jj]=U_[0][1];
-      Jacobian_[ii+1][shift+1+jj]=U_[1][1];
-
-      if (ndf_>ndm_)
-      {
-         Jacobian_[ii+2][shift+2+jj] = 1.0;
-         if (ndf_>(ndm_+1))
-         {
-           Jacobian_[ii+3][shift+3+jj] = 1.0;
-         }
-      }
+      JacobianHelper(ii, jj, shift);
    }
 
-   int offst = shift + nbn_ / 2 * ndf_;
-   for (int i = nbn_; i < numnp_; ++i)
+   for (int i = 0; i < numnp_-nbn_; ++i)
    {
-      ii = InnerNodes_[i-nbn_]*ndf_;
-      jj = offst+(i-nbn_)*ndf_;
-      if (LoadingType_ != DISPLACEMENT_CONTROL)
-      {
-        Jacobian_[ii][0] = X_F_[ii]+DOF_[jj];
-        Jacobian_[ii][2] = 1.0/sqrt(2.0)*(X_F_[ii+1]+DOF_[jj+1]);
-
-        Jacobian_[ii+1][1] = X_F_[ii+1]+DOF_[jj+1];
-        Jacobian_[ii+1][2] = 1.0/sqrt(2.0)*(X_F_[ii]+DOF_[jj]);
-      }
-      else
-      {
-        DispJacobian_[ii][0] = X_F_[ii]+DOF_[jj];
-        DispJacobian_[ii][2] = 1.0/sqrt(2.0)*(X_F_[ii+1]+DOF_[jj+1]);
-
-        DispJacobian_[ii+1][1] = X_F_[ii+1]+DOF_[jj+1];
-        DispJacobian_[ii+1][2] = 1.0/sqrt(2.0)*(X_F_[ii]+DOF_[jj]);
-      }
-      Jacobian_[ii][jj] = U_[0][0];
-      Jacobian_[ii][jj+1] = U_[0][1];
-
-      Jacobian_[ii+1][jj] = U_[1][0];
-      Jacobian_[ii+1][jj+1] = U_[1][1];
-
-      if (ndf_>ndm_)
-      {
-         Jacobian_[ii+2][jj+2] = 1.0;
-         if (ndf_>(ndm_+1))
-         {
-           Jacobian_[ii+3][jj+3] = 1.0;
-         }
-      }
+      ii = InnerNodes_[i]*ndf_;
+      jj = nbn_/2*ndf_+(i)*ndf_;
+      JacobianHelper(ii, jj, shift);
    }
+}
 
+
+void FEAP::JacobianHelper(int const ii, int const jj, int const shift) const
+{
+  if (LoadingType_ != DISPLACEMENT_CONTROL)
+  {
+    Jacobian_[ii][0] = X_F_[ii] + DOF_[shift+jj];
+    Jacobian_[ii][2] = 1.0/sqrt(2.0)*(X_F_[ii+1] + DOF_[shift+1+jj]);
+    FJacobian_[ii][0] = X_F_[ii] + DOF_[shift+jj];
+    FJacobian_[ii][1] = X_F_[ii+1] + DOF_[shift+1+jj];
+
+    Jacobian_[ii+1][1] = X_F_[ii+1] + DOF_[shift+1+jj];
+    Jacobian_[ii+1][2] = 1.0/sqrt(2.0)*(X_F_[ii] + DOF_[shift+jj]);
+    FJacobian_[ii+1][2] = X_F_[ii] + DOF_[shift+jj];
+    FJacobian_[ii+1][3] = X_F_[ii+1] + DOF_[shift+1+jj];
+  }
+  else
+  {
+    DispJacobian_[ii][0] = X_F_[ii] + DOF_[shift+jj];
+    DispJacobian_[ii][2] = 1.0/sqrt(2.0)*(X_F_[ii+1] + DOF_[shift+1+jj]);
+
+    DispJacobian_[ii+1][1] = X_F_[ii+1] + DOF_[shift+1+jj];
+    DispJacobian_[ii+1][2] = 1.0/sqrt(2.0)*(X_F_[ii] + DOF_[shift+jj]);
+  }
+  Jacobian_[ii][shift+jj]=U_[0][0];
+  Jacobian_[ii][shift+1+jj]=U_[0][1];
+  FJacobian_[ii][1+shift+jj]=F_[0][0];
+  FJacobian_[ii][1+shift+1+jj]=F_[0][1];
+
+  Jacobian_[ii+1][shift+jj]=U_[1][0];
+  Jacobian_[ii+1][shift+1+jj]=U_[1][1];
+  FJacobian_[ii+1][1+shift+jj]=F_[1][0];
+  FJacobian_[ii+1][1+shift+1+jj]=F_[1][1];
+
+  if (ndf_>ndm_)
+  {
+    Jacobian_[ii+2][shift+2+jj]=1.0;
+    FJacobian_[ii+2][1+shift+2+jj]=1.0;
+    if (ndf_>(ndm_+1))
+    {
+      Jacobian_[ii+3][shift+3+jj]=1.0;
+      FJacobian_[ii+3][1+shift+3+jj]=1.0;
+    }
+  }
 }
 
 int FEAP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vector const& DrDt,
@@ -1175,7 +1207,7 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
 {
 
    double pi = 4.0*atan(1.0);
-   if (TFType_ != 4)
+   if ((TFType_ >0) && (TFType_ <5))
    {
      bloch_wave_out_ << "## Index Number : " << bloch_count_ << "\n"
                      << "#### Lambda = " << Lambda_;
@@ -1207,33 +1239,55 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
 
             DynamicalMatrixBis(K_);
 
-               Matrix DkEigVal = HermiteEigVal(Dk_);
-               int NumZeroEig = 0; //For treating the k = [0,0] case
+            Matrix DkEigVal = HermiteEigVal(Dk_);
+            int NumZeroEig = 0; //For treating the k = [0,0] case
 
-               for (int l = 0; l < ndf_*(numnp_-nbn_/2); ++l)
-               {
-                  //Dk has 2 zero eigen values when k = [0,0], so special treatment
-                  if ((i==0) && (j==0) && (NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < Tolerance_))
+            if (0==BWTFType_)
+            {
+              for (int l = 0; l < ndf_*(numnp_-nbn_/2); ++l)
+              {
+                //Dk has 2 zero eigen values when k = [0,0], so special treatment
+                if ((i==0) && (j==0) && (NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < Tolerance_))
+                {
+                  double max = DkEigVal.MaxElement();
+                  DkEigVal[0][l] = max;
+                  TF[k] = max;
+                  ++NumZeroEig;
+                }
+                else
+                {
+                  TF[k] = DkEigVal[0][l];
+                }
+                ++k;
+              }
+            }
+            else
+            {
+              //Dk has 2 zero eigen values when k = [0,0], so special treatment
+              if ((i==0) && (j==0))
+              {
+                double max = DkEigVal.MaxElement();
+                for (int l = 0; l < ndf_*(numnp_-nbn_/2); ++l)
+                {
+                  if ((NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < Tolerance_))
                   {
-                     bloch_wave_out_ << DkEigVal[0][l] << "\n";
-                     double max = DkEigVal.MaxElement();
-                     DkEigVal[0][l] = max;
-                     TF[k] = max;
-                     ++NumZeroEig;
+                    DkEigVal[0][l] = max;
+                    ++NumZeroEig;
                   }
-                  else
-                  {
-                     TF[k] = DkEigVal[0][l];
-                  }
-                  ++k;
+                }
 
-               }
+                TF[k] = DkEigVal.MinElement();
+              }
+              else
+              {
+                TF[k] = DkEigVal.MinElement();
+              }
+              ++k;
+            }
 
             bloch_wave_out_ << setw(Width_) << K_[0]/(2*pi)
                             << setw(Width_) << K_[1]/(2*pi)
                             << setw(Width_) << DkEigVal.MinElement() << "\n";
-
-
          }
          bloch_wave_out_ << endl;
       }
@@ -1259,33 +1313,40 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
          int foundmin=0;
          int minIndex=0;
 
-         for (int  l=0; l < ndf_*(numnp_-nbn_/2); ++l)
+         if (0==BWTFType_)
          {
-            int NumZeroEig = 0;
-            if ((K_[0]==0.0) && (K_[1]==0.0) && (NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < Tolerance_))
-            {
+           for (int  l=0; l < ndf_*(numnp_-nbn_/2); ++l)
+           {
+             int NumZeroEig = 0;
+             if ((K_[0]==0.0) && (K_[1]==0.0) && (NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < Tolerance_))
+             {
                double max = DkEigVal.MaxElement();
                DkEigVal[0][l] = max;
                TF[k] = max;
                ++NumZeroEig;
-            }
-            else
-            {
+             }
+             else
+             {
                TF[k]=DkEigVal[0][l];
-            }
-            ++k;
+             }
+             ++k;
 
-            if (!foundmin && DkEigVal[0][l] == min)
-            {
+             if (!foundmin && DkEigVal[0][l] == min)
+             {
                DkEigVal[0][l] += DkEigVal.MaxElement();
                foundmin = 1;
-            }
+             }
+           }
+         }
+         else
+         {
+           TF[k] = DkEigVal.MinElement();
+           ++k;
          }
          bloch_wave_out_ << setw(Width_) << K_[0]/(2*pi)
                          << setw(Width_) << K_[1]/(2*pi)
                          << setw(Width_) << min
                          << setw(Width_) << DkEigVal.MinElement() << "\n";
-
       }
       bloch_wave_out_ << "\n" << "\n";
       bloch_count_++;
@@ -1302,28 +1363,36 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
          double min = DkEigVal.MinElement();
          int foundmin=0;
 
-         for (int  l=0; l < ndf_*(numnp_-nbn_/2); ++l)
+         if (0==BWTFType_)
          {
+           for (int  l=0; l < ndf_*(numnp_-nbn_/2); ++l)
+           {
 
-            int NumZeroEig = 0;
-            if ((K_[0]==0.0) && (K_[1]==0.0) && (NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < Tolerance_))
-            {
+             int NumZeroEig = 0;
+             if ((K_[0]==0.0) && (K_[1]==0.0) && (NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < Tolerance_))
+             {
                double max = DkEigVal.MaxElement();
                DkEigVal[0][l] = max;
                TF[k] = max;
                ++NumZeroEig;
-            }
-            else
-            {
+             }
+             else
+             {
                TF[k]=DkEigVal[0][l];
-            }
-            ++k;
+             }
+             ++k;
 
-            if (!foundmin && DkEigVal[0][l] == min)
-            {
+             if (!foundmin && DkEigVal[0][l] == min)
+             {
                DkEigVal[0][l] += DkEigVal.MaxElement();
                foundmin = 1;
-            }
+             }
+           }
+         }
+         else
+         {
+           TF[k] = DkEigVal.MinElement();
+           ++k;
          }
          bloch_wave_out_ << setw(Width_) << K_[0]/(2*pi)
                          << setw(Width_) << K_[1]/(2*pi)
@@ -1336,6 +1405,24 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
    else if(TFType_ == 4) // LoadingParameter
    {
       TF[0] = TFLoad_ - Lambda_;
+   }
+   else if(TFType_ == 5) // Rank-one convexity
+   {
+     // Condense d2W/dFdF
+     Matrix A=W2CachedValue_.Extract(0,0,4);
+     Matrix C=W2CachedValue_.Extract(4,4,W2CachedValue_.Rows()-4);
+     Matrix B(4,C.Cols());
+     for (int i=0; i<4; ++i)
+     {
+       for (int j=0; j<B.Cols(); ++j)
+       {
+         B[i][j] = W2CachedValue_[i][4+j];
+       }
+     }
+     Matrix Cond=A-B*C.Inverse()*B.Transpose();
+     double RankOne = RankOneConvex(Cond);
+
+     TF[0] = RankOneConvex(Cond);
    }
    return;
 }
@@ -1629,10 +1716,8 @@ void FEAP::DynamicalMatrixBis(Vector const& K) const
       {
           A[ndf_*i][ndf_*j] -= 2.0/eps_;
           A[1+ndf_*i][1+ndf_*j] -= 2.0/eps_;
-//           if (ndf_ > (ndm_+1))
-//           {
-//             A[2+ndf_*i][2+ndf_*j] -= 2.0/eps_;
-//           }
+          // Don't remove the 3rd DOF Phantom Energy term
+          // it is not associated with a rigid-body mode
       }
    }
 
@@ -1686,6 +1771,35 @@ int sortFunction(const void *a, const void *b)
    return 1;
 }
 
+double FEAP::RankOneConvex(Matrix const& d2WdFdF) const
+{
+  double const twoPi = 8.0*atan(1.0);
+  double const dt=twoPi/360.0;  // 1 degree
+  double min = 1.0e100;
+
+  double t = 0.0;
+  while (t < twoPi)
+  {
+    Vector n(2);
+    n[0] = cos(t);
+    n[1] = sin(t);
+
+    Matrix A(2,2, 0.0);
+    for (int i=0; i<2; ++i)
+      for (int j=0; j<2; ++j)
+        for (int k=0; k<2; ++k)
+          for (int l=0; l<2;++l)
+            A[i][j] += d2WdFdF[i*2+k][j*2+l]*n[k]*n[l];
+
+    Vector Eigs=SymEigVal(A);
+    for (int i=0; i<2; ++i)
+      if (Eigs[i] < min) min = Eigs[i];
+
+    t += dt;
+  }
+
+  return min;
+}
 
 
 void FEAP::Print(ostream& out, PrintDetail const& flag,
@@ -1753,14 +1867,26 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
    int minprint = (NoNegTestFunctions+2 < mintestfunct.Dim()) ?
       NoNegTestFunctions+2 : mintestfunct.Dim();
 
+   // Condense d2W/dFdF
+   Matrix A=W2CachedValue_.Extract(0,0,4);
+   Matrix C=W2CachedValue_.Extract(4,4,W2CachedValue_.Rows()-4);
+   Matrix B(4,C.Cols());
+   for (int i=0; i<4; ++i)
+   {
+     for (int j=0; j<B.Cols(); ++j)
+     {
+       B[i][j] = W2CachedValue_[i][4+j];
+     }
+   }
+   Matrix Cond=A-B*C.Inverse()*B.Transpose();
+   double RankOne = RankOneConvex(Cond);
+
    print_gpl_config(config_out_);
-   bfbfeap_get_indicatrix_(&(Indicatrix_));
    switch (LoadingType_)
    {
      case DEAD_LOAD:
      case PRESSURE_LOAD:
-       plot_out_ << setw(Width_) << Indicatrix_
-                 << setw(Width_) << Lambda_
+       plot_out_ << setw(Width_) << Lambda_
                  << setw(Width_) << DOF_[0]
                  << setw(Width_) << DOF_[1]
                  << setw(Width_) << DOF_[2]/sqrt(2.0)
@@ -1828,6 +1954,7 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
          out << "Bifurcation Info: ";
          for (int i=0;i<minprint; ++i) out << setw(W) << mintestfunct[i];
          out << setw(W) << NoNegTestFunctions << "\n";
+         out << "RankOneConvex Min Eig: " << setw(W) << RankOne << "\n";
 
          // send to cout also
          if (Echo_)
@@ -1852,7 +1979,7 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
             cout << "Bifurcation Info: ";
             for (int i=0;i<minprint; ++i) cout << setw(W) << mintestfunct[i];
             cout << setw(W) << NoNegTestFunctions << "\n";
-
+            cout << "RankOneConvex Min Eig: " << setw(W) << RankOne << "\n";
          }
          break;
    }

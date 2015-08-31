@@ -23,14 +23,17 @@ private:
    int * InnerNodes_;
 
    mutable Matrix Jacobian_; // d(DOF_F)/d(DOF_)
+   mutable Matrix FJacobian_; // d(DOF_F)/d(DOF_+1)
    mutable Matrix DispJacobian_; // d(DOF_F)/d(U)
    int** Map_ ; // Represents the sparse 3D array d2(DOF_F)/d(DOF_)2
+   int** FMap_ ; // Represents the sparse 3D array d2(DOF_F)/d(DOF_+1)2
 
    mutable double Lambda_;
    enum LoadingType {DEAD_LOAD, PRESSURE_LOAD, DISPLACEMENT_CONTROL};
    mutable LoadingType LoadingType_; // 0 - dead-load; 1 - pressure-load; 2 - displacement control
    mutable Matrix Load_; //Bio stress tensor
    mutable Matrix U_; //Right stretch tensor
+   mutable Matrix F_; //Deformation gradient
    mutable double StretchRatio_; //Stretch ratio giving U_{22} = StretchRatio_*U_{11}
 
    int** N_; // Contains info for Dynamical Stiffness matrix. Only half the neighbouring cells is needed
@@ -49,6 +52,7 @@ private:
    Matrix KVectorMatrix_;//KVectors when AnalysisType => KVectors
    double TFLoad_;//Load when ExtraTestFunctions => LoadingParameter
    int TFType_;
+   int BWTFType_; // 0-All branches at a k-point; or 1-Lowest branch at a k-point
    void DynamicalMatrix(Vector const& K) const; //Dynamical Matrix, uses the FEAP stiffness matrix
    void DynamicalMatrixBis(Vector const& K) const; //Dynamical Matrix, uses the BFB stiffness matrix
 
@@ -76,9 +80,13 @@ private:
 
    enum UpdateFlag {NoStiffness = 0, NeedStiffness = 1};
    void UpdateValues(UpdateFlag flag) const; //Updates energy, first and second derivatives od energy
+   void MapHelper(int const i, int const offset, int const* const Nodes);
 
    void UpdateDOF_F() const; //Uses the BFB DOFs and maps to FEAP DOFs
    void UpdateJacobian() const;
+   void JacobianHelper(int const ii, int const jj, int const shift) const;
+
+   double RankOneConvex(Matrix const& d2WdFdF) const;
 
    void print_gpl_config(fstream& out) const;
    fstream config_out_; //Prints out in separate file the configuration for plotting
@@ -94,10 +102,12 @@ private:
    mutable int Cached_[cachesize];
    mutable double E0CachedValue_;
    mutable Vector E1CachedValue_;
+   mutable Vector W1CachedValue_;
    mutable Vector DispE1CachedValue_; // store conjugate to disp. control
    mutable Vector E1CachedValue_F_; //E1 Cached value for FEAP
    mutable Vector E1DLoadCachedValue_;
    mutable Matrix E2CachedValue_;
+   mutable Matrix W2CachedValue_;
    mutable Matrix E2CachedValue_F_;
    mutable int EvaluationCount_[2];
    mutable int CallCount_[cachesize];
@@ -126,12 +136,14 @@ public:
           U_[1][1] = DOF_[1];
           U_[0][1] = DOF_[2]/sqrt(2.0);
           U_[1][0] = U_[0][1];
+          F_ = U_;
           break;
         case DISPLACEMENT_CONTROL:
           U_[0][0] = Lambda_;
           U_[1][1] = StretchRatio_ * Lambda_;
           U_[0][1] = 0.0;
           U_[1][0] = 0.0;
+          F_ = U_;
           break;
       }
       for (int i = 0; i < cachesize; ++i)
@@ -154,6 +166,7 @@ public:
         U_[1][1] = StretchRatio_ * Lambda_;
         U_[0][1] = 0.0;
         U_[1][0] = 0.0;
+        F_ = U_;
       }
       for (int i = 0; i < cachesize; ++i)
       {

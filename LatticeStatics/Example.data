@@ -1,6 +1,5 @@
 # -*- mode: Perl -*-
 # Main Parameters
-use Math::Trig;
 
 # Main LatticeStatics Program Parameters
 %Main = (FieldWidth     => 20,
@@ -74,6 +73,7 @@ $Rtheta1_1_1 = 0.275914376289;
              #                        [1.0,-1.0, 0.0],
              #                        [0.0, 0.0, 1.0]],
              KIMModel            => "ex_model_ArNe_P_MLJ_NEIGH_RVEC_F",
+             #PrintKIM_DescriptorFile => Yes,
              KIMModelPublishedParameters => [["PARAM_FREE_cutoff", "double", 12.5]],
              InitialEqbm         => Yes, # Default value = Yes; No
              #InitialEqbmCubic    => Yes, # Default value = No
@@ -326,10 +326,28 @@ $Rtheta1_1_1 = 0.275914376289;
                     #NumExtraTFs       => 0, # Default value = 0, positive number
                     #ExtraTFs          => [1.1]
                    },
-             FEAP => {FEAPInputFileName => Ipatch_4el,
-                      Tolerance         => 1.0e-6#, # for numerical derivatives
-                     }
-            );
+             FEAP => {FEAPInputFileName => Ihoney,
+                      Tolerance         => 1.0e-10, # for numerical derivatives
+                      Nbn             => 6,
+                      PhantomEnergyEpsilon => 1.0,
+                      Nuc => 1,
+                      BoundNodes => [1, 3, 2],
+                      PeriodicNodes => [4, 6, 5],
+                      Loading => { Type => DeadLoad, #DeadLoad, PressureLoad, DisplacementControl
+                                   BioStress => [[-1.0, 0.0],[0.0, -1.0]],
+                      },
+                      ExtraTestFunctions => { Type =>  None#, #None, LoadingParameter, BlochWaveAnalysis, RankOneConvex
+                                              #Branches => All, # All, Lowest
+                                              #AnalysisType => KDirection, #Full,
+                                              #DynamicalStiffnessInfo => [[1,0,15,1],[1,1,17,2],[0,1,19,3]],
+                                              #KDirection => [0.0, 1.0],
+                                              #KRange => [0.00001, 0.0001],
+                                              #KSpaceResolution => 2,
+                                              #KVectors => [[0.0,0.0],[0.0,0.5],[0.5,0.0],[0.5,0.5]],
+                                              #KVectors => [[0.0,0.0],[0.0,0.666666],[0.666666,0.0],[0.666666,0.666666]],
+                      }
+            }
+    );
 
 #  Restriction Parameters
 % Restriction = (Type                            => RestrictToTranslatedSubSpace, # NoRestriction, RestrictToTranslatedSubSpace
@@ -358,6 +376,8 @@ $ArcLenDSMax = 0.01;
                                           MaxDS                  => 0.1,
                                           CurrentDS              => 0.001,
                                           MinDS                  => 1e-12,
+                                          #DS_LimitOverride       => [[0.0,  5.0, 1e-12, 0.001],
+                                          #                           [5.0, 10.0, 1e-10, 0.5]],
                                           Contraction            => 0.1,
                                           Distance               => 0.01,
                                           Angle                  => 60*$DEG2RAD,

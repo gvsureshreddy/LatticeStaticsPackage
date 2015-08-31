@@ -30,6 +30,7 @@ private:
    double PreviousDS_;               // Steplength used to find last solution
    double CurrentDS_;                // Steplength that will be used to find next solution, h > 0
    double MinDS_;                    // Minimum Stepsize
+   Matrix DS_LimitOverride_;         // Additional special min/max DS ranges
    double cont_rate_max_;            // Max contraction rate
    double delta_max_;                // Max distance to (from predicted to corrected point) curve
    double alpha_max_;                // Max angle to curve (must be less than pi/2)
@@ -65,7 +66,9 @@ public:
    NewtonPCSolution(Restriction* const Restrict, Vector const& one,
                     int const& CurrentSolution, UpdateType const& Type,
                     int const& ComputeExactTangent, int const& NumSolutions, double const& MaxDS,
-                    double const& CurrentDS, double const& MinDS, double const& cont_rate_max,
+                    double const& CurrentDS, double const& MinDS,
+                    Matrix const& DS_LimitOverride,
+                    double const& cont_rate_max,
                     double const& delta_max, double const& alpha_max,
                     double const& eig_angle_max, double const& Converge,
                     ConvergeType CnvrgTyp, int const& BisectCP, Vector const& FirstSolution,
@@ -96,6 +99,8 @@ private:
    void ProcessClosedLoopOptions(PerlInput const& Input, Vector const& one);
    void InitializeTangents();
    void Get_Stiff_static() const;
+   double getCurrentMinDS() const;
+   double getCurrentMaxDS() const;
    // "static" member variables
    mutable Matrix StabilizeModes;
    mutable int StabilizeSteps;
