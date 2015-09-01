@@ -227,7 +227,10 @@ NewtonPCSolution::NewtonPCSolution(
 
     fstream::fmtflags oldflags = cout.flags();
     cout << scientific;
+    int origEcho = Restrict_->Lat()->Echo_;
+    Restrict_->Lat()->Echo_ = 0;
     Restrict_->ConsistencyCheckRidders(Solution, ConsistencyEpsilon, Width, cout);
+    Restrict_->Lat()->Echo_ = origEcho;
     cout.flags(oldflags);
     // We're done
     CurrentSolution_ = NumSolutions_;
