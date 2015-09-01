@@ -196,6 +196,8 @@ void Restriction::ConsistencyCheckRidders(Vector const& dof,double const& Consis
    // Set state to dof
    SetDOF(dof);
 
+   out << "\n" << setw(Width) << *Lattice_ << "\n";
+
    out << "\n";
    out << "Restriction Consistency Check." << "\n";
    out << "Epsilon = " << ConsistencyEpsilon << "\n";
@@ -232,7 +234,7 @@ void Restriction::ConsistencyCheckRidders(Vector const& dof,double const& Consis
 
 
       Aa[0][0] = (a-b)/(2.0* eps);
-      
+
       for (int i=1; i < Ntab; ++i)
       {
 
@@ -252,7 +254,7 @@ void Restriction::ConsistencyCheckRidders(Vector const& dof,double const& Consis
 
              Aa[j][i] = (Aa[j-1][i] * fac - Aa[j-1][i-1])/(fac - 1.0);
              fac = con * con * fac;
-             errt = fmax( fabs(Aa[j][i] - Aa[j-1][i]), fabs( Aa[j][i] - Aa[j-1][i-1])); 
+             errt = fmax( fabs(Aa[j][i] - Aa[j-1][i]), fabs( Aa[j][i] - Aa[j-1][i-1]));
              if (errt <= err )
              {
                 err = errt;
@@ -266,7 +268,7 @@ void Restriction::ConsistencyCheckRidders(Vector const& dof,double const& Consis
 
       for (int l =  0; l < Dim - 1; ++l)
       {
- 
+
          err = initial;
          eps = ConsistencyEpsilon;
 
@@ -276,7 +278,7 @@ void Restriction::ConsistencyCheckRidders(Vector const& dof,double const& Consis
          B = Force();
 
          Bb[0][0] = (A[l]-B[l])/(2.0*eps);
-      
+
          for (int i=1; i < Ntab; ++i)
          {
 
@@ -295,17 +297,17 @@ void Restriction::ConsistencyCheckRidders(Vector const& dof,double const& Consis
 
                Bb[j][i] = (Bb[j-1][i] * fac - Bb[j-1][i-1])/(fac - 1.0);
                fac = con * con * fac;
-               errt = fmax( fabs(Bb[j][i] - Bb[j-1][i]), fabs( Bb[j][i] - Bb[j-1][i-1])); 
+               errt = fmax( fabs(Bb[j][i] - Bb[j-1][i]), fabs( Bb[j][i] - Bb[j-1][i-1]));
                if (errt <= err )
                {
                   err = errt;
                   PerturbedStiff[l][k]=Bb[j][i];
                }
-            } 
+            }
          if (fabs(Bb[i][i]-Bb[i-1][i-1]) >= safe * err ) break;
          }
 
-      
+
        }
    }
 

@@ -77,6 +77,7 @@ private:
 
    int Width_;
    double Tolerance_;
+   int PrintStiffness_;
 
    enum UpdateFlag {NoStiffness = 0, NeedStiffness = 1};
    void UpdateValues(UpdateFlag flag) const; //Updates energy, first and second derivatives od energy
