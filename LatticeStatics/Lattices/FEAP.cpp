@@ -366,6 +366,16 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
    }
 
 
+   if (Input.ParameterOK(Hash, "PrintStiffness"))
+   {
+     PrintStiffness_ = Input.getInt(Hash, "PrintStiffness");
+   }
+   else
+   {
+     PrintStiffness_ = 0;
+     Input.useInt(0, Hash, "PrintStiffness");
+   }
+
    // get and store equation id's from FEAP
    eqnID_ = new int[ndf_ * numnp_];
    bfbfeap_get_eqn_id_(eqnID_);
@@ -1947,6 +1957,10 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
              << "DOF Norm: " << setw(W) << DOF_.Norm() << "\n"
              << "Potential Value: " << setw(W) << engy << "\n"
              << "Force Norm: " << setw(W) << E1norm << "\n";
+         if (PrintStiffness_)
+         {
+           out << "Stiffness: " << setw(W) << E2CachedValue_;
+         }
       // ajout ///////////////////////////////////////////////////////////////////
       //  out << "StiffnessDL= " << setw(W) << StiffnessDL() << "\n";
       // ajout ///////////////////////////////////////////////////////////////////
@@ -1967,6 +1981,10 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
                  << "DOF Norm: " << setw(W) << DOF_.Norm() << "\n"
                  << "Potential Value: " << setw(W) << engy << "\n"
                  << "Force Norm: " << setw(W) << E1norm << "\n";
+            if (PrintStiffness_)
+            {
+              cout << "Stiffness: " << setw(W) << E2CachedValue_;
+            }
        //ajout ///////////////////////////////////////////////////////////////////
 //   cout << "StiffnessDL= " << setw(W) << E2() << "\n";
 //   cout << "X_F_= " << setw(W) << X_F_ << "\n";
