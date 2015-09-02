@@ -1401,7 +1401,24 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
          }
          else
          {
-           TF[k] = DkEigVal.MinElement();
+           double max = DkEigVal.MaxElement();
+           int NumZeroEig = 0;
+           if ((K_[0]==0.0) && (K_[1]==0.0))
+           {
+             for (int l=0; l < ndf_*(numnp_-nbn_/2); ++l)
+             {
+               if ((NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < Tolerance_))
+               {
+                 DkEigVal[0][l] = max;
+                 ++NumZeroEig;
+               }
+             }
+             TF[k] = DkEigVal.MinElement();
+           }
+           else
+           {
+             TF[k] = DkEigVal.MinElement();
+           }
            ++k;
          }
          bloch_wave_out_ << setw(Width_) << K_[0]/(2*pi)
@@ -1409,7 +1426,6 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
                          << setw(Width_) << min
                          << setw(Width_) << DkEigVal.MinElement() << "\n";
          bloch_count_++;
-
       }
    }
    else if(TFType_ == 4) // LoadingParameter
