@@ -657,7 +657,6 @@ void FEAP::UpdateValues(UpdateFlag flag) const
    //Sum of S term for phantom energy term
    double S1 = 0.0;
    double S2 = 0.0;
-   double S3 = 0.0;
    int shift;
    switch (LoadingType_)
    {
@@ -674,8 +673,6 @@ void FEAP::UpdateValues(UpdateFlag flag) const
    {
       S1 += DOF_[shift+i*ndf_];
       S2 += DOF_[shift+1+i*ndf_];
-      if(ndf_>(ndm_+1))
-      S3 += DOF_[shift+2+i*ndf_];
    }
 //    for (int i = nbn_; i < numnp_; ++i)
 //    {
@@ -700,7 +697,7 @@ void FEAP::UpdateValues(UpdateFlag flag) const
        break;
    }
 
-   E0CachedValue_ += 1.0/eps_*(S1*S1 + S2*S2 + S3*S3);
+   E0CachedValue_ += 1.0/eps_*(S1*S1 + S2*S2);
 
    bfbfeap_call_form_();
    bfbfeap_get_reduced_residual_(&(E1CachedValue_F_[0]));
@@ -742,11 +739,6 @@ void FEAP::UpdateValues(UpdateFlag flag) const
      W1CachedValue_[4+i*ndf_] += 2.0/eps_*S1;
      E1CachedValue_[shift+1+i*ndf_] += 2.0/eps_*S2;
      W1CachedValue_[4+1+i*ndf_] += 2.0/eps_*S2;
-     if(ndf_>(ndm_+1))
-     {
-       E1CachedValue_[shift+2+i*ndf_] += 2.0/eps_*S3;
-       W1CachedValue_[4+2+i*ndf_] += 2.0/eps_*S3;
-     }
    }
 
    Cached_[0] = 1;
@@ -806,11 +798,6 @@ void FEAP::UpdateValues(UpdateFlag flag) const
          W2CachedValue_[4+i*ndf_][4+j*ndf_] += 2.0/eps_;
          E2CachedValue_[shift+1+i*ndf_][shift+1+j*ndf_] += 2.0/eps_;
          W2CachedValue_[4+1+i*ndf_][4+1+j*ndf_] += 2.0/eps_;
-         if(ndf_>(ndm_+1))
-         {
-           E2CachedValue_[shift+2+i*ndf_][shift+2+j*ndf_] += 2.0/eps_;
-           W2CachedValue_[4+2+i*ndf_][4+2+j*ndf_] += 2.0/eps_;
-         }
        }
      }
      // Loading term for E2 //
@@ -1759,8 +1746,6 @@ void FEAP::DynamicalMatrixBis(Vector const& K) const
       {
           A[ndf_*i][ndf_*j] -= 2.0/eps_;
           A[1+ndf_*i][1+ndf_*j] -= 2.0/eps_;
-          // Don't remove the 3rd DOF Phantom Energy term
-          // it is not associated with a rigid-body mode
       }
    }
 
