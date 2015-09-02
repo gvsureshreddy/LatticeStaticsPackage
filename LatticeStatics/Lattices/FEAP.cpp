@@ -1960,6 +1960,7 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
          if (PrintStiffness_)
          {
            out << "Stiffness: " << setw(W) << E2CachedValue_;
+           out << "Condensed Stiffness: " << setw(W) << Cond;
          }
       // ajout ///////////////////////////////////////////////////////////////////
       //  out << "StiffnessDL= " << setw(W) << StiffnessDL() << "\n";
@@ -1984,6 +1985,7 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
             if (PrintStiffness_)
             {
               cout << "Stiffness: " << setw(W) << E2CachedValue_;
+              cout << "Condensed Stiffness: " << setw(W) << Cond;
             }
        //ajout ///////////////////////////////////////////////////////////////////
 //   cout << "StiffnessDL= " << setw(W) << E2() << "\n";
