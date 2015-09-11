@@ -271,11 +271,11 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
              TFType_ = 1;
              if (0 == BWTFType_)
              {
-               NumExtraTFs_ = ndf_*(numnp_-nbn_/2) * pow(KSpaceResolution_+1.0,2);
+               NumExtraTFs_ = ndf_*(numnp_-nbn_/2) * (KSpaceResolution_+1.0)*(2.0*KSpaceResolution_);
              }
              else
              {
-               NumExtraTFs_ = pow(KSpaceResolution_+1,2);
+               NumExtraTFs_ = (KSpaceResolution_+1.0)*(2.0*KSpaceResolution_);
              }
 
              if (!(Input.ParameterOK(TFHash, "KSpaceResolution")))
@@ -1069,7 +1069,7 @@ int FEAP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vector
    else if ((CPorBif < 0 ) && (TFType_ == 1)) //Bloch Wave Analysis
    {
 
-      for (int i = 0; i < KSpaceResolution_+1; ++i)
+      for (int i = -KSpaceResolution_+1; i < KSpaceResolution_+1; ++i)
       {
          for (int j = 0; j < KSpaceResolution_+1; ++j)
          {
@@ -1227,7 +1227,7 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
    if(TFType_ == 1) // Bloch Wave Analysis
    {
       int k = 0;
-      for (int i = 0; i < KSpaceResolution_+1; ++i)
+      for (int i = -KSpaceResolution_+1; i < KSpaceResolution_+1; ++i)
       {
          for (int j = 0; j < KSpaceResolution_+1; ++j)
          {
