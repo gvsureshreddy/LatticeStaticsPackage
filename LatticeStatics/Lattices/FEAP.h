@@ -14,6 +14,7 @@ class FEAP : public Lattice
 private:
    mutable int DOFS_; // BFB number of degrees of freedom
    mutable int DOFS_F_; // FEAP number of degrees of freedom
+   mutable int WDOFS_; // BFB number of degrees of freedom for W not E
 
    mutable Vector DOF_; // BFB degrees of freedom
    mutable Vector DOF_F_; // FEAP degrees of freedom
@@ -85,9 +86,10 @@ private:
 
    void UpdateDOF_F() const; //Uses the BFB DOFs and maps to FEAP DOFs
    void UpdateJacobian() const;
-   void JacobianHelper(int const ii, int const jj, int const shift) const;
+   void JacobianHelper(int const ii, int const jj, int const shift,
+                       int const Wshift) const;
 
-   double RankOneConvex(Matrix const& d2WdFdF) const;
+  double RankOneConvex(Matrix const& d2WdFdF, Vector &N) const;
 
    void print_gpl_config(fstream& out) const;
    fstream config_out_; //Prints out in separate file the configuration for plotting
