@@ -24,7 +24,7 @@ Lattice* const InitializeLattice(char const* const LatticeType,
 #ifdef USE_KIM
    else if (!strcmp("MultiLatticeKIM", LatticeType))
    {
-      return new MultiLatticeKIM(Input, Echo, Width, Debug);
+      return new MultiLatticeKIM(Input, Echo, Width);
    }
 #endif
    else if (!strcmp("MultiChainTPP", LatticeType))
