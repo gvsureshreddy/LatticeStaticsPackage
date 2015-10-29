@@ -2709,7 +2709,8 @@ void MultiLatticeTPP::Print(ostream& out, PrintDetail const& flag,
    int W;
    int NoNegTestFunctions = 0;
    double engy, entropy, heatcapacity;
-   int RankOneConvex;
+   int RankOneConvex = 0;
+   double minRK1 = 0.0;
    int BlochWaveStable;
    double mintestfunct;
    double conj;
@@ -2769,7 +2770,8 @@ void MultiLatticeTPP::Print(ostream& out, PrintDetail const& flag,
 
       CondModuli_static = CondensedModuli();
       CondEV_static = SymEigVal(CondModuli_static);
-      RankOneConvex = FullScanRank1Convex3D(CBK_, CondModuli_static, ConvexityDX_);
+      minRK1 = FullScanRank1Convex3D(CBK_, CondModuli_static, ConvexityDX_);
+      RankOneConvex = (minRK1 > 0.0);
 
       K_static.Resize(DIM3, 0.0);
       if (RankOneConvex)
@@ -2888,7 +2890,8 @@ void MultiLatticeTPP::Print(ostream& out, PrintDetail const& flag,
                 << setw(W) << NoNegTestFunctions << "\n"
                 << "Condensed Moduli (Normalized):" << setw(W) << CondModuli_static
                 << "CondEV Info:" << setw(W) << CondEV_static
-                << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << "\n"
+                << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex
+                << setw(W) << minRK1 << "\n"
                 << "BlochWave Stability (GridSize=" << GridSize_ << "):"
                 << setw(W) << BlochWaveStable << ", "
                 << setw(W) << K_static << endl;
@@ -2919,7 +2922,8 @@ void MultiLatticeTPP::Print(ostream& out, PrintDetail const& flag,
                  << setw(W) << NoNegTestFunctions << "\n"
                  << "Condensed Moduli (Normalized):" << setw(W) << CondModuli_static
                  << "CondEV Info:" << setw(W) << CondEV_static
-                 << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex << "\n"
+                 << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex
+                 << setw(W) << minRK1 << "\n"
                  << "BlochWave Stability (GridSize=" << GridSize_ << "):"
                  << setw(W) << BlochWaveStable << ", "
                  << setw(W) << K_static << endl;

@@ -31,6 +31,7 @@ class MultiLatticeKIM : public Lattice
   // DOF[i] = [U11 U22 U33 U12 U13 U23 S11 S12 S13 S21... ...]
   // if using a UwithoutTransMapping CBkinematics
   CBKinematics* CBK_;
+  CBKinematics* CBK_F_;
   int KillRotations_;
   void* pkim_;
   int numberOfParticles_;
@@ -96,6 +97,20 @@ class MultiLatticeKIM : public Lattice
   {
     for (int i=0; i<cachesize; ++i) Cached_[i] = 0;
     CBK_->SetDOF(dof);
+    if (CBK_F_ != CBK_)
+    {
+      Vector dof_f(CBK_F_->DOFS());
+      for (int i=0; i < DIM3; ++i)
+        for (int j=0; j < DIM3; ++j)
+          dof_f[CBK_F_->INDF(i,j)] = dof[CBK_->INDF(i,j)];
+      int start = CBK_->Fsize();
+      int Fstart = CBK_F_->Fsize();
+      for (int i=0; i < DIM3*(CBK_F_->InternalAtoms()); ++i)
+      {
+        dof_f[Fstart + i] = dof[start + i];
+      }
+      CBK_F_->SetDOF(dof_f);
+    }
   }
 
   // Needed to satisfy Lattice.h
@@ -180,7 +195,7 @@ class MultiLatticeKIM : public Lattice
   }
 
   Matrix const& CondensedModuli() const;
-  //Vector const& ThermalExpansion() const;
+  Matrix const& UnitCellShiftModuli() const;
   friend ostream& operator<<(ostream& out, MultiLatticeKIM& A);
 
  private:
@@ -200,6 +215,7 @@ class MultiLatticeKIM : public Lattice
 
   // E1
   mutable Vector ME1_static;
+  mutable Vector ME1_F_static;
   mutable double T_static[3];
   mutable double R_static[3];
 
@@ -208,6 +224,7 @@ class MultiLatticeKIM : public Lattice
 
   // E2
   mutable Matrix ME2_static;
+  mutable Matrix ME2_F_static;
 
   // stiffness
   mutable Matrix Phi2_static;
@@ -215,11 +232,17 @@ class MultiLatticeKIM : public Lattice
   // CondensedModuli
   mutable Matrix CM_static;
 
+  // UnitCellShiftModuli
+  mutable Matrix OPM_static;
+
   // Print
   mutable Vector str_static;
   mutable Matrix stiff_static;
   mutable Matrix CondEV_static;
   mutable Matrix CondModuli_static;
+  mutable Matrix UnitCellShiftModuli_static;
+  mutable Matrix OpticEV_static;
+  mutable Vector OpticEV_Print;
   mutable Vector TestFunctVals_static;
   mutable Vector TestFunctVals_Print;
 };

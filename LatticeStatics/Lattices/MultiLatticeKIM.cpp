@@ -63,11 +63,13 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
   if (!strcmp("SymLagrangeWTransCB", CBKin))
   {
     CBK_ = new SymLagrangeWTransCB(Input, &Hash);
+    CBK_F_ = new LagrangeCB(Input, &Hash);
     needKillRotations = 0;
   }
   else if (!strcmp("LagrangeCB", CBKin))
   {
     CBK_ = new LagrangeCB(Input, &Hash);
+    CBK_F_ = CBK_;
   }
   else
   {
@@ -425,11 +427,17 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
 
   // Initialize various data storage space
   ME1_static.Resize(CBK_->DOFS(), 0.0);
+  ME1_F_static.Resize(CBK_F_->DOFS(), 0.0);
   ME2_static.Resize(CBK_->DOFS(), CBK_->DOFS(), 0.0);
+  ME2_F_static.Resize(CBK_F_->DOFS(), CBK_F_->DOFS(), 0.0);
   str_static.Resize(CBK_->DOFS());
   stiff_static.Resize(CBK_->DOFS(), CBK_->DOFS());
-  CondEV_static.Resize(1, CBK_->Fsize());
-  CondModuli_static.Resize(CBK_->Fsize(), CBK_->Fsize());
+  CondEV_static.Resize(1, CBK_F_->Fsize());
+  CondModuli_static.Resize(CBK_F_->Fsize(), CBK_F_->Fsize());
+  OPM_static.Resize(CBK_F_->Ssize(), CBK_F_->Ssize());
+  UnitCellShiftModuli_static.Resize(CBK_F_->Ssize(), CBK_F_->Ssize());
+  OpticEV_static.Resize(1, CBK_F_->Ssize());
+  OpticEV_Print.Resize(CBK_F_->Ssize());
   TestFunctVals_static.Resize(NumTestFunctions());
   if (TFType_ == 1) // only print stiffness eigenvalues
   {
@@ -496,6 +504,7 @@ int MultiLatticeKIM::FindLatticeSpacing(int const& iter, bool cubicEqbm)
   Lambda_ = REFLambda_;
 
   CBK_->SetReferenceDOFs();
+  if (CBK_F_ != CBK_) CBK_F_->SetReferenceDOFs();
   LatSum_.Recalc();
 
   if (cubicEqbm)
@@ -537,6 +546,7 @@ int MultiLatticeKIM::FindLatticeSpacing(int const& iter, bool cubicEqbm)
   CBK_->SetDOF(doftmp);
 
   CBK_->SetReferenceToCurrent();
+  if (CBK_F_ != CBK_) CBK_F_->SetReferenceToCurrent();
 
   LatSum_.Recalc();
 
@@ -563,6 +573,17 @@ void MultiLatticeKIM::UpdateKIMValues() const
       for (int j = 0; j < CBK_->DOFS(); j++)
       {
         ME2_static[i][j] = 0.0;
+      }
+    }
+  }
+  for (int i = 0; i < CBK_F_->DOFS(); i++)
+  {
+    ME1_F_static[i] = 0.0;
+    if (StiffnessYes_==1)
+    {
+      for (int j = 0; j < CBK_F_->DOFS(); j++)
+      {
+        ME2_F_static[i][j] = 0.0;
       }
     }
   }
@@ -783,9 +804,9 @@ Vector const& MultiLatticeKIM::stress(LDeriv const& dl) const
     UpdateKIMValues();
     ME1_static *= 1.0 / Vr;
 
-    for (int i = 0; i < 3; ++i)
+    for (int i = 0; i < DIM3; ++i)
     {
-      for (int j = 0; j < 3; ++j)
+      for (int j = 0; j < DIM3; ++j)
       {
         ME1_static[(CBK_->INDF(i, j))] -= Lambda_ * Loading_[i][j];
       }
@@ -798,9 +819,9 @@ Vector const& MultiLatticeKIM::stress(LDeriv const& dl) const
       ME1_static[i] = 0.0;
     }
 
-    for (int i = 0; i < 3; ++i)
+    for (int i = 0; i < DIM3; ++i)
     {
-      for (int j = 0; j < 3; ++j)
+      for (int j = 0; j < DIM3; ++j)
       {
         ME1_static[(CBK_->INDF(i, j))] -= Loading_[i][j];
       }
@@ -882,6 +903,7 @@ Matrix const& MultiLatticeKIM::stiffness(LDeriv const& dl) const
     StiffnessYes_ = 1;
     UpdateKIMValues();
     ME2_static *= 1.0 / Vr;
+    ME2_F_static *= 1.0 /Vr;
   }
   else if (dl == DL)
   {
@@ -890,6 +912,13 @@ Matrix const& MultiLatticeKIM::stiffness(LDeriv const& dl) const
       for (int j = 0; j < ME2_static.Cols(); ++i)
       {
         ME2_static[i][j] = 0.0;
+      }
+    }
+    for (int i = 0; i < ME2_F_static.Rows(); ++i)
+    {
+      for (int j = 0; j < ME2_F_static.Cols(); ++i)
+      {
+        ME2_F_static[i][j] = 0.0;
       }
     }
   }
@@ -947,10 +976,10 @@ void MultiLatticeKIM::ExtraTestFunctions(Vector& TF) const
 
 Matrix const& MultiLatticeKIM::CondensedModuli() const
 {
-  Matrix const& stiff = E2();
-  int intrn = CBK_->Ssize();
+  Matrix const& stiff = E2();  // Make sure ME2_F_static is up to date
+  int intrn = CBK_F_->Ssize();
   double factor = 1.0 / (intrn / DIM3);
-  int fsz = CBK_->Fsize();
+  int fsz = CBK_F_->Fsize();
   Matrix IM(intrn, intrn);
   CM_static.Resize(fsz, fsz);
 
@@ -958,7 +987,7 @@ Matrix const& MultiLatticeKIM::CondensedModuli() const
   {
     for (int j = 0; j < fsz; j++)
     {
-      CM_static[i][j] = stiff[i][j];
+      CM_static[i][j] = ME2_F_static[i][j];
     }
   }
 
@@ -969,10 +998,10 @@ Matrix const& MultiLatticeKIM::CondensedModuli() const
     {
       for (int j = 0; j < intrn; j++)
       {
-        IM[i][j] = stiff[fsz + i][fsz + j];
+        IM[i][j] = ME2_F_static[fsz + i][fsz + j];
 
         // add translational stiffness to regularize IM, if needed
-        if ((!CBK_->NoTrans()) && (i % DIM3 == j % DIM3))
+        if ((!CBK_F_->NoTrans()) && (i % DIM3 == j % DIM3))
         {
           IM[i][j] += factor;
         }
@@ -989,35 +1018,45 @@ Matrix const& MultiLatticeKIM::CondensedModuli() const
         {
           for (int n = 0; n < intrn; n++)
           {
-            CM_static[i][j] -= stiff[i][fsz + m] * IM[m][n]
-                * stiff[fsz + n][j];
+            CM_static[i][j] -= ME2_F_static[i][fsz + m] * IM[m][n]
+                * ME2_F_static[fsz + n][j];
           }
         }
       }
     }
   }
 
-  // If using symmetrized F, assume standard Voigt notation
-  if (fsz == 6)
-  {
-    // Remove 2's and 4's
-    for (int i = 3; i < 6; i++)
-    {
-      for (int j = 0; j < 3; j++)
-      {
-        CM_static[i][j] /= 2.0;
-        CM_static[j][i] /= 2.0;
-      }
+  return CM_static;
+}
 
-      for (int j = 3; j < 6; j++)
+Matrix const& MultiLatticeKIM::UnitCellShiftModuli() const
+{
+  Matrix const& stiff = E2();  // Make sure ME2_F_static is up to date
+  int fsz = CBK_F_->Fsize();
+  int intrn = CBK_F_->Ssize();
+  double factor = 1.0 / (intrn / DIM3);
+
+  // Make sure there are internal DOF's
+  if (intrn)
+  {
+    for (int i = 0; i < intrn; i++)
+    {
+      for (int j = 0; j < intrn; j++)
       {
-        CM_static[i][j] /= 4.0;
+        OPM_static[i][j] = ME2_F_static[fsz + i][fsz + j];
+
+        // add translational stiffness to regularize IM, if needed
+        if ((!CBK_F_->NoTrans()) && (i % DIM3 == j % DIM3))
+        {
+          OPM_static[i][j] += factor;
+        }
       }
     }
   }
 
-  return CM_static;
+  return OPM_static;
 }
+
 
 // @@ provide definition
 void MultiLatticeKIM::LongWavelengthModuli(double const& dk,
@@ -1034,8 +1073,11 @@ void MultiLatticeKIM::Print(ostream& out, PrintDetail const& flag,
 {
   int W;
   int NoNegTestFunctions = 0;
-  double engy, entropy, heatcapacity;
-  int RankOneConvex;
+  double engy;
+  int RankOneConvex = 0;
+  double minRK1 = 0.0;
+  int UnitCellShiftStable = 0;
+  double minUnitCellShift = 0.0;
   double mintestfunct;
   double conj;
   int NoFP = !FastPrint_;
@@ -1092,10 +1134,24 @@ void MultiLatticeKIM::Print(ostream& out, PrintDetail const& flag,
       }
     }
 
+    UnitCellShiftModuli_static = UnitCellShiftModuli();
+    OpticEV_static = SymEigVal(UnitCellShiftModuli_static);
+    minUnitCellShift = OpticEV_static[0][0];
+    for (int i = 0; i < OpticEV_static.Cols(); ++i)
+    {
+      if (minUnitCellShift > OpticEV_static[0][i])
+      {
+        minUnitCellShift = OpticEV_static[0][i];
+      }
+      OpticEV_Print[i] = OpticEV_static[0][i];
+    }
+    UnitCellShiftStable = (minUnitCellShift > 0.0);
+
     CondModuli_static = CondensedModuli();
     CondEV_static = SymEigVal(CondModuli_static);
-    RankOneConvex = FullScanRank1Convex3D(CBK_, CondModuli_static,
-                                          ConvexityDX_);
+    minRK1 = FullScanRank1Convex3D(CBK_F_, CondModuli_static,
+                                   ConvexityDX_);
+    RankOneConvex = (minRK1 > 0.0);
   }
 
   switch (flag)
@@ -1146,16 +1202,24 @@ void MultiLatticeKIM::Print(ostream& out, PrintDetail const& flag,
             << BodyForce_[i] << "\n";
       }
       out << "Stress (eV/A^3):" << "\n" << setw(W) << str_static << "\n";
-      out << "\nStiffness (eV/A^3):" << setw(W) << stiff_static
-          << "Eigenvalue Info (Rots->1,2,3; Trans->4,5,6):" << "\n"
-          << setw(W)
-          << TestFunctVals_Print << "\n"
-          << "Bifurcation Info:" << setw(W) << mintestfunct
-          << setw(W) << NoNegTestFunctions << "\n"
-          << "Condensed Moduli (eV/A^3):" << setw(W) << CondModuli_static
-          << "CondEV Info:" << setw(W) << CondEV_static
-          << "Condensed Moduli Rank1Convex:" << setw(W) << RankOneConvex
-          << "\n";
+      if (NoFP)
+      {
+        out << "\nStiffness (eV/A^3):" << setw(W) << stiff_static
+            << "Eigenvalue Info (Rots->1,2,3; Trans->4,5,6):" << "\n"
+            << setw(W)
+            << TestFunctVals_Print << "\n"
+            << "Bifurcation Info:" << setw(W) << mintestfunct
+            << setw(W) << NoNegTestFunctions << "\n"
+            << "Condensed Moduli (eV/A^3):" << setw(W) << CondModuli_static
+            << "CondEV Info:" << setw(W) << CondEV_static
+            << "Condensed Moduli Rank1Convex:" << setw(W)
+            << RankOneConvex << setw(W) << minRK1 << "\n"
+            << "UnitCellShift EigenValues:" << setw(W) << OpticEV_Print
+            << "\n"
+            << "UnitCellShiftStability:" << setw(W) << UnitCellShiftStable
+            << setw(W) << minUnitCellShift << "\n";
+
+      }
 
       if (Echo_)
       {
@@ -1170,18 +1234,25 @@ void MultiLatticeKIM::Print(ostream& out, PrintDetail const& flag,
         }
         cout << "Stress (eV/A^3):" << "\n" << setw(W) << str_static
              << "\n";
-        cout << "\nStiffness (eV/A^3):" << setw(W) << stiff_static
-             << "Eigenvalue Info (Rots->1,2,3; Trans->4,5,6):" << "\n"
-             << setw(W)
-             << TestFunctVals_static << "\n"
-             << "Bifurcation Info:" << setw(W) << mintestfunct
-             << setw(W) << NoNegTestFunctions << "\n"
-             << "Condensed Moduli (eV/A^3):" << setw(W)
-             << CondModuli_static
-             << "CondEV Info:" << setw(W) << CondEV_static
-             << "Condensed Moduli Rank1Convex:" << setw(W)
-             << RankOneConvex
-             << "\n";
+        if (NoFP)
+        {
+          cout << "\nStiffness (eV/A^3):" << setw(W) << stiff_static
+               << "Eigenvalue Info (Rots->1,2,3; Trans->4,5,6):" << "\n"
+               << setw(W)
+               << TestFunctVals_static << "\n"
+               << "Bifurcation Info:" << setw(W) << mintestfunct
+               << setw(W) << NoNegTestFunctions << "\n"
+               << "Condensed Moduli (eV/A^3):" << setw(W)
+               << CondModuli_static
+               << "CondEV Info:" << setw(W) << CondEV_static
+               << "Condensed Moduli Rank1Convex:" << setw(W)
+               << RankOneConvex << setw(W) << minRK1 << "\n"
+               << "UnitCellShift EigenValues:" << setw(W) << OpticEV_Print
+               << "\n"
+               << "UnitCellShiftStability:" << setw(W) << UnitCellShiftStable
+               << setw(W) << minUnitCellShift << "\n";
+
+        }
       }
       break;
   }
@@ -1458,6 +1529,8 @@ int MultiLatticeKIM::process_dEdr(void* kimmdl, double* dEdr, double* r,
     {
       obj->ME1_static[(obj->CBK_->INDF(rows, cols))]
           += *dEdr * (obj->CBK_->DyDF(*dx, DX, rows, cols)) / (2.0 * (*r));
+      obj->ME1_F_static[(obj->CBK_F_->INDF(rows, cols))]
+          += *dEdr * (obj->CBK_F_->DyDF(*dx, DX, rows, cols)) / (2.0 * (*r));
     }
   }
 
@@ -1468,6 +1541,8 @@ int MultiLatticeKIM::process_dEdr(void* kimmdl, double* dEdr, double* r,
     {
       obj->ME1_static[(obj->CBK_->INDS(atom, k))]
           += *dEdr * (obj->CBK_->DyDS(*dx, *i, *j, atom, k)) / (2.0 * (*r));
+      obj->ME1_F_static[(obj->CBK_F_->INDS(atom, k))]
+          += *dEdr * (obj->CBK_F_->DyDS(*dx, *i, *j, atom, k)) / (2.0 * (*r));
     }
   }
 
@@ -1491,6 +1566,12 @@ int MultiLatticeKIM::process_dEdr(void* kimmdl, double* dEdr, double* r,
                               - (0.25 / ((*r) * (*r) * (*r)))
                               * (obj->CBK_->DyDF((*dx), DX, i1, j1))
                               * (obj->CBK_->DyDF((*dx), DX, k1, l1)));
+            obj->ME2_F_static[obj->CBK_F_->INDF(i1, j1)][obj->CBK_F_->INDF(k1, l1)]
+                += (*dEdr) * ((0.5 / (*r))
+                              * (obj->CBK_F_->D2yDFF(DX, i1, j1, k1, l1))
+                              - (0.25 / ((*r) * (*r) * (*r)))
+                              * (obj->CBK_F_->DyDF((*dx), DX, i1, j1))
+                              * (obj->CBK_F_->DyDF((*dx), DX, k1, l1)));
           }
         }
       }
@@ -1511,6 +1592,12 @@ int MultiLatticeKIM::process_dEdr(void* kimmdl, double* dEdr, double* r,
                               - (0.25 / ((*r) * (*r) * (*r)))
                               * (obj->CBK_->DyDS(*dx, *i, *j, atom0, k1))
                               * (obj->CBK_->DyDS(*dx, *i, *j, atom1, l1)));
+            obj->ME2_F_static[obj->CBK_F_->INDS(atom0, k1)][obj->CBK_F_->INDS(atom1, l1)]
+                += (*dEdr) * ((0.5 / (*r))
+                              * obj->CBK_F_->D2yDSS(*i, *j, atom0, k1, atom1, l1)
+                              - (0.25 / ((*r) * (*r) * (*r)))
+                              * (obj->CBK_F_->DyDS(*dx, *i, *j, atom0, k1))
+                              * (obj->CBK_F_->DyDS(*dx, *i, *j, atom1, l1)));
           }
         }
       }
@@ -1525,17 +1612,30 @@ int MultiLatticeKIM::process_dEdr(void* kimmdl, double* dEdr, double* r,
         {
           for (k1 = 0; k1 < DIM3; k1++)
           {
-            double temp=(*dEdr) * ((0.5 / (*r))
-                                   * obj->CBK_->D2yDFS(*dx, DX, *i, *j, i1, j1,
-                                                       atom0, k1)
-                                   - (0.25 / ((*r) * (*r) * (*r)))
-                                   * (obj->CBK_->DyDS(*dx, *i, *j, atom0, k1))
-                                   * (obj->CBK_->DyDF((*dx), DX, i1, j1)));
+            double temp=(*dEdr)
+                * ((0.5 / (*r))
+                   * obj->CBK_->D2yDFS(*dx, DX, *i, *j, i1, j1, atom0, k1)
+                   - (0.25 / ((*r) * (*r) * (*r)))
+                   * (obj->CBK_->DyDS(*dx, *i, *j, atom0, k1))
+                   * (obj->CBK_->DyDF((*dx), DX, i1, j1)));
 
             obj->ME2_static[obj->CBK_->INDF(i1, j1)][obj->CBK_->INDS(atom0, k1)]
                 += temp;
 
             obj->ME2_static[obj->CBK_->INDS(atom0, k1)][obj->CBK_->INDF(i1, j1)]
+                += temp;
+
+            double Ftemp=(*dEdr)
+                * ((0.5 / (*r))
+                   * obj->CBK_F_->D2yDFS(*dx, DX, *i, *j, i1, j1, atom0, k1)
+                   - (0.25 / ((*r) * (*r) * (*r)))
+                   * (obj->CBK_F_->DyDS(*dx, *i, *j, atom0, k1))
+                   * (obj->CBK_F_->DyDF((*dx), DX, i1, j1)));
+
+            obj->ME2_F_static[obj->CBK_F_->INDF(i1, j1)][obj->CBK_F_->INDS(atom0, k1)]
+                += temp;
+
+            obj->ME2_F_static[obj->CBK_F_->INDS(atom0, k1)][obj->CBK_F_->INDF(i1, j1)]
                 += temp;
           }
         }
@@ -1544,7 +1644,6 @@ int MultiLatticeKIM::process_dEdr(void* kimmdl, double* dEdr, double* r,
   }
   return KIM_STATUS_OK;
 }
-
 
 int MultiLatticeKIM::process_d2Edr2(void* kimmdl, double* d2Edr2, double** r,
                                     double** dx, int** i, int** j)
@@ -1592,6 +1691,10 @@ int MultiLatticeKIM::process_d2Edr2(void* kimmdl, double* d2Edr2, double** r,
               += (0.5 / ((*r)[0])) * (0.5 / ((*r)[1])) * (*d2Edr2)
               * (obj->CBK_->DyDF(Dx[0], DX[0], i1, j1))
               * (obj->CBK_->DyDF(Dx[1], DX[1], k1, l1));
+          obj->ME2_F_static[obj->CBK_F_->INDF(i1, j1)][obj->CBK_F_->INDF(k1, l1)]
+              += (0.5 / ((*r)[0])) * (0.5 / ((*r)[1])) * (*d2Edr2)
+              * (obj->CBK_F_->DyDF(Dx[0], DX[0], i1, j1))
+              * (obj->CBK_F_->DyDF(Dx[1], DX[1], k1, l1));
         }
       }
     }
@@ -1615,6 +1718,10 @@ int MultiLatticeKIM::process_d2Edr2(void* kimmdl, double* d2Edr2, double** r,
                   += (0.5 / (*r)[0]) * (0.5 / (*r)[1]) * (*d2Edr2)
                   * (obj->CBK_->DyDS(Dx[0], (*i)[0], (*j)[0], atom0, k1))
                   * (obj->CBK_->DyDS(Dx[1], (*i)[1], (*j)[1], atom1, l1));
+              obj->ME2_F_static[obj->CBK_F_->INDS(atom0, k1)][obj->CBK_F_->INDS(atom1, l1)]
+                  += (0.5 / (*r)[0]) * (0.5 / (*r)[1]) * (*d2Edr2)
+                  * (obj->CBK_F_->DyDS(Dx[0], (*i)[0], (*j)[0], atom0, k1))
+                  * (obj->CBK_F_->DyDS(Dx[1], (*i)[1], (*j)[1], atom1, l1));
             }
           }
         }
@@ -1642,6 +1749,18 @@ int MultiLatticeKIM::process_d2Edr2(void* kimmdl, double* d2Edr2, double** r,
               * (*d2Edr2)
               * (obj->CBK_->DyDF(Dx[1], DX[1], i1, j1)
                  * obj->CBK_->DyDS(Dx[0], (*i)[0], (*j)[0], atom0, k1));
+
+          obj->ME2_F_static[obj->CBK_F_->INDF(i1, j1)][obj->CBK_F_->INDS(atom0, k1)]
+              += (0.5 / ((*r)[0])) * (0.5 / ((*r)[1]))
+              * (*d2Edr2)
+              * (obj->CBK_F_->DyDF(Dx[0], DX[0], i1, j1)
+                 * obj->CBK_F_->DyDS(Dx[1], (*i)[1], (*j)[1], atom0, k1));
+
+          obj->ME2_F_static[obj->CBK_F_->INDS(atom0, k1)][obj->CBK_F_->INDF(i1, j1)]
+              += (0.5 / ((*r)[0])) * (0.5 / ((*r)[1]))
+              * (*d2Edr2)
+              * (obj->CBK_F_->DyDF(Dx[1], DX[1], i1, j1)
+                 * obj->CBK_F_->DyDS(Dx[0], (*i)[0], (*j)[0], atom0, k1));
         }
       }
     }

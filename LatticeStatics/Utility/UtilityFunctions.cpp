@@ -107,7 +107,7 @@ int IND2D(int const& i, int const& j)
    }
 }
 
-int FullScanRank1Convex3D(CBKinematics const* const CBK, Matrix const& K, double const& dx)
+double FullScanRank1Convex3D(CBKinematics const* const CBK, Matrix const& K, double const& dx)
 {
    Matrix A(3, 3);
    Matrix Eigvals(1, 3);
@@ -116,6 +116,7 @@ int FullScanRank1Convex3D(CBKinematics const* const CBK, Matrix const& K, double
           Pi2 = 2 * Pi;
    double phi, theta;
    double n[3];
+   double min = 1.0e10;
 
    for (phi = -Piby2; phi < Piby2; phi += dx)
    {
@@ -144,18 +145,22 @@ int FullScanRank1Convex3D(CBKinematics const* const CBK, Matrix const& K, double
          Eigvals = SymEigVal(A);
          for (int i = 0; i < 3; i++)
          {
-            if (Eigvals[0][i] <= 0.0)
-            {
-               return 0;
-            }
+           if (min > Eigvals[0][i])
+           {
+             min = Eigvals[0][i];
+           }
+           if (min < 0.0)
+           {
+             return min;
+           }
          }
       }
    }
 
-   return 1;
+   return min;
 }
 
-int FullScanRank1Convex2D(Matrix const& K, double const& dx)
+double FullScanRank1Convex2D(Matrix const& K, double const& dx)
 {
    Matrix A(2, 2);
    Matrix Eigvals(1, 2);
@@ -163,6 +168,7 @@ int FullScanRank1Convex2D(Matrix const& K, double const& dx)
    double Pi2 = 2 * Pi;
    double theta;
    double n[2];
+   double min = 1.0e10;
 
    for (theta = 0; theta < Pi2; theta += dx)
    {
@@ -188,14 +194,18 @@ int FullScanRank1Convex2D(Matrix const& K, double const& dx)
       Eigvals = SymEigVal(A);
       for (int i = 0; i < 2; i++)
       {
-         if (Eigvals[0][i] <= 0.0)
-         {
-            return 0;
-         }
+        if (min > Eigvals[0][i])
+        {
+          min = Eigvals[0][i];
+        }
+        if (min < 0.0)
+        {
+          return min;
+        }
       }
    }
 
-   return 1;
+   return min;
 }
 
 int Rank1Convex3D(CBKinematics const* const CBK, Matrix const& K, double const& dx)
