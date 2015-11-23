@@ -48,6 +48,7 @@ private:
    mutable CMatrix Dk_; //Dynamical matrix (Bloch-wave stiffness matrix)
 
    int KSpaceResolution_; //Used in Bloch wave analysis, when AnalysisType => Full or KDirection
+   double KScale_; // Scaling factor for Full bloch scan analysis
    Vector KRange_; //Range of KVectors when AnalysisType => KDirection
    int NumKVectors_;
    Matrix KVectorMatrix_;//KVectors when AnalysisType => KVectors

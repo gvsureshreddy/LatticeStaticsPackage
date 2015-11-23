@@ -10,7 +10,7 @@ export BIN_LOC
 export INCL_LOC
 export LIB_LOC
 
-CC = g++-4.8 -m64
+CC = g++ -m64
 #CC = g++ -fopenmp
 OPTIMIZE   = -O
 #DEBUG      = -g -m32

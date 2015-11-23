@@ -282,6 +282,15 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
              {
                 cout << "*WARNING* KSpaceResolution not specified. Using default value: 6 \n";
              }
+
+             if (Input.ParameterOK(TFHash, "KScale"))
+             {
+               KScale_ = Input.getDouble(TFHash,"KScale");
+             }
+             else
+             {
+                KScale_=1.0;
+             }
           }
           else if (!strcmp("KDirection",AnalysisType))
           {
@@ -1082,8 +1091,8 @@ int FEAP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vector
       {
          for (int j = 0; j < KSpaceResolution_+1; ++j)
          {
-            K_[0] = pi*(((double) i)/((double) KSpaceResolution_));
-            K_[1] = pi*(((double) j)/((double) KSpaceResolution_));
+            K_[0] = pi*KScale_*(((double) i)/((double) KSpaceResolution_));
+            K_[1] = pi*KScale_*(((double) j)/((double) KSpaceResolution_));
 
             DynamicalMatrixBis(K_);
 
@@ -1240,8 +1249,8 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
       {
          for (int j = 0; j < KSpaceResolution_+1; ++j)
          {
-            K_[0] = pi*(((double) i)/((double) KSpaceResolution_));
-            K_[1] = pi*(((double) j)/((double) KSpaceResolution_));
+            K_[0] = pi*KScale_*(((double) i)/((double) KSpaceResolution_));
+            K_[1] = pi*KScale_*(((double) j)/((double) KSpaceResolution_));
 
             DynamicalMatrixBis(K_);
 

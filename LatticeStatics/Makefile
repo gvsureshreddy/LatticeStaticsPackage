@@ -14,7 +14,7 @@ BUILD_DATE = \"`date +%c;` from git commit `git rev-parse HEAD`\"
 
 # Compiling options, etc. #################################################
 #
-gCC        = g++
+gCC        = g++ -m64
 
 ifeq ($(UNAME),Darwin)
    # gCC compiler
@@ -55,7 +55,8 @@ ifneq (,$(strip $(USE_FEAP)))
   ifeq (NO,$(strip $(FEAP_OK)))
     $(error You must set the environment variable FEAPHOME8_3 and compile the library)
   endif
-  LIBS_FEAP = $(FEAPHOME8_3)/Feap8_3.a -lgfortran -L/opt/X11/lib   -lX11
+#  LIBS_FEAP = $(FEAPHOME8_3)/Feap8_3.a -lgfortran -L/opt/X11/lib   -lX11
+  LIBS_FEAP = $(FEAPHOME8_3)/Feap8_3.a -lgfortran -L/usr/local/Cellar/gcc/5.2.0/lib/gcc/5/ -lX11  -L/opt/X11/lib
 else
   LIBS_FEAP =
 endif
