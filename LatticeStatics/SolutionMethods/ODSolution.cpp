@@ -1,6 +1,8 @@
 #include <fstream>
 #include "ODSolution.h"
 #include "Matrix.h"
+#include <cstring>
+#include <cstdlib>
 
 using namespace std;
 

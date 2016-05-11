@@ -1,4 +1,6 @@
 #include "KnownRestrictions.h"
+#include <cstdlib>
+#include <cstring>
 
 Restriction* const InitializeRestriction(Lattice* const Lat, PerlInput const& Input)
 {

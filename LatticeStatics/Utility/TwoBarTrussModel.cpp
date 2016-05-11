@@ -1,6 +1,7 @@
 #include "TwoBarTruss.h"
 #include "PerlInput.h"
 #include <fstream>
+#include <cstdlib>
 
 using namespace std;
 

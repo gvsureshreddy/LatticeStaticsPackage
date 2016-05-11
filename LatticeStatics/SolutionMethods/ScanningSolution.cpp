@@ -1,5 +1,7 @@
 #include <cmath>
 #include "ScanningSolution.h"
+#include <cstring>
+#include <cstdlib>
 
 using namespace std;
 
@@ -315,7 +317,7 @@ int ScanningSolution::FindNextSolution(PerlInput const& Input, int const& Width,
    {
       return 0;
    }
-   
+
    double stepsize;
    double val = ScanningStressParameter(),
           oldval = val,

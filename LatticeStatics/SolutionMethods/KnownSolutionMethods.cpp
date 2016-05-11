@@ -1,4 +1,7 @@
+
 #include "KnownSolutionMethods.h"
+#include <cstring>
+#include <cstdlib>
 
 SolutionMethod* InitializeSolution(Restriction* const Restrict, PerlInput const& Input,
                                    Lattice* const Lat, ostream& out, int const& Width,
@@ -154,4 +157,3 @@ SolutionMethod* InitializeSolution(Restriction* const Restrict, PerlInput const&
 
    return 0;
 }
-

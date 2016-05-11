@@ -1,4 +1,5 @@
 #include "CBKinematics.h"
+#include <cstdlib>
 
 #define LINELENGTH 600
 

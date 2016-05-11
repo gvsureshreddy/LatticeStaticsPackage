@@ -3,6 +3,8 @@
 #include <sstream>
 #include <string>
 #include "ArcLengthSolution.h"
+#include <cstring>
+#include <cstdlib>
 
 using namespace std;
 
@@ -680,7 +682,7 @@ int ArcLengthSolution::FindNextSolution(PerlInput const& Input, int const& Width
          cout << "Relative Eigenvectors are too far apart and "
               << "a critical point has been identified." << "\n";
          good = 0;
-         
+
       }
       else if ((TestValue > 0) && (BisectCP_ == 1) && (CurrentSolution_ > 1))
       {
@@ -688,7 +690,7 @@ int ArcLengthSolution::FindNextSolution(PerlInput const& Input, int const& Width
          FindCriticalPoint(Restrict_->Lat(), TotalNumCPs_, Input, Width, out);
       }
    }
-   
+
    // Send Output
    if (Echo_)
    {
@@ -1251,7 +1253,7 @@ int ArcLengthSolution::RelativeEigVectsOK() const
    double proj = cos(eig_angle_max_);
    Matrix RelEigVects = Restrict_->RelativeEigVects();
    int size = RelEigVects.Rows();
-   
+
    for (int i = 0; i < size; ++i)
    {
       double maxval = fabs(RelEigVects[0][i]);
@@ -1270,6 +1272,6 @@ int ArcLengthSolution::RelativeEigVectsOK() const
          break;
       }
    }
-   
+
    return retval;
 }

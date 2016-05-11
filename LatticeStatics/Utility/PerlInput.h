@@ -7,9 +7,11 @@
 #include <Matrix.h>
 #include <Vector.h>
 #include <EXTERN.h>
-#include <perl.h>
 
 using namespace std;
+
+struct hv;
+typedef struct hv HV;
 
 class PerlInput
 {

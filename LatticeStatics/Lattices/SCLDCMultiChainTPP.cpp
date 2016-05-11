@@ -5,6 +5,7 @@
 #include <sstream>
 #include "time.h"
 #include <Vector.h>
+#include <cstring>
 
 #ifdef _OPENMP
 #include <omp.h>

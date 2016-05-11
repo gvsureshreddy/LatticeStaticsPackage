@@ -1,5 +1,6 @@
 #include "RandomAlloy.h"
 #include "KnownPairPotentials.h"
+#include <cstdlib>
 
 RandomAlloy::RandomAlloy(double const& CompA, double const& CompB, PerlInput const& Input,
                          char const* const HashName) :

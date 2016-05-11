@@ -5,6 +5,7 @@
 #include <Vector.h>
 #include "PerlInput.h"
 #include "CBKinematics.h"
+#include <cstdlib>
 
 using namespace std;
 

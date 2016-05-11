@@ -2,6 +2,7 @@
 #include "UtilityFunctions.h"
 #include <cmath>
 #include <sstream>
+#include <cstring>
 
 using namespace std;
 

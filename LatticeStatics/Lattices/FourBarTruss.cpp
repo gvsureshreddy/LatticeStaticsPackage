@@ -1,4 +1,6 @@
 #include "FourBarTruss.h"
+#include <cstring>
+#include <cstdlib>
 
 // Author: Karthikreddy Ginnavaram
 

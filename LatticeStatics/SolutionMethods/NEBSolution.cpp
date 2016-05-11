@@ -1,6 +1,8 @@
 #include <fstream>
 #include "NEBSolution.h"
 #include "Matrix.h"
+#include <cstring>
+#include <cstdlib>
 
 using namespace std;
 

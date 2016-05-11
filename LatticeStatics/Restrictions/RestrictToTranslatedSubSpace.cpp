@@ -1,5 +1,7 @@
 #include "RestrictToTranslatedSubSpace.h"
 #include <sstream>
+#include <cstdlib>
+#include <cstring>
 
 RestrictToTranslatedSubSpace::~RestrictToTranslatedSubSpace()
 {

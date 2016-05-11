@@ -5,6 +5,8 @@
 #include "NewtonPCSolution.h"
 #include "Matrix.h"
 #include "ArcLengthSolution.h"
+#include <cstring>
+#include <cstdlib>
 
 using namespace std;
 

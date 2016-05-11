@@ -1,4 +1,5 @@
 #include <fstream>
+#include <cstring>
 #include "Lattice.h"
 #include "UtilityFunctions.h"
 

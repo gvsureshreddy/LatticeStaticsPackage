@@ -1,5 +1,6 @@
-#include "Restriction.h"\
+#include "Restriction.h"
 #include <math.h>
+#include <cstdlib>
 
 Restriction::~Restriction()
 {

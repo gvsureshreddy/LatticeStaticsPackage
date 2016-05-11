@@ -9,6 +9,7 @@
 
 #include <string>
 #include <fstream>
+#include <cstring>
 
 char* builddate();
 

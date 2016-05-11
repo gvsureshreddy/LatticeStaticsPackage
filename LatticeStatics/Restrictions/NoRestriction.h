@@ -3,6 +3,7 @@
 
 #include "Restriction.h"
 #include "Lattice.h"
+#include <cstdlib>
 
 using namespace std;
 
@@ -41,7 +42,7 @@ public:
       stressdt_static(M->DOF().Dim())
    {
       Lattice_ = M;
-      
+
       int DOFS = dof_static.Dim();
       for (int i = 0; i < SymmetryCheckCount_; ++i)
       {

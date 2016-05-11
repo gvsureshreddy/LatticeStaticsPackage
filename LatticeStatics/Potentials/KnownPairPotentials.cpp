@@ -1,5 +1,8 @@
+
 #include "KnownPairPotentials.h"
 #include <sstream>
+#include <cstring>
+#include <cstdlib>
 
 PairPotentials* InitializePairPotential(char const* const HashName, PerlInput const& Input,
                                         int const& i, int const& j)

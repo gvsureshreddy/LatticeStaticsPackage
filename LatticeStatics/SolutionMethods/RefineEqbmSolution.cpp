@@ -1,6 +1,8 @@
 #include <fstream>
 #include "RefineEqbmSolution.h"
 #include "Matrix.h"
+#include <cstdlib>
+#include <cstring>
 
 using namespace std;
 

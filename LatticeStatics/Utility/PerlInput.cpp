@@ -2,6 +2,7 @@
 #include <iostream>
 #include <iomanip>
 #include "PerlInput.h"
+#include <perl.h>
 
 static PerlInterpreter* my_perl = 0;
 static bool PerlInitialized = false;

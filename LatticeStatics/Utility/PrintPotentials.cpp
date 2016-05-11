@@ -1,5 +1,6 @@
 #include "PerlInput.h"
 #include "KnownPairPotentials.h"
+#include <cstdlib>
 
 char* builddate();
 
