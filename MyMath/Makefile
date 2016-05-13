@@ -12,21 +12,21 @@ BUILD_DATE = \"`date +%c;` from git commit `git rev-parse HEAD`\"
 
 # Compiling options, etc. #################################################
 #
-gCC        = g++
+gCXX        = g++
 
 ifeq ($(UNAME),Darwin)
    # gCC compiler
-   CC         = $(gCC)
+   CXX         = $(gCXX)
    OPTIMIZE   = -O
    ANSI       = -pedantic -Wall
 endif
 
 ifeq ($(UNAME),Linux)
    # PGI compiler
-   #CC         = pgCC
+   #CXX         = pgCC
    #OPTIMIZE   = -fast -Minline=levels:10 --no_exceptions
    #ANSI       = -A
-   CC         = $(gCC)
+   CXX         = $(gCXX)
    OPTIMIZE   = -O
    ANSI       = -pedantic -Wall
 endif
@@ -37,7 +37,7 @@ endif
 #DEBUG      = -g
 #BOUNDS     = -DCHECK_BOUNDS
 DATE_DEF   = -DBUILD_DATE="$(BUILD_DATE)"
-CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS)
+CXXFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS)
 
 # File Locations ##########################################################
 BIN_LOC    = ${HOME}/bin
@@ -55,8 +55,8 @@ all : $(OBJECTS)
 .PHONY: all
 
 Mathtest : $(OBJECTS) Mathtest.cpp
-	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o ./lib/$@.o -c ./Mathtest.cpp
-	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o ./bin/Mathtest ./lib/Mathtest.o \
+	$(CXX) $(CXXFLAGS) -I. -I $(INCL_LOC)/ -o ./lib/$@.o -c ./Mathtest.cpp
+	$(CXX) $(CXXFLAGS) -I. -I $(INCL_LOC)/ -o ./bin/Mathtest ./lib/Mathtest.o \
 		./lib/Polynomial.o ./lib/MyComplexDouble.o
 
 # include the dependicies
@@ -64,7 +64,7 @@ include $(addprefix ./depend/,$(OBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 
 # Define object file dependicies and make rule
 $(OBJECTS): Makefile
-	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o ./lib/$@ -c $*$(SRC_EXT)
+	$(CXX) $(CXXFLAGS) -I. -I $(INCL_LOC)/ -o ./lib/$@ -c $*$(SRC_EXT)
 
 .PHONY: uninstall
 # Define install
@@ -75,7 +75,7 @@ $(INCL_LOC)/MyMath.h: MyMath.h
 $(INCL_LOC)/MyComplexDouble.h: MyComplexDouble.h
 	/bin/cp MyComplexDouble.h $(INCL_LOC)/
 $(LIB_LOC)/libMyMath.a: $(OBJECTS)
-	$(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/MyMathBuildDate.o -c MyMathBuildDate.cpp
+	$(CXX) $(CXXFLAGS) $(DATE_DEF) -o ./lib/MyMathBuildDate.o -c MyMathBuildDate.cpp
 	ar -r $(LIB_LOC)/libMyMath.a $(addprefix ./lib/,$(OBJECTS)) ./lib/MyMathBuildDate.o
 	/bin/rm -f ./lib/MyMathBuildDate.o
 	ranlib $(LIB_LOC)/libMyMath.a
@@ -97,7 +97,7 @@ clean:
 
 # Define rule for dependicy files
 depend/%.d: %$(SRC_EXT)
-	@$(SHELL) -ec '$(gCC) -MM -I. -I $(INCL_LOC)/ $< \
+	@$(SHELL) -ec '$(gCXX) -MM -I. -I $(INCL_LOC)/ $< \
 	      | sed '\''s/\($*\)\.o[ :]*/\1.o $*.d : /g'\'' > $@; \
 	      [ -s $@ ] || rm -f $@'
 	@echo "Building $@"

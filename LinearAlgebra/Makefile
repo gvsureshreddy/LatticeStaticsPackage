@@ -13,21 +13,21 @@ BUILD_DATE = \"`date +%c;` from git commit `git rev-parse HEAD`\"
 
 # Compiling options, etc. #################################################
 #
-gCC        = g++
+gCXX        = g++
 
 ifeq ($(UNAME),Darwin)
    # gCC compiler
-   CC         = $(gCC)
+   CXX         = $(gCXX)
    OPTIMIZE   = -O
    ANSI       = -pedantic -Wall
 endif
 
 ifeq ($(UNAME),Linux)
    # PGI compiler
-   #CC         = pgCC
+   #CXX         = pgCC
    #OPTIMIZE   = -fast -Minline=levels:10 --no_exceptions
    #ANSI       = -A
-   CC         = $(gCC)
+   CXX         = $(gCXX)
    OPTIMIZE   = -O
    ANSI       = -pedantic -Wall
 endif
@@ -39,7 +39,7 @@ endif
 #BOUNDS     = -DCHECK_BOUNDS
 DATE_DEF   = -DBUILD_DATE="$(BUILD_DATE)"
 #SOLVE      = -DSOLVE_SVD
-CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS) $(SOLVE)
+CXXFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS) $(SOLVE)
 
 # File Locations ##########################################################
 BIN_LOC    = ${HOME}/bin
@@ -60,23 +60,23 @@ all : $(OBJECTS) $(PROGRAMS) matrixtest
 .PHONY: all
 
 matrixtest : $(OBJECTS) matrixtest.cpp
-	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o ./lib/$@.o -c ./matrixtest.cpp
-	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ $(LFLAGS) -L$(LIB_LOC) -o ./bin/matrixtest \
+	$(CXX) $(CXXFLAGS) -I. -I $(INCL_LOC)/ -o ./lib/$@.o -c ./matrixtest.cpp
+	$(CXX) $(CXXFLAGS) -I. -I $(INCL_LOC)/ $(LFLAGS) -L$(LIB_LOC) -o ./bin/matrixtest \
 	./lib/matrixtest.o $(addprefix ./lib/,$(OBJECTS)) $(LIBS)
 
 EigenSys : $(OBJECTS) EigenSys.cpp
-	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o ./lib/$@.o -c ./EigenSys.cpp
-	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ $(LFLAGS) -o ./bin/EigenSys \
+	$(CXX) $(CXXFLAGS) -I. -I $(INCL_LOC)/ -o ./lib/$@.o -c ./EigenSys.cpp
+	$(CXX) $(CXXFLAGS) -I. -I $(INCL_LOC)/ $(LFLAGS) -o ./bin/EigenSys \
 	./lib/EigenSys.o ./lib/Matrix.o
 
 HermiteEigenSys : $(OBJECTS) HermiteEigenSys.cpp
-	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o ./lib/$@.o -c ./HermiteEigenSys.cpp
-	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ $(LFLAGS) -L$(LIB_LOC) -o ./bin/HermiteEigenSys \
+	$(CXX) $(CXXFLAGS) -I. -I $(INCL_LOC)/ -o ./lib/$@.o -c ./HermiteEigenSys.cpp
+	$(CXX) $(CXXFLAGS) -I. -I $(INCL_LOC)/ $(LFLAGS) -L$(LIB_LOC) -o ./bin/HermiteEigenSys \
 	./lib/HermiteEigenSys.o ./lib/CMatrix.o ./lib/Matrix.o $(LIBS)
 
 PrincipalSys : $(OBJECTS) PrincipalSys.cpp
-	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o ./lib/$@.o -c ./PrincipalSys.cpp
-	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ $(LFLAGS) -o ./bin/PrincipalSys \
+	$(CXX) $(CXXFLAGS) -I. -I $(INCL_LOC)/ -o ./lib/$@.o -c ./PrincipalSys.cpp
+	$(CXX) $(CXXFLAGS) -I. -I $(INCL_LOC)/ $(LFLAGS) -o ./bin/PrincipalSys \
 	./lib/PrincipalSys.o ./lib/Matrix.o ./lib/Vector.o
 
 # include the dependicies
@@ -84,14 +84,14 @@ include $(addprefix ./depend/,$(OBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 
 # Define object file dependicies and make rule
 $(OBJECTS): Makefile
-	$(CC) $(CCFLAGS) -I. -I $(INCL_LOC)/ -o ./lib/$@ -c $*$(SRC_EXT)
+	$(CXX) $(CXXFLAGS) -I. -I $(INCL_LOC)/ -o ./lib/$@ -c $*$(SRC_EXT)
 
 .PHONY: uninstall
 # Define install
 install: all $(LIB_LOC)/libLinearAlgebra.a $(addprefix $(BIN_LOC)/,$(PROGRAMS))
 
 $(LIB_LOC)/libLinearAlgebra.a: $(OBJECTS)
-	$(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/LinearAlgebraBuildDate.o -c LinearAlgebraBuildDate.cpp
+	$(CXX) $(CXXFLAGS) $(DATE_DEF) -o ./lib/LinearAlgebraBuildDate.o -c LinearAlgebraBuildDate.cpp
 	ar -r $(LIB_LOC)/libLinearAlgebra.a $(addprefix ./lib/,$(OBJECTS)) ./lib/LinearAlgebraBuildDate.o
 	/bin/rm -f ./lib/LinearAlgebraBuildDate.o
 	ranlib $(LIB_LOC)/libLinearAlgebra.a
@@ -120,7 +120,7 @@ clean:
 
 # Define rule for dependicy files
 depend/%.d: %$(SRC_EXT)
-	@$(SHELL) -ec '$(gCC) -MM -I. -I $(INCL_LOC)/ $< \
+	@$(SHELL) -ec '$(gCXX) -MM -I. -I $(INCL_LOC)/ $< \
 	      | sed '\''s/\($*\)\.o[ :]*/\1.o $*.d : /g'\'' > $@; \
 	      [ -s $@ ] || rm -f $@'
 	@echo "Building $@"

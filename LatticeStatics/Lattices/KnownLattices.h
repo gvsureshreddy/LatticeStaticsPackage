@@ -24,6 +24,9 @@
 #ifdef USE_FEAP
 #include "FEAP.h"
 #endif
+#ifdef USE_NEO
+#include "NeoHookean2D.h"
+#endif
 
 Lattice* const InitializeLattice(PerlInput const& Input, int const& Echo,
                                  int const& Width = 20, int const& Debug = 0);

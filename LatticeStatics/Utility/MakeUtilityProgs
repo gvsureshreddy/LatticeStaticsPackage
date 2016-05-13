@@ -13,21 +13,21 @@ BUILD_DATE = \"`date +%c;` from git commit `git rev-parse HEAD`\"
 
 # Compiling options, etc. #################################################
 #
-gCC        = g++
+gCXX        = g++
 
 ifeq ($(UNAME),Darwin)
    # gCC compiler
-   CC         = $(gCC)
+   CXX         = $(gCXX)
    OPTIMIZE   = -O
    ANSI       = -pedantic -Wall
 endif
 
 ifeq ($(UNAME),Linux)
    # PGI compiler
-   #CC         = pgCC
+   #CXX         = pgCC
    #OPTIMIZE   = -fast -Minline=levels:10 --no_exceptions
    #ANSI       = -A -Minform=inform
-   CC = $(gCC)
+   CXX = $(gCXX)
    OPTIMIZE = -O
    ANSI = -pedantic -Wall
 endif
@@ -42,13 +42,24 @@ DATE_DEF   = -DBUILD_DATE="$(BUILD_DATE)"
 #SOLVE      = -DSOLVE_SVD
 
 # Lattice include options (comment out to exclude the Lattice type)
+#USE_NEO  = -DUSE_NEO
 #USE_KIM  = -DUSE_KIM
 #USE_FEAP = -DUSE_FEAP
 #USE_QC   = -DUSE_QC
 
 # various compile options
-CC_PERL     = `$(PERL) -MExtUtils::Embed -e ccopts | sed -e 's/-arch[^-]*//g' | sed -e 's/-Wdeclaration-after-statement//g'`
+CXX_PERL     = `$(PERL) -MExtUtils::Embed -e ccopts | sed -e 's/-arch[^-]*//g' | sed -e 's/-Wdeclaration-after-statement//g'`
 LIBS_PERL   = `$(PERL) -MExtUtils::Embed -e ldopts | sed -e 's/-arch[^-]*//g' | sed -e 's/-Wdeclaration-after-statement//g'`
+ifneq (,$(strip $(USE_NEO)))
+  CXXFLAGS_NEO = -I../neo-hookean
+  LFLAGS_NEO = -L../neo-build
+  LIBS_NEO = -lneo-hookean
+else
+  CXXFLAGS_NEO =
+  LFLAGS_NEO =
+  LIBS_NEO =
+endif
+FEAP_OK := $(shell if test -e $(FEAPHOME8_3)/Feap8_3.a; then echo YES; else echo NO; fi)
 ifneq (,$(strip $(USE_FEAP)))
   ifeq (NO,$(strip $(FEAP_OK)))
     $(error You must set the environment variable FEAPHOME8_3 and compile the library)
@@ -62,15 +73,15 @@ ifneq (,$(strip $(USE_KIM)))
   ifeq ($(shell $(KIM_CONFIG_HELPER) --version),)
     $(error $(KIM_CONFIG_HELPER) utility is not available.  Something is wrong with your KIM API package setup)
   endif
-  CC_KIM   = $(shell $(KIM_CONFIG_HELPER) --includes)
+  CXX_KIM     = $(shell $(KIM_CONFIG_HELPER) --includes)
   LIBS_KIM = $(shell $(KIM_CONFIG_HELPER) --ldflags) $(shell $(KIM_CONFIG_HELPER) --ldlibs)
 else
-  CC_KIM =
+  CXX_KIM =
   LIBS_KIM =
 endif
-LIBS       = -lLinearAlgebra -lMyMath -lm $(LIBS_PERL) $(LIBS_FEAP) $(LIBS_KIM) -lgfortran
-LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(DATE_DEF) $(LIBS_PERL)
-CCFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS) $(SOLVE) $(TERMINAL) $(CC_PERL) $(CC_KIM)
+LIBS       = -lLinearAlgebra -lMyMath -lm $(LIBS_PERL) $(LIBS_FEAP) $(LIBS_KIM) $(LIBS_NEO)
+LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(DATE_DEF) $(LIBS_PERL) $(LFLAGS_NEO)
+CXXFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS) $(SOLVE) $(TERMINAL) $(CXX_PERL) $(CXX_KIM) $(CXXFLAGS_NEO)
 
 
 # File Locations ##########################################################
@@ -132,8 +143,8 @@ all: $(ALLPROGRAMS)
 
 # Defines the Program Target (linking command) ############################
 Rank1Convex:  $(RK1OBJECTS) $(BSCOBJECTS)
-	      $(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/builddate.o -c builddate.cpp
-	      $(PURE) $(CC) $(LFLAGS) \
+	      $(CXX) $(CXXFLAGS) $(DATE_DEF) -o ./lib/builddate.o -c builddate.cpp
+	      $(PURE) $(CXX) $(LFLAGS) \
 	      -L$(LIB_LOC) -o ./bin/Rank1Convex \
 	      $(addprefix lib/,$(RK1OBJECTS)) \
 	      $(addprefix lib/,$(BSCOBJECTS)) $(LIBS) ./lib/builddate.o
@@ -143,8 +154,8 @@ Rank1Convex:  $(RK1OBJECTS) $(BSCOBJECTS)
 DispersionCurves:     $(DISPERSIONOBJECTS) $(BSCOBJECTS) \
 		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
 		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT)))
-		      $(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/builddate.o -c builddate.cpp
-		      $(PURE) $(CC) $(LFLAGS) \
+		      $(CXX) $(CXXFLAGS) $(DATE_DEF) -o ./lib/builddate.o -c builddate.cpp
+		      $(PURE) $(CXX) $(LFLAGS) \
 		      -L$(LIB_LOC) -o ./bin/DispersionCurves \
 		      $(addprefix lib/,$(DISPERSIONOBJECTS)) \
 		      $(addprefix lib/,$(BSCOBJECTS)) \
@@ -157,8 +168,8 @@ DispersionCurves:     $(DISPERSIONOBJECTS) $(BSCOBJECTS) \
 LongWavelengthModuli: $(WAVELENGTHOBJECTS) $(BSCOBJECTS) \
 		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
 		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT)))
-		      $(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/builddate.o -c builddate.cpp
-		      $(PURE) $(CC) $(LFLAGS) \
+		      $(CXX) $(CXXFLAGS) $(DATE_DEF) -o ./lib/builddate.o -c builddate.cpp
+		      $(PURE) $(CXX) $(LFLAGS) \
 		      -L$(LIB_LOC) -o ./bin/LongWavelengthModuli \
 		      $(addprefix lib/,$(WAVELENGTHOBJECTS)) \
 		      $(addprefix lib/,$(BSCOBJECTS)) \
@@ -171,8 +182,8 @@ LongWavelengthModuli: $(WAVELENGTHOBJECTS) $(BSCOBJECTS) \
 BlochWave:	      $(BLOCHWAVEOBJECTS) $(BSCOBJECTS) \
 		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
 		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT)))
-		      $(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/builddate.o -c builddate.cpp
-		      $(PURE) $(CC) $(LFLAGS) \
+		      $(CXX) $(CXXFLAGS) $(DATE_DEF) -o ./lib/builddate.o -c builddate.cpp
+		      $(PURE) $(CXX) $(LFLAGS) \
 		      -L$(LIB_LOC) -o ./bin/BlochWave \
 		      $(addprefix lib/,$(BLOCHWAVEOBJECTS)) \
 		      $(addprefix lib/,$(BSCOBJECTS)) \
@@ -185,8 +196,8 @@ BlochWave:	      $(BLOCHWAVEOBJECTS) $(BSCOBJECTS) \
 NeighborDistances:    $(NEIGHBORSOBJECTS) $(BSCOBJECTS) \
 		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
 		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT)))
-		      $(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/builddate.o -c builddate.cpp
-		      $(PURE) $(CC) $(LFLAGS) \
+		      $(CXX) $(CXXFLAGS) $(DATE_DEF) -o ./lib/builddate.o -c builddate.cpp
+		      $(PURE) $(CXX) $(LFLAGS) \
 		      -L$(LIB_LOC) -o ./bin/NeighborDistances \
 		      $(addprefix lib/,$(NEIGHBORSOBJECTS)) \
 		      $(addprefix lib/,$(BSCOBJECTS)) \
@@ -198,7 +209,7 @@ NeighborDistances:    $(NEIGHBORSOBJECTS) $(BSCOBJECTS) \
 # Defines the Program Target (linking command) ############################
 PrintPotentials:      $(PRINTPOTSOBJECTS) $(BSCOBJECTS) \
 		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT)))
-		      $(PURE) $(CC) $(LFLAGS) \
+		      $(PURE) $(CXX) $(LFLAGS) \
 		      -L$(LIB_LOC) -o ./bin/PrintPotentials \
 		      $(addprefix lib/,$(PRINTPOTSOBJECTS)) \
 		      $(addprefix lib/,$(BSCOBJECTS)) \
@@ -210,8 +221,8 @@ EnergyLandscape:      $(ENERGYLANDOBJECTS) $(BSCOBJECTS) \
 		      $(addprefix ../lib/,$(LATTICES:$(SRC_EXT)=$(OBJ_EXT))) \
 		      $(addprefix ../lib/,$(RESTRICTIONS:$(SRC_EXT)=$(OBJ_EXT))) \
 		      $(addprefix ../lib/,$(POTENTIALS:$(SRC_EXT)=$(OBJ_EXT)))
-		      $(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/builddate.o -c builddate.cpp
-		      $(PURE) $(CC) $(LFLAGS) \
+		      $(CXX) $(CXXFLAGS) $(DATE_DEF) -o ./lib/builddate.o -c builddate.cpp
+		      $(PURE) $(CXX) $(LFLAGS) \
 		      -L$(LIB_LOC) -o ./bin/EnergyLandscape \
 		      $(addprefix lib/,$(ENERGYLANDOBJECTS)) \
 		      $(addprefix lib/,$(BSCOBJECTS)) \
@@ -224,8 +235,8 @@ EnergyLandscape:      $(ENERGYLANDOBJECTS) $(BSCOBJECTS) \
 # Defines the Program Target (linking command) ############################
 TwoBarTrussModel:     $(TWOBARTRUSSOBJECTS) $(BSCOBJECTS) \
 		      ../lib/TwoBarTruss$(OBJ_EXT)
-		      $(CC) $(CCFLAGS) $(DATE_DEF) -o ./lib/builddate.o -c builddate.cpp
-		      $(PURE) $(CC) $(LFLAGS) \
+		      $(CXX) $(CXXFLAGS) $(DATE_DEF) -o ./lib/builddate.o -c builddate.cpp
+		      $(PURE) $(CXX) $(LFLAGS) \
 		      -L$(LIB_LOC) -o ./bin/TwoBarTrussModel \
 		      $(addprefix lib/,$(TWOBARTRUSSOBJECTS)) \
 		      ../lib/Lattice$(OBJ_EXT) ../lib/TwoBarTruss$(OBJ_EXT) \
@@ -246,14 +257,14 @@ include $(addprefix depend/,$(TWOBARTRUSSOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 
 # Define object file dependicies and make rule
 ./lib/PerlInput.o: Makefile
-	$(CC) $(CCFLAGS) \
+	$(CXX) $(CXXFLAGS) \
         -I. $(addprefix -I ,$(SUBDIRS)) -I $(INCL_LOC)/ \
         -o ./lib/$(notdir $@) \
         -c PerlInput.cpp
 
 $(filter-out PerlInput.o, $(ALLOBJECTS)): Makefile MakeUtilityProgs
-	$(CC) $(CCFLAGS) -I. $(addprefix -I ,$(SUBDIRS)) -I $(INCL_LOC)/ \
-        $(USE_FEAP) $(USE_KIM) $(USE_QC) \
+	$(CXX) $(CXXFLAGS) -I. $(addprefix -I ,$(SUBDIRS)) -I $(INCL_LOC)/ \
+        $(USE_FEAP) $(USE_KIM) $(USE_QC) $(USE_NEO)\
         -o ./lib/$(notdir $@) \
         -c $(filter %/$(*),$(basename $(ALLSOURCES)))$(SRC_EXT)
 
@@ -303,8 +314,8 @@ clean:
 
 # Define rule for dependicy files
 depend/%.d: %$(SRC_EXT)
-	@$(SHELL) -ec '$(gCC) -MM -I. $(addprefix -I ,$(SUBDIRS)) \
-	      -I $(INCL_LOC)/ $(CCFLAGS) $< \
+	@$(SHELL) -ec '$(gCXX) -MM -I. $(addprefix -I ,$(SUBDIRS)) \
+	      -I $(INCL_LOC)/ $(CXXFLAGS) $< \
 	      | sed '\''s/\($(notdir $*)\)\.o[ :]*/\1.o $(notdir $*).d : /g'\'' \
 	      > $@; [ -s $@ ] || rm -f $@'
 	@echo "Building $@"

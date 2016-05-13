@@ -83,6 +83,12 @@ Lattice* const InitializeLattice(char const* const LatticeType,
       return new FEAP(Input, Echo, Width);
    }
 #endif
+#ifdef USE_NEO
+   else if (!strcmp("NeoHookean2D", LatticeType))
+   {
+      return new NeoHookean2D(Input, Echo, Width);
+   }
+#endif
    else
    {
       cerr << "Unknown Lattice Type " << LatticeType << "\n";
