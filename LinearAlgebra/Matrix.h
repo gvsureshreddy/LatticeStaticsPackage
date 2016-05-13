@@ -46,7 +46,7 @@ public:
    // allocated and each element set to Initial Value
    // Defaults: Rows=0,Cols=0,Initial Value= (Uninitialized)
 
-   Matrix(int const& Rows = 0, int const& Cols = 0);
+   Matrix(int const Rows = 0, int const Cols = 0);
    Matrix(int const& Rows, int const& Cols, Elm const& InitVal);
    Matrix(Matrix const& A);
 
@@ -138,7 +138,7 @@ public:
 
    // Misc. Matrix Operatons
 
-   Matrix& SetIdentity(int const& Size = 0);
+   Matrix& SetIdentity(int const Size = 0);
    Matrix Transpose() const;
    Matrix Inverse() const;
    double Trace() const;
@@ -161,7 +161,7 @@ public:
 
    // Destructively Resize Matrix
    // No change if size does not change
-   void Resize(int const& Rows = 0, int const& Cols = 0);
+   void Resize(int const Rows = 0, int const Cols = 0);
    void Resize(int const& Rows, int const& Cols, Elm const& InitVal);
 
    // Operations & Etc...
@@ -195,7 +195,7 @@ public:
    // -- the value of MaxCond with the returned condition number.
    //
    friend Elm SVD(Matrix const& A, Matrix& U, Matrix& W, Matrix& V,
-                  Elm const& MaxCond = MAXCONDITION, int const& PrintFlag = 0)
+                  Elm const MaxCond = MAXCONDITION, int const PrintFlag = 0)
   {
     return SVDPrivate(A, U, W, V, MaxCond, PrintFlag);
   }
@@ -211,8 +211,8 @@ public:
    // Tol - tolerance for convergence
    //
    // Note: Assumes A is SYMMETRIC
-   friend Matrix SymEigVal(Matrix A, Matrix* const B = 0, int const& MaxItr = 100,
-                           double const& Tol = 1.0e-13)
+   friend Matrix SymEigVal(Matrix A, Matrix* const B = 0, int const MaxItr = 100,
+                           double const Tol = 1.0e-13)
   {
     return SymEigValPrivate(A, B, MaxItr, Tol);
   }
@@ -230,7 +230,7 @@ public:
    //
    // A   = Q*R  -- CalcTranspose = 0
    // A^T = Q*R  -- CalcTranspose = 1
-   friend void QR(Matrix const& A, Matrix& Q, Matrix& R, int const& CalcTranspose = 0)
+   friend void QR(Matrix const& A, Matrix& Q, Matrix& R, int const CalcTranspose = 0)
   {
     QRPrivate(A, Q, R, CalcTranspose);
   }
@@ -257,8 +257,8 @@ public:
    // WHERE: W.Inverse() is actually calculated by hand and any
    // -- W[i][i] == 0.0 has inverse component 0.0
    friend Matrix SolveSVD(Matrix const& A, Matrix const& B,
-                          Elm const& MaxCond = MAXCONDITION,
-                          int const& PrintFlag = 0)
+                          Elm const MaxCond = MAXCONDITION,
+                          int const PrintFlag = 0)
   {
     return SolveSVDPrivate(A, B, MaxCond, PrintFlag);
   }

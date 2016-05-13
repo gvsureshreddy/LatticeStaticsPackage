@@ -28,7 +28,7 @@ public:
    // Postcond. Vector of size 1xCols allocated and
    // each element set to Inital Value (or not set at all)
    // Devaults: Cols-0,Initial Value= (un initialized)
-   Vector(int const& Cols = 0);
+   Vector(int const Cols = 0);
    Vector(int const& Cols, Elm const& InitVal);
    Vector(Vector const& A);
    Vector(Vector3D const& A);
@@ -107,7 +107,7 @@ public:
 
    // Destructively Resize Vector
    // No change if size dosen't change
-   void Resize(int const& Cols = 0);
+   void Resize(int const Cols = 0);
    void Resize(int const& Cols, Elm const& InitVal);
 
    // Operations & Etc...
@@ -133,8 +133,8 @@ public:
    friend Vector SolvePLU(Matrix const& A, Vector const& B);
 
    // Uses SVD decomposition.
-   friend Vector SolveSVD(Matrix const& A, Vector const& B, Elm const& MaxCond = MAXCONDITION,
-                          int const& PrintFlag = 0)
+   friend Vector SolveSVD(Matrix const& A, Vector const& B, Elm const MaxCond = MAXCONDITION,
+                          int const PrintFlag = 0)
   {
     return SolveSVDPrivate(A, B, MaxCond, PrintFlag);
   }

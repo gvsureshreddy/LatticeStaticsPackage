@@ -136,7 +136,7 @@ SparseMatrix::~SparseMatrix()
 
 // //////////////////////////////////////////////////////////////////////////////////////////////
 
-void SparseMatrix::Resize(int const& Rows, int const& Cols, int const& NoNonZero)
+void SparseMatrix::Resize(int const Rows, int const Cols, int const NoNonZero)
 {
    if ((Rows_ != Rows) || (Cols_ != Cols) || (NoNonZero_ != NoNonZero))
    {

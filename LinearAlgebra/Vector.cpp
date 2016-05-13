@@ -13,7 +13,7 @@ char VectorID[] = "Vector";
 
 // Public Functions...
 
-Vector::Vector(int const& Cols)
+Vector::Vector(int const Cols)
 {
    Cols_ = Cols;
 
@@ -358,7 +358,7 @@ Vector& Vector::operator=(Vector const& B)
    return *this;
 }
 
-void Vector::Resize(int const& Cols)
+void Vector::Resize(int const Cols)
 {
    if (Cols != Cols_)
    {

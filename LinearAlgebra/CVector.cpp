@@ -14,7 +14,7 @@ char CVectorID[] = "CVector";
 
 // Public Functions...
 
-CVector::CVector(int const& Cols)
+CVector::CVector(int const Cols)
 {
    Cols_ = Cols;
 

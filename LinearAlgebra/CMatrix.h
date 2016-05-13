@@ -41,7 +41,7 @@ public:
    //   allocated and each element set to Initial Value
    // Defaults: Rows=0,Cols=0,Initial Value= (Uninitialized)
 
-   CMatrix(int const& Rows = 0, int const& Cols = 0);
+   CMatrix(int const Rows = 0, int const Cols = 0);
    CMatrix(int const& Rows, int const& Cols, Elm const& InitVal);
    CMatrix(CMatrix const& A);
    CMatrix(Matrix const& A);
@@ -129,7 +129,7 @@ public:
 
    // Misc. CMatrix Operatons
 
-   CMatrix& SetIdentity(int const& Size = 0);
+   CMatrix& SetIdentity(int const Size = 0);
    CMatrix Transpose() const;
    CMatrix Conjugate() const;
 
@@ -160,7 +160,7 @@ public:
 
    // Destructively Resize CMatrix
    // No change if size does not change
-   void Resize(int const& Rows = 0, int const& Cols = 0);
+   void Resize(int const Rows = 0, int const Cols = 0);
    void Resize(int const& Rows, int const& Cols, Elm const& InitVal);
 
    // Operations & Etc...
@@ -186,7 +186,7 @@ public:
 
    // Note: Assumes A is HERMITIAN
    friend Matrix HermiteEigVal(CMatrix A, CMatrix* const B = 0,
-                               int const& MaxItr = 100, double const& Tol = 1.0e-13)
+                               int const MaxItr = 100, double const Tol = 1.0e-13)
   {
     return HermiteEigValPrivate(A, B, MaxItr, Tol);
   }
@@ -195,7 +195,7 @@ public:
    //
    // A   = Q*R  -- CalcTranspose = 0
    // A^T = Q*R  -- CalcTranspose = 1
-  friend void QR(CMatrix const& A, CMatrix& Q, CMatrix& R, int const& CalcTranspose = 0)
+  friend void QR(CMatrix const& A, CMatrix& Q, CMatrix& R, int const CalcTranspose = 0)
   {
     QRPrivate(A, Q, R, CalcTranspose);
   }
@@ -203,8 +203,8 @@ public:
    // Right Eigenvalues
    //
    // Find the right eigenvalues of a complex matrix using the QR algorithm
-   friend CMatrix RightEigVals(CMatrix const& A, int const& MaxItr = 5000,
-                               double const& Tol = 1.0e-13)
+   friend CMatrix RightEigVals(CMatrix const& A, int const MaxItr = 5000,
+                               double const Tol = 1.0e-13)
   {
     return RightEigValsPrivate(A, MaxItr, Tol);
   }

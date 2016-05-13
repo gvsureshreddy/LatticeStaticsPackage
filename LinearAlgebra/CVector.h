@@ -29,7 +29,7 @@ public:
    // Postcond. CVector of size 1xCols allocated and
    // each element set to Inital Value (or not set at all)
    // Devaults: Cols-0,Initial Value= (un initialized)
-   CVector(int const& Cols = 0);
+   CVector(int const Cols = 0);
    CVector(int const& Cols, Elm const& InitVal);
    CVector(CVector const& A);
    CVector(CMatrix const& A);

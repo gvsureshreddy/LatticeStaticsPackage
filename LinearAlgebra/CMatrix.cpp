@@ -55,7 +55,7 @@ CMatrix CMatrix::Minor(int const& i, int const& j) const
 
 int CMatrix::MathematicaPrintFlag = 0;
 
-CMatrix::CMatrix(int const& Rows, int const& Cols) :
+CMatrix::CMatrix(int const Rows, int const Cols) :
    Rows_(Rows), Cols_(Cols)
 {
    if (IsNull())
@@ -369,7 +369,7 @@ CMatrix& CMatrix::operator=(CMatrix const& B)
    return *this;
 }
 
-CMatrix& CMatrix::SetIdentity(int const& Size)
+CMatrix& CMatrix::SetIdentity(int const Size)
 {
    if ((Rows_ != Size) || (Cols_ != Size))
    {
@@ -568,7 +568,7 @@ void CMatrix::MultiplyBlock(MyComplexDouble const& a, int const& ii, int const& 
    return;
 }
 
-void CMatrix::Resize(int const& Rows, int const& Cols)
+void CMatrix::Resize(int const Rows, int const Cols)
 {
    if ((Rows != Rows_) || (Cols != Cols_))
    {

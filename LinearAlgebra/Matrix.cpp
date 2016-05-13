@@ -77,7 +77,7 @@ Matrix Matrix::Minor(int const& i, int const& j) const
 
 int Matrix::MathematicaPrintFlag = 0;
 
-Matrix::Matrix(int const& Rows, int const& Cols)
+Matrix::Matrix(int const Rows, int const Cols)
 {
    Rows_ = Rows;
    Cols_ = Cols;
@@ -339,7 +339,7 @@ Matrix& Matrix::operator=(Matrix const& B)
    return *this;
 }
 
-Matrix& Matrix::SetIdentity(int const& Size)
+Matrix& Matrix::SetIdentity(int const Size)
 {
    if ((Rows_ != Size) || (Cols_ != Size))
    {
@@ -430,7 +430,7 @@ Matrix Matrix::Inverse() const
    return C;
 }
 
-void Matrix::Resize(int const& Rows, int const& Cols)
+void Matrix::Resize(int const Rows, int const Cols)
 {
    if ((Rows != Rows_) || (Cols != Cols_))
    {
