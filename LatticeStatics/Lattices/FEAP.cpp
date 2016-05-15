@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <ostream>
 #include "FEAP.h"
+#include <cstring>
 
 using namespace std;
 

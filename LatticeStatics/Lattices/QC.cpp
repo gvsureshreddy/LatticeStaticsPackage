@@ -1,5 +1,6 @@
 #include <fstream>
 #include "QC.h"
+#include <cstring>
 
 using namespace std;
 

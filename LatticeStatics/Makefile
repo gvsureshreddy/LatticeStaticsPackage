@@ -91,6 +91,9 @@ SUBDIRS    = Lattices Restrictions SolutionMethods Potentials Utility gpl_script
 
 # Defines the source files needed #########################################
 include $(addsuffix /Makefile, $(SUBDIRS))
+ifeq (,$(strip $(USE_NEO)))
+  LATTICES := $(filter-out NeoHookean2D.cpp,$(LATTICES))
+endif
 ifeq (,$(strip $(USE_FEAP)))
   LATTICES := $(filter-out FEAP.cpp,$(LATTICES))
 endif

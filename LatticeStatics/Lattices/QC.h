@@ -5,6 +5,7 @@
 #include <sstream>
 #include "PerlInput.h"
 #include "Lattice.h"
+#include <cstdlib>
 
 using namespace std;
 
