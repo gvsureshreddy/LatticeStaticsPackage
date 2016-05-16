@@ -2637,6 +2637,9 @@ namespace neo_hookean
 
 
 #ifdef CREATE_LIBRARY
+    template class StandardTensors<2>;
+    template class Material_Incompressible_Neo_Hook_Two_Field<2>;
+    template class PointHistory<2>;
     Solid<2> MyNeoHookean("parameters.prm");
 
     void
