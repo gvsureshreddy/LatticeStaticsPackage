@@ -28,8 +28,8 @@ NeoHookean2D::NeoHookean2D(PerlInput const& Input, int const& Echo, int const& W
   Stiff_.Resize(system_size_,system_size_,0.0);
   neo_hookean::set_solution(&(DOF_[0]));
   neo_hookean::get_rhs_and_tangent(&(RHS_[0]),&(Stiff_[0][0]));
-  std::cout << setw(20) << RHS_;
-  std::cout << setw(20) << Stiff_;
+  //std::cout << setw(20) << RHS_;
+  //std::cout << setw(20) << Stiff_;
 }
 
 double NeoHookean2D::E0() const
@@ -39,7 +39,8 @@ double NeoHookean2D::E0() const
 
 Vector const& NeoHookean2D::E1() const
 {
-  return EmptyV_;
+    neo_hookean::get_rhs_and_tangent(&(RHS_[0]),&(Stiff_[0][0]));
+    return RHS_[0];
 }
 
 Vector const& NeoHookean2D::E1DLoad() const
@@ -49,7 +50,8 @@ Vector const& NeoHookean2D::E1DLoad() const
 
 Matrix const& NeoHookean2D::E2() const
 {
-  return EmptyM_;
+    neo_hookean::get_rhs_and_tangent(&(RHS_[0]),&(Stiff_[0][0]));
+    return Stiff_[0][0];
 }
 
 Matrix const& NeoHookean2D::StiffnessDL() const
