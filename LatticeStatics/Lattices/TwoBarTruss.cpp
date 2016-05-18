@@ -390,15 +390,6 @@ ostream& operator<<(ostream& out, TwoBarTruss& A)
     return out;
 }
 
-void TwoBarTruss::Print(ostream& out, ostream& pathout, PrintDetail const& flag,
-        PrintPathSolutionType const& SolType)
-{
-    int W;    
-    W = out.width();
-    pathout << setw(W) << Lambda_ << " " << setw(W) << DOF_ << "\n";
-    Print(out, flag, SolType);
-}
-
 void TwoBarTruss::PrintPath(ostream& out, ostream& pathout, int const& width)
 {
     pathout << setw(width) << NoNegTestFunctions << setw(width) << Lambda_ << " " << setw(width) << DOF_ << "\n";

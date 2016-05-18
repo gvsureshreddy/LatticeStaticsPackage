@@ -87,9 +87,6 @@ public:
     virtual void Print(ostream& out, PrintDetail const& flag,
         PrintPathSolutionType const& SolType = RegularPt);
     
-    virtual void Print(ostream& out, ostream& pathout, PrintDetail const& flag,
-        PrintPathSolutionType const& SolType = RegularPt);
-    
     virtual void PrintPath(ostream& out, ostream& pathout, int const& width);
     
     friend ostream& operator<<(ostream& out, TwoBarTruss& A);

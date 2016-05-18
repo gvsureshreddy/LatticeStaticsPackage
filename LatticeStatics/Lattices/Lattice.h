@@ -117,11 +117,6 @@ public:
    enum PrintPathSolutionType {NotSolutionPt, RegularPt, TurningPt, BifurcationPt, ExtraTFPt};
    virtual void Print(ostream& out, PrintDetail const& flag,
                       PrintPathSolutionType const& SolType = RegularPt) = 0;
-   virtual void Print(ostream& out, ostream& pathout, PrintDetail const& flag,
-                      PrintPathSolutionType const& SolType = RegularPt)
-   {
-       Print(out, flag, SolType);
-   }
    virtual void PrintPath(ostream& out, ostream& pathout, int const& width){}
    
    friend ostream& operator<<(ostream& out, Lattice& L)
