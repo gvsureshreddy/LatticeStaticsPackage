@@ -757,6 +757,9 @@ namespace neo_hookean
         std::size_t
         get_system_size();
         
+        float
+        get_energy();
+        
         std::vector<types::global_dof_index> const&
         get_dofs_per_block()
         {
@@ -792,6 +795,9 @@ namespace neo_hookean
         
         struct PerTaskData_UQPH;
         struct ScratchData_UQPH;
+        
+        struct PerTaskData_Energy;
+        struct ScratchData_Energy;
         
         // We start the collection of member functions with one that builds the
         // grid:
@@ -831,6 +837,18 @@ namespace neo_hookean
         
         void
         copy_local_to_global_rhs(const PerTaskData_RHS &data);
+        
+        void
+        assemble_system_energy();
+        
+        void
+        assemble_system_energy_one_cell(const typename DoFHandler<dim>::active_cell_iterator &cell,
+        ScratchData_Energy &scratch,
+        PerTaskData_Energy &data);
+        
+        void
+        copy_local_to_global_energy(const PerTaskData_Energy &/*data*/)
+        {}
         
         // Apply Dirichlet boundary conditions on the displacement field
         void
@@ -935,6 +953,7 @@ namespace neo_hookean
         BlockSparseMatrix<double>        tangent_matrix;
         BlockVector<double>              system_rhs;
         BlockVector<double>              solution_n;
+        float                            system_energy;
         
         //Some boolean to decide if we want to display and save the tangent matrix and RHS
         const bool                       print_tangent_matrix = false;
@@ -1312,6 +1331,70 @@ namespace neo_hookean
                 solution_values_p_total[q] = 0.0;
             }
         }
+    };
+    
+    template <int dim>
+    struct Solid<dim>::PerTaskData_Energy
+    {
+        void reset()
+        {}
+    };
+    
+    
+    // The ScratchData object will be used to store an alias for the solution
+    // vector so that we don't have to copy this large data structure. We then
+    // define a number of vectors to extract the solution values and gradients at
+    // the quadrature points.
+    template <int dim>
+    struct Solid<dim>::ScratchData_Energy
+    {
+        FEValues<dim>     fe_values_ref;
+        FEFaceValues<dim> fe_face_values_ref;
+        
+        std::vector<std::vector<double> >          Nx;
+        std::vector<std::vector<Tensor<2, dim> > > grad_Nx;
+        
+        ScratchData_Energy(const FiniteElement<dim> &fe_cell,
+        const QGauss<dim> &qf_cell, const UpdateFlags uf_cell,
+        const QGauss<dim - 1> & qf_face, const UpdateFlags uf_face)
+        :
+        fe_values_ref(fe_cell, qf_cell, uf_cell),
+        fe_face_values_ref(fe_cell, qf_face, uf_face),
+        Nx(qf_cell.size(),
+        std::vector<double>(fe_cell.dofs_per_cell)),
+        grad_Nx(qf_cell.size(),
+        std::vector<Tensor<2, dim> >
+        (fe_cell.dofs_per_cell))
+        {}
+        
+        ScratchData_Energy(const ScratchData_Energy &energy)
+        :
+        fe_values_ref(energy.fe_values_ref.get_fe(),
+        energy.fe_values_ref.get_quadrature(),
+        energy.fe_values_ref.get_update_flags()),
+        fe_face_values_ref(energy.fe_face_values_ref.get_fe(),
+        energy.fe_face_values_ref.get_quadrature(),
+        energy.fe_face_values_ref.get_update_flags()),
+        Nx(energy.Nx),
+        grad_Nx(energy.grad_Nx)
+        {}
+        
+        void reset()
+        {
+            const unsigned int n_q_points      = Nx.size();
+            const unsigned int n_dofs_per_cell = Nx[0].size();
+            for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
+            {
+                Assert( Nx[q_point].size() == n_dofs_per_cell, ExcInternalError());
+                Assert( grad_Nx[q_point].size() == n_dofs_per_cell,
+                        ExcInternalError());
+                for (unsigned int k = 0; k < n_dofs_per_cell; ++k)
+                {
+                    Nx[q_point][k] = 0.0;
+                    grad_Nx[q_point][k] = 0.0;
+                }
+            }
+        }        
     };
     
     
@@ -2608,6 +2691,85 @@ namespace neo_hookean
     }
     
     template <int dim>
+    float
+    Solid<dim>::get_energy()
+    {
+        assemble_system_energy();
+        return system_energy;
+    }
+    
+    template <int dim>
+    void Solid<dim>::assemble_system_energy()
+    {
+        timer.enter_subsection("Assemble system energy");
+        
+        const UpdateFlags uf_cell(update_values |
+        update_gradients |
+        update_JxW_values);
+        const UpdateFlags uf_face(update_values |
+        update_normal_vectors |
+        update_JxW_values);
+        
+        PerTaskData_Energy per_task_data;
+        ScratchData_Energy scratch_data(fe, qf_cell, uf_cell, qf_face, uf_face);
+        
+        WorkStream::run(dof_handler_ref.begin_active(),
+        dof_handler_ref.end(),
+        *this,
+        &Solid::assemble_system_energy_one_cell,
+        &Solid::copy_local_to_global_energy,
+        scratch_data,
+        per_task_data);
+        
+        timer.leave_subsection();
+    }  
+    
+    template <int dim>
+    void
+    Solid<dim>::assemble_system_energy_one_cell(const typename DoFHandler<dim>::active_cell_iterator &cell,
+            ScratchData_Energy &scratch,
+            PerTaskData_Energy &data)
+    {
+        data.reset();
+        scratch.reset();
+        scratch.fe_values_ref.reinit(cell);
+        //cell->get_dof_indices(data.local_dof_indices);
+        PointHistory<dim> *lqph =
+                reinterpret_cast<PointHistory<dim>*>(cell->user_pointer());
+        
+//        for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
+//        {
+//            for (unsigned int k = 0; k < dofs_per_cell; ++k)
+//            {
+//                const unsigned int k_group = fe.system_to_base_index(k).first.first;
+//                
+//                if (k_group == u_dof)
+//                    scratch.grad_Nx[q_point][k]
+//                            = scratch.fe_values_ref[u_fe].gradient(k, q_point);
+//                else if (k_group == p_dof)
+//                    scratch.Nx[q_point][k] = scratch.fe_values_ref[p_fe].value(k, q_point);
+//                else
+//                    Assert(k_group <= p_dof, ExcInternalError());
+//            }
+//        }
+        for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
+        {
+            const double det_F                   = lqph[q_point].get_det_F();
+            const double p                       = lqph[q_point].get_p();
+            const double c_1                     = lqph[q_point].get_c_1();
+            const Tensor<2, dim> Grad_U          = lqph[q_point].get_Grad_U();
+            
+//            const std::vector<double>
+//            &N = scratch.Nx[q_point];
+//            const std::vector<Tensor<2, dim> >
+//            &Grad_Nx = scratch.grad_Nx[q_point];
+            const double JxW = scratch.fe_values_ref.JxW(q_point);
+            const Tensor<2, dim> tmp = Grad_U + transpose(Grad_U) + transpose(Grad_U) * Grad_U;
+            system_energy += (c_1 * trace(tmp) - p * (det_F * det_F - 1)) * JxW;
+        }
+    }
+    
+    template <int dim>
     void
     Solid<dim>::set_solution(BlockVector<double> const &solution)
     {
@@ -2673,6 +2835,11 @@ namespace neo_hookean
         {
             tm[size*(itr->row()) + itr->column()] = itr->value();
         }
+    }
+    
+    float get_energy()
+    {
+        return MyNeoHookean.get_energy();
     }
     
     std::size_t get_system_size()
