@@ -127,7 +127,7 @@ namespace neo_hookean
             unsigned int local_refinement_cycles;
             double       scale;
             double       p_p0;
-            double       displacement_side_1;
+            double       elongation;
             
             static void
             declare_parameters(ParameterHandler &prm);
@@ -156,9 +156,9 @@ namespace neo_hookean
                         Patterns::Selection("20|40|60|80|100"),
                         "Ratio of applied pressure to reference pressure");
                 
-                prm.declare_entry("Displacement side 1", "0.001",
+                prm.declare_entry("Elongation", "0.99",
                         Patterns::Double(0.0),
-                        "Displacement side 1");
+                        "Elongation");
             }
             prm.leave_subsection();
         }
@@ -171,7 +171,7 @@ namespace neo_hookean
                 local_refinement_cycles = prm.get_integer("Local refinement cycles");
                 scale = prm.get_double("Grid scale");
                 p_p0 = prm.get_double("Pressure ratio p/p0");
-                displacement_side_1 = prm.get_double("Displacement side 1");
+                elongation = prm.get_double("Elongation");
             }
             prm.leave_subsection();
         }
@@ -954,6 +954,7 @@ namespace neo_hookean
         BlockVector<double>              system_rhs;
         BlockVector<double>              solution_n;
         float                            system_energy;
+        float                            displacement_side_1;
         
         //Some boolean to decide if we want to display and save the tangent matrix and RHS
         const bool                       print_tangent_matrix = false;
@@ -1034,7 +1035,6 @@ namespace neo_hookean
             // condition, while $Q_1 \times DGP_0$ elements do
             // not. However, it has been shown that the latter demonstrate good
             // convergence characteristics nonetheless.
-            
             fe(FE_Q<dim>(parameters.poly_degree), dim, // displacement
             FE_DGP<dim>(parameters.poly_degree-1),1), //pressure
             dof_handler_ref(triangulation),
@@ -1045,7 +1045,8 @@ namespace neo_hookean
             qf_cell(parameters.quad_order),
             qf_face(parameters.quad_order),
             n_q_points (qf_cell.size()),
-            n_q_points_f (qf_face.size())
+            n_q_points_f (qf_face.size()),
+            displacement_side_1 ((1 - parameters.elongation) * parameters.delta_t / parameters.end_time)
     {
         determine_component_extractors();
         
@@ -2423,7 +2424,7 @@ namespace neo_hookean
             if(apply_dirichlet_bc)
                 VectorTools::interpolate_boundary_values(dof_handler_ref,
                         boundary_id,
-                        ConstantFunction<dim>(parameters.displacement_side_1,n_components),
+                        ConstantFunction<dim>(displacement_side_1,n_components),
                         constraints,
                         fe.component_mask(x_displacement));
             else
@@ -2675,6 +2676,17 @@ namespace neo_hookean
         MappingQEulerian<dim> q_mapping(degree, dof_handler_ref, soln);
         data_out.build_patches(q_mapping, degree);
         
+        std::string strPath = "Results";
+        int systemCmd = 0;
+        if ( access( strPath.c_str(), 0 ) == -1 )
+        {
+            systemCmd = system("mkdir \"Results\"");
+        }
+        if(systemCmd != 0)
+            std::cerr << std::endl << "Warning : problem while trying to create "
+                    << "Results directory, using mkdir command" << std::endl;
+        
+        
         std::ostringstream filename;
         filename << "Results/timestep-" << time.get_timestep() << ".vtk";
         
@@ -2737,21 +2749,21 @@ namespace neo_hookean
         PointHistory<dim> *lqph =
                 reinterpret_cast<PointHistory<dim>*>(cell->user_pointer());
         
-//        for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
-//        {
-//            for (unsigned int k = 0; k < dofs_per_cell; ++k)
-//            {
-//                const unsigned int k_group = fe.system_to_base_index(k).first.first;
-//                
-//                if (k_group == u_dof)
-//                    scratch.grad_Nx[q_point][k]
-//                            = scratch.fe_values_ref[u_fe].gradient(k, q_point);
-//                else if (k_group == p_dof)
-//                    scratch.Nx[q_point][k] = scratch.fe_values_ref[p_fe].value(k, q_point);
-//                else
-//                    Assert(k_group <= p_dof, ExcInternalError());
-//            }
-//        }
+        //        for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
+        //        {
+        //            for (unsigned int k = 0; k < dofs_per_cell; ++k)
+        //            {
+        //                const unsigned int k_group = fe.system_to_base_index(k).first.first;
+        //                
+        //                if (k_group == u_dof)
+        //                    scratch.grad_Nx[q_point][k]
+        //                            = scratch.fe_values_ref[u_fe].gradient(k, q_point);
+        //                else if (k_group == p_dof)
+        //                    scratch.Nx[q_point][k] = scratch.fe_values_ref[p_fe].value(k, q_point);
+        //                else
+        //                    Assert(k_group <= p_dof, ExcInternalError());
+        //            }
+        //        }
         for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
         {
             const double det_F                   = lqph[q_point].get_det_F();
@@ -2759,10 +2771,10 @@ namespace neo_hookean
             const double c_1                     = lqph[q_point].get_c_1();
             const Tensor<2, dim> Grad_U          = lqph[q_point].get_Grad_U();
             
-//            const std::vector<double>
-//            &N = scratch.Nx[q_point];
-//            const std::vector<Tensor<2, dim> >
-//            &Grad_Nx = scratch.grad_Nx[q_point];
+            //            const std::vector<double>
+            //            &N = scratch.Nx[q_point];
+            //            const std::vector<Tensor<2, dim> >
+            //            &Grad_Nx = scratch.grad_Nx[q_point];
             const double JxW = scratch.fe_values_ref.JxW(q_point);
             const Tensor<2, dim> tmp = Grad_U + transpose(Grad_U) + transpose(Grad_U) * Grad_U;
             system_energy += (c_1 * trace(tmp) - p * (det_F * det_F - 1)) * JxW;
