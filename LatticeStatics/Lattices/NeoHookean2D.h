@@ -18,6 +18,7 @@ class NeoHookean2D : public Lattice
         
         int Width_;
         std::size_t system_size_;
+        unsigned int unconstrained_system_size_;
         
         int Caching_;
         static const int cachesize = 4;

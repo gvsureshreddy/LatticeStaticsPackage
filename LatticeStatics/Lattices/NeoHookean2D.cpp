@@ -1,12 +1,16 @@
 #include "NeoHookean2D.h"
+#include <iostream>
+#include <fstream>
 
 namespace neo_hookean
 {
   void run();
   std::size_t get_system_size();
+  unsigned int get_unconstrained_system_size();
   void set_solution(double const* const solution);
   void get_rhs_and_tangent(double* const rhs, double* const tm);
-  float get_energy();
+  void get_unconstrained_rhs_and_tangent(double* const rhs, double* const tm);
+  double get_energy();
 }
 
 
@@ -34,14 +38,18 @@ NeoHookean2D::NeoHookean2D(PerlInput const& Input, int const& Echo, int const& W
 
 
   system_size_ = neo_hookean::get_system_size();
+  unconstrained_system_size_ = neo_hookean::get_unconstrained_system_size();
   std::cout << "NeoHookean2D size is " << system_size_ << std::endl;
+  std::cout << "NeoHookean2D unconstrained size is " << unconstrained_system_size_ << std::endl;
   DOF_.Resize(system_size_,0.0);
-  RHS_.Resize(system_size_,0.0);
-  Stiff_.Resize(system_size_,system_size_,0.0);
+  RHS_.Resize(unconstrained_system_size_,0.0);
+  Stiff_.Resize(unconstrained_system_size_,unconstrained_system_size_,0.0);
   neo_hookean::set_solution(&(DOF_[0]));
-  neo_hookean::get_rhs_and_tangent(&(RHS_[0]),&(Stiff_[0][0]));
+  neo_hookean::get_unconstrained_rhs_and_tangent(&(RHS_[0]),&(Stiff_[0][0]));
   //std::cout << setw(20) << RHS_;
-  //std::cout << setw(20) << Stiff_;
+
+  std::cout << std::endl << std::endl << "Tangent matrix :\n\n\n" << std::endl;
+  std::cout << setw(20) << Stiff_;
 }
 
 double NeoHookean2D::E0() const
@@ -58,8 +66,8 @@ double NeoHookean2D::E0() const
 
 Vector const& NeoHookean2D::E1() const
 {
-  neo_hookean::get_rhs_and_tangent(&(RHS_[0]),&(Stiff_[0][0]));
-  return RHS_[0];
+  neo_hookean::get_unconstrained_rhs_and_tangent(&(RHS_[0]),&(Stiff_[0][0]));
+  return RHS_;
 }
 
 Vector const& NeoHookean2D::E1DLoad() const
@@ -69,8 +77,8 @@ Vector const& NeoHookean2D::E1DLoad() const
 
 Matrix const& NeoHookean2D::E2() const
 {
-  neo_hookean::get_rhs_and_tangent(&(RHS_[0]),&(Stiff_[0][0]));
-  return Stiff_[0][0];
+  neo_hookean::get_unconstrained_rhs_and_tangent(&(RHS_[0]),&(Stiff_[0][0]));
+  return Stiff_;
 }
 
 void NeoHookean2D::ExtraTestFunctions(Vector& TF) const

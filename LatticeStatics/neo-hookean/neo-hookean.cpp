@@ -757,7 +757,10 @@ namespace neo_hookean
     std::size_t
     get_system_size();
 
-    float
+    unsigned int
+    get_unconstrained_system_size();
+
+    double
     get_energy();
 
     std::vector<types::global_dof_index> const&
@@ -778,6 +781,13 @@ namespace neo_hookean
     void
     get_rhs_and_tangent(BlockVector<double> const* &sys_rhs,
 			BlockSparseMatrix<double> const* &tm);
+
+    void
+    get_constraints_matrix(ConstraintMatrix const* &constraints_matrix);
+
+//    void
+//    get_unconstrained_rhs_and_tangent(BlockVector<double> const* &sys_rhs,
+//			BlockSparseMatrix<double> const* &tm);
 
   private:
 
@@ -953,7 +963,7 @@ namespace neo_hookean
     BlockSparseMatrix<double>        tangent_matrix;
     BlockVector<double>              system_rhs;
     BlockVector<double>              solution_n;
-    float                            system_energy;
+    double                            system_energy;
     float                            displacement_side_1;
 
     //Some boolean to decide if we want to display and save the tangent matrix and RHS
@@ -2723,7 +2733,19 @@ namespace neo_hookean
   }
 
   template <int dim>
-  float
+  unsigned int
+  Solid<dim>::get_unconstrained_system_size()
+  {
+    make_constraints(0);
+    unsigned int nb_unconstrained_dofs = 0;
+    for (unsigned int i = 0; i < dof_handler_ref.n_dofs(); ++i)
+      if (!constraints.is_constrained(i))
+	nb_unconstrained_dofs++;
+    return nb_unconstrained_dofs;
+  }
+
+  template <int dim>
+  double
   Solid<dim>::get_energy()
   {
     assemble_system_energy();
@@ -2829,6 +2851,38 @@ namespace neo_hookean
     tm = &tangent_matrix;
   }
 
+  template <int dim>
+  void
+  Solid<dim>::get_constraints_matrix(ConstraintMatrix const* &constraints_matrix)
+  {
+    constraints_matrix = &constraints;
+  }
+
+//  template <int dim>
+//  void
+//  Solid<dim>::get_unconstrained_rhs_and_tangent(BlockVector<double> const* &sys_rhs,
+//				  BlockSparseMatrix<double> const* &tm)
+//  {
+//    tangent_matrix = 0.0;
+//    system_rhs = 0.0;
+//    assemble_system_rhs();
+//    assemble_system_tangent();
+//    const int iter_val = 0;  // what value do we want here?
+//    make_constraints(iter_val);
+//    constraints.condense(tangent_matrix, system_rhs);
+//
+//    unsigned int nb_unconstrained_dofs = 0;
+//    for (unsigned int i = 0; i < dof_handler_ref.n_dofs(); ++i)
+//      if (!constraints.is_constrained(i))
+//	nb_unconstrained_dofs++;
+//
+//    error_update.norm = error_ud.l2_norm();
+//    error_update.u = error_ud.block(u_dof).l2_norm();
+//    error_update.p = error_ud.block(p_dof).l2_norm();
+//    sys_rhs = &system_rhs;
+//    tm = &tangent_matrix;
+//  }
+
 #ifdef CREATE_LIBRARY
   template class StandardTensors<2>;
   template class Material_Incompressible_Neo_Hook_Two_Field<2>;
@@ -2869,7 +2923,48 @@ namespace neo_hookean
       }
   }
 
-  float get_energy()
+  void
+  get_unconstrained_rhs_and_tangent(double* const sys_rhs,
+		      double* const tm)
+  {
+    BlockVector<double> const* rhs;
+    BlockSparseMatrix<double> const* tangent;
+    MyNeoHookean.get_rhs_and_tangent(rhs,tangent);
+    ConstraintMatrix const* constraints_matrix;
+    MyNeoHookean.get_constraints_matrix(constraints_matrix);
+    std::size_t size(MyNeoHookean.get_system_size());
+    unsigned int unconstrained_size = 0;
+
+    Vector<int> indices_unconstrained(size);
+    //indices_unconstrained.resize(unconstrained_size,-1.0);
+    //indices_unconstrained = new vector<int>(unconstrained_size);
+
+    unsigned int i_unconstrained = 0;
+    for (unsigned int i = 0; i < size; ++i)
+        if (!constraints_matrix->is_constrained(i)){
+          sys_rhs[i_unconstrained] = (*rhs)[i];
+          indices_unconstrained[i] = i_unconstrained++;
+        }
+    unconstrained_size = i_unconstrained;
+
+    memset(tm, 0, unconstrained_size*unconstrained_size*sizeof(double));
+    //unsigned int i = 0;
+    //unsigned int j = 0;
+    //i_unconstrained = 0;
+    for (BlockSparseMatrix<double>::const_iterator itr = tangent->begin();
+	 itr != tangent->end(); ++itr)
+    {
+        if (!constraints_matrix->is_constrained(itr->row()))
+        {
+            if (!constraints_matrix->is_constrained(itr->column()))
+            {
+                tm[unconstrained_size*(indices_unconstrained[itr->row()]) + indices_unconstrained[itr->column()]] = itr->value();
+            }
+        }
+    }
+  }
+
+  double get_energy()
   {
     return MyNeoHookean.get_energy();
   }
@@ -2877,6 +2972,11 @@ namespace neo_hookean
   std::size_t get_system_size()
   {
     return MyNeoHookean.get_system_size();
+  }
+
+  unsigned int get_unconstrained_system_size()
+  {
+    return MyNeoHookean.get_unconstrained_system_size();
   }
 
   void run()
