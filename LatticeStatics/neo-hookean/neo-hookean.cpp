@@ -780,7 +780,7 @@ namespace neo_hookean
 
     void
     get_rhs_and_tangent(BlockVector<double> const* &sys_rhs,
-			BlockSparseMatrix<double> const* &tm);
+			BlockSparseMatrix<double> const* &tm, unsigned int iter_value);
 
     void
     get_constraints_matrix(ConstraintMatrix const* &constraints_matrix);
@@ -971,7 +971,7 @@ namespace neo_hookean
     const bool                       print_tangent_matrix_constrained = false;
     const bool                       print_RHS = false;
     //This is just to know the size of the tangent matrix "by hand", for debugging:
-    const int                        dim_matrix = 150;
+    const int                        dim_matrix = 22;
 
     // Then define a number of variables to store norms and update norms and
     // normalisation factors.
@@ -2837,14 +2837,13 @@ namespace neo_hookean
   template <int dim>
   void
   Solid<dim>::get_rhs_and_tangent(BlockVector<double> const* &sys_rhs,
-				  BlockSparseMatrix<double> const* &tm)
+				  BlockSparseMatrix<double> const* &tm, unsigned int iter_value)
   {
     tangent_matrix = 0.0;
     system_rhs = 0.0;
     assemble_system_rhs();
     assemble_system_tangent();
-    const int iter_val = 0;  // what value do we want here?
-    make_constraints(iter_val);
+    make_constraints(iter_value);
     constraints.condense(tangent_matrix, system_rhs);
 
     sys_rhs = &system_rhs;
@@ -2858,30 +2857,6 @@ namespace neo_hookean
     constraints_matrix = &constraints;
   }
 
-//  template <int dim>
-//  void
-//  Solid<dim>::get_unconstrained_rhs_and_tangent(BlockVector<double> const* &sys_rhs,
-//				  BlockSparseMatrix<double> const* &tm)
-//  {
-//    tangent_matrix = 0.0;
-//    system_rhs = 0.0;
-//    assemble_system_rhs();
-//    assemble_system_tangent();
-//    const int iter_val = 0;  // what value do we want here?
-//    make_constraints(iter_val);
-//    constraints.condense(tangent_matrix, system_rhs);
-//
-//    unsigned int nb_unconstrained_dofs = 0;
-//    for (unsigned int i = 0; i < dof_handler_ref.n_dofs(); ++i)
-//      if (!constraints.is_constrained(i))
-//	nb_unconstrained_dofs++;
-//
-//    error_update.norm = error_ud.l2_norm();
-//    error_update.u = error_ud.block(u_dof).l2_norm();
-//    error_update.p = error_ud.block(p_dof).l2_norm();
-//    sys_rhs = &system_rhs;
-//    tm = &tangent_matrix;
-//  }
 
 #ifdef CREATE_LIBRARY
   template class StandardTensors<2>;
@@ -2892,23 +2867,30 @@ namespace neo_hookean
   void
   set_solution(double const* const solution)
   {
+    //We assume here that the constraint matrix has already been created before.
+    //This should be wise since this function is called after having computed
+    //the size of the unconstrained system, in which we assemble the constraints.
+    ConstraintMatrix const* constraints_matrix;
+    MyNeoHookean.get_constraints_matrix(constraints_matrix);
     BlockVector<double> sol(MyNeoHookean.get_dofs_per_block());
     std::size_t size(MyNeoHookean.get_system_size());
-    for (unsigned i = 0; i < size; ++i)
-      {
-	sol[i] = solution[i];
-      }
+    unsigned int i_unconstrained = 0;
+    for (unsigned int i = 0; i < size; ++i)
+    {
+        if (!constraints_matrix->is_constrained(i)){
+            sol[i] = solution[i_unconstrained++];
+        }
+    }
     MyNeoHookean.set_solution(sol);
   }
 
   void
   get_rhs_and_tangent(double* const sys_rhs,
-		      double* const tm)
+		      double* const tm, unsigned int iter_value)
   {
-    //MyNeoHookean.get_solution().print(std::cout);
     BlockVector<double> const* rhs;
     BlockSparseMatrix<double> const* tangent;
-    MyNeoHookean.get_rhs_and_tangent(rhs,tangent);
+    MyNeoHookean.get_rhs_and_tangent(rhs,tangent,iter_value);
 
     std::size_t size(MyNeoHookean.get_system_size());
     for (unsigned i = 0; i < size; ++i)
@@ -2925,19 +2907,17 @@ namespace neo_hookean
 
   void
   get_unconstrained_rhs_and_tangent(double* const sys_rhs,
-		      double* const tm)
+		      double* const tm, unsigned int iter_value)
   {
     BlockVector<double> const* rhs;
     BlockSparseMatrix<double> const* tangent;
-    MyNeoHookean.get_rhs_and_tangent(rhs,tangent);
+    MyNeoHookean.get_rhs_and_tangent(rhs,tangent,iter_value);
     ConstraintMatrix const* constraints_matrix;
     MyNeoHookean.get_constraints_matrix(constraints_matrix);
     std::size_t size(MyNeoHookean.get_system_size());
     unsigned int unconstrained_size = 0;
 
     Vector<int> indices_unconstrained(size);
-    //indices_unconstrained.resize(unconstrained_size,-1.0);
-    //indices_unconstrained = new vector<int>(unconstrained_size);
 
     unsigned int i_unconstrained = 0;
     for (unsigned int i = 0; i < size; ++i)
@@ -2947,10 +2927,61 @@ namespace neo_hookean
         }
     unconstrained_size = i_unconstrained;
 
+    {//This block is just to save the tangent matrix to be sure our method is good.
+     //Will be removed later.
+	FullMatrix<double> tangent_matrix_f(size);
+        for (BlockSparseMatrix<double>::const_iterator itr = tangent->begin();
+             itr != tangent->end(); ++itr)
+        {
+              tangent_matrix_f(itr->row(),itr->column()) = itr->value();
+        }
+
+	//std::cout << std::endl << "Extracting the intersting part..." << std::endl << std::endl;
+
+	//We open a file to write the tangent matrix in it
+	std::string tangent_matrix_file_name = "tangent_matrix.txt";
+	std::ofstream tangent_matrix_file(tangent_matrix_file_name, std::ios::out | std::ios::trunc);
+
+	if(tangent_matrix_file)  // If opening the file was done well
+            {
+	        for(int x=0;x<size;x++)
+		{
+		    if (!constraints_matrix->is_constrained(x))
+		    {
+		        for(int y=0;y<size;y++)
+                            if (!constraints_matrix->is_constrained(y))
+                            {
+                                if(tangent_matrix_f(x,y) == 0/* || (tangent_matrix_f(x,y) < 1e-10 && tangent_matrix_f(x,y) > -1e-10)*/){
+                                    //std::cout << "   0      " << std::flush;
+                                    tangent_matrix_file << "   0      ";
+                                }
+                                else
+                                {
+                                    if(tangent_matrix_f(x,y) >= 0){
+                                        //std::cout << " " << std::flush;
+                                        tangent_matrix_file << " ";
+                                    }
+                                    //std::cout << std::scientific << std::setprecision(1)
+                                    //          << tangent_matrix_f(x,y) << "  " << std::flush;
+                                    tangent_matrix_file << std::scientific << std::setprecision(1)
+                                                      << tangent_matrix_f(x,y) << "  ";
+                                }
+                            }
+		      //std::cout << "  ///// Row number " << x+1 << std::endl;
+		      tangent_matrix_file << std::endl;
+		    }
+		}
+	      tangent_matrix_file.close();  // We close the file
+	    }
+	  else  // If there was an error opening the file
+	    std::cerr << "Error while opening file tangent_matrix!" << std::endl;
+
+	}
+
+
+
+
     memset(tm, 0, unconstrained_size*unconstrained_size*sizeof(double));
-    //unsigned int i = 0;
-    //unsigned int j = 0;
-    //i_unconstrained = 0;
     for (BlockSparseMatrix<double>::const_iterator itr = tangent->begin();
 	 itr != tangent->end(); ++itr)
     {

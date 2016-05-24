@@ -14,6 +14,7 @@ class NeoHookean2D : public Lattice
         mutable Vector DOF_;
         mutable Vector RHS_;
         mutable Matrix Stiff_;
+        mutable Vector E1DLoad_;
         mutable double Lambda_;
         
         int Width_;
@@ -41,10 +42,7 @@ class NeoHookean2D : public Lattice
                 return DOF_;
             }
             
-            void SetDOF(Vector const& dof)
-            {
-                DOF_ = dof;
-            }
+            void SetDOF(Vector const& dof);
             
             double Lambda() const
             {
