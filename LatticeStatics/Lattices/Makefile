@@ -16,4 +16,5 @@ LATTICES = KnownLattices.cpp\
            DFTExternalOld.cpp\
            QC.cpp\
            FEAP.cpp\
-           NeoHookean2D.cpp
+           NeoHookean2D.cpp\
+	   ElasticaBeam1D.cpp

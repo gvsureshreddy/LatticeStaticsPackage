@@ -95,7 +95,7 @@ namespace elastica_beam
     {
       prm.enter_subsection("Finite element system");
       {
-	prm.declare_entry("Polynomial degree", "1",
+	prm.declare_entry("Polynomial degree", "2",
 			  Patterns::Integer(0),
 			  "Displacement system polynomial order");
 
@@ -172,8 +172,6 @@ namespace elastica_beam
 
     // @sect4{Materials}
 
-    // We also need the shear modulus $ \mu $ for the incompressible
-    // neo-Hookean material.
     struct Materials
     {
       double EI;
@@ -346,21 +344,6 @@ namespace elastica_beam
     }
   }
 
-  // @sect3{Some standard tensors}
-//Bastien : is this useful ?
-  // Now we define one frequently used second-order tensor:
-  template <int dim>
-  class StandardTensors
-  {
-  public:
-    // $\mathbf{I}$
-    static const SymmetricTensor<2, dim> I;
-  };
-
-  template <int dim>
-  const SymmetricTensor<2, dim>
-  StandardTensors<dim>::I = unit_symmetric_tensor<dim>();
-
   // @sect3{Time class}
 
   // A simple class to store time data. Its functioning is transparent so no
@@ -424,22 +407,13 @@ namespace elastica_beam
     ~Elastica_Beam_On_Spring_Fundation()
     {}
 
-    // We update the material model with various deformation dependent data
-    // based on $F$, and at the end of the function include a physical
-    // check for internal consistency:
-    void update_material_data(const Tensor<2, dim> &F)//Bastien : Is this function useful?
-    {
-      det_F = determinant(F);
-
-      Assert(det_F > 0, ExcInternalError());
-    }
+    // This function is useless but we keep it in case we want to change the
+    // material property during the iterations
+    void update_material_data()
+    {}
 
     // The next few functions return various data that we choose to store with
     // the material:
-    double get_det_F() const
-    {
-      return det_F;
-    }
 
     double get_EI() const
     {
@@ -455,9 +429,6 @@ namespace elastica_beam
     // Define constitutive model parameters:
     const double EI;
     const double k;
-
-    // Model specific data that is convenient to store with the material:
-    double det_F;//Bastien : is this really useful?
 
   };
 
@@ -475,7 +446,9 @@ namespace elastica_beam
     PointHistory()
       :
       material(NULL),
-      Grad_U(Tensor<2, dim>())//Bastien : do we need other things ?
+      y(0.0),
+      d_y(Tensor<1, dim>()),
+      dd_y(Tensor<2, dim>())
     {}
 
     virtual ~PointHistory()
@@ -491,7 +464,7 @@ namespace elastica_beam
     void setup_lqp (const Parameters::AllParameters &parameters)
     {
       material = new Elastica_Beam_On_Spring_Fundation<dim>(parameters.EI, parameters.k);
-      update_values(Tensor<2, dim>());
+      update_values(0.0, Tensor<1, dim>(), Tensor<2, dim>());
     }
 
     // To this end, we calculate the deformation gradient $\mathbf{F}$ from
@@ -508,28 +481,29 @@ namespace elastica_beam
     // general, the conversion to SymmetricTensor will fail. We can avoid this
     // back and forth by converting $I$ to Tensor first, and then performing
     // the addition as between nonsymmetric tensors:
-    void update_values (const Tensor<2, dim> &Grad_u_n)
+    void update_values (const double value_y, const Tensor<1, dim> value_d_y, const Tensor<2, dim> value_dd_y)//Bastien : needs to be updated
     {
-      const Tensor<2, dim> F
-	= (Tensor<2, dim>(StandardTensors<dim>::I) +
-	   Grad_u_n);
-      material->update_material_data(F);
-      Grad_U = Grad_u_n;
-
+        y = value_y;
+        d_y = value_d_y;
+        dd_y = value_dd_y;
     }
 
     // We offer an interface to retrieve certain data.  Here are the kinematic
     // variables:
 
-    double get_det_F() const
+    double get_y() const
     {
-      return material->get_det_F();
+      return y;
     }
 
-
-    const Tensor<2, dim> &get_Grad_U() const
+    const double &get_d_y() const
     {
-      return Grad_U;
+      return d_y[0];
+    }
+
+    const double &get_dd_y() const
+    {
+      return dd_y[0][0];
     }
 
     // ...and the kinetic variables.  These are used in the material and
@@ -550,7 +524,9 @@ namespace elastica_beam
     // inverse of the deformation gradient...
   private:
     Elastica_Beam_On_Spring_Fundation<dim> *material;
-    Tensor<2, dim> Grad_U;
+    double y;
+    Tensor<1, dim> d_y;
+    Tensor<2, dim> dd_y;
   };
 
 
@@ -596,7 +572,13 @@ namespace elastica_beam
 			SparseMatrix<double> const* &tm, unsigned int iter_value);
 
     void
+    get_E1DLoad(Vector<double> const* &sys_E1DLoad);
+
+    void
     get_constraints_matrix(ConstraintMatrix const* &constraints_matrix);
+
+    void
+    set_P(const double value_P);
 
   private:
 
@@ -708,11 +690,6 @@ namespace elastica_beam
     // collection of the parameters used to describe the problem setup...
     Parameters::AllParameters        parameters;
 
-    //Bastien : useful ?
-    // ...the length of the reference and current configurations...
-    double                           length_reference;
-    double                           length_current;
-
     // ...and description of the geometry on which the problem is solved:
     Triangulation<dim>               triangulation;
 
@@ -733,8 +710,7 @@ namespace elastica_beam
     const FESystem<dim>              fe;
     DoFHandler<dim>                  dof_handler_ref;
     const unsigned int               dofs_per_cell;
-    const unsigned int               n_dofs;
-    const FEValuesExtractors::Vector u_fe;//Bastien : useful ?
+    unsigned int                     n_dofs;
 
 
     // Rules for Gauss-quadrature on the cells. The number of
@@ -752,14 +728,13 @@ namespace elastica_beam
     Vector<double>              system_rhs;
     Vector<double>              solution_n;
     double                      system_energy;
-    float                       displacement_side_1;
+    double                       P;
 
     //Some boolean to decide if we want to display and save the tangent matrix and RHS
     const bool                       print_tangent_matrix = false;
     const bool                       print_tangent_matrix_constrained = false;
     const bool                       print_RHS = false;
     //This is just to know the size of the tangent matrix "by hand", for debugging:
-    const int                        dim_matrix = 22;
 
     // Then define a number of variables to store norms and update norms and
     // normalisation factors.
@@ -792,9 +767,6 @@ namespace elastica_beam
     void get_error_update(const Vector<double> &newton_update,
 			  Errors &error_update);
 
-    std::pair<double, double>
-    get_error_elongation(); //Bastien : useful ?
-
     // Print information to screen in a pleasing way...
     static
     void
@@ -825,12 +797,13 @@ namespace elastica_beam
     n_dofs (dof_handler_ref.n_dofs()),
     qf_cell(parameters.quad_order),
     n_q_points (qf_cell.size()),
-    displacement_side_1 ((1 - parameters.elongation) * parameters.delta_t / parameters.end_time)
+    P (0.0)
   {
     make_grid();
     system_setup();
     output_results();
     time.increment();
+    n_dofs = dof_handler_ref.n_dofs();
   }
 
   // The class destructor simply clears the data held by the DOFHandler
@@ -877,8 +850,6 @@ namespace elastica_beam
 
   // @sect4{Threading-building-blocks structures}
 
-//Bastien : todo : modify the scratch and pertask data structures
-
   // The first group of private member functions is related to parallization.
   // We use the Threading Building Blocks library (TBB) to perform as many
   // computationally intensive distributed tasks as possible. In particular, we
@@ -918,7 +889,9 @@ namespace elastica_beam
     FEValues<dim> fe_values_ref;
 
     std::vector<std::vector<double> >                   Nx;
-    std::vector<std::vector<Tensor<2, dim> > >          grad_Nx;
+    std::vector<std::vector<Tensor<1, dim> > >          d_Nx;
+    std::vector<std::vector<Tensor<2, dim> > >          dd_Nx;
+
 
     ScratchData_K(const FiniteElement<dim> &fe_cell,
 		  const QGauss<dim> &qf_cell,
@@ -927,17 +900,20 @@ namespace elastica_beam
       fe_values_ref(fe_cell, qf_cell, uf_cell),
       Nx(qf_cell.size(),
 	 std::vector<double>(fe_cell.dofs_per_cell)),
-      grad_Nx(qf_cell.size(),
+      d_Nx(qf_cell.size(),
+	      std::vector<Tensor<1, dim> >(fe_cell.dofs_per_cell)),
+      dd_Nx(qf_cell.size(),
 	      std::vector<Tensor<2, dim> >(fe_cell.dofs_per_cell))
     {}
 
-    ScratchData_K(const ScratchData_K &rhs)
+    ScratchData_K(const ScratchData_K &k)
       :
-      fe_values_ref(rhs.fe_values_ref.get_fe(),
-		    rhs.fe_values_ref.get_quadrature(),
-		    rhs.fe_values_ref.get_update_flags()),
-      Nx(rhs.Nx),
-      grad_Nx(rhs.grad_Nx)
+      fe_values_ref(k.fe_values_ref.get_fe(),
+		    k.fe_values_ref.get_quadrature(),
+		    k.fe_values_ref.get_update_flags()),
+      Nx(k.Nx),
+      d_Nx(k.d_Nx),
+      dd_Nx(k.dd_Nx)
     {}
 
     void reset()
@@ -947,12 +923,13 @@ namespace elastica_beam
       for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
 	{
 	  Assert( Nx[q_point].size() == n_dofs_per_cell, ExcInternalError());
-	  Assert( grad_Nx[q_point].size() == n_dofs_per_cell,
-		  ExcInternalError());
+	  Assert( d_Nx[q_point].size() == n_dofs_per_cell, ExcInternalError());
+          Assert( dd_Nx[q_point].size() == n_dofs_per_cell, ExcInternalError());
 	  for (unsigned int k = 0; k < n_dofs_per_cell; ++k)
 	    {
 	      Nx[q_point][k] = 0.0;
-	      grad_Nx[q_point][k] = 0.0;
+	      d_Nx[q_point][k] = 0.0;
+              dd_Nx[q_point][k] = 0.0;
 	    }
 	}
     }
@@ -980,27 +957,27 @@ namespace elastica_beam
     }
   };
 
-
   template <int dim>
   struct Solid<dim>::ScratchData_RHS
   {
-    FEValues<dim>     fe_values_ref;
-    FEFaceValues<dim> fe_face_values_ref;
+    FEValues<dim> fe_values_ref;
 
-    std::vector<std::vector<double> >          Nx;
-    std::vector<std::vector<Tensor<2, dim> > > grad_Nx;
+    std::vector<std::vector<double> >                   Nx;
+    std::vector<std::vector<Tensor<1, dim> > >          d_Nx;
+    std::vector<std::vector<Tensor<2, dim> > >          dd_Nx;
+
 
     ScratchData_RHS(const FiniteElement<dim> &fe_cell,
-		    const QGauss<dim> &qf_cell, const UpdateFlags uf_cell,
-		    const QGauss<dim - 1> & qf_face, const UpdateFlags uf_face)
+		  const QGauss<dim> &qf_cell,
+		  const UpdateFlags uf_cell)
       :
       fe_values_ref(fe_cell, qf_cell, uf_cell),
-      fe_face_values_ref(fe_cell, qf_face, uf_face),
       Nx(qf_cell.size(),
 	 std::vector<double>(fe_cell.dofs_per_cell)),
-      grad_Nx(qf_cell.size(),
-	      std::vector<Tensor<2, dim> >
-	      (fe_cell.dofs_per_cell))
+      d_Nx(qf_cell.size(),
+	      std::vector<Tensor<1, dim> >(fe_cell.dofs_per_cell)),
+      dd_Nx(qf_cell.size(),
+	      std::vector<Tensor<2, dim> >(fe_cell.dofs_per_cell))
     {}
 
     ScratchData_RHS(const ScratchData_RHS &rhs)
@@ -1008,26 +985,25 @@ namespace elastica_beam
       fe_values_ref(rhs.fe_values_ref.get_fe(),
 		    rhs.fe_values_ref.get_quadrature(),
 		    rhs.fe_values_ref.get_update_flags()),
-      fe_face_values_ref(rhs.fe_face_values_ref.get_fe(),
-			 rhs.fe_face_values_ref.get_quadrature(),
-			 rhs.fe_face_values_ref.get_update_flags()),
       Nx(rhs.Nx),
-      grad_Nx(rhs.grad_Nx)
+      d_Nx(rhs.d_Nx),
+      dd_Nx(rhs.dd_Nx)
     {}
 
     void reset()
     {
-      const unsigned int n_q_points      = Nx.size();
+      const unsigned int n_q_points = Nx.size();
       const unsigned int n_dofs_per_cell = Nx[0].size();
       for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
 	{
 	  Assert( Nx[q_point].size() == n_dofs_per_cell, ExcInternalError());
-	  Assert( grad_Nx[q_point].size() == n_dofs_per_cell,
-		  ExcInternalError());
+	  Assert( d_Nx[q_point].size() == n_dofs_per_cell, ExcInternalError());
+          Assert( dd_Nx[q_point].size() == n_dofs_per_cell, ExcInternalError());
 	  for (unsigned int k = 0; k < n_dofs_per_cell; ++k)
 	    {
 	      Nx[q_point][k] = 0.0;
-	      grad_Nx[q_point][k] = 0.0;
+	      d_Nx[q_point][k] = 0.0;
+              dd_Nx[q_point][k] = 0.0;
 	    }
 	}
     }
@@ -1067,8 +1043,9 @@ namespace elastica_beam
   {
     const Vector<double>   &solution_total;
 
-    std::vector<Tensor<2, dim> > solution_grads_u_total;
-    std::vector<double>          solution_values_p_total;
+    std::vector<double>          solution_y_total;
+    std::vector<Tensor<1, dim> > solution_d_y_total;
+    std::vector<Tensor<2, dim> > solution_dd_y_total;
 
     FEValues<dim>                fe_values_ref;
 
@@ -1078,28 +1055,31 @@ namespace elastica_beam
 		     const Vector<double> &solution_total)
       :
       solution_total(solution_total),
-      solution_grads_u_total(qf_cell.size()),
-      solution_values_p_total(qf_cell.size()),
+      solution_y_total(qf_cell.size()),
+      solution_d_y_total(qf_cell.size()),
+      solution_dd_y_total(qf_cell.size()),
       fe_values_ref(fe_cell, qf_cell, uf_cell)
     {}
 
-    ScratchData_UQPH(const ScratchData_UQPH &rhs)
+    ScratchData_UQPH(const ScratchData_UQPH &uqph)
       :
-      solution_total(rhs.solution_total),
-      solution_grads_u_total(rhs.solution_grads_u_total),
-      solution_values_p_total(rhs.solution_values_p_total),
-      fe_values_ref(rhs.fe_values_ref.get_fe(),
-		    rhs.fe_values_ref.get_quadrature(),
-		    rhs.fe_values_ref.get_update_flags())
+      solution_total(uqph.solution_total),
+      solution_y_total(uqph.solution_y_total),
+      solution_d_y_total(uqph.solution_d_y_total),
+      solution_dd_y_total(uqph.solution_dd_y_total),
+      fe_values_ref(uqph.fe_values_ref.get_fe(),
+		    uqph.fe_values_ref.get_quadrature(),
+		    uqph.fe_values_ref.get_update_flags())
     {}
 
     void reset()
     {
-      const unsigned int n_q_points = solution_grads_u_total.size();
+      const unsigned int n_q_points = solution_y_total.size();
       for (unsigned int q = 0; q < n_q_points; ++q)
 	{
-	  solution_grads_u_total[q] = 0.0;
-	  solution_values_p_total[q] = 0.0;
+	  solution_y_total[q] = 0.0;
+	  solution_d_y_total[q] = 0.0;
+          solution_dd_y_total[q] = 0.0;
 	}
     }
   };
@@ -1116,56 +1096,32 @@ namespace elastica_beam
   // vector so that we don't have to copy this large data structure. We then
   // define a number of vectors to extract the solution values and gradients at
   // the quadrature points.
-  template <int dim>
+
+
+   template <int dim>
   struct Solid<dim>::ScratchData_Energy
   {
-    FEValues<dim>     fe_values_ref;
-    FEFaceValues<dim> fe_face_values_ref;
+    FEValues<dim> fe_values_ref;
 
-    std::vector<std::vector<double> >          Nx;
-    std::vector<std::vector<Tensor<2, dim> > > grad_Nx;
+
 
     ScratchData_Energy(const FiniteElement<dim> &fe_cell,
-		       const QGauss<dim> &qf_cell, const UpdateFlags uf_cell,
-		       const QGauss<dim - 1> & qf_face, const UpdateFlags uf_face)
+		  const QGauss<dim> &qf_cell,
+		  const UpdateFlags uf_cell)
       :
-      fe_values_ref(fe_cell, qf_cell, uf_cell),
-      fe_face_values_ref(fe_cell, qf_face, uf_face),
-      Nx(qf_cell.size(),
-	 std::vector<double>(fe_cell.dofs_per_cell)),
-      grad_Nx(qf_cell.size(),
-	      std::vector<Tensor<2, dim> >
-	      (fe_cell.dofs_per_cell))
+      fe_values_ref(fe_cell, qf_cell, uf_cell)
     {}
 
     ScratchData_Energy(const ScratchData_Energy &energy)
       :
       fe_values_ref(energy.fe_values_ref.get_fe(),
 		    energy.fe_values_ref.get_quadrature(),
-		    energy.fe_values_ref.get_update_flags()),
-      fe_face_values_ref(energy.fe_face_values_ref.get_fe(),
-			 energy.fe_face_values_ref.get_quadrature(),
-			 energy.fe_face_values_ref.get_update_flags()),
-      Nx(energy.Nx),
-      grad_Nx(energy.grad_Nx)
+		    energy.fe_values_ref.get_update_flags())
     {}
 
     void reset()
-    {
-      const unsigned int n_q_points      = Nx.size();
-      const unsigned int n_dofs_per_cell = Nx[0].size();
-      for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
-	{
-	  Assert( Nx[q_point].size() == n_dofs_per_cell, ExcInternalError());
-	  Assert( grad_Nx[q_point].size() == n_dofs_per_cell,
-		  ExcInternalError());
-	  for (unsigned int k = 0; k < n_dofs_per_cell; ++k)
-	    {
-	      Nx[q_point][k] = 0.0;
-	      grad_Nx[q_point][k] = 0.0;
-	    }
-	}
-    }
+    {}
+
   };
 
 
@@ -1175,9 +1131,6 @@ namespace elastica_beam
   // triangulation of the domain, for which we choose the scaled cube with each
   // face given a boundary ID number.  The grid must be refined at least once
   // for the indentation problem.
-  //
-  // We then determine the length of the reference configuration and print it
-  // for comparison:
   template <int dim>
   void Solid<dim>::make_grid()
   {
@@ -1187,9 +1140,8 @@ namespace elastica_beam
     // We refine our mesh globally, at least once
     triangulation.refine_global(std::max (1U, parameters.global_refinement));
 
-    length_reference = GridTools::volume(triangulation);
-    length_current = length_reference;
-    std::cout << "Grid:\n\t Reference length: " << length_reference << std::endl;
+    const double length = GridTools::volume(triangulation);
+    std::cout << "Grid:\n\t Length: " << length << std::endl;
 
     // We mark the surfaces in order to apply the boundary conditions after
     typename Triangulation<dim>::active_cell_iterator cell =
@@ -1326,7 +1278,7 @@ namespace elastica_beam
 
     const Vector<double> solution_total(get_total_solution(solution_delta));
 
-    const UpdateFlags uf_UQPH(update_values | update_gradients);
+    const UpdateFlags uf_UQPH(update_values | update_gradients | update_hessians);
     PerTaskData_UQPH per_task_data_UQPH;
     ScratchData_UQPH scratch_data_UQPH(fe, qf_cell, uf_UQPH, solution_total);
 
@@ -1358,9 +1310,11 @@ namespace elastica_beam
     Assert(lqph >= &quadrature_point_history.front(), ExcInternalError());
     Assert(lqph <= &quadrature_point_history.back(), ExcInternalError());
 
-    Assert(scratch.solution_grads_u_total.size() == n_q_points,
+    Assert(scratch.solution_y_total.size() == n_q_points,
 	   ExcInternalError());
-    Assert(scratch.solution_values_p_total.size() == n_q_points,
+    Assert(scratch.solution_d_y_total.size() == n_q_points,
+	   ExcInternalError());
+    Assert(scratch.solution_dd_y_total.size() == n_q_points,
 	   ExcInternalError());
 
     scratch.reset();
@@ -1370,14 +1324,18 @@ namespace elastica_beam
     // displacement gradient and total pressure and dilatation solution
     // values:
     scratch.fe_values_ref.reinit(cell);
-    //Bastien : todo : modify
-    scratch.fe_values_ref[u_fe].get_function_gradients(scratch.solution_total,
-						       scratch.solution_grads_u_total);
-    scratch.fe_values_ref[p_fe].get_function_values(scratch.solution_total,
-						    scratch.solution_values_p_total);
+
+    scratch.fe_values_ref.get_function_values(scratch.solution_total,
+						    scratch.solution_y_total);
+    scratch.fe_values_ref.get_function_gradients(scratch.solution_total,
+						    scratch.solution_d_y_total);
+    scratch.fe_values_ref.get_function_hessians(scratch.solution_total,
+						    scratch.solution_dd_y_total);
 
     for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
-      lqph[q_point].update_values(scratch.solution_grads_u_total[q_point]);
+      lqph[q_point].update_values(scratch.solution_y_total[q_point],
+                                        scratch.solution_d_y_total[q_point],
+                                        scratch.solution_dd_y_total[q_point]);
   }
 
 
@@ -1519,64 +1477,9 @@ namespace elastica_beam
       std::cout << "_";
     std::cout << std::endl;
 
-    const std::pair <double,double> error_dil = get_error_elongation();
-
     std::cout << "Relative errors:" << std::endl
-	      << "Displacement:\t" << error_update.u / error_update_0.u << std::endl
-	      << "Force: \t\t" << error_residual.u / error_residual_0.u << std::endl
-	      << "Elongation:\t" << error_dil.first << std::endl
-	      << "v - V_0:\t" << length_current << " - " << length_reference
-	      << " = " << error_dil.second << std::endl;
-  }
-
-
-  // @sect4{Solid::get_error_dilation}
-
-  // Calculate how well the dilatation $J$ agrees with $J = 1$ from the $L^2$
-  // error $ \bigl[ \int_{\Omega_0} {[ J - 1 ]}^{2}\textrm{d}V \bigr]^{1/2}$.
-  // We also return the ratio of the current length of the
-  // domain to the reference length. This is of interest for incompressible
-  // media where we want to check how well the isochoric constraint has been
-  // enforced.
-  template <int dim>
-  std::pair<double, double>
-  Solid<dim>::get_error_elongation()
-  {//Bastien : todo : modify or suppress
-    double dil_L2_error = 0.0;
-    length_current = 0.0;
-
-    FEValues<dim> fe_values_ref(fe, qf_cell, update_JxW_values);
-
-    for (typename Triangulation<dim>::active_cell_iterator
-	   cell = triangulation.begin_active();
-	 cell != triangulation.end(); ++cell)
-      {
-	fe_values_ref.reinit(cell);
-
-	PointHistory<dim> *lqph =
-	  reinterpret_cast<PointHistory<dim>*>(cell->user_pointer());
-
-	Assert(lqph >= &quadrature_point_history.front(), ExcInternalError());
-	Assert(lqph <= &quadrature_point_history.back(), ExcInternalError());
-
-	for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
-	  {
-	    const double det_F_qp = lqph[q_point].get_det_F();
-	    const double the_error_qp_squared = std::pow((det_F_qp - 1),
-							 2);
-	    const double JxW = fe_values_ref.JxW(q_point);
-
-	    dil_L2_error += the_error_qp_squared * JxW;
-	    length_current += det_F_qp * JxW;
-	  }
-	Assert(length_current > 0, ExcInternalError());
-      }
-
-    std::pair<double, double> error_dil;
-    error_dil.first = std::sqrt(dil_L2_error);
-    error_dil.second = length_current - length_reference;
-
-    return error_dil;
+	      << "Displacement:\t" << error_update.norm / error_update_0.norm << std::endl
+	      << "Force: \t\t" << error_residual.norm / error_residual_0.norm << std::endl;
   }
 
 
@@ -1592,7 +1495,6 @@ namespace elastica_beam
     Vector<double> error_res(n_dofs);
     for (unsigned int i = 0; i < n_dofs; ++i)
       error_res(i) = (constraints.is_constrained(i)) ? 0.0 : system_rhs(i);
-
     error_residual.norm = error_res.l2_norm();
   }
 
@@ -1642,9 +1544,8 @@ namespace elastica_beam
     timer.enter_subsection("Assemble tangent matrix");
     std::cout << " ASM_K" << std::flush;
 
-    const UpdateFlags uf_cell(update_values    |
-			      update_gradients |
-			      update_JxW_values);
+    const UpdateFlags uf_cell(update_values    |  update_gradients |
+			      update_hessians  |  update_JxW_values);
 
     PerTaskData_K per_task_data(dofs_per_cell);
     ScratchData_K scratch_data(fe, qf_cell, uf_cell);
@@ -1697,16 +1598,9 @@ namespace elastica_beam
       {
 	for (unsigned int k = 0; k < dofs_per_cell; ++k)
 	  {
-	    const unsigned int k_group = fe.system_to_base_index(k).first.first;
-
-	    if (k_group == u_dof)
-	      {
-		scratch.grad_Nx[q_point][k] = scratch.fe_values_ref[u_fe].gradient(k, q_point);
-	      }
-	    else if (k_group == p_dof)
-	      scratch.Nx[q_point][k] = scratch.fe_values_ref[p_fe].value(k, q_point);
-	    else
-	      Assert(k_group <= p_dof, ExcInternalError());
+	    scratch.Nx[q_point][k] = scratch.fe_values_ref.shape_value_component(k, q_point, 0);
+            scratch.d_Nx[q_point][k] = scratch.fe_values_ref.shape_grad(k, q_point);
+            scratch.dd_Nx[q_point][k] = scratch.fe_values_ref.shape_hessian(k, q_point);
 	  }
       }
 
@@ -1723,27 +1617,46 @@ namespace elastica_beam
 
     for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
       {
-	const double det_F                   = lqph[q_point].get_det_F();
 	const double EI                      = lqph[q_point].get_EI();
         const double k                       = lqph[q_point].get_k();
-	const Tensor<2, dim> Grad_U          = lqph[q_point].get_Grad_U();
+        //const double y                       = lqph[q_point].get_y();
+        const double d_y                     = lqph[q_point].get_d_y();
+	const double dd_y                    = lqph[q_point].get_dd_y();
 
-
-	// Next we define some aliases to make the assembly process easier to
-	// follow
 	const std::vector<double>
-	  &N = scratch.Nx[q_point];
-	const std::vector<Tensor<2, dim> >
-	  &grad_Nx = scratch.grad_Nx[q_point];
+	  &vec_Nx = scratch.Nx[q_point];
+	const std::vector<Tensor<1, dim> >
+	  &vec_d_Nx = scratch.d_Nx[q_point];
+        const std::vector<Tensor<2, dim> >
+	  &vec_dd_Nx = scratch.dd_Nx[q_point];
 	const double JxW = scratch.fe_values_ref.JxW(q_point);
+
+        const double par = 1 - d_y * d_y;
+	// We first compute the contributions
+	// from the internal forces.  Note, by
+	// definition of the rhs as the negative
+	// of the residual, these contributions
+	// are subtracted.
 
 	for (unsigned int i = 0; i < dofs_per_cell; ++i)
 	  {
-	    const unsigned int component_i = fe.system_to_component_index(i).first;
+            const double Nx_i = vec_Nx[i];
+            const double d_Nx_i = vec_d_Nx[i][0];
+            const double dd_Nx_i = vec_dd_Nx[i][0][0];
 	    for (unsigned int j = 0; j <= i; ++j)
 	      {
-		const unsigned int component_j = fe.system_to_component_index(j).first;
-		      data.cell_matrix(i, j) += 1;
+                const double Nx_j = vec_Nx[j];
+                const double d_Nx_j = vec_d_Nx[j][0];
+                const double dd_Nx_j = vec_dd_Nx[j][0][0];
+		data.cell_matrix(i, j) += EI * (dd_Nx_j * dd_Nx_i / par
+                                            + 2 * dd_y * d_y * dd_Nx_i * d_Nx_j / (par * par)
+                                            + 2 * dd_y * d_y * dd_Nx_j * d_Nx_i / (par * par)
+                                            + dd_y * dd_y * d_Nx_j * d_Nx_i / (par * par)
+                                            + 4 * dd_y * dd_y * d_y * d_y * d_Nx_i * d_Nx_j / (par * par * par)
+                                                ) * JxW;
+                data.cell_matrix(i, j) -= P * (d_Nx_j * d_Nx_i / sqrt(par)
+                                            + d_y * d_y * d_Nx_i * d_Nx_j / (par * sqrt(par))) * JxW;
+                data.cell_matrix(i, j) += k * Nx_j * Nx_i * JxW;
 	      }
 	  }
       }
@@ -1768,15 +1681,11 @@ namespace elastica_beam
     timer.enter_subsection("Assemble system right-hand side");
     std::cout << " ASM_R" << std::flush;
 
-    const UpdateFlags uf_cell(update_values |
-			      update_gradients |
-			      update_JxW_values);
-    const UpdateFlags uf_face(update_values |
-			      update_normal_vectors |
-			      update_JxW_values);
+    const UpdateFlags uf_cell(update_values    |  update_gradients |
+			      update_hessians  |  update_JxW_values);
 
     PerTaskData_RHS per_task_data(dofs_per_cell);
-    ScratchData_RHS scratch_data(fe, qf_cell, uf_cell, qf_face, uf_face);
+    ScratchData_RHS scratch_data(fe, qf_cell, uf_cell);
 
     WorkStream::run(dof_handler_ref.begin_active(),
 		    dof_handler_ref.end(),
@@ -1817,31 +1726,29 @@ namespace elastica_beam
       {
 	for (unsigned int k = 0; k < dofs_per_cell; ++k)
 	  {
-	    const unsigned int k_group = fe.system_to_base_index(k).first.first;
-
-	    if (k_group == u_dof)
-	      scratch.grad_Nx[q_point][k]
-		= scratch.fe_values_ref[u_fe].gradient(k, q_point);
-	    else if (k_group == p_dof)
-	      scratch.Nx[q_point][k] = scratch.fe_values_ref[p_fe].value(k, q_point);
-	    else
-	      Assert(k_group <= p_dof, ExcInternalError());
+	    scratch.Nx[q_point][k] = scratch.fe_values_ref.shape_value_component(k, q_point, 0);
+            scratch.d_Nx[q_point][k] = scratch.fe_values_ref.shape_grad(k, q_point);
+            scratch.dd_Nx[q_point][k] = scratch.fe_values_ref.shape_hessian(k, q_point);
 	  }
       }
 
     for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
       {
-	const double det_F                   = lqph[q_point].get_det_F();
 	const double EI                      = lqph[q_point].get_EI();
         const double k                       = lqph[q_point].get_k();
-	const Tensor<2, dim> Grad_U          = lqph[q_point].get_Grad_U();
+        const double y                       = lqph[q_point].get_y();
+        const double d_y                     = lqph[q_point].get_d_y();
+	const double dd_y                    = lqph[q_point].get_dd_y();
 
 	const std::vector<double>
-	  &N = scratch.Nx[q_point];
-	const std::vector<Tensor<2, dim> >
-	  &Grad_Nx = scratch.grad_Nx[q_point];
+	  &vec_Nx = scratch.Nx[q_point];
+	const std::vector<Tensor<1, dim> >
+	  &vec_d_Nx = scratch.d_Nx[q_point];
+        const std::vector<Tensor<2, dim> >
+	  &vec_dd_Nx = scratch.dd_Nx[q_point];
 	const double JxW = scratch.fe_values_ref.JxW(q_point);
 
+        const double par = 1 - d_y * d_y;
 	// We first compute the contributions
 	// from the internal forces.  Note, by
 	// definition of the rhs as the negative
@@ -1850,7 +1757,13 @@ namespace elastica_beam
 
 	for (unsigned int i = 0; i < dofs_per_cell; ++i)
 	  {
-	     data.cell_rhs(i) -= 1;
+            const double Nx = vec_Nx[i];
+            const double d_Nx = vec_d_Nx[i][0];
+            const double dd_Nx = vec_dd_Nx[i][0][0];
+	    data.cell_rhs(i) -= ( EI * (dd_y * dd_Nx / par
+                                + dd_y * dd_y * d_y * d_Nx /(par * par))
+                                - P * (d_y * d_Nx / sqrt(par))
+                                + k * y * Nx ) * JxW;
 	  }
       }
   }
@@ -1865,7 +1778,7 @@ namespace elastica_beam
   template <int dim>
   void Solid<dim>::make_constraints(const int &it_nr)
   {
-    std::cout << " CST" << std::flush;
+    std::cout << " CSTokkkkkk" << std::flush;
 
     // Since the constraints are different at different Newton iterations, we
     // need to clear the constraints matrix and completely rebuild
@@ -1885,11 +1798,9 @@ namespace elastica_beam
       std::vector<GridTools::PeriodicFacePair<typename DoFHandler<dim>::cell_iterator> >
       periodicity_vector;
 
-      const unsigned int direction = 1;
-
+      const unsigned int direction = 0;
       GridTools::collect_periodic_faces(dof_handler_ref, 1, 2, direction,
                                         periodicity_vector);
-
     // In the following, we will have to tell the function interpolation
     // boundary values which components of the solution vector should be
     // constrained (i.e., whether it's the x-, y-displacements or
@@ -1899,15 +1810,14 @@ namespace elastica_beam
     // select. To this end we first set up such extractor objects and later
     // use it when generating the relevant component masks:
 
-      //const FEValuesExtractors::Scalar y_displacement(0);//Bastien : useless, since there is only one DOF
 
     // After setting up all the information in periodicity_vector all we have
 // to do is to tell make_periodicity_constraints to create the desired
 // constraints.
-      DoFTools::make_periodicity_constraints<DoFHandler<dim> >
-      (periodicity_vector, constraints/*, fe.component_mask(y_displacement)*/);
+      //DoFTools::make_periodicity_constraints<DoFHandler<dim> >
+      //(periodicity_vector, constraints/*, fe.component_mask(y_displacement)*/);
 
-    const bool apply_dirichlet_bc = (it_nr == 0);
+    //const bool apply_dirichlet_bc = (it_nr == 0);
 
 //    {
 //      const int boundary_id = 1;
@@ -1936,14 +1846,14 @@ namespace elastica_beam
 	{
 	  std::cout << std::endl << "Print tangent matrix after applying boundary conditions..." << std::endl;
 
-	  FullMatrix<double> tangent_matrix_f(dim_matrix);
+	  FullMatrix<double> tangent_matrix_f(n_dofs);
 	  tangent_matrix_f.copy_from(tangent_matrix);
 
 	  std::cout << std::endl;
 
-	  for(int x=0;x<dim_matrix;x++)
+	  for(int x=0;x<n_dofs;x++)
 	    {
-	      for(int y=0;y<dim_matrix;y++)
+	      for(int y=0;y<n_dofs;y++)
 		{
 		  if(tangent_matrix_f(x,y) == 0)
 		    std::cout << "   0     |" << std::flush;
@@ -1964,7 +1874,7 @@ namespace elastica_beam
       if(print_tangent_matrix_constrained)
 	{
 
-	  FullMatrix<double> tangent_matrix_f(dim_matrix);
+	  FullMatrix<double> tangent_matrix_f(n_dofs);
 	  tangent_matrix_f.copy_from(tangent_matrix);
 
 	  std::cout << std::endl << "Extracting the intersting part..." << std::endl << std::endl;
@@ -1976,11 +1886,11 @@ namespace elastica_beam
 
 	  if(tangent_matrix_file)  // If opening the file was done well
 	    {
-	      for(int x=0;x<dim_matrix;x++)
+	      for(int x=0;x<n_dofs;x++)
 		{
 		  if (!constraints.is_constrained(x))
 		    {
-		      for(int y=0;y<dim_matrix;y++)
+		      for(int y=0;y<n_dofs;y++)
 			if (!constraints.is_constrained(y))
 			  {
 			    if(tangent_matrix_f(x,y) == 0/* || (tangent_matrix_f(x,y) < 1e-10 && tangent_matrix_f(x,y) > -1e-10)*/){
@@ -2020,7 +1930,7 @@ namespace elastica_beam
 	    {
 	      std::cout << std::endl << "Print right hand side..." << std::endl << std::endl;
 
-	      for(int x=0;x<dim_matrix;x++)
+	      for(int x=0;x<n_dofs;x++)
 		if (!constraints.is_constrained(x))
 		  {
 		    if(system_rhs(x) == 0/* || (system_rhs(x) < 1e-10 && system_rhs(x) > -1e-10)*/){
@@ -2143,15 +2053,11 @@ namespace elastica_beam
   {
     timer.enter_subsection("Assemble system energy");
 
-    const UpdateFlags uf_cell(update_values |
-			      update_gradients |
-			      update_JxW_values);
-    const UpdateFlags uf_face(update_values |
-			      update_normal_vectors |
-			      update_JxW_values);
+    const UpdateFlags uf_cell(update_values    |  update_gradients |
+			      update_hessians  |  update_JxW_values);
 
     PerTaskData_Energy per_task_data;
-    ScratchData_Energy scratch_data(fe, qf_cell, uf_cell, qf_face, uf_face);
+    ScratchData_Energy scratch_data(fe, qf_cell, uf_cell);
 
     WorkStream::run(dof_handler_ref.begin_active(),
 		    dof_handler_ref.end(),
@@ -2177,34 +2083,28 @@ namespace elastica_beam
     PointHistory<dim> *lqph =
       reinterpret_cast<PointHistory<dim>*>(cell->user_pointer());
 
-    //        for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
-    //        {
-    //            for (unsigned int k = 0; k < dofs_per_cell; ++k)
-    //            {
-    //                const unsigned int k_group = fe.system_to_base_index(k).first.first;
-    //
-    //                if (k_group == u_dof)
-    //                    scratch.grad_Nx[q_point][k]
-    //                            = scratch.fe_values_ref[u_fe].gradient(k, q_point);
-    //                else if (k_group == p_dof)
-    //                    scratch.Nx[q_point][k] = scratch.fe_values_ref[p_fe].value(k, q_point);
-    //                else
-    //                    Assert(k_group <= p_dof, ExcInternalError());
-    //            }
-    //        }
-    for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
+   for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
       {
-	const double det_F                   = lqph[q_point].get_det_F();
 	const double EI                      = lqph[q_point].get_EI();
-	const double k                       = lqph[q_point].get_k();
-	const Tensor<2, dim> Grad_U          = lqph[q_point].get_Grad_U();
+        const double k                       = lqph[q_point].get_k();
+        const double y                       = lqph[q_point].get_y();
+        const double d_y                     = lqph[q_point].get_d_y();
+	const double dd_y                    = lqph[q_point].get_dd_y();
 
-	//            const std::vector<double>
-	//            &N = scratch.Nx[q_point];
-	//            const std::vector<Tensor<2, dim> >
-	//            &Grad_Nx = scratch.grad_Nx[q_point];
-	const double JxW = scratch.fe_values_ref.JxW(q_point);
-	system_energy += 1;
+        const double JxW                     = scratch.fe_values_ref.JxW(q_point);
+        const double par                     = 1 - d_y * d_y;
+	// We first compute the contributions
+	// from the internal forces.  Note, by
+	// definition of the rhs as the negative
+	// of the residual, these contributions
+	// are subtracted.
+
+	for (unsigned int i = 0; i < dofs_per_cell; ++i)
+	  {
+	    system_energy += ( 0.5 * EI * (dd_y * dd_y / par )
+                                - P * (1 - sqrt(par))
+                                + 0.5 * k * y * y ) * JxW;
+	  }
       }
   }
 
@@ -2237,14 +2137,34 @@ namespace elastica_beam
 
   template <int dim>
   void
+  Solid<dim>::get_E1DLoad(Vector<double> const* &sys_E1DLoad)
+  {
+    tangent_matrix = 0.0;
+    system_rhs = 0.0;
+    assemble_system_rhs();
+    assemble_system_tangent();
+    make_constraints(0);
+    constraints.condense(tangent_matrix, system_rhs);
+
+    sys_E1DLoad = &system_rhs;
+  }
+
+  template <int dim>
+  void
   Solid<dim>::get_constraints_matrix(ConstraintMatrix const* &constraints_matrix)
   {
     constraints_matrix = &constraints;
   }
 
+  template <int dim>
+  void
+  Solid<dim>::set_P(const double value_P)
+  {
+    P = value_P;
+  }
+
 
 #ifdef CREATE_LIBRARY
-  template class StandardTensors<2>;
   template class Elastica_Beam_On_Spring_Fundation<2>;
   template class PointHistory<2>;
   Solid<2> MyElasticaBeam("parameters.prm");
@@ -2326,6 +2246,19 @@ namespace elastica_beam
     }
   }
 
+  void
+  get_E1DLoad(double* const sys_E1DLoad)
+  {
+    Vector<double> const* E1DLoad;
+    MyElasticaBeam.get_E1DLoad(E1DLoad);
+
+    std::size_t size(MyElasticaBeam.get_system_size());
+    for (unsigned i = 0; i < size; ++i)
+      {
+	sys_E1DLoad[i] = (*E1DLoad)[i];
+      }
+  }
+
   double get_energy()
   {
     return MyElasticaBeam.get_energy();
@@ -2339,6 +2272,11 @@ namespace elastica_beam
   unsigned int get_unconstrained_system_size()
   {
     return MyElasticaBeam.get_unconstrained_system_size();
+  }
+
+  void set_P(const double value_P)
+  {
+    MyElasticaBeam.set_P(value_P);
   }
 
   void run()
@@ -2360,8 +2298,8 @@ int main ()
 
   try
     {
-      Solid<2> solid_2d("parameters.prm");
-      solid_2d.run();
+      Solid<1> solid_1d("parameters.prm");
+      solid_1d.run();
     }
   catch (std::exception &exc)
     {

@@ -89,6 +89,12 @@ Lattice* const InitializeLattice(char const* const LatticeType,
       return new NeoHookean2D(Input, Echo, Width);
    }
 #endif
+#ifdef USE_ELA
+   else if (!strcmp("ElasticaBeam1D", LatticeType))
+   {
+      return new ElasticaBeam1D(Input, Echo, Width);
+   }
+#endif
    else
    {
       cerr << "Unknown Lattice Type " << LatticeType << "\n";

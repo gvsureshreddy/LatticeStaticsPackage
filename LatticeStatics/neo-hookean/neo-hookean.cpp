@@ -2944,11 +2944,11 @@ namespace neo_hookean
 
 	if(tangent_matrix_file)  // If opening the file was done well
             {
-	        for(int x=0;x<size;x++)
+	        for(unsigned int x=0;x<size;x++)
 		{
 		    if (!constraints_matrix->is_constrained(x))
 		    {
-		        for(int y=0;y<size;y++)
+		        for(unsigned int y=0;y<size;y++)
                             if (!constraints_matrix->is_constrained(y))
                             {
                                 if(tangent_matrix_f(x,y) == 0/* || (tangent_matrix_f(x,y) < 1e-10 && tangent_matrix_f(x,y) > -1e-10)*/){
