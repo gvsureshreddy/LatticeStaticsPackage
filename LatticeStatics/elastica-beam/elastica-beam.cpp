@@ -594,6 +594,9 @@ namespace elastica_beam
     struct PerTaskData_RHS;
     struct ScratchData_RHS;
 
+    struct PerTaskData_E1DLoad;
+    struct ScratchData_E1DLoad;
+
     struct PerTaskData_UQPH;
     struct ScratchData_UQPH;
 
@@ -635,6 +638,17 @@ namespace elastica_beam
 
     void
     copy_local_to_global_rhs(const PerTaskData_RHS &data);
+
+    void
+    assemble_system_E1DLoad();
+
+    void
+    assemble_system_E1DLoad_one_cell(const typename DoFHandler<dim>::active_cell_iterator &cell,
+				 ScratchData_E1DLoad &scratch,
+				 PerTaskData_E1DLoad &data);
+
+    void
+    copy_local_to_global_E1DLoad(const PerTaskData_E1DLoad &data);
 
     void
     assemble_system_energy();
@@ -726,6 +740,7 @@ namespace elastica_beam
     SparsityPattern             sparsity_pattern;
     SparseMatrix<double>        tangent_matrix;
     Vector<double>              system_rhs;
+    Vector<double>              system_E1DLoad;
     Vector<double>              solution_n;
     double                      system_energy;
     double                       P;
@@ -1010,6 +1025,67 @@ namespace elastica_beam
 
   };
 
+  // Next, the same approach is used for the E1DLoad assembly.  The
+  // PerTaskData object again stores local contributions and the ScratchData
+  // object the shape function object and precomputed values vector:
+  template <int dim>
+  struct Solid<dim>::PerTaskData_E1DLoad
+  {
+    Vector<double>            cell_E1DLoad;
+    std::vector<types::global_dof_index> local_dof_indices;
+
+    PerTaskData_E1DLoad(const unsigned int dofs_per_cell)
+      :
+      cell_E1DLoad(dofs_per_cell),
+      local_dof_indices(dofs_per_cell)
+    {}
+
+    void reset()
+    {
+      cell_E1DLoad = 0.0;
+    }
+  };
+
+  template <int dim>
+  struct Solid<dim>::ScratchData_E1DLoad
+  {
+    FEValues<dim> fe_values_ref;
+
+    std::vector<std::vector<Tensor<1, dim> > >          d_Nx;
+
+    ScratchData_E1DLoad(const FiniteElement<dim> &fe_cell,
+		  const QGauss<dim> &qf_cell,
+		  const UpdateFlags uf_cell)
+      :
+      fe_values_ref(fe_cell, qf_cell, uf_cell),
+      d_Nx(qf_cell.size(),
+	      std::vector<Tensor<1, dim> >(fe_cell.dofs_per_cell))
+    {}
+
+    ScratchData_E1DLoad(const ScratchData_E1DLoad &E1DLoad)
+      :
+      fe_values_ref(E1DLoad.fe_values_ref.get_fe(),
+		    E1DLoad.fe_values_ref.get_quadrature(),
+		    E1DLoad.fe_values_ref.get_update_flags()),
+      d_Nx(E1DLoad.d_Nx)
+    {}
+
+    void reset()
+    {
+      const unsigned int n_q_points = d_Nx.size();
+      const unsigned int n_dofs_per_cell = d_Nx[0].size();
+      for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
+	{
+	  Assert( d_Nx[q_point].size() == n_dofs_per_cell, ExcInternalError());
+	  for (unsigned int k = 0; k < n_dofs_per_cell; ++k)
+	    {
+	      d_Nx[q_point][k] = 0.0;
+	    }
+	}
+    }
+
+  };
+
 
   // And finally we define the structures to assist with updating the quadrature
   // point information. We do not need the
@@ -1203,6 +1279,7 @@ namespace elastica_beam
 
     // We then set up storage vectors
     system_rhs.reinit(dof_handler_ref.n_dofs());
+    system_E1DLoad.reinit(dof_handler_ref.n_dofs());
 
     solution_n.reinit(dof_handler_ref.n_dofs());
 
@@ -1768,6 +1845,89 @@ namespace elastica_beam
       }
   }
 
+    // @sect4{Solid::assemble_system_E1DLoad}
+  // The assembly of the right-hand side process is similar to the
+  // tangent matrix, so we will not describe it in too much detail.
+  // Note that since we want, maybe, to describe a problem with
+  // Neumann BCs, we will need the face normals and so must specify
+  // this in the update flags.
+  template <int dim>
+  void Solid<dim>::assemble_system_E1DLoad()
+  {
+    timer.enter_subsection("Assemble system E1DLoad");
+    std::cout << " ASM_E1D" << std::flush;
+
+    const UpdateFlags uf_cell(update_gradients |  update_JxW_values);
+    // We use the same thing as the RHS cause it's almost the same assembly process
+    PerTaskData_E1DLoad per_task_data(dofs_per_cell);
+    ScratchData_E1DLoad scratch_data(fe, qf_cell, uf_cell);
+
+    WorkStream::run(dof_handler_ref.begin_active(),
+		    dof_handler_ref.end(),
+		    *this,
+		    &Solid::assemble_system_E1DLoad_one_cell,
+		    &Solid::copy_local_to_global_E1DLoad,
+		    scratch_data,
+		    per_task_data);
+
+    timer.leave_subsection();
+  }
+
+
+
+  template <int dim>
+  void Solid<dim>::copy_local_to_global_E1DLoad(const PerTaskData_E1DLoad &data)
+  {
+    for (unsigned int i = 0; i < dofs_per_cell; ++i)
+      system_E1DLoad(data.local_dof_indices[i]) += data.cell_E1DLoad(i);
+  }
+
+
+
+  template <int dim>
+  void
+  Solid<dim>::assemble_system_E1DLoad_one_cell(const typename DoFHandler<dim>::active_cell_iterator &cell,
+					   ScratchData_E1DLoad &scratch,
+					   PerTaskData_E1DLoad &data)
+  {
+    data.reset();
+    scratch.reset();
+    scratch.fe_values_ref.reinit(cell);
+    cell->get_dof_indices(data.local_dof_indices);
+    PointHistory<dim> *lqph =
+      reinterpret_cast<PointHistory<dim>*>(cell->user_pointer());
+
+    for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
+      {
+	for (unsigned int k = 0; k < dofs_per_cell; ++k)
+	  {
+            scratch.d_Nx[q_point][k] = scratch.fe_values_ref.shape_grad(k, q_point);
+	  }
+      }
+
+    for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
+      {
+        const double d_y                     = lqph[q_point].get_d_y();
+
+	const std::vector<Tensor<1, dim> >
+	  &vec_d_Nx = scratch.d_Nx[q_point];
+	const double JxW = scratch.fe_values_ref.JxW(q_point);
+
+        const double par = 1 - d_y * d_y;
+	// We first compute the contributions
+	// from the internal forces.  Note, by
+	// definition of the rhs as the negative
+	// of the residual, these contributions
+	// are subtracted.
+
+	for (unsigned int i = 0; i < dofs_per_cell; ++i)
+	  {
+            const double d_Nx = vec_d_Nx[i][0];
+	    data.cell_E1DLoad(i) += (d_y * d_Nx / sqrt(par)) * JxW;
+	  }
+      }
+  }
+
   // @sect4{Solid::make_constraints}
   // The constraints for this problem are simple to describe.
   // However, since we are dealing with an iterative Newton method,
@@ -1778,7 +1938,7 @@ namespace elastica_beam
   template <int dim>
   void Solid<dim>::make_constraints(const int &it_nr)
   {
-    std::cout << " CSTokkkkkk" << std::flush;
+    std::cout << " CST  " << std::flush;
 
     // Since the constraints are different at different Newton iterations, we
     // need to clear the constraints matrix and completely rebuild
@@ -2139,14 +2299,14 @@ namespace elastica_beam
   void
   Solid<dim>::get_E1DLoad(Vector<double> const* &sys_E1DLoad)
   {
-    tangent_matrix = 0.0;
-    system_rhs = 0.0;
-    assemble_system_rhs();
-    assemble_system_tangent();
-    make_constraints(0);
-    constraints.condense(tangent_matrix, system_rhs);
+    //tangent_matrix = 0.0;
+    system_E1DLoad = 0.0;
+    assemble_system_E1DLoad();
+    //assemble_system_tangent();
+    //make_constraints(0);
+    //constraints.condense(tangent_matrix, system_rhs);
 
-    sys_E1DLoad = &system_rhs;
+    sys_E1DLoad = &system_E1DLoad;
   }
 
   template <int dim>
@@ -2166,8 +2326,18 @@ namespace elastica_beam
 
 #ifdef CREATE_LIBRARY
   template class Elastica_Beam_On_Spring_Fundation<2>;
-  template class PointHistory<2>;
-  Solid<2> MyElasticaBeam("parameters.prm");
+  template class PointHistory<1>;
+  Solid<1>* MyElasticaBeam;
+
+  void createObject()
+  {
+      MyElasticaBeam = new Solid<1>("parameters.prm");
+  }
+
+  void deleteObject()
+  {
+      delete MyElasticaBeam;
+  }
 
   void
   set_solution(double const* const solution)
@@ -2176,8 +2346,8 @@ namespace elastica_beam
     //This should be wise since this function is called after having computed
     //the size of the unconstrained system, in which we assemble the constraints.
     ConstraintMatrix const* constraints_matrix;
-    MyElasticaBeam.get_constraints_matrix(constraints_matrix);
-    std::size_t size(MyElasticaBeam.get_system_size());
+    MyElasticaBeam->get_constraints_matrix(constraints_matrix);
+    std::size_t size(MyElasticaBeam->get_system_size());
     Vector<double> sol(size);
     unsigned int i_unconstrained = 0;
     for (unsigned int i = 0; i < size; ++i)
@@ -2186,7 +2356,7 @@ namespace elastica_beam
             sol[i] = solution[i_unconstrained++];
         }
     }
-    MyElasticaBeam.set_solution(sol);
+    MyElasticaBeam->set_solution(sol);
   }
 
   void
@@ -2195,9 +2365,9 @@ namespace elastica_beam
   {
     Vector<double> const* rhs;
     SparseMatrix<double> const* tangent;
-    MyElasticaBeam.get_rhs_and_tangent(rhs,tangent,iter_value);
+    MyElasticaBeam->get_rhs_and_tangent(rhs,tangent,iter_value);
 
-    std::size_t size(MyElasticaBeam.get_system_size());
+    std::size_t size(MyElasticaBeam->get_system_size());
     for (unsigned i = 0; i < size; ++i)
       {
 	sys_rhs[i] = (*rhs)[i];
@@ -2216,10 +2386,10 @@ namespace elastica_beam
   {
     Vector<double> const* rhs;
     SparseMatrix<double> const* tangent;
-    MyElasticaBeam.get_rhs_and_tangent(rhs,tangent,iter_value);
+    MyElasticaBeam->get_rhs_and_tangent(rhs,tangent,iter_value);
     ConstraintMatrix const* constraints_matrix;
-    MyElasticaBeam.get_constraints_matrix(constraints_matrix);
-    std::size_t size(MyElasticaBeam.get_system_size());
+    MyElasticaBeam->get_constraints_matrix(constraints_matrix);
+    std::size_t size(MyElasticaBeam->get_system_size());
     unsigned int unconstrained_size = 0;
 
     Vector<int> indices_unconstrained(size);
@@ -2250,9 +2420,9 @@ namespace elastica_beam
   get_E1DLoad(double* const sys_E1DLoad)
   {
     Vector<double> const* E1DLoad;
-    MyElasticaBeam.get_E1DLoad(E1DLoad);
+    MyElasticaBeam->get_E1DLoad(E1DLoad);
 
-    std::size_t size(MyElasticaBeam.get_system_size());
+    std::size_t size(MyElasticaBeam->get_system_size());
     for (unsigned i = 0; i < size; ++i)
       {
 	sys_E1DLoad[i] = (*E1DLoad)[i];
@@ -2261,27 +2431,27 @@ namespace elastica_beam
 
   double get_energy()
   {
-    return MyElasticaBeam.get_energy();
+    return MyElasticaBeam->get_energy();
   }
 
   std::size_t get_system_size()
   {
-    return MyElasticaBeam.get_system_size();
+    return MyElasticaBeam->get_system_size();
   }
 
   unsigned int get_unconstrained_system_size()
   {
-    return MyElasticaBeam.get_unconstrained_system_size();
+    return MyElasticaBeam->get_unconstrained_system_size();
   }
 
   void set_P(const double value_P)
   {
-    MyElasticaBeam.set_P(value_P);
+    MyElasticaBeam->set_P(value_P);
   }
 
   void run()
   {
-    MyElasticaBeam.run();
+    MyElasticaBeam->run();
   }
 #endif
 }

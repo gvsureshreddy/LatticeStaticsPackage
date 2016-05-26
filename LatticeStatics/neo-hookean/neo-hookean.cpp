@@ -182,7 +182,11 @@ namespace neo_hookean
     // neo-Hookean material.
     struct Materials
     {
-      double mu;
+      double mu_0;
+
+      double theta;
+
+      double norm_N;
 
       static void
       declare_parameters(ParameterHandler &prm);
@@ -195,9 +199,15 @@ namespace neo_hookean
     {
       prm.enter_subsection("Material properties");
       {
-	prm.declare_entry("Shear modulus", "2"/*"80.194e6"*/,
+	prm.declare_entry("Shear modulus", "2.0"/*"80.194e6"*/,
 			  Patterns::Double(),
 			  "Shear modulus");
+        prm.declare_entry("Angle theta", "0.0",
+			  Patterns::Double(),
+			  "Angle theta");
+        prm.declare_entry("Norm of N", "0.0",
+			  Patterns::Double(),
+			  "Norm of N");
       }
       prm.leave_subsection();
     }
@@ -206,7 +216,9 @@ namespace neo_hookean
     {
       prm.enter_subsection("Material properties");
       {
-	mu = prm.get_double("Shear modulus");
+	mu_0 = prm.get_double("Shear modulus");
+        theta = prm.get_double("Angle theta");
+        norm_N = prm.get_double("Norm of N");
       }
       prm.leave_subsection();
     }
@@ -299,7 +311,7 @@ namespace neo_hookean
 			  Patterns::Integer(0),
 			  "Number of Newton-Raphson iterations allowed");
 
-	prm.declare_entry("Tolerance force", "1.0e-10",
+	prm.declare_entry("Tolerance force", "1.0e-9",
 			  Patterns::Double(0.0),
 			  "Force residual tolerance");
 
@@ -571,10 +583,16 @@ namespace neo_hookean
     // initialize all tensors correctly: The second one updates the stored
     // values and stresses based on the current deformation measure
     // $\textrm{Grad}\mathbf{u}_{\textrm{n}}$ and pressure $\widetilde{p}$ field values.
-    void setup_lqp (const Parameters::AllParameters &parameters)
+    void setup_lqp (const Parameters::AllParameters &parameters, const Point<dim> q_point)
     {
-      material = new Material_Incompressible_Neo_Hook_Two_Field<dim>(parameters.mu);
-      update_values(Tensor<2, dim>(), parameters.mu / 2.0);
+//      const double mu_local = parameters.mu_0 * exp(parameters.norm_N
+//                                * (cos(parameters.theta)*q_point[0]
+//                                    + sin(parameters.theta)*q_point[1]));
+      const double mu_local = parameters.mu_0 * exp(parameters.norm_N
+                                * (cos(parameters.theta)*2*(q_point[0]-0.5)
+                                    + sin(parameters.theta)*2*(q_point[1]-0.5)));
+      material = new Material_Incompressible_Neo_Hook_Two_Field<dim>(mu_local);
+      update_values(Tensor<2, dim>(), mu_local / 2.0);
     }
 
     // To this end, we calculate the deformation gradient $\mathbf{F}$ from
@@ -1558,11 +1576,12 @@ namespace neo_hookean
     solution_n.reinit(dofs_per_block);
     solution_n.collect_sizes();
 
-    //We initialize the pressure to c_1, i.e. mu/2
-    for(unsigned int i = solution_n.block(u_dof).size(); i<solution_n.size(); ++i)
-      {
-	solution_n(i) = parameters.mu / 2.0;
-      }
+    // We initialize the pressure to c_1, i.e. mu/2 -> Actually, this is a
+    // useless thing since the system converges well to the solution
+//    for(unsigned int i = solution_n.block(u_dof).size(); i<solution_n.size(); ++i)
+//      {
+//	solution_n(i) = parameters.mu_0 / 2.0;
+//      }
 
 
     // ...and finally set up the quadrature point history:
@@ -1648,7 +1667,7 @@ namespace neo_hookean
 	Assert(lqph <= &quadrature_point_history.back(), ExcInternalError());
 
 	for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
-	  lqph[q_point].setup_lqp(parameters);
+	  lqph[q_point].setup_lqp(parameters, qf_cell.point(q_point));
       }
   }
 
@@ -1826,8 +1845,8 @@ namespace neo_hookean
     // where the exception was raised to make it simpler to identify where the
     // problem happened.
 
-    AssertThrow (newton_iteration < parameters.max_iterations_NR,
-		 ExcMessage("No convergence in nonlinear solver!"));
+    //AssertThrow (newton_iteration < parameters.max_iterations_NR,
+//		 ExcMessage("No convergence in nonlinear solver!"));
   }
 
 
@@ -2862,7 +2881,17 @@ namespace neo_hookean
   template class StandardTensors<2>;
   template class Material_Incompressible_Neo_Hook_Two_Field<2>;
   template class PointHistory<2>;
-  Solid<2> MyNeoHookean("parameters.prm");
+  Solid<2>* MyNeoHookean;
+
+  void createObject()
+  {
+      MyNeoHookean = new Solid<2>("parameters.prm");
+  }
+
+  void deleteObject()
+  {
+      delete MyNeoHookean;
+  }
 
   void
   set_solution(double const* const solution)
@@ -2871,9 +2900,9 @@ namespace neo_hookean
     //This should be wise since this function is called after having computed
     //the size of the unconstrained system, in which we assemble the constraints.
     ConstraintMatrix const* constraints_matrix;
-    MyNeoHookean.get_constraints_matrix(constraints_matrix);
-    BlockVector<double> sol(MyNeoHookean.get_dofs_per_block());
-    std::size_t size(MyNeoHookean.get_system_size());
+    MyNeoHookean->get_constraints_matrix(constraints_matrix);
+    BlockVector<double> sol(MyNeoHookean->get_dofs_per_block());
+    std::size_t size(MyNeoHookean->get_system_size());
     unsigned int i_unconstrained = 0;
     for (unsigned int i = 0; i < size; ++i)
     {
@@ -2881,7 +2910,7 @@ namespace neo_hookean
             sol[i] = solution[i_unconstrained++];
         }
     }
-    MyNeoHookean.set_solution(sol);
+    MyNeoHookean->set_solution(sol);
   }
 
   void
@@ -2890,9 +2919,9 @@ namespace neo_hookean
   {
     BlockVector<double> const* rhs;
     BlockSparseMatrix<double> const* tangent;
-    MyNeoHookean.get_rhs_and_tangent(rhs,tangent,iter_value);
+    MyNeoHookean->get_rhs_and_tangent(rhs,tangent,iter_value);
 
-    std::size_t size(MyNeoHookean.get_system_size());
+    std::size_t size(MyNeoHookean->get_system_size());
     for (unsigned i = 0; i < size; ++i)
       {
 	sys_rhs[i] = (*rhs)[i];
@@ -2911,10 +2940,10 @@ namespace neo_hookean
   {
     BlockVector<double> const* rhs;
     BlockSparseMatrix<double> const* tangent;
-    MyNeoHookean.get_rhs_and_tangent(rhs,tangent,iter_value);
+    MyNeoHookean->get_rhs_and_tangent(rhs,tangent,iter_value);
     ConstraintMatrix const* constraints_matrix;
-    MyNeoHookean.get_constraints_matrix(constraints_matrix);
-    std::size_t size(MyNeoHookean.get_system_size());
+    MyNeoHookean->get_constraints_matrix(constraints_matrix);
+    std::size_t size(MyNeoHookean->get_system_size());
     unsigned int unconstrained_size = 0;
 
     Vector<int> indices_unconstrained(size);
@@ -2997,22 +3026,22 @@ namespace neo_hookean
 
   double get_energy()
   {
-    return MyNeoHookean.get_energy();
+    return MyNeoHookean->get_energy();
   }
 
   std::size_t get_system_size()
   {
-    return MyNeoHookean.get_system_size();
+    return MyNeoHookean->get_system_size();
   }
 
   unsigned int get_unconstrained_system_size()
   {
-    return MyNeoHookean.get_unconstrained_system_size();
+    return MyNeoHookean->get_unconstrained_system_size();
   }
 
   void run()
   {
-    MyNeoHookean.run();
+    MyNeoHookean->run();
   }
 #endif
 }

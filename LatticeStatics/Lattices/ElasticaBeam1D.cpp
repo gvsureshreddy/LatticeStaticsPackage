@@ -4,6 +4,8 @@
 
 namespace elastica_beam
 {
+  void createObject();
+  void deleteObject();
   void run();
   std::size_t get_system_size();
   unsigned int get_unconstrained_system_size();
@@ -13,11 +15,13 @@ namespace elastica_beam
   void get_E1DLoad(double* const E1Dload);
   double get_energy();
   void set_P(const double value_P);
+  int NoNegTestFunctions;
 }
 
 
 ElasticaBeam1D::~ElasticaBeam1D()
 {
+  elastica_beam::deleteObject();
   cout << "TwoBarTruss Function Calls:\n"
        << "\tE0 calls - " << CallCount_[0] << "\n"
        << "\tE1 calls - " << CallCount_[1] << "\n"
@@ -30,6 +34,7 @@ ElasticaBeam1D::ElasticaBeam1D(PerlInput const& Input, int const& Echo, int cons
   Lambda_(0.0),
   Width_(Width)
 {
+  elastica_beam::createObject();
   LoadParameter_ = Load;
   for (int i = 0; i < cachesize; ++i)
     {
@@ -41,6 +46,7 @@ ElasticaBeam1D::ElasticaBeam1D(PerlInput const& Input, int const& Echo, int cons
 
   system_size_ = elastica_beam::get_system_size();
   unconstrained_system_size_ = elastica_beam::get_unconstrained_system_size();
+  DOFS_ = unconstrained_system_size_;
 //  std::cout << "ElasticaBeam1D size is " << system_size_ << std::endl;
 //  std::cout << "ElasticaBeam1D unconstrained size is "
 //          << unconstrained_system_size_ << std::endl;
@@ -109,11 +115,86 @@ void ElasticaBeam1D::ExtraTestFunctions(Vector& TF) const
 void ElasticaBeam1D::Print(ostream& out, PrintDetail const& flag,
 			 PrintPathSolutionType const& SolType)
 {
-  return;
+    int W;
+    elastica_beam::NoNegTestFunctions = 0;
+    double engy;
+    double mintestfunct;
+    out << "\nDOFS_ = " << DOFS_  << "\n";
+    Matrix stiff(DOFS_, DOFS_);
+    Vector str(DOFS_);
+    Vector TestFunctVals(NumTestFunctions());
+    W = out.width();
+    out.width(0);
+    if (Echo_)
+    {
+        cout.width(0);
+    }
+    engy = E0();
+    str = E1();
+    stiff = E2();
+    TestFunctions(TestFunctVals, LHS);
+    mintestfunct = TestFunctVals[0];
+    for (int i = 0; i < NumTestFunctions(); ++i)
+    {
+        if ((TestFunctVals[i] < 0.0) && (i < DOFS_))
+        {
+            ++elastica_beam::NoNegTestFunctions;
+        }
+        if (mintestfunct > TestFunctVals[i])
+        {
+            mintestfunct = TestFunctVals[i];
+        }
+    }
+
+    switch (flag)
+    {
+        case PrintLong:
+            out << "TwoBarTruss:" << "\n" << "\n";
+            out << "I don't know what to print in print long!\n";
+
+            if (Echo_)
+            {
+                cout << "TwoBarTruss:" << "\n" << "\n";
+                cout << "I don't know what to print in print long!\n";
+            }
+            // passthrough to short
+        case PrintShort:
+            out << "__________________________________________\n\n"
+                    << "Lambda: " << setw(W) << Lambda_ << "\n"
+                    << "DOF's :" << "\n" << setw(W) << DOF_ << "\n"
+                    << "Potential Value:" << setw(W) << engy << "\n";
+
+            out << "Stress:" << "\n" << setw(W) << str << "\n\n" //To be deleted
+                    << "Stiffness:" << setw(W) << stiff //To be deleted
+                    << "Eigenvalue Info:" << "\n" << setw(W) << TestFunctVals << "\n"
+                    << "Bifurcation Info:" << setw(W) << mintestfunct
+                    << setw(W) << elastica_beam::NoNegTestFunctions << "\n";
+            out << setw(W) << Lambda_ << " " << setw(W) << DOF_ << "\n";
+            // send to cout also
+            if (Echo_)
+            {
+                cout << "__________________________________________\n\n"
+                        << "Lambda: " << setw(W) << Lambda_ << "\n"
+                        << "DOF's :" << "\n" << setw(W) << DOF_ << "\n"
+                        << "Potential Value:" << setw(W) << engy << "\n";
+
+                cout << "Stress:" << "\n" << setw(W) << str << "\n\n"
+                        << "Stiffness:" << setw(W) << stiff
+                        << "Eigenvalue Info:" << "\n" << setw(W) << TestFunctVals << "\n"
+                        << "Bifurcation Info:" << setw(W) << mintestfunct
+                        << setw(W) << elastica_beam::NoNegTestFunctions << "\n";
+            }
+            break;
+    }
 }
 
 ostream& operator<<(ostream& out, ElasticaBeam1D& A)
 {
   A.Print(out, Lattice::PrintShort);
   return out;
+}
+
+void ElasticaBeam1D::PrintPath(ostream& out, ostream& pathout, int const& width)
+{
+    pathout << setw(width) << elastica_beam::NoNegTestFunctions << setw(width) << Lambda_ << " " << setw(width) << DOF_ << "\n";
 }

@@ -133,8 +133,7 @@ Utilities:
 	$(MAKE) -e -C ./Utility  -f MakeUtilityProgs
 
 
-$(EXE):  $(OBJECTS) $(if $(USE_NEO),neo-build,)
-	 #$(if $(USE_ELA),elastica-build,)#
+$(EXE):  $(OBJECTS) $(if $(USE_NEO),neo-build,) $(if $(USE_ELA),elastica-build,)
 	 $(CXX) $(CXXFLAGS) $(DATE_DEF) -o lib/builddate.o -c Utility/builddate.cpp
 	 $(PURE) $(CXX) $(LFLAGS) lib/builddate.o \
 		 -L$(LIB_LOC) -o ./bin/$(EXE) \
@@ -165,10 +164,6 @@ elastica-build: elastica-beam/elastica-beam.cpp elastica-beam/CMakeLists.txt
 neo-build: neo-hookean/neo-hookean.cpp neo-hookean/CMakeLists.txt
 	if test ! -d neo-build; then mkdir neo-build; fi
 	cd neo-build && cmake -DCREATE_LIB:BOOL=ON ../neo-hookean && make
-	cd ../
-	#elastica-beam/elastica-beam.cpp elastica-beam/CMakeLists.txt
-	if test ! -d elastica-build; then mkdir elastica-build; fi
-	cd elastica-build && cmake -DCREATE_LIB:BOOL=ON ../elastica-beam && make
 
 .PHONY: install uninstall
 # Define install

@@ -6,6 +6,8 @@
 #include <cstdlib>
 #include "Lattice.h"
 
+using namespace std;
+
 class ElasticaBeam1D : public Lattice
 {
     private:
@@ -72,6 +74,8 @@ class ElasticaBeam1D : public Lattice
             
             virtual void Print(ostream& out, PrintDetail const& flag,
                     PrintPathSolutionType const& SolType = RegularPt);
+            
+            virtual void PrintPath(ostream& out, ostream& pathout, int const& width);
             
             friend ostream& operator<<(ostream& out, ElasticaBeam1D& A);
             

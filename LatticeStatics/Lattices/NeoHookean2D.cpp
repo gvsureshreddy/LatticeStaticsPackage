@@ -4,6 +4,8 @@
 
 namespace neo_hookean
 {
+  void createObject();
+  void deleteObject();
   void run();
   std::size_t get_system_size();
   unsigned int get_unconstrained_system_size();
@@ -16,6 +18,7 @@ namespace neo_hookean
 
 NeoHookean2D::~NeoHookean2D()
 {
+  neo_hookean::deleteObject();
   cout << "TwoBarTruss Function Calls:\n"
        << "\tE0 calls - " << CallCount_[0] << "\n"
        << "\tE1 calls - " << CallCount_[1] << "\n"
@@ -28,6 +31,7 @@ NeoHookean2D::NeoHookean2D(PerlInput const& Input, int const& Echo, int const& W
   Lambda_(0.0),
   Width_(Width)
 {
+  neo_hookean::createObject();
   LoadParameter_ = Load;
   for (int i = 0; i < cachesize; ++i)
     {
