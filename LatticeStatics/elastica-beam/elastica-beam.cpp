@@ -178,6 +178,8 @@ namespace elastica_beam
 
       double k;
 
+      double alpha;
+
       static void
       declare_parameters(ParameterHandler &prm);
 
@@ -195,6 +197,9 @@ namespace elastica_beam
         prm.declare_entry("Spring stiffness", "1",
 			  Patterns::Double(),
 			  "Spring stiffness");
+        prm.declare_entry("Spring nonlinear stiffness", "0",
+			  Patterns::Double(),
+			  "Spring nonlinear stiffness");
       }
       prm.leave_subsection();
     }
@@ -205,6 +210,7 @@ namespace elastica_beam
       {
 	EI = prm.get_double("Bending stiffness");
         k = prm.get_double("Spring stiffness");
+        alpha = prm.get_double("Spring nonlinear stiffness");
       }
       prm.leave_subsection();
     }
@@ -398,10 +404,12 @@ namespace elastica_beam
   class Elastica_Beam_On_Spring_Fundation
   {
   public:
-    Elastica_Beam_On_Spring_Fundation(const double bending_stiffness, const double spring_stiffness)
+    Elastica_Beam_On_Spring_Fundation(const double bending_stiffness,
+            const double spring_stiffness, const double spring_nonlinear_stiffness)
       :
       EI(bending_stiffness),
-      k(spring_stiffness)
+      k(spring_stiffness),
+      alpha(spring_nonlinear_stiffness)
     {}
 
     ~Elastica_Beam_On_Spring_Fundation()
@@ -425,10 +433,16 @@ namespace elastica_beam
       return k;
     }
 
+    double get_alpha() const
+    {
+      return alpha;
+    }
+
   protected:
     // Define constitutive model parameters:
     const double EI;
     const double k;
+    const double alpha;
 
   };
 
@@ -463,7 +477,7 @@ namespace elastica_beam
     // $\textrm{Grad}\mathbf{u}_{\textrm{n}}$ values.
     void setup_lqp (const Parameters::AllParameters &parameters)
     {
-      material = new Elastica_Beam_On_Spring_Fundation<dim>(parameters.EI, parameters.k);
+      material = new Elastica_Beam_On_Spring_Fundation<dim>(parameters.EI, parameters.k,parameters.alpha);
       update_values(0.0, Tensor<1, dim>(), Tensor<2, dim>());
     }
 
@@ -516,6 +530,11 @@ namespace elastica_beam
     double get_k() const
     {
       return material->get_k();
+    }
+
+    double get_alpha() const
+    {
+      return material->get_alpha();
     }
 
     // In terms of member functions, this class stores for the quadrature
@@ -1696,7 +1715,8 @@ namespace elastica_beam
       {
 	const double EI                      = lqph[q_point].get_EI();
         const double k                       = lqph[q_point].get_k();
-        //const double y                       = lqph[q_point].get_y();
+        const double alpha                   = lqph[q_point].get_alpha();
+        const double y                       = lqph[q_point].get_y();
         const double d_y                     = lqph[q_point].get_d_y();
 	const double dd_y                    = lqph[q_point].get_dd_y();
 
@@ -1733,7 +1753,7 @@ namespace elastica_beam
                                                 ) * JxW;
                 data.cell_matrix(i, j) -= P * (d_Nx_j * d_Nx_i / sqrt(par)
                                             + d_y * d_y * d_Nx_i * d_Nx_j / (par * sqrt(par))) * JxW;
-                data.cell_matrix(i, j) += k * Nx_j * Nx_i * JxW;
+                data.cell_matrix(i, j) += (k * Nx_j * Nx_i + 2 * alpha * y * Nx_j * Nx_i) * JxW;
 	      }
 	  }
       }
@@ -1813,6 +1833,7 @@ namespace elastica_beam
       {
 	const double EI                      = lqph[q_point].get_EI();
         const double k                       = lqph[q_point].get_k();
+        const double alpha                   = lqph[q_point].get_alpha();
         const double y                       = lqph[q_point].get_y();
         const double d_y                     = lqph[q_point].get_d_y();
 	const double dd_y                    = lqph[q_point].get_dd_y();
@@ -1840,7 +1861,7 @@ namespace elastica_beam
 	    data.cell_rhs(i) -= ( EI * (dd_y * dd_Nx / par
                                 + dd_y * dd_y * d_y * d_Nx /(par * par))
                                 - P * (d_y * d_Nx / sqrt(par))
-                                + k * y * Nx ) * JxW;
+                                + k * y * Nx + alpha * y * y * Nx) * JxW;
 	  }
       }
   }
@@ -2247,6 +2268,7 @@ namespace elastica_beam
       {
 	const double EI                      = lqph[q_point].get_EI();
         const double k                       = lqph[q_point].get_k();
+        const double alpha                   = lqph[q_point].get_alpha();
         const double y                       = lqph[q_point].get_y();
         const double d_y                     = lqph[q_point].get_d_y();
 	const double dd_y                    = lqph[q_point].get_dd_y();
@@ -2263,7 +2285,7 @@ namespace elastica_beam
 	  {
 	    system_energy += ( 0.5 * EI * (dd_y * dd_y / par )
                                 - P * (1 - sqrt(par))
-                                + 0.5 * k * y * y ) * JxW;
+                                + 0.5 * k * y * y + alpha * y * y * y / 3) * JxW;
 	  }
       }
   }
