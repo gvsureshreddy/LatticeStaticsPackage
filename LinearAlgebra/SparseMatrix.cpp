@@ -200,10 +200,9 @@ void SparseMatrix::SetNonZeroEntry(int const& EntryIndex, int const& Row, int co
 
 void Add(Matrix& Y, SparseMatrix const& A, SparseMatrix const& B)
 {
-   if ((A.Rows_ != B.Rows_) || (A.Cols_ != B.Cols_) || (A.Rows_ != Y.Rows()) || (A.Cols_ != Y.Cols())
-       || A.IsNull() || B.IsNull() || Y.IsNull())
+   if ((A.Rows_ != B.Rows_) || (A.Cols_ != B.Cols_) || (A.Rows_ != Y.Rows()) || (A.Cols_ != Y.Cols()))
    {
-      cerr << "Error in SparseMatrix Add() Diff Size Matrices or Null Matrix!!!"
+      cerr << "Error in SparseMatrix Add() Diff Size Matrices!!!"
            << "\n";
       exit(-1);
    }
@@ -223,10 +222,9 @@ void Add(Matrix& Y, SparseMatrix const& A, SparseMatrix const& B)
 
 void Add(Matrix& Y, SparseMatrix const& A, Matrix const& B)
 {
-   if ((A.Rows_ != B.Rows()) || (A.Cols_ != B.Cols()) || (A.Rows_ != Y.Rows()) || (A.Cols_ != Y.Cols())
-       || A.IsNull() || B.IsNull() || Y.IsNull())
+   if ((A.Rows_ != B.Rows()) || (A.Cols_ != B.Cols()) || (A.Rows_ != Y.Rows()) || (A.Cols_ != Y.Cols()))
    {
-      cerr << "Error in SparseMatrix Add() Diff Size Matrices or Null Matrix!!!"
+      cerr << "Error in SparseMatrix Add() Diff Size Matrices!!!"
            << "\n";
       exit(-1);
    }
@@ -250,9 +248,9 @@ void Add(Matrix& Y, SparseMatrix const& A, Matrix const& B)
 void Add(Matrix& Y, Matrix const& A, SparseMatrix const& B)
 {
    if ((A.Rows() != B.Rows_) || (A.Cols() != B.Cols_) || (A.Rows() != Y.Rows())
-       || (A.Cols() != Y.Cols()) || A.IsNull() || B.IsNull() || Y.IsNull())
+       || (A.Cols() != Y.Cols()))
    {
-      cerr << "Error in SparseMatrix Add() Diff Size Matrices or Null Matrix!!!"
+      cerr << "Error in SparseMatrix Add() Diff Size Matrices!!!"
            << "\n";
       exit(-1);
    }
@@ -289,10 +287,9 @@ SparseMatrix operator-(SparseMatrix const& A)
 
 void Subtract(Matrix& Y, SparseMatrix const& A, SparseMatrix const& B)
 {
-   if ((A.Rows_ != B.Rows_) || (A.Cols_ != B.Cols_) || (A.Rows_ != Y.Rows()) || (A.Cols_ != Y.Cols())
-       || A.IsNull() || B.IsNull() || Y.IsNull())
+   if ((A.Rows_ != B.Rows_) || (A.Cols_ != B.Cols_) || (A.Rows_ != Y.Rows()) || (A.Cols_ != Y.Cols()))
    {
-      cerr << "Error in SparseMatrix Subtract() Diff Size Matrices or Null Matrix!!!"
+      cerr << "Error in SparseMatrix Subtract() Diff Size Matrices!!!"
            << "\n";
       exit(-1);
    }
@@ -312,10 +309,9 @@ void Subtract(Matrix& Y, SparseMatrix const& A, SparseMatrix const& B)
 
 void Subtract(Matrix& Y, SparseMatrix const& A, Matrix const& B)
 {
-   if ((A.Rows_ != B.Rows()) || (A.Cols_ != B.Cols()) || (A.Rows_ != Y.Rows()) || (A.Cols_ != Y.Cols())
-       || A.IsNull() || B.IsNull() || Y.IsNull())
+   if ((A.Rows_ != B.Rows()) || (A.Cols_ != B.Cols()) || (A.Rows_ != Y.Rows()) || (A.Cols_ != Y.Cols()))
    {
-      cerr << "Error in SparseMatrix Subtract() Diff Size Matrices or Null Matrix!!!"
+      cerr << "Error in SparseMatrix Subtract() Diff Size Matrices!!!"
            << "\n";
       exit(-1);
    }
@@ -339,9 +335,9 @@ void Subtract(Matrix& Y, SparseMatrix const& A, Matrix const& B)
 void Subtract(Matrix& Y, Matrix const& A, SparseMatrix const& B)
 {
    if ((A.Rows() != B.Rows_) || (A.Cols() != B.Cols_) || (A.Rows() != Y.Rows())
-       || (A.Cols() != Y.Cols()) || A.IsNull() || B.IsNull() || Y.IsNull())
+       || (A.Cols() != Y.Cols()))
    {
-      cerr << "Error in SparseMatrix Subtract() Diff Size Matrices or Null Matrix!!!"
+      cerr << "Error in SparseMatrix Subtract() Diff Size Matrices!!!"
            << "\n";
       exit(-1);
    }
@@ -364,9 +360,9 @@ void Subtract(Matrix& Y, Matrix const& A, SparseMatrix const& B)
 
 void Multiply(SparseMatrix& Y, double const& A, SparseMatrix const& B)
 {
-   if ((B.Rows_ != Y.Rows_) || (B.Cols_ != Y.Cols_) || B.IsNull() || Y.IsNull())
+   if ((B.Rows_ != Y.Rows_) || (B.Cols_ != Y.Cols_))
    {
-      cerr << "Error in SparseMatrix Multiply() Diff Size Matrices or Null Matrix!!!"
+      cerr << "Error in SparseMatrix Multiply() Diff Size Matrices!!!"
            << "\n";
       exit(-1);
    }
@@ -381,9 +377,9 @@ void Multiply(SparseMatrix& Y, double const& A, SparseMatrix const& B)
 
 void Multiply(SparseMatrix& Y, SparseMatrix const& A, double const& B)
 {
-   if ((A.Rows_ != Y.Rows_) || (A.Cols_ != Y.Cols_) || A.IsNull() || Y.IsNull())
+   if ((A.Rows_ != Y.Rows_) || (A.Cols_ != Y.Cols_))
    {
-      cerr << "Error in SparseMatrix Multiply() Diff Size Matrices or Null Matrix!!!"
+      cerr << "Error in SparseMatrix Multiply() Diff Size Matrices!!!"
            << "\n";
       exit(-1);
    }
@@ -398,10 +394,9 @@ void Multiply(SparseMatrix& Y, SparseMatrix const& A, double const& B)
 
 void Multiply(Matrix& Y, SparseMatrix const& A, SparseMatrix const& B)
 {
-   if ((Y.Rows() != A.Rows_) || (Y.Cols() != B.Cols_) || (A.Cols_ != B.Rows_) ||
-       A.IsNull() || B.IsNull() || Y.IsNull())
+   if ((Y.Rows() != A.Rows_) || (Y.Cols() != B.Cols_) || (A.Cols_ != B.Rows_))
    {
-      cerr << "Error in SparseMatrix Multiply() Diff Size Matrices or Null Matrix!!!"
+      cerr << "Error in SparseMatrix Multiply() Diff Size Matrices!!!"
            << "\n";
       exit(-1);
    }
@@ -423,10 +418,9 @@ void Multiply(Matrix& Y, SparseMatrix const& A, SparseMatrix const& B)
 
 void Multiply(Matrix& Y, SparseMatrix const& A, Matrix const& B, SparseMatrix const& C)
 {
-   if ((Y.Rows() != A.Rows_) || (Y.Cols() != C.Cols_) || (A.Cols_ != B.Rows()) || (B.Cols() != C.Rows_)
-       || A.IsNull() || B.IsNull() || C.IsNull() || Y.IsNull())
+   if ((Y.Rows() != A.Rows_) || (Y.Cols() != C.Cols_) || (A.Cols_ != B.Rows()) || (B.Cols() != C.Rows_))
    {
-      cerr << "Error In SparseMatrix Multiply : Wrong size Matricies or Null Matrix"
+      cerr << "Error In SparseMatrix Multiply : Wrong size Matricies"
            << "\n";
       exit(-1);
    }
@@ -446,10 +440,9 @@ void Multiply(Matrix& Y, SparseMatrix const& A, Matrix const& B, SparseMatrix co
 
 void Multiply(Matrix& Y, SparseMatrix const& A, Matrix const& B)
 {
-   if ((Y.Rows() != A.Rows_) || (Y.Cols() != B.Cols()) || (A.Cols_ != B.Rows())
-       || A.IsNull() || B.IsNull() || Y.IsNull())
+   if ((Y.Rows() != A.Rows_) || (Y.Cols() != B.Cols()) || (A.Cols_ != B.Rows()))
    {
-      cerr << "Error In SparseMatrix Multiply : Wrong size Matricies or Null Matrix"
+      cerr << "Error In SparseMatrix Multiply : Wrong size Matricies"
            << "\n";
       exit(-1);
    }
@@ -468,10 +461,9 @@ void Multiply(Matrix& Y, SparseMatrix const& A, Matrix const& B)
 
 void Multiply(Matrix& Y, Matrix const& A, SparseMatrix const& B)
 {
-   if ((Y.Rows() != A.Rows()) || (Y.Cols() != B.Cols_) || (A.Cols() != B.Rows_)
-       || A.IsNull() || B.IsNull() || Y.IsNull())
+   if ((Y.Rows() != A.Rows()) || (Y.Cols() != B.Cols_) || (A.Cols() != B.Rows_))
    {
-      cerr << "Error In SparseMatrix Multiply : Wrong size Matricies or Null Matrix"
+      cerr << "Error In SparseMatrix Multiply : Wrong size Matricies"
            << "\n";
       exit(-1);
    }
@@ -490,9 +482,9 @@ void Multiply(Matrix& Y, Matrix const& A, SparseMatrix const& B)
 
 void Multiply(Vector& Y, SparseMatrix const& A, Vector const& B)
 {
-   if ((A.Cols_ != B.Dim()) || (Y.Dim() != A.Rows_) || A.IsNull() || (B.Dim() == 0) || (Y.Dim() == 0))
+   if ((A.Cols_ != B.Dim()) || (Y.Dim() != A.Rows_))
    {
-      cerr << "Error In SparesMatrix Multiply : Wrong size or  Null Matrix or Vector"
+      cerr << "Error In SparesMatrix Multiply : Wrong size"
            << "\n";
       exit(-1);
    }
@@ -508,9 +500,9 @@ void Multiply(Vector& Y, SparseMatrix const& A, Vector const& B)
 
 void Multiply(Vector& Y, Vector const& A, SparseMatrix const& B)
 {
-   if ((A.Dim() != B.Rows_) || (Y.Dim() != B.Cols_) || (A.Dim() == 0) || B.IsNull() || (Y.Dim() == 0))
+   if ((A.Dim() != B.Rows_) || (Y.Dim() != B.Cols_))
    {
-      cerr << "Error In SparesMatrix Multiply : Wrong size or  Null Matrix or Vector"
+      cerr << "Error In SparesMatrix Multiply : Wrong size"
            << "\n";
       exit(-1);
    }
@@ -526,9 +518,9 @@ void Multiply(Vector& Y, Vector const& A, SparseMatrix const& B)
 
 void Multiply(Vector3D& Y, SparseMatrix const& A, Vector3D const& B)
 {
-   if ((A.Cols_ != V3DLEN) || (A.Rows_ != V3DLEN) || A.IsNull())
+   if ((A.Cols_ != V3DLEN) || (A.Rows_ != V3DLEN))
    {
-      cerr << "Error In SparesMatrix Multiply : Wrong size or  Null Matrix"
+      cerr << "Error In SparesMatrix Multiply : Wrong size"
            << "\n";
       exit(-1);
    }
@@ -544,9 +536,9 @@ void Multiply(Vector3D& Y, SparseMatrix const& A, Vector3D const& B)
 
 void Multiply(Vector3D& Y, Vector3D const& A, SparseMatrix const& B)
 {
-   if ((V3DLEN != B.Cols_) || (B.Rows_ != V3DLEN) || B.IsNull())
+   if ((V3DLEN != B.Cols_) || (B.Rows_ != V3DLEN))
    {
-      cerr << "Error In SparesMatrix Multiply : Wrong size or  Null Matrix"
+      cerr << "Error In SparesMatrix Multiply : Wrong size"
            << "\n";
       exit(-1);
    }

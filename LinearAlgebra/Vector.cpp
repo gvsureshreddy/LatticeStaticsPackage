@@ -91,9 +91,9 @@ Vector::Vector(Vector3D const& A)
 
 Vector::Vector(Matrix const& A)
 {
-   if (A.IsNull() || ((A.Rows() != 1) && (A.Cols() != 1)))
+   if ((A.Rows() != 1) && (A.Cols() != 1))
    {
-      cerr << "Error in Vector::Vector(Matrix& A) -- Null Matrix or Non-Vector"
+      cerr << "Error in Vector::Vector(Matrix& A) -- Non-Vector"
            << "\n";
       exit(-1);
    }
@@ -141,9 +141,9 @@ Vector::~Vector()
 
 Vector operator+(Vector const& A, Vector const& B)
 {
-   if ((A.Cols_ != B.Cols_) || (A.Cols_ == 0) || (B.Cols_ == 0))
+   if (A.Cols_ != B.Cols_)
    {
-      cerr << "Error in Vector Operator+() Diff Size Vectors or Null Vector!!!"
+      cerr << "Error in Vector Operator+() Diff Size Vectors!!!"
            << "\n";
       exit(-1);
    }
@@ -163,9 +163,9 @@ Vector operator+(Vector const& A, Vector const& B)
 
 Vector operator-(Vector const& A, Vector const& B)
 {
-   if ((A.Cols_ != B.Cols_) || (A.Cols_ == 0) || (B.Cols_ == 0))
+   if (A.Cols_ != B.Cols_)
    {
-      cerr << "Error in Vector Operator-() Diff Size Vectors or Null Vector!!!"
+      cerr << "Error in Vector Operator-() Diff Size Vectors!!!"
            << "\n";
       exit(-1);
    }
@@ -198,9 +198,9 @@ Vector operator-(Vector const& A)
 // Dot Product
 Vector::Elm const operator*(Vector const& A, Vector const& B)
 {
-   if ((A.Cols_ == 0) || (B.Cols_ == 0) || (A.Cols_ != B.Cols_))
+   if (A.Cols_ != B.Cols_)
    {
-      cerr << "Error in Dot Product -- Null Vector or different Dimensions."
+      cerr << "Error in Dot Product -- different Dimensions."
            << "\n";
       exit(-1);
    }
@@ -236,9 +236,9 @@ Vector operator%(Vector const& A, Vector const& B)
 
 Vector operator*(Matrix const& A, Vector const& B)
 {
-   if ((A.Cols() != B.Cols_) || A.IsNull() || (B.Cols_ == 0))
+   if (A.Cols() != B.Cols_)
    {
-      cerr << "Error In Vector Operator* : A.Cols!=B.Cols or Null Matrix or Vector"
+      cerr << "Error In Vector Operator* : A.Cols!=B.Cols"
            << "\n";
       exit(-1);
    }
@@ -261,9 +261,9 @@ Vector operator*(Matrix const& A, Vector const& B)
 
 Vector operator*(Vector const& A, Matrix const& B)
 {
-   if ((B.Cols() != A.Cols_) || B.IsNull() || (A.Cols_ == 0))
+   if (B.Cols() != A.Cols_)
    {
-      cerr << "Error In Vector Operator* : A.Cols!=B.Cols or Null Matrix or Vector"
+      cerr << "Error In Vector Operator* : A.Cols!=B.Cols"
            << "\n";
       exit(-1);
    }
