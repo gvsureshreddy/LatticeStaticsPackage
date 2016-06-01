@@ -1262,7 +1262,15 @@ void PerlInput::getMatrix(Matrix& Mtrx, HashStruct const& Hash, char const* cons
    {
       ReconstructedInput_ << "[" << c << "]"; spaces += 3;
    }
-   ReconstructedInput_ << " = [["; spaces += 4;
+   if (rows > 0)
+   {
+     ReconstructedInput_ << " = [["; spaces += 4;
+   }
+   else
+   {
+     ReconstructedInput_ << " = ["; spaces += 3;
+   }
+
    for (int i = 0; i < rows; ++i)
    {
       RowValPtr = av_fetch(ArrayPtr, i, FALSE); // Should always be ok because of len check.
@@ -1348,11 +1356,8 @@ void PerlInput::getMatrix(Matrix& Mtrx, HashStruct const& Hash, char const* cons
          }
          ReconstructedInput_ << "[";
       }
-      else
-      {
-         ReconstructedInput_ << "];\n";
-      }
    }
+   ReconstructedInput_ << "];\n";
 }
 
 void PerlInput::useMatrix(Matrix const& DefaultMtrx, HashStruct const& Hash,
@@ -1374,7 +1379,15 @@ const
    {
       ReconstructedInput_ << "[" << c << "]"; spaces += 3;
    }
-   ReconstructedInput_ << " = [["; spaces += 4;
+   if (DefaultMtrx.Rows() > 0)
+   {
+     ReconstructedInput_ << " = [["; spaces += 4;
+   }
+   else
+   {
+     ReconstructedInput_ << " = ["; spaces += 3;
+   }
+
    for (int i = 0; i < DefaultMtrx.Rows(); ++i)
    {
       for (int j = 0; j < DefaultMtrx.Cols() - 1; ++j)
@@ -1403,11 +1416,8 @@ const
          }
          ReconstructedInput_ << "[";
       }
-      else
-      {
-         ReconstructedInput_ << "\n";
-      }
    }
+   ReconstructedInput_ << "\n";
 }
 
 void PerlInput::writeMatrix(ostream& out, Matrix const& Mtrx, HashStruct const& Hash,
@@ -1429,7 +1439,15 @@ const
    {
       out << "[" << c << "]"; spaces += 3;
    }
-   out << " = [["; spaces += 4;
+   if (Mtrx.Rows() > 0)
+   {
+     out << " = [["; spaces += 4;
+   }
+   else
+   {
+     out << " = [["; spaces += 3;
+   }
+
    for (int i = 0; i < Mtrx.Rows(); ++i)
    {
       for (int j = 0; j < Mtrx.Cols() - 1; ++j)
@@ -1454,11 +1472,8 @@ const
          }
          out << "[";
       }
-      else
-      {
-         out << "\n";
-      }
    }
+   out << "\n";
 }
 
 void PerlInput::getIntVector(int* const IntArry, int const& len, HashStruct const& Hash,
