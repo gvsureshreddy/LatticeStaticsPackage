@@ -167,9 +167,9 @@ Matrix::~Matrix()
 
 Matrix operator+(Matrix const& A, Matrix const& B)
 {
-   if ((A.Rows_ != B.Rows_) || (A.Cols_ != B.Cols_) || A.IsNull() || B.IsNull())
+   if ((A.Rows_ != B.Rows_) || (A.Cols_ != B.Cols_))
    {
-      cerr << "Error in Matrix Operator+() Diff Size Matrices or Null Matrix!!!"
+      cerr << "Error in Matrix Operator+() Diff Size Matrices!!!"
            << "\n";
       exit(-1);
    }
@@ -204,9 +204,9 @@ Matrix operator-(Matrix const& A)
 
 Matrix operator-(Matrix const& A, Matrix const& B)
 {
-   if ((A.Rows_ != B.Rows_) || (A.Cols_ != B.Cols_) || A.IsNull() || B.IsNull())
+   if ((A.Rows_ != B.Rows_) || (A.Cols_ != B.Cols_))
    {
-      cerr << "Error in Matrix Operator-() Diff Size Matrices or Null Matrix!!!"
+      cerr << "Error in Matrix Operator-() Diff Size Matrices!!!"
            << "\n";
       exit(-1);
    }
@@ -226,9 +226,9 @@ Matrix operator-(Matrix const& A, Matrix const& B)
 
 Matrix operator*(Matrix const& A, Matrix const& B)
 {
-   if ((A.Cols_ != B.Rows_) || A.IsNull() || B.IsNull())
+   if (A.Cols_ != B.Rows_)
    {
-      cerr << "Error In Matrix Operator* : A.Cols!=B.Rows or Null Matrix"
+      cerr << "Error In Matrix Operator* : A.Cols!=B.Rows"
            << "\n";
       exit(-1);
    }
@@ -334,7 +334,8 @@ Matrix& Matrix::operator=(Matrix const& B)
       exit(-1);
    }
 
-   memmove(Elements_[0], B[0], sizeof(Matrix::Elm) * Rows_ * Cols_);
+   if (Elements_ != 0)
+     memmove(Elements_[0], B[0], sizeof(Matrix::Elm) * Rows_ * Cols_);
 
    return *this;
 }

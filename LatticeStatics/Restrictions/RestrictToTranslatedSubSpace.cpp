@@ -46,7 +46,7 @@ RestrictToTranslatedSubSpace::RestrictToTranslatedSubSpace(Lattice* const M, Per
       DOFS_ = Input.getArrayLength(Hash, "ProjectionMatrix");
       DOF_.Resize(DOFS_ + 1, 0.0);
 
-      if (Input.getArrayLength(Hash, "ProjectionMatrix", 0) != LatDOFS)
+      if ((DOFS_ != 0) && (Input.getArrayLength(Hash, "ProjectionMatrix", 0) != LatDOFS))
       {
          cerr << "Error. " << Name() << " Incorrect number of columns in ProjectionMatrix\n";
          exit(-37);
