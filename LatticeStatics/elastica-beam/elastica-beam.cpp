@@ -446,7 +446,7 @@ namespace elastica_beam
 
   };
 
-  //________________________________________________________________________________________________
+  //___________________________________________________________________________
   // @sect3{Quadrature point history}
 
   // As seen in step-18, the <code> PointHistory </code> class offers a method
@@ -475,10 +475,12 @@ namespace elastica_beam
     // initialize all tensors correctly: The second one updates the stored
     // values and stresses based on the current deformation measure
     // $\textrm{Grad}\mathbf{u}_{\textrm{n}}$ values.
-    void setup_lqp (const Parameters::AllParameters &parameters)
+    void setup_lqp (const Parameters::AllParameters &parameters,
+                const double value_y, const Tensor<1, dim> value_d_y)
     {
-      material = new Elastica_Beam_On_Spring_Fundation<dim>(parameters.EI, parameters.k,parameters.alpha);
-      update_values(0.0, Tensor<1, dim>(), Tensor<2, dim>());
+      material = new Elastica_Beam_On_Spring_Fundation<dim>(parameters.EI,
+                                            parameters.k,parameters.alpha);
+      update_values(value_y, value_d_y, Tensor<2, dim>());
     }
 
     // To this end, we calculate the deformation gradient $\mathbf{F}$ from
@@ -495,7 +497,8 @@ namespace elastica_beam
     // general, the conversion to SymmetricTensor will fail. We can avoid this
     // back and forth by converting $I$ to Tensor first, and then performing
     // the addition as between nonsymmetric tensors:
-    void update_values (const double value_y, const Tensor<1, dim> value_d_y, const Tensor<2, dim> value_dd_y)//Bastien : needs to be updated
+    void update_values (const double value_y, const Tensor<1, dim> value_d_y,
+                                        const Tensor<2, dim> value_dd_y)
     {
         y = value_y;
         d_y = value_d_y;
@@ -768,6 +771,8 @@ namespace elastica_beam
     const bool                       print_tangent_matrix = false;
     const bool                       print_tangent_matrix_constrained = false;
     const bool                       print_RHS = false;
+    const bool                       print_steps_computation = true;
+    const bool                       apply_non_zero_displacement_beginning = false;
     //This is just to know the size of the tangent matrix "by hand", for debugging:
 
     // Then define a number of variables to store norms and update norms and
@@ -837,7 +842,6 @@ namespace elastica_beam
     system_setup();
     output_results();
     time.increment();
-    n_dofs = dof_handler_ref.n_dofs();
   }
 
   // The class destructor simply clears the data held by the DOFHandler
@@ -864,6 +868,8 @@ namespace elastica_beam
     Vector<double> solution_delta(n_dofs);
     while (time.current() < time.end())
       {
+        if(apply_non_zero_displacement_beginning)
+            P = 100*time.get_timestep();
 	solution_delta = 0.0;
 
 	// ...solve the current time step and update total solution vector
@@ -1271,7 +1277,24 @@ namespace elastica_beam
     // The DOF handler is then initialised and we renumber the grid in an
     // efficient manner. We also record the number of DOFs per block.
     dof_handler_ref.distribute_dofs(fe);
-    DoFRenumbering::Cuthill_McKee(dof_handler_ref);
+    n_dofs = dof_handler_ref.n_dofs();
+    //DoFRenumbering::Cuthill_McKee(dof_handler_ref);
+    //DoFRenumbering::hierarchical(dof_handler_ref);
+    //Point<dim> 	direction(0);
+    //DoFRenumbering::downstream	(dof_handler_ref,direction,false);
+
+      Triangulation<1>::active_cell_iterator
+      cell = triangulation.begin_active(),
+      endc = triangulation.end();
+      std::cout << "\nPrinting coordinates of vertices...\n";
+      for (; cell!=endc; ++cell)
+        for (unsigned int v=0;
+             v < GeometryInfo<1>::vertices_per_cell;
+             ++v)
+          {
+            std::cout << cell->vertex(v) << "  ";
+          }
+      std::cout << std::endl;
 
     // Setup the sparsity pattern and tangent matrix
     tangent_matrix.clear();
@@ -1286,6 +1309,25 @@ namespace elastica_beam
 
 
       DynamicSparsityPattern dsp(dof_handler_ref.n_dofs());
+
+      // This block creates the periodic constraints on our beam. The function
+      // make_constraints() could maybe be deleted.
+      const FEValuesExtractors::Scalar y_displacement(0);
+      IndexSet selected_dofs;
+      std::set< types::boundary_id > boundary_ids= std::set<types::boundary_id>();
+      boundary_ids.insert(1);
+      boundary_ids.insert(2);
+      DoFTools::extract_boundary_dofs(dof_handler_ref,
+                fe.component_mask(y_displacement), selected_dofs, boundary_ids);
+      ConstraintMatrix::size_type dof_left;
+      ConstraintMatrix::size_type dof_right;
+      IndexSet::ElementIterator el = selected_dofs.begin();
+      dof_left = *el;
+      el++;
+      dof_right = *el;
+      constraints.add_line(dof_left);
+      constraints.add_entry(dof_left,dof_right,-1.0);
+      constraints.close();
 
       DoFTools::make_sparsity_pattern(dof_handler_ref,
 				      dsp,
@@ -1305,6 +1347,12 @@ namespace elastica_beam
     // ...and finally set up the quadrature point history:
     setup_qph();
 
+    if(apply_non_zero_displacement_beginning)
+        for(unsigned int i = 0; i < n_dofs; i++)
+        {
+            solution_n(i) = i * (n_dofs - i - 1) * 1.0 / (n_dofs * n_dofs);
+        }
+
     timer.leave_subsection();
   }
 
@@ -1317,7 +1365,8 @@ namespace elastica_beam
   template <int dim>
   void Solid<dim>::setup_qph()
   {
-    std::cout << "    Setting up quadrature point data..." << std::endl;
+    if(print_steps_computation)
+        std::cout << "    Setting up quadrature point data..." << std::endl;
 
     {
       triangulation.clear_user_data();
@@ -1342,11 +1391,18 @@ namespace elastica_beam
 	     ExcInternalError());
     }
 
+    // Usefull only if we plan to apply a non-zero displacement at the beginning,
+    // or use a graded displacement for instance. This allow us to obtain the
+    // coordinates of the quadrature points in the real space.
+    const UpdateFlags uf_cell(update_quadrature_points);
+    FEValues<dim> fe_values(fe, qf_cell, uf_cell);
+
     // Next we setup the initial quadrature
     // point data:
     for (typename Triangulation<dim>::active_cell_iterator cell =
 	   triangulation.begin_active(); cell != triangulation.end(); ++cell)
       {
+        fe_values.reinit(cell);
 	PointHistory<dim> *lqph =
 	  reinterpret_cast<PointHistory<dim>*>(cell->user_pointer());
 
@@ -1354,7 +1410,19 @@ namespace elastica_beam
 	Assert(lqph <= &quadrature_point_history.back(), ExcInternalError());
 
 	for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
-	  lqph[q_point].setup_lqp(parameters);
+        {
+          double value_y = 0;
+          Tensor<1, dim> value_d_y;
+          if(apply_non_zero_displacement_beginning)
+          {
+            const Point<dim> local_point = fe_values.quadrature_point(q_point);
+            //value_y = local_point[0] * (1 - local_point[0]) * 1.0;
+            value_y = local_point[0] < 0.5 ? local_point[0] : 1 - local_point[0];
+            //value_d_y[0] = 1 - 2 * local_point[0];
+            value_d_y[0] = local_point[0] < 0.5 ? 1 : -1;
+          }
+	  lqph[q_point].setup_lqp(parameters, value_y, value_d_y);
+        }
       }
   }
 
@@ -1370,7 +1438,8 @@ namespace elastica_beam
   void Solid<dim>::update_qph_incremental(const Vector<double> &solution_delta)
   {
     timer.enter_subsection("Update QPH data");
-    std::cout << " UQPH " << std::flush;
+    if(print_steps_computation)
+        std::cout << " UQPH " << std::flush;
 
     const Vector<double> solution_total(get_total_solution(solution_delta));
 
@@ -1638,7 +1707,8 @@ namespace elastica_beam
   void Solid<dim>::assemble_system_tangent()
   {
     timer.enter_subsection("Assemble tangent matrix");
-    std::cout << " ASM_K" << std::flush;
+    if(print_steps_computation)
+        std::cout << " ASM_K" << std::flush;
 
     const UpdateFlags uf_cell(update_values    |  update_gradients |
 			      update_hessians  |  update_JxW_values);
@@ -1776,7 +1846,8 @@ namespace elastica_beam
   void Solid<dim>::assemble_system_rhs()
   {
     timer.enter_subsection("Assemble system right-hand side");
-    std::cout << " ASM_R" << std::flush;
+    if(print_steps_computation)
+        std::cout << " ASM_R" << std::flush;
 
     const UpdateFlags uf_cell(update_values    |  update_gradients |
 			      update_hessians  |  update_JxW_values);
@@ -1876,7 +1947,8 @@ namespace elastica_beam
   void Solid<dim>::assemble_system_E1DLoad()
   {
     timer.enter_subsection("Assemble system E1DLoad");
-    std::cout << " ASM_E1D" << std::flush;
+    if(print_steps_computation)
+        std::cout << " ASM_E1D" << std::flush;
 
     const UpdateFlags uf_cell(update_gradients |  update_JxW_values);
     // We use the same thing as the RHS cause it's almost the same assembly process
@@ -1958,8 +2030,9 @@ namespace elastica_beam
   // are already exactly satisfied.
   template <int dim>
   void Solid<dim>::make_constraints(const int &it_nr)
-  {
-    std::cout << " CST  " << std::flush;
+  {//This is a useless function since constraints are done at the beginning also.
+    if(print_steps_computation)
+        std::cout << " CST  " << std::flush;
 
     // Since the constraints are different at different Newton iterations, we
     // need to clear the constraints matrix and completely rebuild
@@ -1970,45 +2043,22 @@ namespace elastica_beam
 
     constraints.clear();
 
-    // For setting up the constraints, we first store the periodicity
-    // information in an auxiliary object of type
-    // <code>std::vector@<GridTools::PeriodicFacePair<typename
-    // DoFHandler@<dim@>::cell_iterator@> </code>. The periodic boundaries have the
-    // boundary indicators 1 (x=0) and 3 (x=1). All the other parameters we
-    // have set up before. In this case the direction does not matter.
-      std::vector<GridTools::PeriodicFacePair<typename DoFHandler<dim>::cell_iterator> >
-      periodicity_vector;
+    const FEValuesExtractors::Scalar y_displacement(0);
+    IndexSet selected_dofs;
+    std::set< types::boundary_id > 	boundary_ids= std::set<types::boundary_id>();
+    boundary_ids.insert(1);
+    boundary_ids.insert(2);
+    DoFTools::extract_boundary_dofs(dof_handler_ref,
+                fe.component_mask(y_displacement), selected_dofs, boundary_ids);
+    ConstraintMatrix::size_type dof_left;
+    ConstraintMatrix::size_type dof_right;
+    IndexSet::ElementIterator el = selected_dofs.begin();
+    dof_left = *el;
+    el++;
+    dof_right = *el;
+    constraints.add_line(dof_left);
+    constraints.add_entry(dof_left,dof_right,-1.0);
 
-      const unsigned int direction = 0;
-      GridTools::collect_periodic_faces(dof_handler_ref, 1, 2, direction,
-                                        periodicity_vector);
-    // In the following, we will have to tell the function interpolation
-    // boundary values which components of the solution vector should be
-    // constrained (i.e., whether it's the x-, y-displacements or
-    // combinations thereof). This is done using ComponentMask objects (see
-    // @ref GlossComponentMask) which we can get from the finite element if we
-    // provihde it with an extractor object for the component we wish to
-    // select. To this end we first set up such extractor objects and later
-    // use it when generating the relevant component masks:
-
-
-    // After setting up all the information in periodicity_vector all we have
-// to do is to tell make_periodicity_constraints to create the desired
-// constraints.
-      //DoFTools::make_periodicity_constraints<DoFHandler<dim> >
-      //(periodicity_vector, constraints/*, fe.component_mask(y_displacement)*/);
-
-    //const bool apply_dirichlet_bc = (it_nr == 0);
-
-//    {
-//      const int boundary_id = 1;
-//
-//      VectorTools::interpolate_boundary_values(dof_handler_ref,
-//					       boundary_id,
-//					       ZeroFunction<dim>(n_components),
-//					       constraints,
-//					       fe.component_mask(y_displacement));
-//    }
     constraints.close();
   }
 
@@ -2020,12 +2070,14 @@ namespace elastica_beam
     {
 
       timer.enter_subsection("Linear solver");
-      std::cout << " SLV" << std::flush;
+      if(print_steps_computation)
+          std::cout << " SLV" << std::flush;
 
 
       if(print_tangent_matrix)
 	{
-	  std::cout << std::endl << "Print tangent matrix after applying boundary conditions..." << std::endl;
+	  std::cout << std::endl << "Print tangent matrix "
+                    << "after applying boundary conditions..." << std::endl;
 
 	  FullMatrix<double> tangent_matrix_f(n_dofs);
 	  tangent_matrix_f.copy_from(tangent_matrix);

@@ -22,7 +22,7 @@ namespace elastica_beam
 ElasticaBeam1D::~ElasticaBeam1D()
 {
   elastica_beam::deleteObject();
-  cout << "TwoBarTruss Function Calls:\n"
+  cout << "ElasticaBeam Function Calls:\n"
        << "\tE0 calls - " << CallCount_[0] << "\n"
        << "\tE1 calls - " << CallCount_[1] << "\n"
        << "\tE1DLoad calls - " << CallCount_[2] << "\n"
@@ -149,17 +149,17 @@ void ElasticaBeam1D::Print(ostream& out, PrintDetail const& flag,
     switch (flag)
     {
         case PrintLong:
-            out << "TwoBarTruss:" << "\n" << "\n";
+            out << "ElasticaBeam:" << "\n" << "\n";
             out << "I don't know what to print in print long!\n";
 
             if (Echo_)
             {
-                cout << "TwoBarTruss:" << "\n" << "\n";
+                cout << "ElasticaBeam:" << "\n" << "\n";
                 cout << "I don't know what to print in print long!\n";
             }
             // passthrough to short
         case PrintShort:
-            out << "__________________________________________\n\n"
+            out << "\n__________________________________________\n\n"
                     << "Lambda: " << setw(W) << Lambda_ << "\n"
                     << "DOF's :" << "\n" << setw(W) << DOF_ << "\n"
                     << "Potential Value:" << setw(W) << engy << "\n";
