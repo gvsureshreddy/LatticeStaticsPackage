@@ -35,7 +35,8 @@
 
 #include <deal.II/grid/grid_generator.h>
 #include <deal.II/grid/grid_tools.h>
-#include <manually_grid_tools.h>
+//#include "manually_grid_tools.h"
+//#include "local_grid_tools.cc"
 #include <deal.II/grid/grid_in.h>
 #include <deal.II/grid/tria.h>
 #include <deal.II/grid/tria_boundary_lib.h>
@@ -843,23 +844,23 @@ namespace neo_hookean
 //                const Tensor<1,typename DoFHandler<dim>::space_dimension> &offset,
 //                const FullMatrix<double>              &matrix);
 
-    template <typename MeshType>
-    void
-    collect_periodic_faces (const MeshType                 &mesh,
-                const types::boundary_id                   b_id1,
-                const types::boundary_id                   b_id2,
-                const int                                  direction,
-                std::vector<GridTools::PeriodicFacePair<typename MeshType::cell_iterator> > &matched_pairs,
-                const Tensor<1,MeshType::space_dimension> &offset = dealii::Tensor<1,MeshType::space_dimension>(),
-                const FullMatrix<double>                  &matrix = FullMatrix<double>());
-
-    void
-    match_periodic_face_pairs_local(std::set<std::pair<typename Triangulation<dim>::cell_iterator, unsigned int> > &pairs1,
-                std::set<std::pair<typename Triangulation<2>::cell_iterator, unsigned int> > &pairs2,
-                const int                                        direction,
-                std::vector<GridTools::PeriodicFacePair<typename Triangulation<2>::cell_iterator> >     &matched_pairs,
-                const Tensor<1,Triangulation<2>::space_dimension> &offset,
-                const FullMatrix<double>                         &matrix);
+//    template <typename MeshType>
+//    void
+//    collect_periodic_faces (const MeshType                 &mesh,
+//                const types::boundary_id                   b_id1,
+//                const types::boundary_id                   b_id2,
+//                const int                                  direction,
+//                std::vector<GridTools::PeriodicFacePair<typename MeshType::cell_iterator> > &matched_pairs,
+//                const Tensor<1,MeshType::space_dimension> &offset = dealii::Tensor<1,MeshType::space_dimension>(),
+//                const FullMatrix<double>                  &matrix = FullMatrix<double>());
+//
+//    void
+//    match_periodic_face_pairs_local(std::set<std::pair<typename Triangulation<dim>::cell_iterator, unsigned int> > &pairs1,
+//                std::set<std::pair<typename Triangulation<2>::cell_iterator, unsigned int> > &pairs2,
+//                const int                                        direction,
+//                std::vector<GridTools::PeriodicFacePair<typename Triangulation<2>::cell_iterator> >     &matched_pairs,
+//                const Tensor<1,Triangulation<2>::space_dimension> &offset,
+//                const FullMatrix<double>                         &matrix);
 
     // Set up the finite element system to be solved:
     void
@@ -1488,13 +1489,13 @@ namespace neo_hookean
 
 	// Now that we have marked all the cells that we want refined, we let
 	// the triangulation actually do this refinement.
-	triangulation.execute_coarsening_and_refinement ();
+	//triangulation.execute_coarsening_and_refinement ();
 	triangulation.clear_user_flags();
       }
 
     // We refine our mesh globally, at least once, to not too have a poor
     // refinement at the bottom of our square (like two cells)
-    triangulation.refine_global(std::max (1U, parameters.global_refinement));
+    //triangulation.refine_global(std::max (1U, parameters.global_refinement));
 
     vol_reference = GridTools::volume(triangulation);
     vol_current = vol_reference;
@@ -1508,15 +1509,15 @@ namespace neo_hookean
 	if (cell->face(f)->at_boundary())
 	  {
 	    const Point<dim> face_center = cell->face(f)->center();
-	    if (face_center[1] == 0) //Bottom
+	    if (std::abs(face_center[1] - 0.0) <= 1e-6)      //Bottom
 	      cell->face(f)->set_boundary_id (0);
-	    else if (face_center[1] == 1) //Top
+	    else if (std::abs(face_center[1] - 1.0) <= 1e-6) //Top
 	      cell->face(f)->set_boundary_id (2);
-	    else if (face_center[0] == 0) //Left
+	    else if (std::abs(face_center[0] - 0.0) <= 1e-6) //Left
 	      cell->face(f)->set_boundary_id (1);
-	    else if (face_center[0] == 1) //Right
+	    else if (std::abs(face_center[0] - 1.0) <= 1e-6) //Right
 	      cell->face(f)->set_boundary_id (3);
-	    else                          //No way
+	    else                                             //No way
 	      cell->face(f)->set_boundary_id (4);
 	  }
   }
@@ -1579,125 +1580,125 @@ namespace neo_hookean
 //    match_periodic_face_pairs_local(pairs1, pairs2, direction, matched_pairs, offset,matrix);
 //  }
 
-  template<typename MeshType, int dim>
-  void Solid<dim>::collect_periodic_faces
-  (const MeshType                        &mesh,
-   const types::boundary_id               b_id1,
-   const types::boundary_id               b_id2,
-   const int                              direction,
-   std::vector<GridTools::PeriodicFacePair<typename MeshType::cell_iterator> > &matched_pairs,
-   const Tensor<1,MeshType::space_dimension> &offset,
-   const FullMatrix<double>              &matrix)
-  {
-    //static const int dim = MeshType::dimension;
-    static const int space_dim = MeshType::space_dimension;
-    //(void)dim;
-    (void)space_dim;
-    Assert (0<=direction && direction<space_dim,
-            ExcIndexRange (direction, 0, space_dim));
-
-    // Loop over all cells on the highest level and collect all boundary
-    // faces belonging to b_id1 and b_id2:
-
-    std::set<std::pair<typename MeshType::cell_iterator, unsigned int> > pairs1;
-    std::set<std::pair<typename MeshType::cell_iterator, unsigned int> > pairs2;
-
-    //for (typename MeshType::cell_iterator cell = mesh.begin(0);
-    //     cell != mesh.end(0); ++cell)
-    typename MeshType::active_cell_iterator cell =
-      mesh.begin_active(), endc = mesh.end();
-    for (; cell != endc; ++cell)
-      {
-        for (unsigned int i = 0; i < GeometryInfo<dim>::faces_per_cell; ++i)
-          {
-            const typename MeshType::face_iterator face = cell->face(i);
-            if (face->at_boundary() && face->boundary_id() == b_id1)
-              {
-                const std::pair<typename MeshType::cell_iterator, unsigned int> pair1
-                  = std::make_pair(cell, i);
-                pairs1.insert(pair1);
-              }
-
-            if (face->at_boundary() && face->boundary_id() == b_id2)
-              {
-                const std::pair<typename MeshType::cell_iterator, unsigned int> pair2
-                  = std::make_pair(cell, i);
-                pairs2.insert(pair2);
-              }
-          }
-      }
-
-    Assert (pairs1.size() == pairs2.size(),
-            ExcMessage ("Unmatched faces on periodic boundaries"));
-
-    // and call match_periodic_face_pairs that does the actual matching:
-    //match_periodic_face_pairs_local(pairs1, pairs2, direction, matched_pairs, offset,
-    //                          matrix);
-  }
+//  template<typename MeshType, int dim>
+//  void Solid<dim>::collect_periodic_faces
+//  (const MeshType                        &mesh,
+//   const types::boundary_id               b_id1,
+//   const types::boundary_id               b_id2,
+//   const int                              direction,
+//   std::vector<GridTools::PeriodicFacePair<typename MeshType::cell_iterator> > &matched_pairs,
+//   const Tensor<1,MeshType::space_dimension> &offset,
+//   const FullMatrix<double>              &matrix)
+//  {
+//    //static const int dim = MeshType::dimension;
+//    static const int space_dim = MeshType::space_dimension;
+//    //(void)dim;
+//    (void)space_dim;
+//    Assert (0<=direction && direction<space_dim,
+//            ExcIndexRange (direction, 0, space_dim));
+//
+//    // Loop over all cells on the highest level and collect all boundary
+//    // faces belonging to b_id1 and b_id2:
+//
+//    std::set<std::pair<typename MeshType::cell_iterator, unsigned int> > pairs1;
+//    std::set<std::pair<typename MeshType::cell_iterator, unsigned int> > pairs2;
+//
+//    //for (typename MeshType::cell_iterator cell = mesh.begin(0);
+//    //     cell != mesh.end(0); ++cell)
+//    typename MeshType::active_cell_iterator cell =
+//      mesh.begin_active(), endc = mesh.end();
+//    for (; cell != endc; ++cell)
+//      {
+//        for (unsigned int i = 0; i < GeometryInfo<dim>::faces_per_cell; ++i)
+//          {
+//            const typename MeshType::face_iterator face = cell->face(i);
+//            if (face->at_boundary() && face->boundary_id() == b_id1)
+//              {
+//                const std::pair<typename MeshType::cell_iterator, unsigned int> pair1
+//                  = std::make_pair(cell, i);
+//                pairs1.insert(pair1);
+//              }
+//
+//            if (face->at_boundary() && face->boundary_id() == b_id2)
+//              {
+//                const std::pair<typename MeshType::cell_iterator, unsigned int> pair2
+//                  = std::make_pair(cell, i);
+//                pairs2.insert(pair2);
+//              }
+//          }
+//      }
+//
+//    Assert (pairs1.size() == pairs2.size(),
+//            ExcMessage ("Unmatched faces on periodic boundaries"));
+//
+//    // and call match_periodic_face_pairs that does the actual matching:
+//    //match_periodic_face_pairs_local(pairs1, pairs2, direction, matched_pairs, offset,
+//    //                          matrix);
+//  }
 
    /*
    * Internally used in collect_periodic_faces_local
    */
   //template<typename CellIterator>
-  template <int dim>
-  void Solid<dim>::match_periodic_face_pairs_local
-  (std::set<std::pair<typename Triangulation<dim>::cell_iterator, unsigned int> > &pairs1,
-   std::set<std::pair<typename Triangulation<2>::cell_iterator, unsigned int> > &pairs2,
-   const int                                        direction,
-   std::vector<GridTools::PeriodicFacePair<typename Triangulation<2>::cell_iterator> >     &matched_pairs,
-   const Tensor<1,Triangulation<2>::space_dimension> &offset,
-   const FullMatrix<double>                         &matrix)
-  {
-    static const int space_dim = Triangulation<2>::cell_iterator::AccessorType::space_dimension;
-    (void)space_dim;
-    Assert (0<=direction && direction<space_dim,
-            ExcIndexRange (direction, 0, space_dim));
-
-    Assert (pairs1.size() == pairs2.size(),
-            ExcMessage ("Unmatched faces on periodic boundaries"));
-
-    unsigned int n_matches = 0;
-
-    // Match with a complexity of O(n^2). This could be improved...
-    std::bitset<3> orientation;
-    typedef typename std::set
-    <std::pair<Triangulation<2>::cell_iterator, unsigned int> >::const_iterator PairIterator;
-    for (PairIterator it1 = pairs1.begin(); it1 != pairs1.end(); ++it1)
-      {
-        for (PairIterator it2 = pairs2.begin(); it2 != pairs2.end(); ++it2)
-          {
-            const Triangulation<2>::cell_iterator cell1 = it1->first;
-            const Triangulation<2>::cell_iterator cell2 = it2->first;
-            const unsigned int face_idx1 = it1->second;
-            const unsigned int face_idx2 = it2->second;
-            if (GridTools::orthogonal_equality(orientation,
-                                               cell1->face(face_idx1),
-                                               cell2->face(face_idx2),
-                                               direction, offset,
-                                               matrix))
-              {
-                // We have a match, so insert the matching pairs and
-                // remove the matched cell in pairs2 to speed up the
-                // matching:
-                const GridTools::PeriodicFacePair<Triangulation<2>::cell_iterator> matched_face =
-                {
-                  {cell1, cell2},
-                  {face_idx1, face_idx2},
-                  orientation,
-                  matrix
-                };
-                matched_pairs.push_back(matched_face);
-                pairs2.erase(it2);
-                ++n_matches;
-                break;
-              }
-          }
-      }
-
-    //Assure that all faces are matched
-    AssertThrow (n_matches == pairs1.size() && pairs2.size() == 0,
-                 ExcMessage ("Unmatched faces on periodic boundaries"));
-  }
+//  template <int dim>
+//  void Solid<dim>::match_periodic_face_pairs_local
+//  (std::set<std::pair<typename Triangulation<dim>::cell_iterator, unsigned int> > &pairs1,
+//   std::set<std::pair<typename Triangulation<2>::cell_iterator, unsigned int> > &pairs2,
+//   const int                                        direction,
+//   std::vector<GridTools::PeriodicFacePair<typename Triangulation<2>::cell_iterator> >     &matched_pairs,
+//   const Tensor<1,Triangulation<2>::space_dimension> &offset,
+//   const FullMatrix<double>                         &matrix)
+//  {
+//    static const int space_dim = Triangulation<2>::cell_iterator::AccessorType::space_dimension;
+//    (void)space_dim;
+//    Assert (0<=direction && direction<space_dim,
+//            ExcIndexRange (direction, 0, space_dim));
+//
+//    Assert (pairs1.size() == pairs2.size(),
+//            ExcMessage ("Unmatched faces on periodic boundaries"));
+//
+//    unsigned int n_matches = 0;
+//
+//    // Match with a complexity of O(n^2). This could be improved...
+//    std::bitset<3> orientation;
+//    typedef typename std::set
+//    <std::pair<Triangulation<2>::cell_iterator, unsigned int> >::const_iterator PairIterator;
+//    for (PairIterator it1 = pairs1.begin(); it1 != pairs1.end(); ++it1)
+//      {
+//        for (PairIterator it2 = pairs2.begin(); it2 != pairs2.end(); ++it2)
+//          {
+//            const Triangulation<2>::cell_iterator cell1 = it1->first;
+//            const Triangulation<2>::cell_iterator cell2 = it2->first;
+//            const unsigned int face_idx1 = it1->second;
+//            const unsigned int face_idx2 = it2->second;
+//            if (GridTools::orthogonal_equality(orientation,
+//                                               cell1->face(face_idx1),
+//                                               cell2->face(face_idx2),
+//                                               direction, offset,
+//                                               matrix))
+//              {
+//                // We have a match, so insert the matching pairs and
+//                // remove the matched cell in pairs2 to speed up the
+//                // matching:
+//                const GridTools::PeriodicFacePair<Triangulation<2>::cell_iterator> matched_face =
+//                {
+//                  {cell1, cell2},
+//                  {face_idx1, face_idx2},
+//                  orientation,
+//                  matrix
+//                };
+//                matched_pairs.push_back(matched_face);
+//                pairs2.erase(it2);
+//                ++n_matches;
+//                break;
+//              }
+//          }
+//      }
+//
+//    //Assure that all faces are matched
+//    AssertThrow (n_matches == pairs1.size() && pairs2.size() == 0,
+//                 ExcMessage ("Unmatched faces on periodic boundaries"));
+//  }
 
   // @sect4{Solid::system_setup}
 
@@ -1725,19 +1726,19 @@ namespace neo_hookean
       std::vector<GridTools::PeriodicFacePair<typename Triangulation<dim>::cell_iterator> >
       periodicity_vector;
 
-      //const unsigned int direction = 0;
+      const unsigned int direction = 0;
 
       FullMatrix<double> rotation_matrix(dim);
       rotation_matrix[0][0]=1.;
       rotation_matrix[1][1]=1.;
 
       Tensor<1, dim> offset;
-      offset[0]=0.1;
+      //offset[0]=0.1;
 
-      //collect_periodic_faces_local(triangulation, 1, 3, direction,
-      //                                  periodicity_vector, offset, rotation_matrix);
+      GridTools::collect_periodic_faces(triangulation, 1, 3, direction,
+                                        periodicity_vector, offset, rotation_matrix);
 
-      std::cout << "\nSize of periodicity_vector : " << periodicity_vector.size();
+      std::cout << "\nSize of periodicity_vector 1 : " << periodicity_vector.size();
 
 
     // Setup the sparsity pattern and tangent matrix
@@ -2212,7 +2213,7 @@ namespace neo_hookean
       error_res(i) = (constraints.is_constrained(i)) ? 0.0 : system_rhs(i);
       nb_unconstrained += (constraints.is_constrained(i)) ? 0 : 1;
     }
-    //std::cout << "\n\n_________Nb unconstrained : " << nb_unconstrained << "_________________\n\n";
+    std::cout << "\n\n_________Nb unconstrained : " << nb_unconstrained << "_________________\n\n";
     error_residual.norm = error_res.l2_norm();
     error_residual.u = error_res.block(u_dof).l2_norm();
     error_residual.p = error_res.block(p_dof).l2_norm();
@@ -2685,20 +2686,20 @@ namespace neo_hookean
 // DoFHandler@<dim@>::cell_iterator@> </code>. The periodic boundaries have the
 // boundary indicators 1 (x=0) and 3 (x=1). All the other parameters we
 // have set up before. In this case the direction does not matter.
-      std::vector<GridTools::PeriodicFacePair<typename Triangulation<dim>::cell_iterator> >
+      std::vector<GridTools::PeriodicFacePair<typename DoFHandler<dim>::cell_iterator> >
       periodicity_vector;
 
-      /*const unsigned int direction = 0;
+      const unsigned int direction = 0;
 
       FullMatrix<double> rotation_matrix(dim);
       rotation_matrix[0][0]=1.;
       rotation_matrix[1][1]=1.;
 
       Tensor<1, dim> offset;
-      offset[0]=0.1;*/
+      offset[0]=0.1;
 
-      //collect_periodic_faces_local(triangulation, 1, 3, direction,
-      //                                  periodicity_vector, offset, rotation_matrix);
+      GridTools::collect_periodic_faces(dof_handler_ref, 1, 3, direction,
+                                        periodicity_vector, offset, rotation_matrix);
       std::cout << "\nSize of periodicity_vector : " << periodicity_vector.size();
 
     // In the following, we will have to tell the function interpolation
@@ -2710,9 +2711,7 @@ namespace neo_hookean
     // select. To this end we first set up such extractor objects and later
     // use it when generating the relevant component masks:
     const FEValuesExtractors::Scalar x_displacement(0);
-    //const FEValuesExtractors::Scalar y_displacement(1);
-
-    FEValuesExtractors::Vector velocities(0);
+    const FEValuesExtractors::Scalar y_displacement(1);
 
     std::vector<unsigned int> first_vector_components;
     first_vector_components.push_back(0);
@@ -2722,8 +2721,8 @@ namespace neo_hookean
     // constraints.
      //DoFTools::make_periodicity_constraints<DoFHandler<dim> >
      // (periodicity_vector, constraints, fe.component_mask(x_displacement), first_vector_components);
-     //DoFTools::make_periodicity_constraints<DoFHandler<dim> >
-     // (periodicity_vector, constraints, fe.component_mask(y_displacement), first_vector_components);
+     DoFTools::make_periodicity_constraints<DoFHandler<dim> >
+      (periodicity_vector, constraints, fe.component_mask(y_displacement), first_vector_components);
 
 //      IndexSet selected_dofs;
 //      std::set< types::boundary_id > boundary_ids= std::set<types::boundary_id>();
