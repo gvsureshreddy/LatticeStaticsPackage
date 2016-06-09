@@ -10,6 +10,7 @@ namespace neo_hookean
   std::size_t get_system_size();
   unsigned int get_unconstrained_system_size();
   void set_solution(double const* const solution);
+  void set_lambda(double const lambda);
   void get_rhs_and_tangent(double* const rhs, double* const tm, unsigned int iter_value);
   void get_unconstrained_rhs_and_tangent(double* const rhs, double* const tm, unsigned int iter_value);
   void get_unconstrained_E1DLoad(double* const E1DLoad, unsigned int iter_value);
@@ -52,7 +53,7 @@ NeoHookean2D::NeoHookean2D(PerlInput const& Input, int const& Echo, int const& W
   E1DLoad_.Resize(unconstrained_system_size_,0.0);
   Stiff_.Resize(unconstrained_system_size_,unconstrained_system_size_,0.0);
   neo_hookean::set_solution(&(DOF_[0]));
-  neo_hookean::get_unconstrained_rhs_and_tangent(&(RHS_[0]),&(Stiff_[0][0]),0);
+  neo_hookean::get_unconstrained_rhs_and_tangent(&(RHS_[0]),&(Stiff_[0][0]),1);
   //std::cout << setw(20) << RHS_;
   //std::cout << std::endl << std::endl << "Tangent matrix :\n\n\n" << std::endl;
   //std::cout << setw(20) << Stiff_;
@@ -62,6 +63,12 @@ void NeoHookean2D::SetDOF(Vector const& dof)
 {
     DOF_ = dof;
     neo_hookean::set_solution(&(DOF_[0]));
+}
+
+void NeoHookean2D::SetLambda(double const& lambda)
+{
+    Lambda_ = lambda;
+    neo_hookean::set_lambda(Lambda_);
 }
 
 double NeoHookean2D::E0() const
@@ -78,19 +85,19 @@ double NeoHookean2D::E0() const
 
 Vector const& NeoHookean2D::E1() const
 {
-  neo_hookean::get_unconstrained_rhs_and_tangent(&(RHS_[0]),&(Stiff_[0][0]),0);
+  neo_hookean::get_unconstrained_rhs_and_tangent(&(RHS_[0]),&(Stiff_[0][0]),1);
   return -RHS_;
 }
 
 Vector const& NeoHookean2D::E1DLoad() const
 {
-  neo_hookean::get_unconstrained_E1DLoad(&(E1DLoad_[0]),0);
+  neo_hookean::get_unconstrained_E1DLoad(&(E1DLoad_[0]),1);
   return E1DLoad_;
 }
 
 Matrix const& NeoHookean2D::E2() const
 {
-  neo_hookean::get_unconstrained_rhs_and_tangent(&(RHS_[0]),&(Stiff_[0][0]),0);
+  neo_hookean::get_unconstrained_rhs_and_tangent(&(RHS_[0]),&(Stiff_[0][0]),1);
   return Stiff_;
 }
 

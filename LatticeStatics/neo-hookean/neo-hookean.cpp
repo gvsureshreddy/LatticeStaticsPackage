@@ -789,13 +789,19 @@ namespace neo_hookean
     }
 
     void
-    set_solution(BlockVector<double> const &solution);
+    set_solution(double const* const solution);
+
+    void
+    set_lambda(double const lamnda);
 
     BlockVector<double> const&
     get_solution()
     {
       return solution_n;
     }
+
+    void
+    update_periodically_constrained_dofs_and_qph();
 
     void
     get_rhs_and_tangent(BlockVector<double> const* &sys_rhs,
@@ -859,6 +865,12 @@ namespace neo_hookean
     // Set up the finite element system to be solved:
     void
     system_setup();
+
+    void
+    apply_periodic_constraints_and_fill_periodic_links();
+
+    void
+    print_linked_dofs (const typename DoFHandler<dim>::face_iterator &face_1, const typename DoFHandler<dim>::face_iterator &face_2);
 
     void
     determine_component_extractors();
@@ -988,6 +1000,8 @@ namespace neo_hookean
     std::vector<types::global_dof_index>        dofs_per_block;
     std::vector<types::global_dof_index>        element_indices_u;
     std::vector<types::global_dof_index>        element_indices_p;
+    std::vector<std::pair<types::global_dof_index,types::global_dof_index>>        horizontal_periodicity_links;
+    std::vector<std::pair<types::global_dof_index,types::global_dof_index>>        vertical_periodicity_links;
 
     // Rules for Gauss-quadrature on both the cell and faces. The number of
     // quadrature points on both cells and faces is recorded.
@@ -1005,8 +1019,9 @@ namespace neo_hookean
     BlockSparseMatrix<double>        tangent_matrix;
     BlockVector<double>              system_rhs;
     BlockVector<double>              solution_n;
-    double                            system_energy;
+    double                           system_energy;
     float                            displacement_side_1;
+    bool                             displacement_and_qph_accurate;
 
     //Some boolean to decide if we want to display and save the tangent matrix and RHS
     const bool                       print_tangent_matrix = false;
@@ -1092,16 +1107,16 @@ namespace neo_hookean
     dof_handler_ref(triangulation),
     dofs_per_cell (fe.dofs_per_cell),
     u_fe(first_u_component),
-			      p_fe(p_component),
-			      dofs_per_block(n_blocks),
-			      qf_cell(parameters.quad_order),
-			      qf_face(parameters.quad_order),
-			      n_q_points (qf_cell.size()),
-			      n_q_points_f (qf_face.size()),
-			      displacement_side_1 ((1 - parameters.elongation) * parameters.delta_t / parameters.end_time)
+    p_fe(p_component),
+    dofs_per_block(n_blocks),
+    qf_cell(parameters.quad_order),
+    qf_face(parameters.quad_order),
+    n_q_points (qf_cell.size()),
+    n_q_points_f (qf_face.size()),
+    displacement_side_1 ((1 - parameters.elongation) * parameters.delta_t / parameters.end_time),
+    displacement_and_qph_accurate(false)
   {
     determine_component_extractors();
-    std::cout << "\ndisp = " << displacement_side_1 << " " << parameters.elongation << " " << parameters.delta_t << " " << parameters.end_time;
     make_grid();
     system_setup();
     output_results();
@@ -1717,22 +1732,26 @@ namespace neo_hookean
     DoFTools::count_dofs_per_block(dof_handler_ref, dofs_per_block,
 				   block_component);
 
-      std::vector<GridTools::PeriodicFacePair<typename DoFHandler<dim>::cell_iterator> >
-      periodicity_vector;
-
-      const unsigned int direction = 0;
-
-      FullMatrix<double> rotation_matrix(dim);
-      rotation_matrix[0][0]=1.;
-      rotation_matrix[1][1]=1.;
-
-      Tensor<1, dim> offset;
-      //offset[0]=0.1;
-
-      GridTools::collect_periodic_faces(dof_handler_ref, 1, 3, direction,
-                                        periodicity_vector, offset, rotation_matrix);
-
-      //std::cout << "\nSize of periodicity_vector in system_setup : " << periodicity_vector.size();
+//      typedef std::vector<GridTools::PeriodicFacePair<typename DoFHandler<dim>::cell_iterator> >
+//      FaceVector;
+//      typename FaceVector::const_iterator it, end_periodic;
+//      it = periodicity_vector.begin();
+//      end_periodic = periodicity_vector.end();
+//
+//      // Loop over all periodic faces...
+//      for (; it!=end_periodic; ++it)
+//        {
+//          typedef typename DoFHandler<dim>::face_iterator FaceIterator;
+//          const FaceIterator face_1 = it->cell[0]->face(it->face_idx[0]);
+//          const FaceIterator face_2 = it->cell[1]->face(it->face_idx[1]);
+//
+//          Assert(face_1->at_boundary() && face_2->at_boundary(),
+//                 ExcInternalError());
+//
+//          Assert (face_1 != face_2, ExcInternalError());
+//
+//          print_linked_dofs(face_1, face_2);
+//        }
 
 
     // Setup the sparsity pattern and tangent matrix
@@ -1775,46 +1794,7 @@ namespace neo_hookean
 
       DoFTools::make_hanging_node_constraints (dof_handler_ref, constraints);
 
-      const FEValuesExtractors::Scalar x_displacement(0);
-      const FEValuesExtractors::Scalar y_displacement(1);
-
-      std::vector<unsigned int> first_vector_components;
-      first_vector_components.push_back(0);
-
-      DoFTools::make_periodicity_constraints<DoFHandler<dim> >
-      (periodicity_vector, constraints, fe.component_mask(x_displacement), first_vector_components);
-      DoFTools::make_periodicity_constraints<DoFHandler<dim> >
-      (periodicity_vector, constraints, fe.component_mask(y_displacement), first_vector_components);
-
-//      const FEValuesExtractors::Scalar x_displacement(0);
-//      const FEValuesExtractors::Scalar y_displacement(1);
-//
-//      IndexSet selected_dofs;
-//      std::set< types::boundary_id > boundary_ids= std::set<types::boundary_id>();
-//      boundary_ids.insert(1);
-//      boundary_ids.insert(3);
-//      DoFTools::extract_boundary_dofs(dof_handler_ref,
-//                fe.component_mask(y_displacement), selected_dofs, boundary_ids);
-//      ConstraintMatrix::size_type dof_left;
-//      ConstraintMatrix::size_type dof_right;
-//      unsigned int nb_dofs_face = selected_dofs.n_elements()/2;
-//      std::cout << "\nNombre de dofs per face : " << nb_dofs_face;
-//      selected_dofs.print(std::cout);
-//      IndexSet::ElementIterator dofs_left = selected_dofs.begin();
-//      IndexSet::ElementIterator dofs_right = selected_dofs.begin();
-//      for(unsigned int i = 0; i < nb_dofs_face; i++)
-//      {
-//          dofs_right++;
-//      }
-//      for(unsigned int i = 0; i < nb_dofs_face; i++)
-//      {
-//          dof_left = *dofs_left;
-//          dof_right = *dofs_right;
-//          constraints.add_line(dof_right);
-//          constraints.add_entry(dof_right,dof_left,1.0);
-//          dofs_right++;
-//          dofs_left++;
-//      }
+      apply_periodic_constraints_and_fill_periodic_links();
 
       DoFTools::make_sparsity_pattern(dof_handler_ref,
 				      coupling,
@@ -1840,11 +1820,196 @@ namespace neo_hookean
 	solution_n(i) = parameters.mu_0 / 2.0;
       }
 
-
     // ...and finally set up the quadrature point history:
     setup_qph();
 
     timer.leave_subsection();
+  }
+
+  template <int dim>
+  void
+  Solid<dim>::apply_periodic_constraints_and_fill_periodic_links()
+  {
+      std::vector<GridTools::PeriodicFacePair<typename DoFHandler<dim>::cell_iterator> >
+      periodicity_vector;
+
+      const unsigned int direction = 0;
+
+      FullMatrix<double> rotation_matrix(dim);
+      rotation_matrix[0][0]=1.;
+      rotation_matrix[1][1]=1.;
+
+      Tensor<1, dim> offset;
+      //offset[0]=0.1;
+
+      GridTools::collect_periodic_faces(dof_handler_ref, 1, 3, direction,
+                                        periodicity_vector, offset, rotation_matrix);
+      const FEValuesExtractors::Scalar x_displacement(0);
+      const FEValuesExtractors::Scalar y_displacement(1);
+
+      std::vector<unsigned int> first_vector_components;
+      first_vector_components.push_back(0);
+
+      DoFTools::make_periodicity_constraints<DoFHandler<dim> >
+      (periodicity_vector, constraints, fe.component_mask(x_displacement), first_vector_components);
+      DoFTools::make_periodicity_constraints<DoFHandler<dim> >
+      (periodicity_vector, constraints, fe.component_mask(y_displacement), first_vector_components);
+
+      IndexSet selected_dofs_left_horizontal;
+      IndexSet selected_dofs_left_vertical;
+      std::set< types::boundary_id > boundary_ids= std::set<types::boundary_id>();
+      boundary_ids.insert(1);
+      DoFTools::extract_boundary_dofs(dof_handler_ref,
+                fe.component_mask(x_displacement), selected_dofs_left_horizontal, boundary_ids);
+      DoFTools::extract_boundary_dofs(dof_handler_ref,
+                fe.component_mask(y_displacement), selected_dofs_left_vertical, boundary_ids);
+
+      Assert(selected_dofs_left_horizontal.n_elements() == selected_dofs_left_vertical.n_elements(),
+              ExcMessage ("Internal error : not the same number of vertical and horizontal DOFs on left boundary"));
+      unsigned int nb_dofs_face = selected_dofs_left_horizontal.n_elements();
+
+      IndexSet::ElementIterator dofs_left_horizontal = selected_dofs_left_horizontal.begin();
+      IndexSet::ElementIterator dofs_left_vertical = selected_dofs_left_vertical.begin();
+      horizontal_periodicity_links.clear();
+      vertical_periodicity_links.clear();
+      for(unsigned int i = 0; i < nb_dofs_face; i++)
+      {
+        const std::vector< std::pair< types::global_dof_index, double > > constraints_horizontal_dof
+                            = *constraints.get_constraint_entries(*dofs_left_horizontal);
+        const std::vector< std::pair< types::global_dof_index, double > > constraints_vertical_dof
+                            = *constraints.get_constraint_entries(*dofs_left_vertical);
+        //std::cout << "\nConstraints on dof horizontal n°" << dof_left_horizontal << " : ";
+        for(unsigned int k = 0; k < constraints_horizontal_dof.size(); k++)
+        {
+            //std::cout << "with node " << std::get<0>(constraints_horizontal_dof[k]) << " constraint is : " << std::get<1>(constraints_horizontal_dof[k]) << " ";
+            std::pair<types::global_dof_index,types::global_dof_index> link;
+            link.first = k;
+            link.second = constraints_horizontal_dof[k].first;
+            horizontal_periodicity_links.push_back(link);
+        }
+        //std::cout << "\nConstraints on dof vertical   n°" << dof_left_vertical   << " : ";
+        for(unsigned int k = 0; k < constraints_vertical_dof.size(); k++)
+        {
+            //std::cout << "with node " << std::get<0>(constraints_vertical_dof[k]) << " constraint is : " << std::get<1>(constraints_vertical_dof[k]) << " ";
+            std::pair<types::global_dof_index,types::global_dof_index> link;
+            link.first = k;
+            link.second = constraints_vertical_dof[k].first;
+            vertical_periodicity_links.push_back(link);
+        }
+        dofs_left_horizontal++;
+        dofs_left_vertical++;
+      }
+      //std::cout << "\nSize of horizontal periodicity_links is " << horizontal_periodicity_links.size() << "\n";
+  }
+
+  template <int dim>
+  void
+  Solid<dim>::print_linked_dofs (const typename DoFHandler<dim>::face_iterator &face_1, const typename DoFHandler<dim>::face_iterator &face_2)
+  {
+    static const int spacedim = DoFHandler<dim>::face_iterator::AccessorType::space_dimension;
+    if (face_1->has_children() && face_2->has_children())
+      {
+        // In the case that both faces have children, we loop over all
+        // children and apply make_periodicty_constrains recursively:
+
+        Assert(face_1->n_children() == GeometryInfo<dim>::max_children_per_face &&
+               face_2->n_children() == GeometryInfo<dim>::max_children_per_face,
+               ExcNotImplemented());
+
+        for (unsigned int i = 0; i < GeometryInfo<dim>::max_children_per_face;
+             ++i)
+          {
+            //std::cout << "\nIn this boucle";
+            print_linked_dofs (face_1->child(i), face_2->child(i));
+          }
+      }
+    else
+      {
+        // Otherwise at least one of the two faces is active. We will assume here
+        // that the two faces are active (same refinement).)
+
+        const unsigned int face_1_index = face_1->nth_active_fe_index(0);
+        const unsigned int face_2_index = face_2->nth_active_fe_index(0);
+        Assert(face_1->get_fe(face_1_index) == face_2->get_fe(face_2_index),
+               ExcMessage ("Matching periodic cells need to use the same finite element"));
+
+        const FiniteElement<dim, spacedim> &fe = face_1->get_fe(face_1_index);
+
+        const unsigned int dofs_per_face = fe.dofs_per_face;
+
+        std::vector<types::global_dof_index> dofs_1(dofs_per_face);
+        std::vector<types::global_dof_index> dofs_2(dofs_per_face);
+
+        face_1->get_dof_indices(dofs_1, face_1_index);
+        face_2->get_dof_indices(dofs_2, face_2_index);
+        std::cout << "\nDofs face 1 : ";
+        for(unsigned int k = 0; k < dofs_per_face; k++)
+            std::cout << dofs_1[k] << " ";
+        std::cout << " & Dofs face 2 : ";
+        for(unsigned int k = 0; k < dofs_per_face; k++)
+            std::cout << dofs_2[k] << " ";
+
+
+        for (unsigned int i=0; i < dofs_per_face; i++)
+            {
+              if (dofs_1[i] == numbers::invalid_dof_index ||
+                  dofs_2[i] == numbers::invalid_dof_index)
+                {
+                  /* If either of these faces have no indices, stop.  This is so
+                   * that there is no attempt to match artificial cells of
+                   * parallel distributed triangulations.
+                   *
+                   * While it seems like we ought to be able to avoid even calling
+                   * set_periodicity_constraints for artificial faces, this
+                   * situation can arise when a face that is being made periodic
+                   * is only partially touched by the local subdomain.
+                   * make_periodicity_constraints will be called recursively even
+                   * for the section of the face that is not touched by the local
+                   * subdomain.
+                   *
+                   * Until there is a better way to determine if the cells that
+                   * neighbor a face are artificial, we simply test to see if the
+                   * face does not have a valid dof initialization.
+                   */
+                  return;
+                }
+            }
+
+          std::map<unsigned int, unsigned int> cell_to_rotated_face_index;
+
+          // Build up a cell to face index for face_2:
+          for (unsigned int i = 0; i < dofs_per_face; ++i)
+            {
+              const unsigned int cell_index = fe.face_to_cell_index(i, 0, /* It doesn't really matter, just assume
+                                                                           * we're on the first face...
+                                                                           */
+                                                                    true, false, false // default orientation
+                                                                   );
+              cell_to_rotated_face_index[cell_index] = i;
+            }
+
+          // loop over all dofs on face 2 and constrain them against the ones on face 1
+          for (unsigned int i=0; i<dofs_per_face; ++i)
+                {
+                   //const unsigned int target = 0;//is_identity_constrained
+                                              //? identity_constraint_target
+                                              //: inverse_constraint_target;
+
+                  // find out whether this dof also exists on face 1
+                  // if this is true and the constraint is no identity
+                  // constraint to itself, set it to zero
+                  //bool constrained_set = false;
+                  for (unsigned int j=0; j<dofs_per_face; ++j)
+                    {
+                      if (dofs_2[i] == dofs_1[j])
+                        if (true/*!(is_identity_constrained && target==i)*/)
+                          {
+                            //constraints.add_line(dofs_2[i]);
+                            //constrained_set = true;
+                          }
+                    }
+                }
+      }
   }
 
 
@@ -3169,13 +3334,43 @@ namespace neo_hookean
 
   template <int dim>
   void
-  Solid<dim>::set_solution(BlockVector<double> const &solution)
+  Solid<dim>::set_solution(double const* const solution)
   {
+    std::cout << " S_SOL" << std::flush;
+    unsigned int i_unconstrained = 0;
+    for (unsigned int i = 0; i < dof_handler_ref.n_dofs(); ++i)
+    {
+        displacement_and_qph_accurate = false;
+        if (!constraints.is_constrained(i)){
+            solution_n[i] = solution[i_unconstrained++];
+        }
+    }
+  }
+
+  template <int dim>
+  void
+  Solid<dim>::set_lambda(double const lambda)
+  {
+      displacement_and_qph_accurate = false;
+      displacement_side_1 = lambda;
+  }
+
+  template <int dim>
+  void
+  Solid<dim>::update_periodically_constrained_dofs_and_qph()
+  {
+    unsigned int nb_periodic_constrained_dofs = horizontal_periodicity_links.size();
+    for(unsigned int i = 0; i < nb_periodic_constrained_dofs; i++)
+    {
+        solution_n[horizontal_periodicity_links[i].first] = solution_n[horizontal_periodicity_links[i].second] + displacement_side_1;
+        solution_n[vertical_periodicity_links[i].first] = solution_n[vertical_periodicity_links[i].second];
+    }
     BlockVector<double> solution_delta(dofs_per_block);
     solution_delta = 0.0;
-
-    solution_n = solution;
     update_qph_incremental(solution_delta);
+    displacement_and_qph_accurate = true;
+    time.increment();
+    output_results();
   }
 
   template <int dim>
@@ -3183,6 +3378,8 @@ namespace neo_hookean
   Solid<dim>::get_rhs_and_tangent(BlockVector<double> const* &sys_rhs,
 				  BlockSparseMatrix<double> const* &tm, unsigned int iter_value)
   {
+    if(!displacement_and_qph_accurate)
+        update_periodically_constrained_dofs_and_qph();
     tangent_matrix = 0.0;
     system_rhs = 0.0;
     assemble_system_rhs();
@@ -3221,21 +3418,13 @@ namespace neo_hookean
   void
   set_solution(double const* const solution)
   {
-    //We assume here that the constraint matrix has already been created before.
-    //This should be wise since this function is called after having computed
-    //the size of the unconstrained system, in which we assemble the constraints.
-    ConstraintMatrix const* constraints_matrix;
-    MyNeoHookean->get_constraints_matrix(constraints_matrix);
-    BlockVector<double> sol(MyNeoHookean->get_dofs_per_block());
-    std::size_t size(MyNeoHookean->get_system_size());
-    unsigned int i_unconstrained = 0;
-    for (unsigned int i = 0; i < size; ++i)
-    {
-        if (!constraints_matrix->is_constrained(i)){
-            sol[i] = solution[i_unconstrained++];
-        }
-    }
-    MyNeoHookean->set_solution(sol);
+    MyNeoHookean->set_solution(solution);
+  }
+
+    void
+  set_lambda(double const lambda)
+  {
+    MyNeoHookean->set_lambda(lambda);
   }
 
   void

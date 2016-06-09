@@ -49,10 +49,7 @@ class NeoHookean2D : public Lattice
                 return Lambda_;
             }
             
-            void SetLambda(double const& lambda)
-            {
-                Lambda_ = lambda;
-            }
+            void SetLambda(double const& lambda);
             
             virtual double E0() const;
             virtual Vector const& E1() const;
