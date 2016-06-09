@@ -35,8 +35,6 @@
 
 #include <deal.II/grid/grid_generator.h>
 #include <deal.II/grid/grid_tools.h>
-//#include "manually_grid_tools.h"
-//#include "local_grid_tools.cc"
 #include <deal.II/grid/grid_in.h>
 #include <deal.II/grid/tria.h>
 #include <deal.II/grid/tria_boundary_lib.h>
@@ -806,10 +804,6 @@ namespace neo_hookean
     void
     get_constraints_matrix(ConstraintMatrix const* &constraints_matrix);
 
-//    void
-//    get_unconstrained_rhs_and_tangent(BlockVector<double> const* &sys_rhs,
-//			BlockSparseMatrix<double> const* &tm);
-
   private:
 
     // In the private section of this class, we first forward declare a number
@@ -1107,7 +1101,7 @@ namespace neo_hookean
 			      displacement_side_1 ((1 - parameters.elongation) * parameters.delta_t / parameters.end_time)
   {
     determine_component_extractors();
-
+    std::cout << "\ndisp = " << displacement_side_1 << " " << parameters.elongation << " " << parameters.delta_t << " " << parameters.end_time;
     make_grid();
     system_setup();
     output_results();
@@ -1468,6 +1462,26 @@ namespace neo_hookean
     GridGenerator::hyper_cube(triangulation, 0.0, 1.0);
     //GridTools::scale(parameters.scale, triangulation);
 
+    // We mark the surfaces in order to apply the boundary conditions after
+    typename Triangulation<dim>::active_cell_iterator cell =
+      triangulation.begin_active(), endc = triangulation.end();
+    for (; cell != endc; ++cell)
+      for (unsigned int f = 0; f < GeometryInfo<dim>::faces_per_cell; ++f)
+	if (cell->face(f)->at_boundary())
+	  {
+	    const Point<dim> face_center = cell->face(f)->center();
+	    if (std::abs(face_center[1] - 0.0) <= 1e-6)      //Bottom
+	      cell->face(f)->set_boundary_id (0);
+	    else if (std::abs(face_center[1] - 1.0) <= 1e-6) //Top
+	      cell->face(f)->set_boundary_id (2);
+	    else if (std::abs(face_center[0] - 0.0) <= 1e-6) //Left
+	      cell->face(f)->set_boundary_id (1);
+	    else if (std::abs(face_center[0] - 1.0) <= 1e-6) //Right
+	      cell->face(f)->set_boundary_id (3);
+	    else                                             //No way
+	      cell->face(f)->set_boundary_id (4);
+	  }
+
     // We will refine the grid in some steps towards the upper boundary of
     // the domain. See step 1 for details.
     triangulation.clear_user_flags();
@@ -1495,31 +1509,12 @@ namespace neo_hookean
 
     // We refine our mesh globally, at least once, to not too have a poor
     // refinement at the bottom of our square (like two cells)
-    //triangulation.refine_global(std::max (1U, parameters.global_refinement));
+    triangulation.refine_global(std::max (1U, parameters.global_refinement));
 
     vol_reference = GridTools::volume(triangulation);
     vol_current = vol_reference;
     std::cout << "Grid:\n\t Reference volume: " << vol_reference << std::endl;
 
-    // We mark the surfaces in order to apply the boundary conditions after
-    typename Triangulation<dim>::active_cell_iterator cell =
-      triangulation.begin_active(), endc = triangulation.end();
-    for (; cell != endc; ++cell)
-      for (unsigned int f = 0; f < GeometryInfo<dim>::faces_per_cell; ++f)
-	if (cell->face(f)->at_boundary())
-	  {
-	    const Point<dim> face_center = cell->face(f)->center();
-	    if (std::abs(face_center[1] - 0.0) <= 1e-6)      //Bottom
-	      cell->face(f)->set_boundary_id (0);
-	    else if (std::abs(face_center[1] - 1.0) <= 1e-6) //Top
-	      cell->face(f)->set_boundary_id (2);
-	    else if (std::abs(face_center[0] - 0.0) <= 1e-6) //Left
-	      cell->face(f)->set_boundary_id (1);
-	    else if (std::abs(face_center[0] - 1.0) <= 1e-6) //Right
-	      cell->face(f)->set_boundary_id (3);
-	    else                                             //No way
-	      cell->face(f)->set_boundary_id (4);
-	  }
   }
 
 //  template <int dim>
@@ -1722,8 +1717,7 @@ namespace neo_hookean
     DoFTools::count_dofs_per_block(dof_handler_ref, dofs_per_block,
 				   block_component);
 
-          //Bastien : is this really useful?
-      std::vector<GridTools::PeriodicFacePair<typename Triangulation<dim>::cell_iterator> >
+      std::vector<GridTools::PeriodicFacePair<typename DoFHandler<dim>::cell_iterator> >
       periodicity_vector;
 
       const unsigned int direction = 0;
@@ -1735,10 +1729,10 @@ namespace neo_hookean
       Tensor<1, dim> offset;
       //offset[0]=0.1;
 
-      GridTools::collect_periodic_faces(triangulation, 1, 3, direction,
+      GridTools::collect_periodic_faces(dof_handler_ref, 1, 3, direction,
                                         periodicity_vector, offset, rotation_matrix);
 
-      std::cout << "\nSize of periodicity_vector 1 : " << periodicity_vector.size();
+      //std::cout << "\nSize of periodicity_vector in system_setup : " << periodicity_vector.size();
 
 
     // Setup the sparsity pattern and tangent matrix
@@ -1780,6 +1774,17 @@ namespace neo_hookean
 	    coupling[ii][jj] = DoFTools::always;
 
       DoFTools::make_hanging_node_constraints (dof_handler_ref, constraints);
+
+      const FEValuesExtractors::Scalar x_displacement(0);
+      const FEValuesExtractors::Scalar y_displacement(1);
+
+      std::vector<unsigned int> first_vector_components;
+      first_vector_components.push_back(0);
+
+      DoFTools::make_periodicity_constraints<DoFHandler<dim> >
+      (periodicity_vector, constraints, fe.component_mask(x_displacement), first_vector_components);
+      DoFTools::make_periodicity_constraints<DoFHandler<dim> >
+      (periodicity_vector, constraints, fe.component_mask(y_displacement), first_vector_components);
 
 //      const FEValuesExtractors::Scalar x_displacement(0);
 //      const FEValuesExtractors::Scalar y_displacement(1);
@@ -2213,7 +2218,7 @@ namespace neo_hookean
       error_res(i) = (constraints.is_constrained(i)) ? 0.0 : system_rhs(i);
       nb_unconstrained += (constraints.is_constrained(i)) ? 0 : 1;
     }
-    std::cout << "\n\n_________Nb unconstrained : " << nb_unconstrained << "_________________\n\n";
+    //std::cout << "\n\n_________Nb unconstrained : " << nb_unconstrained << "_________________\n\n";
     error_residual.norm = error_res.l2_norm();
     error_residual.u = error_res.block(u_dof).l2_norm();
     error_residual.p = error_res.block(p_dof).l2_norm();
@@ -2680,6 +2685,8 @@ namespace neo_hookean
 
     DoFTools::make_hanging_node_constraints (dof_handler_ref, constraints);
 
+    const bool apply_dirichlet_bc = (it_nr == 0);
+
 // For setting up the constraints, we first store the periodicity
 // information in an auxiliary object of type
 // <code>std::vector@<GridTools::PeriodicFacePair<typename
@@ -2695,12 +2702,8 @@ namespace neo_hookean
       rotation_matrix[0][0]=1.;
       rotation_matrix[1][1]=1.;
 
-      Tensor<1, dim> offset;
-      offset[0]=0.1;
-
       GridTools::collect_periodic_faces(dof_handler_ref, 1, 3, direction,
-                                        periodicity_vector, offset, rotation_matrix);
-      std::cout << "\nSize of periodicity_vector : " << periodicity_vector.size();
+                                        periodicity_vector, Tensor<1, dim>(), rotation_matrix);
 
     // In the following, we will have to tell the function interpolation
     // boundary values which components of the solution vector should be
@@ -2719,39 +2722,41 @@ namespace neo_hookean
     // After setting up all the information in periodicity_vector all we have
     // to do is to tell make_periodicity_constraints to create the desired
     // constraints.
-     //DoFTools::make_periodicity_constraints<DoFHandler<dim> >
-     // (periodicity_vector, constraints, fe.component_mask(x_displacement), first_vector_components);
+     DoFTools::make_periodicity_constraints<DoFHandler<dim> >
+      (periodicity_vector, constraints, fe.component_mask(x_displacement), first_vector_components);
      DoFTools::make_periodicity_constraints<DoFHandler<dim> >
       (periodicity_vector, constraints, fe.component_mask(y_displacement), first_vector_components);
 
-//      IndexSet selected_dofs;
-//      std::set< types::boundary_id > boundary_ids= std::set<types::boundary_id>();
-//      boundary_ids.insert(1);
-//      boundary_ids.insert(3);
-//      DoFTools::extract_boundary_dofs(dof_handler_ref,
-//                fe.component_mask(y_displacement), selected_dofs, boundary_ids);
-//      ConstraintMatrix::size_type dof_left;
-//      ConstraintMatrix::size_type dof_right;
-//      unsigned int nb_dofs_face = selected_dofs.n_elements()/2;
-//      //std::cout << "\nNombre de dofs per face : " << nb_dofs_face;
-//      //selected_dofs.print(std::cout);
-//      IndexSet::ElementIterator dofs_left = selected_dofs.begin();
-//      IndexSet::ElementIterator dofs_right = selected_dofs.begin();
-//      for(unsigned int i = 0; i < nb_dofs_face; i++)
-//      {
-//          dofs_right++;
-//      }
-//      for(unsigned int i = 0; i < nb_dofs_face; i++)
-//      {
-//          dof_left = *dofs_left;
-//          dof_right = *dofs_right;
-//          constraints.add_line(dof_right);
-//          constraints.add_entry(dof_right,dof_left,1.0);
-//          dofs_right++;
-//          dofs_left++;
-//      }
+     // This block enforce a zero horizontal displacement at the bottom-right point
+     {
+        IndexSet selected_dofs_bottom;
+        std::set< types::boundary_id > boundary_ids_bottom= std::set<types::boundary_id>();
+        boundary_ids_bottom.insert(0);
+        DoFTools::extract_boundary_dofs(dof_handler_ref,
+                  fe.component_mask(x_displacement), selected_dofs_bottom, boundary_ids_bottom);
+        unsigned int nb_dofs_face_bottom = selected_dofs_bottom.n_elements()-1;
+        IndexSet::ElementIterator dofs_bottom = selected_dofs_bottom.begin();
+        for(unsigned int i = 0; i < nb_dofs_face_bottom; i++)
+            dofs_bottom++;
+        constraints.add_line(*dofs_bottom);
+     }
 
-    const bool apply_dirichlet_bc = (it_nr == 0);
+      // This block add to the periodicity constraint the little compression we want
+      {
+        IndexSet selected_dofs_left;
+        std::set< types::boundary_id > boundary_ids_left= std::set<types::boundary_id>();
+        boundary_ids_left.insert(1);
+        DoFTools::extract_boundary_dofs(dof_handler_ref,
+                  fe.component_mask(x_displacement), selected_dofs_left, boundary_ids_left);
+        unsigned int nb_dofs_face_left = selected_dofs_left.n_elements();
+        IndexSet::ElementIterator dofs_left = selected_dofs_left.begin();
+        for(unsigned int i = 0; i < nb_dofs_face_left; i++)
+        {
+            //constraints.add_line(*dofs_left );
+            constraints.set_inhomogeneity(*dofs_left, apply_dirichlet_bc ? displacement_side_1 : 0.0);
+            dofs_left++;
+        }
+      }
 
     {
       const int boundary_id = 0;
@@ -2759,74 +2764,72 @@ namespace neo_hookean
       VectorTools::interpolate_boundary_values(dof_handler_ref,
 					       boundary_id,
 					       ZeroFunction<dim>(n_components),
-					       constraints/*,
-					       fe.component_mask(y_displacement)*/);
+					       constraints,
+					       fe.component_mask(y_displacement));
     }
     {
-      /*const int boundary_id = 1;
+        {
+          /*const int boundary_id = 1;
 
-      if(apply_dirichlet_bc)
-	VectorTools::interpolate_boundary_values(dof_handler_ref,
-						 boundary_id,
-						 ConstantFunction<dim>(displacement_side_1,n_components),
-						 constraints,
-						 fe.component_mask(x_displacement));
-      else
-	VectorTools::interpolate_boundary_values(dof_handler_ref,
-						 boundary_id,
-						 ZeroFunction<dim>(n_components),
-						 constraints,
-						 fe.component_mask(x_displacement));*/
+          if(apply_dirichlet_bc)
+            VectorTools::interpolate_boundary_values(dof_handler_ref,
+                                                     boundary_id,
+                                                     ConstantFunction<dim>(displacement_side_1,n_components),
+                                                     constraints,
+                                                     fe.component_mask(x_displacement));
+          else
+            VectorTools::interpolate_boundary_values(dof_handler_ref,
+                                                     boundary_id,
+                                                     ZeroFunction<dim>(n_components),
+                                                     constraints,
+                                                     fe.component_mask(x_displacement));*/
 
-      /*VectorTools::interpolate_boundary_values(dof_handler_ref,
-					       boundary_id,
-					       ZeroFunction<dim>(n_components),
-					       constraints,
-					       fe.component_mask(y_displacement));*/
-    }
+          /*VectorTools::interpolate_boundary_values(dof_handler_ref,
+                                                   boundary_id,
+                                                   ZeroFunction<dim>(n_components),
+                                                   constraints,
+                                                   fe.component_mask(y_displacement));*/
+        }
 
-    {
-      /*const int boundary_id = 3;
+        {
+          /*const int boundary_id = 3;
 
-      VectorTools::interpolate_boundary_values(dof_handler_ref,
-					       boundary_id,
-					       ZeroFunction<dim>(n_components),
-					       constraints,
-					       fe.component_mask(x_displacement));*/
+          VectorTools::interpolate_boundary_values(dof_handler_ref,
+                                                   boundary_id,
+                                                   ZeroFunction<dim>(n_components),
+                                                   constraints,
+                                                   fe.component_mask(x_displacement));*/
 
-      /*VectorTools::interpolate_boundary_values(dof_handler_ref,
-					       boundary_id,
-					       ZeroFunction<dim>(n_components),
-					       constraints,
-					       fe.component_mask(y_displacement));*/
-    }
+          /*VectorTools::interpolate_boundary_values(dof_handler_ref,
+                                                   boundary_id,
+                                                   ZeroFunction<dim>(n_components),
+                                                   constraints,
+                                                   fe.component_mask(y_displacement));*/
+        }
 
-    {
-      const int boundary_id = 2;
+        {
+          /*const int boundary_id = 2;
 
-      if(apply_dirichlet_bc)
-	VectorTools::interpolate_boundary_values(dof_handler_ref,
-						 boundary_id,
-						 ConstantFunction<dim>(displacement_side_1,n_components),
-						 constraints,
-						 fe.component_mask(x_displacement));
-      else
-	VectorTools::interpolate_boundary_values(dof_handler_ref,
-						 boundary_id,
-						 ZeroFunction<dim>(n_components),
-						 constraints,
-						 fe.component_mask(x_displacement));
+          if(apply_dirichlet_bc)
+            VectorTools::interpolate_boundary_values(dof_handler_ref,
+                                                     boundary_id,
+                                                     ConstantFunction<dim>(displacement_side_1,n_components),
+                                                     constraints,
+                                                     fe.component_mask(x_displacement));
+          else
+            VectorTools::interpolate_boundary_values(dof_handler_ref,
+                                                     boundary_id,
+                                                     ZeroFunction<dim>(n_components),
+                                                     constraints,
+                                                     fe.component_mask(x_displacement));*/
 
-      /*VectorTools::interpolate_boundary_values(dof_handler_ref,
-					       boundary_id,
-					       ZeroFunction<dim>(n_components),
-					       constraints,
-					       fe.component_mask(y_displacement));*/
-    }
-
-//    std::cout << "\n\nConstraints matrix : \n\n";
-//    constraints.print(std::cout);
-//    std::cout << "\n\n";
+          /*VectorTools::interpolate_boundary_values(dof_handler_ref,
+                                                   boundary_id,
+                                                   ZeroFunction<dim>(n_components),
+                                                   constraints,
+                                                   fe.component_mask(y_displacement));*/
+        }
+    } //Useless Dirichlet BC
     constraints.close();
   }
 
@@ -3278,7 +3281,8 @@ namespace neo_hookean
         }
     unconstrained_size = i_unconstrained;
 
-    {//This block is just to save the tangent matrix to be sure our method is good.
+    //This block is just to save the tangent matrix to be sure our method is good.
+    {
      //Will be removed later.
 	FullMatrix<double> tangent_matrix_f(size);
         for (BlockSparseMatrix<double>::const_iterator itr = tangent->begin();
@@ -3341,6 +3345,40 @@ namespace neo_hookean
             if (!constraints_matrix->is_constrained(itr->column()))
             {
                 tm[unconstrained_size*(indices_unconstrained[itr->row()]) + indices_unconstrained[itr->column()]] = itr->value();
+            }
+        }
+    }
+  }
+
+  void
+  get_unconstrained_E1DLoad(double* const sys_E1DLoad, unsigned int iter_value)
+  {
+    BlockVector<double> const* rhs;
+    BlockSparseMatrix<double> const* tangent;
+    MyNeoHookean->get_rhs_and_tangent(rhs,tangent,iter_value);
+    ConstraintMatrix const* constraints_matrix;
+    MyNeoHookean->get_constraints_matrix(constraints_matrix);
+    std::size_t size(MyNeoHookean->get_system_size());
+    unsigned int unconstrained_size = 0;
+
+    Vector<int> indices_unconstrained(size);
+
+    unsigned int i_unconstrained = 0;
+    for (unsigned int i = 0; i < size; ++i)
+        if (!constraints_matrix->is_constrained(i)){
+          //sys_rhs[i_unconstrained] = (*rhs)[i];
+          indices_unconstrained[i] = i_unconstrained++;
+        }
+    unconstrained_size = i_unconstrained;
+
+    for (BlockSparseMatrix<double>::const_iterator itr = tangent->begin();
+	 itr != tangent->end(); ++itr)
+    {
+        if (!constraints_matrix->is_constrained(itr->row()))
+        {
+            if (constraints_matrix->is_constrained(itr->column()))
+            {
+                sys_E1DLoad[indices_unconstrained[itr->row()]] += itr->value();
             }
         }
     }

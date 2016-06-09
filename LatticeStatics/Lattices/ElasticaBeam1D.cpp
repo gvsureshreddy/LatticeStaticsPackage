@@ -90,13 +90,13 @@ double ElasticaBeam1D::E0() const
 Vector const& ElasticaBeam1D::E1() const
 {
   elastica_beam::get_unconstrained_rhs_and_tangent(&(RHS_[0]),&(Stiff_[0][0]),0);
-  return RHS_;
+  return -RHS_;
 }
 
 Vector const& ElasticaBeam1D::E1DLoad() const
 {
   elastica_beam::get_E1DLoad(&(E1DLoad_[0]));
-  return E1DLoad_;
+  return -E1DLoad_;
 }
 
 Matrix const& ElasticaBeam1D::E2() const

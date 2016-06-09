@@ -12,6 +12,7 @@ namespace neo_hookean
   void set_solution(double const* const solution);
   void get_rhs_and_tangent(double* const rhs, double* const tm, unsigned int iter_value);
   void get_unconstrained_rhs_and_tangent(double* const rhs, double* const tm, unsigned int iter_value);
+  void get_unconstrained_E1DLoad(double* const E1DLoad, unsigned int iter_value);
   double get_energy();
 }
 
@@ -78,11 +79,12 @@ double NeoHookean2D::E0() const
 Vector const& NeoHookean2D::E1() const
 {
   neo_hookean::get_unconstrained_rhs_and_tangent(&(RHS_[0]),&(Stiff_[0][0]),0);
-  return RHS_;
+  return -RHS_;
 }
 
 Vector const& NeoHookean2D::E1DLoad() const
 {
+  neo_hookean::get_unconstrained_E1DLoad(&(E1DLoad_[0]),0);
   return E1DLoad_;
 }
 
