@@ -73,6 +73,8 @@ class NeoHookean2D : public Lattice
             virtual void Print(ostream& out, PrintDetail const& flag,
                     PrintPathSolutionType const& SolType = RegularPt);
             
+            virtual void PrintPath(ostream& out, ostream& pathout, int const& width);
+            
             friend ostream& operator<<(ostream& out, NeoHookean2D& A);
             
             // ignore these

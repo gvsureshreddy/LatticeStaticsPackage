@@ -773,7 +773,6 @@ namespace elastica_beam
     const bool                       print_RHS = false;
     const bool                       print_steps_computation = true;
     const bool                       apply_non_zero_displacement_beginning = false;
-    //This is just to know the size of the tangent matrix "by hand", for debugging:
 
     // Then define a number of variables to store norms and update norms and
     // normalisation factors.

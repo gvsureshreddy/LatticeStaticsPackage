@@ -792,7 +792,7 @@ namespace neo_hookean
     set_solution(double const* const solution);
 
     void
-    set_lambda(double const lamnda);
+    set_lambda(double const lambda);
 
     BlockVector<double> const&
     get_solution()
@@ -809,6 +809,9 @@ namespace neo_hookean
 
     void
     get_constraints_matrix(ConstraintMatrix const* &constraints_matrix);
+
+    void
+    output_results_for_BFB(double const lambda);
 
   private:
 
@@ -950,7 +953,7 @@ namespace neo_hookean
     get_total_solution(const BlockVector<double> &solution_delta) const;
 
     void
-    output_results() const;
+    output_results(double const loading, bool const is_BFB_call) const;
 
     // Finally, some member variables that describe the current state: A
     // collection of the parameters used to describe the problem setup...
@@ -1029,6 +1032,7 @@ namespace neo_hookean
     const bool                       print_RHS = false;
     //This is just to know the size of the tangent matrix "by hand", for debugging:
     const int                        dim_matrix = 22;
+    const bool                       print_steps_computation = false;
 
     // Then define a number of variables to store norms and update norms and
     // normalisation factors.
@@ -1119,7 +1123,7 @@ namespace neo_hookean
     determine_component_extractors();
     make_grid();
     system_setup();
-    output_results();
+    output_results(0.0,false);
     time.increment();
   }
 
@@ -1162,7 +1166,7 @@ namespace neo_hookean
 
 	// ...and plot the results before moving on happily to the next time
 	// step:
-	output_results();
+	output_results(0.0,false);
 	time.increment();
       }
   }
@@ -1883,7 +1887,7 @@ namespace neo_hookean
         {
             //std::cout << "with node " << std::get<0>(constraints_horizontal_dof[k]) << " constraint is : " << std::get<1>(constraints_horizontal_dof[k]) << " ";
             std::pair<types::global_dof_index,types::global_dof_index> link;
-            link.first = k;
+            link.first = *dofs_left_horizontal;
             link.second = constraints_horizontal_dof[k].first;
             horizontal_periodicity_links.push_back(link);
         }
@@ -1892,7 +1896,7 @@ namespace neo_hookean
         {
             //std::cout << "with node " << std::get<0>(constraints_vertical_dof[k]) << " constraint is : " << std::get<1>(constraints_vertical_dof[k]) << " ";
             std::pair<types::global_dof_index,types::global_dof_index> link;
-            link.first = k;
+            link.first = *dofs_left_vertical;
             link.second = constraints_vertical_dof[k].first;
             vertical_periodicity_links.push_back(link);
         }
@@ -2052,7 +2056,8 @@ namespace neo_hookean
   template <int dim>
   void Solid<dim>::setup_qph()
   {
-    std::cout << "    Setting up quadrature point data..." << std::endl;
+    if(print_steps_computation)
+        std::cout << "    Setting up quadrature point data..." << std::endl;
 
     {
       triangulation.clear_user_data();
@@ -2105,7 +2110,8 @@ namespace neo_hookean
   void Solid<dim>::update_qph_incremental(const BlockVector<double> &solution_delta)
   {
     timer.enter_subsection("Update QPH data");
-    std::cout << " UQPH " << std::flush;
+    if(print_steps_computation)
+        std::cout << " UQPH " << std::flush;
 
     const BlockVector<double> solution_total(get_total_solution(solution_delta));
 
@@ -2435,7 +2441,8 @@ namespace neo_hookean
   void Solid<dim>::assemble_system_tangent()
   {
     timer.enter_subsection("Assemble tangent matrix");
-    std::cout << " ASM_K" << std::flush;
+    if(print_steps_computation)
+        std::cout << " ASM_K" << std::flush;
 
     const UpdateFlags uf_cell(update_values    |
 			      update_gradients |
@@ -2661,7 +2668,8 @@ namespace neo_hookean
   void Solid<dim>::assemble_system_rhs()
   {
     timer.enter_subsection("Assemble system right-hand side");
-    std::cout << " ASM_R" << std::flush;
+    if(print_steps_computation)
+        std::cout << " ASM_R" << std::flush;
 
     const UpdateFlags uf_cell(update_values |
 			      update_gradients |
@@ -2837,7 +2845,8 @@ namespace neo_hookean
   template <int dim>
   void Solid<dim>::make_constraints(const int &it_nr)
   {
-    std::cout << " CST" << std::flush;
+    if(print_steps_computation)
+        std::cout << " CST" << std::flush;
 
     // Since the constraints are different at different Newton iterations, we
     // need to clear the constraints matrix and completely rebuild
@@ -3006,7 +3015,8 @@ namespace neo_hookean
     {
 
       timer.enter_subsection("Linear solver");
-      std::cout << " SLV" << std::flush;
+      if(print_steps_computation)
+        std::cout << " SLV" << std::flush;
 
 
       if(print_tangent_matrix)
@@ -3172,7 +3182,8 @@ namespace neo_hookean
     constraints.distribute(newton_update);
 
     timer.enter_subsection("Linear solver postprocessing");
-    std::cout << " PP" << std::flush;
+    if(print_steps_computation)
+        std::cout << " PP" << std::flush;
 
 
     timer.leave_subsection();
@@ -3184,7 +3195,7 @@ namespace neo_hookean
   // Here we present how the results are written to file to be viewed
   // using ParaView or Visit.
   template <int dim>
-  void Solid<dim>::output_results() const
+  void Solid<dim>::output_results(double const loading, bool const is_BFB_call) const
   {
     DataOut<dim> data_out;
     std::vector<DataComponentInterpretation::DataComponentInterpretation>
@@ -3227,7 +3238,10 @@ namespace neo_hookean
 
 
     std::ostringstream filename;
-    filename << "Results/timestep-" << time.get_timestep() << ".vtk";
+    if(is_BFB_call)
+        filename << "Results/lambda=" << loading << ".vtk";
+    else
+        filename << "Results/timestep-" << time.get_timestep() << ".vtk";
 
     std::ofstream output(filename.str().c_str());
     data_out.write_vtk(output);
@@ -3336,7 +3350,8 @@ namespace neo_hookean
   void
   Solid<dim>::set_solution(double const* const solution)
   {
-    std::cout << " S_SOL" << std::flush;
+    if(print_steps_computation)
+        std::cout << " S_SOL" << std::flush;
     unsigned int i_unconstrained = 0;
     for (unsigned int i = 0; i < dof_handler_ref.n_dofs(); ++i)
     {
@@ -3370,7 +3385,6 @@ namespace neo_hookean
     update_qph_incremental(solution_delta);
     displacement_and_qph_accurate = true;
     time.increment();
-    output_results();
   }
 
   template <int dim>
@@ -3396,6 +3410,13 @@ namespace neo_hookean
   Solid<dim>::get_constraints_matrix(ConstraintMatrix const* &constraints_matrix)
   {
     constraints_matrix = &constraints;
+  }
+
+  template <int dim>
+  void
+  Solid<dim>::output_results_for_BFB(const double lambda)
+  {
+    output_results(lambda, true);;
   }
 
 
@@ -3465,7 +3486,7 @@ namespace neo_hookean
     unsigned int i_unconstrained = 0;
     for (unsigned int i = 0; i < size; ++i)
         if (!constraints_matrix->is_constrained(i)){
-          sys_rhs[i_unconstrained] = (*rhs)[i];
+          sys_rhs[i_unconstrained] = -(*rhs)[i];
           indices_unconstrained[i] = i_unconstrained++;
         }
     unconstrained_size = i_unconstrained;
@@ -3548,7 +3569,6 @@ namespace neo_hookean
     ConstraintMatrix const* constraints_matrix;
     MyNeoHookean->get_constraints_matrix(constraints_matrix);
     std::size_t size(MyNeoHookean->get_system_size());
-    unsigned int unconstrained_size = 0;
 
     Vector<int> indices_unconstrained(size);
 
@@ -3558,7 +3578,6 @@ namespace neo_hookean
           //sys_rhs[i_unconstrained] = (*rhs)[i];
           indices_unconstrained[i] = i_unconstrained++;
         }
-    unconstrained_size = i_unconstrained;
 
     for (BlockSparseMatrix<double>::const_iterator itr = tangent->begin();
 	 itr != tangent->end(); ++itr)
@@ -3586,6 +3605,11 @@ namespace neo_hookean
   unsigned int get_unconstrained_system_size()
   {
     return MyNeoHookean->get_unconstrained_system_size();
+  }
+
+  void output_results_BFB(double const lambda)
+  {
+      MyNeoHookean->output_results_for_BFB(lambda);
   }
 
   void run()
