@@ -128,6 +128,7 @@ namespace neo_hookean
       double       scale;
       double       p_p0;
       double       elongation;
+      unsigned int dof_to_change;
 
       static void
       declare_parameters(ParameterHandler &prm);
@@ -140,11 +141,11 @@ namespace neo_hookean
     {
       prm.enter_subsection("Geometry");
       {
-	prm.declare_entry("Global refinement", "0",
+	prm.declare_entry("Global refinement", "1",
 			  Patterns::Integer(0),
 			  "Global refinement level");
 
-	prm.declare_entry("Local refinement cycles", "2",
+	prm.declare_entry("Local refinement cycles", "0",
 			  Patterns::Integer(0),
 			  "Local refinement cycles");
 
@@ -159,6 +160,10 @@ namespace neo_hookean
 	prm.declare_entry("Elongation", "0.99",
 			  Patterns::Double(0.0),
 			  "Elongation");
+
+        prm.declare_entry("DOF to change", "0",
+			  Patterns::Integer(0),
+			  "DOF to change");
       }
       prm.leave_subsection();
     }
@@ -172,6 +177,7 @@ namespace neo_hookean
 	scale = prm.get_double("Grid scale");
 	p_p0 = prm.get_double("Pressure ratio p/p0");
 	elongation = prm.get_double("Elongation");
+        dof_to_change = prm.get_integer("DOF to change");
       }
       prm.leave_subsection();
     }
@@ -524,7 +530,7 @@ namespace neo_hookean
       det_F = determinant(F);
       p = p_in;
 
-      Assert(det_F > 0, ExcInternalError());
+      //Assert(det_F > 0, ExcInternalError());
     }
 
     // The next few functions return various data that we choose to store with
@@ -1528,7 +1534,7 @@ namespace neo_hookean
 
     // We refine our mesh globally, at least once, to not too have a poor
     // refinement at the bottom of our square (like two cells)
-    triangulation.refine_global(std::max (1U, parameters.global_refinement));
+    triangulation.refine_global(std::max (0U, parameters.global_refinement));
 
     vol_reference = GridTools::volume(triangulation);
     vol_current = vol_reference;
@@ -1823,6 +1829,8 @@ namespace neo_hookean
       {
 	solution_n(i) = parameters.mu_0 / 2.0;
       }
+
+    //solution_n(parameters.dof_to_change) = 0.1;
 
     // ...and finally set up the quadrature point history:
     setup_qph();
@@ -3227,19 +3235,26 @@ namespace neo_hookean
     data_out.build_patches(q_mapping, degree);
 
     std::string strPath = "Results";
-    int systemCmd = 0;
+    int systemCmdmkdir = 0;
+    int systemCmdrm = 0;
     if ( access( strPath.c_str(), 0 ) == -1 )
       {
-	systemCmd = system("mkdir \"Results\"");
+	systemCmdmkdir = system("mkdir \"Results\"");
       }
-    if(systemCmd != 0)
-      std::cerr << std::endl << "Warning : problem while trying to create "
-		<< "Results directory, using mkdir command" << std::endl;
+    else if(time.get_timestep()==1 && is_BFB_call)
+    {
+        systemCmdrm = system("rm -r \"Results/Number-\"* && rm -r \"Results/timestep-0.vtk\"");
+    }
+    if(systemCmdmkdir != 0 || systemCmdrm !=0)
+      std::cerr << std::endl << "Warning : problem while trying to create or empty"
+		<< "Results directory, using mkdir or rm command. Maybe the folder was already empty." << std::endl;
 
 
     std::ostringstream filename;
     if(is_BFB_call)
-        filename << "Results/lambda=" << loading << ".vtk";
+    {
+        filename << "Results/Number-" << time.get_timestep() << /*"_lambda=" << loading <<*/ ".vtk";
+    }
     else
         filename << "Results/timestep-" << time.get_timestep() << ".vtk";
 
@@ -3384,7 +3399,6 @@ namespace neo_hookean
     solution_delta = 0.0;
     update_qph_incremental(solution_delta);
     displacement_and_qph_accurate = true;
-    time.increment();
   }
 
   template <int dim>
@@ -3416,7 +3430,8 @@ namespace neo_hookean
   void
   Solid<dim>::output_results_for_BFB(const double lambda)
   {
-    output_results(lambda, true);;
+    output_results(lambda, true);
+    time.increment();
   }
 
 
@@ -3632,7 +3647,7 @@ int main ()
   try
     {
       Solid<2> solid_2d("parameters.prm");
-      solid_2d.run();
+      //solid_2d.run();
     }
   catch (std::exception &exc)
     {

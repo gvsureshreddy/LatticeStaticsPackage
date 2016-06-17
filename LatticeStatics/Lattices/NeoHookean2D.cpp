@@ -123,6 +123,7 @@ void NeoHookean2D::Print(ostream& out, PrintDetail const& flag,
     Vector str(DOFS_);
     Vector TestFunctVals(NumTestFunctions());
     W = out.width();
+    W = 16;
     out.width(0);
     if (Echo_)
     {
@@ -195,5 +196,7 @@ ostream& operator<<(ostream& out, NeoHookean2D& A)
 
 void NeoHookean2D::PrintPath(ostream& out, ostream& pathout, int const& width)
 {
-    pathout << setw(width) << neo_hookean::NoNegTestFunctions << setw(width) << Lambda_ /*<< " " << setw(width) << DOF_ */<< "\n";
+    Vector TestFunctVals(NumTestFunctions());
+    TestFunctions(TestFunctVals, LHS);
+    pathout << setw(width) << neo_hookean::NoNegTestFunctions << setw(width) << Lambda_ << " " << setw(width) << TestFunctVals /*<< " " << setw(width) << DOF_ */<< "\n";
 }
