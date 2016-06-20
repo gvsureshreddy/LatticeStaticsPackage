@@ -9,17 +9,24 @@
 class NeoHookean2D : public Lattice
 {
     private:
-        mutable int DOFS_;
+        mutable int DOFS_; // Number of DOFs in BFB
+        mutable int DOFS_D_; // Number of DOFs in deal.II
         
-        mutable Vector DOF_;
+        mutable Vector DOF_; // DOFs in BFB
+        mutable Vector DOF_D_; // DOFs in deal.II
         mutable Vector RHS_;
         mutable Matrix Stiff_;
         mutable Vector E1DLoad_;
         mutable double Lambda_;
         
+        mutable Matrix Jacobian_; // d(DOF_D)/d(DOF_)
+        mutable Matrix FJacobian_; // d(DOF_D)/d(DOF_+1) //Bastien : what's that?
+        mutable Matrix DispJacobian_; // d(DOF_D)/d(U) //Bastien : what's that?
+        int** Map_ ; // Represents the sparse 3D array d2(DOF_F)/d(DOF_)2 //Bastien : I don't like the type
+        int** FMap_ ; // Represents the sparse 3D array d2(DOF_F)/d(DOF_+1)2 //Bastien : I don't like the type
+        
         int Width_;
-        std::size_t system_size_;
-        unsigned int unconstrained_system_size_;
+        //std::size_t system_size_;
         
         int Caching_;
         static const int cachesize = 4;

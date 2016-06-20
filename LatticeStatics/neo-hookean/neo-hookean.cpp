@@ -795,7 +795,7 @@ namespace neo_hookean
     }
 
     void
-    set_solution(double const* const solution);
+    set_solution(double const* const solution, double* const solution_deal);
 
     void
     set_lambda(double const lambda);
@@ -959,7 +959,7 @@ namespace neo_hookean
     get_total_solution(const BlockVector<double> &solution_delta) const;
 
     void
-    output_results(double const loading, bool const is_BFB_call) const;
+    output_results(/*double const loading, */bool const is_BFB_call) const;
 
     // Finally, some member variables that describe the current state: A
     // collection of the parameters used to describe the problem setup...
@@ -987,7 +987,9 @@ namespace neo_hookean
     // solution vectors:
     const unsigned int               degree;
     const FESystem<dim>              fe;
+    const FESystem<dim>              fe_only_u;
     DoFHandler<dim>                  dof_handler_ref;
+    DoFHandler<dim>                  dof_handler_only_u;
     const unsigned int               dofs_per_cell;
     const FEValuesExtractors::Vector u_fe;
     const FEValuesExtractors::Scalar p_fe;
@@ -1114,7 +1116,9 @@ namespace neo_hookean
     // convergence characteristics nonetheless.
     fe(FE_Q<dim>(parameters.poly_degree), dim, // displacement
        FE_DGP<dim>(parameters.poly_degree-1),1), //pressure
+    fe_only_u(FE_Q<dim>(parameters.poly_degree), dim), //displacement
     dof_handler_ref(triangulation),
+    dof_handler_only_u(triangulation),
     dofs_per_cell (fe.dofs_per_cell),
     u_fe(first_u_component),
     p_fe(p_component),
@@ -1129,7 +1133,7 @@ namespace neo_hookean
     determine_component_extractors();
     make_grid();
     system_setup();
-    output_results(0.0,false);
+    output_results(/*0.0,*/false);
     time.increment();
   }
 
@@ -1138,6 +1142,7 @@ namespace neo_hookean
   Solid<dim>::~Solid()
   {
     dof_handler_ref.clear();
+    dof_handler_only_u.clear();
   }
 
 
@@ -1172,7 +1177,7 @@ namespace neo_hookean
 
 	// ...and plot the results before moving on happily to the next time
 	// step:
-	output_results(0.0,false);
+	output_results(/*0.0,*/false);
 	time.increment();
       }
   }
@@ -1542,184 +1547,6 @@ namespace neo_hookean
 
   }
 
-//  template <int dim>
-//  void Solid<dim>::collect_periodic_faces_local
-//  (const DoFHandler<2>                        &mesh,
-//   const types::boundary_id               b_id1,
-//   const types::boundary_id               b_id2,
-//   const int                              direction,
-//   std::vector<GridTools::PeriodicFacePair<typename DoFHandler<dim>::cell_iterator> > &matched_pairs,
-//   const Tensor<1,typename DoFHandler<dim>::space_dimension> &offset,
-//   const FullMatrix<double>              &matrix)
-//  {
-//    static const int space_dim = typename DoFHandler<dim>::space_dimension;
-//    (void)space_dim;
-//    Assert (0<=direction && direction<space_dim,
-//            ExcIndexRange (direction, 0, space_dim));
-//
-//    // Loop over all cells on the highest level and collect all boundary
-//    // faces belonging to b_id1 and b_id2:
-//
-//    std::set<std::pair<typename DoFHandler<dim>::cell_iterator, unsigned int> > pairs1;
-//    std::set<std::pair<typename DoFHandler<dim>::cell_iterator, unsigned int> > pairs2;
-//
-//    //for (typename DoFHandler<dim>::cell_iterator cell = mesh.begin(0);
-//    //     cell != mesh.end(0); ++cell)
-//
-//    typename DoFHandler<dim>::active_cell_iterator cell =
-//      mesh.begin_active(), endc = mesh.end();
-//    for (; cell != endc; ++cell)
-//      {
-//        //std::cout << "\nIn the big loop" ;
-//        for (unsigned int i = 0; i < GeometryInfo<dim>::faces_per_cell; ++i)
-//          {
-//            //std::cout << "\n     In the loop, i = " << i ;
-//            const typename DoFHandler<dim>::face_iterator face = cell->face(i);
-//            if (face->at_boundary() && face->boundary_id() == b_id1)
-//              {
-//                const std::pair<typename DoFHandler<dim>::cell_iterator, unsigned int> pair1
-//                  = std::make_pair(cell, i);
-//                pairs1.insert(pair1);
-//              }
-//
-//            if (face->at_boundary() && face->boundary_id() == b_id2)
-//              {
-//                const std::pair<typename DoFHandler<dim>::cell_iterator, unsigned int> pair2
-//                  = std::make_pair(cell, i);
-//                pairs2.insert(pair2);
-//              }
-//          }
-//      }
-//
-//    Assert (pairs1.size() == pairs2.size(),
-//            ExcMessage ("Unmatched faces on periodic boundaries"));
-//
-//    std::cout << "\nSize pairs : " << pairs1.size() << " & " << pairs2.size();
-//
-//    // and call match_periodic_face_pairs_local that does the actual matching:
-//    match_periodic_face_pairs_local(pairs1, pairs2, direction, matched_pairs, offset,matrix);
-//  }
-
-//  template<typename MeshType, int dim>
-//  void Solid<dim>::collect_periodic_faces
-//  (const MeshType                        &mesh,
-//   const types::boundary_id               b_id1,
-//   const types::boundary_id               b_id2,
-//   const int                              direction,
-//   std::vector<GridTools::PeriodicFacePair<typename MeshType::cell_iterator> > &matched_pairs,
-//   const Tensor<1,MeshType::space_dimension> &offset,
-//   const FullMatrix<double>              &matrix)
-//  {
-//    //static const int dim = MeshType::dimension;
-//    static const int space_dim = MeshType::space_dimension;
-//    //(void)dim;
-//    (void)space_dim;
-//    Assert (0<=direction && direction<space_dim,
-//            ExcIndexRange (direction, 0, space_dim));
-//
-//    // Loop over all cells on the highest level and collect all boundary
-//    // faces belonging to b_id1 and b_id2:
-//
-//    std::set<std::pair<typename MeshType::cell_iterator, unsigned int> > pairs1;
-//    std::set<std::pair<typename MeshType::cell_iterator, unsigned int> > pairs2;
-//
-//    //for (typename MeshType::cell_iterator cell = mesh.begin(0);
-//    //     cell != mesh.end(0); ++cell)
-//    typename MeshType::active_cell_iterator cell =
-//      mesh.begin_active(), endc = mesh.end();
-//    for (; cell != endc; ++cell)
-//      {
-//        for (unsigned int i = 0; i < GeometryInfo<dim>::faces_per_cell; ++i)
-//          {
-//            const typename MeshType::face_iterator face = cell->face(i);
-//            if (face->at_boundary() && face->boundary_id() == b_id1)
-//              {
-//                const std::pair<typename MeshType::cell_iterator, unsigned int> pair1
-//                  = std::make_pair(cell, i);
-//                pairs1.insert(pair1);
-//              }
-//
-//            if (face->at_boundary() && face->boundary_id() == b_id2)
-//              {
-//                const std::pair<typename MeshType::cell_iterator, unsigned int> pair2
-//                  = std::make_pair(cell, i);
-//                pairs2.insert(pair2);
-//              }
-//          }
-//      }
-//
-//    Assert (pairs1.size() == pairs2.size(),
-//            ExcMessage ("Unmatched faces on periodic boundaries"));
-//
-//    // and call match_periodic_face_pairs that does the actual matching:
-//    //match_periodic_face_pairs_local(pairs1, pairs2, direction, matched_pairs, offset,
-//    //                          matrix);
-//  }
-
-   /*
-   * Internally used in collect_periodic_faces_local
-   */
-  //template<typename CellIterator>
-//  template <int dim>
-//  void Solid<dim>::match_periodic_face_pairs_local
-//  (std::set<std::pair<typename Triangulation<dim>::cell_iterator, unsigned int> > &pairs1,
-//   std::set<std::pair<typename Triangulation<2>::cell_iterator, unsigned int> > &pairs2,
-//   const int                                        direction,
-//   std::vector<GridTools::PeriodicFacePair<typename Triangulation<2>::cell_iterator> >     &matched_pairs,
-//   const Tensor<1,Triangulation<2>::space_dimension> &offset,
-//   const FullMatrix<double>                         &matrix)
-//  {
-//    static const int space_dim = Triangulation<2>::cell_iterator::AccessorType::space_dimension;
-//    (void)space_dim;
-//    Assert (0<=direction && direction<space_dim,
-//            ExcIndexRange (direction, 0, space_dim));
-//
-//    Assert (pairs1.size() == pairs2.size(),
-//            ExcMessage ("Unmatched faces on periodic boundaries"));
-//
-//    unsigned int n_matches = 0;
-//
-//    // Match with a complexity of O(n^2). This could be improved...
-//    std::bitset<3> orientation;
-//    typedef typename std::set
-//    <std::pair<Triangulation<2>::cell_iterator, unsigned int> >::const_iterator PairIterator;
-//    for (PairIterator it1 = pairs1.begin(); it1 != pairs1.end(); ++it1)
-//      {
-//        for (PairIterator it2 = pairs2.begin(); it2 != pairs2.end(); ++it2)
-//          {
-//            const Triangulation<2>::cell_iterator cell1 = it1->first;
-//            const Triangulation<2>::cell_iterator cell2 = it2->first;
-//            const unsigned int face_idx1 = it1->second;
-//            const unsigned int face_idx2 = it2->second;
-//            if (GridTools::orthogonal_equality(orientation,
-//                                               cell1->face(face_idx1),
-//                                               cell2->face(face_idx2),
-//                                               direction, offset,
-//                                               matrix))
-//              {
-//                // We have a match, so insert the matching pairs and
-//                // remove the matched cell in pairs2 to speed up the
-//                // matching:
-//                const GridTools::PeriodicFacePair<Triangulation<2>::cell_iterator> matched_face =
-//                {
-//                  {cell1, cell2},
-//                  {face_idx1, face_idx2},
-//                  orientation,
-//                  matrix
-//                };
-//                matched_pairs.push_back(matched_face);
-//                pairs2.erase(it2);
-//                ++n_matches;
-//                break;
-//              }
-//          }
-//      }
-//
-//    //Assure that all faces are matched
-//    AssertThrow (n_matches == pairs1.size() && pairs2.size() == 0,
-//                 ExcMessage ("Unmatched faces on periodic boundaries"));
-//  }
-
   // @sect4{Solid::system_setup}
 
   // Next we describe how the FE system is setup.  We first determine the number
@@ -1737,7 +1564,9 @@ namespace neo_hookean
     // The DOF handler is then initialised and we renumber the grid in an
     // efficient manner. We also record the number of DOFs per block.
     dof_handler_ref.distribute_dofs(fe);
+    dof_handler_only_u.distribute_dofs(fe_only_u);
     DoFRenumbering::Cuthill_McKee(dof_handler_ref);
+    DoFRenumbering::Cuthill_McKee(dof_handler_only_u);
     DoFRenumbering::component_wise(dof_handler_ref, block_component);
     DoFTools::count_dofs_per_block(dof_handler_ref, dofs_per_block,
 				   block_component);
@@ -3203,7 +3032,7 @@ namespace neo_hookean
   // Here we present how the results are written to file to be viewed
   // using ParaView or Visit.
   template <int dim>
-  void Solid<dim>::output_results(double const loading, bool const is_BFB_call) const
+  void Solid<dim>::output_results(/*double const loading, */bool const is_BFB_call) const
   {
     DataOut<dim> data_out;
     std::vector<DataComponentInterpretation::DataComponentInterpretation>
@@ -3363,17 +3192,36 @@ namespace neo_hookean
 
   template <int dim>
   void
-  Solid<dim>::set_solution(double const* const solution)
+  Solid<dim>::set_solution(double const* const solution, double* const solution_deal)
   {
     if(print_steps_computation)
         std::cout << " S_SOL" << std::flush;
-    unsigned int i_unconstrained = 0;
-    for (unsigned int i = 0; i < dof_handler_ref.n_dofs(); ++i)
+    unsigned int i_unconstrained = 1;
+    displacement_and_qph_accurate = false;
+
+    std::vector<Point<dim>> support_points(dof_handler_only_u.n_dofs());
+    //DoFTools::map_dofs_to_support_points(fe, dof_handler_ref, support_points);
+    MappingQ<dim>      mapping(1, true);
+    DoFTools::map_dofs_to_support_points<dim>( mapping, dof_handler_only_u, support_points);
+
+    for (unsigned int i = 0; i < dof_handler_only_u.n_dofs(); ++i)//We begin by the displacement degrees of freedom
     {
-        displacement_and_qph_accurate = false;
+        if (!constraints.is_constrained(i)){
+            const bool is_x_dof = (i % 2 == 0);//This is bad programming
+            solution_n[i] = (is_x_dof ? (1 - support_points[i][0]) * displacement_side_1 : solution[0]) + solution[i_unconstrained];
+            solution_deal[i_unconstrained-1] = solution_n[i];
+            i_unconstrained++;
+        }
+    }
+    for (unsigned int i = dof_handler_only_u.n_dofs(); i < dof_handler_ref.n_dofs(); ++i)//Then we process pressures DOFs
+    {
         if (!constraints.is_constrained(i)){
             solution_n[i] = solution[i_unconstrained++];
         }
+    }
+    for(unsigned int i = 0; i < dof_handler_ref.n_dofs(); ++i)
+    {
+
     }
   }
 
@@ -3430,7 +3278,7 @@ namespace neo_hookean
   void
   Solid<dim>::output_results_for_BFB(const double lambda)
   {
-    output_results(lambda, true);
+    output_results(/*lambda, */true);
     time.increment();
   }
 
@@ -3452,9 +3300,9 @@ namespace neo_hookean
   }
 
   void
-  set_solution(double const* const solution)
+  set_solution(double const* const solution, double* const solution_deal)
   {
-    MyNeoHookean->set_solution(solution);
+    MyNeoHookean->set_solution(solution, solution_deal);
   }
 
     void

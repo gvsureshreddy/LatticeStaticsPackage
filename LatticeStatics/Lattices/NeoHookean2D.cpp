@@ -9,7 +9,7 @@ namespace neo_hookean
   void run();
   std::size_t get_system_size();
   unsigned int get_unconstrained_system_size();
-  void set_solution(double const* const solution);
+  void set_solution(double const* const solution, double* const solution_deal);
   void set_lambda(double const lambda);
   void get_rhs_and_tangent(double* const rhs, double* const tm, unsigned int iter_value);
   void get_unconstrained_rhs_and_tangent(double* const rhs, double* const tm, unsigned int iter_value);
@@ -45,17 +45,18 @@ NeoHookean2D::NeoHookean2D(PerlInput const& Input, int const& Echo, int const& W
   Caching_ = 0;
 
 
-  system_size_ = neo_hookean::get_system_size();
-  unconstrained_system_size_ = neo_hookean::get_unconstrained_system_size();
-  DOFS_ = unconstrained_system_size_;
+  //system_size_ = neo_hookean::get_system_size();
+  DOFS_D_ = neo_hookean::get_unconstrained_system_size();
 //  std::cout << "NeoHookean2D size is " << system_size_ << std::endl;
 //  std::cout << "NeoHookean2D unconstrained size is "
-//          << unconstrained_system_size_ << std::endl;
-  DOF_.Resize(unconstrained_system_size_,0.0);
-  RHS_.Resize(unconstrained_system_size_,0.0);
-  E1DLoad_.Resize(unconstrained_system_size_,0.0);
-  Stiff_.Resize(unconstrained_system_size_,unconstrained_system_size_,0.0);
-  neo_hookean::set_solution(&(DOF_[0]));
+//          << DOFS_D_ << std::endl;
+  DOFS_ = DOFS_D_ + 0;
+  DOF_.Resize(DOFS_, 0.0);
+  DOF_D_.Resize(DOFS_D_, 0.0);
+  RHS_.Resize(DOFS_,0.0);
+  E1DLoad_.Resize(DOFS_,0.0);
+  Stiff_.Resize(DOFS_,DOFS_,0.0);
+  neo_hookean::set_solution(&(DOF_[0]), &(DOF_D_[0]));
   neo_hookean::get_unconstrained_rhs_and_tangent(&(RHS_[0]),&(Stiff_[0][0]),1);
   //std::cout << setw(20) << RHS_;
   //std::cout << std::endl << std::endl << "Tangent matrix :\n\n\n" << std::endl;
@@ -71,7 +72,7 @@ void NeoHookean2D::SetLambda(double const& lambda)
 void NeoHookean2D::SetDOF(Vector const& dof)
 {
     DOF_ = dof;
-    neo_hookean::set_solution(&(DOF_[0]));
+    neo_hookean::set_solution(&(DOF_[0]), &(DOF_D_[0]));
 }
 
 double NeoHookean2D::E0() const
