@@ -795,7 +795,10 @@ namespace neo_hookean
     }
 
     void
-    set_solution(double const* const solution, double* const solution_deal);
+    get_dofs_properties(double* const dofs_properties);
+
+    void
+    set_solution(double const* const solution);
 
     void
     set_lambda(double const lambda);
@@ -817,7 +820,7 @@ namespace neo_hookean
     get_constraints_matrix(ConstraintMatrix const* &constraints_matrix);
 
     void
-    output_results_for_BFB(double const lambda);
+    output_results_for_BFB();
 
   private:
 
@@ -3192,36 +3195,49 @@ namespace neo_hookean
 
   template <int dim>
   void
-  Solid<dim>::set_solution(double const* const solution, double* const solution_deal)
+  Solid<dim>::get_dofs_properties(double* const dofs_properties)
   {
-    if(print_steps_computation)
-        std::cout << " S_SOL" << std::flush;
-    unsigned int i_unconstrained = 1;
-    displacement_and_qph_accurate = false;
+    const unsigned int offset = 0;
+    unsigned int i_unconstrained = offset;
 
     std::vector<Point<dim>> support_points(dof_handler_only_u.n_dofs());
-    //DoFTools::map_dofs_to_support_points(fe, dof_handler_ref, support_points);
     MappingQ<dim>      mapping(1, true);
     DoFTools::map_dofs_to_support_points<dim>( mapping, dof_handler_only_u, support_points);
 
     for (unsigned int i = 0; i < dof_handler_only_u.n_dofs(); ++i)//We begin by the displacement degrees of freedom
     {
         if (!constraints.is_constrained(i)){
-            const bool is_x_dof = (i % 2 == 0);//This is bad programming
-            solution_n[i] = (is_x_dof ? (1 - support_points[i][0]) * displacement_side_1 : solution[0]) + solution[i_unconstrained];
-            solution_deal[i_unconstrained-1] = solution_n[i];
-            i_unconstrained++;
+            dofs_properties[i_unconstrained - offset] = i % 2;
+            dofs_properties[i_unconstrained - offset + 1] = support_points[i][0];
+            dofs_properties[i_unconstrained - offset + 2] = support_points[i][1];
+            i_unconstrained = i_unconstrained + 3;
         }
     }
     for (unsigned int i = dof_handler_only_u.n_dofs(); i < dof_handler_ref.n_dofs(); ++i)//Then we process pressures DOFs
     {
         if (!constraints.is_constrained(i)){
-            solution_n[i] = solution[i_unconstrained++];
+            dofs_properties[i_unconstrained - offset] = 2.0;
+            dofs_properties[i_unconstrained - offset + 1] = 0.0;
+            dofs_properties[i_unconstrained - offset + 2] = 0.0;
+            i_unconstrained = i_unconstrained + 3;
         }
     }
-    for(unsigned int i = 0; i < dof_handler_ref.n_dofs(); ++i)
-    {
+  }
 
+  template <int dim>
+  void
+  Solid<dim>::set_solution(double const* const solution)
+  {
+    if(print_steps_computation)
+        std::cout << " S_SOL" << std::flush;
+    unsigned int i_unconstrained = 0;
+    displacement_and_qph_accurate = false;
+
+    for (unsigned int i = 0; i < dof_handler_ref.n_dofs(); ++i)
+    {
+        if (!constraints.is_constrained(i)){
+            solution_n[i] = solution[i_unconstrained++];
+        }
     }
   }
 
@@ -3276,9 +3292,9 @@ namespace neo_hookean
 
   template <int dim>
   void
-  Solid<dim>::output_results_for_BFB(const double lambda)
+  Solid<dim>::output_results_for_BFB()
   {
-    output_results(/*lambda, */true);
+    output_results(true);
     time.increment();
   }
 
@@ -3300,9 +3316,15 @@ namespace neo_hookean
   }
 
   void
-  set_solution(double const* const solution, double* const solution_deal)
+  get_dofs_properties(double* const dofs_properties)
   {
-    MyNeoHookean->set_solution(solution, solution_deal);
+      MyNeoHookean->get_dofs_properties(dofs_properties);
+  }
+
+  void
+  set_solution(double const* const solution)
+  {
+    MyNeoHookean->set_solution(solution);
   }
 
     void
@@ -3406,9 +3428,6 @@ namespace neo_hookean
 
 	}
 
-
-
-
     memset(tm, 0, unconstrained_size*unconstrained_size*sizeof(double));
     for (BlockSparseMatrix<double>::const_iterator itr = tangent->begin();
 	 itr != tangent->end(); ++itr)
@@ -3470,9 +3489,9 @@ namespace neo_hookean
     return MyNeoHookean->get_unconstrained_system_size();
   }
 
-  void output_results_BFB(double const lambda)
+  void output_results_BFB()
   {
-      MyNeoHookean->output_results_for_BFB(lambda);
+      MyNeoHookean->output_results_for_BFB();
   }
 
   void run()

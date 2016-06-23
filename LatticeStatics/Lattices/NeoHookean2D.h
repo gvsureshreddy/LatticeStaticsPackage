@@ -14,16 +14,20 @@ class NeoHookean2D : public Lattice
         
         mutable Vector DOF_; // DOFs in BFB
         mutable Vector DOF_D_; // DOFs in deal.II
+        mutable Vector dofs_properties_; // Description of the deal.II DOFs
         mutable Vector RHS_;
+        mutable Vector RHS_D_;
         mutable Matrix Stiff_;
+        mutable Matrix Stiff_D_;
         mutable Vector E1DLoad_;
+        mutable Vector E1DLoad_D_;
         mutable double Lambda_;
         
-        mutable Matrix Jacobian_; // d(DOF_D)/d(DOF_)
-        mutable Matrix FJacobian_; // d(DOF_D)/d(DOF_+1) //Bastien : what's that?
-        mutable Matrix DispJacobian_; // d(DOF_D)/d(U) //Bastien : what's that?
-        int** Map_ ; // Represents the sparse 3D array d2(DOF_F)/d(DOF_)2 //Bastien : I don't like the type
-        int** FMap_ ; // Represents the sparse 3D array d2(DOF_F)/d(DOF_+1)2 //Bastien : I don't like the type
+//        mutable Matrix Jacobian_; // d(DOF_D)/d(DOF_)
+//        mutable Matrix FJacobian_; // d(DOF_D)/d(DOF_+1) //Bastien : what's that?
+//        mutable Matrix DispJacobian_; // d(DOF_D)/d(U) //Bastien : what's that?
+//        int** Map_ ; // Represents the sparse 3D array d2(DOF_F)/d(DOF_)2 //Bastien : I don't like the type
+//        int** FMap_ ; // Represents the sparse 3D array d2(DOF_F)/d(DOF_+1)2 //Bastien : I don't like the type
         
         int Width_;
         //std::size_t system_size_;

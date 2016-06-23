@@ -9,12 +9,13 @@ namespace neo_hookean
   void run();
   std::size_t get_system_size();
   unsigned int get_unconstrained_system_size();
-  void set_solution(double const* const solution, double* const solution_deal);
+  void get_dofs_properties(double* const dofs_properties);
+  void set_solution(double const* const solution);
   void set_lambda(double const lambda);
   void get_rhs_and_tangent(double* const rhs, double* const tm, unsigned int iter_value);
   void get_unconstrained_rhs_and_tangent(double* const rhs, double* const tm, unsigned int iter_value);
   void get_unconstrained_E1DLoad(double* const E1DLoad, unsigned int iter_value);
-  void output_results_BFB(double const lambda);
+  void output_results_BFB();
   double get_energy();
   int NoNegTestFunctions;
 }
@@ -45,22 +46,22 @@ NeoHookean2D::NeoHookean2D(PerlInput const& Input, int const& Echo, int const& W
   Caching_ = 0;
 
 
-  //system_size_ = neo_hookean::get_system_size();
   DOFS_D_ = neo_hookean::get_unconstrained_system_size();
-//  std::cout << "NeoHookean2D size is " << system_size_ << std::endl;
 //  std::cout << "NeoHookean2D unconstrained size is "
 //          << DOFS_D_ << std::endl;
-  DOFS_ = DOFS_D_ + 0;
+  DOFS_ = DOFS_D_ + 1;
   DOF_.Resize(DOFS_, 0.0);
   DOF_D_.Resize(DOFS_D_, 0.0);
+  dofs_properties_.Resize(3*DOFS_D_, 0.0);
+  neo_hookean::get_dofs_properties(&(dofs_properties_[0]));
   RHS_.Resize(DOFS_,0.0);
+  RHS_D_.Resize(DOFS_D_,0.0);
   E1DLoad_.Resize(DOFS_,0.0);
+  E1DLoad_D_.Resize(DOFS_,0.0);
   Stiff_.Resize(DOFS_,DOFS_,0.0);
-  neo_hookean::set_solution(&(DOF_[0]), &(DOF_D_[0]));
-  neo_hookean::get_unconstrained_rhs_and_tangent(&(RHS_[0]),&(Stiff_[0][0]),1);
-  //std::cout << setw(20) << RHS_;
-  //std::cout << std::endl << std::endl << "Tangent matrix :\n\n\n" << std::endl;
-  //std::cout << setw(20) << Stiff_;
+  Stiff_D_.Resize(DOFS_D_,DOFS_D_,0.0);
+  neo_hookean::set_solution(&(DOF_D_[0]));
+  neo_hookean::get_unconstrained_rhs_and_tangent(&(RHS_D_[0]),&(Stiff_D_[0][0]),1);
 }
 
 void NeoHookean2D::SetLambda(double const& lambda)
@@ -72,7 +73,11 @@ void NeoHookean2D::SetLambda(double const& lambda)
 void NeoHookean2D::SetDOF(Vector const& dof)
 {
     DOF_ = dof;
-    neo_hookean::set_solution(&(DOF_[0]), &(DOF_D_[0]));
+    for(int i = 0; i < DOFS_D_; ++i)
+    {
+        DOF_D_[i] = (dofs_properties_[3*i] == 0.0 ? (1 - dofs_properties_[3*i+1]) * Lambda_ : dofs_properties_[3*i+2] * DOF_[0]) + DOF_[i+1];
+    }
+    neo_hookean::set_solution(&(DOF_D_[0]));
 }
 
 double NeoHookean2D::E0() const
@@ -89,19 +94,57 @@ double NeoHookean2D::E0() const
 
 Vector const& NeoHookean2D::E1() const
 {
-  neo_hookean::get_unconstrained_rhs_and_tangent(&(RHS_[0]),&(Stiff_[0][0]),1);
+  if ((!Caching_) || (!Cached_[1]))
+  {
+    neo_hookean::get_unconstrained_rhs_and_tangent(&(RHS_D_[0]),&(Stiff_D_[0][0]),1);
+    for(unsigned int i = 0; i < DOFS_D_; ++i)
+    {
+        RHS_[i+1] = RHS_D_[i];
+        RHS_[0] += (dofs_properties_[3*i] == 1.0) ? dofs_properties_[3*i+2] * RHS_D_[i] : 0.0;
+    }
+    Cached_[1] = 1;
+    CallCount_[1]++;
+  }
   return RHS_;
 }
 
 Vector const& NeoHookean2D::E1DLoad() const
 {
-  neo_hookean::get_unconstrained_E1DLoad(&(E1DLoad_[0]),1);
+  if ((!Caching_) || (!Cached_[2]))
+  {
+    neo_hookean::get_unconstrained_E1DLoad(&(E1DLoad_D_[0]),1);
+    //neo_hookean::get_unconstrained_rhs_and_tangent(&(RHS_D_[0]),&(Stiff_D_[0][0]),1);
+    for(unsigned int i = 0; i < DOFS_D_; ++i)
+    {
+        E1DLoad_[i+1] = E1DLoad_D_[i];
+    }
+    Cached_[2] = 1;
+    CallCount_[2]++;
+  }
   return E1DLoad_;
 }
 
 Matrix const& NeoHookean2D::E2() const
 {
-  neo_hookean::get_unconstrained_rhs_and_tangent(&(RHS_[0]),&(Stiff_[0][0]),1);
+  if ((!Caching_) || (!Cached_[3]))
+  {
+    neo_hookean::get_unconstrained_rhs_and_tangent(&(RHS_D_[0]),&(Stiff_D_[0][0]),1);
+    for(unsigned int i =0; i < DOFS_D_; ++i)
+    {
+        for(unsigned int j = 0; j < DOFS_D_; ++j)
+        {
+            Stiff_[0][i] += (dofs_properties_[3*j] == 1.0) ? dofs_properties_[3*j+2] * Stiff_D_[j][i] : 0.0;
+            Stiff_[i][0] = Stiff_[0][i];
+            Stiff_[i+1][j+1] = Stiff_D_[i][j];
+        }
+    }
+    for(unsigned int i =0; i < DOFS_D_; ++i)
+    {
+        Stiff_[0][0] += (dofs_properties_[3*i] == 1.0) ? dofs_properties_[3*i+2] * Stiff_[0][i] : 0.0;
+    }
+    Cached_[3] = 1;
+    CallCount_[3]++;
+  }
   return Stiff_;
 }
 
@@ -147,7 +190,7 @@ void NeoHookean2D::Print(ostream& out, PrintDetail const& flag,
         }
     }
 
-    neo_hookean::output_results_BFB(Lambda_);
+    neo_hookean::output_results_BFB();
 
     switch (flag)
     {
@@ -170,7 +213,6 @@ void NeoHookean2D::Print(ostream& out, PrintDetail const& flag,
                     << "Eigenvalue Info:" << "\n" << setw(W) << TestFunctVals << "\n"
                     << "Bifurcation Info:" << setw(W) << mintestfunct
                     << setw(W) << neo_hookean::NoNegTestFunctions << "\n";
-            out << setw(W) << Lambda_ << " " << setw(W) << DOF_ << "\n";
             // send to cout also
             if (Echo_)
             {
