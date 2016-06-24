@@ -8,12 +8,16 @@ namespace neo_hookean
   void deleteObject();
   void run();
   std::size_t get_system_size();
-  unsigned int get_unconstrained_system_size();
+  std::size_t get_unconstrained_system_size();
+  std::size_t get_system_size_with_periodic();
   void get_dofs_properties(double* const dofs_properties);
+  void get_constraint_properties(double* const constraint_properties);
   void set_solution(double const* const solution);
   void set_lambda(double const lambda);
   void get_rhs_and_tangent(double* const rhs, double* const tm, unsigned int iter_value);
   void get_unconstrained_rhs_and_tangent(double* const rhs, double* const tm, unsigned int iter_value);
+  void get_free_rhs(double* const rhs);
+  void get_free_tangent(double* const tm);
   void get_unconstrained_E1DLoad(double* const E1DLoad, unsigned int iter_value);
   void output_results_BFB();
   double get_energy();
@@ -46,22 +50,86 @@ NeoHookean2D::NeoHookean2D(PerlInput const& Input, int const& Echo, int const& W
   Caching_ = 0;
 
 
-  DOFS_D_ = neo_hookean::get_unconstrained_system_size();
-//  std::cout << "NeoHookean2D unconstrained size is "
+  DOFS_D_ = neo_hookean::get_system_size();
+  DOFS_   = neo_hookean::get_unconstrained_system_size() + 1;
+//  std::cout << "NeoHookean2D size with periodic is "
 //          << DOFS_D_ << std::endl;
-  DOFS_ = DOFS_D_ + 1;
   DOF_.Resize(DOFS_, 0.0);
   DOF_D_.Resize(DOFS_D_, 0.0);
   dofs_properties_.Resize(3*DOFS_D_, 0.0);
   neo_hookean::get_dofs_properties(&(dofs_properties_[0]));
+//  std::cout << "\nDOFs properties :\n";
+//  for(unsigned int i = 0; i < DOFS_D_; ++i)
+//  {
+//        switch((int) dofs_properties_[3*i]){
+//            case 0 :
+//                std::cout << "\nDOF " << i << " is horizontal, at position : (" << dofs_properties_[3*i+1] << "," << dofs_properties_[3*i+2] << ")";
+//                break;
+//            case 1 :
+//                std::cout << "\nDOF " << i << " is vertical, at position : (" << dofs_properties_[3*i+1] << "," << dofs_properties_[3*i+2] << ")";
+//                break;
+//            case 2 :
+//                std::cout << "\nDOF " << i << " is a pressure. The position shall be zero : (" << dofs_properties_[3*i+1] << "," << dofs_properties_[3*i+2] << ")";
+//                break;
+//            default :
+//                break;
+//        }
+//  }
+  constraint_properties_.Resize(DOFS_D_, 0.0);
+  neo_hookean::get_constraint_properties(&(constraint_properties_[0]));
+  //std::cout << "\nPrint constraint_properties :\n";
+//  for(unsigned int i = 0; i < DOFS_D_; ++i)
+//  {
+//        switch((int) constraint_properties_[i]){
+//            case -3 :
+//                std::cout << "\nDOF " << i << " is free.";
+//                break;
+//            case -2 :
+//                std::cout << "\nDOF " << i << " is the node at the bottom right : zero horizontal displacement.";
+//                break;
+//            case -1 :
+//                std::cout << "\nDOF " << i << " is a node at the bottom : zero vertical displacement.";
+//                break;
+//            default :
+//                std::cout << "\nDOF " << i << " is periodically constrained with the node : " << constraint_properties_[i];
+//                break;
+//        }
+//  }
+  links_from_constrained_to_unconstrained_.Resize(DOFS_D_, 0.0);
+  fill_links_from_constrained_to_unconstrained();
+//  std::cout << "\nPrint links_from_constrained_to_unconstrained :\n";
+//  for(unsigned int i = 0; i < DOFS_D_; ++i)
+//  {
+//        if(links_from_constrained_to_unconstrained_[i] < 0){
+//                std::cout << "\nDOF " << i << " is periodically constrained with the absolute node : " << -links_from_constrained_to_unconstrained_[i]-1;
+//        } else if(links_from_constrained_to_unconstrained_[i] > 0)
+//                std::cout << "\nDOF " << i << " is free and its unconstrained number is : " << links_from_constrained_to_unconstrained_[i];
+//        else
+//            std::cout << "\nDOF " << i << " blocked to a zero displacement.";
+//  }
   RHS_.Resize(DOFS_,0.0);
   RHS_D_.Resize(DOFS_D_,0.0);
   E1DLoad_.Resize(DOFS_,0.0);
-  E1DLoad_D_.Resize(DOFS_,0.0);
+  E1DLoad_D_.Resize(DOFS_D_,0.0);
   Stiff_.Resize(DOFS_,DOFS_,0.0);
   Stiff_D_.Resize(DOFS_D_,DOFS_D_,0.0);
   neo_hookean::set_solution(&(DOF_D_[0]));
   neo_hookean::get_unconstrained_rhs_and_tangent(&(RHS_D_[0]),&(Stiff_D_[0][0]),1);
+}
+
+void NeoHookean2D::fill_links_from_constrained_to_unconstrained()
+{
+    unsigned int i_unconstrained = 1;
+    for(unsigned int i = 0; i < DOFS_D_; ++i)
+    {
+        if(constraint_properties_[i] > -1)
+            // Periodically constrained DOFs. We set the indice to the related node minus 2.
+            links_from_constrained_to_unconstrained_[i] = -constraint_properties_[i]-1;
+        else if(constraint_properties_[i] == -3)
+            links_from_constrained_to_unconstrained_[i] = i_unconstrained++; // Free DOFs
+        else
+            links_from_constrained_to_unconstrained_[i] = 0; // Blocked to zero DOFs
+    }
 }
 
 void NeoHookean2D::SetLambda(double const& lambda)
@@ -82,24 +150,52 @@ void NeoHookean2D::SetDOF(Vector const& dof)
       Cached_[i] = 0;
     }
     DOF_ = dof;
-    std::cout << "\n\nWe have : lambda = " << Lambda_ << " and eta = " << DOF_[0] << "\n";
+    //std::cout << "\n\nWe have : lambda = " << Lambda_ << " and eta = " << DOF_[0] << "\n";
     for(int i = 0; i < DOFS_D_; ++i)
     {
-        switch((int) dofs_properties_[3*i]){
-            case 0 :
-                DOF_D_[i] = (1 - dofs_properties_[3*i+1]) * Lambda_ + DOF_[i+1];
-                std::cout << "\nThis is a H dof. Added : " << (1 - dofs_properties_[3*i+1]) * Lambda_ << " to the displacement : " << DOF_[i+1];
+        switch((int) constraint_properties_[i])
+        {
+            case -3 : // Free DOF
+                switch((int) dofs_properties_[3*i])
+                {
+                    case 0 :
+                        DOF_D_[i] = (1 - dofs_properties_[3*i+1]) * Lambda_ + DOF_[links_from_constrained_to_unconstrained_[i]];
+                        //std::cout << "\nThis is a H free dof. Added : " << (1 - dofs_properties_[3*i+1]) * Lambda_ << " to the displacement : " << DOF_[links_from_constrained_to_unconstrained_[i]];
+                        break;
+                    case 1 :
+                        DOF_D_[i] = dofs_properties_[3*i+2] * DOF_[0] + DOF_[links_from_constrained_to_unconstrained_[i]];
+                        //std::cout << "\nThis is a V free dof. Added : " << dofs_properties_[3*i+2] * DOF_[0] << " to the displacement : " << DOF_[links_from_constrained_to_unconstrained_[i]];
+                        break;
+                    case 2 :
+                        DOF_D_[i] = DOF_[links_from_constrained_to_unconstrained_[i]];
+                        //std::cout << "\nThis is a P dof. Added : " << 0 << " to the displacement : " << DOF_[links_from_constrained_to_unconstrained_[i]];
+                        break;
+                    default :
+                        std::cerr << "Internal problem in Set_DOF, type 1." << std::endl;
+                        break;
+                }
                 break;
-            case 1 :
-                DOF_D_[i] = dofs_properties_[3*i+2] * DOF_[0] + DOF_[i+1];
-                std::cout << "\nThis is a V dof. Added : " << dofs_properties_[3*i+2] * DOF_[0] << " to the displacement : " << DOF_[i+1];
+            case -2 : // Bottom right horizontal DOF
+                DOF_D_[i] = 0.0;
                 break;
-            case 2 :
-                DOF_D_[i] = DOF_[i+1];
-                std::cout << "\nThis is a P dof. Added : " << 0 << " to the displacement : " << DOF_[i+1];
+            case -1 : // Bottom vertical DOFs
+                DOF_D_[i] = 0.0;
                 break;
-            default :
-                //raise an error
+            default : // Periodically constrained DOFs (positive integer)
+                switch((int) dofs_properties_[3*i])
+                {
+                    case 0 :
+                        DOF_D_[i] = (1 - dofs_properties_[3*i+1]) * Lambda_ + DOF_[links_from_constrained_to_unconstrained_[constraint_properties_[i]]];
+                        //std::cout << "\nThis is a H free dof. Added : " << (1 - dofs_properties_[3*i+1]) * Lambda_ << " to the displacement : " << DOF_[links_from_constrained_to_unconstrained_[constraint_properties_[i]]];
+                        break;
+                    case 1 :
+                        DOF_D_[i] = dofs_properties_[3*i+2] * DOF_[0] + DOF_[links_from_constrained_to_unconstrained_[constraint_properties_[i]]];
+                        //std::cout << "\nThis is a V free dof. Added : " << dofs_properties_[3*i+2] * DOF_[0] << " to the displacement : " << DOF_[links_from_constrained_to_unconstrained_[constraint_properties_[i]]];
+                        break;
+                    default :
+                        std::cerr << "Internal problem in Set_DOF, type 2." << std::endl;
+                        break;
+                }
                 break;
         }
         //DOF_D_[i] = ((dofs_properties_[3*i] == 0.0) ? (1 - dofs_properties_[3*i+1]) * Lambda_ : ((dofs_properties_[3*i] == 1.0) ? dofs_properties_[3*i+2] * DOF_[0] : 0.0)) + DOF_[i+1];
@@ -126,7 +222,7 @@ Vector const& NeoHookean2D::E1() const
     neo_hookean::get_unconstrained_rhs_and_tangent(&(RHS_D_[0]),&(Stiff_D_[0][0]),1);
     for(unsigned int i = 0; i < DOFS_D_; ++i)
     {
-        RHS_[i+1] = RHS_D_[i];
+        //RHS_[i+1] = RHS_D_[i];
         RHS_[0] += (dofs_properties_[3*i] == 1.0) ? dofs_properties_[3*i+2] * RHS_D_[i] : 0.0;
     }
     Cached_[1] = 1;
@@ -152,7 +248,7 @@ Vector const& NeoHookean2D::E1DLoad() const
     }
     for(unsigned int i = 0; i < DOFS_D_; ++i)
     {
-        E1DLoad_[i+1] = temp[i] + E1DLoad_D_[i];
+        //E1DLoad_[i+1] = temp[i] + E1DLoad_D_[i];
         E1DLoad_[0] += (dofs_properties_[3*i] == 1.0) ? dofs_properties_[3*i+2] * (temp[i] + E1DLoad_D_[i]) : 0.0;;
     }
     Cached_[2] = 1;
@@ -170,9 +266,9 @@ Matrix const& NeoHookean2D::E2() const
     {
         for(unsigned int j = 0; j < DOFS_D_; ++j)
         {
-            Stiff_[0][i] += (dofs_properties_[3*j] == 1.0) ? dofs_properties_[3*j+2] * Stiff_D_[j][i] : 0.0;
-            Stiff_[i][0] = Stiff_[0][i];
-            Stiff_[i+1][j+1] = Stiff_D_[i][j];
+            //Stiff_[0][i] += (dofs_properties_[3*j] == 1.0) ? dofs_properties_[3*j+2] * Stiff_D_[j][i] : 0.0;
+            //Stiff_[i][0] = Stiff_[0][i];
+            //Stiff_[i+1][j+1] = Stiff_D_[i][j];
         }
     }
     for(unsigned int i =0; i < DOFS_D_; ++i)

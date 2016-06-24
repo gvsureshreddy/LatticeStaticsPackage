@@ -782,8 +782,11 @@ namespace neo_hookean
     std::size_t
     get_system_size();
 
-    unsigned int
+    std::size_t
     get_unconstrained_system_size();
+
+    std::size_t
+    get_system_size_with_periodic();
 
     double
     get_energy();
@@ -796,6 +799,9 @@ namespace neo_hookean
 
     void
     get_dofs_properties(double* const dofs_properties);
+
+    void
+    get_constraint_properties(double* const constraint_properties);
 
     void
     set_solution(double const* const solution);
@@ -815,6 +821,12 @@ namespace neo_hookean
     void
     get_rhs_and_tangent(BlockVector<double> const* &sys_rhs,
 			BlockSparseMatrix<double> const* &tm, unsigned int iter_value);
+
+    void
+    get_free_rhs(BlockVector<double> const* &sys_rhs);
+
+    void
+    get_free_tangent(BlockSparseMatrix<double> const* &tm);
 
     void
     get_constraints_matrix(ConstraintMatrix const* &constraints_matrix);
@@ -1015,7 +1027,10 @@ namespace neo_hookean
     std::vector<types::global_dof_index>        element_indices_u;
     std::vector<types::global_dof_index>        element_indices_p;
     std::vector<std::pair<types::global_dof_index,types::global_dof_index>>        horizontal_periodicity_links;
-    std::vector<std::pair<types::global_dof_index,types::global_dof_index>>        vertical_periodicity_links;
+    std::vector<std::pair<types::global_dof_index,types::global_dof_index>>        vertical___periodicity_links;
+    std::vector<types::global_dof_index>        vertically_constrained_dofs;
+    types::global_dof_index                     horizontally_constrained_dof;
+    BlockVector<double>                         global_constraint_properties;
 
     // Rules for Gauss-quadrature on both the cell and faces. The number of
     // quadrature points on both cells and faces is recorded.
@@ -1043,7 +1058,7 @@ namespace neo_hookean
     const bool                       print_RHS = false;
     //This is just to know the size of the tangent matrix "by hand", for debugging:
     const int                        dim_matrix = 22;
-    const bool                       print_steps_computation = true;
+    const bool                       print_steps_computation = false;
 
     // Then define a number of variables to store norms and update norms and
     // normalisation factors.
@@ -1636,6 +1651,9 @@ namespace neo_hookean
 
       DoFTools::make_hanging_node_constraints (dof_handler_ref, constraints);
 
+      global_constraint_properties.reinit(dofs_per_block);
+      global_constraint_properties.collect_sizes();
+
       apply_periodic_constraints_and_fill_periodic_links();
 
       DoFTools::make_sparsity_pattern(dof_handler_ref,
@@ -1674,6 +1692,11 @@ namespace neo_hookean
   void
   Solid<dim>::apply_periodic_constraints_and_fill_periodic_links()
   {
+      for(unsigned int i = 0; i < dof_handler_ref.n_dofs(); i++)
+      {
+          global_constraint_properties(i) = -3.0;
+      }
+
       std::vector<GridTools::PeriodicFacePair<typename DoFHandler<dim>::cell_iterator> >
       periodicity_vector;
 
@@ -1715,7 +1738,7 @@ namespace neo_hookean
       IndexSet::ElementIterator dofs_left_horizontal = selected_dofs_left_horizontal.begin();
       IndexSet::ElementIterator dofs_left_vertical = selected_dofs_left_vertical.begin();
       horizontal_periodicity_links.clear();
-      vertical_periodicity_links.clear();
+      vertical___periodicity_links.clear();
       for(unsigned int i = 0; i < nb_dofs_face; i++)
       {
         const std::vector< std::pair< types::global_dof_index, double > > constraints_horizontal_dof
@@ -1730,6 +1753,7 @@ namespace neo_hookean
             link.first = *dofs_left_horizontal;
             link.second = constraints_horizontal_dof[k].first;
             horizontal_periodicity_links.push_back(link);
+            global_constraint_properties(link.first) = (double) link.second;
         }
         //std::cout << "\nConstraints on dof vertical   n°" << dof_left_vertical   << " : ";
         for(unsigned int k = 0; k < constraints_vertical_dof.size(); k++)
@@ -1738,12 +1762,46 @@ namespace neo_hookean
             std::pair<types::global_dof_index,types::global_dof_index> link;
             link.first = *dofs_left_vertical;
             link.second = constraints_vertical_dof[k].first;
-            vertical_periodicity_links.push_back(link);
+            vertical___periodicity_links.push_back(link);
+            global_constraint_properties(link.first) = (double) link.second;
         }
         dofs_left_horizontal++;
         dofs_left_vertical++;
       }
-      //std::cout << "\nSize of horizontal periodicity_links is " << horizontal_periodicity_links.size() << "\n";
+
+      //Now we want to fill the vector vertically_constrained_dofs with the vertical dofs at the bottom :
+    {
+      IndexSet selected_vertical_dofs_bottom;
+      std::set< types::boundary_id > boundary_ids_left= std::set<types::boundary_id>();
+      boundary_ids_left.insert(0);
+      DoFTools::extract_boundary_dofs(dof_handler_ref,
+                fe.component_mask(y_displacement), selected_vertical_dofs_bottom, boundary_ids_left);
+      unsigned int nb_vertical_dofs_face_bottom = selected_vertical_dofs_bottom.n_elements();
+      IndexSet::ElementIterator vertical_dofs_bottom = selected_vertical_dofs_bottom.begin();
+      for(unsigned int i = 0; i < nb_vertical_dofs_face_bottom; i++)
+      {
+          //vertically_constrained_dofs[i] = (*vertical_dofs_bottom);
+          global_constraint_properties(*vertical_dofs_bottom) = -1.0;
+          vertical_dofs_bottom++;
+      }
+    }
+
+     // This block enforce a zero horizontal displacement at the bottom-right point
+    {
+       IndexSet selected_horizontal_dofs_bottom;
+       std::set< types::boundary_id > boundary_ids_bottom= std::set<types::boundary_id>();
+       boundary_ids_bottom.insert(0);
+       DoFTools::extract_boundary_dofs(dof_handler_ref,
+                 fe.component_mask(x_displacement), selected_horizontal_dofs_bottom, boundary_ids_bottom);
+       unsigned int nb_horizontal_dofs_face_bottom = selected_horizontal_dofs_bottom.n_elements()-1;
+       IndexSet::ElementIterator dofs_bottom = selected_horizontal_dofs_bottom.begin();
+       for(unsigned int i = 0; i < nb_horizontal_dofs_face_bottom; i++)
+           dofs_bottom++;
+       horizontally_constrained_dof = *dofs_bottom;
+       global_constraint_properties(horizontally_constrained_dof) = -2.0;
+    }
+
+     //std::cout << "\nSize of horizontal periodicity_links is " << horizontal_periodicity_links.size() << "\n";
   }
 
   template <int dim>
@@ -2700,6 +2758,7 @@ namespace neo_hookean
     DoFTools::make_hanging_node_constraints (dof_handler_ref, constraints);
 
     const bool apply_dirichlet_bc = (it_nr == 0);
+    const bool apply_periodic_bc = (it_nr > -1);
 
 // For setting up the constraints, we first store the periodicity
 // information in an auxiliary object of type
@@ -2707,41 +2766,62 @@ namespace neo_hookean
 // DoFHandler@<dim@>::cell_iterator@> </code>. The periodic boundaries have the
 // boundary indicators 1 (x=0) and 3 (x=1). All the other parameters we
 // have set up before. In this case the direction does not matter.
-      std::vector<GridTools::PeriodicFacePair<typename DoFHandler<dim>::cell_iterator> >
-      periodicity_vector;
 
-      const unsigned int direction = 0;
-
-      FullMatrix<double> rotation_matrix(dim);
-      rotation_matrix[0][0]=1.;
-      rotation_matrix[1][1]=1.;
-
-      GridTools::collect_periodic_faces(dof_handler_ref, 1, 3, direction,
-                                        periodicity_vector, Tensor<1, dim>(), rotation_matrix);
-
-    // In the following, we will have to tell the function interpolation
-    // boundary values which components of the solution vector should be
-    // constrained (i.e., whether it's the x-, y-displacements or
-    // combinations thereof). This is done using ComponentMask objects (see
-    // @ref GlossComponentMask) which we can get from the finite element if we
-    // provihde it with an extractor object for the component we wish to
-    // select. To this end we first set up such extractor objects and later
-    // use it when generating the relevant component masks:
     const FEValuesExtractors::Scalar x_displacement(0);
     const FEValuesExtractors::Scalar y_displacement(1);
 
-    std::vector<unsigned int> first_vector_components;
-    first_vector_components.push_back(0);
+    if(apply_periodic_bc)
+    {
+        std::vector<GridTools::PeriodicFacePair<typename DoFHandler<dim>::cell_iterator> >
+        periodicity_vector;
 
-    // After setting up all the information in periodicity_vector all we have
-    // to do is to tell make_periodicity_constraints to create the desired
-    // constraints.
-     DoFTools::make_periodicity_constraints<DoFHandler<dim> >
-      (periodicity_vector, constraints, fe.component_mask(x_displacement), first_vector_components);
-     DoFTools::make_periodicity_constraints<DoFHandler<dim> >
-      (periodicity_vector, constraints, fe.component_mask(y_displacement), first_vector_components);
+        const unsigned int direction = 0;
 
-     // This block enforce a zero horizontal displacement at the bottom-right point
+        FullMatrix<double> rotation_matrix(dim);
+        rotation_matrix[0][0]=1.;
+        rotation_matrix[1][1]=1.;
+
+        GridTools::collect_periodic_faces(dof_handler_ref, 1, 3, direction,
+                                          periodicity_vector, Tensor<1, dim>(), rotation_matrix);
+
+        // In the following, we will have to tell the function interpolation
+        // boundary values which components of the solution vector should be
+        // constrained (i.e., whether it's the x-, y-displacements or
+        // combinations thereof). This is done using ComponentMask objects (see
+        // @ref GlossComponentMask) which we can get from the finite element if we
+        // provihde it with an extractor object for the component we wish to
+        // select. To this end we first set up such extractor objects and later
+        // use it when generating the relevant component masks:
+
+        std::vector<unsigned int> first_vector_components;
+        first_vector_components.push_back(0);
+
+        // After setting up all the information in periodicity_vector all we have
+        // to do is to tell make_periodicity_constraints to create the desired
+        // constraints.
+        DoFTools::make_periodicity_constraints<DoFHandler<dim> >
+         (periodicity_vector, constraints, fe.component_mask(x_displacement), first_vector_components);
+        DoFTools::make_periodicity_constraints<DoFHandler<dim> >
+         (periodicity_vector, constraints, fe.component_mask(y_displacement), first_vector_components);
+        // This block add to the periodicity constraint the little compression we want
+        {
+          IndexSet selected_dofs_left;
+          std::set< types::boundary_id > boundary_ids_left= std::set<types::boundary_id>();
+          boundary_ids_left.insert(1);
+          DoFTools::extract_boundary_dofs(dof_handler_ref,
+                    fe.component_mask(x_displacement), selected_dofs_left, boundary_ids_left);
+          unsigned int nb_dofs_face_left = selected_dofs_left.n_elements();
+          IndexSet::ElementIterator dofs_left = selected_dofs_left.begin();
+          for(unsigned int i = 0; i < nb_dofs_face_left; i++)
+          {
+              //constraints.add_line(*dofs_left );
+              constraints.set_inhomogeneity(*dofs_left, apply_dirichlet_bc ? displacement_side_1 : 0.0);
+              dofs_left++;
+          }
+        }
+    }
+
+         // This block enforce a zero horizontal displacement at the bottom-right point
      {
         IndexSet selected_dofs_bottom;
         std::set< types::boundary_id > boundary_ids_bottom= std::set<types::boundary_id>();
@@ -2754,23 +2834,6 @@ namespace neo_hookean
             dofs_bottom++;
         constraints.add_line(*dofs_bottom);
      }
-
-      // This block add to the periodicity constraint the little compression we want
-      {
-        IndexSet selected_dofs_left;
-        std::set< types::boundary_id > boundary_ids_left= std::set<types::boundary_id>();
-        boundary_ids_left.insert(1);
-        DoFTools::extract_boundary_dofs(dof_handler_ref,
-                  fe.component_mask(x_displacement), selected_dofs_left, boundary_ids_left);
-        unsigned int nb_dofs_face_left = selected_dofs_left.n_elements();
-        IndexSet::ElementIterator dofs_left = selected_dofs_left.begin();
-        for(unsigned int i = 0; i < nb_dofs_face_left; i++)
-        {
-            //constraints.add_line(*dofs_left );
-            constraints.set_inhomogeneity(*dofs_left, apply_dirichlet_bc ? displacement_side_1 : 0.0);
-            dofs_left++;
-        }
-      }
 
     {
       const int boundary_id = 0;
@@ -3103,7 +3166,7 @@ namespace neo_hookean
   }
 
   template <int dim>
-  unsigned int
+  std::size_t
   Solid<dim>::get_unconstrained_system_size()
   {
     make_constraints(0);
@@ -3112,6 +3175,18 @@ namespace neo_hookean
       if (!constraints.is_constrained(i))
 	nb_unconstrained_dofs++;
     return nb_unconstrained_dofs;
+  }
+
+  template <int dim>
+  std::size_t
+  Solid<dim>::get_system_size_with_periodic()
+  {
+    make_constraints(-1); //This do not apply the periodic BCs
+    unsigned int nb_unconstrained_dofs_with_periodic = 0;
+    for (unsigned int i = 0; i < dof_handler_ref.n_dofs(); ++i)
+      if (!constraints.is_constrained(i))
+	nb_unconstrained_dofs_with_periodic++;
+    return nb_unconstrained_dofs_with_periodic;
   }
 
   template <int dim>
@@ -3200,7 +3275,7 @@ namespace neo_hookean
   Solid<dim>::get_dofs_properties(double* const dofs_properties)
   {
     const unsigned int offset = 0;
-    unsigned int i_unconstrained = offset;
+    unsigned int i_current = offset;
 
     std::vector<Point<dim>> support_points(dof_handler_only_u.n_dofs());
     MappingQ<dim>      mapping(1, true);
@@ -3208,21 +3283,27 @@ namespace neo_hookean
 
     for (unsigned int i = 0; i < dof_handler_only_u.n_dofs(); ++i)//We begin by the displacement degrees of freedom
     {
-        if (!constraints.is_constrained(i)){
-            dofs_properties[i_unconstrained - offset] = i % 2;
-            dofs_properties[i_unconstrained - offset + 1] = support_points[i][0];
-            dofs_properties[i_unconstrained - offset + 2] = support_points[i][1];
-            i_unconstrained = i_unconstrained + 3;
-        }
+        dofs_properties[i_current - offset] = i % 2;
+        dofs_properties[i_current - offset + 1] = support_points[i][0];
+        dofs_properties[i_current - offset + 2] = support_points[i][1];
+        i_current = i_current + 3;
     }
     for (unsigned int i = dof_handler_only_u.n_dofs(); i < dof_handler_ref.n_dofs(); ++i)//Then we process pressures DOFs
     {
-        if (!constraints.is_constrained(i)){
-            dofs_properties[i_unconstrained - offset] = 2.0;
-            dofs_properties[i_unconstrained - offset + 1] = 0.0;
-            dofs_properties[i_unconstrained - offset + 2] = 0.0;
-            i_unconstrained = i_unconstrained + 3;
-        }
+        dofs_properties[i_current - offset] = 2.0;
+        dofs_properties[i_current - offset + 1] = 0.0;
+        dofs_properties[i_current - offset + 2] = 0.0;
+        i_current = i_current + 3;
+    }
+  }
+
+  template <int dim>
+  void
+  Solid<dim>::get_constraint_properties(double* const constraint_properties)
+  {
+    for(unsigned int i = 0; i < dof_handler_ref.n_dofs(); i++)
+    {
+        constraint_properties[i] = global_constraint_properties(i);
     }
   }
 
@@ -3232,14 +3313,11 @@ namespace neo_hookean
   {
     if(print_steps_computation)
         std::cout << " S_SOL" << std::flush;
-    unsigned int i_unconstrained = 0;
     displacement_and_qph_accurate = false;
 
     for (unsigned int i = 0; i < dof_handler_ref.n_dofs(); ++i)
     {
-        if (!constraints.is_constrained(i)){
-            solution_n[i] = solution[i_unconstrained++];
-        }
+        solution_n[i] = solution[i];
     }
   }
 
@@ -3255,12 +3333,6 @@ namespace neo_hookean
   void
   Solid<dim>::update_periodically_constrained_dofs_and_qph()
   {
-    unsigned int nb_periodic_constrained_dofs = horizontal_periodicity_links.size();
-    for(unsigned int i = 0; i < nb_periodic_constrained_dofs; i++)
-    {
-        solution_n[horizontal_periodicity_links[i].first] = solution_n[horizontal_periodicity_links[i].second] + displacement_side_1;
-        solution_n[vertical_periodicity_links[i].first]   = solution_n[vertical_periodicity_links[i].second];
-    }
     BlockVector<double> solution_delta(dofs_per_block);
     solution_delta = 0.0;
     update_qph_incremental(solution_delta);
@@ -3283,6 +3355,28 @@ namespace neo_hookean
     constraints.condense(tangent_matrix, system_rhs);
 
     sys_rhs = &system_rhs;
+    tm = &tangent_matrix;
+  }
+
+  template <int dim>
+  void
+  Solid<dim>::get_free_rhs(BlockVector<double> const* &sys_rhs)
+  {
+    if(!displacement_and_qph_accurate)
+        update_periodically_constrained_dofs_and_qph();
+    system_rhs = 0.0;
+    assemble_system_rhs();
+    sys_rhs = &system_rhs;
+  }
+
+  template <int dim>
+  void
+  Solid<dim>::get_free_tangent(BlockSparseMatrix<double> const* &tm)
+  {
+    if(!displacement_and_qph_accurate)
+        update_periodically_constrained_dofs_and_qph();
+    tangent_matrix = 0.0;
+    assemble_system_tangent();
     tm = &tangent_matrix;
   }
 
@@ -3325,6 +3419,12 @@ namespace neo_hookean
   }
 
   void
+  get_constraint_properties(double* const constraint_properties)
+  {
+      MyNeoHookean->get_constraint_properties(constraint_properties);
+  }
+
+  void
   set_solution(double const* const solution)
   {
     MyNeoHookean->set_solution(solution);
@@ -3349,6 +3449,34 @@ namespace neo_hookean
       {
 	sys_rhs[i] = (*rhs)[i];
       }
+    memset(tm, 0, size*size*sizeof(double));
+    for (BlockSparseMatrix<double>::const_iterator itr = tangent->begin();
+	 itr != tangent->end(); ++itr)
+      {
+	tm[size*(itr->row()) + itr->column()] = itr->value();
+      }
+  }
+
+  void
+  get_free_rhs(double* const sys_rhs)
+  {
+    BlockVector<double> const* rhs;
+    MyNeoHookean->get_free_rhs(rhs);
+
+    std::size_t size(MyNeoHookean->get_system_size());
+    for (unsigned i = 0; i < size; ++i)
+      {
+	sys_rhs[i] = (*rhs)[i];
+      }
+  }
+
+  void
+  get_free_tangent(double* const tm)
+  {
+    BlockSparseMatrix<double> const* tangent;
+    MyNeoHookean->get_free_tangent(tangent);
+
+    std::size_t size(MyNeoHookean->get_system_size());
     memset(tm, 0, size*size*sizeof(double));
     for (BlockSparseMatrix<double>::const_iterator itr = tangent->begin();
 	 itr != tangent->end(); ++itr)
@@ -3487,9 +3615,14 @@ namespace neo_hookean
     return MyNeoHookean->get_system_size();
   }
 
-  unsigned int get_unconstrained_system_size()
+  std::size_t get_unconstrained_system_size()
   {
     return MyNeoHookean->get_unconstrained_system_size();
+  }
+
+  std::size_t get_system_size_with_periodic()
+  {
+      return MyNeoHookean->get_system_size_with_periodic();
   }
 
   void output_results_BFB()

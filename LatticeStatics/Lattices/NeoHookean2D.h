@@ -15,6 +15,8 @@ class NeoHookean2D : public Lattice
         mutable Vector DOF_; // DOFs in BFB
         mutable Vector DOF_D_; // DOFs in deal.II
         mutable Vector dofs_properties_; // Description of the deal.II DOFs
+        mutable Vector constraint_properties_; // Description of the periodic properties (which DOF is linked with which)
+        mutable Vector links_from_constrained_to_unconstrained_;
         mutable Vector RHS_;
         mutable Vector RHS_D_;
         mutable Matrix Stiff_;
@@ -52,6 +54,8 @@ class NeoHookean2D : public Lattice
             {
                 return DOF_;
             }
+            
+            void fill_links_from_constrained_to_unconstrained();
             
             void SetDOF(Vector const& dof);
             
