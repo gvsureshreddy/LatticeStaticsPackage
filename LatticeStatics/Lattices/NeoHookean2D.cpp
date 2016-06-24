@@ -66,12 +66,20 @@ NeoHookean2D::NeoHookean2D(PerlInput const& Input, int const& Echo, int const& W
 
 void NeoHookean2D::SetLambda(double const& lambda)
 {
+    for (int i = 0; i < cachesize; ++i)
+    {
+      Cached_[i] = 0;
+    }
     Lambda_ = lambda;
     neo_hookean::set_lambda(lambda);
 }
 
 void NeoHookean2D::SetDOF(Vector const& dof)
 {
+    for (int i = 0; i < cachesize; ++i)
+    {
+      Cached_[i] = 0;
+    }
     DOF_ = dof;
     for(int i = 0; i < DOFS_D_; ++i)
     {
@@ -113,10 +121,20 @@ Vector const& NeoHookean2D::E1DLoad() const
   if ((!Caching_) || (!Cached_[2]))
   {
     neo_hookean::get_unconstrained_E1DLoad(&(E1DLoad_D_[0]),1);
-    //neo_hookean::get_unconstrained_rhs_and_tangent(&(RHS_D_[0]),&(Stiff_D_[0][0]),1);
+    neo_hookean::get_unconstrained_rhs_and_tangent(&(RHS_D_[0]),&(Stiff_D_[0][0]),1);
+    Vector temp;
+    temp.Resize(DOFS_D_, 0.0);
     for(unsigned int i = 0; i < DOFS_D_; ++i)
     {
-        E1DLoad_[i+1] = E1DLoad_D_[i];
+        for(unsigned int j = 0; j < DOFS_D_; ++j)
+        {
+            temp[i] += (dofs_properties_[3*j] == 0.0) ? (1-dofs_properties_[3*j+1]) * Stiff_D_[i][j] : 0.0;
+        }
+    }
+    for(unsigned int i = 0; i < DOFS_D_; ++i)
+    {
+        E1DLoad_[i+1] = temp[i] + E1DLoad_D_[i];
+        E1DLoad_[0] += (dofs_properties_[3*i] == 1.0) ? dofs_properties_[3*i+2] * (temp[i] + E1DLoad_D_[i]) : 0.0;;
     }
     Cached_[2] = 1;
     CallCount_[2]++;
