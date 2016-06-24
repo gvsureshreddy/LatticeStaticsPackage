@@ -72,6 +72,7 @@ void NeoHookean2D::SetLambda(double const& lambda)
     }
     Lambda_ = lambda;
     neo_hookean::set_lambda(lambda);
+    std::cout << "\nLambda = " << Lambda_ << ", eta = " << DOF_[0] << "\n";
 }
 
 void NeoHookean2D::SetDOF(Vector const& dof)
@@ -81,9 +82,27 @@ void NeoHookean2D::SetDOF(Vector const& dof)
       Cached_[i] = 0;
     }
     DOF_ = dof;
+    std::cout << "\n\nWe have : lambda = " << Lambda_ << " and eta = " << DOF_[0] << "\n";
     for(int i = 0; i < DOFS_D_; ++i)
     {
-        DOF_D_[i] = (dofs_properties_[3*i] == 0.0 ? (1 - dofs_properties_[3*i+1]) * Lambda_ : dofs_properties_[3*i+2] * DOF_[0]) + DOF_[i+1];
+        switch((int) dofs_properties_[3*i]){
+            case 0 :
+                DOF_D_[i] = (1 - dofs_properties_[3*i+1]) * Lambda_ + DOF_[i+1];
+                std::cout << "\nThis is a H dof. Added : " << (1 - dofs_properties_[3*i+1]) * Lambda_ << " to the displacement : " << DOF_[i+1];
+                break;
+            case 1 :
+                DOF_D_[i] = dofs_properties_[3*i+2] * DOF_[0] + DOF_[i+1];
+                std::cout << "\nThis is a V dof. Added : " << dofs_properties_[3*i+2] * DOF_[0] << " to the displacement : " << DOF_[i+1];
+                break;
+            case 2 :
+                DOF_D_[i] = DOF_[i+1];
+                std::cout << "\nThis is a P dof. Added : " << 0 << " to the displacement : " << DOF_[i+1];
+                break;
+            default :
+                //raise an error
+                break;
+        }
+        //DOF_D_[i] = ((dofs_properties_[3*i] == 0.0) ? (1 - dofs_properties_[3*i+1]) * Lambda_ : ((dofs_properties_[3*i] == 1.0) ? dofs_properties_[3*i+2] * DOF_[0] : 0.0)) + DOF_[i+1];
     }
     neo_hookean::set_solution(&(DOF_D_[0]));
 }

@@ -1043,7 +1043,7 @@ namespace neo_hookean
     const bool                       print_RHS = false;
     //This is just to know the size of the tangent matrix "by hand", for debugging:
     const int                        dim_matrix = 22;
-    const bool                       print_steps_computation = false;
+    const bool                       print_steps_computation = true;
 
     // Then define a number of variables to store norms and update norms and
     // normalisation factors.
@@ -3118,6 +3118,8 @@ namespace neo_hookean
   double
   Solid<dim>::get_energy()
   {
+    if(!displacement_and_qph_accurate)
+        update_periodically_constrained_dofs_and_qph();
     assemble_system_energy();
     return system_energy;
   }
@@ -3257,12 +3259,13 @@ namespace neo_hookean
     for(unsigned int i = 0; i < nb_periodic_constrained_dofs; i++)
     {
         solution_n[horizontal_periodicity_links[i].first] = solution_n[horizontal_periodicity_links[i].second] + displacement_side_1;
-        solution_n[vertical_periodicity_links[i].first] = solution_n[vertical_periodicity_links[i].second];
+        solution_n[vertical_periodicity_links[i].first]   = solution_n[vertical_periodicity_links[i].second];
     }
     BlockVector<double> solution_delta(dofs_per_block);
     solution_delta = 0.0;
     update_qph_incremental(solution_delta);
     displacement_and_qph_accurate = true;
+    output_results_for_BFB();
   }
 
   template <int dim>
@@ -3327,7 +3330,7 @@ namespace neo_hookean
     MyNeoHookean->set_solution(solution);
   }
 
-    void
+  void
   set_lambda(double const lambda)
   {
     MyNeoHookean->set_lambda(lambda);
