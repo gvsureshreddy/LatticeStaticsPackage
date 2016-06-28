@@ -379,6 +379,40 @@ namespace neo_hookean
       prm.leave_subsection();
     }
 
+    // @sect4{General parameters}
+
+    // Set the timestep size $ \varDelta t $ and the simulation end-time.
+    struct GeneralParameters
+    {
+      bool print_steps_computation_param;
+
+      static void
+      declare_parameters(ParameterHandler &prm);
+
+      void
+      parse_parameters(ParameterHandler &prm);
+    };
+
+    void GeneralParameters::declare_parameters(ParameterHandler &prm)
+    {
+      prm.enter_subsection("General Parameters");
+      {
+	prm.declare_entry("Print steps computation", "false",
+			  Patterns::Bool(),
+			  "Print steps computation");
+      }
+      prm.leave_subsection();
+    }
+
+    void GeneralParameters::parse_parameters(ParameterHandler &prm)
+    {
+      prm.enter_subsection("General Parameters");
+      {
+	print_steps_computation_param = prm.get_bool("Print steps computation");
+      }
+      prm.leave_subsection();
+    }
+
     // @sect4{All parameters}
 
     // Finally we consolidate all of the above structures into a single container
@@ -388,7 +422,8 @@ namespace neo_hookean
 			   public Materials,
 			   public LinearSolver,
 			   public NonlinearSolver,
-			   public Time
+			   public Time,
+                           public GeneralParameters
 
     {
       AllParameters(const std::string &input_file);
@@ -416,6 +451,7 @@ namespace neo_hookean
       LinearSolver::declare_parameters(prm);
       NonlinearSolver::declare_parameters(prm);
       Time::declare_parameters(prm);
+      GeneralParameters::declare_parameters(prm);
     }
 
     void AllParameters::parse_parameters(ParameterHandler &prm)
@@ -426,6 +462,7 @@ namespace neo_hookean
       LinearSolver::parse_parameters(prm);
       NonlinearSolver::parse_parameters(prm);
       Time::parse_parameters(prm);
+      GeneralParameters::parse_parameters(prm);
     }
   }
 
@@ -1058,7 +1095,7 @@ namespace neo_hookean
     const bool                       print_RHS = false;
     //This is just to know the size of the tangent matrix "by hand", for debugging:
     const int                        dim_matrix = 22;
-    const bool                       print_steps_computation = false;
+    const bool                       print_steps_computation;
 
     // Then define a number of variables to store norms and update norms and
     // normalisation factors.
@@ -1146,7 +1183,8 @@ namespace neo_hookean
     n_q_points (qf_cell.size()),
     n_q_points_f (qf_face.size()),
     displacement_side_1 ((1 - parameters.elongation) * parameters.delta_t / parameters.end_time),
-    displacement_and_qph_accurate(false)
+    displacement_and_qph_accurate(false),
+    print_steps_computation(parameters.print_steps_computation_param)
   {
     determine_component_extractors();
     make_grid();
@@ -1649,12 +1687,12 @@ namespace neo_hookean
 	  else
 	    coupling[ii][jj] = DoFTools::always;
 
-      DoFTools::make_hanging_node_constraints (dof_handler_ref, constraints);
+
 
       global_constraint_properties.reinit(dofs_per_block);
       global_constraint_properties.collect_sizes();
 
-      apply_periodic_constraints_and_fill_periodic_links();
+
 
       DoFTools::make_sparsity_pattern(dof_handler_ref,
 				      coupling,
@@ -1663,6 +1701,9 @@ namespace neo_hookean
 				      true);
       sparsity_pattern.copy_from(dsp);
     }
+
+    DoFTools::make_hanging_node_constraints (dof_handler_ref, constraints);
+    apply_periodic_constraints_and_fill_periodic_links();
 
     tangent_matrix.reinit(sparsity_pattern);
 
@@ -3392,6 +3433,7 @@ namespace neo_hookean
   Solid<dim>::output_results_for_BFB()
   {
     output_results(true);
+    //std::cout << "\nFor vtk number " << time.get_timestep() << ", we have lambda = " << displacement_side_1;
     time.increment();
   }
 

@@ -55,6 +55,8 @@ NeoHookean2D::NeoHookean2D(PerlInput const& Input, int const& Echo, int const& W
 //  std::cout << "NeoHookean2D size with periodic is "
 //          << DOFS_D_ << std::endl;
   DOF_.Resize(DOFS_, 0.0);
+  for(unsigned int i = DOFS_-4; i < DOFS_; ++i)
+      DOF_[i] = 1.0;
   DOF_D_.Resize(DOFS_D_, 0.0);
   dofs_properties_.Resize(3*DOFS_D_, 0.0);
   neo_hookean::get_dofs_properties(&(dofs_properties_[0]));
@@ -113,8 +115,7 @@ NeoHookean2D::NeoHookean2D(PerlInput const& Input, int const& Echo, int const& W
   E1DLoad_D_.Resize(DOFS_D_,0.0);
   Stiff_.Resize(DOFS_,DOFS_,0.0);
   Stiff_D_.Resize(DOFS_D_,DOFS_D_,0.0);
-  neo_hookean::set_solution(&(DOF_D_[0]));
-  neo_hookean::get_unconstrained_rhs_and_tangent(&(RHS_D_[0]),&(Stiff_D_[0][0]),1);
+  SetDOF(DOF_);
 }
 
 void NeoHookean2D::fill_links_from_constrained_to_unconstrained()
@@ -140,7 +141,7 @@ void NeoHookean2D::SetLambda(double const& lambda)
     }
     Lambda_ = lambda;
     neo_hookean::set_lambda(lambda);
-    std::cout << "\nLambda = " << Lambda_ << ", eta = " << DOF_[0] << "\n";
+    SetDOF(DOF_);
 }
 
 void NeoHookean2D::SetDOF(Vector const& dof)
@@ -182,6 +183,11 @@ void NeoHookean2D::SetDOF(Vector const& dof)
                 DOF_D_[i] = 0.0;
                 break;
             default : // Periodically constrained DOFs (positive integer)
+                 if(constraint_properties_[constraint_properties_[i]] != -3)
+                 { // Handle the bottom left DOF
+                     DOF_D_[i] = Lambda_;
+                     break;
+                 }
                 switch((int) dofs_properties_[3*i])
                 {
                     case 0 :
@@ -198,8 +204,8 @@ void NeoHookean2D::SetDOF(Vector const& dof)
                 }
                 break;
         }
-        //DOF_D_[i] = ((dofs_properties_[3*i] == 0.0) ? (1 - dofs_properties_[3*i+1]) * Lambda_ : ((dofs_properties_[3*i] == 1.0) ? dofs_properties_[3*i+2] * DOF_[0] : 0.0)) + DOF_[i+1];
     }
+    std::cout << "\nSetting solution to :\n" << DOF_D_ << "\n\nDOF was equal to : " << DOF_;
     neo_hookean::set_solution(&(DOF_D_[0]));
 }
 
@@ -219,15 +225,26 @@ Vector const& NeoHookean2D::E1() const
 {
   if ((!Caching_) || (!Cached_[1]))
   {
-    neo_hookean::get_unconstrained_rhs_and_tangent(&(RHS_D_[0]),&(Stiff_D_[0][0]),1);
+    RHS_.Resize(DOFS_,0.0);
+    RHS_D_.Resize(DOFS_D_,0.0);
+    neo_hookean::get_free_rhs(&(RHS_D_[0]));
     for(unsigned int i = 0; i < DOFS_D_; ++i)
     {
-        //RHS_[i+1] = RHS_D_[i];
-        RHS_[0] += (dofs_properties_[3*i] == 1.0) ? dofs_properties_[3*i+2] * RHS_D_[i] : 0.0;
+        const bool condition = (constraint_properties_[i] == -3 || constraint_properties_[i] > -1) && dofs_properties_[3*i] == 1.0;
+        RHS_[0] -= condition ? dofs_properties_[3*i+2] * RHS_D_[i] : 0.0;
+        if(constraint_properties_[i] == -3)
+        {
+            RHS_[links_from_constrained_to_unconstrained_[i]] -= RHS_D_[i];
+        } else if(constraint_properties_[i] > -1 && constraint_properties_[constraint_properties_[i]] == -3)
+        {
+            RHS_[links_from_constrained_to_unconstrained_[constraint_properties_[i]]] -= RHS_D_[i];
+        }
     }
     Cached_[1] = 1;
     CallCount_[1]++;
   }
+  //std::cout << "\n\nPrint RHS_D :\n\n" << setw(16) << RHS_D_;
+  //std::cout << "\n\nPrint RHS :\n\n" << setw(16) << RHS_;
   return RHS_;
 }
 
@@ -235,25 +252,40 @@ Vector const& NeoHookean2D::E1DLoad() const
 {
   if ((!Caching_) || (!Cached_[2]))
   {
-    neo_hookean::get_unconstrained_E1DLoad(&(E1DLoad_D_[0]),1);
-    neo_hookean::get_unconstrained_rhs_and_tangent(&(RHS_D_[0]),&(Stiff_D_[0][0]),1);
-    Vector temp;
-    temp.Resize(DOFS_D_, 0.0);
+    E1DLoad_.Resize(DOFS_,0.0);
+    Stiff_D_.Resize(DOFS_D_,DOFS_D_,0.0);
+    neo_hookean::get_free_tangent(&(Stiff_D_[0][0]));
+    Matrix temp;
+    temp.Resize(DOFS_,DOFS_D_, 0.0);
     for(unsigned int i = 0; i < DOFS_D_; ++i)
     {
+        const bool condition = (constraint_properties_[i] == -3 || constraint_properties_[i] > -1) && dofs_properties_[3*i] == 1.0;
         for(unsigned int j = 0; j < DOFS_D_; ++j)
         {
-            temp[i] += (dofs_properties_[3*j] == 0.0) ? (1-dofs_properties_[3*j+1]) * Stiff_D_[i][j] : 0.0;
+            temp[0][j] += condition ? dofs_properties_[3*i+2] * Stiff_D_[i][j] : 0.0;
+            if(constraint_properties_[i] == -3)
+            {
+                temp[(int) links_from_constrained_to_unconstrained_[i]][j] += Stiff_D_[i][j];
+            } else if(constraint_properties_[i] > -1 && constraint_properties_[constraint_properties_[i]] == -3)
+            {
+                temp[(int) links_from_constrained_to_unconstrained_[(int) constraint_properties_[i]]][j] += Stiff_D_[i][j];
+            }
         }
     }
     for(unsigned int i = 0; i < DOFS_D_; ++i)
     {
-        //E1DLoad_[i+1] = temp[i] + E1DLoad_D_[i];
-        E1DLoad_[0] += (dofs_properties_[3*i] == 1.0) ? dofs_properties_[3*i+2] * (temp[i] + E1DLoad_D_[i]) : 0.0;;
+        const bool condition = (constraint_properties_[i] == -3 || constraint_properties_[i] > -1) && dofs_properties_[3*i] == 0.0;
+        if(condition)
+            for(unsigned int j = 0; j < DOFS_; ++j)
+            {
+                E1DLoad_[j] += temp[j][i] * (1 - dofs_properties_[3*i+1]);
+            }
     }
     Cached_[2] = 1;
     CallCount_[2]++;
   }
+//  std::cout << "\n\nPrint Stiff_D :\n\n" << setw(17) << Stiff_D_;
+//  std::cout << "\n\nPrint E1DLoad :\n\n" << setw(17) << E1DLoad_;
   return E1DLoad_;
 }
 
@@ -261,23 +293,55 @@ Matrix const& NeoHookean2D::E2() const
 {
   if ((!Caching_) || (!Cached_[3]))
   {
-    neo_hookean::get_unconstrained_rhs_and_tangent(&(RHS_D_[0]),&(Stiff_D_[0][0]),1);
-    for(unsigned int i =0; i < DOFS_D_; ++i)
+    Stiff_.Resize(DOFS_,DOFS_,0.0);
+    Stiff_D_.Resize(DOFS_D_,DOFS_D_,0.0);
+    neo_hookean::get_free_tangent(&(Stiff_D_[0][0]));
+    Matrix temp;
+    temp.Resize(DOFS_,DOFS_D_, 0.0);
+    for(unsigned int i = 0; i < DOFS_D_; ++i)
     {
+        const bool condition = (constraint_properties_[i] == -3 || constraint_properties_[i] > -1) && dofs_properties_[3*i] == 1.0;
         for(unsigned int j = 0; j < DOFS_D_; ++j)
         {
-            //Stiff_[0][i] += (dofs_properties_[3*j] == 1.0) ? dofs_properties_[3*j+2] * Stiff_D_[j][i] : 0.0;
-            //Stiff_[i][0] = Stiff_[0][i];
-            //Stiff_[i+1][j+1] = Stiff_D_[i][j];
+            temp[0][j] += condition ? dofs_properties_[3*i+2] * Stiff_D_[i][j] : 0.0;
+            if(constraint_properties_[i] == -3)
+            {
+                temp[(int) links_from_constrained_to_unconstrained_[i]][j] += Stiff_D_[i][j];
+            } else if(constraint_properties_[i] > -1 && constraint_properties_[constraint_properties_[i]] == -3)
+            {
+                temp[(int) links_from_constrained_to_unconstrained_[(int) constraint_properties_[i]]][j] += Stiff_D_[i][j];
+            }
         }
     }
-    for(unsigned int i =0; i < DOFS_D_; ++i)
+    for(unsigned int i = 0; i < DOFS_D_; ++i)
     {
-        Stiff_[0][0] += (dofs_properties_[3*i] == 1.0) ? dofs_properties_[3*i+2] * Stiff_[0][i] : 0.0;
+        const bool condition = (constraint_properties_[i] == -3 || constraint_properties_[i] > -1) && dofs_properties_[3*i] == 1.0;
+        Stiff_[0][0] += condition ? temp[0][i] * dofs_properties_[3*i+2] : 0.0;
+        if(constraint_properties_[i] == -3)
+        {
+            Stiff_[0][(int) links_from_constrained_to_unconstrained_[i]] += temp[0][i];
+            Stiff_[(int) links_from_constrained_to_unconstrained_[i]][0] += temp[0][i];
+        } else if(constraint_properties_[i] > -1 && constraint_properties_[constraint_properties_[i]] == -3)
+        {
+            Stiff_[0][(int) links_from_constrained_to_unconstrained_[(int) constraint_properties_[i]]] += temp[0][i];
+            Stiff_[(int) links_from_constrained_to_unconstrained_[(int) constraint_properties_[i]]][0] += temp[0][i];
+        }
+        for(unsigned int j = 1; j < DOFS_; ++j)
+        {
+            if(constraint_properties_[i] == -3)
+            {
+                Stiff_[j][(int) links_from_constrained_to_unconstrained_[i]] += temp[j][i];
+            } else if(constraint_properties_[i] > -1 && constraint_properties_[constraint_properties_[i]] == -3)
+            {
+                Stiff_[j][(int) links_from_constrained_to_unconstrained_[(int) constraint_properties_[i]]] += temp[j][i];
+            }
+        }
     }
     Cached_[3] = 1;
     CallCount_[3]++;
   }
+//  std::cout << "\n\nPrint Stiff_D :\n\n" << setw(17) << Stiff_D_;
+//  std::cout << "\n\nPrint Stiff :\n\n" << setw(17) << Stiff_ << "\n\n";
   return Stiff_;
 }
 
