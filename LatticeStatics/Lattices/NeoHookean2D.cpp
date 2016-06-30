@@ -20,6 +20,7 @@ namespace neo_hookean
   void get_free_tangent(double* const tm);
   void get_unconstrained_E1DLoad(double* const E1DLoad, unsigned int iter_value);
   void output_results_BFB();
+  void output_results_BFB(bool isBifurcationTangent, unsigned int numBifurcationPoint, unsigned int indexLocal);
   double get_energy();
   int NoNegTestFunctions;
 }
@@ -464,4 +465,20 @@ void NeoHookean2D::PrintPath(ostream& out, ostream& pathout, int const& width)
     Vector TestFunctVals(NumTestFunctions());
     TestFunctions(TestFunctVals, LHS);
     pathout << setw(width) << neo_hookean::NoNegTestFunctions << setw(width) << Lambda_ << " " << setw(width) << TestFunctVals /*<< " " << setw(width) << DOF_ */<< "\n";
+}
+
+void NeoHookean2D::DrawBifurcatedPath(Vector const& tangent, unsigned int numBifurcationPoint, unsigned int indexLocal)
+{
+    Vector backupSolution(DOF_);
+    std::cout << "\n\n\n_________________________________________________________________________\n\nOk, here is backupSolution"     << backupSolution << "\n\n";
+    Vector tempSolution(DOF_);
+    for(unsigned int i = 0; i < DOFS_; i++)
+    {
+        tempSolution[i] += tangent[i]*sqrt(DOFS_)/50;
+        // This is just a factor to make it nice to display, and to have the
+        // same average displacement with respect to the refinement level
+    }
+    SetDOF(tempSolution);
+    neo_hookean::output_results_BFB(true, numBifurcationPoint, indexLocal);
+    SetDOF(backupSolution);
 }

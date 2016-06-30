@@ -12,7 +12,7 @@ class NeoHookean2D : public Lattice
         mutable int DOFS_; // Number of DOFs in BFB
         mutable int DOFS_D_; // Number of DOFs in deal.II
         mutable int dofs_vertical_;
-        double factor_penalty_ = 1;
+        const double factor_penalty_ = 1.0;
         
         mutable Vector DOF_; // DOFs in BFB
         mutable Vector DOF_D_; // DOFs in deal.II
@@ -92,6 +92,8 @@ class NeoHookean2D : public Lattice
                     PrintPathSolutionType const& SolType = RegularPt);
             
             virtual void PrintPath(ostream& out, ostream& pathout, int const& width);
+            
+            virtual void DrawBifurcatedPath(Vector const& tangent, unsigned int numBifurcationPoint, unsigned int indexLocal);
             
             friend ostream& operator<<(ostream& out, NeoHookean2D& A);
             

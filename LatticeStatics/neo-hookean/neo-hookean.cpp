@@ -869,7 +869,7 @@ namespace neo_hookean
     get_constraints_matrix(ConstraintMatrix const* &constraints_matrix);
 
     void
-    output_results_for_BFB();
+    output_results_for_BFB(bool isBifurcationTangent, unsigned int numBifurcationPoint, unsigned int indexLocal);
 
   private:
 
@@ -1011,7 +1011,11 @@ namespace neo_hookean
     get_total_solution(const BlockVector<double> &solution_delta) const;
 
     void
-    output_results(/*double const loading, */bool const is_BFB_call) const;
+    output_results(/*double const loading, */bool const is_BFB_call,
+          bool const isBifurcationTangent, unsigned int numBifurcationPoint, unsigned int indexLocal) const;
+
+    void
+    output_results() const;
 
     // Finally, some member variables that describe the current state: A
     // collection of the parameters used to describe the problem setup...
@@ -1189,7 +1193,7 @@ namespace neo_hookean
     determine_component_extractors();
     make_grid();
     system_setup();
-    output_results(/*0.0,*/false);
+    output_results();
     time.increment();
   }
 
@@ -1233,7 +1237,7 @@ namespace neo_hookean
 
 	// ...and plot the results before moving on happily to the next time
 	// step:
-	output_results(/*0.0,*/false);
+	output_results();
 	time.increment();
       }
   }
@@ -3139,7 +3143,15 @@ namespace neo_hookean
   // Here we present how the results are written to file to be viewed
   // using ParaView or Visit.
   template <int dim>
-  void Solid<dim>::output_results(/*double const loading, */bool const is_BFB_call) const
+  void Solid<dim>::output_results() const
+  {
+      output_results(false, false, 0, 0);
+  }
+
+
+  template <int dim>
+  void Solid<dim>::output_results(/*double const loading, */bool const is_BFB_call,
+          bool const isBifurcationTangent, unsigned int numBifurcationPoint, unsigned int indexLocal) const
   {
     DataOut<dim> data_out;
     std::vector<DataComponentInterpretation::DataComponentInterpretation>
@@ -3182,14 +3194,33 @@ namespace neo_hookean
         systemCmdrm = system("rm -r \"Results/Number-\"* && rm -r \"Results/timestep-0.vtk\"");
     }
     if(systemCmdmkdir != 0 || systemCmdrm !=0)
-      std::cerr << std::endl << "Warning : problem while trying to create or empty"
+      std::cerr << std::endl << "Warning : problem while trying to create or empty "
 		<< "Results directory, using mkdir or rm command. Maybe the folder was already empty." << std::endl;
+
+    strPath = "Results/Tangents";
+    if ( access( strPath.c_str(), 0 ) == -1 )
+      {
+	systemCmdmkdir = system("mkdir \"Results/Tangents\"");
+      }
+    else if(time.get_timestep()==1 && is_BFB_call)
+    {
+        systemCmdrm = system("rm -r \"Results/Tangents/Tangent-\"*");
+    }
+    if(systemCmdmkdir != 0 || systemCmdrm !=0)
+      std::cerr << std::endl << "Warning : problem while trying to create or empty "
+		<< "Results/Tangents directory, using mkdir or rm command. Maybe the folder was already empty." << std::endl;
 
 
     std::ostringstream filename;
-    if(is_BFB_call)
+    if(is_BFB_call && !isBifurcationTangent)
     {
         filename << "Results/Number-" << time.get_timestep() << /*"_lambda=" << loading <<*/ ".vtk";
+    } else if(is_BFB_call && isBifurcationTangent)
+    {
+        filename.fill('0');
+        filename << "Results/Tangents/Tangent-B"
+                    << std::setw(4) << numBifurcationPoint << "-"
+                    << std::setw(3) << indexLocal << ".vtk";;
     }
     else
         filename << "Results/timestep-" << time.get_timestep() << ".vtk";
@@ -3378,7 +3409,6 @@ namespace neo_hookean
     solution_delta = 0.0;
     update_qph_incremental(solution_delta);
     displacement_and_qph_accurate = true;
-    output_results_for_BFB();
   }
 
   template <int dim>
@@ -3430,10 +3460,9 @@ namespace neo_hookean
 
   template <int dim>
   void
-  Solid<dim>::output_results_for_BFB()
+  Solid<dim>::output_results_for_BFB(bool isBifurcationTangent, unsigned int numBifurcationPoint, unsigned int indexLocal)
   {
-    output_results(true);
-    //std::cout << "\nFor vtk number " << time.get_timestep() << ", we have lambda = " << displacement_side_1;
+    output_results(true, isBifurcationTangent, numBifurcationPoint, indexLocal);
     time.increment();
   }
 
@@ -3669,7 +3698,12 @@ namespace neo_hookean
 
   void output_results_BFB()
   {
-      MyNeoHookean->output_results_for_BFB();
+      MyNeoHookean->output_results_for_BFB(false, 0, 0);
+  }
+
+  void output_results_BFB(bool isBifurcationTangent, unsigned int numBifurcationPoint, unsigned int indexLocal)
+  {
+      MyNeoHookean->output_results_for_BFB(isBifurcationTangent, numBifurcationPoint, indexLocal);
   }
 
   void run()

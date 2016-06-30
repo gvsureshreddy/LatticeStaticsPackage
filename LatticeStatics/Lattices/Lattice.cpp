@@ -1237,6 +1237,7 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
          }
          M[dofs] = 0.0;
          Input.writeVector(cpfile, M, "StartType", "Tangent");
+         DrawBifurcatedPath(M, TFIndex, i);
       }
       Input.writeVector(cpfile, T, "StartType", "BifurcationPoint");
       cpfile.close();
