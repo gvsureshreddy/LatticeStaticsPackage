@@ -11,6 +11,8 @@ class NeoHookean2D : public Lattice
     private:
         mutable int DOFS_; // Number of DOFs in BFB
         mutable int DOFS_D_; // Number of DOFs in deal.II
+        mutable int dofs_vertical_;
+        double factor_penalty_ = 1;
         
         mutable Vector DOF_; // DOFs in BFB
         mutable Vector DOF_D_; // DOFs in deal.II
@@ -23,6 +25,7 @@ class NeoHookean2D : public Lattice
         mutable Matrix Stiff_D_;
         mutable Vector E1DLoad_;
         mutable Vector E1DLoad_D_;
+        mutable Vector dof_vertical_;
         mutable double Lambda_;
         
 //        mutable Matrix Jacobian_; // d(DOF_D)/d(DOF_)
