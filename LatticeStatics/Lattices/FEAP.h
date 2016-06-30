@@ -102,9 +102,10 @@ private:
    fstream plot_out_; //Prints out in separate files plotting information. columns are Lambda, U11, U22, U12, E0
    mutable int plot_count_; //Index count for plot_out_ stream
 
-   static const int cachesize = 4;
+   static const int cachesize = 9;
    mutable int Cached_[cachesize];
    mutable double E0CachedValue_;
+   mutable double Indic_;
    mutable Vector E1CachedValue_;
    mutable Vector W1CachedValue_;
    mutable Vector DispE1CachedValue_; // store conjugate to disp. control
@@ -140,6 +141,16 @@ public:
           U_[1][1] = DOF_[1];
           U_[0][1] = DOF_[2]/sqrt(2.0);
           U_[1][0] = U_[0][1];
+          if (ndm_==3)
+          {
+          U_[2][2] = DOF_[2];
+          U_[0][1] = DOF_[5]/sqrt(2.0);
+          U_[0][2] = DOF_[4]/sqrt(2.0);
+          U_[1][2] = DOF_[3]/sqrt(2.0);
+          U_[1][0] = U_[0][1];
+          U_[2][0] = U_[0][2];
+          U_[2][1] = U_[1][2];
+          }
           F_ = U_;
           break;
         case DISPLACEMENT_CONTROL:
@@ -147,6 +158,14 @@ public:
           U_[1][1] = StretchRatio_ * Lambda_;
           U_[0][1] = 0.0;
           U_[1][0] = 0.0;
+          if (ndm_==3)
+          {
+            U_[2][2] = StretchRatio_ * Lambda_;
+            U_[0][2] = 0.0;
+            U_[2][0] = 0.0;
+            U_[1][2] = 0.0;
+            U_[2][1] = 0.0;
+          }
           F_ = U_;
           break;
       }
@@ -170,6 +189,14 @@ public:
         U_[1][1] = StretchRatio_ * Lambda_;
         U_[0][1] = 0.0;
         U_[1][0] = 0.0;
+        if (ndm_==3)
+        {
+        U_[2][2] = StretchRatio_ * Lambda_;
+        U_[0][2] = 0.0;
+        U_[2][0] = 0.0;
+        U_[1][2] = 0.0;
+        U_[2][1] = 0.0;
+        }
         F_ = U_;
       }
       for (int i = 0; i < cachesize; ++i)
