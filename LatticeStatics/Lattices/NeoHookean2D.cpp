@@ -98,6 +98,7 @@ NeoHookean2D::NeoHookean2D(PerlInput const& Input, int const& Echo, int const& W
 //                break;
 //        }
 //  }
+  dofs_horizontal_ = 0;
   dofs_vertical_ = 0;
   links_from_constrained_to_unconstrained_.Resize(DOFS_D_, 0.0);
   fill_links_from_constrained_to_unconstrained();
@@ -131,19 +132,25 @@ void NeoHookean2D::fill_links_from_constrained_to_unconstrained()
         else if(constraint_properties_[i] == -3)
         {
             links_from_constrained_to_unconstrained_[i] = i_unconstrained++; // Free DOFs
+            if(dofs_properties_[3*i] == 0.0)
+                dofs_horizontal_++;
             if(dofs_properties_[3*i] == 1.0)
                 dofs_vertical_++;
         }
         else
             links_from_constrained_to_unconstrained_[i] = 0; // Blocked to zero DOFs
     }
-    std::cout << "\ndofs_vertical_ = " << dofs_vertical_ << "\n";
+    dof_horizontal_.Resize(dofs_horizontal_, (unsigned int) 0);
     dof_vertical_.Resize(dofs_vertical_, (unsigned int) 0);
-    unsigned int indice = 0;
+    unsigned int indiceH = 0;
+    unsigned int indiceV = 0;
     for(unsigned int i = 0; i < DOFS_D_; ++i)
+    {
+        if(constraint_properties_[i] == -3 && dofs_properties_[3*i] == 0.0)
+            dof_horizontal_[indiceH++] = i;
         if(constraint_properties_[i] == -3 && dofs_properties_[3*i] == 1.0)
-            dof_vertical_[indice++] = i;;
-    std::cout << "dof_vertical_ = " << dof_vertical_ << "\n";
+            dof_vertical_[indiceV++] = i;
+    }
 }
 
 void NeoHookean2D::SetLambda(double const& lambda)
@@ -254,13 +261,22 @@ Vector const& NeoHookean2D::E1() const
         }
     }
     double sum_vertical_displacements = 0.0;
+    double sum_horizontal_displacements = 0.0;
+    for(unsigned int i = 0; i < dofs_horizontal_; ++i)
+    {
+        sum_horizontal_displacements += DOF_[links_from_constrained_to_unconstrained_[dof_horizontal_[i]]];
+    }
+    for(unsigned int i = 0; i < dofs_horizontal_; ++i)
+    {
+        RHS_[links_from_constrained_to_unconstrained_[dof_horizontal_[i]]] += factor_penalty_H_ * sum_horizontal_displacements;
+    }
     for(unsigned int i = 0; i < dofs_vertical_; ++i)
     {
         sum_vertical_displacements += DOF_[links_from_constrained_to_unconstrained_[dof_vertical_[i]]];
     }
     for(unsigned int i = 0; i < dofs_vertical_; ++i)
     {
-        RHS_[links_from_constrained_to_unconstrained_[dof_vertical_[i]]] += factor_penalty_ * sum_vertical_displacements;
+        RHS_[links_from_constrained_to_unconstrained_[dof_vertical_[i]]] += factor_penalty_V_ * sum_vertical_displacements;
     }
     Cached_[1] = 1;
     CallCount_[1]++;
@@ -359,9 +375,13 @@ Matrix const& NeoHookean2D::E2() const
             }
         }
     }
+    for(unsigned int i = 0; i < dofs_horizontal_; ++i)
+    {
+        Stiff_[(int) links_from_constrained_to_unconstrained_[dof_horizontal_[i]]][(int) links_from_constrained_to_unconstrained_[dof_horizontal_[i]]] += factor_penalty_H_;
+    }
     for(unsigned int i = 0; i < dofs_vertical_; ++i)
     {
-        Stiff_[(int) links_from_constrained_to_unconstrained_[dof_vertical_[i]]][(int) links_from_constrained_to_unconstrained_[dof_vertical_[i]]] += factor_penalty_;
+        Stiff_[(int) links_from_constrained_to_unconstrained_[dof_vertical_[i]]][(int) links_from_constrained_to_unconstrained_[dof_vertical_[i]]] += factor_penalty_V_;
     }
     Cached_[3] = 1;
     CallCount_[3]++;
@@ -470,7 +490,6 @@ void NeoHookean2D::PrintPath(ostream& out, ostream& pathout, int const& width)
 void NeoHookean2D::DrawBifurcatedPath(Vector const& tangent, unsigned int numBifurcationPoint, unsigned int indexLocal)
 {
     Vector backupSolution(DOF_);
-    std::cout << "\n\n\n_________________________________________________________________________\n\nOk, here is backupSolution"     << backupSolution << "\n\n";
     Vector tempSolution(DOF_);
     for(unsigned int i = 0; i < DOFS_; i++)
     {

@@ -12,7 +12,9 @@ class NeoHookean2D : public Lattice
         mutable int DOFS_; // Number of DOFs in BFB
         mutable int DOFS_D_; // Number of DOFs in deal.II
         mutable int dofs_vertical_;
-        const double factor_penalty_ = 1.0;
+        mutable int dofs_horizontal_;
+        const double factor_penalty_H_ = 1.45;
+        const double factor_penalty_V_ = 0.76;
         
         mutable Vector DOF_; // DOFs in BFB
         mutable Vector DOF_D_; // DOFs in deal.II
@@ -26,6 +28,7 @@ class NeoHookean2D : public Lattice
         mutable Vector E1DLoad_;
         mutable Vector E1DLoad_D_;
         mutable Vector dof_vertical_;
+        mutable Vector dof_horizontal_;
         mutable double Lambda_;
         
 //        mutable Matrix Jacobian_; // d(DOF_D)/d(DOF_)
