@@ -19,7 +19,7 @@ gCC        = g++ -m64
 ifeq ($(UNAME),Darwin)
    # gCC compiler
    CC         = $(gCC)
-   OPTIMIZE   = -O
+#   OPTIMIZE   = -O
    ANSI       = -pedantic -Wall
 endif
 

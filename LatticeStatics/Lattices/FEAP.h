@@ -88,7 +88,7 @@ private:
    void UpdateDOF_F() const; //Uses the BFB DOFs and maps to FEAP DOFs
    void UpdateJacobian() const;
    void JacobianHelper(int const ii, int const jj, int const shift,
-                       int const Wshift) const;
+                       int const Wshift, int const temp) const;
 
   double RankOneConvex(Matrix const& d2WdFdF, Vector &N) const;
 
@@ -119,6 +119,8 @@ private:
    
    mutable double Indicatrix_;
 
+   mutable int temp;
+
 public:
    // Functions provided by FEAP
    FEAP(PerlInput const& Input, int const& Echo = 1, int const& Width = 20);
@@ -139,9 +141,12 @@ public:
         case PRESSURE_LOAD:
           U_[0][0] = DOF_[0];
           U_[1][1] = DOF_[1];
+          if(ndm_==2)
+          {
           U_[0][1] = DOF_[2]/sqrt(2.0);
           U_[1][0] = U_[0][1];
-          if (ndm_==3)
+          }
+          else if (ndm_==3)
           {
           U_[2][2] = DOF_[2];
           U_[0][1] = DOF_[5]/sqrt(2.0);

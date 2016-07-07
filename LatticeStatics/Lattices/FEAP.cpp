@@ -772,7 +772,7 @@ void FEAP::UpdateValues(UpdateFlag flag) const
    double S3 = 0.0;
    //double S4 = 0.0;
    
-   int shift;
+   int shift=0;
    switch (LoadingType_)
    {
      case DEAD_LOAD:
@@ -829,7 +829,7 @@ void FEAP::UpdateValues(UpdateFlag flag) const
 
    bfbfeap_call_form_();
    bfbfeap_get_reduced_residual_(&(E1CachedValue_F_[0]));
-   cout << "\n" << "E1CachedValue_F_: "<<E1CachedValue_F_ << "\n";
+ //  cout << "\n" << "E1CachedValue_F_: "<<E1CachedValue_F_ << "\n";
   
    // FEAP returns -E1, so fix it.
    for (int i = 0; i < E1CachedValue_F_.Dim(); ++i)
@@ -838,6 +838,8 @@ void FEAP::UpdateValues(UpdateFlag flag) const
    }
    E1CachedValue_ = Jacobian_.Transpose() * E1CachedValue_F_;
    W1CachedValue_ = FJacobian_.Transpose() * E1CachedValue_F_;
+   // cout << "E1CachedValue_= " << E1CachedValue_ << "\n";
+   //cout << "Jacobian_= " << Jacobian_ << "\n";
    if (LoadingType_ == DISPLACEMENT_CONTROL)
    {
      DispE1CachedValue_ = DispJacobian_.Transpose() * E1CachedValue_F_;
@@ -1065,7 +1067,7 @@ void FEAP::UpdateValues(UpdateFlag flag) const
 
 void FEAP::UpdateDOF_F() const
 {
-  int shift;
+  int shift=0;
   switch (LoadingType_)
   {
     case DEAD_LOAD:
@@ -1168,7 +1170,7 @@ void FEAP::UpdateDOF_F() const
 
 void FEAP::UpdateJacobian() const
 {
-  int shift;
+  int shift=0;
   int Wshift = ndm_*ndm_;
   switch (LoadingType_)
   {
@@ -1185,26 +1187,26 @@ void FEAP::UpdateJacobian() const
    {
       ii = BoundNodes_[i]*ndf_;
       jj = (i%(nbn_/2))*ndf_;
-      JacobianHelper(ii, jj, shift, Wshift);
+      JacobianHelper(ii, jj, shift, Wshift, 0);
    }
 
    for (int i = nbn_/2; i < nbn_; ++i)
    {
       ii = PeriodicNodes_[i-nbn_/2]*ndf_;
       jj = (i%(nbn_/2))*ndf_;
-      JacobianHelper(ii, jj, shift, Wshift);
+      JacobianHelper(ii, jj, shift, Wshift, 0);
    }
 
    for (int i = 0; i < numnp_-nbn_; ++i)
    {
       ii = InnerNodes_[i]*ndf_;
       jj = nbn_/2*ndf_+(i)*ndf_;
-      JacobianHelper(ii, jj, shift, Wshift);
+      JacobianHelper(ii, jj, shift, Wshift, 0);
    }
 }
 
 void FEAP::JacobianHelper(int const ii, int const jj, int const shift,
-                          int const Wshift) const
+                          int const Wshift, int const temp) const
 {
  if (ndm_==2)
   {
@@ -1328,7 +1330,8 @@ void FEAP::JacobianHelper(int const ii, int const jj, int const shift,
     FJacobian_[ii+2][Wshift+jj]=F_[2][0];
     FJacobian_[ii+2][Wshift+1+jj]=F_[2][1];
     FJacobian_[ii+2][Wshift+2+jj]=F_[2][2];
-
+    if (temp==0)
+    {
     Jacobian_[ii+3][shift+3+jj]=1.0;
     FJacobian_[ii+3][Wshift+3+jj]=1.0;
 
@@ -1337,6 +1340,18 @@ void FEAP::JacobianHelper(int const ii, int const jj, int const shift,
     
     Jacobian_[ii+5][shift+5+jj]=1.0;
     FJacobian_[ii+5][Wshift+5+jj]=1.0;
+    }
+    else
+    {
+    Jacobian_[ii+3][shift+3+jj]=-1.0;
+    FJacobian_[ii+3][Wshift+3+jj]=-1.0;
+
+    Jacobian_[ii+4][shift+4+jj]=-1.0;
+    FJacobian_[ii+4][Wshift+4+jj]=-1.0;
+    
+    Jacobian_[ii+5][shift+5+jj]=-1.0;
+    FJacobian_[ii+5][Wshift+5+jj]=-1.0;
+    }
   }
 }
 
@@ -2442,7 +2457,7 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
    int NoNegTestFunctions = 0;
    double engy;
    double E1norm;
-   double ConjToLambdaScal;
+   double ConjToLambdaScal=0.0;
    Vector ConjToLambda(ndm_*(ndm_+1)/2);
    Vector mintestfunct(NumTestFunctions());
    Vector TestFunctVals(NumTestFunctions());

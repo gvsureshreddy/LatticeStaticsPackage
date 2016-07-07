@@ -1,4 +1,4 @@
-#include "Restriction.h"\
+#include "Restriction.h"
 #include <math.h>
 
 Restriction::~Restriction()

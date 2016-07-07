@@ -12,7 +12,7 @@ export LIB_LOC
 
 CC = g++ -m64
 #CC = g++ -fopenmp
-OPTIMIZE   = -O
+#OPTIMIZE   = -O
 #DEBUG      = -g -m32
 #PROFILE    = -pg
 ANSI       = -pedantic
