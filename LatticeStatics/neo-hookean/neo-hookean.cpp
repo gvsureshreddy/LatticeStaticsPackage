@@ -1525,7 +1525,8 @@ namespace neo_hookean
     const Point<dim> bottom_left(0.0,0.0);
     const Point<dim> upper_right(3.0,1.0);
     //GridGenerator::hyper_cube(triangulation, 0.0, 1.0);
-    GridGenerator::hyper_rectangle(triangulation, bottom_left, upper_right);
+    //GridGenerator::hyper_rectangle(triangulation, bottom_left, upper_right);
+    GridGenerator::subdivided_hyper_rectangle(triangulation, [3,1], bottom_left, upper_right);
     //GridTools::scale(parameters.scale, triangulation);
 
     // We mark the surfaces in order to apply the boundary conditions after
@@ -2461,9 +2462,10 @@ namespace neo_hookean
 		if ((i_group == j_group) && (i_group == u_dof))
 		  {
 		    //_______________Term 1______________________________
-		    if (component_i == component_j)
-		      data.cell_matrix(i, j) += 2 * c_1 * grad_Nx[i][component_i]
-			* grad_Nx[j][component_j] * JxW;
+//		    if (component_i == component_j)
+//		      data.cell_matrix(i, j) += 2 * c_1 * grad_Nx[i][component_i]
+//			* grad_Nx[j][component_j] * JxW;
+                    data.cell_matrix(i, j) += 2 * c_1 * trace(transpose(grad_Nx[i]) * grad_Nx[j]) * JxW;
 
 
 		    //_______________Term 4 (or 3)______________________________
@@ -2490,7 +2492,8 @@ namespace neo_hookean
 		      {
 			//______Construction of second dot product________
 			Tensor<2, dim> tmp;
-			tmp = 2 * (grad_Nx[i] + transpose(grad_Nx[i]) * Grad_U);
+			//tmp = 2 * (grad_Nx[i] + transpose(grad_Nx[i]) * Grad_U);
+                        tmp = grad_Nx[i] + transpose(grad_Nx[i]) + transpose(grad_Nx[i]) * Grad_U + transpose(Grad_U) * grad_Nx[i];
 			for(unsigned int k = 0; k < dim; ++k)
 			  data.cell_matrix(i,j) -= p * det_F * det_F * dot_prod_1[k] * tmp[k] * JxW;
 		      }

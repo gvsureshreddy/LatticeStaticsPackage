@@ -56,12 +56,10 @@ NeoHookean2D::NeoHookean2D(PerlInput const& Input, int const& Echo, int const& W
 //  std::cout << "NeoHookean2D size with periodic is "
 //          << DOFS_D_ << std::endl;
   DOF_.Resize(DOFS_, 0.0);
-  for(unsigned int i = DOFS_-4; i < DOFS_; ++i)
-      DOF_[i] = 1.0;
   DOF_D_.Resize(DOFS_D_, 0.0);
   dofs_properties_.Resize(3*DOFS_D_, 0.0);
   neo_hookean::get_dofs_properties(&(dofs_properties_[0]));
-//  std::cout << "\nDOFs properties :\n";
+  std::cout << "\nDOFs properties :\n";
 //  for(unsigned int i = 0; i < DOFS_D_; ++i)
 //  {
 //        switch((int) dofs_properties_[3*i]){
@@ -69,10 +67,27 @@ NeoHookean2D::NeoHookean2D(PerlInput const& Input, int const& Echo, int const& W
 //                std::cout << "\nDOF " << i << " is horizontal, at position : (" << dofs_properties_[3*i+1] << "," << dofs_properties_[3*i+2] << ")";
 //                break;
 //            case 1 :
-//                std::cout << "\nDOF " << i << " is vertical, at position : (" << dofs_properties_[3*i+1] << "," << dofs_properties_[3*i+2] << ")";
+//                std::cout << "\nDOF " << i << " is vertical  , at position : (" << dofs_properties_[3*i+1] << "," << dofs_properties_[3*i+2] << ")";
 //                break;
 //            case 2 :
 //                std::cout << "\nDOF " << i << " is a pressure. The position shall be zero : (" << dofs_properties_[3*i+1] << "," << dofs_properties_[3*i+2] << ")";
+//                break;
+//            default :
+//                break;
+//        }
+//  }
+//  std::cout << "\n\n___________________________________________________\n";
+//  for(unsigned int i = 0; i < DOFS_D_; ++i)
+//  {
+//        switch((int) dofs_properties_[3*i]){
+//            case 0 :
+//                std::cout << "\n0 " << i << " " << dofs_properties_[3*i+1] << " " << dofs_properties_[3*i+2];
+//                break;
+//            case 1 :
+//                std::cout << "\n1 " << i << " " << dofs_properties_[3*i+1] << " " << dofs_properties_[3*i+2];
+//                break;
+//            case 2 :
+//                //std::cout << "\nDOF " << i << " is a pressure. The position shall be zero : (" << dofs_properties_[3*i+1] << "," << dofs_properties_[3*i+2] << ")";
 //                break;
 //            default :
 //                break;
@@ -98,12 +113,30 @@ NeoHookean2D::NeoHookean2D(PerlInput const& Input, int const& Echo, int const& W
 //                break;
 //        }
 //  }
+//   std::cout << "\nPrint constraint_properties :\n";
+//  for(unsigned int i = 0; i < DOFS_D_; ++i)
+//  {
+//        switch((int) constraint_properties_[i]){
+//            case -3 :
+//                std::cout << "\n" << i << " 0";
+//                break;
+//            case -2 :
+//                std::cout << "\n" << i << " 5";
+//                break;
+//            case -1 :
+//                std::cout << "\n" << i << " 1";
+//                break;
+//            default :
+//                std::cout << "\n" << i << " 1";
+//                break;
+//        }
+//  }
   dofs_horizontal_ = 0;
   dofs_vertical_ = 0;
   links_from_constrained_to_unconstrained_.Resize(DOFS_D_, 0.0);
   fill_links_from_constrained_to_unconstrained();
 //  std::cout << "\nPrint links_from_constrained_to_unconstrained :\n";
-//  for(unsigned int i = 0; i < DOFS_D_; ++i)
+//  for(unsigned int i = 0; i < DOFS_D_; i++)
 //  {
 //        if(links_from_constrained_to_unconstrained_[i] < 0){
 //                std::cout << "\nDOF " << i << " is periodically constrained with the absolute node : " << -links_from_constrained_to_unconstrained_[i]-1;
@@ -119,6 +152,14 @@ NeoHookean2D::NeoHookean2D(PerlInput const& Input, int const& Echo, int const& W
   Stiff_.Resize(DOFS_,DOFS_,0.0);
   Stiff_D_.Resize(DOFS_D_,DOFS_D_,0.0);
   SetDOF(DOF_);
+//  neo_hookean::output_results_BFB();
+//  for(unsigned int i = DOFS_ - 64; i < DOFS_; ++i)
+//  {
+//      DOF_[i] = 10;
+//      SetDOF(DOF_);
+//      neo_hookean::output_results_BFB();
+//      DOF_[i] = 0;
+//  }
 }
 
 void NeoHookean2D::fill_links_from_constrained_to_unconstrained()
@@ -151,6 +192,21 @@ void NeoHookean2D::fill_links_from_constrained_to_unconstrained()
         if(constraint_properties_[i] == -3 && dofs_properties_[3*i] == 1.0)
             dof_vertical_[indiceV++] = i;
     }
+  /*std::cout << "\nLinks from... : \n" << links_from_constrained_to_unconstrained_ ;
+  for(unsigned int i =0; i < DOFS_D_ ; i++)
+  {
+      std::cout << "\nNumber " << std::setw(2) << i << " in deal is number " << std::setw(2) << links_from_constrained_to_unconstrained_[i] << " in BFB.";
+  }
+  std::cout << "\nHorizontal nodes : ";
+  for(unsigned int i = 0; i < dofs_horizontal_; i++)
+  {
+      std::cout << "\nNumber " << i << ", which is " << std::setw(2) << dof_horizontal_[i] << " in deal, so is " << std::setw(2) << links_from_constrained_to_unconstrained_[dof_horizontal_[i]] << " in BFB.";
+  }
+  std::cout << "\nVertical nodes : ";
+  for(unsigned int i = 0; i < dofs_vertical_; i++)
+  {
+      std::cout << "\nNumber " << i << ", which is " << std::setw(2) << dof_vertical_[i] << " in deal, so is " << std::setw(2) << links_from_constrained_to_unconstrained_[dof_vertical_[i]] << " in BFB.";
+  }*/
 }
 
 void NeoHookean2D::SetLambda(double const& lambda)
@@ -227,15 +283,28 @@ void NeoHookean2D::SetDOF(Vector const& dof)
     }
     //std::cout << "\nSetting solution to :\n" << DOF_D_ << "\n\nDOF was equal to : " << DOF_;
     neo_hookean::set_solution(&(DOF_D_[0]));
+    //neo_hookean::output_results_BFB();
 }
 
 double NeoHookean2D::E0() const
 {
   if ((!Caching_) || (!Cached_[0]))
     {
-      E0CachedValue_ = neo_hookean::get_energy();
-      Cached_[0] = 1;
-      CallCount_[0]++;
+        E0CachedValue_ = neo_hookean::get_energy();
+        double sum_vertical_displacements = 0.0;
+        double sum_horizontal_displacements = 0.0;
+        for(unsigned int i = 0; i < dofs_horizontal_; ++i)
+        {
+            sum_horizontal_displacements += DOF_[links_from_constrained_to_unconstrained_[dof_horizontal_[i]]];
+        }
+        for(unsigned int i = 0; i < dofs_vertical_; ++i)
+        {
+            sum_vertical_displacements += DOF_[links_from_constrained_to_unconstrained_[dof_vertical_[i]]];
+        }
+        E0CachedValue_ += 0.5 * factor_penalty_H_ * sum_horizontal_displacements * sum_horizontal_displacements;
+        E0CachedValue_ += 0.5 * factor_penalty_V_ * sum_vertical_displacements   * sum_vertical_displacements;
+        Cached_[0] = 1;
+        CallCount_[0]++;
     }
 
   return E0CachedValue_;
@@ -377,11 +446,17 @@ Matrix const& NeoHookean2D::E2() const
     }
     for(unsigned int i = 0; i < dofs_horizontal_; ++i)
     {
-        Stiff_[(int) links_from_constrained_to_unconstrained_[dof_horizontal_[i]]][(int) links_from_constrained_to_unconstrained_[dof_horizontal_[i]]] += factor_penalty_H_;
+        for(unsigned int j = 0; j < dofs_horizontal_; ++j)
+        {
+            Stiff_[(int) links_from_constrained_to_unconstrained_[dof_horizontal_[i]]][(int) links_from_constrained_to_unconstrained_[dof_horizontal_[j]]] += factor_penalty_H_;
+        }
     }
     for(unsigned int i = 0; i < dofs_vertical_; ++i)
     {
-        Stiff_[(int) links_from_constrained_to_unconstrained_[dof_vertical_[i]]][(int) links_from_constrained_to_unconstrained_[dof_vertical_[i]]] += factor_penalty_V_;
+        for(unsigned int j = 0; j < dofs_vertical_; ++j)
+        {
+            Stiff_[(int) links_from_constrained_to_unconstrained_[dof_vertical_[i]]][(int) links_from_constrained_to_unconstrained_[dof_vertical_[j]]] += factor_penalty_V_;
+        }
     }
     Cached_[3] = 1;
     CallCount_[3]++;
