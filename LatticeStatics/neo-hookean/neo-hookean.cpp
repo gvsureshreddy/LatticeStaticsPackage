@@ -123,9 +123,11 @@ namespace neo_hookean
     // specific values to compare with the results given in the literature.
     struct Geometry
     {
+      unsigned int width;
       unsigned int global_refinement;
       unsigned int local_refinement_cycles;
       double       scale;
+      double       aspect_ratio;
       double       p_p0;
       double       elongation;
       unsigned int dof_to_change;
@@ -141,6 +143,10 @@ namespace neo_hookean
     {
       prm.enter_subsection("Geometry");
       {
+	prm.declare_entry("Width (integer)", "1",
+			  Patterns::Integer(0),
+			  "Width (integer)");
+
 	prm.declare_entry("Global refinement", "1",
 			  Patterns::Integer(0),
 			  "Global refinement level");
@@ -152,6 +158,10 @@ namespace neo_hookean
 	prm.declare_entry("Grid scale", "1e0",
 			  Patterns::Double(0.0),
 			  "Global grid scaling factor");
+
+	prm.declare_entry("Cells aspect ratio", "1e0",
+			  Patterns::Double(0.0),
+			  "Cells aspect ratio");
 
 	prm.declare_entry("Pressure ratio p/p0", "100",
 			  Patterns::Selection("20|40|60|80|100"),
@@ -172,10 +182,12 @@ namespace neo_hookean
     {
       prm.enter_subsection("Geometry");
       {
+        width = prm.get_integer("Width (integer)");
 	global_refinement = prm.get_integer("Global refinement");
 	local_refinement_cycles = prm.get_integer("Local refinement cycles");
 	scale = prm.get_double("Grid scale");
-	p_p0 = prm.get_double("Pressure ratio p/p0");
+	aspect_ratio = prm.get_double("Cells aspect ratio");
+        p_p0 = prm.get_double("Pressure ratio p/p0");
 	elongation = prm.get_double("Elongation");
         dof_to_change = prm.get_integer("DOF to change");
       }
@@ -1522,11 +1534,16 @@ namespace neo_hookean
   template <int dim>
   void Solid<dim>::make_grid()
   {
+    const double width = (double) parameters.width;
+    const double aspect_ratio = parameters.aspect_ratio;
     const Point<dim> bottom_left(0.0,0.0);
-    const Point<dim> upper_right(3.0,1.0);
+    const Point<dim> upper_right(width,1.0);
     //GridGenerator::hyper_cube(triangulation, 0.0, 1.0);
     //GridGenerator::hyper_rectangle(triangulation, bottom_left, upper_right);
-    GridGenerator::subdivided_hyper_rectangle(triangulation, [3,1], bottom_left, upper_right);
+    //GridGenerator::subdivided_hyper_rectangle(triangulation, {(unsigned int) std::max(1.0,floor(width/aspect_ratio)),1}, bottom_left, upper_right);
+    GridGenerator::subdivided_hyper_rectangle(triangulation,
+        {(unsigned int) std::max(1.0,floor(std::pow(2,parameters.global_refinement)*width/aspect_ratio)),std::pow(2,parameters.global_refinement)},
+        bottom_left, upper_right);
     //GridTools::scale(parameters.scale, triangulation);
 
     // We mark the surfaces in order to apply the boundary conditions after
@@ -1549,34 +1566,35 @@ namespace neo_hookean
 	      cell->face(f)->set_boundary_id (4);
 	  }
 
-    // We will refine the grid in some steps towards the upper boundary of
-    // the domain. See step 1 for details.
-    triangulation.clear_user_flags();
-    for (unsigned int step=0; step<parameters.local_refinement_cycles; ++step)
-      {
-	typename Triangulation<dim>::active_cell_iterator
-	  cell_ref = triangulation.begin_active(),
-	  endc = triangulation.end();
-	for (; cell_ref!=endc; ++cell_ref)
-	  {
-	    for (unsigned int f = 0; f < GeometryInfo<dim>::faces_per_cell; ++f)
-	      if (cell_ref->face(f)->at_boundary())
-		{
-		  const Point<dim> face_center = cell_ref->face(f)->center();
-		  if (face_center[1] == 1) //Top
-		    cell_ref->set_refine_flag ();
-		}
-	  }
+    //_____________This block is for non homogeneous refinement_____________
 
-	// Now that we have marked all the cells that we want refined, we let
-	// the triangulation actually do this refinement.
-	//triangulation.execute_coarsening_and_refinement ();
-	triangulation.clear_user_flags();
-      }
+//    // We will refine the grid in some steps towards the upper boundary of
+//    // the domain. See step 1 for details.
+//    triangulation.clear_user_flags();
+//    for (unsigned int step=0; step<parameters.local_refinement_cycles; ++step)
+//      {
+//	typename Triangulation<dim>::active_cell_iterator
+//	  cell_ref = triangulation.begin_active(),
+//	  endc = triangulation.end();
+//	for (; cell_ref!=endc; ++cell_ref)
+//	  {
+//	    for (unsigned int f = 0; f < GeometryInfo<dim>::faces_per_cell; ++f)
+//	      if (cell_ref->face(f)->at_boundary())
+//		{
+//		  const Point<dim> face_center = cell_ref->face(f)->center();
+//		  if (face_center[1] == 1) //Top
+//		    cell_ref->set_refine_flag ();
+//		}
+//	  }
+//
+//	// Now that we have marked all the cells that we want refined, we let
+//	// the triangulation actually do this refinement.
+//	//triangulation.execute_coarsening_and_refinement ();
+//	triangulation.clear_user_flags();
+//      }
 
-    // We refine our mesh globally, at least once, to not too have a poor
-    // refinement at the bottom of our square (like two cells)
-    triangulation.refine_global(std::max (0U, parameters.global_refinement));
+    // We refine our mesh globally
+    //triangulation.refine_global(std::max (0U, parameters.global_refinement));
 
     vol_reference = GridTools::volume(triangulation);
     vol_current = vol_reference;
@@ -2449,12 +2467,10 @@ namespace neo_hookean
 
 	for (unsigned int i = 0; i < dofs_per_cell; ++i)
 	  {
-	    const unsigned int component_i = fe.system_to_component_index(i).first;
 	    const unsigned int i_group     = fe.system_to_base_index(i).first.first;
 
 	    for (unsigned int j = 0; j <= i; ++j)
 	      {
-		const unsigned int component_j = fe.system_to_component_index(j).first;
 		const unsigned int j_group     = fe.system_to_base_index(j).first.first;
 
 		// This is the Kuu contribution
@@ -2462,9 +2478,6 @@ namespace neo_hookean
 		if ((i_group == j_group) && (i_group == u_dof))
 		  {
 		    //_______________Term 1______________________________
-//		    if (component_i == component_j)
-//		      data.cell_matrix(i, j) += 2 * c_1 * grad_Nx[i][component_i]
-//			* grad_Nx[j][component_j] * JxW;
                     data.cell_matrix(i, j) += 2 * c_1 * trace(transpose(grad_Nx[i]) * grad_Nx[j]) * JxW;
 
 
@@ -3317,13 +3330,33 @@ namespace neo_hookean
         dofs_properties[i_current - offset + 2] = support_points[i][1];
         i_current = i_current + 3;
     }
-    for (unsigned int i = dof_handler_only_u.n_dofs(); i < dof_handler_ref.n_dofs(); ++i)//Then we process pressures DOFs
-    {
-        dofs_properties[i_current - offset] = 2.0;
-        dofs_properties[i_current - offset + 1] = 0.0;
-        dofs_properties[i_current - offset + 2] = 0.0;
-        i_current = i_current + 3;
-    }
+//    for (unsigned int i = dof_handler_only_u.n_dofs(); i < dof_handler_ref.n_dofs(); ++i)//Then we process pressures DOFs
+//    {
+//        dofs_properties[i_current - offset] = 2.0;
+//        dofs_properties[i_current - offset + 1] = 0.0;
+//        dofs_properties[i_current - offset + 2] = 0.0;
+//        i_current = i_current + 3;
+//    }
+
+    typename DoFHandler<dim>::active_cell_iterator
+    cell_ref = dof_handler_ref.begin_active(),
+    endc = dof_handler_ref.end();
+    for (; cell_ref!=endc; ++cell_ref)
+      {
+        Point<dim> cell_center;
+        for(unsigned int f = 0; f < GeometryInfo<dim>::faces_per_cell; ++f)
+        {
+            const Point<dim> face_center = cell_ref->face(f)->center();
+            cell_center += 0.25*face_center;
+        }
+        //std::cout << "\nFace center for cell " << cell_ref->id() << " is " << cell_center;
+        std::vector< types::global_dof_index > dof_indices(9);
+        cell_ref->get_dof_indices(dof_indices);
+        //std::cout << " and pressure index is : " << dof_indices[8];
+        dofs_properties[3*dof_indices[8]] = 2.0;
+        dofs_properties[3*dof_indices[8] + 1] = cell_center[0];
+        dofs_properties[3*dof_indices[8] + 2] = cell_center[1];
+      }
   }
 
   template <int dim>
