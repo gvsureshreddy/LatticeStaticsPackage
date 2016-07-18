@@ -625,6 +625,7 @@ namespace neo_hookean
       material(NULL),
       C(Tensor<2, dim>()),
       C_inv(Tensor<2, dim>()),
+      F_invT(Tensor<2, dim>()),
       Grad_U(Tensor<2, dim>())
     {}
 
@@ -674,6 +675,7 @@ namespace neo_hookean
       material->update_material_data(F, p);
       C = transpose(F) * F;
       C_inv = invert(C);
+      F_invT = transpose(invert(F));
       Grad_U = Grad_u_n;
 
     }
@@ -709,6 +711,11 @@ namespace neo_hookean
       return C_inv;
     }
 
+    const Tensor<2, dim> &get_F_invT() const
+    {
+      return F_invT;
+    }
+
     double get_c_1() const
     {
       return material->get_c_1();
@@ -722,6 +729,7 @@ namespace neo_hookean
     Material_Incompressible_Neo_Hook_Two_Field<dim> *material;
     Tensor<2, dim> C;
     Tensor<2, dim> C_inv;
+    Tensor<2, dim> F_invT;
     Tensor<2, dim> Grad_U;
   };
 
@@ -1669,6 +1677,57 @@ namespace neo_hookean
       global_constraint_properties.reinit(dofs_per_block);
       global_constraint_properties.collect_sizes();
 
+//      const FEValuesExtractors::Scalar x_displacement(0);
+//      const FEValuesExtractors::Scalar y_displacement(1);
+//
+//      DoFTools::make_hanging_node_constraints (dof_handler_ref, constraints);
+//
+//      std::vector<GridTools::PeriodicFacePair<typename DoFHandler<dim>::cell_iterator> >
+//        periodicity_vector;
+//
+//        const unsigned int direction = 0;
+//
+//        FullMatrix<double> rotation_matrix(dim);
+//        rotation_matrix[0][0]=1.;
+//        rotation_matrix[1][1]=1.;
+//
+//        GridTools::collect_periodic_faces(dof_handler_ref, 1, 3, direction,
+//                                          periodicity_vector, Tensor<1, dim>(), rotation_matrix);
+//
+//        // In the following, we will have to tell the function interpolation
+//        // boundary values which components of the solution vector should be
+//        // constrained (i.e., whether it's the x-, y-displacements or
+//        // combinations thereof). This is done using ComponentMask objects (see
+//        // @ref GlossComponentMask) which we can get from the finite element if we
+//        // provihde it with an extractor object for the component we wish to
+//        // select. To this end we first set up such extractor objects and later
+//        // use it when generating the relevant component masks:
+//
+//        std::vector<unsigned int> first_vector_components;
+//        first_vector_components.push_back(0);
+//
+//        // After setting up all the information in periodicity_vector all we have
+//        // to do is to tell make_periodicity_constraints to create the desired
+//        // constraints.
+//        DoFTools::make_periodicity_constraints<DoFHandler<dim> >
+//         (periodicity_vector, constraints, fe.component_mask(x_displacement), first_vector_components);
+//        DoFTools::make_periodicity_constraints<DoFHandler<dim> >
+//         (periodicity_vector, constraints, fe.component_mask(y_displacement), first_vector_components);
+//
+//         // This block enforce a zero horizontal displacement at the bottom-right point
+//        {
+//           IndexSet selected_dofs_bottom;
+//           std::set< types::boundary_id > boundary_ids_bottom= std::set<types::boundary_id>();
+//           boundary_ids_bottom.insert(0);
+//           DoFTools::extract_boundary_dofs(dof_handler_ref,
+//                     fe.component_mask(x_displacement), selected_dofs_bottom, boundary_ids_bottom);
+//           unsigned int nb_dofs_face_bottom = selected_dofs_bottom.n_elements()-1;
+//           IndexSet::ElementIterator dofs_bottom = selected_dofs_bottom.begin();
+//           for(unsigned int i = 0; i < nb_dofs_face_bottom; i++)
+//               dofs_bottom++;
+//           constraints.add_line(*dofs_bottom);
+//        }
+//
 
 
       DoFTools::make_sparsity_pattern(dof_handler_ref,
@@ -1679,7 +1738,6 @@ namespace neo_hookean
       sparsity_pattern.copy_from(dsp);
     }
 
-    DoFTools::make_hanging_node_constraints (dof_handler_ref, constraints);
     apply_periodic_constraints_and_fill_periodic_links();
 
     tangent_matrix.reinit(sparsity_pattern);
@@ -2444,10 +2502,20 @@ namespace neo_hookean
 	const double det_F                   = lqph[q_point].get_det_F();
 	const double p                       = lqph[q_point].get_p();
 	const Tensor<2, dim> C_inv           = lqph[q_point].get_C_inv();
+        const Tensor<2, dim> F_invT          = lqph[q_point].get_F_invT();
 	const double c_1                     = lqph[q_point].get_c_1();
 	const Tensor<2, dim> Grad_U          = lqph[q_point].get_Grad_U();
 
-	//_________Computing of d_rond_C_inv/d_rond_C :_____________
+	//_________Computing of d_rond_F_invT/d_rond_F :_____________
+	Tensor<4, dim> d_F_invT_d_F;
+	for (unsigned int i=0; i<dim; ++i){
+	  for (unsigned int j=0; j<dim; ++j){
+	    for (unsigned int k=0; k<dim; ++k){
+	      for (unsigned int l=0; l<dim; ++l){
+		d_F_invT_d_F[i][j][k][l] = - F_invT[i][k] * F_invT[j][l];
+	      }}}}
+
+        //_________Computing of d_rond_C_inv/d_rond_C :_____________
 	Tensor<4, dim> d_C_inv_d_C;
 	for (unsigned int i=0; i<dim; ++i){
 	  for (unsigned int j=0; j<dim; ++j){
@@ -2480,6 +2548,45 @@ namespace neo_hookean
 		    //_______________Term 1______________________________
                     data.cell_matrix(i, j) += 2 * c_1 * trace(transpose(grad_Nx[i]) * grad_Nx[j]) * JxW;
 
+		    //_______________Term 2________________________
+		    {
+		      double dot_prod_1 = 0.0;
+		      double dot_prod_2 = 0.0;
+		      Tensor<2, dim> tmp1;
+		      Tensor<2, dim> tmp2;
+		      tmp1 = grad_Nx[i];
+		      tmp2 = grad_Nx[j];
+		      for(unsigned int k = 0; k < dim; ++k)
+			{
+			  dot_prod_1 += F_invT[k] * tmp1[k];
+			  dot_prod_2 += F_invT[k] * tmp2[k];
+			}
+		      data.cell_matrix(i, j) -= p * det_F * (2*det_F - 1) * dot_prod_1 * dot_prod_2 * JxW;
+		    }
+
+		    //_______________Term 3_______________________
+		    {
+		      Tensor<2, dim> dot_prod_1;
+		      {
+			//______Construction of first dot product_________
+			Tensor<2, dim> tmp;
+			tmp = grad_Nx[j];
+			for(unsigned int k = 0; k < dim; ++k)
+			  for(unsigned int l = 0; l < dim; ++l)
+			    for(unsigned int m = 0; m < dim; ++m) //todo : put symmetric tensors
+			      for(unsigned int n = 0; n < dim ; ++n)
+				dot_prod_1[k][l] +=  d_F_invT_d_F[k][l][m][n] * tmp[m][n];
+		      }
+		      {
+			//______Construction of second dot product________
+			Tensor<2, dim> tmp;
+                        tmp = grad_Nx[i];
+			for(unsigned int k = 0; k < dim; ++k)
+			  data.cell_matrix(i,j) -= p * det_F * (det_F - 1) * dot_prod_1[k] * tmp[k] * JxW;
+		      }
+		    }
+
+                    //-_-_-_-_-_Terms From I3-1-_-_-_-_-_-_-_-_
 
 		    //_______________Term 4 (or 3)______________________________
 		    for(unsigned int k = 0; k < dim; ++k)
@@ -2538,6 +2645,11 @@ namespace neo_hookean
 		      data.cell_matrix(i, j) -= N[i] *  det_F * det_F
 			* C_inv[k] * tmp[k]
 			* JxW;
+		    tmp = grad_Nx[j];
+		    for(unsigned int k = 0; k < dim; ++k)
+		      data.cell_matrix(i, j) -= N[i] *  det_F * (det_F - 1)
+			* F_invT[k] * tmp[k]
+			* JxW;
 		  }
 
 		//_____________________________ Contribution K_up ____________________________
@@ -2550,10 +2662,15 @@ namespace neo_hookean
 		else if ((i_group == u_dof) && (j_group == p_dof))
 		  {
 		    Tensor<2, dim> tmp;
-		    tmp = 2 * (grad_Nx[i] + transpose(grad_Nx[i]) * Grad_U);
+                    tmp = 2 * (grad_Nx[i] + transpose(grad_Nx[i]) * Grad_U);
 		    for(unsigned int k = 0; k < dim; ++k)
 		      data.cell_matrix(i, j) -= N[j] *  det_F * det_F
 			* C_inv[k] * tmp[k]
+			* JxW;
+		    tmp = grad_Nx[i];
+		    for(unsigned int k = 0; k < dim; ++k)
+		      data.cell_matrix(i, j) -= N[j] *  det_F * (det_F - 1)
+			* F_invT[k] * tmp[k]
 			* JxW;
 		  }
 		else
@@ -2650,6 +2767,7 @@ namespace neo_hookean
 	const double det_F                   = lqph[q_point].get_det_F();
 	const double p                       = lqph[q_point].get_p();
 	const Tensor<2, dim> C_inv           = lqph[q_point].get_C_inv();
+        const Tensor<2, dim> F_invT          = lqph[q_point].get_F_invT();
 	const double c_1                     = lqph[q_point].get_c_1();
 	const Tensor<2, dim> Grad_U          = lqph[q_point].get_Grad_U();
 
@@ -2681,9 +2799,17 @@ namespace neo_hookean
 		{
 		  data.cell_rhs(i) += p * det_F * det_F * C_inv[k] * tmp2[k] * JxW;
 		}
+	      tmp2 = Grad_Nx[i];
+	      for(unsigned int k = 0; k < dim; ++k)
+		{
+		  data.cell_rhs(i) += p * det_F * (det_F - 1) * F_invT[k] * tmp2[k] * JxW;
+		}
 	    }
 	    else if (i_group == p_dof)
-	      data.cell_rhs(i) += N[i] * (det_F*det_F - 1) * JxW;
+            {
+                data.cell_rhs(i) += N[i] * (det_F*det_F - 1) * JxW;
+	      data.cell_rhs(i) += 0.5 * N[i] * (det_F - 1)*(det_F - 1) * JxW;
+            }
 	    else
 	      Assert(i_group <= p_dof, ExcInternalError());
 	  }
@@ -3308,7 +3434,7 @@ namespace neo_hookean
 	//            &Grad_Nx = scratch.grad_Nx[q_point];
 	const double JxW = scratch.fe_values_ref.JxW(q_point);
 	const Tensor<2, dim> tmp = Grad_U + transpose(Grad_U) + transpose(Grad_U) * Grad_U;
-	system_energy += (c_1 * trace(tmp) - p * (det_F * det_F - 1)) * JxW;
+	system_energy += (c_1 * trace(tmp) - 0.5 * p * ((det_F - 1)*(det_F - 1)+ (det_F * det_F - 1))) * JxW;
       }
   }
 
@@ -3716,7 +3842,7 @@ int main ()
   try
     {
       Solid<2> solid_2d("parameters.prm");
-      //solid_2d.run();
+      solid_2d.run();
     }
   catch (std::exception &exc)
     {
