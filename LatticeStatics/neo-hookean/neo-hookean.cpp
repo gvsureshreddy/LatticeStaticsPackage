@@ -208,6 +208,8 @@ namespace neo_hookean
 
       double factor_anti_hourglass_term;
 
+      double factor_pro__hourglass_term;
+
       static void
       declare_parameters(ParameterHandler &prm);
 
@@ -231,6 +233,10 @@ namespace neo_hookean
         prm.declare_entry("Factor of anti-Hourglass term", "1.0",
 			  Patterns::Double(),
 			  "Factor of anti-Hourglass term");
+
+        prm.declare_entry("Factor of pro-Hourglass term", "1.0",
+			  Patterns::Double(),
+			  "Factor of pro-Hourglass term");
       }
       prm.leave_subsection();
     }
@@ -243,6 +249,7 @@ namespace neo_hookean
         theta = prm.get_double("Angle theta");
         norm_N = prm.get_double("Norm of N");
         factor_anti_hourglass_term = prm.get_double("Factor of anti-Hourglass term");
+        factor_pro__hourglass_term = prm.get_double("Factor of pro-Hourglass term");
       }
       prm.leave_subsection();
     }
@@ -1100,6 +1107,7 @@ namespace neo_hookean
     const int                        dim_matrix = 22;
     const bool                       print_steps_computation;
     const bool                       factor_anti_hourglass_term;
+    const bool                       factor_pro__hourglass_term;
 
     // Then define a number of variables to store norms and update norms and
     // normalisation factors.
@@ -1189,7 +1197,8 @@ namespace neo_hookean
     displacement_side_1 ((1 - parameters.elongation) * parameters.delta_t / parameters.end_time),
     displacement_and_qph_accurate(false),
     print_steps_computation(parameters.print_steps_computation_param),
-    factor_anti_hourglass_term(parameters.factor_anti_hourglass_term)
+    factor_anti_hourglass_term(parameters.factor_anti_hourglass_term),
+    factor_pro__hourglass_term(parameters.factor_pro__hourglass_term)
   {
     determine_component_extractors();
     make_grid();
@@ -2569,7 +2578,7 @@ namespace neo_hookean
 			  dot_prod_1 += F_invT[k] * tmp1[k];
 			  dot_prod_2 += F_invT[k] * tmp2[k];
 			}
-		      data.cell_matrix(i, j) -= factor_anti_hourglass_term*p * det_F * (2*det_F - 1) * dot_prod_1 * dot_prod_2 * JxW;
+		      data.cell_matrix(i, j) -= factor_anti_hourglass_term * p * det_F * (2*det_F - 1) * dot_prod_1 * dot_prod_2 * JxW;
 		    }
 
 		    //_______________Term 3_______________________
@@ -2590,7 +2599,7 @@ namespace neo_hookean
 			Tensor<2, dim> tmp;
                         tmp = grad_Nx[i];
 			for(unsigned int k = 0; k < dim; ++k)
-			  data.cell_matrix(i,j) -= factor_anti_hourglass_term*p * det_F * (det_F - 1) * dot_prod_1[k] * tmp[k] * JxW;
+			  data.cell_matrix(i,j) -= factor_anti_hourglass_term * p * det_F * (det_F - 1) * dot_prod_1[k] * tmp[k] * JxW;
 		      }
 		    }
 
@@ -2599,7 +2608,7 @@ namespace neo_hookean
 		    //_______________Term 4 (or 3)______________________________
 		    for(unsigned int k = 0; k < dim; ++k)
 		      {
-			data.cell_matrix(i, j) -= 2 * p * det_F * det_F * C_inv[k]
+			data.cell_matrix(i, j) -= factor_pro__hourglass_term * 2 * p * det_F * det_F * C_inv[k]
 			  * (transpose(grad_Nx[i]) * grad_Nx[j])[k] * JxW;
 		      }
 
@@ -2623,7 +2632,7 @@ namespace neo_hookean
 			//tmp = 2 * (grad_Nx[i] + transpose(grad_Nx[i]) * Grad_U);
                         tmp = grad_Nx[i] + transpose(grad_Nx[i]) + transpose(grad_Nx[i]) * Grad_U + transpose(Grad_U) * grad_Nx[i];
 			for(unsigned int k = 0; k < dim; ++k)
-			  data.cell_matrix(i,j) -= p * det_F * det_F * dot_prod_1[k] * tmp[k] * JxW;
+			  data.cell_matrix(i,j) -= factor_pro__hourglass_term * p * det_F * det_F * dot_prod_1[k] * tmp[k] * JxW;
 		      }
 		    }
 		    //_______________Term 3 (or 2)________________________
@@ -2639,7 +2648,7 @@ namespace neo_hookean
 			  dot_prod_1 += C_inv[k] * tmp1[k];
 			  dot_prod_2 += C_inv[k] * tmp2[k];
 			}
-		      data.cell_matrix(i, j) -= p * det_F * det_F * dot_prod_1 * dot_prod_2 * JxW;
+		      data.cell_matrix(i, j) -= factor_pro__hourglass_term * p * det_F * det_F * dot_prod_1 * dot_prod_2 * JxW;
 		    }
 		  }
 
@@ -2650,12 +2659,12 @@ namespace neo_hookean
 		    Tensor<2, dim> tmp;
 		    tmp = 2 * (grad_Nx[j] + transpose(grad_Nx[j]) * Grad_U);
 		    for(unsigned int k = 0; k < dim; ++k)
-		      data.cell_matrix(i, j) -= N[i] *  det_F * det_F
+		      data.cell_matrix(i, j) -= factor_pro__hourglass_term * N[i] *  det_F * det_F
 			* C_inv[k] * tmp[k]
 			* JxW;
 		    tmp = grad_Nx[j];
 		    for(unsigned int k = 0; k < dim; ++k)
-		      data.cell_matrix(i, j) -= factor_anti_hourglass_term*N[i] *  det_F * (det_F - 1)
+		      data.cell_matrix(i, j) -= factor_anti_hourglass_term * N[i] *  det_F * (det_F - 1)
 			* F_invT[k] * tmp[k]
 			* JxW;
 		  }
@@ -2672,12 +2681,12 @@ namespace neo_hookean
 		    Tensor<2, dim> tmp;
                     tmp = 2 * (grad_Nx[i] + transpose(grad_Nx[i]) * Grad_U);
 		    for(unsigned int k = 0; k < dim; ++k)
-		      data.cell_matrix(i, j) -= N[j] *  det_F * det_F
+		      data.cell_matrix(i, j) -= factor_pro__hourglass_term * N[j] *  det_F * det_F
 			* C_inv[k] * tmp[k]
 			* JxW;
 		    tmp = grad_Nx[i];
 		    for(unsigned int k = 0; k < dim; ++k)
-		      data.cell_matrix(i, j) -= factor_anti_hourglass_term*N[j] *  det_F * (det_F - 1)
+		      data.cell_matrix(i, j) -= factor_anti_hourglass_term * N[j] *  det_F * (det_F - 1)
 			* F_invT[k] * tmp[k]
 			* JxW;
 		  }
@@ -2805,18 +2814,18 @@ namespace neo_hookean
 	      tmp2 = 2 * (Grad_Nx[i] + transpose(Grad_Nx[i]) * Grad_U);
 	      for(unsigned int k = 0; k < dim; ++k)
 		{
-		  data.cell_rhs(i) += p * det_F * det_F * C_inv[k] * tmp2[k] * JxW;
+		  data.cell_rhs(i) += factor_pro__hourglass_term * p * det_F * det_F * C_inv[k] * tmp2[k] * JxW;
 		}
 	      tmp2 = Grad_Nx[i];
 	      for(unsigned int k = 0; k < dim; ++k)
 		{
-		  data.cell_rhs(i) += factor_anti_hourglass_term*p * det_F * (det_F - 1) * F_invT[k] * tmp2[k] * JxW;
+		  data.cell_rhs(i) += factor_anti_hourglass_term * p * det_F * (det_F - 1) * F_invT[k] * tmp2[k] * JxW;
 		}
 	    }
 	    else if (i_group == p_dof)
             {
-              data.cell_rhs(i) += N[i] * (det_F*det_F - 1) * JxW;
-	      data.cell_rhs(i) += factor_anti_hourglass_term*0.5 * N[i] * (det_F - 1)*(det_F - 1) * JxW;
+              data.cell_rhs(i) += factor_pro__hourglass_term * N[i] * (det_F*det_F - 1) * JxW;
+	      data.cell_rhs(i) += factor_anti_hourglass_term * 0.5 * N[i] * (det_F - 1)*(det_F - 1) * JxW;
             }
 	    else
 	      Assert(i_group <= p_dof, ExcInternalError());
@@ -3442,7 +3451,7 @@ namespace neo_hookean
 	//            &Grad_Nx = scratch.grad_Nx[q_point];
 	const double JxW = scratch.fe_values_ref.JxW(q_point);
 	const Tensor<2, dim> tmp = Grad_U + transpose(Grad_U) + transpose(Grad_U) * Grad_U;
-	system_energy += (c_1 * trace(tmp) - p * (factor_anti_hourglass_term*0.5*(det_F - 1)*(det_F - 1)+ (det_F * det_F - 1))) * JxW;
+	system_energy += (c_1 * trace(tmp) - p * (factor_anti_hourglass_term*0.5*(det_F - 1)*(det_F - 1)+ factor_pro__hourglass_term*(det_F * det_F - 1))) * JxW;
       }
   }
 
