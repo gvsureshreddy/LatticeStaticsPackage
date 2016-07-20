@@ -230,6 +230,7 @@ namespace neo_hookean
         prm.declare_entry("Norm of N", "0.0",
 			  Patterns::Double(),
 			  "Norm of N");
+        
         prm.declare_entry("Factor of anti-Hourglass term", "1.0",
 			  Patterns::Double(),
 			  "Factor of anti-Hourglass term");
@@ -902,7 +903,8 @@ namespace neo_hookean
     get_constraints_matrix(ConstraintMatrix const* &constraints_matrix);
 
     void
-    output_results_for_BFB(bool isBifurcationTangent, unsigned int numBifurcationPoint, unsigned int indexLocal);
+    output_results_for_BFB(bool isBifurcationTangent, unsigned int numBifurcationPoint,
+                            unsigned int CPCrossingNum, unsigned int indexLocal);
 
   private:
 
@@ -1018,7 +1020,8 @@ namespace neo_hookean
 
     void
     output_results(/*double const loading, */bool const is_BFB_call,
-          bool const isBifurcationTangent, unsigned int numBifurcationPoint, unsigned int indexLocal) const;
+          bool const isBifurcationTangent, unsigned int numBifurcationPoint,
+                unsigned int CPCrossingNum, unsigned int indexLocal) const;
 
     void
     output_results() const;
@@ -1106,8 +1109,8 @@ namespace neo_hookean
     //This is just to know the size of the tangent matrix "by hand", for debugging:
     const int                        dim_matrix = 22;
     const bool                       print_steps_computation;
-    const bool                       factor_anti_hourglass_term;
-    const bool                       factor_pro__hourglass_term;
+    const double                     factor_anti_hourglass_term;
+    const double                     factor_pro__hourglass_term;
 
     // Then define a number of variables to store norms and update norms and
     // normalisation factors.
@@ -3258,13 +3261,14 @@ namespace neo_hookean
   template <int dim>
   void Solid<dim>::output_results() const
   {
-      output_results(false, false, 0, 0);
+      output_results(false, false, 0, 0, 0);
   }
 
 
   template <int dim>
   void Solid<dim>::output_results(/*double const loading, */bool const is_BFB_call,
-          bool const isBifurcationTangent, unsigned int numBifurcationPoint, unsigned int indexLocal) const
+          bool const isBifurcationTangent, unsigned int numBifurcationPoint,
+                        unsigned int CPCrossingNum, unsigned int indexLocal) const
   {
     DataOut<dim> data_out;
     std::vector<DataComponentInterpretation::DataComponentInterpretation>
@@ -3333,7 +3337,8 @@ namespace neo_hookean
         filename.fill('0');
         filename << "Results/Tangents/Tangent-B"
                     << std::setw(4) << numBifurcationPoint << "-"
-                    << std::setw(3) << indexLocal << ".vtk";;
+                    << std::setw(3) << CPCrossingNum << "-"
+                    << std::setw(2) << indexLocal << ".vtk";;
     }
     else
         filename << "Results/timestep-" << time.get_timestep() << ".vtk";
@@ -3593,9 +3598,10 @@ namespace neo_hookean
 
   template <int dim>
   void
-  Solid<dim>::output_results_for_BFB(bool isBifurcationTangent, unsigned int numBifurcationPoint, unsigned int indexLocal)
+  Solid<dim>::output_results_for_BFB(bool isBifurcationTangent, unsigned int numBifurcationPoint,
+                                        unsigned int CPCrossingNum, unsigned int indexLocal)
   {
-    output_results(true, isBifurcationTangent, numBifurcationPoint, indexLocal);
+    output_results(true, isBifurcationTangent, numBifurcationPoint, CPCrossingNum,  indexLocal);
     time.increment();
   }
 
@@ -3831,12 +3837,14 @@ namespace neo_hookean
 
   void output_results_BFB()
   {
-      MyNeoHookean->output_results_for_BFB(false, 0, 0);
+      MyNeoHookean->output_results_for_BFB(false, 0, 0, 0);
   }
 
-  void output_results_BFB(bool isBifurcationTangent, unsigned int numBifurcationPoint, unsigned int indexLocal)
+  void output_results_BFB(bool isBifurcationTangent, unsigned int numBifurcationPoint,
+                        unsigned int CPCrossingNum, unsigned int indexLocal)
   {
-      MyNeoHookean->output_results_for_BFB(isBifurcationTangent, numBifurcationPoint, indexLocal);
+      MyNeoHookean->output_results_for_BFB(isBifurcationTangent, numBifurcationPoint,
+                        CPCrossingNum, indexLocal);
   }
 
   void run()

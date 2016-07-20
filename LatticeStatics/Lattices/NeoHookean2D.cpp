@@ -20,7 +20,7 @@ namespace neo_hookean
   void get_free_tangent(double* const tm);
   void get_unconstrained_E1DLoad(double* const E1DLoad, unsigned int iter_value);
   void output_results_BFB();
-  void output_results_BFB(bool isBifurcationTangent, unsigned int numBifurcationPoint, unsigned int indexLocal);
+  void output_results_BFB(bool isBifurcationTangent, unsigned int numBifurcationPoint, unsigned int CPCrossingNum, unsigned int indexLocal);
   double get_energy();
   int NoNegTestFunctions;
 }
@@ -59,7 +59,7 @@ NeoHookean2D::NeoHookean2D(PerlInput const& Input, int const& Echo, int const& W
   DOF_D_.Resize(DOFS_D_, 0.0);
   dofs_properties_.Resize(3*DOFS_D_, 0.0);
   neo_hookean::get_dofs_properties(&(dofs_properties_[0]));
-  std::cout << "\nDOFs properties :\n";
+//  std::cout << "\nDOFs properties :\n";
 //  for(unsigned int i = 0; i < DOFS_D_; ++i)
 //  {
 //        switch((int) dofs_properties_[3*i]){
@@ -87,7 +87,7 @@ NeoHookean2D::NeoHookean2D(PerlInput const& Input, int const& Echo, int const& W
 //                std::cout << "\n1 " << i << " " << dofs_properties_[3*i+1] << " " << dofs_properties_[3*i+2];
 //                break;
 //            case 2 :
-//                //std::cout << "\nDOF " << i << " is a pressure. The position shall be zero : (" << dofs_properties_[3*i+1] << "," << dofs_properties_[3*i+2] << ")";
+//                std::cout << "\n2 " << i << " " << dofs_properties_[3*i+1] << " " << dofs_properties_[3*i+2];
 //                break;
 //            default :
 //                break;
@@ -562,7 +562,8 @@ void NeoHookean2D::PrintPath(ostream& out, ostream& pathout, int const& width)
     pathout << setw(width) << neo_hookean::NoNegTestFunctions << setw(width) << Lambda_ << " " << setw(width) << TestFunctVals /*<< " " << setw(width) << DOF_ */<< "\n";
 }
 
-void NeoHookean2D::DrawBifurcatedPath(Vector const& tangent, unsigned int numBifurcationPoint, unsigned int indexLocal)
+void NeoHookean2D::DrawBifurcatedPath(Vector const& tangent, unsigned int numBifurcationPoint,
+                                    unsigned int CPCrossingNum, unsigned int indexLocal)
 {
     Vector backupSolution(DOF_);
     Vector tempSolution(DOF_);
@@ -573,6 +574,6 @@ void NeoHookean2D::DrawBifurcatedPath(Vector const& tangent, unsigned int numBif
         // same average displacement with respect to the refinement level
     }
     SetDOF(tempSolution);
-    neo_hookean::output_results_BFB(true, numBifurcationPoint, indexLocal);
+    neo_hookean::output_results_BFB(true, numBifurcationPoint, CPCrossingNum, indexLocal);
     SetDOF(backupSolution);
 }

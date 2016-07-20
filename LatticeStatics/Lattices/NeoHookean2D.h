@@ -96,7 +96,8 @@ class NeoHookean2D : public Lattice
             
             virtual void PrintPath(ostream& out, ostream& pathout, int const& width);
             
-            virtual void DrawBifurcatedPath(Vector const& tangent, unsigned int numBifurcationPoint, unsigned int indexLocal);
+            virtual void DrawBifurcatedPath(Vector const& tangent, unsigned int numBifurcationPoint,
+                                        unsigned int CPCrossingNum, unsigned int indexLocal);
             
             friend ostream& operator<<(ostream& out, NeoHookean2D& A);
             
