@@ -230,7 +230,7 @@ namespace neo_hookean
         prm.declare_entry("Norm of N", "0.0",
 			  Patterns::Double(),
 			  "Norm of N");
-        
+
         prm.declare_entry("Factor of anti-Hourglass term", "1.0",
 			  Patterns::Double(),
 			  "Factor of anti-Hourglass term");
@@ -980,8 +980,8 @@ namespace neo_hookean
 				    PerTaskData_Energy &data);
 
     void
-    copy_local_to_global_energy(const PerTaskData_Energy &/*data*/)
-    {}
+    copy_local_to_global_energy(const PerTaskData_Energy &data)
+    {system_energy += data.energy_contribution;}
 
     // Apply Dirichlet boundary conditions on the displacement field
     void
@@ -1488,8 +1488,9 @@ namespace neo_hookean
   template <int dim>
   struct Solid<dim>::PerTaskData_Energy
   {
+    double energy_contribution;
     void reset()
-    {}
+    {energy_contribution = 0.0;}
   };
 
 
@@ -1570,7 +1571,7 @@ namespace neo_hookean
     //GridGenerator::hyper_rectangle(triangulation, bottom_left, upper_right);
     //GridGenerator::subdivided_hyper_rectangle(triangulation, {(unsigned int) std::max(1.0,floor(width/aspect_ratio)),1}, bottom_left, upper_right);
     GridGenerator::subdivided_hyper_rectangle(triangulation,
-        {(unsigned int) std::max(1.0,floor(std::pow(2,parameters.global_refinement)*width/aspect_ratio)),std::pow(2,parameters.global_refinement)},
+        {(unsigned int) std::max(1.0,floor(std::pow(2,parameters.global_refinement)*width/aspect_ratio)),static_cast<unsigned int>(std::pow(2,parameters.global_refinement))},
         bottom_left, upper_right);
     //GridTools::scale(parameters.scale, triangulation);
 
@@ -3383,6 +3384,7 @@ namespace neo_hookean
   double
   Solid<dim>::get_energy()
   {
+    system_energy = 0.0;
     if(!displacement_and_qph_accurate)
         update_periodically_constrained_dofs_and_qph();
     assemble_system_energy();
@@ -3456,7 +3458,7 @@ namespace neo_hookean
 	//            &Grad_Nx = scratch.grad_Nx[q_point];
 	const double JxW = scratch.fe_values_ref.JxW(q_point);
 	const Tensor<2, dim> tmp = Grad_U + transpose(Grad_U) + transpose(Grad_U) * Grad_U;
-	system_energy += (c_1 * trace(tmp) - p * (factor_anti_hourglass_term*0.5*(det_F - 1)*(det_F - 1)+ factor_pro__hourglass_term*(det_F * det_F - 1))) * JxW;
+	data.energy_contribution = (c_1 * trace(tmp) - p * (factor_anti_hourglass_term*0.5*(det_F - 1)*(det_F - 1)+ factor_pro__hourglass_term*(det_F * det_F - 1))) * JxW;
       }
   }
 

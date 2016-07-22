@@ -29,7 +29,7 @@ namespace neo_hookean
 NeoHookean2D::~NeoHookean2D()
 {
   neo_hookean::deleteObject();
-  cout << "TwoBarTruss Function Calls:\n"
+  cout << "NeoHookean Function Calls:\n"
        << "\tE0 calls - " << CallCount_[0] << "\n"
        << "\tE1 calls - " << CallCount_[1] << "\n"
        << "\tE1DLoad calls - " << CallCount_[2] << "\n"
