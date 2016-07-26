@@ -281,7 +281,6 @@ void NeoHookean2D::SetDOF(Vector const& dof)
                 break;
         }
     }
-    //std::cout << "\nSetting solution to :\n" << DOF_D_ << "\n\nDOF was equal to : " << DOF_;
     neo_hookean::set_solution(&(DOF_D_[0]));
     //neo_hookean::output_results_BFB();
 }
@@ -308,6 +307,20 @@ double NeoHookean2D::E0() const
     }
 
   return E0CachedValue_;
+}
+
+double NeoHookean2D::EDLoad() const
+{
+    double EDLoad_ = 0.0;
+    RHS_D_.Resize(DOFS_D_,0.0);
+    neo_hookean::get_free_rhs(&(RHS_D_[0]));
+    for(unsigned int i = 0; i < DOFS_D_; ++i)
+    {
+        const bool condition = (constraint_properties_[i] == -3 || constraint_properties_[i] > -1) && dofs_properties_[3*i] == 0.0;
+        if(condition)
+                EDLoad_ -= RHS_D_[i] * (1 - dofs_properties_[3*i+1]);
+    }
+    return EDLoad_;
 }
 
 Vector const& NeoHookean2D::E1() const
@@ -559,7 +572,8 @@ void NeoHookean2D::PrintPath(ostream& out, ostream& pathout, int const& width)
 {
     Vector TestFunctVals(NumTestFunctions());
     TestFunctions(TestFunctVals, LHS);
-    pathout << setw(width) << neo_hookean::NoNegTestFunctions << setw(width) << Lambda_ << " " << setw(width) << TestFunctVals /*<< " " << setw(width) << DOF_ */<< "\n";
+    const double EDLoad_ = EDLoad();
+    pathout << setw(width) << neo_hookean::NoNegTestFunctions << setw(width) << Lambda_ << " " << setw(width) << EDLoad_ /*<< " " << setw(width) << TestFunctVals << " " << setw(width) << DOF_ */<< "\n";
 }
 
 void NeoHookean2D::DrawBifurcatedPath(Vector const& tangent, unsigned int numBifurcationPoint,

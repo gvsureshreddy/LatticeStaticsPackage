@@ -1502,52 +1502,22 @@ namespace neo_hookean
   struct Solid<dim>::ScratchData_Energy
   {
     FEValues<dim>     fe_values_ref;
-    FEFaceValues<dim> fe_face_values_ref;
-
-    std::vector<std::vector<double> >          Nx;
-    std::vector<std::vector<Tensor<2, dim> > > grad_Nx;
 
     ScratchData_Energy(const FiniteElement<dim> &fe_cell,
-		       const QGauss<dim> &qf_cell, const UpdateFlags uf_cell,
-		       const QGauss<dim - 1> & qf_face, const UpdateFlags uf_face)
+		       const QGauss<dim> &qf_cell, const UpdateFlags uf_cell)
       :
-      fe_values_ref(fe_cell, qf_cell, uf_cell),
-      fe_face_values_ref(fe_cell, qf_face, uf_face),
-      Nx(qf_cell.size(),
-	 std::vector<double>(fe_cell.dofs_per_cell)),
-      grad_Nx(qf_cell.size(),
-	      std::vector<Tensor<2, dim> >
-	      (fe_cell.dofs_per_cell))
+      fe_values_ref(fe_cell, qf_cell, uf_cell)
     {}
 
     ScratchData_Energy(const ScratchData_Energy &energy)
       :
       fe_values_ref(energy.fe_values_ref.get_fe(),
 		    energy.fe_values_ref.get_quadrature(),
-		    energy.fe_values_ref.get_update_flags()),
-      fe_face_values_ref(energy.fe_face_values_ref.get_fe(),
-			 energy.fe_face_values_ref.get_quadrature(),
-			 energy.fe_face_values_ref.get_update_flags()),
-      Nx(energy.Nx),
-      grad_Nx(energy.grad_Nx)
+		    energy.fe_values_ref.get_update_flags())
     {}
 
     void reset()
-    {
-      const unsigned int n_q_points      = Nx.size();
-      const unsigned int n_dofs_per_cell = Nx[0].size();
-      for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
-	{
-	  Assert( Nx[q_point].size() == n_dofs_per_cell, ExcInternalError());
-	  Assert( grad_Nx[q_point].size() == n_dofs_per_cell,
-		  ExcInternalError());
-	  for (unsigned int k = 0; k < n_dofs_per_cell; ++k)
-	    {
-	      Nx[q_point][k] = 0.0;
-	      grad_Nx[q_point][k] = 0.0;
-	    }
-	}
-    }
+    {}
   };
 
 
@@ -2533,7 +2503,7 @@ namespace neo_hookean
 	  for (unsigned int j=0; j<dim; ++j){
 	    for (unsigned int k=0; k<dim; ++k){
 	      for (unsigned int l=0; l<dim; ++l){
-		d_F_invT_d_F[i][j][k][l] = - F_invT[i][k] * F_invT[j][l];
+		d_F_invT_d_F[i][j][k][l] = - F_invT[k][j] * F_invT[i][l];
 	      }}}}
 
         //_________Computing of d_rond_C_inv/d_rond_C :_____________
@@ -2603,7 +2573,9 @@ namespace neo_hookean
 			Tensor<2, dim> tmp;
                         tmp = grad_Nx[i];
 			for(unsigned int k = 0; k < dim; ++k)
+                        {
 			  data.cell_matrix(i,j) -= factor_anti_hourglass_term * p * det_F * (det_F - 1) * dot_prod_1[k] * tmp[k] * JxW;
+                        }
 		      }
 		    }
 
@@ -2788,7 +2760,7 @@ namespace neo_hookean
 	const double det_F                   = lqph[q_point].get_det_F();
 	const double p                       = lqph[q_point].get_p();
 	const Tensor<2, dim> C_inv           = lqph[q_point].get_C_inv();
-        const Tensor<2, dim> F_invT          = lqph[q_point].get_F_invT();
+        const Tensor<2, dim> F_invT           = lqph[q_point].get_F_invT();
 	const double c_1                     = lqph[q_point].get_c_1();
 	const Tensor<2, dim> Grad_U          = lqph[q_point].get_Grad_U();
 
@@ -2820,10 +2792,11 @@ namespace neo_hookean
 		{
 		  data.cell_rhs(i) += factor_pro__hourglass_term * p * det_F * det_F * C_inv[k] * tmp2[k] * JxW;
 		}
-	      tmp2 = Grad_Nx[i];
+              Tensor<2, dim> tmp3;
+	      tmp3 = Grad_Nx[i];
 	      for(unsigned int k = 0; k < dim; ++k)
 		{
-		  data.cell_rhs(i) += factor_anti_hourglass_term * p * det_F * (det_F - 1) * F_invT[k] * tmp2[k] * JxW;
+		  data.cell_rhs(i) += factor_anti_hourglass_term * p * det_F * (det_F - 1) * F_invT[k] * tmp3[k] * JxW;
 		}
 	    }
 	    else if (i_group == p_dof)
@@ -3387,6 +3360,7 @@ namespace neo_hookean
     system_energy = 0.0;
     if(!displacement_and_qph_accurate)
         update_periodically_constrained_dofs_and_qph();
+    Assert(displacement_and_qph_accurate, ExcInternalError());
     assemble_system_energy();
     return system_energy;
   }
@@ -3394,17 +3368,15 @@ namespace neo_hookean
   template <int dim>
   void Solid<dim>::assemble_system_energy()
   {
+    system_energy = 0.0;
     timer.enter_subsection("Assemble system energy");
 
     const UpdateFlags uf_cell(update_values |
 			      update_gradients |
 			      update_JxW_values);
-    const UpdateFlags uf_face(update_values |
-			      update_normal_vectors |
-			      update_JxW_values);
 
     PerTaskData_Energy per_task_data;
-    ScratchData_Energy scratch_data(fe, qf_cell, uf_cell, qf_face, uf_face);
+    ScratchData_Energy scratch_data(fe, qf_cell, uf_cell);
 
     WorkStream::run(dof_handler_ref.begin_active(),
 		    dof_handler_ref.end(),
@@ -3426,25 +3398,9 @@ namespace neo_hookean
     data.reset();
     scratch.reset();
     scratch.fe_values_ref.reinit(cell);
-    //cell->get_dof_indices(data.local_dof_indices);
     PointHistory<dim> *lqph =
       reinterpret_cast<PointHistory<dim>*>(cell->user_pointer());
-
-    //        for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
-    //        {
-    //            for (unsigned int k = 0; k < dofs_per_cell; ++k)
-    //            {
-    //                const unsigned int k_group = fe.system_to_base_index(k).first.first;
-    //
-    //                if (k_group == u_dof)
-    //                    scratch.grad_Nx[q_point][k]
-    //                            = scratch.fe_values_ref[u_fe].gradient(k, q_point);
-    //                else if (k_group == p_dof)
-    //                    scratch.Nx[q_point][k] = scratch.fe_values_ref[p_fe].value(k, q_point);
-    //                else
-    //                    Assert(k_group <= p_dof, ExcInternalError());
-    //            }
-    //        }
+    data.energy_contribution = 0.0;
     for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
       {
 	const double det_F                   = lqph[q_point].get_det_F();
@@ -3458,7 +3414,7 @@ namespace neo_hookean
 	//            &Grad_Nx = scratch.grad_Nx[q_point];
 	const double JxW = scratch.fe_values_ref.JxW(q_point);
 	const Tensor<2, dim> tmp = Grad_U + transpose(Grad_U) + transpose(Grad_U) * Grad_U;
-	data.energy_contribution = (c_1 * trace(tmp) - p * (factor_anti_hourglass_term*0.5*(det_F - 1)*(det_F - 1)+ factor_pro__hourglass_term*(det_F * det_F - 1))) * JxW;
+	data.energy_contribution += (c_1 * trace(tmp) - p * (factor_anti_hourglass_term*0.5*(det_F - 1)*(det_F - 1)+ factor_pro__hourglass_term*(det_F * det_F - 1))) * JxW;
       }
   }
 

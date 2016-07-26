@@ -73,6 +73,7 @@ class NeoHookean2D : public Lattice
             void SetLambda(double const& lambda);
             
             virtual double E0() const;
+            virtual double EDLoad() const;
             virtual Vector const& E1() const;
             virtual Vector const& E1DLoad() const;
             virtual Vector const& StressDL() const
