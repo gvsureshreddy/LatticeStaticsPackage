@@ -17,17 +17,9 @@ double const TrEig_[MultiLatticeKIM::DIM3] = {4.0, 5.0, 6.0};
 
 MultiLatticeKIM::~MultiLatticeKIM()
 {
-  delete[] BodyForce_;
   delete CBK_;
-  int status;
-
-  status = KIM_API_model_destroy(pkim_);
-  KIM_API_free(&pkim_, &status);
-  // delete memory
-  delete[] particleSpecies_;
-  delete[] coords_;
-  delete[] forces_;
-
+  if(CBK_ != CBK_F_)
+    delete CBK_F_;
 }
 
 MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
@@ -133,225 +125,9 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
     }
   }
 
-  // Setup Bodyforce_
-  BodyForce_ = new Vector[InternalAtoms_];
-
-  for (int i = 0; i < InternalAtoms_; ++i)
-  {
-    BodyForce_[i].Resize(DIM3, 0.0);
-  }
-
-  int status;
-  char* modelname;
-  if (Input.ParameterOK(Hash, "KIMModel"))
-  {
-    // Reads in the name of the model from Input file
-    modelname = (char*) Input.getString(Hash, "KIMModel");
-  }
-  else
-  {
-    cerr << "No KIM Model in input file" << "\n";
-    exit(-1);
-  }
-
-  numberOfParticles_ = InternalAtoms_; // From CBKHash
-
-  // @@ NumberOfSpecies and SpeciesList need to be moved to CBKinematics object
-  // Gets total number of species. From CBKHash
-  numberOfSpecies_ = Input.getInt(CBKHash, "NumberOfSpecies");
-
-  const char** SpeciesList = new const char*[numberOfSpecies_];
-  const char** AtomSpeciesList = new const char*[InternalAtoms_];
-
-  for (int i = 0; i < numberOfSpecies_; i++)
-  {
-    // Gets list of Species. From CBKHash
-    SpeciesList[i] = Input.getString(CBKHash, "SpeciesList", i);
-  }
-
-
-  // Create empty KIM object conforming to fields in the KIM descriptor files
-  // of the Test and Model
-  Write_KIM_descriptor_file(SpeciesList, numberOfSpecies_);
-  // Calls function to create a compatible descriptor file. Will need to
-  // augment so that it can read in info from a model and automatically
-  // decides the appropriate tests.
-  if (Input.ParameterOK(Hash, "PrintKIM_DescriptorFile"))
-  {
-    char const* const
-        printKIM = Input.getString(Hash, "PrintKIM_DescriptorFile");
-    if ((!strcmp(printKIM, "Yes")) || (!strcmp(printKIM, "yes")))
-    {
-      cout << descriptor_file_.str();
-    }
-  }
-
-  char* Test_Descriptor_file = new char[descriptor_file_.str().length() + 1];
-  strcpy(Test_Descriptor_file, descriptor_file_.str().c_str());
-
-  status = KIM_API_string_init(&pkim_, Test_Descriptor_file, modelname);
-  if (KIM_STATUS_OK > status)
-  {
-    KIM_API_report_error(__LINE__, (char*) __FILE__,
-                         (char*) "Test-Model coupling failure "
-                         "(see kim.log file for details).", status);
-    exit(1);
-  }
-  delete [] Test_Descriptor_file;
-
-  KIM_API_set_sim_buffer(pkim_, (void*) this, &status);
-  if (KIM_STATUS_OK > status)
-  {
-    KIM_API_report_error(__LINE__, (char*) __FILE__,
-                         (char*) "Test-Model coupling failure "
-                         "(see kim.log file for details).", status);
-    exit(1);
-  }
-
-  particleSpecies_ = new int[InternalAtoms_];
-
-  coords_ = new double[InternalAtoms_ * 3];
-  forces_ = new double[InternalAtoms_ * 3];
-  KIM_API_setm_data(
-      pkim_, &status, 7 * 4,
-      "numberOfParticles", 1, &numberOfParticles_, 1,
-      "numberOfSpecies", 1, &numberOfSpecies_, 1,
-      "particleSpecies", InternalAtoms_, &(particleSpecies_[0]), 1,
-      "coordinates", 3 * InternalAtoms_, &(coords_[0]), 1,
-      "forces", 3 * InternalAtoms_, &(forces_[0]), 1,
-      "cutoff", 1, &cutoff_, 1,
-      "energy", 1, &energy_, 1);
-  if (KIM_STATUS_OK > status)
-  {
-    KIM_API_report_error(__LINE__, (char*) __FILE__,
-                         (char*) "KIM_API_setm_data", status);
-  }
-  KIM_API_setm_method(
-      pkim_, & status, 3 * 4,
-      "get_neigh", 1, (func_ptr) &MultiLatticeKIM::get_neigh, 1,
-      "process_dEdr", 1, (func_ptr) &MultiLatticeKIM::process_dEdr, 1,
-      "process_d2Edr2", 1, (func_ptr) &MultiLatticeKIM::process_d2Edr2, 1);
-  if (KIM_STATUS_OK > status)
-  {
-    KIM_API_report_error(__LINE__, (char*) __FILE__,
-                         (char*) "KIM_API_setm_method", status);
-  }
-
-  status = KIM_API_model_init(pkim_);
-  if (KIM_STATUS_OK > status)
-  {
-    KIM_API_report_error(__LINE__, (char*) __FILE__,
-                         (char*) "KIM_API_model_init", status);
-  }
-
-  // reset any KIM Model Published parameters as requested
-  char const KIMparams[] = "KIMModelPublishedParameters";
-  if (Input.ParameterOK(Hash, KIMparams))
-  {
-    int const params = Input.getArrayLength(Hash, KIMparams);
-
-    for (int i = 0; i < params; ++i)
-    {
-      char const* const paramName = Input.getString(Hash, KIMparams, i, 0);
-      char const* const paramType = Input.getString(Hash, KIMparams, i, 1);
-      cout << "paramName is: " << paramName << "\n"
-           << "paramType is: " << paramType << "\n";
-      if (!strcmp("integer", paramType))
-      {
-        int const val = Input.getInt(Hash, KIMparams, i, 2);
-
-        int * const paramVal = (int*)
-            KIM_API_get_data(pkim_, paramName, &status);
-        if (KIM_STATUS_OK > status)
-        {
-          KIM_API_report_error(__LINE__, (char*) __FILE__,
-                               (char*) "KIM_API_get_data",
-                               status);
-        }
-        else
-        {
-          *paramVal = val;
-
-          status = KIM_API_model_reinit(pkim_);
-          if (KIM_STATUS_OK > status)
-          {
-            KIM_API_report_error(__LINE__, (char*) __FILE__,
-                                 (char*) "KIM_API_model_reinit",
-                                 status);
-            exit(-1);
-          }
-        }
-      }
-      else if (!strcmp("double", paramType))
-      {
-        double const val = Input.getDouble(Hash, KIMparams, i, 2);
-        double * const paramVal = (double*)
-            KIM_API_get_data(pkim_, paramName, &status);
-        if (KIM_STATUS_OK > status)
-        {
-          KIM_API_report_error(__LINE__, (char*) __FILE__,
-                               (char*) "KIM_API_get_data",
-                               status);
-        }
-        else
-        {
-          *paramVal = val;
-
-          status = KIM_API_model_reinit(pkim_);
-          if (KIM_STATUS_OK > status)
-          {
-            KIM_API_report_error(__LINE__, (char*) __FILE__,
-                                 (char*) "KIM_API_model_reinit",
-                                 status);
-            exit(-1);
-          }
-        }
-      }
-      else
-      {
-        cerr << "Error (MultiLatticeKIM()): "
-             << "Unknown KIM published parameter type"
-             << "\n";
-        exit(-2);
-      }
-    }
-  }
-
-  InfluenceDist_ = cutoff_;
-  LatSum_(CBK_, InternalAtoms_, &InfluenceDist_);
-
-  KIM_API_setm_data(pkim_, &status, 1 * 4,
-                    "neighObject", 1, &LatSum_, 1);
-  if (KIM_STATUS_OK > status)
-  {
-    KIM_API_report_error(__LINE__, (char*) __FILE__,
-                         (char*) "KIM_API_setm_data", status);
-  }
-  // figures out which atoms corresponds to each element in the species list
-  for (int i = 0; i < InternalAtoms_; i++)
-  {
-    AtomSpeciesList[i] = Input.getString(CBKHash, "AtomSpeciesKIM", i);
-    for (int j = 0; j < numberOfSpecies_; j++)
-    {
-      if (!strcmp(AtomSpeciesList[i], SpeciesList[j]))
-      {
-        particleSpecies_[i] = KIM_API_get_species_code(
-            pkim_, (char*) SpeciesList[j], &status);
-        if (KIM_STATUS_OK > status)
-        {
-          KIM_API_report_error(__LINE__, (char*) __FILE__,
-                               (char*) "KIM_API_get_partcl_type_code",
-                               status);
-          exit(1);
-        }
-        j = numberOfSpecies_ + 1;
-      }
-    }
-  }
-  // Done with SpeciesList and AtomSpeciesList
-  delete [] SpeciesList;
-  delete [] AtomSpeciesList;
-
+  // set up CBK_kim object
+  KIM_CBK_(CBK_, CBK_F_, Input);
+  InfluenceDist_ = KIM_CBK_.get_cutoff();
   // Get Lattice parameters
   if (Input.ParameterOK(Hash, "Density"))
   {
@@ -427,10 +203,6 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
   }
 
   // Initialize various data storage space
-  ME1_static.Resize(CBK_->DOFS(), 0.0);
-  ME1_F_static.Resize(CBK_F_->DOFS(), 0.0);
-  ME2_static.Resize(CBK_->DOFS(), CBK_->DOFS(), 0.0);
-  ME2_F_static.Resize(CBK_F_->DOFS(), CBK_F_->DOFS(), 0.0);
   str_static.Resize(CBK_->DOFS());
   stiff_static.Resize(CBK_->DOFS(), CBK_->DOFS());
   CondEV_static.Resize(1, CBK_F_->Fsize());
@@ -440,6 +212,10 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
   OpticEV_static.Resize(1, CBK_F_->Ssize());
   OpticEV_Print.Resize(CBK_F_->Ssize());
   TestFunctVals_static.Resize(NumTestFunctions());
+  ME1_static.Resize(CBK_->DOFS(), 0.0);
+  ME1_F_static.Resize(CBK_F_->DOFS(), 0.0);
+  ME2_static.Resize(CBK_->DOFS(), CBK_->DOFS(), 0.0);
+  ME2_F_static.Resize(CBK_F_->DOFS(), CBK_F_->DOFS(), 0.0);
   if (TFType_ == 1) // only print stiffness eigenvalues
   {
     TestFunctVals_Print.Resize(CBK_->DOFS());
@@ -496,6 +272,7 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
   Lambda_ = Input.getDouble(Hash, "Lambda");
 
   Input.EndofInputSection();
+
 }
 
 int MultiLatticeKIM::FindLatticeSpacing(int const& iter, bool cubicEqbm)
@@ -506,7 +283,7 @@ int MultiLatticeKIM::FindLatticeSpacing(int const& iter, bool cubicEqbm)
 
   CBK_->SetReferenceDOFs();
   if (CBK_F_ != CBK_) CBK_F_->SetReferenceDOFs();
-  LatSum_.Recalc();
+  KIM_CBK_.UpdateCoordinatesAndKIMValues();
 
   if (cubicEqbm)
   {
@@ -549,7 +326,7 @@ int MultiLatticeKIM::FindLatticeSpacing(int const& iter, bool cubicEqbm)
   CBK_->SetReferenceToCurrent();
   if (CBK_F_ != CBK_) CBK_F_->SetReferenceToCurrent();
 
-  LatSum_.Recalc();
+  KIM_CBK_.UpdateCoordinatesAndKIMValues();
 
   return 0;
 }
@@ -563,61 +340,15 @@ void MultiLatticeKIM::SetParameters(double const* const Vals,
 
 void MultiLatticeKIM::UpdateKIMValues() const
 {
-  int status;
-
-  // Initialize for E1 and E2
-  for (int i = 0; i < CBK_->DOFS(); i++)
+  KIM_CBK_.ComputeAndUpdate(StiffnessYes_);
+  energy_ = KIM_CBK_.Energy();
+  BodyForce_ = KIM_CBK_.get_BodyForce();
+  ME1_static = KIM_CBK_.get_ME1_static();
+  ME1_F_static = KIM_CBK_.get_ME1_F_static();
+  if (StiffnessYes_ == 1)
   {
-    ME1_static[i] = 0.0;
-    if (StiffnessYes_==1)
-    {
-      for (int j = 0; j < CBK_->DOFS(); j++)
-      {
-        ME2_static[i][j] = 0.0;
-      }
-    }
-  }
-  for (int i = 0; i < CBK_F_->DOFS(); i++)
-  {
-    ME1_F_static[i] = 0.0;
-    if (StiffnessYes_==1)
-    {
-      for (int j = 0; j < CBK_F_->DOFS(); j++)
-      {
-        ME2_F_static[i][j] = 0.0;
-      }
-    }
-  }
-
-  Vector coordsTemp = CBK_->CBKtoCoords();
-  for (int i = 0; i < (DIM3 * InternalAtoms_); i++)
-  {
-    coords_[i] = coordsTemp[i];
-  }
-
-  LatSum_.Recalc();
-
-  // Make sure the correct compute flags are set
-  KIM_API_set_compute(pkim_, "process_d2Edr2", StiffnessYes_, &status);
-  if (KIM_STATUS_OK > status)
-  {
-    KIM_API_report_error(__LINE__, (char*) __FILE__,
-                         (char*) "KIM_API_set_compute", status);
-  }
-
-  status = KIM_API_model_compute(pkim_);
-  if (KIM_STATUS_OK > status)
-  {
-    KIM_API_report_error(__LINE__, (char*) __FILE__,
-                         (char*) "KIM_API_compute", status);
-  }
-
-  for (int i = 0; i < (InternalAtoms_); i++)
-  {
-    for (int j = 0; j < DIM3; j++)
-    {
-      BodyForce_[i][j] = forces_[i * DIM3 + j];
-    }
+    ME2_static = KIM_CBK_.get_ME2_static();
+    ME2_F_static = KIM_CBK_.get_ME2_F_static();
   }
 }
 
@@ -1090,8 +821,7 @@ void MultiLatticeKIM::Print(ostream& out, PrintDetail const& flag,
   {
     cout.width(0);
   }
-  LatSum_.Recalc();
-  LatSum_.Reset();
+  KIM_CBK_.UpdateCoordinatesAndKIMValues();
 
   engy = E0();
   conj = ConjugateToLambda();
@@ -1352,420 +1082,4 @@ void MultiLatticeKIM::RefineCubicEqbm(double const& Tol, int const& MaxItr,
            << "\n";
     }
   }
-}
-
-void MultiLatticeKIM::Write_KIM_descriptor_file(const char** SpeciesList,
-                                                int numberOfSpecies_)
-{
-  descriptor_file_ << "#\n"
-      "# BEGINNING OF KIM DESCRIPTOR FILE\n"
-      "#\n"
-      "# This file is automatically generated from MultiLatticeKIM.\n"
-      "#################################################" << endl;
-  descriptor_file_ << "KIM_API_Version  := 1.6.0" << endl;
-  descriptor_file_ << "Unit_length      := A" << endl;
-  descriptor_file_ << "Unit_energy      := eV" << endl;
-  descriptor_file_ << "Unit_charge      := e" << endl;
-  descriptor_file_ << "Unit_temperature := K" << endl;
-  descriptor_file_ << "Unit_time        := ps" << endl;
-  descriptor_file_ << "#################################" << endl;
-  descriptor_file_ << "SUPPORTED_ATOM/PARTICLES_TYPES:" << endl;
-  for (int i = 0; i < numberOfSpecies_; i++)
-  {
-    descriptor_file_ << SpeciesList[i] << " spec  1" << endl;
-  }
-
-  descriptor_file_ << "#################################" << endl;
-  descriptor_file_ << "CONVENTIONS:" << endl;
-  descriptor_file_ << "# Name                      Type" << endl;
-  descriptor_file_ << "ZeroBasedLists              flag" << endl;
-  descriptor_file_ << "Neigh_BothAccess            flag" << endl;
-  //      descriptor_file_ << "CLUSTER                    flag" << endl;
-  descriptor_file_ << "NEIGH_RVEC_F                flag" << endl;
-  descriptor_file_ << "#################################" << endl;
-  descriptor_file_ << "MODEL_INPUT:" << endl;
-  descriptor_file_ << "# Name                      Type         Unit"
-      "                Shape" << endl;
-  descriptor_file_ << "numberOfParticles           integer      none"
-      "                []" << endl;
-  descriptor_file_ << "numberOfSpecies             integer      none"
-      "                []" << endl;
-  descriptor_file_ << "particleSpecies             integer      none"
-      "                [numberOfParticles]" << endl;
-  descriptor_file_ << "coordinates                 double       length"
-      "              [numberOfParticles,3]" << endl;
-  descriptor_file_ << "get_neigh                   method       none"
-      "                []" << endl;
-  descriptor_file_ << "neighObject                 pointer      none"
-      "                []" << endl;
-  descriptor_file_ << "process_dEdr                method       none"
-      "                []" << endl;
-  descriptor_file_ << "process_d2Edr2              method       none"
-      "                []" << endl;
-  descriptor_file_ << "#################################" << endl;
-  descriptor_file_ << "MODEL_OUTPUT:" << endl;
-  descriptor_file_ << "# Name                      Type         Unit"
-      "                Shape" << endl;
-  descriptor_file_ << "destroy                     method       none"
-      "                []" << endl;
-  descriptor_file_ << "compute                     method       none"
-      "                []" << endl;
-  descriptor_file_ << "cutoff                      double       length"
-      "              []" << endl;
-  descriptor_file_ << "energy                      double       energy"
-      "              []" << endl;
-  descriptor_file_ << "forces                      double       force"
-      "               [numberOfParticles,3]" << endl;
-  descriptor_file_ <<
-      "#\n"
-      "# END OF KIM DESCRIPTOR FILE\n"
-      "#\n"
-                   << endl;
-}
-
-
-int MultiLatticeKIM::get_neigh(void* kimmdl, int* mode, int* request, int* atom,
-                               int* numnei, int** nei1atom, double** Rij)
-{
-  intptr_t* pkim = *((intptr_t**) kimmdl);
-  int atomToReturn;
-  int status;
-
-  PPSumKIM* LatSum;
-  LatSum = (PPSumKIM*) KIM_API_get_data(pkim, "neighObject", &status);
-
-  int* numberOfParticles = (int*) KIM_API_get_data(pkim, "numberOfParticles",
-                                                   &status);
-
-  if (0 == *mode) // iterator mode
-  {
-    if (0 == *request) // reset iterator
-    {
-      LatSum->Reset();
-      return KIM_STATUS_NEIGH_ITER_INIT_OK;
-    }
-    else if (1 == *request) // increment iterator
-    {
-      if ((LatSum->CurrentPOS()) >= *numberOfParticles)
-      {
-        return KIM_STATUS_NEIGH_ITER_PAST_END;
-      }
-      else
-      {
-        *numnei = LatSum->numNeigh();
-        *atom = LatSum->CurrentPOS();
-        *nei1atom = LatSum->nListAtom();
-        *Rij = LatSum->nListRVec();
-      }
-      LatSum->operator++();
-      return KIM_STATUS_OK;
-    }
-    else // invalid request value
-    {
-      KIM_API_report_error(__LINE__, (char*) __FILE__,
-                           (char*) "Invalid request in get_periodic_neigh",
-                           KIM_STATUS_NEIGH_INVALID_REQUEST);
-      return KIM_STATUS_NEIGH_INVALID_REQUEST;
-    }
-  }
-  else if (1 == *mode) // locator mode
-  {
-    if ((*request >= *numberOfParticles) || (*request < 0)) // invalid id
-    {
-      KIM_API_report_error(__LINE__, (char*) __FILE__,
-                           (char*) "Invalid atom ID in get_neigh",
-                           KIM_STATUS_PARTICLE_INVALID_ID);
-      return KIM_STATUS_PARTICLE_INVALID_ID;
-    }
-    else
-    {
-      LatSum->Reset();
-      for (int i = 0; i < *request; i++)
-      {
-        LatSum->operator++();
-      }
-      *numnei = LatSum->numNeigh();
-      *atom = LatSum->CurrentPOS();
-      *nei1atom = LatSum->nListAtom();
-      *Rij = LatSum->nListRVec();
-      return KIM_STATUS_OK;
-    }
-  }
-  else // invalid mode
-  {
-    KIM_API_report_error(__LINE__, (char*) __FILE__,
-                         (char*) "Invalid mode in get_periodic_neigh",
-                         KIM_STATUS_NEIGH_INVALID_MODE);
-    return KIM_STATUS_NEIGH_INVALID_MODE;
-  }
-}
-
-
-int MultiLatticeKIM::process_dEdr(void* kimmdl, double* dEdr, double* r,
-                                  double** dx, int* i, int* j)
-{
-  int status;
-  intptr_t* pkim = *((intptr_t**) kimmdl);
-  MultiLatticeKIM* obj;
-  obj = (MultiLatticeKIM*) KIM_API_get_sim_buffer(pkim, &status);
-  double DX[DIM3];
-
-  // @@ need to find a more efficient way to do this...
-  Matrix InverseF = (obj->CBK_->F()).Inverse();
-
-  double temp1, temp2;
-  for (int rows = 0; rows < DIM3; rows++)
-  {
-    DX[rows] = 0.0;
-    for (int cols = 0; cols < DIM3; cols++)
-    {
-      DX[rows] += InverseF[rows][cols] * (*dx)[cols];
-    }
-  }
-
-  // dEdUij or dEdFij
-  for (int rows = 0; rows < DIM3; rows++)
-  {
-    for (int cols = 0; cols < DIM3; cols++)
-    {
-      obj->ME1_static[(obj->CBK_->INDF(rows, cols))]
-          += *dEdr * (obj->CBK_->DyDF(*dx, DX, rows, cols)) / (2.0 * (*r));
-      obj->ME1_F_static[(obj->CBK_F_->INDF(rows, cols))]
-          += *dEdr * (obj->CBK_F_->DyDF(*dx, DX, rows, cols)) / (2.0 * (*r));
-    }
-  }
-
-  // dEdSij
-  for (int atom = 0; atom < (obj->CBK_->InternalAtoms()); atom++)
-  {
-    for (int k = 0; k < DIM3; k++)
-    {
-      obj->ME1_static[(obj->CBK_->INDS(atom, k))]
-          += *dEdr * (obj->CBK_->DyDS(*dx, *i, *j, atom, k)) / (2.0 * (*r));
-      obj->ME1_F_static[(obj->CBK_F_->INDS(atom, k))]
-          += *dEdr * (obj->CBK_F_->DyDS(*dx, *i, *j, atom, k)) / (2.0 * (*r));
-    }
-  }
-
-  if ((obj->StiffnessYes_) == 1)
-  {
-    double DyDF[DIM3][DIM3];
-    int i1, j1, k1, l1;
-
-    // Upper Diag Block (CBK_->Fsize(),CBK_->Fsize())
-    for (i1 = 0; i1 < DIM3; i1++)
-    {
-      for (j1 = 0; j1 < DIM3; j1++)
-      {
-        for (k1 = 0; k1 < DIM3; k1++)
-        {
-          for (l1 = 0; l1 < DIM3; l1++)
-          {
-            obj->ME2_static[obj->CBK_->INDF(i1, j1)][obj->CBK_->INDF(k1, l1)]
-                += (*dEdr) * ((0.5 / (*r))
-                              * (obj->CBK_->D2yDFF(DX, i1, j1, k1, l1))
-                              - (0.25 / ((*r) * (*r) * (*r)))
-                              * (obj->CBK_->DyDF((*dx), DX, i1, j1))
-                              * (obj->CBK_->DyDF((*dx), DX, k1, l1)));
-            obj->ME2_F_static[obj->CBK_F_->INDF(i1, j1)][obj->CBK_F_->INDF(k1, l1)]
-                += (*dEdr) * ((0.5 / (*r))
-                              * (obj->CBK_F_->D2yDFF(DX, i1, j1, k1, l1))
-                              - (0.25 / ((*r) * (*r) * (*r)))
-                              * (obj->CBK_F_->DyDF((*dx), DX, i1, j1))
-                              * (obj->CBK_F_->DyDF((*dx), DX, k1, l1)));
-          }
-        }
-      }
-    }
-
-    // Lower Diagonal blocks
-    for (int atom0 = 0; atom0 < (obj->CBK_->InternalAtoms()); atom0++)
-    {
-      for (int atom1 = 0; atom1 < (obj->CBK_->InternalAtoms()); atom1++)
-      {
-        for (k1 = 0; k1 < DIM3; k1++)
-        {
-          for (l1 = 0; l1 < DIM3; l1++)
-          {
-            obj->ME2_static[obj->CBK_->INDS(atom0, k1)][obj->CBK_->INDS(atom1, l1)]
-                += (*dEdr) * ((0.5 / (*r))
-                              * obj->CBK_->D2yDSS(*i, *j, atom0, k1, atom1, l1)
-                              - (0.25 / ((*r) * (*r) * (*r)))
-                              * (obj->CBK_->DyDS(*dx, *i, *j, atom0, k1))
-                              * (obj->CBK_->DyDS(*dx, *i, *j, atom1, l1)));
-            obj->ME2_F_static[obj->CBK_F_->INDS(atom0, k1)][obj->CBK_F_->INDS(atom1, l1)]
-                += (*dEdr) * ((0.5 / (*r))
-                              * obj->CBK_F_->D2yDSS(*i, *j, atom0, k1, atom1, l1)
-                              - (0.25 / ((*r) * (*r) * (*r)))
-                              * (obj->CBK_F_->DyDS(*dx, *i, *j, atom0, k1))
-                              * (obj->CBK_F_->DyDS(*dx, *i, *j, atom1, l1)));
-          }
-        }
-      }
-    }
-
-    // Off-diagonal blocks
-    for (i1 = 0; i1 < DIM3; i1++)
-    {
-      for (j1 = 0; j1 < DIM3; j1++)
-      {
-        for (int atom0 = 0; atom0 < (obj->CBK_->InternalAtoms()); atom0++)
-        {
-          for (k1 = 0; k1 < DIM3; k1++)
-          {
-            double temp=(*dEdr)
-                * ((0.5 / (*r))
-                   * obj->CBK_->D2yDFS(*dx, DX, *i, *j, i1, j1, atom0, k1)
-                   - (0.25 / ((*r) * (*r) * (*r)))
-                   * (obj->CBK_->DyDS(*dx, *i, *j, atom0, k1))
-                   * (obj->CBK_->DyDF((*dx), DX, i1, j1)));
-
-            obj->ME2_static[obj->CBK_->INDF(i1, j1)][obj->CBK_->INDS(atom0, k1)]
-                += temp;
-
-            obj->ME2_static[obj->CBK_->INDS(atom0, k1)][obj->CBK_->INDF(i1, j1)]
-                += temp;
-
-            double Ftemp=(*dEdr)
-                * ((0.5 / (*r))
-                   * obj->CBK_F_->D2yDFS(*dx, DX, *i, *j, i1, j1, atom0, k1)
-                   - (0.25 / ((*r) * (*r) * (*r)))
-                   * (obj->CBK_F_->DyDS(*dx, *i, *j, atom0, k1))
-                   * (obj->CBK_F_->DyDF((*dx), DX, i1, j1)));
-
-            obj->ME2_F_static[obj->CBK_F_->INDF(i1, j1)][obj->CBK_F_->INDS(atom0, k1)]
-                += temp;
-
-            obj->ME2_F_static[obj->CBK_F_->INDS(atom0, k1)][obj->CBK_F_->INDF(i1, j1)]
-                += temp;
-          }
-        }
-      }
-    }
-  }
-  return KIM_STATUS_OK;
-}
-
-int MultiLatticeKIM::process_d2Edr2(void* kimmdl, double* d2Edr2, double** r,
-                                    double** dx, int** i, int** j)
-{
-  int status;
-  intptr_t* pkim = *((intptr_t**) kimmdl);
-  MultiLatticeKIM* obj;
-  obj = (MultiLatticeKIM*) KIM_API_get_sim_buffer(pkim, &status);
-
-  double DX[2][DIM3];
-  double Dx[2][DIM3];
-
-  // @@ need to find a more efficient way to do this...
-  Matrix InverseF = (obj->CBK_->F()).Inverse();
-
-  for (int k = 0; k < DIM3; k++)
-  {
-    Dx[0][k] = (*dx)[k];
-    Dx[1][k] = (*dx)[k + DIM3];
-  }
-
-  for (int atoms = 0; atoms < 2; atoms++)
-  {
-    for (int rows = 0; rows < DIM3; rows++)
-    {
-      DX[atoms][rows] = 0.0;
-      for (int cols = 0; cols < DIM3; cols++)
-      {
-        DX[atoms][rows] += InverseF[rows][cols] * Dx[atoms][cols];
-      }
-    }
-  }
-  int i1, j1, k1, l1;
-
-  // Upper Diagonal
-  for (i1 = 0; i1 < DIM3; i1++)
-  {
-    for (j1 = 0; j1 < DIM3; j1++)
-    {
-      for (k1 = 0; k1 < DIM3; k1++)
-      {
-        for (l1 = 0; l1 < DIM3; l1++)
-        {
-          obj->ME2_static[obj->CBK_->INDF(i1, j1)][obj->CBK_->INDF(k1, l1)]
-              += (0.5 / ((*r)[0])) * (0.5 / ((*r)[1])) * (*d2Edr2)
-              * (obj->CBK_->DyDF(Dx[0], DX[0], i1, j1))
-              * (obj->CBK_->DyDF(Dx[1], DX[1], k1, l1));
-          obj->ME2_F_static[obj->CBK_F_->INDF(i1, j1)][obj->CBK_F_->INDF(k1, l1)]
-              += (0.5 / ((*r)[0])) * (0.5 / ((*r)[1])) * (*d2Edr2)
-              * (obj->CBK_F_->DyDF(Dx[0], DX[0], i1, j1))
-              * (obj->CBK_F_->DyDF(Dx[1], DX[1], k1, l1));
-        }
-      }
-    }
-  }
-
-  // Lower Diagonal blocks
-  for (int atom0 = 0; atom0 < (obj->CBK_->InternalAtoms()); atom0++)
-  {
-    // @@ This can be made more efficient
-    if (((atom0 == (*i)[0]) || (atom0 == (*j)[0])))
-    {
-      for (int atom1 = 0; atom1 < (obj->CBK_->InternalAtoms()); atom1++)
-      {
-        if (((atom1 == (*i)[1]) || (atom1 == (*j)[1])))
-        {
-          for (k1 = 0; k1 < DIM3; k1++)
-          {
-            for (l1 = 0; l1 < DIM3; l1++)
-            {
-              obj->ME2_static[obj->CBK_->INDS(atom0, k1)][obj->CBK_->INDS(atom1, l1)]
-                  += (0.5 / (*r)[0]) * (0.5 / (*r)[1]) * (*d2Edr2)
-                  * (obj->CBK_->DyDS(Dx[0], (*i)[0], (*j)[0], atom0, k1))
-                  * (obj->CBK_->DyDS(Dx[1], (*i)[1], (*j)[1], atom1, l1));
-              obj->ME2_F_static[obj->CBK_F_->INDS(atom0, k1)][obj->CBK_F_->INDS(atom1, l1)]
-                  += (0.5 / (*r)[0]) * (0.5 / (*r)[1]) * (*d2Edr2)
-                  * (obj->CBK_F_->DyDS(Dx[0], (*i)[0], (*j)[0], atom0, k1))
-                  * (obj->CBK_F_->DyDS(Dx[1], (*i)[1], (*j)[1], atom1, l1));
-            }
-          }
-        }
-      }
-    }
-  }
-
-  // Off Diagonal
-  for (int atom0 = 0; atom0 < (obj->CBK_->InternalAtoms()); atom0++)
-  {
-    for (i1 = 0; i1 < DIM3; i1++)
-    {
-      for (j1 = 0; j1 < DIM3; j1++)
-      {
-        for (k1 = 0; k1 < DIM3; k1++)
-        {
-          obj->ME2_static[obj->CBK_->INDF(i1, j1)][obj->CBK_->INDS(atom0, k1)]
-              += (0.5 / ((*r)[0])) * (0.5 / ((*r)[1]))
-              * (*d2Edr2)
-              * (obj->CBK_->DyDF(Dx[0], DX[0], i1, j1)
-                 * obj->CBK_->DyDS(Dx[1], (*i)[1], (*j)[1], atom0, k1));
-
-          obj->ME2_static[obj->CBK_->INDS(atom0, k1)][obj->CBK_->INDF(i1, j1)]
-              += (0.5 / ((*r)[0])) * (0.5 / ((*r)[1]))
-              * (*d2Edr2)
-              * (obj->CBK_->DyDF(Dx[1], DX[1], i1, j1)
-                 * obj->CBK_->DyDS(Dx[0], (*i)[0], (*j)[0], atom0, k1));
-
-          obj->ME2_F_static[obj->CBK_F_->INDF(i1, j1)][obj->CBK_F_->INDS(atom0, k1)]
-              += (0.5 / ((*r)[0])) * (0.5 / ((*r)[1]))
-              * (*d2Edr2)
-              * (obj->CBK_F_->DyDF(Dx[0], DX[0], i1, j1)
-                 * obj->CBK_F_->DyDS(Dx[1], (*i)[1], (*j)[1], atom0, k1));
-
-          obj->ME2_F_static[obj->CBK_F_->INDS(atom0, k1)][obj->CBK_F_->INDF(i1, j1)]
-              += (0.5 / ((*r)[0])) * (0.5 / ((*r)[1]))
-              * (*d2Edr2)
-              * (obj->CBK_F_->DyDF(Dx[1], DX[1], i1, j1)
-                 * obj->CBK_F_->DyDS(Dx[0], (*i)[0], (*j)[0], atom0, k1));
-        }
-      }
-    }
-  }
-
-  return KIM_STATUS_OK;
 }
