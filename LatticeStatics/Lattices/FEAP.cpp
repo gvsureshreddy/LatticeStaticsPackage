@@ -19,6 +19,7 @@ extern "C" void bfbfeap_get_nodal_solution_(double* bfb_u);
 extern "C" void bfbfeap_set_nodal_solution_(double* bfb_u);
 extern "C" void bfbfeap_get_nodal_coords_(double* bfb_x);
 extern "C" void bfbfeap_get_potential_energy_(double* bfb_epl);
+extern "C" void bfbfeap_get_indicatrix_(double* bfb_indic);
 extern "C" void bfbfeap_get_reduced_residual_(double* bfb_rd);
 extern "C" void bfbfeap_get_reduced_tang_(double* bfb_tang);
 extern "C" void bfbfeap_call_ener_();
@@ -149,6 +150,12 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
       exit(-1);
    }
 
+   cout << "Nodes OK" << "\n";
+   // Initialize FEAP, send input file name and get ndf, ndm, etc. back.
+   int ffinlen = strlen(ffin_);
+   bfbfeap_main_(ffin_, &ffinlen, &ndf_, &ndm_, &numnp_, &nel_, &nen1_, &neq_);
+   cout << "FEAP OK" << nel_ << nen1_ <<"\n";
+
    // Setup loading
    if (Input.ParameterOK(Hash,"Loading"))
    {
@@ -159,7 +166,7 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
        if (!strcmp("DeadLoad",LoadT))
        {
          LoadingType_ = DEAD_LOAD;
-         Load_.Resize(2,2,0.0);
+         Load_.Resize(ndm_,ndm_,0.0);
          Input.getMatrix(Load_,LoadHash,"BioStress");
        }
        else if (!strcmp("PressureLoad",LoadT))
@@ -187,12 +194,8 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
    {
      cerr << "Error (FEAP()): Missing Loading" << "\n";
    }
-
-   // Initialize FEAP, send input file name and get ndf, ndm, etc. back.
-   int ffinlen = strlen(ffin_);
-   bfbfeap_main_(ffin_, &ffinlen, &ndf_, &ndm_, &numnp_, &nel_, &nen1_, &neq_);
-
-   KDirection_.Resize(2,0.0);
+   cout << "Load OK" << Load_ << "\n";   
+   KDirection_.Resize(ndm_,0.0);
    PerlInput::HashStruct TFHash = Input.getHash(Hash, "ExtraTestFunctions");
    const char* TFtyp = Input.getString(TFHash, "Type");
    if ((!strcmp("None", TFtyp)) || (!strcmp("none", TFtyp)))
@@ -202,7 +205,7 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
    }
    else if(!strcmp("BlochWaveAnalysis", TFtyp))
    {
-      K_.Resize(2,0.0);
+      K_.Resize(ndm_,0.0);
 
       if (Input.ParameterOK(TFHash, "KSpaceResolution"))
       {
@@ -283,6 +286,15 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
              {
                 cout << "*WARNING* KSpaceResolution not specified. Using default value: 6 \n";
              }
+
+             if (Input.ParameterOK(TFHash, "KScale"))
+             {
+               KScale_ = Input.getDouble(TFHash,"KScale");
+             }
+             else
+             {
+                KScale_=1.0;
+             }
           }
           else if (!strcmp("KDirection",AnalysisType))
           {
@@ -296,7 +308,7 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
                NumExtraTFs_ = KSpaceResolution_ + 1;
              }
 
-             KDirection_.Resize(2,0.0);
+             KDirection_.Resize(ndm_,0.0);
              KRange_.Resize(2,0.0);
 
              if (!(Input.ParameterOK(TFHash, "KSpaceResolution")))
@@ -330,7 +342,7 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
          {
             TFType_ = 3;
             NumKVectors_ = Input.getArrayLength(TFHash,"KVectors");
-            KVectorMatrix_.Resize(NumKVectors_,2,0.0);
+            KVectorMatrix_.Resize(NumKVectors_,ndm_,0.0);
             Input.getMatrix(KVectorMatrix_, TFHash, "KVectors");
             if (0 == BWTFType_)
             {
@@ -414,7 +426,14 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
    DOFS_F_ = ndf_ * numnp_;
 
    // new CellArea_
+   if (ndm_==2)
+   {
    CellArea_ = HexSize_ * HexSize_ * 3.0 * sqrt(3.0) / 8.0;
+   }
+   else
+   {
+   CellArea_ = HexSize_ * HexSize_ * HexSize_;
+   }
    // old CellArea_
 //    CellArea_ = HexSize_ * sqrt(3.0) / 4.0;
 
@@ -422,10 +441,14 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
    cout << "DOFS = " << DOFS_ << " DOFS_F = " << DOFS_F_ << "\n";
 
    // set DOF_ to initial value
-   U_.Resize(2,2,0.0);
-   F_.Resize(2,2,0.0);
+   U_.Resize(ndm_,ndm_,0.0);
+   F_.Resize(ndm_,ndm_,0.0);
    Vector initDOF(DOFS_,0.0);
    initDOF[0] = initDOF[1] = 1.0;
+   if (ndm_==3)
+   {
+     initDOF[2] = 1.0;
+   }
    DOF_.Resize(DOFS_, 0.0);
    SetDOF(initDOF);
    if (LoadingType_ == DISPLACEMENT_CONTROL)
@@ -448,13 +471,17 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
    {
       X_F_[ndf_ * i] = X_[ndm_ * i];
       X_F_[ndf_ * i + 1] = X_[ndm_ * i + 1];
+      if (ndm_==3)
+      {
+        X_F_[ndf_ * i + 2] = X_[ndm_ * i + 2];
+      }
    }
 
 
    // setup remaining variables
    E1CachedValue_.Resize(DOFS_,0.0);
    W1CachedValue_.Resize(WDOFS_,0.0);
-   DispE1CachedValue_.Resize(3,0.0);
+   DispE1CachedValue_.Resize(ndm_*(ndm_+1)/2.0,0.0);
    E1CachedValue_F_.Resize(DOFS_F_,0.0);
 
    E1DLoadCachedValue_.Resize(DOFS_,0.0);
@@ -471,7 +498,7 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
    FJacobian_.Resize(DOFS_F_, WDOFS_,0.0);
    if (LoadingType_ == DISPLACEMENT_CONTROL)
    {
-     DispJacobian_.Resize(DOFS_F_, 3,0.0);
+     DispJacobian_.Resize(DOFS_F_, ndm_*(ndm_+1)/2.0,0.0);
    }
 
    int dim = ndf_*(numnp_ - nbn_/2);
@@ -484,24 +511,25 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
    // mapping from FEAP dof to Lattice ones
 
    // This term doesn't contribute anything for displacement control, so just leave it be
+   int shift_=ndm_*(ndm_+1)/2;
    Map_ = new int*[DOFS_F_];
-   Map_[0] = new int[4*DOFS_F_];
+   Map_[0] = new int[2*ndm_*DOFS_F_];
    FMap_ = new int*[DOFS_F_];
-   FMap_[0] = new int[4*DOFS_F_];
+   FMap_[0] = new int[2*ndm_*DOFS_F_];
    for (int i = 1; i < DOFS_F_; ++i)
    {
-     Map_[i] = Map_[i-1] + 4;
-     FMap_[i] = FMap_[i-1] + 4;
+     Map_[i] = Map_[i-1] + 2*ndm_;
+     FMap_[i] = FMap_[i-1] + 2*ndm_;
    }
 
    for (int i = 0; i < nbn_/2; ++i)
    {
-     MapHelper(i, 3+(i%(nbn_/2))*ndf_, BoundNodes_);
+     MapHelper(i, shift_+(i%(nbn_/2))*ndf_, BoundNodes_);
    }
 
    for (int i = 0; i < nbn_/2; ++i)
    {
-     MapHelper(i, 3+(i%(nbn_/2))*ndf_, PeriodicNodes_);
+     MapHelper(i, shift_+(i%(nbn_/2))*ndf_, PeriodicNodes_);
    }
 
    int l=-1;
@@ -522,7 +550,7 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
 
    for (int i = 0; i < numnp_-nbn_; ++i)
    {
-     MapHelper(i, 3+(nbn_/2)*ndf_+i*ndf_, InnerNodes_);
+     MapHelper(i, shift_+(nbn_/2)*ndf_+i*ndf_, InnerNodes_);
    }
 
 //    for (int i=0; i< numnp_*ndf_; ++i)
@@ -602,56 +630,139 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
 
 void FEAP::MapHelper(int const i, int const offset, int const* const Nodes)
 {
-  Map_[Nodes[i]*ndf_][0] = 0;
-  Map_[Nodes[i]*ndf_][1] = offset;
-  Map_[Nodes[i]*ndf_][2] = 2;
-  Map_[Nodes[i]*ndf_][3] = offset+1;
-  FMap_[Nodes[i]*ndf_][0] = 0;
-  FMap_[Nodes[i]*ndf_][1] = 1+offset;
-  FMap_[Nodes[i]*ndf_][2] = 1;
-  FMap_[Nodes[i]*ndf_][3] = 1+offset+1;
-
-  Map_[Nodes[i]*ndf_+1][0] = 1;
-  Map_[Nodes[i]*ndf_+1][1] = offset+1;
-  Map_[Nodes[i]*ndf_+1][2] = 2;
-  Map_[Nodes[i]*ndf_+1][3] = offset;
-  FMap_[Nodes[i]*ndf_+1][0] = 3;
-  FMap_[Nodes[i]*ndf_+1][1] = 1+offset+1;
-  FMap_[Nodes[i]*ndf_+1][2] = 2;
-  FMap_[Nodes[i]*ndf_+1][3] = 1+offset;
-  if (ndf_>ndm_)
+  if (ndm_==2)
   {
-    Map_[Nodes[i]*ndf_+2][0] = -1;
-    Map_[Nodes[i]*ndf_+2][1] = -1;
-    Map_[Nodes[i]*ndf_+2][2] = -1;
-    Map_[Nodes[i]*ndf_+2][3] = -1;
-    FMap_[Nodes[i]*ndf_+2][0] = -1;
-    FMap_[Nodes[i]*ndf_+2][1] = -1;
-    FMap_[Nodes[i]*ndf_+2][2] = -1;
-    FMap_[Nodes[i]*ndf_+2][3] = -1;
-    if (ndf_>(ndm_+1))
+    Map_[Nodes[i]*ndf_][0] = 0;
+    Map_[Nodes[i]*ndf_][1] = offset;
+    Map_[Nodes[i]*ndf_][2] = 2;
+    Map_[Nodes[i]*ndf_][3] = offset+1;
+    FMap_[Nodes[i]*ndf_][0] = 0;
+    FMap_[Nodes[i]*ndf_][1] = 1+offset;
+    FMap_[Nodes[i]*ndf_][2] = 1;
+    FMap_[Nodes[i]*ndf_][3] = 1+offset+1;
+
+    Map_[Nodes[i]*ndf_+1][0] = 1;
+    Map_[Nodes[i]*ndf_+1][1] = offset+1;
+    Map_[Nodes[i]*ndf_+1][2] = 2;
+    Map_[Nodes[i]*ndf_+1][3] = offset;
+    FMap_[Nodes[i]*ndf_+1][0] = 3;
+    FMap_[Nodes[i]*ndf_+1][1] = 1+offset+1;
+    FMap_[Nodes[i]*ndf_+1][2] = 2;
+    FMap_[Nodes[i]*ndf_+1][3] = 1+offset;
+          
+    if (ndf_>ndm_)
     {
-      Map_[Nodes[i]*ndf_+3][0] = -1;
-      Map_[Nodes[i]*ndf_+3][1] = -1;
-      Map_[Nodes[i]*ndf_+3][2] = -1;
-      Map_[Nodes[i]*ndf_+3][3] = -1;
-      FMap_[Nodes[i]*ndf_+3][0] = -1;
-      FMap_[Nodes[i]*ndf_+3][1] = -1;
-      FMap_[Nodes[i]*ndf_+3][2] = -1;
-      FMap_[Nodes[i]*ndf_+3][3] = -1;
+      Map_[Nodes[i]*ndf_+2][0] = -1;
+      Map_[Nodes[i]*ndf_+2][1] = -1;
+      Map_[Nodes[i]*ndf_+2][2] = -1;
+      Map_[Nodes[i]*ndf_+2][3] = -1;
+      FMap_[Nodes[i]*ndf_+2][0] = -1;
+      FMap_[Nodes[i]*ndf_+2][1] = -1;
+      FMap_[Nodes[i]*ndf_+2][2] = -1;
+      FMap_[Nodes[i]*ndf_+2][3] = -1;
+      if (ndf_>(ndm_+1))
+      {
+        Map_[Nodes[i]*ndf_+3][0] = -1;
+        Map_[Nodes[i]*ndf_+3][1] = -1;
+        Map_[Nodes[i]*ndf_+3][2] = -1;
+        Map_[Nodes[i]*ndf_+3][3] = -1;
+        FMap_[Nodes[i]*ndf_+3][0] = -1;
+        FMap_[Nodes[i]*ndf_+3][1] = -1;
+        FMap_[Nodes[i]*ndf_+3][2] = -1;
+        FMap_[Nodes[i]*ndf_+3][3] = -1;
+      }
     }
+  }
+  else
+  {
+    Map_[Nodes[i]*ndf_][0] = 0;
+    Map_[Nodes[i]*ndf_][1] = offset;
+    Map_[Nodes[i]*ndf_][2] = 5;
+    Map_[Nodes[i]*ndf_][3] = offset+1;
+    Map_[Nodes[i]*ndf_][4] = 4;
+    Map_[Nodes[i]*ndf_][5] = offset+2;
+    FMap_[Nodes[i]*ndf_][0] = 0;
+    FMap_[Nodes[i]*ndf_][1] = 3+offset;
+    FMap_[Nodes[i]*ndf_][2] = 1;
+    FMap_[Nodes[i]*ndf_][3] = 3+offset+1;
+    FMap_[Nodes[i]*ndf_][4] = 2;
+    FMap_[Nodes[i]*ndf_][5] = 3+offset+2;
+
+    Map_[Nodes[i]*ndf_+1][0] = 1;
+    Map_[Nodes[i]*ndf_+1][1] = offset+1;
+    Map_[Nodes[i]*ndf_+1][2] = 5;
+    Map_[Nodes[i]*ndf_+1][3] = offset;
+    Map_[Nodes[i]*ndf_+1][4] = 3;
+    Map_[Nodes[i]*ndf_+1][5] = offset+2;
+    FMap_[Nodes[i]*ndf_+1][0] = 4;
+    FMap_[Nodes[i]*ndf_+1][1] = 3+offset+1;
+    FMap_[Nodes[i]*ndf_+1][2] = 5;
+    FMap_[Nodes[i]*ndf_+1][3] = 3+offset;
+    FMap_[Nodes[i]*ndf_+1][4] = 3;
+    FMap_[Nodes[i]*ndf_+1][5] = 3+offset+2;
+              
+    Map_[Nodes[i]*ndf_+2][0] = 2;
+    Map_[Nodes[i]*ndf_+2][1] = offset+2;
+    Map_[Nodes[i]*ndf_+2][2] = 3;
+    Map_[Nodes[i]*ndf_+2][3] = offset+1;
+    Map_[Nodes[i]*ndf_+2][4] = 4;
+    Map_[Nodes[i]*ndf_+2][5] = offset;
+    FMap_[Nodes[i]*ndf_+2][0] = 8;
+    FMap_[Nodes[i]*ndf_+2][1] = 3+offset+2;
+    FMap_[Nodes[i]*ndf_+2][2] = 6;
+    FMap_[Nodes[i]*ndf_+2][3] = 3+offset;
+    FMap_[Nodes[i]*ndf_+2][4] = 7;
+    FMap_[Nodes[i]*ndf_+2][5] = 3+offset+1;
+
+    Map_[Nodes[i]*ndf_+3][0] = -1;
+    Map_[Nodes[i]*ndf_+3][1] = -1;
+    Map_[Nodes[i]*ndf_+3][2] = -1;
+    Map_[Nodes[i]*ndf_+3][3] = -1;
+    Map_[Nodes[i]*ndf_+3][4] = -1;
+    Map_[Nodes[i]*ndf_+3][5] = -1;
+    FMap_[Nodes[i]*ndf_+3][0] = -1;
+    FMap_[Nodes[i]*ndf_+3][1] = -1;
+    FMap_[Nodes[i]*ndf_+3][2] = -1;
+    FMap_[Nodes[i]*ndf_+3][3] = -1;
+    FMap_[Nodes[i]*ndf_+3][4] = -1;
+    FMap_[Nodes[i]*ndf_+3][5] = -1;
+
+    Map_[Nodes[i]*ndf_+4][0] = -1;
+    Map_[Nodes[i]*ndf_+4][1] = -1;
+    Map_[Nodes[i]*ndf_+4][2] = -1;
+    Map_[Nodes[i]*ndf_+4][3] = -1;
+    Map_[Nodes[i]*ndf_+4][4] = -1;
+    Map_[Nodes[i]*ndf_+4][5] = -1;
+    FMap_[Nodes[i]*ndf_+4][0] = -1;
+    FMap_[Nodes[i]*ndf_+4][1] = -1;
+    FMap_[Nodes[i]*ndf_+4][2] = -1;
+    FMap_[Nodes[i]*ndf_+4][3] = -1;
+    FMap_[Nodes[i]*ndf_+4][4] = -1;
+    FMap_[Nodes[i]*ndf_+4][5] = -1;
+
+    Map_[Nodes[i]*ndf_+5][0] = -1;
+    Map_[Nodes[i]*ndf_+5][1] = -1;
+    Map_[Nodes[i]*ndf_+5][2] = -1;
+    Map_[Nodes[i]*ndf_+5][3] = -1;
+    Map_[Nodes[i]*ndf_+5][4] = -1;
+    Map_[Nodes[i]*ndf_+5][5] = -1;
+    FMap_[Nodes[i]*ndf_+5][0] = -1;
+    FMap_[Nodes[i]*ndf_+5][1] = -1;
+    FMap_[Nodes[i]*ndf_+5][2] = -1;
+    FMap_[Nodes[i]*ndf_+5][3] = -1;
+    FMap_[Nodes[i]*ndf_+5][4] = -1;
+    FMap_[Nodes[i]*ndf_+5][5] = -1;
   }
 }
 
 void FEAP::UpdateValues(UpdateFlag flag) const
 {
-  Matrix Eye(2,2,0.0);
-  Eye.SetIdentity(2);
+  Matrix Eye(ndm_,ndm_,0.0);
+  Eye.SetIdentity(ndm_);
    // disp gradient U is set with lambda and DOF
    //
    // Update FEAP solution vector
    UpdateDOF_F();
-//    cout << "\n DOF_F_=" << setw(20) << DOF_F_ <<"\n";
    bfbfeap_set_nodal_solution_(&(DOF_F_[0]));
 
    UpdateJacobian();
@@ -659,7 +770,10 @@ void FEAP::UpdateValues(UpdateFlag flag) const
    //Sum of S term for phantom energy term
    double S1 = 0.0;
    double S2 = 0.0;
-   int shift;
+   double S3 = 0.0;
+   //double S4 = 0.0;
+   
+   int shift=0;
    switch (LoadingType_)
    {
      case DEAD_LOAD:
@@ -675,6 +789,11 @@ void FEAP::UpdateValues(UpdateFlag flag) const
    {
       S1 += DOF_[shift+i*ndf_];
       S2 += DOF_[shift+1+i*ndf_];
+      if (ndm_==3)
+      {
+        S3 += DOF_[shift+2+i*ndf_];
+        // S4 += DOF_[shift+3+i*ndf_];
+      }
    }
 //    for (int i = nbn_; i < numnp_; ++i)
 //    {
@@ -689,7 +808,15 @@ void FEAP::UpdateValues(UpdateFlag flag) const
    switch (LoadingType_)
    {
      case PRESSURE_LOAD:
+       if (ndm_==2)
+       {
+// Lambda*(det(U) -1)*nuc*CellArea
        E0CachedValue_ += Lambda_ * ((U_[0][0]*U_[1][1] - U_[0][1]*U_[1][0]) - 1.0) * nuc_ * CellArea_;
+       }
+       else
+       {
+       E0CachedValue_ += Lambda_ * ((U_[0][0]*U_[1][1]*U_[2][2] + U_[1][0]*U_[2][1]*U_[0][2] + U_[2][0]*U_[0][1]*U_[1][2] - U_[2][0]*U_[1][1]*U_[0][2] - U_[0][0]*U_[2][1]*U_[1][2] - U_[1][0]*U_[0][1]*U_[2][2]) - 1.0) * nuc_ * CellArea_;
+       }
        break;
      case DEAD_LOAD:
        E0CachedValue_ += -Lambda_ * (Load_ * (U_ - Eye)).Trace() * nuc_ * CellArea_;
@@ -699,13 +826,12 @@ void FEAP::UpdateValues(UpdateFlag flag) const
        break;
    }
 
-   E0CachedValue_ += 1.0/eps_*(S1*S1 + S2*S2);
+   E0CachedValue_ += 1.0/eps_*(S1*S1 + S2*S2 + S3*S3);
 
    bfbfeap_call_form_();
    bfbfeap_get_reduced_residual_(&(E1CachedValue_F_[0]));
-
-//      cout << "\n E1CachedValue_F_=" << setw(20) << E1CachedValue_F_ << "\n";
-
+ //  cout << "\n" << "E1CachedValue_F_: "<<E1CachedValue_F_ << "\n";
+  
    // FEAP returns -E1, so fix it.
    for (int i = 0; i < E1CachedValue_F_.Dim(); ++i)
    {
@@ -713,27 +839,51 @@ void FEAP::UpdateValues(UpdateFlag flag) const
    }
    E1CachedValue_ = Jacobian_.Transpose() * E1CachedValue_F_;
    W1CachedValue_ = FJacobian_.Transpose() * E1CachedValue_F_;
+   // cout << "E1CachedValue_= " << E1CachedValue_ << "\n";
+   //cout << "Jacobian_= " << Jacobian_ << "\n";
    if (LoadingType_ == DISPLACEMENT_CONTROL)
    {
      DispE1CachedValue_ = DispJacobian_.Transpose() * E1CachedValue_F_;
    }
-
    switch (LoadingType_)
    {
      case PRESSURE_LOAD:
-       E1CachedValue_[0] += Lambda_ * U_[1][1] * nuc_ * CellArea_;
-       E1CachedValue_[1] += Lambda_ * U_[0][0] * nuc_ * CellArea_;
-       E1CachedValue_[2] -= Lambda_ * (U_[0][1]*sqrt(2.0)) * nuc_ * CellArea_;
+       if (ndm_==2)
+       {
+         E1CachedValue_[0] += Lambda_ * U_[1][1] * nuc_ * CellArea_;
+         E1CachedValue_[1] += Lambda_ * U_[0][0] * nuc_ * CellArea_;
+         E1CachedValue_[2] -= Lambda_ * (U_[0][1]*sqrt(2.0)) * nuc_ * CellArea_;
+       }
+       else
+       {
+         E1CachedValue_[0] += Lambda_ * (U_[1][1]*U_[2][2]-U_[2][1]*U_[1][2]) * nuc_ * CellArea_;
+         E1CachedValue_[1] += Lambda_ * (U_[0][0]*U_[2][2]-U_[2][0]*U_[0][2]) * nuc_ * CellArea_;
+         E1CachedValue_[2] += Lambda_ * (U_[0][0]*U_[1][1]-U_[1][0]*U_[0][1]) * nuc_ * CellArea_;
+         E1CachedValue_[3] += Lambda_ * sqrt(2.0)*(U_[1][0]*U_[0][2]-U_[0][0]*U_[1][2]) * nuc_ * CellArea_;
+         E1CachedValue_[4] += Lambda_ * sqrt(2.0)*(U_[1][0]*U_[2][1]-U_[1][1]*U_[0][2]) * nuc_ * CellArea_;
+         E1CachedValue_[5] += Lambda_ * sqrt(2.0)*(U_[1][2]*U_[0][2]-U_[2][2]*U_[1][0]) * nuc_ * CellArea_; 
+       }
        break;
      case DEAD_LOAD:
        E1CachedValue_[0] += -Lambda_ * Load_[0][0] * nuc_ * CellArea_;
        E1CachedValue_[1] += -Lambda_ * Load_[1][1] * nuc_ * CellArea_;
-       E1CachedValue_[2] += -sqrt(2.0)/2.0*Lambda_ * (Load_[1][0]+Load_[0][1]) * nuc_ * CellArea_;
+       if (ndm_==2)
+       {
+         E1CachedValue_[2] += -sqrt(2.0)/2.0*Lambda_ * (Load_[1][0]+Load_[0][1]) * nuc_ * CellArea_;
+       }
+       else
+       {
+         E1CachedValue_[2] += -Lambda_ * Load_[2][2] * nuc_ * CellArea_;
+         E1CachedValue_[3] += -sqrt(2.0)/2.0*Lambda_ * (Load_[1][2]+Load_[2][1]) * nuc_ * CellArea_;
+         E1CachedValue_[4] += -sqrt(2.0)/2.0*Lambda_ * (Load_[0][2]+Load_[2][0]) * nuc_ * CellArea_;
+         E1CachedValue_[5] += -sqrt(2.0)/2.0*Lambda_ * (Load_[1][0]+Load_[0][1]) * nuc_ * CellArea_;
+       }
        break;
      case DISPLACEMENT_CONTROL:
        // nothing to do for disp. control loading term
        break;
    }
+
 
    for (int i = 0; i < (numnp_-nbn_/2); ++i)
    {
@@ -741,6 +891,13 @@ void FEAP::UpdateValues(UpdateFlag flag) const
      W1CachedValue_[ndm_*ndm_+i*ndf_] += 2.0/eps_*S1;
      E1CachedValue_[shift+1+i*ndf_] += 2.0/eps_*S2;
      W1CachedValue_[ndm_*ndm_+1+i*ndf_] += 2.0/eps_*S2;
+     if (ndm_==3)
+     {
+       E1CachedValue_[shift+2+i*ndf_] += 2.0/eps_*S3;
+       W1CachedValue_[ndm_*ndm_+2+i*ndf_] += 2.0/eps_*S3;
+    //   E1CachedValue_[shift+3+i*ndf_] += 2.0/eps_*S4;
+    //   W1CachedValue_[ndm_*ndm_+3+i*ndf_] += 2.0/eps_*S4;
+     }
    }
 
    Cached_[0] = 1;
@@ -753,13 +910,10 @@ void FEAP::UpdateValues(UpdateFlag flag) const
      bfbfeap_call_tang_();
      bfbfeap_get_reduced_tang_(&(E2CachedValue_F_[0][0]));
 
-//      cout << "\n E2CachedValue_F_=" << setw(20) << E2CachedValue_F_ << "\n";
 
      E2CachedValue_ = Jacobian_.Transpose() * E2CachedValue_F_ * Jacobian_;
      W2CachedValue_ = FJacobian_.Transpose() * E2CachedValue_F_ * FJacobian_;
-//
-//      cout << "\n jacobian=" << setw(20) << Jacobian_ << "\n";
-//      cout << "\n E2CachedValue_=" << setw(20) << E2CachedValue_ << "\n";
+
 
      // This term doesn't contribute for displacement control
      if (LoadingType_ != DISPLACEMENT_CONTROL)
@@ -772,7 +926,7 @@ void FEAP::UpdateValues(UpdateFlag flag) const
            {
              if ((Map_[k][0]==i && Map_[k][1]==j) || (Map_[k][0]==j && Map_[k][1]==i))
                E2CachedValue_[i][j] += E1CachedValue_F_[k];
-             if ((Map_[k][2]==i && Map_[k][3]==j) || (Map_[k][2]==j && Map_[k][3]==i))
+             if (((Map_[k][2]==i && Map_[k][3]==j) || (Map_[k][2]==j && Map_[k][3]==i))||((ndm_==3) && ((Map_[k][4]==i && Map_[k][5]==j) || (Map_[k][4]==j && Map_[k][5]==i))))
                E2CachedValue_[i][j] += E1CachedValue_F_[k] / sqrt(2.0);
            }
          }
@@ -787,11 +941,12 @@ void FEAP::UpdateValues(UpdateFlag flag) const
          {
            if ((FMap_[k][0]==i && FMap_[k][1]==j) || (FMap_[k][0]==j && FMap_[k][1]==i))
              W2CachedValue_[i][j] += E1CachedValue_F_[k];
-           if ((FMap_[k][2]==i && FMap_[k][3]==j) || (FMap_[k][2]==j && FMap_[k][3]==i))
+           if (((FMap_[k][2]==i && FMap_[k][3]==j) || (FMap_[k][2]==j && FMap_[k][3]==i))||((ndm_==3) && ((FMap_[k][4]==i && FMap_[k][5]==j) || (FMap_[k][4]==j && FMap_[k][5]==i))))
              W2CachedValue_[i][j] += E1CachedValue_F_[k];
          }
        }
      }
+
 
      // Phantom Energy Term for E2
      for (int i = 0; i < (numnp_-nbn_/2); ++i)
@@ -799,31 +954,93 @@ void FEAP::UpdateValues(UpdateFlag flag) const
        for (int j = 0; j < (numnp_-nbn_/2); ++j)
        {
          E2CachedValue_[shift+i*ndf_][shift+j*ndf_] += 2.0/eps_;
-         W2CachedValue_[ndm_*ndm_+i*ndf_][4+j*ndf_] += 2.0/eps_;
+         W2CachedValue_[ndm_*ndm_+i*ndf_][ndm_*ndm_+j*ndf_] += 2.0/eps_;
          E2CachedValue_[shift+1+i*ndf_][shift+1+j*ndf_] += 2.0/eps_;
-         W2CachedValue_[ndm_*ndm_+1+i*ndf_][4+1+j*ndf_] += 2.0/eps_;
+         W2CachedValue_[ndm_*ndm_+1+i*ndf_][ndm_*ndm_+1+j*ndf_] += 2.0/eps_;
+         if (ndm_==3)
+         {
+           E2CachedValue_[shift+2+i*ndf_][shift+2+j*ndf_] += 2.0/eps_;
+           W2CachedValue_[ndm_*ndm_+2+i*ndf_][ndm_*ndm_+2+j*ndf_] += 2.0/eps_;
+        //   E2CachedValue_[shift+3+i*ndf_][shift+3+j*ndf_] += 2.0/eps_;
+        //   W2CachedValue_[ndm_*ndm_+3+i*ndf_][ndm_*ndm_+3+j*ndf_] += 2.0/eps_;
+         }
        }
      }
+
      // Loading term for E2 //
      if (LoadingType_ == PRESSURE_LOAD)
      {
-       E2CachedValue_[0][1] += Lambda_ * nuc_ * CellArea_;
-       E2CachedValue_[1][0] += Lambda_ * nuc_ * CellArea_;
-       E2CachedValue_[2][2] -= Lambda_ * nuc_ * CellArea_;
+       if (ndm_==2)
+       {
+         E2CachedValue_[0][1] += Lambda_ * nuc_ * CellArea_;
+         E2CachedValue_[1][0] += Lambda_ * nuc_ * CellArea_;
+         E2CachedValue_[2][2] -= Lambda_ * nuc_ * CellArea_;
+       }
+       else
+       {
+         E2CachedValue_[0][1] += Lambda_ * U_[2][2] * nuc_ * CellArea_;
+         E2CachedValue_[0][2] += Lambda_ * U_[1][1] * nuc_ * CellArea_;
+         E2CachedValue_[0][3] -= Lambda_ * sqrt(2) * U_[1][2] * nuc_ * CellArea_;
+         
+         E2CachedValue_[1][0] += Lambda_ * U_[2][2] * nuc_ * CellArea_;
+         E2CachedValue_[1][2] += Lambda_ * U_[0][0] * nuc_ * CellArea_;
+         E2CachedValue_[1][4] -= Lambda_ * sqrt(2) * U_[0][2] * nuc_ * CellArea_;
+         
+         E2CachedValue_[2][0] += Lambda_ * U_[1][1] * nuc_ * CellArea_;
+         E2CachedValue_[2][1] += Lambda_ * U_[0][0] * nuc_ * CellArea_;
+         E2CachedValue_[2][5] -= Lambda_ * sqrt(2) * U_[1][0] * nuc_ * CellArea_;
+         
+         E2CachedValue_[3][0] -= Lambda_ * sqrt(2) * U_[1][2] * nuc_ * CellArea_;
+         E2CachedValue_[3][3] -= Lambda_ * U_[0][0] * nuc_ * CellArea_;
+         E2CachedValue_[3][4] += Lambda_ * U_[1][0] * nuc_ * CellArea_;
+         E2CachedValue_[3][5] += Lambda_ * U_[2][0] * nuc_ * CellArea_;
+         
+         E2CachedValue_[4][1] -= Lambda_ * sqrt(2) * U_[0][2] * nuc_ * CellArea_;
+         E2CachedValue_[4][4] -= Lambda_ * U_[1][1] * nuc_ * CellArea_;
+         E2CachedValue_[4][3] += Lambda_ * U_[1][0] * nuc_ * CellArea_;
+         E2CachedValue_[4][5] += Lambda_ * U_[1][2] * nuc_ * CellArea_;
+         
+         E2CachedValue_[5][2] -= Lambda_ * sqrt(2) * U_[1][0] * nuc_ * CellArea_;
+         E2CachedValue_[5][5] -= Lambda_ * U_[2][2] * nuc_ * CellArea_;
+         E2CachedValue_[5][3] += Lambda_ * U_[2][0] * nuc_ * CellArea_;
+         E2CachedValue_[5][4] += Lambda_ * U_[1][2] * nuc_ * CellArea_;
+       }
      }
 
      //E1DLoad
      switch (LoadingType_)
      {
        case PRESSURE_LOAD:
-         E1DLoadCachedValue_[0] = U_[1][1] * nuc_ * CellArea_;
-         E1DLoadCachedValue_[1] = U_[0][0] * nuc_ * CellArea_;
-         E1DLoadCachedValue_[2] = -U_[0][1] * nuc_ * CellArea_;
+         if(ndm_==2)
+         {
+           E1DLoadCachedValue_[0] = U_[1][1] * nuc_ * CellArea_;
+           E1DLoadCachedValue_[1] = U_[0][0] * nuc_ * CellArea_;
+           E1DLoadCachedValue_[2] = -U_[0][1] * nuc_ * CellArea_;
+         }
+         else
+         {
+           E1DLoadCachedValue_[0] = (U_[1][1]*U_[2][2]-U_[2][1]*U_[1][2]) * nuc_ * CellArea_;
+           E1DLoadCachedValue_[1] = (U_[0][0]*U_[2][2]-U_[2][0]*U_[0][2]) * nuc_ * CellArea_;
+           E1DLoadCachedValue_[2] = (U_[0][0]*U_[1][1]-U_[1][0]*U_[0][1]) * nuc_ * CellArea_;
+           E1DLoadCachedValue_[3] = (U_[1][0]*U_[0][2]-U_[0][0]*U_[1][2]) * nuc_ * CellArea_;
+           E1DLoadCachedValue_[4] = (U_[1][0]*U_[2][1]-U_[1][1]*U_[0][2]) * nuc_ * CellArea_;
+           E1DLoadCachedValue_[5] = (U_[1][2]*U_[0][2]-U_[2][2]*U_[1][0]) * nuc_ * CellArea_;
+         }
          break;
        case DEAD_LOAD:
          E1DLoadCachedValue_[0] = -Load_[0][0]* nuc_ * CellArea_;
          E1DLoadCachedValue_[1] = -Load_[1][1]* nuc_ * CellArea_;
+         if (ndm_==2)
+        {
          E1DLoadCachedValue_[2] = -sqrt(2.0)/2.0*(Load_[1][0]+Load_[0][1])* nuc_ * CellArea_;
+        }
+        else
+        {
+          E1DLoadCachedValue_[2] = -Load_[2][2]* nuc_ * CellArea_;
+          E1DLoadCachedValue_[3] = -sqrt(2.0)/2.0*(Load_[1][2]+Load_[2][1])* nuc_ * CellArea_;
+          E1DLoadCachedValue_[4] = -sqrt(2.0)/2.0*(Load_[2][0]+Load_[0][2])* nuc_ * CellArea_;
+          E1DLoadCachedValue_[5] = -sqrt(2.0)/2.0*(Load_[1][0]+Load_[0][1])* nuc_ * CellArea_;
+        }
          break;
        case DISPLACEMENT_CONTROL:
          int ii;
@@ -846,29 +1063,12 @@ void FEAP::UpdateValues(UpdateFlag flag) const
      Cached_[3] = 1;
      EvaluationCount_[1]++;
 
-//     Vector E1DLoad_F = Jacobian_ * E1DLoadCachedValue_;
-//      Matrix A(DOFS_F_, DOFS_F_+1);
-//      for (int i = 0; i < DOFS_F_; ++i)
-//       {
-//          for (int j = 0; j < DOFS_F_+1; ++j)
-//          {
-//             A[i][j] = E2CachedValue_F_[i][j];
-//          }
-//          A[i][DOFS_F_] = E1DLoad_F[i];
-//       }
-//      Matrix Q(DOFS_F_+1, DOFS_F_+1);
-//   	 Matrix R(DOFS_F_+1, DOFS_F_);
-//      QR(A, Q, R, 1);
-//       cout << "\n E1DLoad_F=" << setw(20) << E1DLoad_F << "\n";
-//   	 cout << "\n Q=" << setw(20) << Q;
-
-//      cout << "E1DLoadCachedValue_=" << setw(20) << E1DLoadCachedValue_ << "\n";
    }
 }
 
 void FEAP::UpdateDOF_F() const
 {
-  int shift;
+  int shift=0;
   switch (LoadingType_)
   {
     case DEAD_LOAD:
@@ -885,15 +1085,27 @@ void FEAP::UpdateDOF_F() const
       ii = BoundNodes_[i]* ndf_;
       jj = (i%(nbn_/2))*ndf_;
       // Recall: F_ = U_
-      DOF_F_[ii]=F_[0][0]*(X_F_[ii] + DOF_[shift+jj]) + F_[0][1]*(X_F_[ii+1] + DOF_[shift+1+jj]);
-      DOF_F_[ii+1]=F_[1][1]*(X_F_[ii+1] + DOF_[shift+1+jj]) + F_[1][0]*(X_F_[ii] + DOF_[shift+jj]);
-      if (ndf_>ndm_)  //1 Extra dof : theta
+      if (ndm_==2)
       {
-        DOF_F_[ii+2]=DOF_[shift+2+jj];
-        if (ndf_>(ndm_+1))  //1 Extra dof : u',v'
+        DOF_F_[ii]=F_[0][0]*(X_F_[ii] + DOF_[shift+jj]) + F_[0][1]*(X_F_[ii+1] + DOF_[shift+1+jj]);
+        DOF_F_[ii+1]=F_[1][1]*(X_F_[ii+1] + DOF_[shift+1+jj]) + F_[1][0]*(X_F_[ii] + DOF_[shift+jj]);
+        if (ndf_>ndm_)  //1 Extra dof : theta
         {
-          DOF_F_[ii+3]=DOF_[shift+3+jj];
+          DOF_F_[ii+2]=DOF_[shift+2+jj];
+          if (ndf_>(ndm_+1))  //1 Extra dof : u',v'
+          {
+            DOF_F_[ii+3]=DOF_[shift+3+jj];
+          }
         }
+      }
+      else
+      {
+        DOF_F_[ii  ]=F_[0][0]*(X_F_[ii] + DOF_[shift+jj]) + F_[0][1]*(X_F_[ii+1] + DOF_[shift+1+jj]) + F_[0][2]*(X_F_[ii+2] + DOF_[shift+2+jj]);
+        DOF_F_[ii+1]=F_[1][0]*(X_F_[ii] + DOF_[shift+jj]) + F_[1][1]*(X_F_[ii+1] + DOF_[shift+1+jj]) + F_[1][2]*(X_F_[ii+2] + DOF_[shift+2+jj]);
+        DOF_F_[ii+2]=F_[2][0]*(X_F_[ii] + DOF_[shift+jj]) + F_[2][1]*(X_F_[ii+1] + DOF_[shift+1+jj]) + F_[2][2]*(X_F_[ii+2] + DOF_[shift+2+jj]);
+        DOF_F_[ii+3]=DOF_[shift+3+jj];
+        DOF_F_[ii+4]=DOF_[shift+4+jj];
+        DOF_F_[ii+5]=DOF_[shift+5+jj];
       }
    }
    for (int i=nbn_/2; i< nbn_; ++i)
@@ -901,15 +1113,27 @@ void FEAP::UpdateDOF_F() const
       ii = PeriodicNodes_[i-nbn_/2]* ndf_;
       jj = (i%(nbn_/2))*ndf_;
       // Recall: F_ = U_
-      DOF_F_[ii]=F_[0][0]*(X_F_[ii] + DOF_[shift+jj]) + F_[0][1]*(X_F_[ii+1] + DOF_[shift+1+jj]);
-      DOF_F_[ii+1]=F_[1][1]*(X_F_[ii+1] + DOF_[shift+1+jj]) + F_[1][0]*(X_F_[ii] + DOF_[shift+jj]);
-      if (ndf_>ndm_)  //1 Extra dof : theta
+      if (ndm_==2)
       {
-        DOF_F_[ii+2]=DOF_[shift+2+jj];
-        if (ndf_>(ndm_+1))  //1 Extra dof : u', v'
+        DOF_F_[ii]=F_[0][0]*(X_F_[ii] + DOF_[shift+jj]) + F_[0][1]*(X_F_[ii+1] + DOF_[shift+1+jj]);
+        DOF_F_[ii+1]=F_[1][1]*(X_F_[ii+1] + DOF_[shift+1+jj]) + F_[1][0]*(X_F_[ii] + DOF_[shift+jj]);
+        if (ndf_>ndm_)  //1 Extra dof : theta
         {
-          DOF_F_[ii+3]=DOF_[shift+3+jj];
+          DOF_F_[ii+2]=DOF_[shift+2+jj];
+          if (ndf_>(ndm_+1))  //1 Extra dof : u', v'
+          {
+            DOF_F_[ii+3]=DOF_[shift+3+jj];
+          }
         }
+      }
+      else
+      {
+        DOF_F_[ii  ]=F_[0][0]*(X_F_[ii] + DOF_[shift+jj]) + F_[0][1]*(X_F_[ii+1] + DOF_[shift+1+jj]) + F_[0][2]*(X_F_[ii+2] + DOF_[shift+2+jj]);
+        DOF_F_[ii+1]=F_[1][0]*(X_F_[ii] + DOF_[shift+jj]) + F_[1][1]*(X_F_[ii+1] + DOF_[shift+1+jj]) + F_[1][2]*(X_F_[ii+2] + DOF_[shift+2+jj]);
+        DOF_F_[ii+2]=F_[2][0]*(X_F_[ii] + DOF_[shift+jj]) + F_[2][1]*(X_F_[ii+1] + DOF_[shift+1+jj]) + F_[2][2]*(X_F_[ii+2] + DOF_[shift+2+jj]);
+        DOF_F_[ii+3]=DOF_[shift+3+jj];
+        DOF_F_[ii+4]=DOF_[shift+4+jj];
+        DOF_F_[ii+5]=DOF_[shift+5+jj];
       }
    }
    int offst = shift + nbn_ / 2 * ndf_;
@@ -918,15 +1142,27 @@ void FEAP::UpdateDOF_F() const
       ii = InnerNodes_[i-nbn_]* ndf_;
       jj = offst+(i-nbn_)*ndf_;
       // Recall: F_ = U_
-      DOF_F_[ii]=F_[0][0]*(X_F_[ii]+DOF_[jj]) + F_[0][1]*(X_F_[ii+1]+DOF_[jj+1]);
-      DOF_F_[ii+1]=F_[1][0]*(X_F_[ii]+DOF_[jj]) + F_[1][1]*(X_F_[ii+1]+DOF_[jj+1]);
-      if (ndf_>ndm_)  //1 Extra dof : theta
+      if (ndm_==2)
       {
-        DOF_F_[ii+2]=DOF_[jj+2];
-        if (ndf_>(ndm_+1))  //1 Extra dof : u', v'
+        DOF_F_[ii]=F_[0][0]*(X_F_[ii]+DOF_[jj]) + F_[0][1]*(X_F_[ii+1]+DOF_[jj+1]);
+        DOF_F_[ii+1]=F_[1][0]*(X_F_[ii]+DOF_[jj]) + F_[1][1]*(X_F_[ii+1]+DOF_[jj+1]);
+        if (ndf_>ndm_)  //1 Extra dof : theta
         {
-          DOF_F_[ii+3]=DOF_[jj+3];
+          DOF_F_[ii+2]=DOF_[jj+2];
+          if (ndf_>(ndm_+1))  //1 Extra dof : u', v'
+          {
+            DOF_F_[ii+3]=DOF_[jj+3];
+          }
         }
+      }
+      else
+      {
+        DOF_F_[ii  ]=F_[0][0]*(X_F_[ii] + DOF_[jj]) + F_[0][1]*(X_F_[ii+1] + DOF_[1+jj]) + F_[0][2]*(X_F_[ii+2] + DOF_[2+jj]);
+        DOF_F_[ii+1]=F_[1][0]*(X_F_[ii] + DOF_[jj]) + F_[1][1]*(X_F_[ii+1] + DOF_[1+jj]) + F_[1][2]*(X_F_[ii+2] + DOF_[2+jj]);
+        DOF_F_[ii+2]=F_[2][0]*(X_F_[ii] + DOF_[jj]) + F_[2][1]*(X_F_[ii+1] + DOF_[1+jj]) + F_[2][2]*(X_F_[ii+2] + DOF_[2+jj]);
+        DOF_F_[ii+3]=DOF_[3+jj];
+        DOF_F_[ii+4]=DOF_[4+jj];
+        DOF_F_[ii+5]=DOF_[5+jj];
       }
    }
    DOF_F_ -= X_F_;
@@ -935,7 +1171,7 @@ void FEAP::UpdateDOF_F() const
 
 void FEAP::UpdateJacobian() const
 {
-  int shift;
+  int shift=0;
   int Wshift = ndm_*ndm_;
   switch (LoadingType_)
   {
@@ -952,70 +1188,170 @@ void FEAP::UpdateJacobian() const
    {
       ii = BoundNodes_[i]*ndf_;
       jj = (i%(nbn_/2))*ndf_;
-      JacobianHelper(ii, jj, shift, Wshift);
+      JacobianHelper(ii, jj, shift, Wshift, 0);
    }
 
    for (int i = nbn_/2; i < nbn_; ++i)
    {
       ii = PeriodicNodes_[i-nbn_/2]*ndf_;
       jj = (i%(nbn_/2))*ndf_;
-      JacobianHelper(ii, jj, shift, Wshift);
+      JacobianHelper(ii, jj, shift, Wshift, 0);
    }
 
    for (int i = 0; i < numnp_-nbn_; ++i)
    {
       ii = InnerNodes_[i]*ndf_;
       jj = nbn_/2*ndf_+(i)*ndf_;
-      JacobianHelper(ii, jj, shift, Wshift);
+      JacobianHelper(ii, jj, shift, Wshift, 0);
    }
 }
 
-
 void FEAP::JacobianHelper(int const ii, int const jj, int const shift,
-                          int const Wshift) const
+                          int const Wshift, int const temp) const
 {
-  if (LoadingType_ != DISPLACEMENT_CONTROL)
+ if (ndm_==2)
   {
-    Jacobian_[ii][0] = X_F_[ii] + DOF_[shift+jj];
-    Jacobian_[ii][2] = 1.0/sqrt(2.0)*(X_F_[ii+1] + DOF_[shift+1+jj]);
-    FJacobian_[ii][0] = X_F_[ii] + DOF_[shift+jj];
-    FJacobian_[ii][1] = X_F_[ii+1] + DOF_[shift+1+jj];
+    if (LoadingType_ != DISPLACEMENT_CONTROL)
+    {
+      Jacobian_[ii][0] = X_F_[ii] + DOF_[shift+jj];
+      Jacobian_[ii][2] = 1.0/sqrt(2.0)*(X_F_[ii+1] + DOF_[shift+1+jj]);
+      FJacobian_[ii][0] = X_F_[ii] + DOF_[shift+jj];
+      FJacobian_[ii][1] = X_F_[ii+1] + DOF_[shift+1+jj];
 
-    Jacobian_[ii+1][1] = X_F_[ii+1] + DOF_[shift+1+jj];
-    Jacobian_[ii+1][2] = 1.0/sqrt(2.0)*(X_F_[ii] + DOF_[shift+jj]);
-    FJacobian_[ii+1][2] = X_F_[ii] + DOF_[shift+jj];
-    FJacobian_[ii+1][3] = X_F_[ii+1] + DOF_[shift+1+jj];
+      Jacobian_[ii+1][1] = X_F_[ii+1] + DOF_[shift+1+jj];
+      Jacobian_[ii+1][2] = 1.0/sqrt(2.0)*(X_F_[ii] + DOF_[shift+jj]);
+      FJacobian_[ii+1][2] = X_F_[ii] + DOF_[shift+jj];
+      FJacobian_[ii+1][3] = X_F_[ii+1] + DOF_[shift+1+jj];
+    }
+    else
+    {
+      DispJacobian_[ii][0] = X_F_[ii] + DOF_[shift+jj];
+      DispJacobian_[ii][2] = 1.0/sqrt(2.0)*(X_F_[ii+1] + DOF_[shift+1+jj]);
+      FJacobian_[ii][0] = X_F_[ii] + DOF_[shift+jj];
+      FJacobian_[ii][1] = X_F_[ii+1] + DOF_[shift+1+jj];
+
+      DispJacobian_[ii+1][1] = X_F_[ii+1] + DOF_[shift+1+jj];
+      DispJacobian_[ii+1][2] = 1.0/sqrt(2.0)*(X_F_[ii] + DOF_[shift+jj]);
+      FJacobian_[ii+1][2] = X_F_[ii] + DOF_[shift+jj];
+      FJacobian_[ii+1][3] = X_F_[ii+1] + DOF_[shift+1+jj];
+    }
+    Jacobian_[ii][shift+jj]=U_[0][0];
+    Jacobian_[ii][shift+1+jj]=U_[0][1];
+    FJacobian_[ii][Wshift+jj]=F_[0][0];
+    FJacobian_[ii][Wshift+1+jj]=F_[0][1];
+
+    Jacobian_[ii+1][shift+jj]=U_[1][0];
+    Jacobian_[ii+1][shift+1+jj]=U_[1][1];
+    FJacobian_[ii+1][Wshift+jj]=F_[1][0];
+    FJacobian_[ii+1][Wshift+1+jj]=F_[1][1];
+
+    if (ndf_>ndm_)
+    {
+      Jacobian_[ii+2][shift+2+jj]=1.0;
+      FJacobian_[ii+2][Wshift+2+jj]=1.0;
+      if (ndf_>(ndm_+1))
+      {
+        Jacobian_[ii+3][shift+3+jj]=1.0;
+        FJacobian_[ii+3][Wshift+3+jj]=1.0;
+      }
+    }
   }
   else
   {
-    DispJacobian_[ii][0] = X_F_[ii] + DOF_[shift+jj];
-    DispJacobian_[ii][2] = 1.0/sqrt(2.0)*(X_F_[ii+1] + DOF_[shift+1+jj]);
-    FJacobian_[ii][0] = X_F_[ii] + DOF_[shift+jj];
-    FJacobian_[ii][1] = X_F_[ii+1] + DOF_[shift+1+jj];
-
-    DispJacobian_[ii+1][1] = X_F_[ii+1] + DOF_[shift+1+jj];
-    DispJacobian_[ii+1][2] = 1.0/sqrt(2.0)*(X_F_[ii] + DOF_[shift+jj]);
-    FJacobian_[ii+1][2] = X_F_[ii] + DOF_[shift+jj];
-    FJacobian_[ii+1][3] = X_F_[ii+1] + DOF_[shift+1+jj];
-  }
-  Jacobian_[ii][shift+jj]=U_[0][0];
-  Jacobian_[ii][shift+1+jj]=U_[0][1];
-  FJacobian_[ii][Wshift+jj]=F_[0][0];
-  FJacobian_[ii][Wshift+1+jj]=F_[0][1];
-
-  Jacobian_[ii+1][shift+jj]=U_[1][0];
-  Jacobian_[ii+1][shift+1+jj]=U_[1][1];
-  FJacobian_[ii+1][Wshift+jj]=F_[1][0];
-  FJacobian_[ii+1][Wshift+1+jj]=F_[1][1];
-
-  if (ndf_>ndm_)
-  {
-    Jacobian_[ii+2][shift+2+jj]=1.0;
-    FJacobian_[ii+2][Wshift+2+jj]=1.0;
-    if (ndf_>(ndm_+1))
+    if (LoadingType_ != DISPLACEMENT_CONTROL)
     {
-      Jacobian_[ii+3][shift+3+jj]=1.0;
-      FJacobian_[ii+3][Wshift+3+jj]=1.0;
+      Jacobian_[ii][0] = X_F_[ii] + DOF_[shift+jj];
+      Jacobian_[ii][5] = 1.0/sqrt(2.0)*(X_F_[ii+1] + DOF_[shift+1+jj]);
+      Jacobian_[ii][4] = 1.0/sqrt(2.0)*(X_F_[ii+2] + DOF_[shift+2+jj]);
+      
+      Jacobian_[ii+1][1] = X_F_[ii+1] + DOF_[shift+1+jj];
+      Jacobian_[ii+1][5] = 1.0/sqrt(2.0)*(X_F_[ii] + DOF_[shift+jj]);
+      Jacobian_[ii+1][3] = 1.0/sqrt(2.0)*(X_F_[ii+2] + DOF_[shift+jj+2]);
+      
+      Jacobian_[ii+2][2] = X_F_[ii+2] + DOF_[shift+2+jj];
+      Jacobian_[ii+2][3] = 1.0/sqrt(2.0)*(X_F_[ii+1] + DOF_[shift+jj+1]);
+      Jacobian_[ii+2][4] = 1.0/sqrt(2.0)*(X_F_[ii] + DOF_[shift+jj]);
+
+      FJacobian_[ii][0] = X_F_[ii] + DOF_[shift+jj];
+      FJacobian_[ii][1] = X_F_[ii+1] + DOF_[shift+1+jj];
+      FJacobian_[ii][2] = X_F_[ii+2] + DOF_[shift+2+jj];
+      
+      FJacobian_[ii+1][3] = X_F_[ii] + DOF_[shift+jj];
+      FJacobian_[ii+1][4] = X_F_[ii+1] + DOF_[shift+1+jj];
+      FJacobian_[ii+1][5] = X_F_[ii+2] + DOF_[shift+2+jj];
+      
+      FJacobian_[ii+2][6] = X_F_[ii] + DOF_[shift+jj];
+      FJacobian_[ii+2][7] = X_F_[ii+1] + DOF_[shift+1+jj];
+      FJacobian_[ii+2][8] = X_F_[ii+2] + DOF_[shift+2+jj];
+    }
+    else
+    {
+      DispJacobian_[ii][0] = X_F_[ii] + DOF_[shift+jj];
+      DispJacobian_[ii][5] = 1.0/sqrt(2.0)*(X_F_[ii+1] + DOF_[shift+1+jj]);
+      DispJacobian_[ii][4] = 1.0/sqrt(2.0)*(X_F_[ii+2] + DOF_[shift+2+jj]);
+      
+      DispJacobian_[ii+1][1] = X_F_[ii+1] + DOF_[shift+1+jj];
+      DispJacobian_[ii+1][5] = 1.0/sqrt(2.0)*(X_F_[ii] + DOF_[shift+jj]);
+      DispJacobian_[ii+1][3] = 1.0/sqrt(2.0)*(X_F_[ii+2] + DOF_[shift+jj+2]);
+      
+      DispJacobian_[ii+2][2] = X_F_[ii+2] + DOF_[shift+2+jj];
+      DispJacobian_[ii+2][3] = 1.0/sqrt(2.0)*(X_F_[ii+1] + DOF_[shift+jj+1]);
+      DispJacobian_[ii+2][4] = 1.0/sqrt(2.0)*(X_F_[ii] + DOF_[shift+jj]);
+
+      FJacobian_[ii][0] = X_F_[ii] + DOF_[shift+jj];
+      FJacobian_[ii][1] = X_F_[ii+1] + DOF_[shift+1+jj];
+      FJacobian_[ii][2] = X_F_[ii+2] + DOF_[shift+2+jj];
+      
+      FJacobian_[ii+1][3] = X_F_[ii] + DOF_[shift+jj];
+      FJacobian_[ii+1][4] = X_F_[ii+1] + DOF_[shift+1+jj];
+      FJacobian_[ii+1][5] = X_F_[ii+2] + DOF_[shift+2+jj];
+      
+      FJacobian_[ii+2][6] = X_F_[ii] + DOF_[shift+jj];
+      FJacobian_[ii+2][7] = X_F_[ii+1] + DOF_[shift+1+jj];
+      FJacobian_[ii+2][8] = X_F_[ii+2] + DOF_[shift+2+jj];
+    
+    }
+    Jacobian_[ii][shift+jj]=U_[0][0];
+    Jacobian_[ii][shift+1+jj]=U_[0][1];
+    Jacobian_[ii][shift+2+jj]=U_[0][2];
+    FJacobian_[ii][Wshift+jj]=F_[0][0];
+    FJacobian_[ii][Wshift+1+jj]=F_[0][1];
+    FJacobian_[ii][Wshift+2+jj]=F_[0][2];
+
+    Jacobian_[ii+1][shift+jj]=U_[1][0];
+    Jacobian_[ii+1][shift+1+jj]=U_[1][1];
+    Jacobian_[ii+1][shift+2+jj]=U_[1][2];
+    FJacobian_[ii+1][Wshift+jj]=F_[1][0];
+    FJacobian_[ii+1][Wshift+1+jj]=F_[1][1];
+    FJacobian_[ii+1][Wshift+2+jj]=F_[1][2];
+    
+    Jacobian_[ii+2][shift+jj]=U_[2][0];
+    Jacobian_[ii+2][shift+1+jj]=U_[2][1];
+    Jacobian_[ii+2][shift+2+jj]=U_[2][2];
+    FJacobian_[ii+2][Wshift+jj]=F_[2][0];
+    FJacobian_[ii+2][Wshift+1+jj]=F_[2][1];
+    FJacobian_[ii+2][Wshift+2+jj]=F_[2][2];
+    if (temp==0)
+    {
+    Jacobian_[ii+3][shift+3+jj]=1.0;
+    FJacobian_[ii+3][Wshift+3+jj]=1.0;
+
+    Jacobian_[ii+4][shift+4+jj]=1.0;
+    FJacobian_[ii+4][Wshift+4+jj]=1.0;
+    
+    Jacobian_[ii+5][shift+5+jj]=1.0;
+    FJacobian_[ii+5][Wshift+5+jj]=1.0;
+    }
+    else
+    {
+    Jacobian_[ii+3][shift+3+jj]=-1.0;
+    FJacobian_[ii+3][Wshift+3+jj]=-1.0;
+
+    Jacobian_[ii+4][shift+4+jj]=-1.0;
+    FJacobian_[ii+4][Wshift+4+jj]=-1.0;
+    
+    Jacobian_[ii+5][shift+5+jj]=-1.0;
+    FJacobian_[ii+5][Wshift+5+jj]=-1.0;
     }
   }
 }
@@ -1063,11 +1399,19 @@ int FEAP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vector
          for (int i = 0; i < numnp_; ++i)
          {
             critical_eig_out_ << setw(Width_) << X_[i*ndm_+0]
-                              << setw(Width_) << X_[i*ndm_+1]
-                              << "\t" << " # Node " << i+1 << endl;
+                              << setw(Width_) << X_[i*ndm_+1];
+                              if (ndm_==3)
+                              {
+            critical_eig_out_ << setw(Width_) << X_[i*ndm_+2];
+                              }
+            critical_eig_out_ << "\t" << " # Node " << i+1 << endl;
             critical_eig_out_ << setw(Width_) << X_[i*ndm_+0] + 0.1*DOF_F_[i*ndf_+0]
-                              << setw(Width_) << X_[i*ndm_+1] + 0.1*DOF_F_[i*ndf_+1]
-                              << endl << endl;
+                              << setw(Width_) << X_[i*ndm_+1] + 0.1*DOF_F_[i*ndf_+1];
+                              if (ndm_==3)
+                              {
+            critical_eig_out_ << setw(Width_) << X_[i*ndm_+2] + 0.1*DOF_F_[i*ndf_+2];
+                              }
+            critical_eig_out_ << endl << endl;
          }
 
          critical_eig_out_ << endl;
@@ -1083,10 +1427,12 @@ int FEAP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vector
       {
          for (int j = 0; j < KSpaceResolution_+1; ++j)
          {
-            K_[0] = pi*(((double) i)/((double) KSpaceResolution_));
-            K_[1] = pi*(((double) j)/((double) KSpaceResolution_));
-
-            DynamicalMatrixBis(K_);
+            K_[0] = pi*KScale_*(((double) i)/((double) KSpaceResolution_));
+            K_[1] = pi*KScale_*(((double) j)/((double) KSpaceResolution_));
+            
+            if(ndm_==2)
+            {
+              DynamicalMatrixBis(K_);
 
                   CMatrix EigVec;
                Matrix DkEigVal = HermiteEigVal(Dk_, &EigVec);
@@ -1157,6 +1503,83 @@ int FEAP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vector
                }
 
                delete[] Ind;
+            }
+            else
+            {
+              for (int k = 0; k < KSpaceResolution_+1; ++k)
+              {
+                K_[2] = pi*KScale_*(((double) k)/((double) KSpaceResolution_));
+                DynamicalMatrixBis(K_);
+
+                CMatrix EigVec;
+                Matrix DkEigVal = HermiteEigVal(Dk_, &EigVec);
+                int NumZeroEig = 0; //For treating the k = [0,0,0] case
+
+               //Dk has 3 zero eigen values when k = [0,0,0], so special treatment
+                if ((i==0) && (j==0) && (k==0))
+                {
+                  double max = DkEigVal.MaxElement();
+
+                  for (int l = 0; l < ndf_*(numnp_-nbn_/2); ++l)
+                  {
+                     if ((fabs(DkEigVal[0][l]) < Tolerance) && (NumZeroEig < 3))
+                     {
+                        DkEigVal[0][l] = max;
+                        ++NumZeroEig;
+                     }
+                  }
+               }
+               int count = 0;
+               int* Ind = new int[DOFS_];
+               for (int l = 0; l < ndf_*(numnp_-nbn_/2); ++l)
+               {
+                  if (fabs(DkEigVal[0][l]) < Tolerance)
+                     Ind[count++] = l;
+               }
+               double min = DkEigVal.MinElement();
+               if (count>0)
+               {
+                  cout << "Found zero eigen value in Bloch wave analysis at k = [ " << K_[0] << ", " << K_[1] << ", " << K_[2] << " ] \n"
+                       << " Eigenvalue : " << min << "\n";
+                  for (int m = 0; m < count; ++m)
+                  {
+                     cout << "Tangent => [";
+                     for (int l = 0; l < ndf_*(numnp_-nbn_/2); ++l)
+
+		    {
+                         if ((fabs(sin(K_[0])) < 1.0e-5) && (fabs(sin(K_[1])) < 1.0e-5) && (fabs(sin(K_[2])) < 1.0e-5))
+                         {
+                            cout << EigVec[l][Ind[k]].real() << ", ";
+                         }
+                         else
+                         {
+                            cout << EigVec[l][Ind[k]] << ", ";
+                         }
+
+                     }
+                     cout << "] \n";
+
+              /*       if ((fabs(sin(K_[0])) < 1.0e-5) && (fabs(sin(K_[1])) < 1.0e-5))
+                     {
+                        cout << "Tangent for bif path : [";
+                        for (int l = 0; l = 2*ndf_*(numnp_ - nbn_/2); ++l)
+                        {
+                            cout << pow(-1,l/(ndf_*(numnp_-nbn_/2))) * EigVec[l%(ndf_*(numnp_-nbn_/2))][Ind[k]].real() << ", ";
+                        }
+                        cout << "] \n";
+                     } */
+
+                  }
+
+
+                  out << "============================================="
+                      << "Found zero eigen value in Bloch wave analysis at k = [ " << K_[0] << ", " << K_[1] << ", " << K_[2] << " ] \n"
+                      << " Eigenvalue : " << min << "\n";
+               }
+
+               delete[] Ind;
+              } 
+            }
          }
       }
 
@@ -1169,6 +1592,10 @@ int FEAP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vector
       {
          K_[0] = 2*pi*KVectorMatrix_[i][0];
          K_[1] = 2*pi*KVectorMatrix_[i][1];
+         if (ndm_==3)
+         {
+         K_[2] = 2*pi*KVectorMatrix_[i][2];
+         }
 
          DynamicalMatrixBis(K_);
          CMatrix EigVec;
@@ -1184,7 +1611,12 @@ int FEAP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vector
          double min = DkEigVal.MinElement();
          if (count>0)
          {
-            cout << "Found zero eigen value in Bloch wave analysis at k = [ " << K_[0] << ", " << K_[1] << " ] \n"
+            cout << "Found zero eigen value in Bloch wave analysis at k = [ " << K_[0] << ", " << K_[1] ;
+                 if (ndm_==3)
+                 {
+                  cout << ", " << K_[2] ;
+                 }
+                cout << " ] \n"
                  << " Eigenvalue : " << min << "\n";
             for (int k = 0; k < count; ++k)
             {
@@ -1223,78 +1655,163 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
        case DEAD_LOAD:
        case PRESSURE_LOAD:
          bloch_wave_out_ << "  U11 = " << DOF_[0]
-                         << "  U22 = " << DOF_[1]
-                         << "  U12 = " << DOF_[2] / sqrt(2.0) << endl;
+                         << "  U22 = " << DOF_[1];
+                         if (ndm_==2)
+                         {
+         bloch_wave_out_ << "  U12 = " << DOF_[2] / sqrt(2.0);
+                         }
+                         else
+                         {
+         bloch_wave_out_ << "  U33 = " << DOF_[2]
+                         << "  U23 = " << DOF_[3] / sqrt(2.0)
+                         << "  U13 = " << DOF_[4] / sqrt(2.0)
+                         << "  U12 = " << DOF_[5] / sqrt(2.0);
+                         } 
+         bloch_wave_out_ << endl;
          break;
        case DISPLACEMENT_CONTROL:
          bloch_wave_out_ << "  U11 = " << Lambda_
-                         << "  U22 = " << StretchRatio_ * Lambda_
-                         << "  U12 = " << 0.0 << endl;
+                         << "  U22 = " << StretchRatio_ * Lambda_;
+                         if (ndm_==2)
+                         {
+         bloch_wave_out_ << "  U12 = " << 0.0;
+                         }
+                         else
+                         {
+         bloch_wave_out_ << "  U33 = " << StretchRatio_ * Lambda_
+                         << "  U23 = " << 0.0
+                         << "  U13 = " << 0.0
+                         << "  U12 = " << 0.0;
+                         }
+         bloch_wave_out_ << endl;
+
          break;
      }
    }
 
    if(TFType_ == 1) // Bloch Wave Analysis
    {
-      int k = 0;
+      int m = 0;
       for (int i = -KSpaceResolution_+1; i < KSpaceResolution_+1; ++i)
       {
          for (int j = 0; j < KSpaceResolution_+1; ++j)
          {
-            K_[0] = pi*(((double) i)/((double) KSpaceResolution_));
-            K_[1] = pi*(((double) j)/((double) KSpaceResolution_));
-
-            DynamicalMatrixBis(K_);
-
-            Matrix DkEigVal = HermiteEigVal(Dk_);
-            int NumZeroEig = 0; //For treating the k = [0,0] case
-
-            if (0==BWTFType_)
+            K_[0] = pi*KScale_*(((double) i)/((double) KSpaceResolution_));
+            K_[1] = pi*KScale_*(((double) j)/((double) KSpaceResolution_));
+            
+            if(ndm_==2)
             {
-              for (int l = 0; l < ndf_*(numnp_-nbn_/2); ++l)
+              DynamicalMatrixBis(K_);
+
+              Matrix DkEigVal = HermiteEigVal(Dk_);
+              int NumZeroEig = 0; //For treating the k = [0,0] case
+
+              if (0==BWTFType_)
               {
-                //Dk has 2 zero eigen values when k = [0,0], so special treatment
-                if ((i==0) && (j==0) && (NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < Tolerance_))
-                {
-                  double max = DkEigVal.MaxElement();
-                  DkEigVal[0][l] = max;
-                  TF[k] = max;
-                  ++NumZeroEig;
-                }
-                else
-                {
-                  TF[k] = DkEigVal[0][l];
-                }
-                ++k;
-              }
-            }
-            else
-            {
-              //Dk has 2 zero eigen values when k = [0,0], so special treatment
-              if ((i==0) && (j==0))
-              {
-                double max = DkEigVal.MaxElement();
                 for (int l = 0; l < ndf_*(numnp_-nbn_/2); ++l)
                 {
-                  if ((NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < Tolerance_))
+                  //Dk has 2 zero eigen values when k = [0,0], so special treatment
+                  if ((i==0) && (j==0) && (NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < Tolerance_))
                   {
+                    double max = DkEigVal.MaxElement();
                     DkEigVal[0][l] = max;
+                    TF[m] = max;
                     ++NumZeroEig;
                   }
+                  else
+                  {
+                    TF[m] = DkEigVal[0][l];
+                  }
+                  ++m;
                 }
-
-                TF[k] = DkEigVal.MinElement();
               }
               else
               {
-                TF[k] = DkEigVal.MinElement();
-              }
-              ++k;
-            }
+               //Dk has 2 zero eigen values when k = [0,0], so special treatment
+               if ((i==0) && (j==0))
+               {
+                 double max = DkEigVal.MaxElement();
+                 for (int l = 0; l < ndf_*(numnp_-nbn_/2); ++l)
+                 {
+                   if ((NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < Tolerance_))
+                   {
+                     DkEigVal[0][l] = max;
+                     ++NumZeroEig;
+                   }
+                 }
 
-            bloch_wave_out_ << setw(Width_) << K_[0]/(2*pi)
-                            << setw(Width_) << K_[1]/(2*pi)
-                            << setw(Width_) << DkEigVal.MinElement() << "\n";
+                 TF[m] = DkEigVal.MinElement();
+               }
+               else
+               {
+                 TF[m] = DkEigVal.MinElement();
+               }
+               ++m;
+              }
+
+              bloch_wave_out_ << setw(Width_) << K_[0]/(2*pi)
+                              << setw(Width_) << K_[1]/(2*pi)
+                              << setw(Width_) << DkEigVal.MinElement() << "\n";
+           }
+           else
+           {
+             for (int k = 0; k < KSpaceResolution_+1; ++k)
+             {
+              K_[2] = pi*KScale_*(((double) k)/((double) KSpaceResolution_));
+              DynamicalMatrixBis(K_);
+
+              Matrix DkEigVal = HermiteEigVal(Dk_);
+              int NumZeroEig = 0; //For treating the k = [0,0] case
+
+              if (0==BWTFType_)
+              {
+                for (int l = 0; l < ndf_*(numnp_-nbn_/2); ++l)
+                {
+                  //Dk has 3 zero eigen values when k = [0,0,0], so special treatment
+                  if ((i==0) && (j==0) && (k==0) && (NumZeroEig < 3) && (fabs(DkEigVal[0][l]) < Tolerance_))
+                  {
+                    double max = DkEigVal.MaxElement();
+                    DkEigVal[0][l] = max;
+                    TF[m] = max;
+                    ++NumZeroEig;
+                  }
+                  else
+                  {
+                    TF[m] = DkEigVal[0][l];
+                  }
+                  ++m;
+                }
+              }
+              else
+              {
+               //Dk has 3 zero eigen values when k = [0,0,0], so special treatment
+               if ((i==0) && (j==0) && (k==0))
+               {
+                 double max = DkEigVal.MaxElement();
+                 for (int l = 0; l < ndf_*(numnp_-nbn_/2); ++l)
+                 {
+                   if ((NumZeroEig < 3) && (fabs(DkEigVal[0][l]) < Tolerance_))
+                   {
+                     DkEigVal[0][l] = max;
+                     ++NumZeroEig;
+                   }
+                 }
+
+                 TF[m] = DkEigVal.MinElement();
+               }
+               else
+               {
+                 TF[m] = DkEigVal.MinElement();
+               }
+               ++m;
+              }
+
+              bloch_wave_out_ << setw(Width_) << K_[0]/(2*pi)
+                              << setw(Width_) << K_[1]/(2*pi)
+                              << setw(Width_) << K_[2]/(2*pi)
+                              << setw(Width_) << DkEigVal.MinElement() << "\n";
+             }
+           }
          }
          bloch_wave_out_ << endl;
       }
@@ -1312,6 +1829,10 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
       {
          K_[0] = 2*pi*(KRange_[0] + (KRange_[1] - KRange_[0])*(((double) i)/((double) KSpaceResolution_)))* KDirection_[0];
          K_[1] = 2*pi*(KRange_[0] + (KRange_[1] - KRange_[0])*(((double) i)/((double) KSpaceResolution_)))* KDirection_[1];
+         if(ndm_==3)
+         {
+         K_[2] = 2*pi*(KRange_[0] + (KRange_[1] - KRange_[0])*(((double) i)/((double) KSpaceResolution_)))* KDirection_[2];
+         }
 
          DynamicalMatrixBis(K_);
          CMatrix DkEigVec(Dk_.Rows(),Dk_.Cols());
@@ -1325,7 +1846,7 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
            for (int  l=0; l < ndf_*(numnp_-nbn_/2); ++l)
            {
              int NumZeroEig = 0;
-             if ((K_[0]==0.0) && (K_[1]==0.0) && (NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < Tolerance_))
+             if (((ndm_==2) && (K_[0]==0.0) && (K_[1]==0.0) && (NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < Tolerance_))||((ndm_==3) && (K_[0]==0.0) && (K_[1]==0.0) && (K_[2]==0.0) && (NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < Tolerance_)))
              {
                double max = DkEigVal.MaxElement();
                DkEigVal[0][l] = max;
@@ -1349,11 +1870,11 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
          {
            double max = DkEigVal.MaxElement();
            int NumZeroEig = 0;
-           if ((K_[0]==0.0) && (K_[1]==0.0))
+           if (((ndm_==2) && (K_[0]==0.0) && (K_[1]==0.0))||((ndm_==3) && (K_[0]==0.0) && (K_[1]==0.0) && (K_[2]==0.0)))
            {
              for (int l=0; l < ndf_*(numnp_-nbn_/2); ++l)
              {
-               if ((NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < Tolerance_))
+               if ((NumZeroEig < ndm_) && (fabs(DkEigVal[0][l]) < Tolerance_))
                {
                  DkEigVal[0][l] = max;
                  ++NumZeroEig;
@@ -1368,8 +1889,12 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
            ++k;
          }
          bloch_wave_out_ << setw(Width_) << K_[0]/(2*pi)
-                         << setw(Width_) << K_[1]/(2*pi)
-                         << setw(Width_) << min
+                         << setw(Width_) << K_[1]/(2*pi);
+                         if (ndm_==3)
+                         {
+         bloch_wave_out_ << setw(Width_) << K_[2]/(2*pi);
+                         }
+         bloch_wave_out_ << setw(Width_) << min
                          << setw(Width_) << DkEigVal.MinElement() << "\n";
       }
       bloch_wave_out_ << "\n" << "\n";
@@ -1382,6 +1907,10 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
       {
          K_[0] = 2*pi*KVectorMatrix_[i][0];
          K_[1] = 2*pi*KVectorMatrix_[i][1];
+         if (ndm_==3)
+         {
+         K_[2] = 2*pi*KVectorMatrix_[i][2];
+         }
          DynamicalMatrixBis(K_);
          Matrix DkEigVal = HermiteEigVal(Dk_);
          double min = DkEigVal.MinElement();
@@ -1393,7 +1922,7 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
            {
 
              int NumZeroEig = 0;
-             if ((K_[0]==0.0) && (K_[1]==0.0) && (NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < Tolerance_))
+             if (((ndm_==2) && (K_[0]==0.0) && (K_[1]==0.0) && (NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < Tolerance_))||((ndm_==3) && (K_[0]==0.0) && (K_[1]==0.0) && (K_[2]==0.0) && (NumZeroEig < 3) && (fabs(DkEigVal[0][l]) < Tolerance_)))
              {
                double max = DkEigVal.MaxElement();
                DkEigVal[0][l] = max;
@@ -1417,11 +1946,11 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
          {
            double max = DkEigVal.MaxElement();
            int NumZeroEig = 0;
-           if ((K_[0]==0.0) && (K_[1]==0.0))
+           if (((ndm_==2) && (K_[0]==0.0) && (K_[1]==0.0))||((ndm_==3) && (K_[0]==0.0) && (K_[1]==0.0) && (K_[2]==0.0)))
            {
              for (int l=0; l < ndf_*(numnp_-nbn_/2); ++l)
              {
-               if ((NumZeroEig < 2) && (fabs(DkEigVal[0][l]) < Tolerance_))
+               if ((NumZeroEig < ndm_) && (fabs(DkEigVal[0][l]) < Tolerance_))
                {
                  DkEigVal[0][l] = max;
                  ++NumZeroEig;
@@ -1436,8 +1965,12 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
            ++k;
          }
          bloch_wave_out_ << setw(Width_) << K_[0]/(2*pi)
-                         << setw(Width_) << K_[1]/(2*pi)
-                         << setw(Width_) << min
+                         << setw(Width_) << K_[1]/(2*pi);
+                         if (ndm_==3)
+                         {
+         bloch_wave_out_ << setw(Width_) << K_[2]/(2*pi);
+                         }
+         bloch_wave_out_ << setw(Width_) << min
                          << setw(Width_) << DkEigVal.MinElement() << "\n";
          bloch_count_++;
       }
@@ -1526,6 +2059,14 @@ Matrix const& FEAP::StiffnessDL() const
      U_[1][1] = StretchRatio_ * Lambda_;
      U_[0][1] = 0.0;
      U_[1][0] = 0.0;
+     if (ndm_==3)
+     {
+       U_[2][2] = StretchRatio_ * Lambda_;
+       U_[0][2] = 0.0;
+       U_[2][0] = 0.0;
+       U_[2][1] = 0.0;
+       U_[1][2] = 0.0;
+     }
    }
    for (int i = 0; i < cachesize; ++i)
    {
@@ -1539,6 +2080,14 @@ Matrix const& FEAP::StiffnessDL() const
      U_[1][1] = StretchRatio_ * Lambda_;
      U_[0][1] = 0.0;
      U_[1][0] = 0.0;
+     if (ndm_==3)
+     {
+       U_[2][2] = StretchRatio_ * Lambda_;
+       U_[0][2] = 0.0;
+       U_[2][0] = 0.0;
+       U_[2][1] = 0.0;
+       U_[1][2] = 0.0;
+     }
    }
    for (int i = 0; i < cachesize; ++i)
    {
@@ -1555,14 +2104,20 @@ Matrix const& FEAP::StiffnessDL() const
      U_[0][1] = 0.0;
      U_[1][0] = 0.0;
    }
+   if (ndm_==3)
+   {
+     U_[2][2] = StretchRatio_ * Lambda_;
+     U_[0][2] = 0.0;
+     U_[2][0] = 0.0;
+     U_[2][1] = 0.0;
+     U_[1][2] = 0.0;
+   }
    for (int i = 0; i < cachesize; ++i)
    {
       Cached_[i] = 0;
    }
    return stiffdl_static;
-      // ajout ///////////////////////////////////////////////////////////////////
-   //cout << "StiffnessDL= " << setw(W) << StiffnessDL();
-      // ajout ///////////////////////////////////////////////////////////////////
+
 }
 
 void FEAP::print_gpl_config(fstream& out) const
@@ -1579,12 +2134,20 @@ void FEAP::print_gpl_config(fstream& out) const
       int n2 = elmConn_[i*nen1_+1] - 1;
 
       out << setw(Width_) << X_[n1*ndm_+0] + DOF_F_[n1*ndf_+0]
-          << setw(Width_) << X_[n1*ndm_+1] + DOF_F_[n1*ndf_+1]
-          << setw(Width_) << DOF_F_[n1*ndf_+2]
+          << setw(Width_) << X_[n1*ndm_+1] + DOF_F_[n1*ndf_+1];
+          if (ndm_==3)
+          {
+      out << setw(Width_) << X_[n1*ndm_+2] + DOF_F_[n1*ndf_+2];
+          }
+      out << setw(Width_) << DOF_F_[n1*ndf_+2]
           << "\t" << "# Element " << i+1 << ": Node " << n1+1 << endl;
       out << setw(Width_) << X_[n2*ndm_+0] + DOF_F_[n2*ndf_+0]
-          << setw(Width_) << X_[n2*ndm_+1] + DOF_F_[n2*ndf_+1]
-          << setw(Width_) << DOF_F_[n2*ndf_+2]
+          << setw(Width_) << X_[n2*ndm_+1] + DOF_F_[n2*ndf_+1];
+          if (ndm_==3)
+          {
+      out << setw(Width_) << X_[n2*ndm_+2] + DOF_F_[n2*ndf_+2];
+          }
+      out << setw(Width_) << DOF_F_[n2*ndf_+2]
           << "\t" << "# Element " << i+1 << ": Node " << n2+1
           << endl << endl;
     }
@@ -1738,13 +2301,15 @@ void FEAP::DynamicalMatrixBis(Vector const& K) const
    CMatrix B(ndf_,ndf_,0.0);
    Dk_.Resize(dim,dim,0.0);
    MyComplexDouble Ic(0.0,1.0);
+   
+   int shift_=ndm_*(ndm_+1)/2;
 
 
    switch (LoadingType_)
    {
      case DEAD_LOAD:
      case PRESSURE_LOAD:
-       A = E2CachedValue_.Extract(3,3,dim);
+       A = E2CachedValue_.Extract(shift_,shift_,dim);
        break;
      case DISPLACEMENT_CONTROL:
        A = E2CachedValue_;
@@ -1758,6 +2323,11 @@ void FEAP::DynamicalMatrixBis(Vector const& K) const
       {
           A[ndf_*i][ndf_*j] -= 2.0/eps_;
           A[1+ndf_*i][1+ndf_*j] -= 2.0/eps_;
+          if (ndm_==3)
+          {
+            A[2+ndf_*i][2+ndf_*j] -= 2.0/eps_;
+    //        A[3+ndf_*i][3+ndf_*j] -= 2.0/eps_;
+          }
       }
    }
 
@@ -1778,18 +2348,18 @@ void FEAP::DynamicalMatrixBis(Vector const& K) const
       {
           if (N_[i][2+2*j]>0)
           {
-             Dk_.MultiplyBlock(exp( (K*R) * Ic ) , Map_[ndf_*(N_[i][2+2*j]-1)][1]-3, Map_[ndf_*(N_[i][3+2*j]-1)][1]-3,ndf_);
-             Dk_.MultiplyBlock(exp(-(K*R) * Ic ) , Map_[ndf_*(N_[i][3+2*j]-1)][1]-3, Map_[ndf_*(N_[i][2+2*j]-1)][1]-3,ndf_);
+             Dk_.MultiplyBlock(exp( (K*R) * Ic ) , Map_[ndf_*(N_[i][2+2*j]-1)][1]-shift_, Map_[ndf_*(N_[i][3+2*j]-1)][1]-shift_,ndf_);
+             Dk_.MultiplyBlock(exp(-(K*R) * Ic ) , Map_[ndf_*(N_[i][3+2*j]-1)][1]-shift_, Map_[ndf_*(N_[i][2+2*j]-1)][1]-shift_,ndf_);
           }
           if (j<N_cols_/2-2 && (N_cols_/2-1>1) && ndf_==2)
           {
-             Dk_.MultiplyBlock(exp( (K*R) * Ic ) , Map_[ndf_*(N_[i][2+2*(j+1)]-1)][1]-3, Map_[ndf_*(N_[i][3+2*j]-1)][1]-3,ndf_);
-             Dk_.MultiplyBlock(exp(-(K*R) * Ic ) , Map_[ndf_*(N_[i][3+2*j]-1)][1]-3, Map_[ndf_*(N_[i][2+2*(j+1)]-1)][1]-3,ndf_);
+             Dk_.MultiplyBlock(exp( (K*R) * Ic ) , Map_[ndf_*(N_[i][2+2*(j+1)]-1)][1]-shift_, Map_[ndf_*(N_[i][3+2*j]-1)][1]-shift_,ndf_);
+             Dk_.MultiplyBlock(exp(-(K*R) * Ic ) , Map_[ndf_*(N_[i][3+2*j]-1)][1]-shift_, Map_[ndf_*(N_[i][2+2*(j+1)]-1)][1]-shift_,ndf_);
           }
           if (j>0 && (N_cols_/2-1>1) && N_[i][2+2*j]>0 && ndf_==2)
           {
-             Dk_.MultiplyBlock(exp( (K*R) * Ic ) , Map_[ndf_*(N_[i][2+2*(j-1)]-1)][1]-3, Map_[ndf_*(N_[i][3+2*j]-1)][1]-3,ndf_);
-             Dk_.MultiplyBlock(exp(-(K*R) * Ic ) , Map_[ndf_*(N_[i][3+2*j]-1)][1]-3, Map_[ndf_*(N_[i][2+2*(j-1)]-1)][1]-3,ndf_);
+             Dk_.MultiplyBlock(exp( (K*R) * Ic ) , Map_[ndf_*(N_[i][2+2*(j-1)]-1)][1]-shift_, Map_[ndf_*(N_[i][3+2*j]-1)][1]-shift_,ndf_);
+             Dk_.MultiplyBlock(exp(-(K*R) * Ic ) , Map_[ndf_*(N_[i][3+2*j]-1)][1]-shift_, Map_[ndf_*(N_[i][2+2*(j-1)]-1)][1]-shift_,ndf_);
           }
 
        }
@@ -1814,32 +2384,67 @@ int sortFunction(const void *a, const void *b)
 double FEAP::RankOneConvex(Matrix const& d2WdFdF, Vector &N) const
 {
   double const twoPi = 8.0*atan(1.0);
+  double const Pi = 4.0*atan(1.0);
   double const dt=twoPi/360.0;  // 1 degree
+  double const dp=twoPi/360.0;  // 1 degree
   double min = 1.0e100;
 
   double t = 0.0;
+  double p = 0.0;
+  if (ndm_==2)
+  {
   while (t < twoPi)
   {
-    Vector n(2);
+    Vector n(ndm_);
     n[0] = cos(t);
     n[1] = sin(t);
 
-    Matrix A(2,2, 0.0);
-    for (int i=0; i<2; ++i)
-      for (int j=0; j<2; ++j)
-        for (int k=0; k<2; ++k)
-          for (int l=0; l<2;++l)
-            A[i][j] += d2WdFdF[i*2+k][j*2+l]*n[k]*n[l];
+    Matrix A(ndm_,ndm_, 0.0);
+    for (int i=0; i<ndm_; ++i)
+      for (int j=0; j<ndm_; ++j)
+        for (int k=0; k<ndm_; ++k)
+          for (int l=0; l<ndm_;++l)
+            A[i][j] += d2WdFdF[i*ndm_+k][j*ndm_+l]*n[k]*n[l];
 
     Vector Eigs=SymEigVal(A);
-    for (int i=0; i<2; ++i)
+    for (int i=0; i<ndm_; ++i)
       if (Eigs[i] < min)
       {
         min = Eigs[i];
         N = n;
       }
-
     t += dt;
+    }
+  }
+  else
+  {
+  Vector n(ndm_);
+  while (t < twoPi)
+    {
+      while (p < Pi)
+      {
+        n[0] = cos(t)*sin(p);
+        n[1] = sin(t)*sin(p);
+        n[2] = cos(p);
+
+        Matrix A(ndm_,ndm_, 0.0);
+        for (int i=0; i<ndm_; ++i)
+         for (int j=0; j<ndm_; ++j)
+          for (int k=0; k<ndm_; ++k)
+           for (int l=0; l<ndm_; ++l)
+            A[i][j] += d2WdFdF[i*ndm_+k][j*ndm_+l]*n[k]*n[l];
+
+        Vector Eigs=SymEigVal(A);
+        for (int i=0; i<ndm_; ++i)
+        if (Eigs[i] < min)
+        {
+          min = Eigs[i];
+          N = n;
+        }
+        p += dp;
+      }
+    t += dt;
+    }
   }
 
   return min;
@@ -1853,15 +2458,13 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
    int NoNegTestFunctions = 0;
    double engy;
    double E1norm;
-   double ConjToLambdaScal;
-   Vector ConjToLambda(3);
+   double ConjToLambdaScal=0.0;
+   Vector ConjToLambda(ndm_*(ndm_+1)/2);
    Vector mintestfunct(NumTestFunctions());
    Vector TestFunctVals(NumTestFunctions());
-   Matrix Eye(2,2,0.0);
-   Eye.SetIdentity(2);
+   Matrix Eye(ndm_,ndm_,0.0);
+   Eye.SetIdentity(ndm_);
 
-   Matrix Q(DOFS_, DOFS_);
-   Matrix R(DOFS_, DOFS_-1);
 
    W = out.width();
 
@@ -1881,12 +2484,31 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
        ConjToLambda[0] = DOF_[0];
        ConjToLambda[1] = DOF_[1];
        ConjToLambda[2] = DOF_[2];
+       if (ndm_==3)
+       {
+         ConjToLambda[3] = DOF_[3];
+         ConjToLambda[4] = DOF_[4];
+         ConjToLambda[5] = DOF_[5];
+       }
        break;
      case PRESSURE_LOAD:
+       if (ndm_==2)
+       {
        ConjToLambdaScal = (U_[0][0]*U_[1][1] - U_[0][1]*U_[1][0] - 1.0)*nuc_*CellArea_;
+       }
+       else
+       {
+       ConjToLambdaScal = (U_[0][0]*U_[1][1]*U_[2][2] + U_[1][0]*U_[2][1]*U_[0][2] + U_[2][0]*U_[0][1]*U_[1][2] - U_[2][0]*U_[1][1]*U_[0][2] - U_[0][0]*U_[2][1]*U_[1][2] - U_[1][0]*U_[0][1]*U_[2][2] - 1.0) * nuc_ * CellArea_;
+       }
        ConjToLambda[0] = DOF_[0];
        ConjToLambda[1] = DOF_[1];
        ConjToLambda[2] = DOF_[2];
+       if (ndm_==3)
+       {
+         ConjToLambda[3] = DOF_[3];
+         ConjToLambda[4] = DOF_[4];
+         ConjToLambda[5] = DOF_[5];
+       }
        break;
      case DISPLACEMENT_CONTROL:
        ConjToLambda = DispE1CachedValue_;
@@ -1908,8 +2530,8 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
    }
    // sort eigenvalues
    qsort(&(mintestfunct[0]), mintestfunct.Dim(), sizeof(double), sortFunction);
-   int minprint = (NoNegTestFunctions+2 < mintestfunct.Dim()) ?
-      NoNegTestFunctions+2 : mintestfunct.Dim();
+   int minprint = (NoNegTestFunctions+ndm_ < mintestfunct.Dim()) ?
+      NoNegTestFunctions+ndm_ : mintestfunct.Dim();
 
    // Condense d2W/dFdF
    int Fsize = ndm_*ndm_;
@@ -1934,9 +2556,20 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
      case PRESSURE_LOAD:
        plot_out_ << setw(Width_) << Lambda_
                  << setw(Width_) << DOF_[0]
-                 << setw(Width_) << DOF_[1]
-                 << setw(Width_) << DOF_[2]/sqrt(2.0)
-                 << setw(Width_) << E0CachedValue_ << endl;
+                 << setw(Width_) << DOF_[1];
+                 if (ndm_==2)
+                 {
+       plot_out_ << setw(Width_) << DOF_[2]/sqrt(2.0);
+                 }
+                 else
+                 {
+       plot_out_ << setw(Width_) << DOF_[2];
+       plot_out_ << setw(Width_) << DOF_[3]/sqrt(2.0);
+       plot_out_ << setw(Width_) << DOF_[4]/sqrt(2.0);
+       plot_out_ << setw(Width_) << DOF_[5]/sqrt(2.0);
+
+                 }
+       plot_out_ << setw(Width_) << E0CachedValue_ << endl;
       break;
      case DISPLACEMENT_CONTROL:
        plot_out_ << setw(Width_) << -ConjToLambda[0]/(nuc_*CellArea_)
@@ -1999,9 +2632,6 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
            out << "Stiffness: " << setw(W) << E2CachedValue_;
            out << "Condensed Stiffness: " << setw(W) << Cond;
          }
-      // ajout ///////////////////////////////////////////////////////////////////
-      //  out << "StiffnessDL= " << setw(W) << StiffnessDL() << "\n";
-      // ajout ///////////////////////////////////////////////////////////////////
 
          out << "Bifurcation Info: ";
          for (int i=0;i<minprint; ++i) out << setw(W) << mintestfunct[i];
@@ -2015,7 +2645,6 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
             cout << "Lambda (t): " << setw(W) << Lambda_ << "\n"
                  << "ConjToLambdaScal: " << setw(W) << ConjToLambdaScal << "\n"
                  << "ConjToLambda: " << setw(W) << ConjToLambda << "\n"
-              //   << "DOF_F_: " << setw(W) << DOF_F_ << "\n"
                  << "DOF: " << setw(W) << DOF_ << "\n"
                  << "DOF Norm: " << setw(W) << DOF_.Norm() << "\n"
                  << "Potential Value: " << setw(W) << engy << "\n"
@@ -2026,15 +2655,6 @@ void FEAP::Print(ostream& out, PrintDetail const& flag,
               cout << "Stiffness: " << setw(W) << E2CachedValue_;
               cout << "Condensed Stiffness: " << setw(W) << Cond;
             }
-       //ajout ///////////////////////////////////////////////////////////////////
-//   cout << "StiffnessDL= " << setw(W) << E2() << "\n";
-//   cout << "X_F_= " << setw(W) << X_F_ << "\n";
-//      QR(E2(), Q, R, 1);
-//   cout << "QR= " << setw(W) << Q << "\n";
-
-       //   cout << "nodal_coord= " << setw(W) << X_ << "\n";
-       //ajout ///////////////////////////////////////////////////////////////////
-       //
             cout << "Bifurcation Info: ";
             for (int i=0;i<minprint; ++i) cout << setw(W) << mintestfunct[i];
             cout << setw(W) << NoNegTestFunctions << "\n";

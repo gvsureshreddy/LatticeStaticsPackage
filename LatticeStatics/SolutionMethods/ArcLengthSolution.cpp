@@ -61,7 +61,7 @@ ArcLengthSolution::ArcLengthSolution(Restriction* const Restrict, Vector const& 
    AngleIncrease_(AngleIncrease),
    Aspect_(Aspect),
    eig_angle_max_(eig_angle_max),
-   NumSolutions_(NumSolutions_),
+   NumSolutions_(NumSolutions),
    CumulativeArcLength_(0.0),
    CurrentSolution_(CurrentSolution),
    BifStartFlag_(BifStartFlag),

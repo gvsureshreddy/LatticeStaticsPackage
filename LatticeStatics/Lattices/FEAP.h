@@ -48,6 +48,7 @@ private:
    mutable CMatrix Dk_; //Dynamical matrix (Bloch-wave stiffness matrix)
 
    int KSpaceResolution_; //Used in Bloch wave analysis, when AnalysisType => Full or KDirection
+   double KScale_; // Scaling factor for Full bloch scan analysis
    Vector KRange_; //Range of KVectors when AnalysisType => KDirection
    int NumKVectors_;
    Matrix KVectorMatrix_;//KVectors when AnalysisType => KVectors
@@ -87,7 +88,7 @@ private:
    void UpdateDOF_F() const; //Uses the BFB DOFs and maps to FEAP DOFs
    void UpdateJacobian() const;
    void JacobianHelper(int const ii, int const jj, int const shift,
-                       int const Wshift) const;
+                       int const Wshift, int const temp) const;
 
   double RankOneConvex(Matrix const& d2WdFdF, Vector &N) const;
 
@@ -101,9 +102,10 @@ private:
    fstream plot_out_; //Prints out in separate files plotting information. columns are Lambda, U11, U22, U12, E0
    mutable int plot_count_; //Index count for plot_out_ stream
 
-   static const int cachesize = 4;
+   static const int cachesize = 9;
    mutable int Cached_[cachesize];
    mutable double E0CachedValue_;
+   mutable double Indic_;
    mutable Vector E1CachedValue_;
    mutable Vector W1CachedValue_;
    mutable Vector DispE1CachedValue_; // store conjugate to disp. control
@@ -114,6 +116,10 @@ private:
    mutable Matrix E2CachedValue_F_;
    mutable int EvaluationCount_[2];
    mutable int CallCount_[cachesize];
+   
+   mutable double Indicatrix_;
+
+   mutable int temp;
 
 public:
    // Functions provided by FEAP
@@ -135,8 +141,21 @@ public:
         case PRESSURE_LOAD:
           U_[0][0] = DOF_[0];
           U_[1][1] = DOF_[1];
+          if(ndm_==2)
+          {
           U_[0][1] = DOF_[2]/sqrt(2.0);
           U_[1][0] = U_[0][1];
+          }
+          else if (ndm_==3)
+          {
+          U_[2][2] = DOF_[2];
+          U_[0][1] = DOF_[5]/sqrt(2.0);
+          U_[0][2] = DOF_[4]/sqrt(2.0);
+          U_[1][2] = DOF_[3]/sqrt(2.0);
+          U_[1][0] = U_[0][1];
+          U_[2][0] = U_[0][2];
+          U_[2][1] = U_[1][2];
+          }
           F_ = U_;
           break;
         case DISPLACEMENT_CONTROL:
@@ -144,6 +163,14 @@ public:
           U_[1][1] = StretchRatio_ * Lambda_;
           U_[0][1] = 0.0;
           U_[1][0] = 0.0;
+          if (ndm_==3)
+          {
+            U_[2][2] = StretchRatio_ * Lambda_;
+            U_[0][2] = 0.0;
+            U_[2][0] = 0.0;
+            U_[1][2] = 0.0;
+            U_[2][1] = 0.0;
+          }
           F_ = U_;
           break;
       }
@@ -167,6 +194,14 @@ public:
         U_[1][1] = StretchRatio_ * Lambda_;
         U_[0][1] = 0.0;
         U_[1][0] = 0.0;
+        if (ndm_==3)
+        {
+        U_[2][2] = StretchRatio_ * Lambda_;
+        U_[0][2] = 0.0;
+        U_[2][0] = 0.0;
+        U_[1][2] = 0.0;
+        U_[2][1] = 0.0;
+        }
         F_ = U_;
       }
       for (int i = 0; i < cachesize; ++i)
