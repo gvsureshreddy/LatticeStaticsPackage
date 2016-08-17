@@ -9,7 +9,7 @@
 #include "CBKinematics.h"
 #include "LagrangeCB.h"
 #include "SymLagrangeWTransCB.h"
-#include "PPSumKIM.h"
+#include "CBK_KIM.h"
 #include <CMatrix.h>
 #include "KIM_API_C.h"
 #include "KIM_API_status.h"
@@ -30,16 +30,15 @@ class MultiLatticeKIM : public Lattice
   // or
   // DOF[i] = [U11 U22 U33 U12 U13 U23 S11 S12 S13 S21... ...]
   // if using a UwithoutTransMapping CBkinematics
+  mutable CBK_KIM KIM_CBK_;
   CBKinematics* CBK_;
   CBKinematics* CBK_F_;
   int KillRotations_;
   void* pkim_;
-  int numberOfParticles_;
+  mutable int numberOfParticles_;
+  int numberContributingParticles_;
   int numberOfSpecies_;
-  int* particleSpecies_;
-  double cutoff_;
-  double* coords_;
-  double* forces_;
+  mutable int* particleSpecies_;
   mutable double energy_;
   int atom_;
   int numNei_;
@@ -59,8 +58,7 @@ class MultiLatticeKIM : public Lattice
   enum LDeriv {L0, DL};
   double Lambda_;
   Matrix Loading_;
-  Vector* BodyForce_;
-  mutable PPSumKIM LatSum_;
+  mutable Vector* BodyForce_;
 
 
   int TFType_;
@@ -75,15 +73,6 @@ class MultiLatticeKIM : public Lattice
   Matrix const& stiffness(LDeriv const& dl = L0) const;
 
   void UpdateKIMValues() const;
-  void Write_KIM_descriptor_file(const char** SpeciesList,
-                                 int numberParticleTypes_);
-  static int get_neigh(void* kimmdl, int* mode, int* request, int* atom,
-                       int* numnei, int** nei1atom, double** Rij);
-
-  static int process_dEdr(void* kimmdl, double* dEdr, double* r,
-                          double** dx, int* i, int* j);
-  static int process_d2Edr2(void* kimmdl, double* d2Edr2, double** r,
-                            double** dx, int** i, int** j);
 
  public:
   const static int DIM3;
