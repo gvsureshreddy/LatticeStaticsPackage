@@ -1076,7 +1076,7 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
    cpfilename << Input.LastInputFileName();
    if ("" != UseExtension_)
    {
-      unsigned pos = (cpfilename.str().rfind(UseExtension_, cpfilename.str().length() - 1));
+      size_t pos = (cpfilename.str().rfind(UseExtension_, cpfilename.str().length() - 1));
       if (string::npos != pos)
       {
          string a = cpfilename.str().substr(0, pos);

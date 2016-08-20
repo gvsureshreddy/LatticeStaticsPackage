@@ -167,35 +167,35 @@ void CBKinematics::SetReferenceToCurrent()
 Vector CBKinematics::CBKtoCoords() const
 {
    // @@ this needs to be made more general.
-	//THIS IS USED TO OBTAIN ABSOLUTE COORDINATES (FOR USE IN MultiLatticeKIM). RIGHT NOW IT ONLY WORKS WITH SymLagrangeWTransCB
-	Vector Coords(3);
-	Vector coords(3*InternalAtoms_);
+        //THIS IS USED TO OBTAIN ABSOLUTE COORDINATES (FOR USE IN MultiLatticeKIM). RIGHT NOW IT ONLY WORKS WITH SymLagrangeWTransCB
+        Vector Coords(3);
+        Vector coords(3*InternalAtoms_);
 
-	Vector AtomShift(3);
-	for(int i = 0;i < InternalAtoms_; i++)
-	{
-		for(int j = 0;j < DIM3; j++)
-		{
-			AtomShift[j]=DOF_[INDS(i,j)];
-		}
-		Coords = F_ * (RefLattice_.Transpose()) * (InternalPOS_[i]+AtomShift);
-		for (int j = 0; j< DIM3; j++)
-		{
-			coords[i*3+j] = Coords[j];
-		}
-	}
+        Vector AtomShift(3);
+        for(int i = 0;i < InternalAtoms_; i++)
+        {
+                for(int j = 0;j < DIM3; j++)
+                {
+                        AtomShift[j]=DOF_[INDS(i,j)];
+                }
+                Coords = F_ * (RefLattice_.Transpose()) * (InternalPOS_[i]+AtomShift);
+                for (int j = 0; j< DIM3; j++)
+                {
+                        coords[i*3+j] = Coords[j];
+                }
+        }
    /*
     cout << "coords = " << endl;
     for (int i = 0;i < InternalAtoms_; i++)
     {
         for (int j = 0; j< DIM3; j++)
-		{
+                {
                 cout << coords[i*3+j] << ", ";
-		}
+                }
     }
     cout << endl;
     */
-	return coords;
+        return coords;
 }
 
 
