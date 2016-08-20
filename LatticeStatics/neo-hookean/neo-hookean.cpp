@@ -95,13 +95,13 @@ namespace neo_hookean
     {
       prm.enter_subsection("Finite element system");
       {
-	prm.declare_entry("Polynomial degree", "1",
-			  Patterns::Integer(0),
-			  "Displacement system polynomial order");
+        prm.declare_entry("Polynomial degree", "1",
+                          Patterns::Integer(0),
+                          "Displacement system polynomial order");
 
-	prm.declare_entry("Quadrature order", "3",
-			  Patterns::Integer(0),
-			  "Gauss quadrature order");
+        prm.declare_entry("Quadrature order", "3",
+                          Patterns::Integer(0),
+                          "Gauss quadrature order");
       }
       prm.leave_subsection();
     }
@@ -110,8 +110,8 @@ namespace neo_hookean
     {
       prm.enter_subsection("Finite element system");
       {
-	poly_degree = prm.get_integer("Polynomial degree");
-	quad_order = prm.get_integer("Quadrature order");
+        poly_degree = prm.get_integer("Polynomial degree");
+        quad_order = prm.get_integer("Quadrature order");
       }
       prm.leave_subsection();
     }
@@ -143,37 +143,37 @@ namespace neo_hookean
     {
       prm.enter_subsection("Geometry");
       {
-	prm.declare_entry("Width (integer)", "1",
-			  Patterns::Integer(0),
-			  "Width (integer)");
+        prm.declare_entry("Width (integer)", "1",
+                          Patterns::Integer(0),
+                          "Width (integer)");
 
-	prm.declare_entry("Global refinement", "1",
-			  Patterns::Integer(0),
-			  "Global refinement level");
+        prm.declare_entry("Global refinement", "1",
+                          Patterns::Integer(0),
+                          "Global refinement level");
 
-	prm.declare_entry("Local refinement cycles", "0",
-			  Patterns::Integer(0),
-			  "Local refinement cycles");
+        prm.declare_entry("Local refinement cycles", "0",
+                          Patterns::Integer(0),
+                          "Local refinement cycles");
 
-	prm.declare_entry("Grid scale", "1e0",
-			  Patterns::Double(0.0),
-			  "Global grid scaling factor");
+        prm.declare_entry("Grid scale", "1e0",
+                          Patterns::Double(0.0),
+                          "Global grid scaling factor");
 
-	prm.declare_entry("Cells aspect ratio", "1e0",
-			  Patterns::Double(0.0),
-			  "Cells aspect ratio");
+        prm.declare_entry("Cells aspect ratio", "1e0",
+                          Patterns::Double(0.0),
+                          "Cells aspect ratio");
 
-	prm.declare_entry("Pressure ratio p/p0", "100",
-			  Patterns::Selection("20|40|60|80|100"),
-			  "Ratio of applied pressure to reference pressure");
+        prm.declare_entry("Pressure ratio p/p0", "100",
+                          Patterns::Selection("20|40|60|80|100"),
+                          "Ratio of applied pressure to reference pressure");
 
-	prm.declare_entry("Elongation", "0.99",
-			  Patterns::Double(0.0),
-			  "Elongation");
+        prm.declare_entry("Elongation", "0.99",
+                          Patterns::Double(0.0),
+                          "Elongation");
 
         prm.declare_entry("DOF to change", "0",
-			  Patterns::Integer(0),
-			  "DOF to change");
+                          Patterns::Integer(0),
+                          "DOF to change");
       }
       prm.leave_subsection();
     }
@@ -183,12 +183,12 @@ namespace neo_hookean
       prm.enter_subsection("Geometry");
       {
         width = prm.get_integer("Width (integer)");
-	global_refinement = prm.get_integer("Global refinement");
-	local_refinement_cycles = prm.get_integer("Local refinement cycles");
-	scale = prm.get_double("Grid scale");
-	aspect_ratio = prm.get_double("Cells aspect ratio");
+        global_refinement = prm.get_integer("Global refinement");
+        local_refinement_cycles = prm.get_integer("Local refinement cycles");
+        scale = prm.get_double("Grid scale");
+        aspect_ratio = prm.get_double("Cells aspect ratio");
         p_p0 = prm.get_double("Pressure ratio p/p0");
-	elongation = prm.get_double("Elongation");
+        elongation = prm.get_double("Elongation");
         dof_to_change = prm.get_integer("DOF to change");
       }
       prm.leave_subsection();
@@ -221,23 +221,23 @@ namespace neo_hookean
     {
       prm.enter_subsection("Material properties");
       {
-	prm.declare_entry("Shear modulus", "2.0"/*"80.194e6"*/,
-			  Patterns::Double(),
-			  "Shear modulus");
+        prm.declare_entry("Shear modulus", "2.0"/*"80.194e6"*/,
+                          Patterns::Double(),
+                          "Shear modulus");
         prm.declare_entry("Angle theta", "0.0",
-			  Patterns::Double(),
-			  "Angle theta");
+                          Patterns::Double(),
+                          "Angle theta");
         prm.declare_entry("Norm of N", "0.0",
-			  Patterns::Double(),
-			  "Norm of N");
+                          Patterns::Double(),
+                          "Norm of N");
 
         prm.declare_entry("Factor of anti-Hourglass term", "1.0",
-			  Patterns::Double(),
-			  "Factor of anti-Hourglass term");
+                          Patterns::Double(),
+                          "Factor of anti-Hourglass term");
 
         prm.declare_entry("Factor of pro-Hourglass term", "1.0",
-			  Patterns::Double(),
-			  "Factor of pro-Hourglass term");
+                          Patterns::Double(),
+                          "Factor of pro-Hourglass term");
       }
       prm.leave_subsection();
     }
@@ -246,7 +246,7 @@ namespace neo_hookean
     {
       prm.enter_subsection("Material properties");
       {
-	mu_0 = prm.get_double("Shear modulus");
+        mu_0 = prm.get_double("Shear modulus");
         theta = prm.get_double("Angle theta");
         norm_N = prm.get_double("Norm of N");
         factor_anti_hourglass_term = prm.get_double("Factor of anti-Hourglass term");
@@ -281,25 +281,25 @@ namespace neo_hookean
     {
       prm.enter_subsection("Linear solver");
       {
-	prm.declare_entry("Solver type", "Direct",
-			  Patterns::Selection("CG|Direct"),
-			  "Type of solver used to solve the linear system");
+        prm.declare_entry("Solver type", "Direct",
+                          Patterns::Selection("CG|Direct"),
+                          "Type of solver used to solve the linear system");
 
-	prm.declare_entry("Residual", "1e-6",
-			  Patterns::Double(0.0),
-			  "Linear solver residual (scaled by residual norm)");
+        prm.declare_entry("Residual", "1e-6",
+                          Patterns::Double(0.0),
+                          "Linear solver residual (scaled by residual norm)");
 
-	prm.declare_entry("Max iteration multiplier", "1",
-			  Patterns::Double(0.0),
-			  "Linear solver iterations (multiples of the system matrix size)");
+        prm.declare_entry("Max iteration multiplier", "1",
+                          Patterns::Double(0.0),
+                          "Linear solver iterations (multiples of the system matrix size)");
 
-	prm.declare_entry("Preconditioner type", "ssor",
-			  Patterns::Selection("jacobi|ssor"),
-			  "Type of preconditioner");
+        prm.declare_entry("Preconditioner type", "ssor",
+                          Patterns::Selection("jacobi|ssor"),
+                          "Type of preconditioner");
 
-	prm.declare_entry("Preconditioner relaxation", "0.65",
-			  Patterns::Double(0.0),
-			  "Preconditioner relaxation value");
+        prm.declare_entry("Preconditioner relaxation", "0.65",
+                          Patterns::Double(0.0),
+                          "Preconditioner relaxation value");
       }
       prm.leave_subsection();
     }
@@ -308,11 +308,11 @@ namespace neo_hookean
     {
       prm.enter_subsection("Linear solver");
       {
-	type_lin = prm.get("Solver type");
-	tol_lin = prm.get_double("Residual");
-	max_iterations_lin = prm.get_double("Max iteration multiplier");
-	preconditioner_type = prm.get("Preconditioner type");
-	preconditioner_relaxation = prm.get_double("Preconditioner relaxation");
+        type_lin = prm.get("Solver type");
+        tol_lin = prm.get_double("Residual");
+        max_iterations_lin = prm.get_double("Max iteration multiplier");
+        preconditioner_type = prm.get("Preconditioner type");
+        preconditioner_relaxation = prm.get_double("Preconditioner relaxation");
       }
       prm.leave_subsection();
     }
@@ -339,17 +339,17 @@ namespace neo_hookean
     {
       prm.enter_subsection("Nonlinear solver");
       {
-	prm.declare_entry("Max iterations Newton-Raphson", "10",
-			  Patterns::Integer(0),
-			  "Number of Newton-Raphson iterations allowed");
+        prm.declare_entry("Max iterations Newton-Raphson", "10",
+                          Patterns::Integer(0),
+                          "Number of Newton-Raphson iterations allowed");
 
-	prm.declare_entry("Tolerance force", "1.0e-9",
-			  Patterns::Double(0.0),
-			  "Force residual tolerance");
+        prm.declare_entry("Tolerance force", "1.0e-9",
+                          Patterns::Double(0.0),
+                          "Force residual tolerance");
 
-	prm.declare_entry("Tolerance displacement", "1.0e-12",
-			  Patterns::Double(0.0),
-			  "Displacement error tolerance");
+        prm.declare_entry("Tolerance displacement", "1.0e-12",
+                          Patterns::Double(0.0),
+                          "Displacement error tolerance");
       }
       prm.leave_subsection();
     }
@@ -358,9 +358,9 @@ namespace neo_hookean
     {
       prm.enter_subsection("Nonlinear solver");
       {
-	max_iterations_NR = prm.get_integer("Max iterations Newton-Raphson");
-	tol_f = prm.get_double("Tolerance force");
-	tol_u = prm.get_double("Tolerance displacement");
+        max_iterations_NR = prm.get_integer("Max iterations Newton-Raphson");
+        tol_f = prm.get_double("Tolerance force");
+        tol_u = prm.get_double("Tolerance displacement");
       }
       prm.leave_subsection();
     }
@@ -384,13 +384,13 @@ namespace neo_hookean
     {
       prm.enter_subsection("Time");
       {
-	prm.declare_entry("End time", "1",
-			  Patterns::Double(),
-			  "End time");
+        prm.declare_entry("End time", "1",
+                          Patterns::Double(),
+                          "End time");
 
-	prm.declare_entry("Time step size", "0.1",
-			  Patterns::Double(),
-			  "Time step size");
+        prm.declare_entry("Time step size", "0.1",
+                          Patterns::Double(),
+                          "Time step size");
       }
       prm.leave_subsection();
     }
@@ -399,8 +399,8 @@ namespace neo_hookean
     {
       prm.enter_subsection("Time");
       {
-	end_time = prm.get_double("End time");
-	delta_t = prm.get_double("Time step size");
+        end_time = prm.get_double("End time");
+        delta_t = prm.get_double("Time step size");
       }
       prm.leave_subsection();
     }
@@ -423,9 +423,9 @@ namespace neo_hookean
     {
       prm.enter_subsection("General Parameters");
       {
-	prm.declare_entry("Print steps computation", "false",
-			  Patterns::Bool(),
-			  "Print steps computation");
+        prm.declare_entry("Print steps computation", "false",
+                          Patterns::Bool(),
+                          "Print steps computation");
       }
       prm.leave_subsection();
     }
@@ -434,7 +434,7 @@ namespace neo_hookean
     {
       prm.enter_subsection("General Parameters");
       {
-	print_steps_computation_param = prm.get_bool("Print steps computation");
+        print_steps_computation_param = prm.get_bool("Print steps computation");
       }
       prm.leave_subsection();
     }
@@ -444,11 +444,11 @@ namespace neo_hookean
     // Finally we consolidate all of the above structures into a single container
     // that holds all of our run-time selections.
     struct AllParameters : public FESystem,
-			   public Geometry,
-			   public Materials,
-			   public LinearSolver,
-			   public NonlinearSolver,
-			   public Time,
+                           public Geometry,
+                           public Materials,
+                           public LinearSolver,
+                           public NonlinearSolver,
+                           public Time,
                            public GeneralParameters
 
     {
@@ -516,7 +516,7 @@ namespace neo_hookean
   {
   public:
     Time (const double time_end,
-	  const double delta_t)
+          const double delta_t)
       :
       timestep(0),
       time_current(0.0),
@@ -588,7 +588,7 @@ namespace neo_hookean
     // based on $F$ and the pressure p, and at the end of the function include a physical
     // check for internal consistency:
     void update_material_data(const Tensor<2, dim> &F,
-			      const double p_in)
+                              const double p_in)
     {
       det_F = determinant(F);
       p = p_in;
@@ -681,11 +681,11 @@ namespace neo_hookean
     // back and forth by converting $I$ to Tensor first, and then performing
     // the addition as between nonsymmetric tensors:
     void update_values (const Tensor<2, dim> &Grad_u_n,
-			const double p)
+                        const double p)
     {
       const Tensor<2, dim> F
-	= (Tensor<2, dim>(StandardTensors<dim>::I) +
-	   Grad_u_n);
+        = (Tensor<2, dim>(StandardTensors<dim>::I) +
+           Grad_u_n);
       material->update_material_data(F, p);
       C = transpose(F) * F;
       C_inv = invert(C);
@@ -755,7 +755,7 @@ namespace neo_hookean
   public:
     InverseMatrix(const MatrixType &m);
     void vmult(Vector<double>       &dst,
-	       const Vector<double> &src) const;
+               const Vector<double> &src) const;
   private:
     const SmartPointer<const MatrixType> matrix;
   };
@@ -766,10 +766,10 @@ namespace neo_hookean
   {}
   template <class MatrixType>
   void InverseMatrix<MatrixType>::vmult (Vector<double>       &dst,
-					 const Vector<double> &src) const
+                                         const Vector<double> &src) const
   {
     SolverControl solver_control (std::max(src.size(), static_cast<std::size_t> (200)),
-				  1e-8*src.l2_norm());
+                                  1e-8*src.l2_norm());
     SolverCG<>    cg (solver_control);
     dst = 0;
     std::cout << std::endl << "Try to inverse mass matrix..." << std::endl;
@@ -780,9 +780,9 @@ namespace neo_hookean
   {
   public:
     SchurComplement (const BlockSparseMatrix<double>            &A,
-		     const InverseMatrix<SparseMatrix<double> > &Minv);
+                     const InverseMatrix<SparseMatrix<double> > &Minv);
     void vmult (Vector<double>       &dst,
-		const Vector<double> &src) const;
+                const Vector<double> &src) const;
   private:
     const SmartPointer<const BlockSparseMatrix<double> > tangent_matrix;
     const SmartPointer<const InverseMatrix<SparseMatrix<double> > > m_inverse;
@@ -790,7 +790,7 @@ namespace neo_hookean
   };
   SchurComplement
   ::SchurComplement (const BlockSparseMatrix<double>            &A,
-		     const InverseMatrix<SparseMatrix<double> > &Minv)
+                     const InverseMatrix<SparseMatrix<double> > &Minv)
     :
     tangent_matrix (&A),
     m_inverse (&Minv),
@@ -798,7 +798,7 @@ namespace neo_hookean
     tmp2 (A.block(0,0).m())
   {}
   void SchurComplement::vmult (Vector<double>       &dst,
-			       const Vector<double> &src) const
+                               const Vector<double> &src) const
   {
     tangent_matrix->block(0,1).vmult (tmp1, src);
     m_inverse->vmult (tmp2, tmp1);
@@ -809,7 +809,7 @@ namespace neo_hookean
   public:
     ApproximateSchurComplement (const BlockSparseMatrix<double> &A);
     void vmult (Vector<double>       &dst,
-		const Vector<double> &src) const;
+                const Vector<double> &src) const;
   private:
     const SmartPointer<const BlockSparseMatrix<double> > tangent_matrix;
     mutable Vector<double> tmp1, tmp2;
@@ -891,7 +891,7 @@ namespace neo_hookean
 
     void
     get_rhs_and_tangent(BlockVector<double> const* &sys_rhs,
-			BlockSparseMatrix<double> const* &tm, unsigned int iter_value);
+                        BlockSparseMatrix<double> const* &tm, unsigned int iter_value);
 
     void
     get_free_rhs(BlockVector<double> const* &sys_rhs);
@@ -954,8 +954,8 @@ namespace neo_hookean
 
     void
     assemble_system_tangent_one_cell(const typename DoFHandler<dim>::active_cell_iterator &cell,
-				     ScratchData_K &scratch,
-				     PerTaskData_K &data);
+                                     ScratchData_K &scratch,
+                                     PerTaskData_K &data);
 
     void
     copy_local_to_global_K(const PerTaskData_K &data);
@@ -965,8 +965,8 @@ namespace neo_hookean
 
     void
     assemble_system_rhs_one_cell(const typename DoFHandler<dim>::active_cell_iterator &cell,
-				 ScratchData_RHS &scratch,
-				 PerTaskData_RHS &data);
+                                 ScratchData_RHS &scratch,
+                                 PerTaskData_RHS &data);
 
     void
     copy_local_to_global_rhs(const PerTaskData_RHS &data);
@@ -976,8 +976,8 @@ namespace neo_hookean
 
     void
     assemble_system_energy_one_cell(const typename DoFHandler<dim>::active_cell_iterator &cell,
-				    ScratchData_Energy &scratch,
-				    PerTaskData_Energy &data);
+                                    ScratchData_Energy &scratch,
+                                    PerTaskData_Energy &data);
 
     void
     copy_local_to_global_energy(const PerTaskData_Energy &data)
@@ -998,8 +998,8 @@ namespace neo_hookean
 
     void
     update_qph_incremental_one_cell(const typename DoFHandler<dim>::active_cell_iterator &cell,
-				    ScratchData_UQPH &scratch,
-				    PerTaskData_UQPH &data);
+                                    ScratchData_UQPH &scratch,
+                                    PerTaskData_UQPH &data);
 
     void
     copy_local_to_global_UQPH(const PerTaskData_UQPH &/*data*/)
@@ -1069,8 +1069,8 @@ namespace neo_hookean
 
     enum
       {
-	u_dof = 0,
-	p_dof = 1,
+        u_dof = 0,
+        p_dof = 1,
       };
 
     std::vector<types::global_dof_index>        dofs_per_block;
@@ -1117,24 +1117,24 @@ namespace neo_hookean
     struct Errors
     {
       Errors()
-	:
-	norm(1.0), u(1.0), p(1.0)
+        :
+        norm(1.0), u(1.0), p(1.0)
       {}
 
       void reset()
       {
-	norm = 1.0;
-	u = 1.0;
-	p = 1.0;
+        norm = 1.0;
+        u = 1.0;
+        p = 1.0;
       }
       void normalise(const Errors &rhs)
       {
-	if (rhs.norm != 0.0)
-	  norm /= rhs.norm;
-	if (rhs.u != 0.0)
-	  u /= rhs.u;
-	if (rhs.p != 0.0)
-	  p /= rhs.p;
+        if (rhs.norm != 0.0)
+          norm /= rhs.norm;
+        if (rhs.u != 0.0)
+          u /= rhs.u;
+        if (rhs.p != 0.0)
+          p /= rhs.p;
       }
 
       double norm, u, p;
@@ -1147,7 +1147,7 @@ namespace neo_hookean
     void get_error_residual(Errors &error_residual);
 
     void get_error_update(const BlockVector<double> &newton_update,
-			  Errors &error_update);
+                          Errors &error_update);
 
     std::pair<double, double>
     get_error_dilation();
@@ -1173,8 +1173,8 @@ namespace neo_hookean
     triangulation(Triangulation<dim>::maximum_smoothing),
     time(parameters.end_time, parameters.delta_t),
     timer(std::cout,
-	  TimerOutput::summary,
-	  TimerOutput::wall_times),
+          TimerOutput::summary,
+          TimerOutput::wall_times),
     degree(parameters.poly_degree),
     // The Finite Element System is composed of dim continuous displacement
     // DOFs, and discontinuous pressure DOF. In an attempt to
@@ -1240,18 +1240,18 @@ namespace neo_hookean
     BlockVector<double> solution_delta(dofs_per_block);
     while (time.current() < time.end())
       {
-	solution_delta = 0.0;
+        solution_delta = 0.0;
 
-	// ...solve the current time step and update total solution vector
-	// $\mathbf{\Xi}_{\textrm{n}} = \mathbf{\Xi}_{\textrm{n-1}} +
-	// \varDelta \mathbf{\Xi}$...
-	solve_nonlinear_timestep(solution_delta);
-	solution_n += solution_delta;
+        // ...solve the current time step and update total solution vector
+        // $\mathbf{\Xi}_{\textrm{n}} = \mathbf{\Xi}_{\textrm{n-1}} +
+        // \varDelta \mathbf{\Xi}$...
+        solve_nonlinear_timestep(solution_delta);
+        solution_n += solution_delta;
 
-	// ...and plot the results before moving on happily to the next time
-	// step:
-	output_results();
-	time.increment();
+        // ...and plot the results before moving on happily to the next time
+        // step:
+        output_results();
+        time.increment();
       }
   }
 
@@ -1302,21 +1302,21 @@ namespace neo_hookean
     std::vector<std::vector<Tensor<2, dim> > >          grad_Nx;
 
     ScratchData_K(const FiniteElement<dim> &fe_cell,
-		  const QGauss<dim> &qf_cell,
-		  const UpdateFlags uf_cell)
+                  const QGauss<dim> &qf_cell,
+                  const UpdateFlags uf_cell)
       :
       fe_values_ref(fe_cell, qf_cell, uf_cell),
       Nx(qf_cell.size(),
-	 std::vector<double>(fe_cell.dofs_per_cell)),
+         std::vector<double>(fe_cell.dofs_per_cell)),
       grad_Nx(qf_cell.size(),
-	      std::vector<Tensor<2, dim> >(fe_cell.dofs_per_cell))
+              std::vector<Tensor<2, dim> >(fe_cell.dofs_per_cell))
     {}
 
     ScratchData_K(const ScratchData_K &rhs)
       :
       fe_values_ref(rhs.fe_values_ref.get_fe(),
-		    rhs.fe_values_ref.get_quadrature(),
-		    rhs.fe_values_ref.get_update_flags()),
+                    rhs.fe_values_ref.get_quadrature(),
+                    rhs.fe_values_ref.get_update_flags()),
       Nx(rhs.Nx),
       grad_Nx(rhs.grad_Nx)
     {}
@@ -1326,16 +1326,16 @@ namespace neo_hookean
       const unsigned int n_q_points = Nx.size();
       const unsigned int n_dofs_per_cell = Nx[0].size();
       for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
-	{
-	  Assert( Nx[q_point].size() == n_dofs_per_cell, ExcInternalError());
-	  Assert( grad_Nx[q_point].size() == n_dofs_per_cell,
-		  ExcInternalError());
-	  for (unsigned int k = 0; k < n_dofs_per_cell; ++k)
-	    {
-	      Nx[q_point][k] = 0.0;
-	      grad_Nx[q_point][k] = 0.0;
-	    }
-	}
+        {
+          Assert( Nx[q_point].size() == n_dofs_per_cell, ExcInternalError());
+          Assert( grad_Nx[q_point].size() == n_dofs_per_cell,
+                  ExcInternalError());
+          for (unsigned int k = 0; k < n_dofs_per_cell; ++k)
+            {
+              Nx[q_point][k] = 0.0;
+              grad_Nx[q_point][k] = 0.0;
+            }
+        }
     }
 
   };
@@ -1372,26 +1372,26 @@ namespace neo_hookean
     std::vector<std::vector<Tensor<2, dim> > > grad_Nx;
 
     ScratchData_RHS(const FiniteElement<dim> &fe_cell,
-		    const QGauss<dim> &qf_cell, const UpdateFlags uf_cell,
-		    const QGauss<dim - 1> & qf_face, const UpdateFlags uf_face)
+                    const QGauss<dim> &qf_cell, const UpdateFlags uf_cell,
+                    const QGauss<dim - 1> & qf_face, const UpdateFlags uf_face)
       :
       fe_values_ref(fe_cell, qf_cell, uf_cell),
       fe_face_values_ref(fe_cell, qf_face, uf_face),
       Nx(qf_cell.size(),
-	 std::vector<double>(fe_cell.dofs_per_cell)),
+         std::vector<double>(fe_cell.dofs_per_cell)),
       grad_Nx(qf_cell.size(),
-	      std::vector<Tensor<2, dim> >
-	      (fe_cell.dofs_per_cell))
+              std::vector<Tensor<2, dim> >
+              (fe_cell.dofs_per_cell))
     {}
 
     ScratchData_RHS(const ScratchData_RHS &rhs)
       :
       fe_values_ref(rhs.fe_values_ref.get_fe(),
-		    rhs.fe_values_ref.get_quadrature(),
-		    rhs.fe_values_ref.get_update_flags()),
+                    rhs.fe_values_ref.get_quadrature(),
+                    rhs.fe_values_ref.get_update_flags()),
       fe_face_values_ref(rhs.fe_face_values_ref.get_fe(),
-			 rhs.fe_face_values_ref.get_quadrature(),
-			 rhs.fe_face_values_ref.get_update_flags()),
+                         rhs.fe_face_values_ref.get_quadrature(),
+                         rhs.fe_face_values_ref.get_update_flags()),
       Nx(rhs.Nx),
       grad_Nx(rhs.grad_Nx)
     {}
@@ -1401,16 +1401,16 @@ namespace neo_hookean
       const unsigned int n_q_points      = Nx.size();
       const unsigned int n_dofs_per_cell = Nx[0].size();
       for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
-	{
-	  Assert( Nx[q_point].size() == n_dofs_per_cell, ExcInternalError());
-	  Assert( grad_Nx[q_point].size() == n_dofs_per_cell,
-		  ExcInternalError());
-	  for (unsigned int k = 0; k < n_dofs_per_cell; ++k)
-	    {
-	      Nx[q_point][k] = 0.0;
-	      grad_Nx[q_point][k] = 0.0;
-	    }
-	}
+        {
+          Assert( Nx[q_point].size() == n_dofs_per_cell, ExcInternalError());
+          Assert( grad_Nx[q_point].size() == n_dofs_per_cell,
+                  ExcInternalError());
+          for (unsigned int k = 0; k < n_dofs_per_cell; ++k)
+            {
+              Nx[q_point][k] = 0.0;
+              grad_Nx[q_point][k] = 0.0;
+            }
+        }
     }
 
   };
@@ -1454,9 +1454,9 @@ namespace neo_hookean
     FEValues<dim>                fe_values_ref;
 
     ScratchData_UQPH(const FiniteElement<dim> &fe_cell,
-		     const QGauss<dim> &qf_cell,
-		     const UpdateFlags uf_cell,
-		     const BlockVector<double> &solution_total)
+                     const QGauss<dim> &qf_cell,
+                     const UpdateFlags uf_cell,
+                     const BlockVector<double> &solution_total)
       :
       solution_total(solution_total),
       solution_grads_u_total(qf_cell.size()),
@@ -1470,18 +1470,18 @@ namespace neo_hookean
       solution_grads_u_total(rhs.solution_grads_u_total),
       solution_values_p_total(rhs.solution_values_p_total),
       fe_values_ref(rhs.fe_values_ref.get_fe(),
-		    rhs.fe_values_ref.get_quadrature(),
-		    rhs.fe_values_ref.get_update_flags())
+                    rhs.fe_values_ref.get_quadrature(),
+                    rhs.fe_values_ref.get_update_flags())
     {}
 
     void reset()
     {
       const unsigned int n_q_points = solution_grads_u_total.size();
       for (unsigned int q = 0; q < n_q_points; ++q)
-	{
-	  solution_grads_u_total[q] = 0.0;
-	  solution_values_p_total[q] = 0.0;
-	}
+        {
+          solution_grads_u_total[q] = 0.0;
+          solution_values_p_total[q] = 0.0;
+        }
     }
   };
 
@@ -1504,7 +1504,7 @@ namespace neo_hookean
     FEValues<dim>     fe_values_ref;
 
     ScratchData_Energy(const FiniteElement<dim> &fe_cell,
-		       const QGauss<dim> &qf_cell, const UpdateFlags uf_cell)
+                       const QGauss<dim> &qf_cell, const UpdateFlags uf_cell)
       :
       fe_values_ref(fe_cell, qf_cell, uf_cell)
     {}
@@ -1512,8 +1512,8 @@ namespace neo_hookean
     ScratchData_Energy(const ScratchData_Energy &energy)
       :
       fe_values_ref(energy.fe_values_ref.get_fe(),
-		    energy.fe_values_ref.get_quadrature(),
-		    energy.fe_values_ref.get_update_flags())
+                    energy.fe_values_ref.get_quadrature(),
+                    energy.fe_values_ref.get_update_flags())
     {}
 
     void reset()
@@ -1550,20 +1550,20 @@ namespace neo_hookean
       triangulation.begin_active(), endc = triangulation.end();
     for (; cell != endc; ++cell)
       for (unsigned int f = 0; f < GeometryInfo<dim>::faces_per_cell; ++f)
-	if (cell->face(f)->at_boundary())
-	  {
-	    const Point<dim> face_center = cell->face(f)->center();
-	    if (std::abs(face_center[1] - bottom_left[1]) <= 1e-6)      //Bottom
-	      cell->face(f)->set_boundary_id (0);
-	    else if (std::abs(face_center[1] - upper_right[1]) <= 1e-6) //Top
-	      cell->face(f)->set_boundary_id (2);
-	    else if (std::abs(face_center[0] - bottom_left[0]) <= 1e-6) //Left
-	      cell->face(f)->set_boundary_id (1);
-	    else if (std::abs(face_center[0] - upper_right[0]) <= 1e-6) //Right
-	      cell->face(f)->set_boundary_id (3);
-	    else                                             //No way
-	      cell->face(f)->set_boundary_id (4);
-	  }
+        if (cell->face(f)->at_boundary())
+          {
+            const Point<dim> face_center = cell->face(f)->center();
+            if (std::abs(face_center[1] - bottom_left[1]) <= 1e-6)      //Bottom
+              cell->face(f)->set_boundary_id (0);
+            else if (std::abs(face_center[1] - upper_right[1]) <= 1e-6) //Top
+              cell->face(f)->set_boundary_id (2);
+            else if (std::abs(face_center[0] - bottom_left[0]) <= 1e-6) //Left
+              cell->face(f)->set_boundary_id (1);
+            else if (std::abs(face_center[0] - upper_right[0]) <= 1e-6) //Right
+              cell->face(f)->set_boundary_id (3);
+            else                                             //No way
+              cell->face(f)->set_boundary_id (4);
+          }
 
     //_____________This block is for non homogeneous refinement_____________
 
@@ -1572,24 +1572,24 @@ namespace neo_hookean
 //    triangulation.clear_user_flags();
 //    for (unsigned int step=0; step<parameters.local_refinement_cycles; ++step)
 //      {
-//	typename Triangulation<dim>::active_cell_iterator
-//	  cell_ref = triangulation.begin_active(),
-//	  endc = triangulation.end();
-//	for (; cell_ref!=endc; ++cell_ref)
-//	  {
-//	    for (unsigned int f = 0; f < GeometryInfo<dim>::faces_per_cell; ++f)
-//	      if (cell_ref->face(f)->at_boundary())
-//		{
-//		  const Point<dim> face_center = cell_ref->face(f)->center();
-//		  if (face_center[1] == 1) //Top
-//		    cell_ref->set_refine_flag ();
-//		}
-//	  }
+//      typename Triangulation<dim>::active_cell_iterator
+//        cell_ref = triangulation.begin_active(),
+//        endc = triangulation.end();
+//      for (; cell_ref!=endc; ++cell_ref)
+//        {
+//          for (unsigned int f = 0; f < GeometryInfo<dim>::faces_per_cell; ++f)
+//            if (cell_ref->face(f)->at_boundary())
+//              {
+//                const Point<dim> face_center = cell_ref->face(f)->center();
+//                if (face_center[1] == 1) //Top
+//                  cell_ref->set_refine_flag ();
+//              }
+//        }
 //
-//	// Now that we have marked all the cells that we want refined, we let
-//	// the triangulation actually do this refinement.
-//	//triangulation.execute_coarsening_and_refinement ();
-//	triangulation.clear_user_flags();
+//      // Now that we have marked all the cells that we want refined, we let
+//      // the triangulation actually do this refinement.
+//      //triangulation.execute_coarsening_and_refinement ();
+//      triangulation.clear_user_flags();
 //      }
 
     // We refine our mesh globally
@@ -1623,7 +1623,7 @@ namespace neo_hookean
     DoFRenumbering::Cuthill_McKee(dof_handler_only_u);
     DoFRenumbering::component_wise(dof_handler_ref, block_component);
     DoFTools::count_dofs_per_block(dof_handler_ref, dofs_per_block,
-				   block_component);
+                                   block_component);
 
     // Setup the sparsity pattern and tangent matrix
     tangent_matrix.clear();
@@ -1634,12 +1634,12 @@ namespace neo_hookean
       //We print the number of cells and dofs:
       std::cout << std::endl;
       std::cout << "Triangulation:"
-		<< "\n\t Number of active cells: " << triangulation.n_active_cells()
-		<< "\n\t Number of degrees of freedom: " << dof_handler_ref.n_dofs()
-		<< " (" << n_dofs_u << " for u, "
-		<< n_dofs_p << " for p)"
-		<< "\n\t Number of dofs per cell: " << fe.dofs_per_cell
-		<< std::endl;
+                << "\n\t Number of active cells: " << triangulation.n_active_cells()
+                << "\n\t Number of degrees of freedom: " << dof_handler_ref.n_dofs()
+                << " (" << n_dofs_u << " for u, "
+                << n_dofs_p << " for p)"
+                << "\n\t Number of dofs per cell: " << fe.dofs_per_cell
+                << std::endl;
 
 
       BlockDynamicSparsityPattern dsp(n_blocks, n_blocks);
@@ -1657,11 +1657,11 @@ namespace neo_hookean
       // for the right-diagonal block components.
       Table<2, DoFTools::Coupling> coupling(n_components, n_components);
       for (unsigned int ii = 0; ii < n_components; ++ii)
-	for (unsigned int jj = 0; jj < n_components; ++jj)
-	  if  ((ii == p_component) && (jj == p_component))
-	    coupling[ii][jj] = DoFTools::none;
-	  else
-	    coupling[ii][jj] = DoFTools::always;
+        for (unsigned int jj = 0; jj < n_components; ++jj)
+          if  ((ii == p_component) && (jj == p_component))
+            coupling[ii][jj] = DoFTools::none;
+          else
+            coupling[ii][jj] = DoFTools::always;
 
 
 
@@ -1722,10 +1722,10 @@ namespace neo_hookean
 
 
       DoFTools::make_sparsity_pattern(dof_handler_ref,
-				      coupling,
-				      dsp,
-				      constraints,
-				      true);
+                                      coupling,
+                                      dsp,
+                                      constraints,
+                                      true);
       sparsity_pattern.copy_from(dsp);
     }
 
@@ -1744,7 +1744,7 @@ namespace neo_hookean
     // useless thing since the system converges well to the solution
     for(unsigned int i = solution_n.block(u_dof).size(); i<solution_n.size(); ++i)
       {
-	solution_n(i) = parameters.mu_0 / 2.0;
+        solution_n(i) = parameters.mu_0 / 2.0;
       }
 
     //solution_n(parameters.dof_to_change) = 0.1;
@@ -2000,15 +2000,15 @@ namespace neo_hookean
 
     for (unsigned int k = 0; k < fe.dofs_per_cell; ++k)
       {
-	const unsigned int k_group = fe.system_to_base_index(k).first.first;
-	if (k_group == u_dof)
-	  element_indices_u.push_back(k);
-	else if (k_group == p_dof)
-	  element_indices_p.push_back(k);
-	else
-	  {
-	    Assert(k_group <= p_dof, ExcInternalError());
-	  }
+        const unsigned int k_group = fe.system_to_base_index(k).first.first;
+        if (k_group == u_dof)
+          element_indices_u.push_back(k);
+        else if (k_group == p_dof)
+          element_indices_p.push_back(k);
+        else
+          {
+            Assert(k_group <= p_dof, ExcInternalError());
+          }
       }
   }
 
@@ -2027,39 +2027,39 @@ namespace neo_hookean
     {
       triangulation.clear_user_data();
       {
-	std::vector<PointHistory<dim> > tmp;
-	tmp.swap(quadrature_point_history);
+        std::vector<PointHistory<dim> > tmp;
+        tmp.swap(quadrature_point_history);
       }
 
       quadrature_point_history
-	.resize(triangulation.n_active_cells() * n_q_points);
+        .resize(triangulation.n_active_cells() * n_q_points);
 
       unsigned int history_index = 0;
       for (typename Triangulation<dim>::active_cell_iterator cell =
-	     triangulation.begin_active(); cell != triangulation.end();
-	   ++cell)
-	{
-	  cell->set_user_pointer(&quadrature_point_history[history_index]);
-	  history_index += n_q_points;
-	}
+             triangulation.begin_active(); cell != triangulation.end();
+           ++cell)
+        {
+          cell->set_user_pointer(&quadrature_point_history[history_index]);
+          history_index += n_q_points;
+        }
 
       Assert(history_index == quadrature_point_history.size(),
-	     ExcInternalError());
+             ExcInternalError());
     }
 
     // Next we setup the initial quadrature
     // point data:
     for (typename Triangulation<dim>::active_cell_iterator cell =
-	   triangulation.begin_active(); cell != triangulation.end(); ++cell)
+           triangulation.begin_active(); cell != triangulation.end(); ++cell)
       {
-	PointHistory<dim> *lqph =
-	  reinterpret_cast<PointHistory<dim>*>(cell->user_pointer());
+        PointHistory<dim> *lqph =
+          reinterpret_cast<PointHistory<dim>*>(cell->user_pointer());
 
-	Assert(lqph >= &quadrature_point_history.front(), ExcInternalError());
-	Assert(lqph <= &quadrature_point_history.back(), ExcInternalError());
+        Assert(lqph >= &quadrature_point_history.front(), ExcInternalError());
+        Assert(lqph <= &quadrature_point_history.back(), ExcInternalError());
 
-	for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
-	  lqph[q_point].setup_lqp(parameters, qf_cell.point(q_point));
+        for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
+          lqph[q_point].setup_lqp(parameters, qf_cell.point(q_point));
       }
   }
 
@@ -2087,12 +2087,12 @@ namespace neo_hookean
     // We then pass them and the one-cell update function to the WorkStream to
     // be processed:
     WorkStream::run(dof_handler_ref.begin_active(),
-		    dof_handler_ref.end(),
-		    *this,
-		    &Solid::update_qph_incremental_one_cell,
-		    &Solid::copy_local_to_global_UQPH,
-		    scratch_data_UQPH,
-		    per_task_data_UQPH);
+                    dof_handler_ref.end(),
+                    *this,
+                    &Solid::update_qph_incremental_one_cell,
+                    &Solid::copy_local_to_global_UQPH,
+                    scratch_data_UQPH,
+                    per_task_data_UQPH);
 
     timer.leave_subsection();
   }
@@ -2103,8 +2103,8 @@ namespace neo_hookean
   template <int dim>
   void
   Solid<dim>::update_qph_incremental_one_cell(const typename DoFHandler<dim>::active_cell_iterator &cell,
-					      ScratchData_UQPH &scratch,
-					      PerTaskData_UQPH &/*data*/)
+                                              ScratchData_UQPH &scratch,
+                                              PerTaskData_UQPH &/*data*/)
   {
     PointHistory<dim> *lqph =
       reinterpret_cast<PointHistory<dim>*>(cell->user_pointer());
@@ -2113,9 +2113,9 @@ namespace neo_hookean
     Assert(lqph <= &quadrature_point_history.back(), ExcInternalError());
 
     Assert(scratch.solution_grads_u_total.size() == n_q_points,
-	   ExcInternalError());
+           ExcInternalError());
     Assert(scratch.solution_values_p_total.size() == n_q_points,
-	   ExcInternalError());
+           ExcInternalError());
 
     scratch.reset();
 
@@ -2125,13 +2125,13 @@ namespace neo_hookean
     // values:
     scratch.fe_values_ref.reinit(cell);
     scratch.fe_values_ref[u_fe].get_function_gradients(scratch.solution_total,
-						       scratch.solution_grads_u_total);
+                                                       scratch.solution_grads_u_total);
     scratch.fe_values_ref[p_fe].get_function_values(scratch.solution_total,
-						    scratch.solution_values_p_total);
+                                                    scratch.solution_values_p_total);
 
     for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
       lqph[q_point].update_values(scratch.solution_grads_u_total[q_point],
-				  scratch.solution_values_p_total[q_point]);
+                                  scratch.solution_values_p_total[q_point]);
   }
 
 
@@ -2145,7 +2145,7 @@ namespace neo_hookean
   Solid<dim>::solve_nonlinear_timestep(BlockVector<double> &solution_delta)
   {
     std::cout << std::endl << "Timestep " << time.get_timestep() << " @ "
-	      << time.current() << "s" << std::endl;
+              << time.current() << "s" << std::endl;
 
     BlockVector<double> newton_update(dofs_per_block);
 
@@ -2171,62 +2171,62 @@ namespace neo_hookean
     // is attained.
     unsigned int newton_iteration = 0;
     for (; newton_iteration < parameters.max_iterations_NR;
-	 ++newton_iteration)
+         ++newton_iteration)
       {
-	std::cout << " " << std::setw(2) << newton_iteration << " " << std::flush;
+        std::cout << " " << std::setw(2) << newton_iteration << " " << std::flush;
 
 
-	tangent_matrix = 0.0;
-	system_rhs = 0.0;
+        tangent_matrix = 0.0;
+        system_rhs = 0.0;
 
-	// assemble rhs
-	assemble_system_rhs();
-	// assemble the tangent, make and impose the Dirichlet constraints,
-	// and do the solve of the linearised system:
-	assemble_system_tangent();
-	make_constraints(newton_iteration);
-	constraints.condense(tangent_matrix, system_rhs);
+        // assemble rhs
+        assemble_system_rhs();
+        // assemble the tangent, make and impose the Dirichlet constraints,
+        // and do the solve of the linearised system:
+        assemble_system_tangent();
+        make_constraints(newton_iteration);
+        constraints.condense(tangent_matrix, system_rhs);
 
-	get_error_residual(error_residual);
+        get_error_residual(error_residual);
 
-	if (newton_iteration <= 1)
-	  error_residual_0 = error_residual;
+        if (newton_iteration <= 1)
+          error_residual_0 = error_residual;
 
-	// We can now determine the normalised residual error and check for
-	// solution convergence:
-	error_residual_norm = error_residual;
-	error_residual_norm.normalise(error_residual_0);
+        // We can now determine the normalised residual error and check for
+        // solution convergence:
+        error_residual_norm = error_residual;
+        error_residual_norm.normalise(error_residual_0);
 
-	if (newton_iteration > 0 && error_update_norm.u <= parameters.tol_u
-	    && error_residual_norm.u <= parameters.tol_f)
-	  {
-	    std::cout << " CONVERGED! " << std::endl;
-	    print_conv_footer();
-	    break;
-	  }
+        if (newton_iteration > 0 && error_update_norm.u <= parameters.tol_u
+            && error_residual_norm.u <= parameters.tol_f)
+          {
+            std::cout << " CONVERGED! " << std::endl;
+            print_conv_footer();
+            break;
+          }
 
-	solve_linear_system(newton_update,newton_iteration);
+        solve_linear_system(newton_update,newton_iteration);
 
-	get_error_update(newton_update, error_update);
-	if (newton_iteration == 0)
-	  error_update_0 = error_update;
+        get_error_update(newton_update, error_update);
+        if (newton_iteration == 0)
+          error_update_0 = error_update;
 
-	// We can now determine the normalised Newton update error, and
-	// perform the actual update of the solution increment for the current
-	// time step, update all quadrature point information pertaining to
-	// this new displacement and stress state and continue iterating:
-	error_update_norm = error_update;
-	error_update_norm.normalise(error_update_0);
+        // We can now determine the normalised Newton update error, and
+        // perform the actual update of the solution increment for the current
+        // time step, update all quadrature point information pertaining to
+        // this new displacement and stress state and continue iterating:
+        error_update_norm = error_update;
+        error_update_norm.normalise(error_update_0);
 
-	solution_delta += newton_update;
-	update_qph_incremental(solution_delta);
+        solution_delta += newton_update;
+        update_qph_incremental(solution_delta);
 
-	std::cout << " | " << std::fixed << std::setprecision(3) << std::setw(7)
-		  << std::scientific <<  error_residual_norm.norm
-		  << "  " << error_residual_norm.u << "  "
-		  << error_residual_norm.p
-		  << "  " << error_update_norm.norm << "  " << error_update_norm.u
-		  << "  " << error_update_norm.p << "  " << std::endl;
+        std::cout << " | " << std::fixed << std::setprecision(3) << std::setw(7)
+                  << std::scientific <<  error_residual_norm.norm
+                  << "  " << error_residual_norm.u << "  "
+                  << error_residual_norm.p
+                  << "  " << error_update_norm.norm << "  " << error_update_norm.u
+                  << "  " << error_update_norm.p << "  " << std::endl;
       }
 
     // At the end, if it turns out that we have in fact done more iterations
@@ -2239,7 +2239,7 @@ namespace neo_hookean
     // problem happened.
 
     //AssertThrow (newton_iteration < parameters.max_iterations_NR,
-//		 ExcMessage("No convergence in nonlinear solver!"));
+//               ExcMessage("No convergence in nonlinear solver!"));
   }
 
 
@@ -2258,9 +2258,9 @@ namespace neo_hookean
     std::cout << std::endl;
 
     std::cout << "          SOLVER STEP            "
-	      << " | RES_NORM   "
-	      << " RES_U      RES_P     NU_NORM    "
-	      << " NU_U       NU_P " << std::endl;
+              << " | RES_NORM   "
+              << " RES_U      RES_P     NU_NORM    "
+              << " NU_U       NU_P " << std::endl;
 
     for (unsigned int i = 0; i < l_width; ++i)
       std::cout << "_";
@@ -2281,11 +2281,11 @@ namespace neo_hookean
     const std::pair <double,double> error_dil = get_error_dilation();
 
     std::cout << "Relative errors:" << std::endl
-	      << "Displacement:\t" << error_update.u / error_update_0.u << std::endl
-	      << "Force: \t\t" << error_residual.u / error_residual_0.u << std::endl
-	      << "Dilatation:\t" << error_dil.first << std::endl
-	      << "v - V_0:\t" << vol_current << " - " << vol_reference
-	      << " = " << error_dil.second << std::endl;
+              << "Displacement:\t" << error_update.u / error_update_0.u << std::endl
+              << "Force: \t\t" << error_residual.u / error_residual_0.u << std::endl
+              << "Dilatation:\t" << error_dil.first << std::endl
+              << "v - V_0:\t" << vol_current << " - " << vol_reference
+              << " = " << error_dil.second << std::endl;
   }
 
 
@@ -2307,28 +2307,28 @@ namespace neo_hookean
     FEValues<dim> fe_values_ref(fe, qf_cell, update_JxW_values);
 
     for (typename Triangulation<dim>::active_cell_iterator
-	   cell = triangulation.begin_active();
-	 cell != triangulation.end(); ++cell)
+           cell = triangulation.begin_active();
+         cell != triangulation.end(); ++cell)
       {
-	fe_values_ref.reinit(cell);
+        fe_values_ref.reinit(cell);
 
-	PointHistory<dim> *lqph =
-	  reinterpret_cast<PointHistory<dim>*>(cell->user_pointer());
+        PointHistory<dim> *lqph =
+          reinterpret_cast<PointHistory<dim>*>(cell->user_pointer());
 
-	Assert(lqph >= &quadrature_point_history.front(), ExcInternalError());
-	Assert(lqph <= &quadrature_point_history.back(), ExcInternalError());
+        Assert(lqph >= &quadrature_point_history.front(), ExcInternalError());
+        Assert(lqph <= &quadrature_point_history.back(), ExcInternalError());
 
-	for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
-	  {
-	    const double det_F_qp = lqph[q_point].get_det_F();
-	    const double the_error_qp_squared = std::pow((det_F_qp - 1),
-							 2);
-	    const double JxW = fe_values_ref.JxW(q_point);
+        for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
+          {
+            const double det_F_qp = lqph[q_point].get_det_F();
+            const double the_error_qp_squared = std::pow((det_F_qp - 1),
+                                                         2);
+            const double JxW = fe_values_ref.JxW(q_point);
 
-	    dil_L2_error += the_error_qp_squared * JxW;
-	    vol_current += det_F_qp * JxW;
-	  }
-	Assert(vol_current > 0, ExcInternalError());
+            dil_L2_error += the_error_qp_squared * JxW;
+            vol_current += det_F_qp * JxW;
+          }
+        Assert(vol_current > 0, ExcInternalError());
       }
 
     std::pair<double, double> error_dil;
@@ -2366,12 +2366,12 @@ namespace neo_hookean
   // Determine the true Newton update error for the problem
   template <int dim>
   void Solid<dim>::get_error_update(const BlockVector<double> &newton_update,
-				    Errors &error_update)
+                                    Errors &error_update)
   {
     BlockVector<double> error_ud(dofs_per_block);
     for (unsigned int i = 0; i < dof_handler_ref.n_dofs(); ++i)
       if (!constraints.is_constrained(i))
-	error_ud(i) = newton_update(i);
+        error_ud(i) = newton_update(i);
 
     error_update.norm = error_ud.l2_norm();
     error_update.u = error_ud.block(u_dof).l2_norm();
@@ -2410,19 +2410,19 @@ namespace neo_hookean
         std::cout << " ASM_K" << std::flush;
 
     const UpdateFlags uf_cell(update_values    |
-			      update_gradients |
-			      update_JxW_values);
+                              update_gradients |
+                              update_JxW_values);
 
     PerTaskData_K per_task_data(dofs_per_cell);
     ScratchData_K scratch_data(fe, qf_cell, uf_cell);
 
     WorkStream::run(dof_handler_ref.begin_active(),
-		    dof_handler_ref.end(),
-		    *this,
-		    &Solid::assemble_system_tangent_one_cell,
-		    &Solid::copy_local_to_global_K,
-		    scratch_data,
-		    per_task_data);
+                    dof_handler_ref.end(),
+                    *this,
+                    &Solid::assemble_system_tangent_one_cell,
+                    &Solid::copy_local_to_global_K,
+                    scratch_data,
+                    per_task_data);
 
     timer.leave_subsection();
   }
@@ -2436,9 +2436,9 @@ namespace neo_hookean
   {
     for (unsigned int i = 0; i < dofs_per_cell; ++i)
       for (unsigned int j = 0; j < dofs_per_cell; ++j)
-	tangent_matrix.add(data.local_dof_indices[i],
-			   data.local_dof_indices[j],
-			   data.cell_matrix(i, j));
+        tangent_matrix.add(data.local_dof_indices[i],
+                           data.local_dof_indices[j],
+                           data.cell_matrix(i, j));
   }
 
   // Of course, we still have to define how we assemble the tangent matrix
@@ -2450,8 +2450,8 @@ namespace neo_hookean
   template <int dim>
   void
   Solid<dim>::assemble_system_tangent_one_cell(const typename DoFHandler<dim>::active_cell_iterator &cell,
-					       ScratchData_K &scratch,
-					       PerTaskData_K &data)
+                                               ScratchData_K &scratch,
+                                               PerTaskData_K &data)
   {
     data.reset();
     scratch.reset();
@@ -2462,19 +2462,19 @@ namespace neo_hookean
 
     for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
       {
-	for (unsigned int k = 0; k < dofs_per_cell; ++k)
-	  {
-	    const unsigned int k_group = fe.system_to_base_index(k).first.first;
+        for (unsigned int k = 0; k < dofs_per_cell; ++k)
+          {
+            const unsigned int k_group = fe.system_to_base_index(k).first.first;
 
-	    if (k_group == u_dof)
-	      {
-		scratch.grad_Nx[q_point][k] = scratch.fe_values_ref[u_fe].gradient(k, q_point);
-	      }
-	    else if (k_group == p_dof)
-	      scratch.Nx[q_point][k] = scratch.fe_values_ref[p_fe].value(k, q_point);
-	    else
-	      Assert(k_group <= p_dof, ExcInternalError());
-	  }
+            if (k_group == u_dof)
+              {
+                scratch.grad_Nx[q_point][k] = scratch.fe_values_ref[u_fe].gradient(k, q_point);
+              }
+            else if (k_group == p_dof)
+              scratch.Nx[q_point][k] = scratch.fe_values_ref[p_fe].value(k, q_point);
+            else
+              Assert(k_group <= p_dof, ExcInternalError());
+          }
       }
 
     // Now we build the local cell stiffness matrix. Since the global and
@@ -2490,194 +2490,194 @@ namespace neo_hookean
 
     for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
       {
-	const double det_F                   = lqph[q_point].get_det_F();
-	const double p                       = lqph[q_point].get_p();
-	const Tensor<2, dim> C_inv           = lqph[q_point].get_C_inv();
+        const double det_F                   = lqph[q_point].get_det_F();
+        const double p                       = lqph[q_point].get_p();
+        const Tensor<2, dim> C_inv           = lqph[q_point].get_C_inv();
         const Tensor<2, dim> F_invT          = lqph[q_point].get_F_invT();
-	const double c_1                     = lqph[q_point].get_c_1();
-	const Tensor<2, dim> Grad_U          = lqph[q_point].get_Grad_U();
+        const double c_1                     = lqph[q_point].get_c_1();
+        const Tensor<2, dim> Grad_U          = lqph[q_point].get_Grad_U();
 
-	//_________Computing of d_rond_F_invT/d_rond_F :_____________
-	Tensor<4, dim> d_F_invT_d_F;
-	for (unsigned int i=0; i<dim; ++i){
-	  for (unsigned int j=0; j<dim; ++j){
-	    for (unsigned int k=0; k<dim; ++k){
-	      for (unsigned int l=0; l<dim; ++l){
-		d_F_invT_d_F[i][j][k][l] = - F_invT[k][j] * F_invT[i][l];
-	      }}}}
+        //_________Computing of d_rond_F_invT/d_rond_F :_____________
+        Tensor<4, dim> d_F_invT_d_F;
+        for (unsigned int i=0; i<dim; ++i){
+          for (unsigned int j=0; j<dim; ++j){
+            for (unsigned int k=0; k<dim; ++k){
+              for (unsigned int l=0; l<dim; ++l){
+                d_F_invT_d_F[i][j][k][l] = - F_invT[k][j] * F_invT[i][l];
+              }}}}
 
         //_________Computing of d_rond_C_inv/d_rond_C :_____________
-	Tensor<4, dim> d_C_inv_d_C;
-	for (unsigned int i=0; i<dim; ++i){
-	  for (unsigned int j=0; j<dim; ++j){
-	    for (unsigned int k=0; k<dim; ++k){
-	      for (unsigned int l=0; l<dim; ++l){
-		d_C_inv_d_C[i][j][k][l] = -( C_inv[i][k] * C_inv[l][j] + C_inv[i][l]
-					     * C_inv[k][j] ) / 2;
-	      }}}}
+        Tensor<4, dim> d_C_inv_d_C;
+        for (unsigned int i=0; i<dim; ++i){
+          for (unsigned int j=0; j<dim; ++j){
+            for (unsigned int k=0; k<dim; ++k){
+              for (unsigned int l=0; l<dim; ++l){
+                d_C_inv_d_C[i][j][k][l] = -( C_inv[i][k] * C_inv[l][j] + C_inv[i][l]
+                                             * C_inv[k][j] ) / 2;
+              }}}}
 
-	// Next we define some aliases to make the assembly process easier to
-	// follow
-	const std::vector<double>
-	  &N = scratch.Nx[q_point];
-	const std::vector<Tensor<2, dim> >
-	  &grad_Nx = scratch.grad_Nx[q_point];
-	const double JxW = scratch.fe_values_ref.JxW(q_point);
+        // Next we define some aliases to make the assembly process easier to
+        // follow
+        const std::vector<double>
+          &N = scratch.Nx[q_point];
+        const std::vector<Tensor<2, dim> >
+          &grad_Nx = scratch.grad_Nx[q_point];
+        const double JxW = scratch.fe_values_ref.JxW(q_point);
 
-	for (unsigned int i = 0; i < dofs_per_cell; ++i)
-	  {
-	    const unsigned int i_group     = fe.system_to_base_index(i).first.first;
+        for (unsigned int i = 0; i < dofs_per_cell; ++i)
+          {
+            const unsigned int i_group     = fe.system_to_base_index(i).first.first;
 
-	    for (unsigned int j = 0; j <= i; ++j)
-	      {
-		const unsigned int j_group     = fe.system_to_base_index(j).first.first;
+            for (unsigned int j = 0; j <= i; ++j)
+              {
+                const unsigned int j_group     = fe.system_to_base_index(j).first.first;
 
-		// This is the Kuu contribution
+                // This is the Kuu contribution
 
-		if ((i_group == j_group) && (i_group == u_dof))
-		  {
-		    //_______________Term 1______________________________
+                if ((i_group == j_group) && (i_group == u_dof))
+                  {
+                    //_______________Term 1______________________________
                     data.cell_matrix(i, j) += 2 * c_1 * trace(transpose(grad_Nx[i]) * grad_Nx[j]) * JxW;
 
-		    //_______________Term 2________________________
-		    {
-		      double dot_prod_1 = 0.0;
-		      double dot_prod_2 = 0.0;
-		      Tensor<2, dim> tmp1;
-		      Tensor<2, dim> tmp2;
-		      tmp1 = grad_Nx[i];
-		      tmp2 = grad_Nx[j];
-		      for(unsigned int k = 0; k < dim; ++k)
-			{
-			  dot_prod_1 += F_invT[k] * tmp1[k];
-			  dot_prod_2 += F_invT[k] * tmp2[k];
-			}
-		      data.cell_matrix(i, j) -= factor_anti_hourglass_term * p * det_F * (2*det_F - 1) * dot_prod_1 * dot_prod_2 * JxW;
-		    }
-
-		    //_______________Term 3_______________________
-		    {
-		      Tensor<2, dim> dot_prod_1;
-		      {
-			//______Construction of first dot product_________
-			Tensor<2, dim> tmp;
-			tmp = grad_Nx[j];
-			for(unsigned int k = 0; k < dim; ++k)
-			  for(unsigned int l = 0; l < dim; ++l)
-			    for(unsigned int m = 0; m < dim; ++m) //todo : put symmetric tensors
-			      for(unsigned int n = 0; n < dim ; ++n)
-				dot_prod_1[k][l] +=  d_F_invT_d_F[k][l][m][n] * tmp[m][n];
-		      }
-		      {
-			//______Construction of second dot product________
-			Tensor<2, dim> tmp;
-                        tmp = grad_Nx[i];
-			for(unsigned int k = 0; k < dim; ++k)
+                    //_______________Term 2________________________
+                    {
+                      double dot_prod_1 = 0.0;
+                      double dot_prod_2 = 0.0;
+                      Tensor<2, dim> tmp1;
+                      Tensor<2, dim> tmp2;
+                      tmp1 = grad_Nx[i];
+                      tmp2 = grad_Nx[j];
+                      for(unsigned int k = 0; k < dim; ++k)
                         {
-			  data.cell_matrix(i,j) -= factor_anti_hourglass_term * p * det_F * (det_F - 1) * dot_prod_1[k] * tmp[k] * JxW;
+                          dot_prod_1 += F_invT[k] * tmp1[k];
+                          dot_prod_2 += F_invT[k] * tmp2[k];
                         }
-		      }
-		    }
+                      data.cell_matrix(i, j) -= factor_anti_hourglass_term * p * det_F * (2*det_F - 1) * dot_prod_1 * dot_prod_2 * JxW;
+                    }
+
+                    //_______________Term 3_______________________
+                    {
+                      Tensor<2, dim> dot_prod_1;
+                      {
+                        //______Construction of first dot product_________
+                        Tensor<2, dim> tmp;
+                        tmp = grad_Nx[j];
+                        for(unsigned int k = 0; k < dim; ++k)
+                          for(unsigned int l = 0; l < dim; ++l)
+                            for(unsigned int m = 0; m < dim; ++m) //todo : put symmetric tensors
+                              for(unsigned int n = 0; n < dim ; ++n)
+                                dot_prod_1[k][l] +=  d_F_invT_d_F[k][l][m][n] * tmp[m][n];
+                      }
+                      {
+                        //______Construction of second dot product________
+                        Tensor<2, dim> tmp;
+                        tmp = grad_Nx[i];
+                        for(unsigned int k = 0; k < dim; ++k)
+                        {
+                          data.cell_matrix(i,j) -= factor_anti_hourglass_term * p * det_F * (det_F - 1) * dot_prod_1[k] * tmp[k] * JxW;
+                        }
+                      }
+                    }
 
                     //-_-_-_-_-_Terms From I3-1-_-_-_-_-_-_-_-_
 
-		    //_______________Term 4 (or 3)______________________________
-		    for(unsigned int k = 0; k < dim; ++k)
-		      {
-			data.cell_matrix(i, j) -= factor_pro__hourglass_term * 2 * p * det_F * det_F * C_inv[k]
-			  * (transpose(grad_Nx[i]) * grad_Nx[j])[k] * JxW;
-		      }
+                    //_______________Term 4 (or 3)______________________________
+                    for(unsigned int k = 0; k < dim; ++k)
+                      {
+                        data.cell_matrix(i, j) -= factor_pro__hourglass_term * 2 * p * det_F * det_F * C_inv[k]
+                          * (transpose(grad_Nx[i]) * grad_Nx[j])[k] * JxW;
+                      }
 
 
-		    //_______________Term 2 (or 1)_______________________
-		    {
-		      Tensor<2, dim> dot_prod_1;
-		      {
-			//______Construction of first dot product_________
-			Tensor<2, dim> tmp;
-			tmp = 2 * (grad_Nx[j] + transpose(grad_Nx[j]) * Grad_U);
-			for(unsigned int k = 0; k < dim; ++k)
-			  for(unsigned int l = 0; l < dim; ++l)
-			    for(unsigned int m = 0; m < dim; ++m) //todo : put symmetric tensors
-			      for(unsigned int n = 0; n < dim ; ++n)
-				dot_prod_1[k][l] +=  d_C_inv_d_C[k][l][m][n] * tmp[m][n];
-		      }
-		      {
-			//______Construction of second dot product________
-			Tensor<2, dim> tmp;
-			//tmp = 2 * (grad_Nx[i] + transpose(grad_Nx[i]) * Grad_U);
+                    //_______________Term 2 (or 1)_______________________
+                    {
+                      Tensor<2, dim> dot_prod_1;
+                      {
+                        //______Construction of first dot product_________
+                        Tensor<2, dim> tmp;
+                        tmp = 2 * (grad_Nx[j] + transpose(grad_Nx[j]) * Grad_U);
+                        for(unsigned int k = 0; k < dim; ++k)
+                          for(unsigned int l = 0; l < dim; ++l)
+                            for(unsigned int m = 0; m < dim; ++m) //todo : put symmetric tensors
+                              for(unsigned int n = 0; n < dim ; ++n)
+                                dot_prod_1[k][l] +=  d_C_inv_d_C[k][l][m][n] * tmp[m][n];
+                      }
+                      {
+                        //______Construction of second dot product________
+                        Tensor<2, dim> tmp;
+                        //tmp = 2 * (grad_Nx[i] + transpose(grad_Nx[i]) * Grad_U);
                         tmp = grad_Nx[i] + transpose(grad_Nx[i]) + transpose(grad_Nx[i]) * Grad_U + transpose(Grad_U) * grad_Nx[i];
-			for(unsigned int k = 0; k < dim; ++k)
-			  data.cell_matrix(i,j) -= factor_pro__hourglass_term * p * det_F * det_F * dot_prod_1[k] * tmp[k] * JxW;
-		      }
-		    }
-		    //_______________Term 3 (or 2)________________________
-		    {
-		      double dot_prod_1 = 0.0;
-		      double dot_prod_2 = 0.0;
-		      Tensor<2, dim> tmp1;
-		      Tensor<2, dim> tmp2;
-		      tmp1 = 2 * (grad_Nx[i] + transpose(grad_Nx[i]) * Grad_U);
-		      tmp2 = 2 * (grad_Nx[j] + transpose(grad_Nx[j]) * Grad_U);
-		      for(unsigned int k = 0; k < dim; ++k)
-			{
-			  dot_prod_1 += C_inv[k] * tmp1[k];
-			  dot_prod_2 += C_inv[k] * tmp2[k];
-			}
-		      data.cell_matrix(i, j) -= factor_pro__hourglass_term * p * det_F * det_F * dot_prod_1 * dot_prod_2 * JxW;
-		    }
-		  }
+                        for(unsigned int k = 0; k < dim; ++k)
+                          data.cell_matrix(i,j) -= factor_pro__hourglass_term * p * det_F * det_F * dot_prod_1[k] * tmp[k] * JxW;
+                      }
+                    }
+                    //_______________Term 3 (or 2)________________________
+                    {
+                      double dot_prod_1 = 0.0;
+                      double dot_prod_2 = 0.0;
+                      Tensor<2, dim> tmp1;
+                      Tensor<2, dim> tmp2;
+                      tmp1 = 2 * (grad_Nx[i] + transpose(grad_Nx[i]) * Grad_U);
+                      tmp2 = 2 * (grad_Nx[j] + transpose(grad_Nx[j]) * Grad_U);
+                      for(unsigned int k = 0; k < dim; ++k)
+                        {
+                          dot_prod_1 += C_inv[k] * tmp1[k];
+                          dot_prod_2 += C_inv[k] * tmp2[k];
+                        }
+                      data.cell_matrix(i, j) -= factor_pro__hourglass_term * p * det_F * det_F * dot_prod_1 * dot_prod_2 * JxW;
+                    }
+                  }
 
-		//_____________________________ Contribution K_pu ____________________________
+                //_____________________________ Contribution K_pu ____________________________
 
-		else if ((i_group == p_dof) && (j_group == u_dof))
-		  {
-		    Tensor<2, dim> tmp;
-		    tmp = 2 * (grad_Nx[j] + transpose(grad_Nx[j]) * Grad_U);
-		    for(unsigned int k = 0; k < dim; ++k)
-		      data.cell_matrix(i, j) -= factor_pro__hourglass_term * N[i] *  det_F * det_F
-			* C_inv[k] * tmp[k]
-			* JxW;
-		    tmp = grad_Nx[j];
-		    for(unsigned int k = 0; k < dim; ++k)
-		      data.cell_matrix(i, j) -= factor_anti_hourglass_term * N[i] *  det_F * (det_F - 1)
-			* F_invT[k] * tmp[k]
-			* JxW;
-		  }
+                else if ((i_group == p_dof) && (j_group == u_dof))
+                  {
+                    Tensor<2, dim> tmp;
+                    tmp = 2 * (grad_Nx[j] + transpose(grad_Nx[j]) * Grad_U);
+                    for(unsigned int k = 0; k < dim; ++k)
+                      data.cell_matrix(i, j) -= factor_pro__hourglass_term * N[i] *  det_F * det_F
+                        * C_inv[k] * tmp[k]
+                        * JxW;
+                    tmp = grad_Nx[j];
+                    for(unsigned int k = 0; k < dim; ++k)
+                      data.cell_matrix(i, j) -= factor_anti_hourglass_term * N[i] *  det_F * (det_F - 1)
+                        * F_invT[k] * tmp[k]
+                        * JxW;
+                  }
 
-		//_____________________________ Contribution K_up ____________________________
+                //_____________________________ Contribution K_up ____________________________
 
-		// We need to construct both of them because we only
-		// compute that for $j<=i$ and we don't know how the
-		// u and p dofs are ordered in the cell, although they
-		// are ordered globally
+                // We need to construct both of them because we only
+                // compute that for $j<=i$ and we don't know how the
+                // u and p dofs are ordered in the cell, although they
+                // are ordered globally
 
-		else if ((i_group == u_dof) && (j_group == p_dof))
-		  {
-		    Tensor<2, dim> tmp;
+                else if ((i_group == u_dof) && (j_group == p_dof))
+                  {
+                    Tensor<2, dim> tmp;
                     tmp = 2 * (grad_Nx[i] + transpose(grad_Nx[i]) * Grad_U);
-		    for(unsigned int k = 0; k < dim; ++k)
-		      data.cell_matrix(i, j) -= factor_pro__hourglass_term * N[j] *  det_F * det_F
-			* C_inv[k] * tmp[k]
-			* JxW;
-		    tmp = grad_Nx[i];
-		    for(unsigned int k = 0; k < dim; ++k)
-		      data.cell_matrix(i, j) -= factor_anti_hourglass_term * N[j] *  det_F * (det_F - 1)
-			* F_invT[k] * tmp[k]
-			* JxW;
-		  }
-		else
-		  Assert((i_group <= p_dof) && (j_group <= p_dof),
-			 ExcInternalError());
-	      }
-	  }
+                    for(unsigned int k = 0; k < dim; ++k)
+                      data.cell_matrix(i, j) -= factor_pro__hourglass_term * N[j] *  det_F * det_F
+                        * C_inv[k] * tmp[k]
+                        * JxW;
+                    tmp = grad_Nx[i];
+                    for(unsigned int k = 0; k < dim; ++k)
+                      data.cell_matrix(i, j) -= factor_anti_hourglass_term * N[j] *  det_F * (det_F - 1)
+                        * F_invT[k] * tmp[k]
+                        * JxW;
+                  }
+                else
+                  Assert((i_group <= p_dof) && (j_group <= p_dof),
+                         ExcInternalError());
+              }
+          }
       }
 
     //Finally, we need to copy the lower half of the local matrix into the
     //upper half:
     for (unsigned int i = 0; i < dofs_per_cell; ++i)
       for (unsigned int j = i + 1; j < dofs_per_cell; ++j)
-	data.cell_matrix(i, j) = data.cell_matrix(j, i);
+        data.cell_matrix(i, j) = data.cell_matrix(j, i);
 
   }
 
@@ -2695,22 +2695,22 @@ namespace neo_hookean
         std::cout << " ASM_R" << std::flush;
 
     const UpdateFlags uf_cell(update_values |
-			      update_gradients |
-			      update_JxW_values);
+                              update_gradients |
+                              update_JxW_values);
     const UpdateFlags uf_face(update_values |
-			      update_normal_vectors |
-			      update_JxW_values);
+                              update_normal_vectors |
+                              update_JxW_values);
 
     PerTaskData_RHS per_task_data(dofs_per_cell);
     ScratchData_RHS scratch_data(fe, qf_cell, uf_cell, qf_face, uf_face);
 
     WorkStream::run(dof_handler_ref.begin_active(),
-		    dof_handler_ref.end(),
-		    *this,
-		    &Solid::assemble_system_rhs_one_cell,
-		    &Solid::copy_local_to_global_rhs,
-		    scratch_data,
-		    per_task_data);
+                    dof_handler_ref.end(),
+                    *this,
+                    &Solid::assemble_system_rhs_one_cell,
+                    &Solid::copy_local_to_global_rhs,
+                    scratch_data,
+                    per_task_data);
 
     timer.leave_subsection();
   }
@@ -2729,8 +2729,8 @@ namespace neo_hookean
   template <int dim>
   void
   Solid<dim>::assemble_system_rhs_one_cell(const typename DoFHandler<dim>::active_cell_iterator &cell,
-					   ScratchData_RHS &scratch,
-					   PerTaskData_RHS &data)
+                                           ScratchData_RHS &scratch,
+                                           PerTaskData_RHS &data)
   {
     data.reset();
     scratch.reset();
@@ -2741,72 +2741,72 @@ namespace neo_hookean
 
     for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
       {
-	for (unsigned int k = 0; k < dofs_per_cell; ++k)
-	  {
-	    const unsigned int k_group = fe.system_to_base_index(k).first.first;
+        for (unsigned int k = 0; k < dofs_per_cell; ++k)
+          {
+            const unsigned int k_group = fe.system_to_base_index(k).first.first;
 
-	    if (k_group == u_dof)
-	      scratch.grad_Nx[q_point][k]
-		= scratch.fe_values_ref[u_fe].gradient(k, q_point);
-	    else if (k_group == p_dof)
-	      scratch.Nx[q_point][k] = scratch.fe_values_ref[p_fe].value(k, q_point);
-	    else
-	      Assert(k_group <= p_dof, ExcInternalError());
-	  }
+            if (k_group == u_dof)
+              scratch.grad_Nx[q_point][k]
+                = scratch.fe_values_ref[u_fe].gradient(k, q_point);
+            else if (k_group == p_dof)
+              scratch.Nx[q_point][k] = scratch.fe_values_ref[p_fe].value(k, q_point);
+            else
+              Assert(k_group <= p_dof, ExcInternalError());
+          }
       }
 
     for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
       {
-	const double det_F                   = lqph[q_point].get_det_F();
-	const double p                       = lqph[q_point].get_p();
-	const Tensor<2, dim> C_inv           = lqph[q_point].get_C_inv();
+        const double det_F                   = lqph[q_point].get_det_F();
+        const double p                       = lqph[q_point].get_p();
+        const Tensor<2, dim> C_inv           = lqph[q_point].get_C_inv();
         const Tensor<2, dim> F_invT           = lqph[q_point].get_F_invT();
-	const double c_1                     = lqph[q_point].get_c_1();
-	const Tensor<2, dim> Grad_U          = lqph[q_point].get_Grad_U();
+        const double c_1                     = lqph[q_point].get_c_1();
+        const Tensor<2, dim> Grad_U          = lqph[q_point].get_Grad_U();
 
-	const std::vector<double>
-	  &N = scratch.Nx[q_point];
-	const std::vector<Tensor<2, dim> >
-	  &Grad_Nx = scratch.grad_Nx[q_point];
-	const double JxW = scratch.fe_values_ref.JxW(q_point);
+        const std::vector<double>
+          &N = scratch.Nx[q_point];
+        const std::vector<Tensor<2, dim> >
+          &Grad_Nx = scratch.grad_Nx[q_point];
+        const double JxW = scratch.fe_values_ref.JxW(q_point);
 
-	// We first compute the contributions
-	// from the internal forces.  Note, by
-	// definition of the rhs as the negative
-	// of the residual, these contributions
-	// are subtracted.
+        // We first compute the contributions
+        // from the internal forces.  Note, by
+        // definition of the rhs as the negative
+        // of the residual, these contributions
+        // are subtracted.
 
-	for (unsigned int i = 0; i < dofs_per_cell; ++i)
-	  {
-	    const unsigned int i_group = fe.system_to_base_index(i).first.first;
+        for (unsigned int i = 0; i < dofs_per_cell; ++i)
+          {
+            const unsigned int i_group = fe.system_to_base_index(i).first.first;
 
-	    if (i_group == u_dof){
-	      Tensor<2, dim> tmp;
-	      tmp = Grad_Nx[i] + transpose(Grad_Nx[i]) + transpose(Grad_Nx[i]) * Grad_U
-		+ transpose(Grad_U) * Grad_Nx[i];
-	      data.cell_rhs(i) -= c_1 * trace(tmp) * JxW;
+            if (i_group == u_dof){
+              Tensor<2, dim> tmp;
+              tmp = Grad_Nx[i] + transpose(Grad_Nx[i]) + transpose(Grad_Nx[i]) * Grad_U
+                + transpose(Grad_U) * Grad_Nx[i];
+              data.cell_rhs(i) -= c_1 * trace(tmp) * JxW;
 
-	      Tensor<2, dim> tmp2;
-	      tmp2 = 2 * (Grad_Nx[i] + transpose(Grad_Nx[i]) * Grad_U);
-	      for(unsigned int k = 0; k < dim; ++k)
-		{
-		  data.cell_rhs(i) += factor_pro__hourglass_term * p * det_F * det_F * C_inv[k] * tmp2[k] * JxW;
-		}
+              Tensor<2, dim> tmp2;
+              tmp2 = 2 * (Grad_Nx[i] + transpose(Grad_Nx[i]) * Grad_U);
+              for(unsigned int k = 0; k < dim; ++k)
+                {
+                  data.cell_rhs(i) += factor_pro__hourglass_term * p * det_F * det_F * C_inv[k] * tmp2[k] * JxW;
+                }
               Tensor<2, dim> tmp3;
-	      tmp3 = Grad_Nx[i];
-	      for(unsigned int k = 0; k < dim; ++k)
-		{
-		  data.cell_rhs(i) += factor_anti_hourglass_term * p * det_F * (det_F - 1) * F_invT[k] * tmp3[k] * JxW;
-		}
-	    }
-	    else if (i_group == p_dof)
+              tmp3 = Grad_Nx[i];
+              for(unsigned int k = 0; k < dim; ++k)
+                {
+                  data.cell_rhs(i) += factor_anti_hourglass_term * p * det_F * (det_F - 1) * F_invT[k] * tmp3[k] * JxW;
+                }
+            }
+            else if (i_group == p_dof)
             {
               data.cell_rhs(i) += factor_pro__hourglass_term * N[i] * (det_F*det_F - 1) * JxW;
-	      data.cell_rhs(i) += factor_anti_hourglass_term * 0.5 * N[i] * (det_F - 1)*(det_F - 1) * JxW;
+              data.cell_rhs(i) += factor_anti_hourglass_term * 0.5 * N[i] * (det_F - 1)*(det_F - 1) * JxW;
             }
-	    else
-	      Assert(i_group <= p_dof, ExcInternalError());
-	  }
+            else
+              Assert(i_group <= p_dof, ExcInternalError());
+          }
       }
 
     // Next we assemble the Neumann contribution. We first check to see it the
@@ -2974,10 +2974,10 @@ namespace neo_hookean
       const int boundary_id = 0;
 
       VectorTools::interpolate_boundary_values(dof_handler_ref,
-					       boundary_id,
-					       ZeroFunction<dim>(n_components),
-					       constraints,
-					       fe.component_mask(y_displacement));
+                                               boundary_id,
+                                               ZeroFunction<dim>(n_components),
+                                               constraints,
+                                               fe.component_mask(y_displacement));
     }
     {
         {
@@ -3058,159 +3058,159 @@ namespace neo_hookean
 
 
       if(print_tangent_matrix)
-	{
-	  std::cout << std::endl << "Print tangent matrix after applying boundary conditions..." << std::endl;
+        {
+          std::cout << std::endl << "Print tangent matrix after applying boundary conditions..." << std::endl;
 
-	  FullMatrix<double> tangent_matrix_f(dim_matrix);
-	  tangent_matrix_f.copy_from(tangent_matrix);
+          FullMatrix<double> tangent_matrix_f(dim_matrix);
+          tangent_matrix_f.copy_from(tangent_matrix);
 
-	  std::cout << std::endl;
+          std::cout << std::endl;
 
-	  for(int x=0;x<dim_matrix;x++)
-	    {
-	      for(int y=0;y<dim_matrix;y++)
-		{
-		  if(tangent_matrix_f(x,y) == 0)
-		    std::cout << "   0     |" << std::flush;
-		  else if(tangent_matrix_f(x,y) < 1e-10 && tangent_matrix_f(x,y) > -1e-10)
-		    std::cout << "   0     |" << std::flush;
-		  else
-		    {
-		      if(tangent_matrix_f(x,y) >= 0)
-			std::cout << " " << std::flush;
-		      std::cout << std::scientific << std::setprecision(1) << tangent_matrix_f(x,y) << " |" << std::flush;  // display the current element out of the array
-		    }
-		}
-	      std::cout << "  ///// Row number " << x+1 << std::endl;
-	    }
-	}
+          for(int x=0;x<dim_matrix;x++)
+            {
+              for(int y=0;y<dim_matrix;y++)
+                {
+                  if(tangent_matrix_f(x,y) == 0)
+                    std::cout << "   0     |" << std::flush;
+                  else if(tangent_matrix_f(x,y) < 1e-10 && tangent_matrix_f(x,y) > -1e-10)
+                    std::cout << "   0     |" << std::flush;
+                  else
+                    {
+                      if(tangent_matrix_f(x,y) >= 0)
+                        std::cout << " " << std::flush;
+                      std::cout << std::scientific << std::setprecision(1) << tangent_matrix_f(x,y) << " |" << std::flush;  // display the current element out of the array
+                    }
+                }
+              std::cout << "  ///// Row number " << x+1 << std::endl;
+            }
+        }
 
 
       if(print_tangent_matrix_constrained)
-	{
+        {
 
-	  FullMatrix<double> tangent_matrix_f(dim_matrix);
-	  tangent_matrix_f.copy_from(tangent_matrix);
+          FullMatrix<double> tangent_matrix_f(dim_matrix);
+          tangent_matrix_f.copy_from(tangent_matrix);
 
-	  std::cout << std::endl << "Extracting the intersting part..." << std::endl << std::endl;
+          std::cout << std::endl << "Extracting the intersting part..." << std::endl << std::endl;
 
-	  //We open a file to write the tangent matrix in it
-	  std::string tangent_matrix_file_name = "Matrices_RHS/tangent_matrix_timestep="
-	    +Utilities::int_to_string(time.get_timestep())+"_nr_it="+Utilities::int_to_string(it_nr)+".txt";
-	  std::ofstream tangent_matrix_file(tangent_matrix_file_name, std::ios::out | std::ios::trunc);
+          //We open a file to write the tangent matrix in it
+          std::string tangent_matrix_file_name = "Matrices_RHS/tangent_matrix_timestep="
+            +Utilities::int_to_string(time.get_timestep())+"_nr_it="+Utilities::int_to_string(it_nr)+".txt";
+          std::ofstream tangent_matrix_file(tangent_matrix_file_name, std::ios::out | std::ios::trunc);
 
-	  if(tangent_matrix_file)  // If opening the file was done well
-	    {
-	      for(int x=0;x<dim_matrix;x++)
-		{
-		  if (!constraints.is_constrained(x))
-		    {
-		      for(int y=0;y<dim_matrix;y++)
-			if (!constraints.is_constrained(y))
-			  {
-			    if(tangent_matrix_f(x,y) == 0/* || (tangent_matrix_f(x,y) < 1e-10 && tangent_matrix_f(x,y) > -1e-10)*/){
-			      std::cout << "   0      " << std::flush;
-			      tangent_matrix_file << "   0      ";
-			    }
-			    else
-			      {
-				if(tangent_matrix_f(x,y) >= 0){
-				  std::cout << " " << std::flush;
-				  tangent_matrix_file << " ";
-				}
-				std::cout << std::scientific << std::setprecision(1)
-					  << tangent_matrix_f(x,y) << "  " << std::flush;
-				tangent_matrix_file << std::scientific << std::setprecision(1)
-						    << tangent_matrix_f(x,y) << "  ";
-			      }
-			  }
-		      std::cout << "  ///// Row number " << x+1 << std::endl;
-		      tangent_matrix_file << std::endl;
-		    }
-		}
-	      tangent_matrix_file.close();  // We close the file
-	    }
-	  else  // If there was an error opening the file
-	    std::cerr << "Error while opening file tangent_matrix!" << std::endl;
+          if(tangent_matrix_file)  // If opening the file was done well
+            {
+              for(int x=0;x<dim_matrix;x++)
+                {
+                  if (!constraints.is_constrained(x))
+                    {
+                      for(int y=0;y<dim_matrix;y++)
+                        if (!constraints.is_constrained(y))
+                          {
+                            if(tangent_matrix_f(x,y) == 0/* || (tangent_matrix_f(x,y) < 1e-10 && tangent_matrix_f(x,y) > -1e-10)*/){
+                              std::cout << "   0      " << std::flush;
+                              tangent_matrix_file << "   0      ";
+                            }
+                            else
+                              {
+                                if(tangent_matrix_f(x,y) >= 0){
+                                  std::cout << " " << std::flush;
+                                  tangent_matrix_file << " ";
+                                }
+                                std::cout << std::scientific << std::setprecision(1)
+                                          << tangent_matrix_f(x,y) << "  " << std::flush;
+                                tangent_matrix_file << std::scientific << std::setprecision(1)
+                                                    << tangent_matrix_f(x,y) << "  ";
+                              }
+                          }
+                      std::cout << "  ///// Row number " << x+1 << std::endl;
+                      tangent_matrix_file << std::endl;
+                    }
+                }
+              tangent_matrix_file.close();  // We close the file
+            }
+          else  // If there was an error opening the file
+            std::cerr << "Error while opening file tangent_matrix!" << std::endl;
 
-	}
+        }
       if(print_RHS)
-	{
-	  //We open a file to write the RHS in it
-	  std::string RHS_file_name = "Matrices_RHS/RHS_timestep="
-	    +Utilities::int_to_string(time.get_timestep())+"_it_nr="+Utilities::int_to_string(it_nr)+".txt";
-	  std::ofstream RHS_file(RHS_file_name, std::ios::out | std::ios::trunc);
+        {
+          //We open a file to write the RHS in it
+          std::string RHS_file_name = "Matrices_RHS/RHS_timestep="
+            +Utilities::int_to_string(time.get_timestep())+"_it_nr="+Utilities::int_to_string(it_nr)+".txt";
+          std::ofstream RHS_file(RHS_file_name, std::ios::out | std::ios::trunc);
 
-	  if(RHS_file)  // If opening the file was done well
-	    {
-	      std::cout << std::endl << "Print right hand side..." << std::endl << std::endl;
+          if(RHS_file)  // If opening the file was done well
+            {
+              std::cout << std::endl << "Print right hand side..." << std::endl << std::endl;
 
-	      for(int x=0;x<dim_matrix;x++)
-		if (!constraints.is_constrained(x))
-		  {
-		    if(system_rhs(x) == 0/* || (system_rhs(x) < 1e-10 && system_rhs(x) > -1e-10)*/){
-		      std::cout << "   0     |  row " << x << std::endl;
-		      RHS_file << "   0" << (constraints.is_constrained(x) ? 1 : 0) << std::endl;
-		    }
-		    else
-		      {
-			if(system_rhs(x) >= 0){
-			  std::cout << " " << std::flush;
-			  RHS_file << " ";
-			}
-			std::cout << std::scientific << std::setprecision(1)
-				  << system_rhs(x) << " |  row " << x << std::endl;
-			RHS_file << std::scientific << std::setprecision(1)
-				 << system_rhs(x) << std::endl;
-		      }
-		  }
-	      RHS_file.close();  // We close the file
-	    }
-	  else  // If there was an error opening the file
-	    std::cerr << "Error while opening file RHS!" << std::endl;
-	}
+              for(int x=0;x<dim_matrix;x++)
+                if (!constraints.is_constrained(x))
+                  {
+                    if(system_rhs(x) == 0/* || (system_rhs(x) < 1e-10 && system_rhs(x) > -1e-10)*/){
+                      std::cout << "   0     |  row " << x << std::endl;
+                      RHS_file << "   0" << (constraints.is_constrained(x) ? 1 : 0) << std::endl;
+                    }
+                    else
+                      {
+                        if(system_rhs(x) >= 0){
+                          std::cout << " " << std::flush;
+                          RHS_file << " ";
+                        }
+                        std::cout << std::scientific << std::setprecision(1)
+                                  << system_rhs(x) << " |  row " << x << std::endl;
+                        RHS_file << std::scientific << std::setprecision(1)
+                                 << system_rhs(x) << std::endl;
+                      }
+                  }
+              RHS_file.close();  // We close the file
+            }
+          else  // If there was an error opening the file
+            std::cerr << "Error while opening file RHS!" << std::endl;
+        }
 
 
       if (parameters.type_lin == "CG")
-	{
-	  InverseMatrix<SparseMatrix<double> > inverse_mass (tangent_matrix.block(u_dof,u_dof));
-	  Vector<double> tmp (newton_update.block(u_dof).size());
-	  {
-	    SchurComplement schur_complement (tangent_matrix, inverse_mass);
-	    Vector<double> schur_rhs (newton_update.block(p_dof).size());
-	    inverse_mass.vmult (tmp, system_rhs.block(u_dof)); //This is not working
-	    tangent_matrix.block(p_dof,u_dof).vmult (schur_rhs, tmp);
-	    schur_rhs -= system_rhs.block(p_dof);
-	    SolverControl solver_control (newton_update.block(p_dof).size(),
-					  1e-12*schur_rhs.l2_norm());
-	    SolverCG<> cg (solver_control);
-	    ApproximateSchurComplement approximate_schur (tangent_matrix);
-	    InverseMatrix<ApproximateSchurComplement> approximate_inverse
-	      (approximate_schur);
-	    cg.solve (schur_complement, newton_update.block(p_dof), schur_rhs,
-		      approximate_inverse);
-	    std::cout << solver_control.last_step()
-		      << " CG Schur complement iterations to obtain convergence."
-		      << std::endl;
-	  }
-	  {
-	    tangent_matrix.block(u_dof,p_dof).vmult (tmp, newton_update.block(p_dof));
-	    tmp *= -1;
-	    tmp += system_rhs.block(u_dof);
-	    inverse_mass.vmult (newton_update.block(u_dof), tmp);
-	  }
-	}
+        {
+          InverseMatrix<SparseMatrix<double> > inverse_mass (tangent_matrix.block(u_dof,u_dof));
+          Vector<double> tmp (newton_update.block(u_dof).size());
+          {
+            SchurComplement schur_complement (tangent_matrix, inverse_mass);
+            Vector<double> schur_rhs (newton_update.block(p_dof).size());
+            inverse_mass.vmult (tmp, system_rhs.block(u_dof)); //This is not working
+            tangent_matrix.block(p_dof,u_dof).vmult (schur_rhs, tmp);
+            schur_rhs -= system_rhs.block(p_dof);
+            SolverControl solver_control (newton_update.block(p_dof).size(),
+                                          1e-12*schur_rhs.l2_norm());
+            SolverCG<> cg (solver_control);
+            ApproximateSchurComplement approximate_schur (tangent_matrix);
+            InverseMatrix<ApproximateSchurComplement> approximate_inverse
+              (approximate_schur);
+            cg.solve (schur_complement, newton_update.block(p_dof), schur_rhs,
+                      approximate_inverse);
+            std::cout << solver_control.last_step()
+                      << " CG Schur complement iterations to obtain convergence."
+                      << std::endl;
+          }
+          {
+            tangent_matrix.block(u_dof,p_dof).vmult (tmp, newton_update.block(p_dof));
+            tmp *= -1;
+            tmp += system_rhs.block(u_dof);
+            inverse_mass.vmult (newton_update.block(u_dof), tmp);
+          }
+        }
       else
-	if (parameters.type_lin == "Direct")
-	  {
-	    // Otherwise if the problem is small enough, a direct solver can be utilised
+        if (parameters.type_lin == "Direct")
+          {
+            // Otherwise if the problem is small enough, a direct solver can be utilised
 
-	    SparseDirectUMFPACK A_direct;
-	    A_direct.initialize(tangent_matrix);
-	    A_direct.vmult(newton_update, system_rhs);
-	  }
-	else
-	  Assert (false, ExcMessage("Linear solver type not implemented"));
+            SparseDirectUMFPACK A_direct;
+            A_direct.initialize(tangent_matrix);
+            A_direct.vmult(newton_update, system_rhs);
+          }
+        else
+          Assert (false, ExcMessage("Linear solver type not implemented"));
 
       timer.leave_subsection();
     }
@@ -3247,7 +3247,7 @@ namespace neo_hookean
     DataOut<dim> data_out;
     std::vector<DataComponentInterpretation::DataComponentInterpretation>
       data_component_interpretation(dim,
-				    DataComponentInterpretation::component_is_part_of_vector);
+                                    DataComponentInterpretation::component_is_part_of_vector);
     data_component_interpretation.push_back(DataComponentInterpretation::component_is_scalar);
 
     std::vector<std::string> solution_name(dim, "displacement");
@@ -3255,9 +3255,9 @@ namespace neo_hookean
 
     data_out.attach_dof_handler(dof_handler_ref);
     data_out.add_data_vector(solution_n,
-			     solution_name,
-			     DataOut<dim>::type_dof_data,
-			     data_component_interpretation);
+                             solution_name,
+                             DataOut<dim>::type_dof_data,
+                             data_component_interpretation);
 
     // Since we are dealing with a large deformation problem, it would be nice
     // to display the result on a displaced grid!  The MappingQEulerian class
@@ -3278,7 +3278,7 @@ namespace neo_hookean
     int systemCmdrm = 0;
     if ( access( strPath.c_str(), 0 ) == -1 )
       {
-	systemCmdmkdir = system("mkdir \"Results\"");
+        systemCmdmkdir = system("mkdir \"Results\"");
       }
     else if(time.get_timestep()==1 && is_BFB_call)
     {
@@ -3286,12 +3286,12 @@ namespace neo_hookean
     }
     if(systemCmdmkdir != 0 || systemCmdrm !=0)
       std::cerr << std::endl << "Warning : problem while trying to create or empty "
-		<< "Results directory, using mkdir or rm command. Maybe the folder was already empty." << std::endl;
+                << "Results directory, using mkdir or rm command. Maybe the folder was already empty." << std::endl;
 
     strPath = "Results/Tangents";
     if ( access( strPath.c_str(), 0 ) == -1 )
       {
-	systemCmdmkdir = system("mkdir \"Results/Tangents\"");
+        systemCmdmkdir = system("mkdir \"Results/Tangents\"");
       }
     else if(time.get_timestep()==1 && is_BFB_call)
     {
@@ -3299,7 +3299,7 @@ namespace neo_hookean
     }
     if(systemCmdmkdir != 0 || systemCmdrm !=0)
       std::cerr << std::endl << "Warning : problem while trying to create or empty "
-		<< "Results/Tangents directory, using mkdir or rm command. Maybe the folder was already empty." << std::endl;
+                << "Results/Tangents directory, using mkdir or rm command. Maybe the folder was already empty." << std::endl;
 
 
     std::ostringstream filename;
@@ -3337,7 +3337,7 @@ namespace neo_hookean
     unsigned int nb_unconstrained_dofs = 0;
     for (unsigned int i = 0; i < dof_handler_ref.n_dofs(); ++i)
       if (!constraints.is_constrained(i))
-	nb_unconstrained_dofs++;
+        nb_unconstrained_dofs++;
     return nb_unconstrained_dofs;
   }
 
@@ -3349,7 +3349,7 @@ namespace neo_hookean
     unsigned int nb_unconstrained_dofs_with_periodic = 0;
     for (unsigned int i = 0; i < dof_handler_ref.n_dofs(); ++i)
       if (!constraints.is_constrained(i))
-	nb_unconstrained_dofs_with_periodic++;
+        nb_unconstrained_dofs_with_periodic++;
     return nb_unconstrained_dofs_with_periodic;
   }
 
@@ -3372,19 +3372,19 @@ namespace neo_hookean
     timer.enter_subsection("Assemble system energy");
 
     const UpdateFlags uf_cell(update_values |
-			      update_gradients |
-			      update_JxW_values);
+                              update_gradients |
+                              update_JxW_values);
 
     PerTaskData_Energy per_task_data;
     ScratchData_Energy scratch_data(fe, qf_cell, uf_cell);
 
     WorkStream::run(dof_handler_ref.begin_active(),
-		    dof_handler_ref.end(),
-		    *this,
-		    &Solid::assemble_system_energy_one_cell,
-		    &Solid::copy_local_to_global_energy,
-		    scratch_data,
-		    per_task_data);
+                    dof_handler_ref.end(),
+                    *this,
+                    &Solid::assemble_system_energy_one_cell,
+                    &Solid::copy_local_to_global_energy,
+                    scratch_data,
+                    per_task_data);
 
     timer.leave_subsection();
   }
@@ -3392,8 +3392,8 @@ namespace neo_hookean
   template <int dim>
   void
   Solid<dim>::assemble_system_energy_one_cell(const typename DoFHandler<dim>::active_cell_iterator &cell,
-					      ScratchData_Energy &scratch,
-					      PerTaskData_Energy &data)
+                                              ScratchData_Energy &scratch,
+                                              PerTaskData_Energy &data)
   {
     data.reset();
     scratch.reset();
@@ -3403,18 +3403,18 @@ namespace neo_hookean
     data.energy_contribution = 0.0;
     for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
       {
-	const double det_F                   = lqph[q_point].get_det_F();
-	const double p                       = lqph[q_point].get_p();
-	const double c_1                     = lqph[q_point].get_c_1();
-	const Tensor<2, dim> Grad_U          = lqph[q_point].get_Grad_U();
+        const double det_F                   = lqph[q_point].get_det_F();
+        const double p                       = lqph[q_point].get_p();
+        const double c_1                     = lqph[q_point].get_c_1();
+        const Tensor<2, dim> Grad_U          = lqph[q_point].get_Grad_U();
 
-	//            const std::vector<double>
-	//            &N = scratch.Nx[q_point];
-	//            const std::vector<Tensor<2, dim> >
-	//            &Grad_Nx = scratch.grad_Nx[q_point];
-	const double JxW = scratch.fe_values_ref.JxW(q_point);
-	const Tensor<2, dim> tmp = Grad_U + transpose(Grad_U) + transpose(Grad_U) * Grad_U;
-	data.energy_contribution += (c_1 * trace(tmp) - p * (factor_anti_hourglass_term*0.5*(det_F - 1)*(det_F - 1)+ factor_pro__hourglass_term*(det_F * det_F - 1))) * JxW;
+        //            const std::vector<double>
+        //            &N = scratch.Nx[q_point];
+        //            const std::vector<Tensor<2, dim> >
+        //            &Grad_Nx = scratch.grad_Nx[q_point];
+        const double JxW = scratch.fe_values_ref.JxW(q_point);
+        const Tensor<2, dim> tmp = Grad_U + transpose(Grad_U) + transpose(Grad_U) * Grad_U;
+        data.energy_contribution += (c_1 * trace(tmp) - p * (factor_anti_hourglass_term*0.5*(det_F - 1)*(det_F - 1)+ factor_pro__hourglass_term*(det_F * det_F - 1))) * JxW;
       }
   }
 
@@ -3510,7 +3510,7 @@ namespace neo_hookean
   template <int dim>
   void
   Solid<dim>::get_rhs_and_tangent(BlockVector<double> const* &sys_rhs,
-				  BlockSparseMatrix<double> const* &tm, unsigned int iter_value)
+                                  BlockSparseMatrix<double> const* &tm, unsigned int iter_value)
   {
     if(!displacement_and_qph_accurate)
         update_periodically_constrained_dofs_and_qph();
@@ -3606,7 +3606,7 @@ namespace neo_hookean
 
   void
   get_rhs_and_tangent(double* const sys_rhs,
-		      double* const tm, unsigned int iter_value)
+                      double* const tm, unsigned int iter_value)
   {
     BlockVector<double> const* rhs;
     BlockSparseMatrix<double> const* tangent;
@@ -3615,13 +3615,13 @@ namespace neo_hookean
     std::size_t size(MyNeoHookean->get_system_size());
     for (unsigned i = 0; i < size; ++i)
       {
-	sys_rhs[i] = (*rhs)[i];
+        sys_rhs[i] = (*rhs)[i];
       }
     memset(tm, 0, size*size*sizeof(double));
     for (BlockSparseMatrix<double>::const_iterator itr = tangent->begin();
-	 itr != tangent->end(); ++itr)
+         itr != tangent->end(); ++itr)
       {
-	tm[size*(itr->row()) + itr->column()] = itr->value();
+        tm[size*(itr->row()) + itr->column()] = itr->value();
       }
   }
 
@@ -3634,7 +3634,7 @@ namespace neo_hookean
     std::size_t size(MyNeoHookean->get_system_size());
     for (unsigned i = 0; i < size; ++i)
       {
-	sys_rhs[i] = (*rhs)[i];
+        sys_rhs[i] = (*rhs)[i];
       }
   }
 
@@ -3647,15 +3647,15 @@ namespace neo_hookean
     std::size_t size(MyNeoHookean->get_system_size());
     memset(tm, 0, size*size*sizeof(double));
     for (BlockSparseMatrix<double>::const_iterator itr = tangent->begin();
-	 itr != tangent->end(); ++itr)
+         itr != tangent->end(); ++itr)
       {
-	tm[size*(itr->row()) + itr->column()] = itr->value();
+        tm[size*(itr->row()) + itr->column()] = itr->value();
       }
   }
 
   void
   get_unconstrained_rhs_and_tangent(double* const sys_rhs,
-		      double* const tm, unsigned int iter_value)
+                      double* const tm, unsigned int iter_value)
   {
     BlockVector<double> const* rhs;
     BlockSparseMatrix<double> const* tangent;
@@ -3678,26 +3678,26 @@ namespace neo_hookean
     //This block is just to save the tangent matrix to be sure our method is good.
     {
      //Will be removed later.
-	FullMatrix<double> tangent_matrix_f(size);
+        FullMatrix<double> tangent_matrix_f(size);
         for (BlockSparseMatrix<double>::const_iterator itr = tangent->begin();
              itr != tangent->end(); ++itr)
         {
               tangent_matrix_f(itr->row(),itr->column()) = itr->value();
         }
 
-	//std::cout << std::endl << "Extracting the intersting part..." << std::endl << std::endl;
+        //std::cout << std::endl << "Extracting the intersting part..." << std::endl << std::endl;
 
-	//We open a file to write the tangent matrix in it
-	std::string tangent_matrix_file_name = "tangent_matrix.txt";
-	std::ofstream tangent_matrix_file(tangent_matrix_file_name, std::ios::out | std::ios::trunc);
+        //We open a file to write the tangent matrix in it
+        std::string tangent_matrix_file_name = "tangent_matrix.txt";
+        std::ofstream tangent_matrix_file(tangent_matrix_file_name, std::ios::out | std::ios::trunc);
 
-	if(tangent_matrix_file)  // If opening the file was done well
+        if(tangent_matrix_file)  // If opening the file was done well
             {
-	        for(unsigned int x=0;x<size;x++)
-		{
-		    if (!constraints_matrix->is_constrained(x))
-		    {
-		        for(unsigned int y=0;y<size;y++)
+                for(unsigned int x=0;x<size;x++)
+                {
+                    if (!constraints_matrix->is_constrained(x))
+                    {
+                        for(unsigned int y=0;y<size;y++)
                             if (!constraints_matrix->is_constrained(y))
                             {
                                 if(tangent_matrix_f(x,y) == 0/* || (tangent_matrix_f(x,y) < 1e-10 && tangent_matrix_f(x,y) > -1e-10)*/){
@@ -3716,20 +3716,20 @@ namespace neo_hookean
                                                       << tangent_matrix_f(x,y) << "  ";
                                 }
                             }
-		      //std::cout << "  ///// Row number " << x+1 << std::endl;
-		      tangent_matrix_file << std::endl;
-		    }
-		}
-	      tangent_matrix_file.close();  // We close the file
-	    }
-	  else  // If there was an error opening the file
-	    std::cerr << "Error while opening file tangent_matrix!" << std::endl;
+                      //std::cout << "  ///// Row number " << x+1 << std::endl;
+                      tangent_matrix_file << std::endl;
+                    }
+                }
+              tangent_matrix_file.close();  // We close the file
+            }
+          else  // If there was an error opening the file
+            std::cerr << "Error while opening file tangent_matrix!" << std::endl;
 
-	}
+        }
 
     memset(tm, 0, unconstrained_size*unconstrained_size*sizeof(double));
     for (BlockSparseMatrix<double>::const_iterator itr = tangent->begin();
-	 itr != tangent->end(); ++itr)
+         itr != tangent->end(); ++itr)
     {
         if (!constraints_matrix->is_constrained(itr->row()))
         {
@@ -3761,7 +3761,7 @@ namespace neo_hookean
         }
 
     for (BlockSparseMatrix<double>::const_iterator itr = tangent->begin();
-	 itr != tangent->end(); ++itr)
+         itr != tangent->end(); ++itr)
     {
         if (!constraints_matrix->is_constrained(itr->row()))
         {

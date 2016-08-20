@@ -489,7 +489,7 @@ void NeoHookean2D::ExtraTestFunctions(Vector& TF) const
 
 
 void NeoHookean2D::Print(ostream& out, PrintDetail const& flag,
-			 PrintPathSolutionType const& SolType)
+                         PrintPathSolutionType const& SolType)
 {
     int W;
     neo_hookean::NoNegTestFunctions = 0;

@@ -515,7 +515,7 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
      {
        if ((i==BoundNodes_[j])||(i==PeriodicNodes_[j]))
        {
-	 	l=l-1;
+                l=l-1;
        }
      }
    }
@@ -857,10 +857,10 @@ void FEAP::UpdateValues(UpdateFlag flag) const
 //          A[i][DOFS_F_] = E1DLoad_F[i];
 //       }
 //      Matrix Q(DOFS_F_+1, DOFS_F_+1);
-//   	 Matrix R(DOFS_F_+1, DOFS_F_);
+//       Matrix R(DOFS_F_+1, DOFS_F_);
 //      QR(A, Q, R, 1);
 //       cout << "\n E1DLoad_F=" << setw(20) << E1DLoad_F << "\n";
-//   	 cout << "\n Q=" << setw(20) << Q;
+//       cout << "\n Q=" << setw(20) << Q;
 
 //      cout << "E1DLoadCachedValue_=" << setw(20) << E1DLoadCachedValue_ << "\n";
    }
@@ -1123,7 +1123,7 @@ int FEAP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vector
                      cout << "Tangent => [";
                      for (int l = 0; l < ndf_*(numnp_-nbn_/2); ++l)
 
-		    {
+                    {
                          if ((fabs(sin(K_[0])) < 1.0e-5) && (fabs(sin(K_[1])) < 1.0e-5))
                          {
                             cout << EigVec[l][Ind[k]].real() << ", ";
