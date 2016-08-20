@@ -44,7 +44,6 @@ DATE_DEF   = -DBUILD_DATE="$(BUILD_DATE)"
 
 # Lattice include options (comment out to exclude the Lattice type)
 #USE_NEO  = -DUSE_NEO
-#USE_ELA  = -DUSE_ELA
 #USE_KIM  = -DUSE_KIM
 #USE_FEAP = -DUSE_FEAP
 #USE_QC   = -DUSE_QC
@@ -58,13 +57,6 @@ ifneq (,$(strip $(USE_NEO)))
 else
   LFLAGS_NEO =
   LIBS_NEO =
-endif
-ifneq (,$(strip $(USE_ELA)))
-  LFLAGS_ELA = -Lelastica-build
-  LIBS_ELA = -lelastica-beam
-else
-  LFLAGS_ELA =
-  LIBS_ELA =
 endif
 FEAP_OK := $(shell if test -e $(FEAPHOME8_3)/Feap8_3.a; then echo YES; else echo NO; fi)
 ifneq (,$(strip $(USE_FEAP)))
@@ -86,8 +78,8 @@ else
   CXX_KIM =
   LIBS_KIM =
 endif
-LIBS       = -lLinearAlgebra -lMyMath -lm $(LIBS_PERL) $(LIBS_FEAP) $(LIBS_KIM) $(LIBS_NEO) $(LIBS_ELA)
-LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(DATE_DEF) $(LIBS_PERL) $(LFLAGS_NEO) $(LFLAGS_ELA)
+LIBS       = -lLinearAlgebra -lMyMath -lm $(LIBS_PERL) $(LIBS_FEAP) $(LIBS_KIM) $(LIBS_NEO)
+LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(DATE_DEF) $(LIBS_PERL) $(LFLAGS_NEO)
 CXXFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS) $(SOLVE) $(TERMINAL) $(CXX_PERL) $(CXX_KIM)
 
 
@@ -101,9 +93,6 @@ SUBDIRS    = Lattices Restrictions SolutionMethods Potentials Utility gpl_script
 include $(addsuffix /Makefile, $(SUBDIRS))
 ifeq (,$(strip $(USE_NEO)))
   LATTICES := $(filter-out NeoHookean2D.cpp,$(LATTICES))
-endif
-ifeq (,$(strip $(USE_ELA)))
-  LATTICES := $(filter-out ElasticaBeam1D.cpp,$(LATTICES))
 endif
 ifeq (,$(strip $(USE_FEAP)))
   LATTICES := $(filter-out FEAP.cpp,$(LATTICES))
@@ -133,7 +122,7 @@ Utilities:
 	$(MAKE) -e -C ./Utility  -f MakeUtilityProgs
 
 
-$(EXE):  $(OBJECTS) $(if $(USE_NEO),neo-build,) $(if $(USE_ELA),elastica-build,)
+$(EXE):  $(OBJECTS) $(if $(USE_NEO),neo-build,)
 	 $(CXX) $(CXXFLAGS) $(DATE_DEF) -o lib/builddate.o -c Utility/builddate.cpp
 	 $(PURE) $(CXX) $(LFLAGS) lib/builddate.o \
 		 -L$(LIB_LOC) -o ./bin/$(EXE) \
@@ -146,21 +135,15 @@ include $(addprefix depend/,$(OBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 # Define object file dependicies and make rule
 $(OBJECTS): Makefile
 	$(CXX) $(CXXFLAGS) -I. $(addprefix -I ,$(SUBDIRS)) -I $(INCL_LOC)/ \
-        $(USE_FEAP) $(USE_KIM) $(USE_QC) $(USE_NEO) $(USE_ELA)\
+        $(USE_FEAP) $(USE_KIM) $(USE_QC) $(USE_NEO)\
         -o ./lib/$(notdir $@) \
         -c $(filter %/$(*),$(basename $(SOURCES)))$(SRC_EXT)
 
 KnownPotentials.o: Makefile
 	echo $(patsubst %.h,%,$(PTNLS))
-	
-.PHONY: elastica-build
-
-elastica-build: elastica-beam/elastica-beam.cpp elastica-beam/CMakeLists.txt
-	if test ! -d elastica-build; then mkdir elastica-build; fi
-	cd elastica-build && cmake -DCREATE_LIB:BOOL=ON ../elastica-beam && make
 
 .PHONY: neo-build
-	
+
 neo-build: neo-hookean/neo-hookean.cpp neo-hookean/CMakeLists.txt
 	if test ! -d neo-build; then mkdir neo-build; fi
 	cd neo-build && cmake -DCREATE_LIB:BOOL=ON ../neo-hookean && make
@@ -202,7 +185,6 @@ clean:
                   lib/$(EXE).* bin/$(EXE) lib/FEAP-stub.o core *~ \
 		  depend/*.d
 	-/bin/rm -rf neo-build
-	-/bin/rm -rf elastica-build
 	$(MAKE) -e -C ./Utility -f MakeUtilityProgs clean
 
 # Define rule for dependicy files

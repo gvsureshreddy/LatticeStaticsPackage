@@ -13,9 +13,9 @@ class NeoHookean2D : public Lattice
         mutable int DOFS_D_; // Number of DOFs in deal.II
         mutable int dofs_vertical_;
         mutable int dofs_horizontal_;
-        const double factor_penalty_H_ = 1.45;
-        const double factor_penalty_V_ = 0.76;
-        
+        static const double factor_penalty_H_;
+        static const double factor_penalty_V_;
+
         mutable Vector DOF_; // DOFs in BFB
         mutable Vector DOF_D_; // DOFs in deal.II
         mutable Vector dofs_properties_; // Description of the deal.II DOFs
@@ -30,16 +30,16 @@ class NeoHookean2D : public Lattice
         mutable Vector dof_vertical_;
         mutable Vector dof_horizontal_;
         mutable double Lambda_;
-        
+
 //        mutable Matrix Jacobian_; // d(DOF_D)/d(DOF_)
 //        mutable Matrix FJacobian_; // d(DOF_D)/d(DOF_+1) //Bastien : what's that?
 //        mutable Matrix DispJacobian_; // d(DOF_D)/d(U) //Bastien : what's that?
 //        int** Map_ ; // Represents the sparse 3D array d2(DOF_F)/d(DOF_)2 //Bastien : I don't like the type
 //        int** FMap_ ; // Represents the sparse 3D array d2(DOF_F)/d(DOF_+1)2 //Bastien : I don't like the type
-        
+
         int Width_;
         //std::size_t system_size_;
-        
+
         int Caching_;
         static const int cachesize = 4;
         mutable int Cached_[cachesize];
@@ -48,30 +48,30 @@ class NeoHookean2D : public Lattice
         mutable Vector E1DLoadCachedValue_;
         mutable Matrix E2CachedValue_;
         mutable int CallCount_[cachesize];
-        
+
         public:
             // Functions provided by NeoHookean2D
             NeoHookean2D(PerlInput const& Input, int const& Echo = 1,
                     int const& Width = 20);
             ~NeoHookean2D();
-            
+
             // Virtual Functions required by Lattice
             Vector const& DOF() const
             {
                 return DOF_;
             }
-            
+
             void fill_links_from_constrained_to_unconstrained();
-            
+
             void SetDOF(Vector const& dof);
-            
+
             double Lambda() const
             {
                 return Lambda_;
             }
-            
+
             void SetLambda(double const& lambda);
-            
+
             virtual double E0() const;
             virtual double EDLoad() const;
             virtual Vector const& E1() const;
@@ -80,7 +80,7 @@ class NeoHookean2D : public Lattice
             {
                 return E1DLoad();
             }
-            
+
             virtual Matrix const& E2() const;
             virtual Matrix const& StiffnessDL() const
             {
@@ -91,70 +91,70 @@ class NeoHookean2D : public Lattice
             {
                 return "NeoHookean2D";
             }
-            
+
             virtual void Print(ostream& out, PrintDetail const& flag,
                     PrintPathSolutionType const& SolType = RegularPt);
-            
+
             virtual void PrintPath(ostream& out, ostream& pathout, int const& width);
-            
+
             virtual void DrawBifurcatedPath(Vector const& tangent, unsigned int numBifurcationPoint,
                                         unsigned int CPCrossingNum, unsigned int indexLocal);
-            
+
             friend ostream& operator<<(ostream& out, NeoHookean2D& A);
-            
+
             // ignore these
             double Entropy() const
             {
                 return 0.0;
             }
-            
+
             double HeatCapacity() const
             {
                 return 0.0;
             }
-            
+
             Vector const& StressDT() const
             {
                 return EmptyV_;
             }
-            
+
             Matrix const& StiffnessDT() const
             {
                 return EmptyM_;
             }
-            
+
             double Temp() const
             {
                 return 0.0;
             }
-            
+
             void SetTemp(double const& Ntemp)
             {
             }
-            
+
             virtual Matrix const& E3() const
             {
                 cerr << "NeoHookean2D::E3() Not Programmed\n"; exit(-1); return EmptyM_;
             }
-            
+
             virtual Matrix const& E4() const
             {
                 cerr << "NeoHookean2D::E4() Not Programmed\n"; exit(-1); return EmptyM_;
             }
-            
+
             virtual void SetParameters(double const* const Vals, int const& ResetRef = 1)
             {
             }
-            
+
             virtual void SetGridSize(int const& Grid)
             {
             }
-            
+
             private:
                 // statice for StiffnessDL and E3
                 mutable Matrix stiffdl_static;
                 mutable Matrix E3_static;
-                
+
                 // place holder
                 Vector EmptyV_;
                 Matrix EmptyM_;

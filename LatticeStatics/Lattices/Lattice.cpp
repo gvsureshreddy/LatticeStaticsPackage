@@ -1076,7 +1076,7 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
    cpfilename << Input.LastInputFileName();
    if ("" != UseExtension_)
    {
-      unsigned pos = (cpfilename.str().rfind(UseExtension_, cpfilename.str().length() - 1));
+      size_t pos = (cpfilename.str().rfind(UseExtension_, cpfilename.str().length() - 1));
       if (string::npos != pos)
       {
          string a = cpfilename.str().substr(0, pos);
@@ -1237,7 +1237,6 @@ int Lattice::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vec
          }
          M[dofs] = 0.0;
          Input.writeVector(cpfile, M, "StartType", "Tangent");
-         DrawBifurcatedPath(M, TFIndex, CPCrossingNum[TFIndex], i);
       }
       Input.writeVector(cpfile, T, "StartType", "BifurcationPoint");
       cpfile.close();

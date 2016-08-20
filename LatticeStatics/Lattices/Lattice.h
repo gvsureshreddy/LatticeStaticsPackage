@@ -117,15 +117,10 @@ public:
    enum PrintPathSolutionType {NotSolutionPt, RegularPt, TurningPt, BifurcationPt, ExtraTFPt};
    virtual void Print(ostream& out, PrintDetail const& flag,
                       PrintPathSolutionType const& SolType = RegularPt) = 0;
-   virtual void PrintPath(ostream& out, ostream& pathout, int const& width){}
-   virtual void DrawBifurcatedPath(Vector const& tangent, unsigned int numBifurcationPoint,
-                                        unsigned int CPCrossingNum, unsigned int indexLocal){}
-   
    friend ostream& operator<<(ostream& out, Lattice& L)
    {
       L.Print(out, PrintShort); return out;
    }
-  
 
 protected:
    // "static" member variables

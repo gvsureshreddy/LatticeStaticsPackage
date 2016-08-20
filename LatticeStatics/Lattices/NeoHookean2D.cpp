@@ -25,6 +25,8 @@ namespace neo_hookean
   int NoNegTestFunctions;
 }
 
+const double NeoHookean2D::factor_penalty_H_ = 1.45;
+const double NeoHookean2D::factor_penalty_V_ = 0.76;
 
 NeoHookean2D::~NeoHookean2D()
 {

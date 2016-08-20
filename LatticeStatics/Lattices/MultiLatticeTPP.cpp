@@ -1659,7 +1659,7 @@ int MultiLatticeTPP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIn
       cpfilename << Input.LastInputFileName();
       if ("" != UseExtension_)
       {
-         unsigned pos = (cpfilename.str().rfind(UseExtension_, cpfilename.str().length() - 1));
+         size_t pos = (cpfilename.str().rfind(UseExtension_, cpfilename.str().length() - 1));
          if (string::npos != pos)
          {
             string a = cpfilename.str().substr(0, pos);
@@ -1699,6 +1699,8 @@ int MultiLatticeTPP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIn
       if (NewCBCellFlag_) NewCBCellSingleK(TFIndex,Width, cpfile);
       cpfile.close();
    }
+
+   return Bif;
 }
 
 void MultiLatticeTPP::ExtraTestFunctions(Vector& TF) const

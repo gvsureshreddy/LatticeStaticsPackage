@@ -33,13 +33,11 @@ export TERMINAL
 export PERL
 
 USE_NEO  = -DUSE_NEO
-USE_ELA  = -DUSE_ELA
 #USE_KIM  = -DUSE_KIM
 #USE_FEAP = -DUSE_FEAP
 #USE_QC   = -DUSE_QC
 
 export USE_NEO
-export USE_ELA
 export USE_KIM
 export USE_FEAP
 export USE_QC

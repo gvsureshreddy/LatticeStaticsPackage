@@ -27,9 +27,6 @@
 #ifdef USE_NEO
 #include "NeoHookean2D.h"
 #endif
-#ifdef USE_ELA
-#include "ElasticaBeam1D.h"
-#endif
 
 Lattice* const InitializeLattice(PerlInput const& Input, int const& Echo,
                                  int const& Width = 20, int const& Debug = 0);

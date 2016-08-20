@@ -43,7 +43,6 @@ DATE_DEF   = -DBUILD_DATE="$(BUILD_DATE)"
 
 # Lattice include options (comment out to exclude the Lattice type)
 #USE_NEO  = -DUSE_NEO
-#USE_ELA  = -DUSE_ELA
 #USE_KIM  = -DUSE_KIM
 #USE_FEAP = -DUSE_FEAP
 #USE_QC   = -DUSE_QC
@@ -59,15 +58,6 @@ else
   CXXFLAGS_NEO =
   LFLAGS_NEO =
   LIBS_NEO =
-endif
-ifneq (,$(strip $(USE_ELA)))
-  CXXFLAGS_ELA = -I../elastica-beam
-  LFLAGS_ELA = -L../elastica-build
-  LIBS_ELA = -lelastica-beam
-else
-  CXXFLAGS_ELA =
-  LFLAGS_ELA =
-  LIBS_ELA =
 endif
 FEAP_OK := $(shell if test -e $(FEAPHOME8_3)/Feap8_3.a; then echo YES; else echo NO; fi)
 ifneq (,$(strip $(USE_FEAP)))
@@ -89,9 +79,9 @@ else
   CXX_KIM =
   LIBS_KIM =
 endif
-LIBS       = -lLinearAlgebra -lMyMath -lm $(LIBS_PERL) $(LIBS_FEAP) $(LIBS_KIM) $(LIBS_NEO) $(LIBS_ELA)
-LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(DATE_DEF) $(LIBS_PERL) $(LFLAGS_NEO) $(LFLAGS_ELA)
-CXXFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS) $(SOLVE) $(TERMINAL) $(CXX_PERL) $(CXX_KIM) $(CXXFLAGS_NEO) $(CXXFLAGS_ELA)
+LIBS       = -lLinearAlgebra -lMyMath -lm $(LIBS_PERL) $(LIBS_FEAP) $(LIBS_KIM) $(LIBS_NEO)
+LFLAGS     = $(DEBUG) $(PROFILE) $(OPTIMIZE) $(DATE_DEF) $(LIBS_PERL) $(LFLAGS_NEO)
+CXXFLAGS    = $(ANSI) $(DEBUG) $(PROFILE) $(OPTIMIZE) $(BOUNDS) $(SOLVE) $(TERMINAL) $(CXX_PERL) $(CXX_KIM) $(CXXFLAGS_NEO)
 
 
 # File Locations ##########################################################
@@ -105,9 +95,6 @@ include Makefile
 include ../Lattices/Makefile
 ifeq (,$(strip $(USE_NEO)))
   LATTICES := $(filter-out NeoHookean2D.cpp,$(LATTICES))
-endif
-ifeq (,$(strip $(USE_ELA)))
-  LATTICES := $(filter-out ElasticaBeam1D.cpp,$(LATTICES))
 endif
 ifeq (,$(strip $(USE_FEAP)))
   LATTICES := $(filter-out FEAP.cpp,$(LATTICES))
@@ -280,7 +267,7 @@ include $(addprefix depend/,$(TWOBARTRUSSOBJECTS:$(OBJ_EXT)=$(DEP_EXT)))
 
 $(filter-out PerlInput.o, $(ALLOBJECTS)): Makefile MakeUtilityProgs
 	$(CXX) $(CXXFLAGS) -I. $(addprefix -I ,$(SUBDIRS)) -I $(INCL_LOC)/ \
-        $(USE_FEAP) $(USE_KIM) $(USE_QC) $(USE_NEO) $(USE_ELA)\
+        $(USE_FEAP) $(USE_KIM) $(USE_QC) $(USE_NEO)\
         -o ./lib/$(notdir $@) \
         -c $(filter %/$(*),$(basename $(ALLSOURCES)))$(SRC_EXT)
 

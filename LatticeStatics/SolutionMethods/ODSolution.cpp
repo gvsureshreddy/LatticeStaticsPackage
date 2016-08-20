@@ -180,6 +180,10 @@ int ODSolution::AllSolutionsFound() const
    {
       return 1;
    }
+   else
+   {
+     return 0;
+   }
 }
 
 double ODSolution::dt() const

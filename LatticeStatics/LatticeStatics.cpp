@@ -16,17 +16,15 @@ char* builddate();
 using namespace std;
 
 void GetMainSettings(int& Width, int& Precision, int& Echo, PerlInput const& Input);
-void InitializeOutputFile(fstream& out, char const* const outfile, char const* const pathoutfile, char const* const datafile,
+void InitializeOutputFile(fstream& out, char const* const outfile, char const* const datafile,
                           char const* const startfile, int const& Precision, int const& Width,
                           int const& Echo);
 
 // define as global to allow outatexit to flush
 fstream out;
-fstream pathout;
 void outatexit(void)
 {
    out.flush();
-   pathout.flush();
    cout.flush();
    cerr.flush();
    cout << "outatexit called" << endl;
@@ -36,7 +34,7 @@ void outatexit(void)
 int main(int argc, char* argv[])
 {
    // Check commandline arguments
-   if ((argc < 4) || ((argc < 5) && (!strcmp(argv[1], "--debug"))))
+   if ((argc < 3) || ((argc < 4) && (!strcmp(argv[1], "--debug"))))
    {
       cerr << "Usage: " << argv[0]
            << " [--debug]"
@@ -58,14 +56,13 @@ int main(int argc, char* argv[])
 
    char* datafile = argv[1 + Debug],
    * outputfile = argv[2 + Debug],
-   * pathoutputfile = argv[3 + Debug],
    * startfile;
 
    PerlInput Input(datafile);
 
-   if (argc == 5 + Debug)
+   if (argc == 4 + Debug)
    {
-      startfile = argv[4 + Debug];
+      startfile = argv[3 + Debug];
       Input.Readfile(startfile);
    }
    else
@@ -82,13 +79,12 @@ int main(int argc, char* argv[])
    GetMainSettings(Width, Precision, Echo, Input);
 
    // out declared at global level
-   InitializeOutputFile(out, outputfile, pathoutputfile, datafile, startfile, Precision, Width, Echo);
+   InitializeOutputFile(out, outputfile, datafile, startfile, Precision, Width, Echo);
    // flush buffers when exit() is called
    atexit(outatexit);
 
    Lat = InitializeLattice(Input, Echo, Width, Debug);
    Lat->Print(out, Lattice::PrintLong, Lattice::NotSolutionPt);
-   //Lat->Print(out, pathout, Lattice::PrintLong, Lattice::NotSolutionPt);
 
    Restrict = InitializeRestriction(Lat, Input);
 
@@ -104,8 +100,7 @@ int main(int argc, char* argv[])
 
    while ((success) && (!SolveMe->AllSolutionsFound()))
    {
-      success = SolveMe->FindNextSolution(Input, Width, out, pathout);
-      
+      success = SolveMe->FindNextSolution(Input, Width, out);
    }
    if (!success)
    {
@@ -135,7 +130,7 @@ void GetMainSettings(int& Width, int& Precision, int& Echo, PerlInput const& Inp
    Input.EndofInputSection();
 }
 
-void InitializeOutputFile(fstream& out, char const* const outfile, char const* const pathoutfile,char const* const datafile,
+void InitializeOutputFile(fstream& out, char const* const outfile, char const* const datafile,
                           char const* const startfile, int const& Precision, int const& Width,
                           int const& Echo)
 {
@@ -182,14 +177,6 @@ void InitializeOutputFile(fstream& out, char const* const outfile, char const* c
       }
 
       start.close();
-   }
-   
-   pathout.open(pathoutfile, ios::out);
-   if (pathout.fail())
-   {
-      cerr << "Error: Unable to open file : " << pathoutfile << " for write"
-           << "\n";
-      exit(-1);
    }
 
    if (Echo)
