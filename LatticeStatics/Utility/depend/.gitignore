@@ -4,7 +4,7 @@
 /LongWavelengthModuli.d
 /NeighborDistances.d
 /PPSum.d
-/PPSumKIM.d
+/CBK_KIM.d
 /Rank1Convex.d
 /UnitCellIterator.d
 /UtilityFunctions.d

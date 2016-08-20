@@ -1,5 +1,5 @@
-#ifndef RSE__PPSumKIM
-#define RSE__PPSumKIM
+#ifndef RSE__CBK_KIM
+#define RSE__CBK_KIM
 
 #include <Matrix.h>
 #include <Vector.h>
@@ -83,6 +83,14 @@ private:
                             int numberOfSpecies_);
   void ComputeAndUpdate();
 
+  static int get_neigh(void* kimmdl, int* mode, int* request, int* part,
+                int* numnei, int** nei1atom, double** pRij);
+
+  static int process_dEdr(void* kimmdl, double* dEdr, double* r,
+                  double** dx, int* iSpec, int* jSpec);
+  static int process_d2Edr2(void* kimmdl, double* d2Edr2, double** r,
+                   double** dx, int** iSpecs, int** jSpecs);
+
 public:
   const static int DIM3;
 
@@ -131,15 +139,6 @@ public:
   {
     return energy_;
   }
-
-  static int get_neigh(void* kimmdl, int* mode, int* request, int* part,
-                int* numnei, int** nei1atom, double** pRij);
-
-  static int process_dEdr(void* kimmdl, double* dEdr, double* r,
-                  double** dx, int* iSpec, int* jSpec);
-  static int process_d2Edr2(void* kimmdl, double* d2Edr2, double** r,
-                   double** dx, int** iSpecs, int** jSpecs);
-
 };
 
 #endif
