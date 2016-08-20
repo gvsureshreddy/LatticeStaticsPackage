@@ -194,7 +194,7 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
    {
      cerr << "Error (FEAP()): Missing Loading" << "\n";
    }
-   cout << "Load OK" << Load_ << "\n";   
+   cout << "Load OK" << Load_ << "\n";
    KDirection_.Resize(ndm_,0.0);
    PerlInput::HashStruct TFHash = Input.getHash(Hash, "ExtraTestFunctions");
    const char* TFtyp = Input.getString(TFHash, "Type");
@@ -543,7 +543,7 @@ FEAP::FEAP(PerlInput const& Input, int const& Echo, int const& Width) :
      {
        if ((i==BoundNodes_[j])||(i==PeriodicNodes_[j]))
        {
-	 	l=l-1;
+                l=l-1;
        }
      }
    }
@@ -649,7 +649,7 @@ void FEAP::MapHelper(int const i, int const offset, int const* const Nodes)
     FMap_[Nodes[i]*ndf_+1][1] = 1+offset+1;
     FMap_[Nodes[i]*ndf_+1][2] = 2;
     FMap_[Nodes[i]*ndf_+1][3] = 1+offset;
-          
+
     if (ndf_>ndm_)
     {
       Map_[Nodes[i]*ndf_+2][0] = -1;
@@ -700,7 +700,7 @@ void FEAP::MapHelper(int const i, int const offset, int const* const Nodes)
     FMap_[Nodes[i]*ndf_+1][3] = 3+offset;
     FMap_[Nodes[i]*ndf_+1][4] = 3;
     FMap_[Nodes[i]*ndf_+1][5] = 3+offset+2;
-              
+
     Map_[Nodes[i]*ndf_+2][0] = 2;
     Map_[Nodes[i]*ndf_+2][1] = offset+2;
     Map_[Nodes[i]*ndf_+2][2] = 3;
@@ -772,7 +772,7 @@ void FEAP::UpdateValues(UpdateFlag flag) const
    double S2 = 0.0;
    double S3 = 0.0;
    //double S4 = 0.0;
-   
+
    int shift=0;
    switch (LoadingType_)
    {
@@ -831,7 +831,7 @@ void FEAP::UpdateValues(UpdateFlag flag) const
    bfbfeap_call_form_();
    bfbfeap_get_reduced_residual_(&(E1CachedValue_F_[0]));
  //  cout << "\n" << "E1CachedValue_F_: "<<E1CachedValue_F_ << "\n";
-  
+
    // FEAP returns -E1, so fix it.
    for (int i = 0; i < E1CachedValue_F_.Dim(); ++i)
    {
@@ -861,7 +861,7 @@ void FEAP::UpdateValues(UpdateFlag flag) const
          E1CachedValue_[2] += Lambda_ * (U_[0][0]*U_[1][1]-U_[1][0]*U_[0][1]) * nuc_ * CellArea_;
          E1CachedValue_[3] += Lambda_ * sqrt(2.0)*(U_[1][0]*U_[0][2]-U_[0][0]*U_[1][2]) * nuc_ * CellArea_;
          E1CachedValue_[4] += Lambda_ * sqrt(2.0)*(U_[1][0]*U_[2][1]-U_[1][1]*U_[0][2]) * nuc_ * CellArea_;
-         E1CachedValue_[5] += Lambda_ * sqrt(2.0)*(U_[1][2]*U_[0][2]-U_[2][2]*U_[1][0]) * nuc_ * CellArea_; 
+         E1CachedValue_[5] += Lambda_ * sqrt(2.0)*(U_[1][2]*U_[0][2]-U_[2][2]*U_[1][0]) * nuc_ * CellArea_;
        }
        break;
      case DEAD_LOAD:
@@ -981,25 +981,25 @@ void FEAP::UpdateValues(UpdateFlag flag) const
          E2CachedValue_[0][1] += Lambda_ * U_[2][2] * nuc_ * CellArea_;
          E2CachedValue_[0][2] += Lambda_ * U_[1][1] * nuc_ * CellArea_;
          E2CachedValue_[0][3] -= Lambda_ * sqrt(2) * U_[1][2] * nuc_ * CellArea_;
-         
+
          E2CachedValue_[1][0] += Lambda_ * U_[2][2] * nuc_ * CellArea_;
          E2CachedValue_[1][2] += Lambda_ * U_[0][0] * nuc_ * CellArea_;
          E2CachedValue_[1][4] -= Lambda_ * sqrt(2) * U_[0][2] * nuc_ * CellArea_;
-         
+
          E2CachedValue_[2][0] += Lambda_ * U_[1][1] * nuc_ * CellArea_;
          E2CachedValue_[2][1] += Lambda_ * U_[0][0] * nuc_ * CellArea_;
          E2CachedValue_[2][5] -= Lambda_ * sqrt(2) * U_[1][0] * nuc_ * CellArea_;
-         
+
          E2CachedValue_[3][0] -= Lambda_ * sqrt(2) * U_[1][2] * nuc_ * CellArea_;
          E2CachedValue_[3][3] -= Lambda_ * U_[0][0] * nuc_ * CellArea_;
          E2CachedValue_[3][4] += Lambda_ * U_[1][0] * nuc_ * CellArea_;
          E2CachedValue_[3][5] += Lambda_ * U_[2][0] * nuc_ * CellArea_;
-         
+
          E2CachedValue_[4][1] -= Lambda_ * sqrt(2) * U_[0][2] * nuc_ * CellArea_;
          E2CachedValue_[4][4] -= Lambda_ * U_[1][1] * nuc_ * CellArea_;
          E2CachedValue_[4][3] += Lambda_ * U_[1][0] * nuc_ * CellArea_;
          E2CachedValue_[4][5] += Lambda_ * U_[1][2] * nuc_ * CellArea_;
-         
+
          E2CachedValue_[5][2] -= Lambda_ * sqrt(2) * U_[1][0] * nuc_ * CellArea_;
          E2CachedValue_[5][5] -= Lambda_ * U_[2][2] * nuc_ * CellArea_;
          E2CachedValue_[5][3] += Lambda_ * U_[2][0] * nuc_ * CellArea_;
@@ -1263,11 +1263,11 @@ void FEAP::JacobianHelper(int const ii, int const jj, int const shift,
       Jacobian_[ii][0] = X_F_[ii] + DOF_[shift+jj];
       Jacobian_[ii][5] = 1.0/sqrt(2.0)*(X_F_[ii+1] + DOF_[shift+1+jj]);
       Jacobian_[ii][4] = 1.0/sqrt(2.0)*(X_F_[ii+2] + DOF_[shift+2+jj]);
-      
+
       Jacobian_[ii+1][1] = X_F_[ii+1] + DOF_[shift+1+jj];
       Jacobian_[ii+1][5] = 1.0/sqrt(2.0)*(X_F_[ii] + DOF_[shift+jj]);
       Jacobian_[ii+1][3] = 1.0/sqrt(2.0)*(X_F_[ii+2] + DOF_[shift+jj+2]);
-      
+
       Jacobian_[ii+2][2] = X_F_[ii+2] + DOF_[shift+2+jj];
       Jacobian_[ii+2][3] = 1.0/sqrt(2.0)*(X_F_[ii+1] + DOF_[shift+jj+1]);
       Jacobian_[ii+2][4] = 1.0/sqrt(2.0)*(X_F_[ii] + DOF_[shift+jj]);
@@ -1275,11 +1275,11 @@ void FEAP::JacobianHelper(int const ii, int const jj, int const shift,
       FJacobian_[ii][0] = X_F_[ii] + DOF_[shift+jj];
       FJacobian_[ii][1] = X_F_[ii+1] + DOF_[shift+1+jj];
       FJacobian_[ii][2] = X_F_[ii+2] + DOF_[shift+2+jj];
-      
+
       FJacobian_[ii+1][3] = X_F_[ii] + DOF_[shift+jj];
       FJacobian_[ii+1][4] = X_F_[ii+1] + DOF_[shift+1+jj];
       FJacobian_[ii+1][5] = X_F_[ii+2] + DOF_[shift+2+jj];
-      
+
       FJacobian_[ii+2][6] = X_F_[ii] + DOF_[shift+jj];
       FJacobian_[ii+2][7] = X_F_[ii+1] + DOF_[shift+1+jj];
       FJacobian_[ii+2][8] = X_F_[ii+2] + DOF_[shift+2+jj];
@@ -1289,11 +1289,11 @@ void FEAP::JacobianHelper(int const ii, int const jj, int const shift,
       DispJacobian_[ii][0] = X_F_[ii] + DOF_[shift+jj];
       DispJacobian_[ii][5] = 1.0/sqrt(2.0)*(X_F_[ii+1] + DOF_[shift+1+jj]);
       DispJacobian_[ii][4] = 1.0/sqrt(2.0)*(X_F_[ii+2] + DOF_[shift+2+jj]);
-      
+
       DispJacobian_[ii+1][1] = X_F_[ii+1] + DOF_[shift+1+jj];
       DispJacobian_[ii+1][5] = 1.0/sqrt(2.0)*(X_F_[ii] + DOF_[shift+jj]);
       DispJacobian_[ii+1][3] = 1.0/sqrt(2.0)*(X_F_[ii+2] + DOF_[shift+jj+2]);
-      
+
       DispJacobian_[ii+2][2] = X_F_[ii+2] + DOF_[shift+2+jj];
       DispJacobian_[ii+2][3] = 1.0/sqrt(2.0)*(X_F_[ii+1] + DOF_[shift+jj+1]);
       DispJacobian_[ii+2][4] = 1.0/sqrt(2.0)*(X_F_[ii] + DOF_[shift+jj]);
@@ -1301,15 +1301,15 @@ void FEAP::JacobianHelper(int const ii, int const jj, int const shift,
       FJacobian_[ii][0] = X_F_[ii] + DOF_[shift+jj];
       FJacobian_[ii][1] = X_F_[ii+1] + DOF_[shift+1+jj];
       FJacobian_[ii][2] = X_F_[ii+2] + DOF_[shift+2+jj];
-      
+
       FJacobian_[ii+1][3] = X_F_[ii] + DOF_[shift+jj];
       FJacobian_[ii+1][4] = X_F_[ii+1] + DOF_[shift+1+jj];
       FJacobian_[ii+1][5] = X_F_[ii+2] + DOF_[shift+2+jj];
-      
+
       FJacobian_[ii+2][6] = X_F_[ii] + DOF_[shift+jj];
       FJacobian_[ii+2][7] = X_F_[ii+1] + DOF_[shift+1+jj];
       FJacobian_[ii+2][8] = X_F_[ii+2] + DOF_[shift+2+jj];
-    
+
     }
     Jacobian_[ii][shift+jj]=U_[0][0];
     Jacobian_[ii][shift+1+jj]=U_[0][1];
@@ -1324,7 +1324,7 @@ void FEAP::JacobianHelper(int const ii, int const jj, int const shift,
     FJacobian_[ii+1][Wshift+jj]=F_[1][0];
     FJacobian_[ii+1][Wshift+1+jj]=F_[1][1];
     FJacobian_[ii+1][Wshift+2+jj]=F_[1][2];
-    
+
     Jacobian_[ii+2][shift+jj]=U_[2][0];
     Jacobian_[ii+2][shift+1+jj]=U_[2][1];
     Jacobian_[ii+2][shift+2+jj]=U_[2][2];
@@ -1338,7 +1338,7 @@ void FEAP::JacobianHelper(int const ii, int const jj, int const shift,
 
     Jacobian_[ii+4][shift+4+jj]=1.0;
     FJacobian_[ii+4][Wshift+4+jj]=1.0;
-    
+
     Jacobian_[ii+5][shift+5+jj]=1.0;
     FJacobian_[ii+5][Wshift+5+jj]=1.0;
     }
@@ -1349,7 +1349,7 @@ void FEAP::JacobianHelper(int const ii, int const jj, int const shift,
 
     Jacobian_[ii+4][shift+4+jj]=-1.0;
     FJacobian_[ii+4][Wshift+4+jj]=-1.0;
-    
+
     Jacobian_[ii+5][shift+5+jj]=-1.0;
     FJacobian_[ii+5][Wshift+5+jj]=-1.0;
     }
@@ -1429,7 +1429,7 @@ int FEAP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vector
          {
             K_[0] = pi*KScale_*(((double) i)/((double) KSpaceResolution_));
             K_[1] = pi*KScale_*(((double) j)/((double) KSpaceResolution_));
-            
+
             if(ndm_==2)
             {
               DynamicalMatrixBis(K_);
@@ -1469,7 +1469,7 @@ int FEAP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vector
                      cout << "Tangent => [";
                      for (int l = 0; l < ndf_*(numnp_-nbn_/2); ++l)
 
-		    {
+                    {
                          if ((fabs(sin(K_[0])) < 1.0e-5) && (fabs(sin(K_[1])) < 1.0e-5))
                          {
                             cout << EigVec[l][Ind[k]].real() << ", ";
@@ -1546,7 +1546,7 @@ int FEAP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vector
                      cout << "Tangent => [";
                      for (int l = 0; l < ndf_*(numnp_-nbn_/2); ++l)
 
-		    {
+                    {
                          if ((fabs(sin(K_[0])) < 1.0e-5) && (fabs(sin(K_[1])) < 1.0e-5) && (fabs(sin(K_[2])) < 1.0e-5))
                          {
                             cout << EigVec[l][Ind[k]].real() << ", ";
@@ -1578,7 +1578,7 @@ int FEAP::CriticalPointInfo(int* const CPCrossingNum, int const& TFIndex, Vector
                }
 
                delete[] Ind;
-              } 
+              }
             }
          }
       }
@@ -1666,7 +1666,7 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
                          << "  U23 = " << DOF_[3] / sqrt(2.0)
                          << "  U13 = " << DOF_[4] / sqrt(2.0)
                          << "  U12 = " << DOF_[5] / sqrt(2.0);
-                         } 
+                         }
          bloch_wave_out_ << endl;
          break;
        case DISPLACEMENT_CONTROL:
@@ -1698,7 +1698,7 @@ void FEAP::ExtraTestFunctions(Vector& TF) const
          {
             K_[0] = pi*KScale_*(((double) i)/((double) KSpaceResolution_));
             K_[1] = pi*KScale_*(((double) j)/((double) KSpaceResolution_));
-            
+
             if(ndm_==2)
             {
               DynamicalMatrixBis(K_);
@@ -2301,7 +2301,7 @@ void FEAP::DynamicalMatrixBis(Vector const& K) const
    CMatrix B(ndf_,ndf_,0.0);
    Dk_.Resize(dim,dim,0.0);
    MyComplexDouble Ic(0.0,1.0);
-   
+
    int shift_=ndm_*(ndm_+1)/2;
 
 
