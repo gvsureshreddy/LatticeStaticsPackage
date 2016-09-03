@@ -8,8 +8,6 @@
 #include <sstream>
 #include <cstring>
 
-using namespace std;
-
 int const CBK_KIM::DIM3 = 3;
 
 /**********************************************************************
@@ -54,22 +52,28 @@ CBK_KIM::~CBK_KIM()
     KIM_API_report_error(__LINE__, (char*) __FILE__,
                          (char*) "KIM_API_free", status);
   }
+
+  // clean up CBK objects
+  delete CBK_;
+  if(CBK_ != CBK_F_)
+    delete CBK_F_;
 }
 
-void CBK_KIM::operator()(CBKinematics* const CBK, CBKinematics* const CBK_F,
-      PerlInput const& Input)
+CBK_KIM::CBK_KIM(PerlInput const& Input, PerlInput::HashStruct const* const ParentHash)
 {
-  CBK_ = CBK;
-  CBK_F_ = CBK_F;
-
-  Initialize(Input);
-}
-
-void CBK_KIM::Initialize(PerlInput const& Input)
-{
-  // Get Lattice definition
-  PerlInput::HashStruct Hash = Input.getHash("Lattice", "MultiLatticeKIM");
-  PerlInput::HashStruct CBKHash = Input.getHash(Hash, "CBKinematics");
+   // Get Lattice definition
+  PerlInput::HashStruct CBKHash = Input.getHash(*ParentHash, "CBKinematics");
+  const char* CBKin = Input.getString(CBKHash, "Type");
+  if (!strcmp("SymLagrangeWTransCB", CBKin))
+  {
+    CBK_ = new SymLagrangeWTransCB(Input, ParentHash);
+    CBK_F_ = new LagrangeCB(Input, ParentHash);
+  }
+  else if (!strcmp("LagrangeCB", CBKin))
+  {
+    CBK_ = new LagrangeCB(Input, ParentHash);
+    CBK_F_ = CBK_;
+  }
 
   InternalAtoms_ = CBK_->InternalAtoms();
 
@@ -83,10 +87,10 @@ void CBK_KIM::Initialize(PerlInput const& Input)
 
   int status;
   char* modelname;
-  if (Input.ParameterOK(Hash, "KIMModel"))
+  if (Input.ParameterOK(*ParentHash, "KIMModel"))
   {
    // Reads in the name of the model from Input file
-   modelname = (char*) Input.getString(Hash, "KIMModel");
+   modelname = (char*) Input.getString(*ParentHash, "KIMModel");
   }
   else
   {
@@ -113,10 +117,10 @@ void CBK_KIM::Initialize(PerlInput const& Input)
   // Calls function to create a compatible descriptor file. Will need to
   // augment so that it can read in info from a model and automatically
   // decides the appropriate tests.
-  if (Input.ParameterOK(Hash, "PrintKIM_DescriptorFile"))
+  if (Input.ParameterOK(*ParentHash, "PrintKIM_DescriptorFile"))
   {
    char const* const
-      printKIM = Input.getString(Hash, "PrintKIM_DescriptorFile");
+      printKIM = Input.getString(*ParentHash, "PrintKIM_DescriptorFile");
    if ((!strcmp(printKIM, "Yes")) || (!strcmp(printKIM, "yes")))
    {
     cout << descriptor_file_.str();
@@ -206,19 +210,19 @@ void CBK_KIM::Initialize(PerlInput const& Input)
 
   // reset any KIM Model Published parameters as requested
   char const KIMparams[] = "KIMModelPublishedParameters";
-  if (Input.ParameterOK(Hash, KIMparams))
+  if (Input.ParameterOK(*ParentHash, KIMparams))
   {
-    int const params = Input.getArrayLength(Hash, KIMparams);
+    int const params = Input.getArrayLength(*ParentHash, KIMparams);
 
     for (int i = 0; i < params; ++i)
     {
-      char const* const paramName = Input.getString(Hash, KIMparams, i, 0);
-      char const* const paramType = Input.getString(Hash, KIMparams, i, 1);
+      char const* const paramName = Input.getString(*ParentHash, KIMparams, i, 0);
+      char const* const paramType = Input.getString(*ParentHash, KIMparams, i, 1);
       cout << "paramName is: " << paramName << "\n"
            << "paramType is: " << paramType << "\n";
       if (!strcmp("integer", paramType))
       {
-        int const val = Input.getInt(Hash, KIMparams, i, 2);
+        int const val = Input.getInt(*ParentHash, KIMparams, i, 2);
 
         int * const paramVal = (int*)
             KIM_API_get_data(pkim_, paramName, &status);
@@ -244,7 +248,7 @@ void CBK_KIM::Initialize(PerlInput const& Input)
       }
       else if (!strcmp("double", paramType))
       {
-        double const val = Input.getDouble(Hash, KIMparams, i, 2);
+        double const val = Input.getDouble(*ParentHash, KIMparams, i, 2);
         double * const paramVal = (double*)
             KIM_API_get_data(pkim_, paramName, &status);
         if (KIM_STATUS_OK > status)
@@ -291,6 +295,7 @@ void CBK_KIM::Initialize(PerlInput const& Input)
   ME2_static.Resize(CBK_->DOFS(), CBK_->DOFS(), 0.0);
   ME2_F_static.Resize(CBK_F_->DOFS(), CBK_F_->DOFS(), 0.0);
 }
+
 
 void CBK_KIM::Write_KIM_descriptor_file(const char** SpeciesList,
                                 int numberOfSpecies_)

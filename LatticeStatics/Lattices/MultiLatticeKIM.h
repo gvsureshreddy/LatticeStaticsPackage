@@ -7,8 +7,6 @@
 #include "Lattice.h"
 #include "UnitCellIterator.h"
 #include "CBKinematics.h"
-#include "LagrangeCB.h"
-#include "SymLagrangeWTransCB.h"
 #include "CBK_KIM.h"
 #include <CMatrix.h>
 #include "KIM_API_C.h"
@@ -30,7 +28,7 @@ class MultiLatticeKIM : public Lattice
   // or
   // DOF[i] = [U11 U22 U33 U12 U13 U23 S11 S12 S13 S21... ...]
   // if using a UwithoutTransMapping CBkinematics
-  mutable CBK_KIM KIM_CBK_;
+  mutable CBK_KIM *KIM_CBK_;
   CBKinematics* CBK_;
   CBKinematics* CBK_F_;
   int KillRotations_;

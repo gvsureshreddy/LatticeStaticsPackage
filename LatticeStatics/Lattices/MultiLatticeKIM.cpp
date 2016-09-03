@@ -17,9 +17,7 @@ double const TrEig_[MultiLatticeKIM::DIM3] = {4.0, 5.0, 6.0};
 
 MultiLatticeKIM::~MultiLatticeKIM()
 {
-  delete CBK_;
-  if(CBK_ != CBK_F_)
-    delete CBK_F_;
+  delete KIM_CBK_;
 }
 
 MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
@@ -33,6 +31,20 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
   StiffnessYes_ = 0;
   int needKillRotations = 1;
   KillRotations_ = 0; // 0-do nothing, 1-kill one rotation, 2-kill 3 rotations
+
+  PerlInput::HashStruct CBKHash = Input.getHash(Hash, "CBKinematics");
+  const char* CBKin = Input.getString(CBKHash, "Type");
+  if (!strcmp("SymLagrangeWTransCB", CBKin))
+  {
+    needKillRotations = 0;
+  }
+  else if (strcmp("LagrangeCB", CBKin) != 0 )
+  {
+    cerr << "Error Unknown/unsupported MultiLatticeKIM{CBKinematics}{Type} "
+         << "specified\n";
+    exit(-9);
+  }
+
   if (Input.ParameterOK(Hash, "FastPrint"))
   {
     const char* FastPrnt = Input.getString(Hash, "FastPrint");
@@ -51,25 +63,11 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
     Input.useString("No", Hash, "FastPrint");
   }
 
-  PerlInput::HashStruct CBKHash = Input.getHash(Hash, "CBKinematics");
-  const char* CBKin = Input.getString(CBKHash, "Type");
-  if (!strcmp("SymLagrangeWTransCB", CBKin))
-  {
-    CBK_ = new SymLagrangeWTransCB(Input, &Hash);
-    CBK_F_ = new LagrangeCB(Input, &Hash);
-    needKillRotations = 0;
-  }
-  else if (!strcmp("LagrangeCB", CBKin))
-  {
-    CBK_ = new LagrangeCB(Input, &Hash);
-    CBK_F_ = CBK_;
-  }
-  else
-  {
-    cerr << "Error Unknown/unsupported MultiLatticeKIM{CBKinematics}{Type} "
-         << "specified\n";
-    exit(-9);
-  }
+
+  KIM_CBK_ = new CBK_KIM(Input, &Hash);
+  CBK_ = KIM_CBK_->get_CBK_ptr();
+  CBK_F_ = KIM_CBK_->get_CBK_F_ptr();
+
   InternalAtoms_ = CBK_->InternalAtoms();
 
   // Update KillRotations_ if needed
@@ -126,8 +124,7 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
   }
 
   // set up CBK_kim object
-  KIM_CBK_(CBK_, CBK_F_, Input);
-  InfluenceDist_ = KIM_CBK_.get_cutoff();
+  InfluenceDist_ = KIM_CBK_->get_cutoff();
   // Get Lattice parameters
   if (Input.ParameterOK(Hash, "Density"))
   {
@@ -283,7 +280,7 @@ int MultiLatticeKIM::FindLatticeSpacing(int const& iter, bool cubicEqbm)
 
   CBK_->SetReferenceDOFs();
   if (CBK_F_ != CBK_) CBK_F_->SetReferenceDOFs();
-  KIM_CBK_.UpdateCoordinatesAndKIMValues();
+  KIM_CBK_->UpdateCoordinatesAndKIMValues();
 
   if (cubicEqbm)
   {
@@ -326,7 +323,7 @@ int MultiLatticeKIM::FindLatticeSpacing(int const& iter, bool cubicEqbm)
   CBK_->SetReferenceToCurrent();
   if (CBK_F_ != CBK_) CBK_F_->SetReferenceToCurrent();
 
-  KIM_CBK_.UpdateCoordinatesAndKIMValues();
+  KIM_CBK_->UpdateCoordinatesAndKIMValues();
 
   return 0;
 }
@@ -340,15 +337,15 @@ void MultiLatticeKIM::SetParameters(double const* const Vals,
 
 void MultiLatticeKIM::UpdateKIMValues() const
 {
-  KIM_CBK_.ComputeAndUpdate(StiffnessYes_);
-  energy_ = KIM_CBK_.Energy();
-  BodyForce_ = KIM_CBK_.get_BodyForce();
-  ME1_static = KIM_CBK_.get_ME1_static();
-  ME1_F_static = KIM_CBK_.get_ME1_F_static();
+  KIM_CBK_->ComputeAndUpdate(StiffnessYes_);
+  energy_ = KIM_CBK_->get_energy();
+  BodyForce_ = KIM_CBK_->get_BodyForce();
+  ME1_static = KIM_CBK_->get_ME1_static();
+  ME1_F_static = KIM_CBK_->get_ME1_F_static();
   if (StiffnessYes_ == 1)
   {
-    ME2_static = KIM_CBK_.get_ME2_static();
-    ME2_F_static = KIM_CBK_.get_ME2_F_static();
+    ME2_static = KIM_CBK_->get_ME2_static();
+    ME2_F_static = KIM_CBK_->get_ME2_F_static();
   }
 }
 
@@ -821,7 +818,7 @@ void MultiLatticeKIM::Print(ostream& out, PrintDetail const& flag,
   {
     cout.width(0);
   }
-  KIM_CBK_.UpdateCoordinatesAndKIMValues();
+  KIM_CBK_->UpdateCoordinatesAndKIMValues();
 
   engy = E0();
   conj = ConjugateToLambda();

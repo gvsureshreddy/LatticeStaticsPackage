@@ -6,6 +6,8 @@
 #include <vector>
 #include "PerlInput.h"
 #include "CBKinematics.h"
+#include "LagrangeCB.h"
+#include "SymLagrangeWTransCB.h"
 #include "KIM_API_C.h"
 #include "KIM_API_status.h"
 
@@ -78,7 +80,6 @@ private:
   mutable Matrix ME2_static;
   mutable Matrix ME2_F_static;
 
-  void Initialize(PerlInput const& Input);
   void Write_KIM_descriptor_file(const char** SpeciesList,
                             int numberOfSpecies_);
   void ComputeAndUpdate();
@@ -94,23 +95,23 @@ private:
 public:
   const static int DIM3;
 
-  CBK_KIM()
-  {
-  }
-
   ~CBK_KIM();
 
-  CBK_KIM(CBKinematics* const CBK, CBKinematics* const CBK_F,
-        PerlInput const& Input);
-
-  void operator()(CBKinematics* const CBK, CBKinematics* const CBK_F,
-        PerlInput const& Input);
+  CBK_KIM(PerlInput const& Input, PerlInput::HashStruct const* const ParentHash);
 
   void UpdateCoordinatesAndKIMValues();
 
   void ComputeAndUpdate(int StiffnessYes);
 
   // get methods
+  CBKinematics* get_CBK_ptr()
+  {
+    return CBK_;
+  }
+  CBKinematics* get_CBK_F_ptr()
+  {
+    return CBK_F_;
+  }
   double get_cutoff()
   {
     return cutoff_;
@@ -135,7 +136,7 @@ public:
   {
     return (BodyForce_);
   }
-  double Energy()
+  double get_energy()
   {
     return energy_;
   }
