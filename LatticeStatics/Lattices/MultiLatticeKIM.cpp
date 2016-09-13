@@ -32,8 +32,16 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
   int needKillRotations = 1;
   KillRotations_ = 0; // 0-do nothing, 1-kill one rotation, 2-kill 3 rotations
 
-  PerlInput::HashStruct CBKHash = Input.getHash(Hash, "CBKinematics");
-  const char* CBKin = Input.getString(CBKHash, "Type");
+  PerlInput::HashStruct CBK_KIM_Hash = Input.getHash(Hash, "CBK_KIM");
+
+  KIM_CBK_ = new CBK_KIM(Input, &CBK_KIM_Hash);
+  CBK_ = KIM_CBK_->get_CBK_ptr();
+  CBK_F_ = KIM_CBK_->get_CBK_F_ptr();
+
+  InternalAtoms_ = CBK_->InternalAtoms();
+
+  // get the CBK type, and use it to set needkillrotatuions
+  const char* CBKin = KIM_CBK_->get_CBK_Type();
   if (!strcmp("SymLagrangeWTransCB", CBKin))
   {
     needKillRotations = 0;
@@ -62,13 +70,6 @@ MultiLatticeKIM::MultiLatticeKIM(PerlInput const& Input, int const& Echo = 1,
     FastPrint_ = 0;
     Input.useString("No", Hash, "FastPrint");
   }
-
-
-  KIM_CBK_ = new CBK_KIM(Input, &Hash);
-  CBK_ = KIM_CBK_->get_CBK_ptr();
-  CBK_F_ = KIM_CBK_->get_CBK_F_ptr();
-
-  InternalAtoms_ = CBK_->InternalAtoms();
 
   // Update KillRotations_ if needed
   if (needKillRotations)

@@ -57,7 +57,7 @@ private:
   int InternalAtoms_;
   CBKinematics* CBK_;
   CBKinematics* CBK_F_;
-
+  const char* CBK_Type;
   void* pkim_;
 
   Vector* BodyForce_;
@@ -97,7 +97,7 @@ public:
 
   ~CBK_KIM();
 
-  CBK_KIM(PerlInput const& Input, PerlInput::HashStruct const* const ParentHash);
+  CBK_KIM(PerlInput const& Input, PerlInput::HashStruct const* const CBK_KIM_Hash);
 
   void UpdateCoordinatesAndKIMValues();
 
@@ -111,6 +111,10 @@ public:
   CBKinematics* get_CBK_F_ptr()
   {
     return CBK_F_;
+  }
+  const char* get_CBK_Type()
+  {
+    return CBK_Type;
   }
   double get_cutoff()
   {

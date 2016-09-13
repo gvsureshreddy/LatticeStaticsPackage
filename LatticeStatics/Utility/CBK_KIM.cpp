@@ -59,19 +59,19 @@ CBK_KIM::~CBK_KIM()
     delete CBK_F_;
 }
 
-CBK_KIM::CBK_KIM(PerlInput const& Input, PerlInput::HashStruct const* const ParentHash)
+CBK_KIM::CBK_KIM(PerlInput const& Input, PerlInput::HashStruct const* const CBK_KIM_Hash)
 {
    // Get Lattice definition
-  PerlInput::HashStruct CBKHash = Input.getHash(*ParentHash, "CBKinematics");
-  const char* CBKin = Input.getString(CBKHash, "Type");
-  if (!strcmp("SymLagrangeWTransCB", CBKin))
+  PerlInput::HashStruct CBKHash = Input.getHash(*CBK_KIM_Hash, "CBKinematics"); 
+  CBK_Type = Input.getString(CBKHash, "Type");
+  if (!strcmp("SymLagrangeWTransCB", CBK_Type))
   {
-    CBK_ = new SymLagrangeWTransCB(Input, ParentHash);
-    CBK_F_ = new LagrangeCB(Input, ParentHash);
+    CBK_ = new SymLagrangeWTransCB(Input, CBK_KIM_Hash);
+    CBK_F_ = new LagrangeCB(Input, CBK_KIM_Hash);
   }
-  else if (!strcmp("LagrangeCB", CBKin))
+  else if (!strcmp("LagrangeCB", CBK_Type))
   {
-    CBK_ = new LagrangeCB(Input, ParentHash);
+    CBK_ = new LagrangeCB(Input, CBK_KIM_Hash);
     CBK_F_ = CBK_;
   }
 
@@ -87,10 +87,10 @@ CBK_KIM::CBK_KIM(PerlInput const& Input, PerlInput::HashStruct const* const Pare
 
   int status;
   char* modelname;
-  if (Input.ParameterOK(*ParentHash, "KIMModel"))
+  if (Input.ParameterOK(*CBK_KIM_Hash, "KIMModel"))
   {
    // Reads in the name of the model from Input file
-   modelname = (char*) Input.getString(*ParentHash, "KIMModel");
+   modelname = (char*) Input.getString(*CBK_KIM_Hash, "KIMModel");
   }
   else
   {
@@ -117,10 +117,10 @@ CBK_KIM::CBK_KIM(PerlInput const& Input, PerlInput::HashStruct const* const Pare
   // Calls function to create a compatible descriptor file. Will need to
   // augment so that it can read in info from a model and automatically
   // decides the appropriate tests.
-  if (Input.ParameterOK(*ParentHash, "PrintKIM_DescriptorFile"))
+  if (Input.ParameterOK(*CBK_KIM_Hash, "PrintKIM_DescriptorFile"))
   {
    char const* const
-      printKIM = Input.getString(*ParentHash, "PrintKIM_DescriptorFile");
+      printKIM = Input.getString(*CBK_KIM_Hash, "PrintKIM_DescriptorFile");
    if ((!strcmp(printKIM, "Yes")) || (!strcmp(printKIM, "yes")))
    {
     cout << descriptor_file_.str();
@@ -210,19 +210,19 @@ CBK_KIM::CBK_KIM(PerlInput const& Input, PerlInput::HashStruct const* const Pare
 
   // reset any KIM Model Published parameters as requested
   char const KIMparams[] = "KIMModelPublishedParameters";
-  if (Input.ParameterOK(*ParentHash, KIMparams))
+  if (Input.ParameterOK(*CBK_KIM_Hash, KIMparams))
   {
-    int const params = Input.getArrayLength(*ParentHash, KIMparams);
+    int const params = Input.getArrayLength(*CBK_KIM_Hash, KIMparams);
 
     for (int i = 0; i < params; ++i)
     {
-      char const* const paramName = Input.getString(*ParentHash, KIMparams, i, 0);
-      char const* const paramType = Input.getString(*ParentHash, KIMparams, i, 1);
+      char const* const paramName = Input.getString(*CBK_KIM_Hash, KIMparams, i, 0);
+      char const* const paramType = Input.getString(*CBK_KIM_Hash, KIMparams, i, 1);
       cout << "paramName is: " << paramName << "\n"
            << "paramType is: " << paramType << "\n";
       if (!strcmp("integer", paramType))
       {
-        int const val = Input.getInt(*ParentHash, KIMparams, i, 2);
+        int const val = Input.getInt(*CBK_KIM_Hash, KIMparams, i, 2);
 
         int * const paramVal = (int*)
             KIM_API_get_data(pkim_, paramName, &status);
@@ -248,7 +248,7 @@ CBK_KIM::CBK_KIM(PerlInput const& Input, PerlInput::HashStruct const* const Pare
       }
       else if (!strcmp("double", paramType))
       {
-        double const val = Input.getDouble(*ParentHash, KIMparams, i, 2);
+        double const val = Input.getDouble(*CBK_KIM_Hash, KIMparams, i, 2);
         double * const paramVal = (double*)
             KIM_API_get_data(pkim_, paramName, &status);
         if (KIM_STATUS_OK > status)
