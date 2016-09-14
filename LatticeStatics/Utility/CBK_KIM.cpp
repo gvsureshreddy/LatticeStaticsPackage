@@ -100,7 +100,7 @@ CBK_KIM::CBK_KIM(PerlInput const& Input, PerlInput::HashStruct const* const CBK_
 
   // @@ NumberOfSpecies and SpeciesList need to be moved to CBKinematics object
   // Gets total number of species. From CBKHash
-  numberOfSpecies_ = Input.getInt(CBKHash, "NumberOfSpecies");
+  numberOfSpecies_ = Input.getInt(*CBK_KIM_Hash, "NumberOfSpecies");
 
   const char** SpeciesList = new const char*[numberOfSpecies_];
   const char** AtomSpeciesList = new const char*[InternalAtoms_];
@@ -108,7 +108,7 @@ CBK_KIM::CBK_KIM(PerlInput const& Input, PerlInput::HashStruct const* const CBK_
   for (int i = 0; i < numberOfSpecies_; i++)
   {
    // Gets list of Species. From CBKHash
-   SpeciesList[i] = Input.getString(CBKHash, "SpeciesList", i);
+   SpeciesList[i] = Input.getString(*CBK_KIM_Hash, "SpeciesList", i);
   }
 
   // Create empty KIM object conforming to fields in the KIM descriptor files
@@ -161,7 +161,7 @@ CBK_KIM::CBK_KIM(PerlInput const& Input, PerlInput::HashStruct const* const CBK_
   // for each of the internal atoms
   for (int i = 0; i < InternalAtoms_; i++)
   {
-    AtomSpeciesList[i] = Input.getString(CBKHash, "AtomSpeciesKIM", i);
+    AtomSpeciesList[i] = Input.getString(*CBK_KIM_Hash, "AtomSpeciesKIM", i);
     for (int j = 0; j < numberOfSpecies_; j++)
     {
       if (!strcmp(AtomSpeciesList[i], SpeciesList[j]))
