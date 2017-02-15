@@ -101,6 +101,7 @@ ifeq (,$(strip $(USE_FEAP)))
 endif
 ifeq (,$(strip $(USE_KIM)))
   LATTICES := $(filter-out MultiLatticeKIM.cpp,$(LATTICES))
+  UTILITY := $(filter-out CBK_KIM.cpp,$(UTILITY))
 endif
 ifeq (,$(strip $(USE_QC)))
   LATTICES := $(filter-out QC.cpp,$(LATTICES))
